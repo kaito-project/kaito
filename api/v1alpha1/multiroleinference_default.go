@@ -19,10 +19,13 @@ import (
 
 // SetDefaults for the MultiRoleInference.
 func (m *MultiRoleInference) SetDefaults(_ context.Context) {
-	// Default replicas to 1 for each role if not set or explicitly set to 0.
+	// Default replicas to 1 for each role if not set.
+	// When replicas is nil, autoscaling is assumed and the controller
+	// will not reconcile the replica count.
 	for i := range m.Spec.Roles {
-		if m.Spec.Roles[i].Replicas == 0 {
-			m.Spec.Roles[i].Replicas = 1
+		if m.Spec.Roles[i].Replicas == nil {
+			one := int32(1)
+			m.Spec.Roles[i].Replicas = &one
 		}
 	}
 }

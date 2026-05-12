@@ -16,6 +16,7 @@ package multiroleinference
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/go-logr/logr"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -149,6 +150,12 @@ func (r *MultiRoleInferenceReconciler) garbageCollectMultiRoleInference(ctx cont
 		}
 	}
 
+	// Wait until all child InferenceSets are fully removed before removing the finalizer.
+	if len(isList.Items) > 0 {
+		klog.InfoS("Waiting for child InferenceSets to be fully deleted", "remaining", len(isList.Items), "multiroleinference", klog.KObj(mri))
+		return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
+	}
+
 	// Remove the finalizer.
 	controllerutil.RemoveFinalizer(mri, MultiRoleInferenceFinalizer)
 	if err := r.Update(ctx, mri); err != nil {
@@ -189,9 +196,9 @@ func (r *MultiRoleInferenceReconciler) addOrUpdateMultiRoleInference(ctx context
 		}
 	}
 
-	// Clean up orphaned InferenceSets (roles removed from spec).
-	if err := r.cleanupOrphanedInferenceSets(ctx, mri); err != nil {
-		log.Error(err, "Failed to cleanup orphaned InferenceSets")
+	// Clean up stale InferenceSets (roles removed from spec).
+	if err := r.cleanupStaleInferenceSets(ctx, mri); err != nil {
+		log.Error(err, "Failed to cleanup stale InferenceSets")
 		return ctrl.Result{}, err
 	}
 
@@ -225,8 +232,8 @@ func (r *MultiRoleInferenceReconciler) aggregateStatus(ctx context.Context, log 
 	}
 
 	// Check individual role readiness.
-	prefillReady := r.isInferenceSetReady(roleISMap["prefill"])
-	decodeReady := r.isInferenceSetReady(roleISMap["decode"])
+	prefillReady := r.isInferenceSetReady(roleISMap[string(kaitov1alpha1.MultiRoleInferenceRolePrefill)])
+	decodeReady := r.isInferenceSetReady(roleISMap[string(kaitov1alpha1.MultiRoleInferenceRoleDecode)])
 
 	// TODO: include inferencePoolReady once InferencePool creation is implemented (Step 4).
 	// For now, InferencePool is always not ready.
@@ -242,7 +249,7 @@ func (r *MultiRoleInferenceReconciler) aggregateStatus(ctx context.Context, log 
 		reason = "PrefillReady"
 		message = "Prefill InferenceSet is ready"
 	} else {
-		if _, exists := roleISMap["prefill"]; !exists {
+		if _, exists := roleISMap[string(kaitov1alpha1.MultiRoleInferenceRolePrefill)]; !exists {
 			reason = "PrefillNotFound"
 			message = "Prefill InferenceSet not found"
 		}
@@ -264,7 +271,7 @@ func (r *MultiRoleInferenceReconciler) aggregateStatus(ctx context.Context, log 
 		reason = "DecodeReady"
 		message = "Decode InferenceSet is ready"
 	} else {
-		if _, exists := roleISMap["decode"]; !exists {
+		if _, exists := roleISMap[string(kaitov1alpha1.MultiRoleInferenceRoleDecode)]; !exists {
 			reason = "DecodeNotFound"
 			message = "Decode InferenceSet not found"
 		}
@@ -321,8 +328,8 @@ func (r *MultiRoleInferenceReconciler) isInferenceSetReady(is *kaitov1alpha1.Inf
 	return false
 }
 
-// cleanupOrphanedInferenceSets deletes InferenceSets that no longer correspond to any role in the MRI spec.
-func (r *MultiRoleInferenceReconciler) cleanupOrphanedInferenceSets(ctx context.Context, mri *kaitov1alpha1.MultiRoleInference) error {
+// cleanupStaleInferenceSets deletes InferenceSets whose role has been removed from the MRI spec.
+func (r *MultiRoleInferenceReconciler) cleanupStaleInferenceSets(ctx context.Context, mri *kaitov1alpha1.MultiRoleInference) error {
 	// Build set of expected InferenceSet names.
 	expectedNames := make(map[string]bool, len(mri.Spec.Roles))
 	for _, role := range mri.Spec.Roles {
@@ -340,7 +347,7 @@ func (r *MultiRoleInferenceReconciler) cleanupOrphanedInferenceSets(ctx context.
 	for i := range isList.Items {
 		is := &isList.Items[i]
 		if !expectedNames[is.Name] && is.DeletionTimestamp.IsZero() {
-			klog.InfoS("Deleting orphaned InferenceSet", "inferenceset", klog.KObj(is), "multiroleinference", klog.KObj(mri))
+			klog.InfoS("Deleting stale InferenceSet", "inferenceset", klog.KObj(is), "multiroleinference", klog.KObj(mri))
 			if err := r.Delete(ctx, is, &client.DeleteOptions{}); err != nil && !apierrors.IsNotFound(err) {
 				return err
 			}
@@ -379,8 +386,11 @@ func (r *MultiRoleInferenceReconciler) reconcileInferenceSet(
 		desired.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent] = mri.Name
 		desired.Labels[kaitov1alpha1.LabelInferenceRole] = roleStr
 
-		// Spec.
-		desired.Spec.Replicas = int(role.Replicas)
+		// Spec — only reconcile replicas when explicitly set (non-nil).
+		// When nil, autoscaling is assumed and the controller skips replica reconciliation.
+		if role.Replicas != nil {
+			desired.Spec.Replicas = int(*role.Replicas)
+		}
 
 		// LabelSelector — start from the MRI's labelSelector and inject role info.
 		// The InferenceSet controller propagates Spec.Selector to workspace.Resource.LabelSelector,

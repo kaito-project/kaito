@@ -123,9 +123,9 @@ func (m *MultiRoleInference) validateRoles() (errs *apis.FieldError) {
 			errs = errs.Also(apis.ErrMissingField(field + ".instanceType"))
 		}
 
-		// Validate replicas >= 1.
-		if role.Replicas < 1 {
-			errs = errs.Also(apis.ErrInvalidValue(role.Replicas, field+".replicas", "must be at least 1"))
+		// Validate replicas >= 1 when specified (nil means autoscaling).
+		if role.Replicas != nil && *role.Replicas < 1 {
+			errs = errs.Also(apis.ErrInvalidValue(*role.Replicas, field+".replicas", "must be at least 1"))
 		}
 	}
 

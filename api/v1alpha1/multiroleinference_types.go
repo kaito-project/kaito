@@ -51,10 +51,11 @@ type MultiRoleInferenceRoleSpec struct {
 
 	// Replicas is the number of workspaces (InferenceSet replicas) for this role.
 	// Each replica maps to one Workspace → one StatefulSet.
-	// +kubebuilder:default:=1
+	// When nil, the controller does not reconcile the replica count, allowing
+	// external autoscalers (e.g., HPA) to manage scaling independently.
 	// +kubebuilder:validation:Minimum=1
 	// +optional
-	Replicas int32 `json:"replicas,omitempty"`
+	Replicas *int32 `json:"replicas,omitempty"`
 
 	// InstanceType specifies the GPU node SKU for this role.
 	// Different roles may use different instance types (e.g., larger GPU for prefill).

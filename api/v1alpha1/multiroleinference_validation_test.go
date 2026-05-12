@@ -23,6 +23,8 @@ import (
 	"knative.dev/pkg/apis"
 )
 
+func int32Ptr(v int32) *int32 { return &v }
+
 func TestMultiRoleInference_SupportedVerbs(t *testing.T) {
 	m := &MultiRoleInference{}
 	got := m.SupportedVerbs()
@@ -33,18 +35,20 @@ func TestMultiRoleInference_SupportedVerbs(t *testing.T) {
 }
 
 func TestMultiRoleInference_SetDefaults(t *testing.T) {
+	two := int32(2)
+	three := int32(3)
 	tests := []struct {
 		name             string
 		mri              *MultiRoleInference
 		expectedReplicas []int32
 	}{
 		{
-			name: "replicas should default to 1 when not set",
+			name: "replicas should default to 1 when nil",
 			mri: &MultiRoleInference{
 				Spec: MultiRoleInferenceSpec{
 					Roles: []MultiRoleInferenceRoleSpec{
-						{Type: MultiRoleInferenceRolePrefill, Replicas: 0, InstanceType: "Standard_NC24ads_A100_v4"},
-						{Type: MultiRoleInferenceRoleDecode, Replicas: 0, InstanceType: "Standard_NC24ads_A100_v4"},
+						{Type: MultiRoleInferenceRolePrefill, Replicas: nil, InstanceType: "Standard_NC24ads_A100_v4"},
+						{Type: MultiRoleInferenceRoleDecode, Replicas: nil, InstanceType: "Standard_NC24ads_A100_v4"},
 					},
 				},
 			},
@@ -55,8 +59,8 @@ func TestMultiRoleInference_SetDefaults(t *testing.T) {
 			mri: &MultiRoleInference{
 				Spec: MultiRoleInferenceSpec{
 					Roles: []MultiRoleInferenceRoleSpec{
-						{Type: MultiRoleInferenceRolePrefill, Replicas: 2, InstanceType: "Standard_NC24ads_A100_v4"},
-						{Type: MultiRoleInferenceRoleDecode, Replicas: 3, InstanceType: "Standard_NC24ads_A100_v4"},
+						{Type: MultiRoleInferenceRolePrefill, Replicas: &two, InstanceType: "Standard_NC24ads_A100_v4"},
+						{Type: MultiRoleInferenceRoleDecode, Replicas: &three, InstanceType: "Standard_NC24ads_A100_v4"},
 					},
 				},
 			},
@@ -68,7 +72,7 @@ func TestMultiRoleInference_SetDefaults(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mri.SetDefaults(context.Background())
 			for i, expected := range tt.expectedReplicas {
-				assert.Equal(t, expected, tt.mri.Spec.Roles[i].Replicas)
+				assert.Equal(t, expected, *tt.mri.Spec.Roles[i].Replicas)
 			}
 		})
 	}
@@ -87,8 +91,8 @@ func TestMultiRoleInference_Validate(t *testing.T) {
 				},
 				Model: MultiRoleInferenceModelSpec{Name: "deepseek-ai/DeepSeek-V3"},
 				Roles: []MultiRoleInferenceRoleSpec{
-					{Type: MultiRoleInferenceRolePrefill, Replicas: 1, InstanceType: "Standard_NC24ads_A100_v4"},
-					{Type: MultiRoleInferenceRoleDecode, Replicas: 1, InstanceType: "Standard_NC24ads_A100_v4"},
+					{Type: MultiRoleInferenceRolePrefill, Replicas: int32Ptr(1), InstanceType: "Standard_NC24ads_A100_v4"},
+					{Type: MultiRoleInferenceRoleDecode, Replicas: int32Ptr(1), InstanceType: "Standard_NC24ads_A100_v4"},
 				},
 			},
 		}
@@ -162,7 +166,7 @@ func TestMultiRoleInference_Validate(t *testing.T) {
 			name: "invalid replicas value",
 			mri: func() *MultiRoleInference {
 				m := validMRI()
-				m.Spec.Roles[0].Replicas = 0
+				m.Spec.Roles[0].Replicas = int32Ptr(0)
 				return m
 			}(),
 			wantErr: true,
@@ -203,8 +207,8 @@ func TestMultiRoleInference_validateUpdate(t *testing.T) {
 				},
 				Model: MultiRoleInferenceModelSpec{Name: "deepseek-ai/DeepSeek-V3"},
 				Roles: []MultiRoleInferenceRoleSpec{
-					{Type: MultiRoleInferenceRolePrefill, Replicas: 1, InstanceType: "Standard_NC24ads_A100_v4"},
-					{Type: MultiRoleInferenceRoleDecode, Replicas: 1, InstanceType: "Standard_NC24ads_A100_v4"},
+					{Type: MultiRoleInferenceRolePrefill, Replicas: int32Ptr(1), InstanceType: "Standard_NC24ads_A100_v4"},
+					{Type: MultiRoleInferenceRoleDecode, Replicas: int32Ptr(1), InstanceType: "Standard_NC24ads_A100_v4"},
 				},
 			},
 		}

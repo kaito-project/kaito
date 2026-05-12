@@ -451,6 +451,9 @@ func createGemma3InferenceSetWithDecodeLabelAndVLLM(replicas int) *kaitov1alpha1
 		// NixlConnector kv_transfer_config with kv_both (when no user-provided
 		// kv_transfer_config is set). The workspace reaching Ready status validates
 		// that the inline sidecar injection works correctly with vLLM startup.
+		// TODO: Add explicit assertions that the decode label propagated to the child
+		// Workspace, the StatefulSet pod template contains llm-d-routing-sidecar
+		// container, and the Service/InferencePool targetPort is PortRoutingSidecar.
 		if inferenceSetObj.Spec.Template.Labels == nil {
 			inferenceSetObj.Spec.Template.Labels = make(map[string]string)
 		}

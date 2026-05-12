@@ -26,6 +26,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -165,6 +166,11 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			// Explicitly set vLLM feature gate so decode-role tests are deterministic.
+			origVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+			featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
+			defer func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = origVLLM }()
+
 			helmRelease, err := GenerateInferencePoolHelmRelease(tc.workspace)
 			assert.NoError(t, err)
 			assert.NotNil(t, helmRelease)

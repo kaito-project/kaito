@@ -73,8 +73,9 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 
 	// When the routing sidecar is present (decode role + vLLM), route
 	// external traffic through the sidecar port so that all requests
-	// pass through the routing layer. Probes and monitoring still hit
-	// vLLM directly on PortInferenceServer.
+	// pass through the routing layer. Kubelet container probes still
+	// hit vLLM directly on PortInferenceServer (via PodIP), while
+	// Service/Gateway traffic routes to the sidecar on PortRoutingSidecar.
 	httpTargetPort := consts.PortInferenceServer
 	role, hasRole := workspaceObj.Labels[kaitov1beta1.LabelInferenceRole]
 	if hasRole && role == consts.InferenceRoleDecode && kaitov1beta1.GetWorkspaceRuntimeName(workspaceObj) == pkgmodel.RuntimeNameVLLM {
@@ -383,12 +384,13 @@ func GenerateInferencePoolOCIRepository(inferenceSetObj *kaitov1alpha1.Inference
 }
 
 // inferencePoolTargetPort returns the target port for the InferencePool.
-// For decode-role InferenceSets (with vLLM runtime), traffic goes through the
+// For decode-role InferenceSets with vLLM runtime, traffic goes through the
 // routing sidecar on PortRoutingSidecar. For all other cases, traffic goes
 // directly to the inference server on PortInferenceServer.
 func inferencePoolTargetPort(inferenceSetObj *kaitov1alpha1.InferenceSet) int32 {
 	role := inferenceSetObj.Spec.Template.Labels[kaitov1beta1.LabelInferenceRole]
-	if role == consts.InferenceRoleDecode {
+	runtime := pkgmodel.RuntimeName(inferenceSetObj.Annotations[kaitov1beta1.AnnotationWorkspaceRuntime])
+	if role == consts.InferenceRoleDecode && runtime == pkgmodel.RuntimeNameVLLM {
 		return consts.PortRoutingSidecar
 	}
 	return consts.PortInferenceServer

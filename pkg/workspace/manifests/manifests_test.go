@@ -26,6 +26,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
@@ -90,13 +91,14 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 		},
 
 		{
-			name: "decode role uses routing sidecar port",
+			name: "decode role with vLLM uses routing sidecar port",
 			workspace: func() *kaitov1alpha1.InferenceSet {
 				ws := base.DeepCopy()
 				if ws.Spec.Template.Labels == nil {
 					ws.Spec.Template.Labels = map[string]string{}
 				}
 				ws.Spec.Template.Labels[kaitov1beta1.LabelInferenceRole] = consts.InferenceRoleDecode
+				ws.Annotations[kaitov1beta1.AnnotationWorkspaceRuntime] = string(pkgmodel.RuntimeNameVLLM)
 				return ws
 			}(),
 			expected: map[string]any{

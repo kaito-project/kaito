@@ -246,8 +246,9 @@ func GeneratePullerContainers(wObj *kaitov1beta1.Workspace, adapters []kaitov1be
 }
 
 func GenerateManifestWithPodTemplate(workspaceObj *kaitov1beta1.Workspace, tolerations []corev1.Toleration) *appsv1.StatefulSet {
-	nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(workspaceObj.Resource.LabelSelector.MatchLabels))
-	for key, value := range workspaceObj.Resource.LabelSelector.MatchLabels {
+	selectorLabels := kaitov1beta1.SanitizedMatchLabels(workspaceObj.Resource.LabelSelector)
+	nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(selectorLabels))
+	for key, value := range selectorLabels {
 		nodeRequirements = append(nodeRequirements, corev1.NodeSelectorRequirement{
 			Key:      key,
 			Operator: corev1.NodeSelectorOpIn,
@@ -276,17 +277,23 @@ func GenerateManifestWithPodTemplate(workspaceObj *kaitov1beta1.Workspace, toler
 		}
 	}
 
-	// Overwrite affinity
-	templateCopy.Spec.Affinity = &corev1.Affinity{
-		NodeAffinity: &corev1.NodeAffinity{
-			RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
-				NodeSelectorTerms: []corev1.NodeSelectorTerm{
-					{
-						MatchExpressions: nodeRequirements,
+	// Overwrite affinity. Only set node affinity when there are user-defined
+	// node requirements; an empty MatchExpressions list is rejected by the
+	// Kubernetes API server.
+	if len(nodeRequirements) > 0 {
+		templateCopy.Spec.Affinity = &corev1.Affinity{
+			NodeAffinity: &corev1.NodeAffinity{
+				RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+					NodeSelectorTerms: []corev1.NodeSelectorTerm{
+						{
+							MatchExpressions: nodeRequirements,
+						},
 					},
 				},
 			},
-		},
+		}
+	} else {
+		templateCopy.Spec.Affinity = nil
 	}
 
 	// append tolerations

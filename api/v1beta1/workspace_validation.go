@@ -414,6 +414,28 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 		return errs
 	}
 
+	// Warn (don't reject) when the user-provided selector includes labels
+	// reserved for KAITO-managed resources. These keys are silently ignored
+	// at runtime to avoid cross-workspace/RAGEngine targeting.
+	if r.LabelSelector != nil {
+		for k := range r.LabelSelector.MatchLabels {
+			if IsReservedSelectorLabel(k) {
+				klog.Warningf("labelSelector contains reserved KAITO label %q; it will be ignored", k)
+			}
+		}
+	}
+
+	// Reject when, after stripping KAITO-reserved keys, no usable matchLabels
+	// remain from a user-supplied set. An all-reserved selector would otherwise
+	// be silently dropped and end up matching every node in the cluster.
+	if r.LabelSelector != nil && len(r.LabelSelector.MatchLabels) > 0 &&
+		len(SanitizedMatchLabels(r.LabelSelector)) == 0 {
+		errs = errs.Also(apis.ErrInvalidValue(
+			"matchLabels must contain at least one non-reserved label",
+			"labelSelector.matchLabels"))
+		return errs
+	}
+
 	napDisabled := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 
 	if napDisabled {
@@ -421,10 +443,11 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 			// Note: for tests like aikit.yaml, it creates nodes with kind that do not have GPU labels, so we need to account for that case.
 			kClient := k8sclient.GetGlobalClient()
 
-			// List matching nodes
+			// List matching nodes (KAITO-reserved label keys are stripped to avoid
+			// matching nodes that belong to other Workspaces or RAGEngines).
 			ctx := context.TODO()
 			nodeList := &corev1.NodeList{}
-			labelSelector := client.MatchingLabels(r.LabelSelector.MatchLabels)
+			labelSelector := client.MatchingLabels(SanitizedMatchLabels(r.LabelSelector))
 
 			err := kClient.List(ctx, nodeList, labelSelector)
 			if err != nil {

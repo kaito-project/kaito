@@ -508,7 +508,8 @@ func (p *PresetParam) isVLLMHybridKVCacheManagerRequired() bool {
 	for _, arch := range p.Architectures {
 		switch arch {
 		case "NemotronHForCausalLM", "NemotronH_Nano_VL_V2", "NemotronHMTPModel", "NemotronHPuzzleForCausalLM",
-			"Gemma4ForCausalLM", "Gemma4ForConditionalGeneration":
+			"Gemma4ForCausalLM", "Gemma4ForConditionalGeneration",
+			"Qwen3_5ForConditionalGeneration":
 			return true
 		}
 	}

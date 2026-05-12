@@ -456,7 +456,7 @@ func (c *RAGEngineReconciler) applyRAGEngineResource(ctx context.Context, ragEng
 func (c *RAGEngineReconciler) getAllQualifiedNodes(ctx context.Context, ragEngineObj *kaitov1beta1.RAGEngine) ([]*corev1.Node, error) {
 	var qualifiedNodes []*corev1.Node
 
-	nodeList, err := resources.ListNodes(ctx, c.Client, ragEngineObj.Spec.Compute.LabelSelector.MatchLabels)
+	nodeList, err := resources.ListNodes(ctx, c.Client, kaitov1beta1.SanitizedMatchLabels(ragEngineObj.Spec.Compute.LabelSelector))
 	if err != nil {
 		return nil, err
 	}

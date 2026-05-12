@@ -250,6 +250,9 @@ runs:
     - name: Install karpenter helm chart
       shell: bash
       run: |
+        # Ensure yq v4.30+ is available for envsubst(nu) support required by configure-values.sh
+        sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64
+        sudo chmod +x /usr/local/bin/yq
         AZURE_SUBSCRIPTION_ID=$E2E_SUBSCRIPTION_ID \
         make azure-karpenter-helm
       env:

@@ -15,6 +15,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"os"
@@ -25,20 +26,26 @@ import (
 
 	//+kubebuilder:scaffold:imports
 	azurev1beta1 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1beta1"
+	"github.com/open-policy-agent/cert-controller/pkg/rotator"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/informers"
+	"k8s.io/client-go/kubernetes"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog/v2"
-	"knative.dev/pkg/injection/sharedmain"
-	"knative.dev/pkg/webhook"
 	ctrl "sigs.k8s.io/controller-runtime"
 	runtimecache "sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -48,12 +55,26 @@ import (
 	"github.com/kaito-project/kaito/pkg/ragengine/controllers"
 	"github.com/kaito-project/kaito/pkg/ragengine/webhooks"
 	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
+	kaitocert "github.com/kaito-project/kaito/pkg/utils/cert"
 	"github.com/kaito-project/kaito/pkg/version"
 )
 
 const (
 	WebhookServiceName = "WEBHOOK_SERVICE"
 	WebhookServicePort = "WEBHOOK_PORT"
+	WebhookNamespace   = "SYSTEM_NAMESPACE"
+
+	// webhookCertDir is where cert-controller writes the rotated key/cert pair
+	// and where controller-runtime's webhook server reads from.
+	webhookCertDir = "/tmp/k8s-webhook-server/serving-certs"
+
+	// webhookSecretName is the Secret cert-controller manages on behalf of
+	// the ragengine webhook. Matches the chart-managed Secret.
+	webhookSecretName = "ragengine-webhook-cert"
+
+	// validatingWebhookConfigName matches the ValidatingWebhookConfiguration
+	// shipped in charts/kaito/ragengine/templates/webhooks.yaml.
+	validatingWebhookConfigName = "validation.ragengine.kaito.sh"
 )
 
 var (
@@ -119,11 +140,72 @@ func main() {
 	cfg.UserAgent = ragengineController
 	setRestConfig(cfg, kubeClientQPS, kubeClientBurst)
 
+	// kubeClient is built up-front because the Secret-informer-based webhook
+	// cert loader (below) needs a kubernetes.Interface before the manager is
+	// constructed.
+	kubeClient, err := kubernetes.NewForConfig(cfg)
+	if err != nil {
+		klog.ErrorS(err, "unable to create kubernetes client")
+		exitWithErrorFunc()
+	}
+
+	// certReady is closed by cert-controller once the cert Secret (and disk
+	// material) is populated. We block webhook handler registration on it
+	// while letting the TCP listener bind immediately via the Secret-informer-
+	// backed GetCertificate callback installed on the webhook server below.
+	certReady := make(chan struct{})
+
+	// webhookServer is wired into ctrl.Options.WebhookServer so that
+	// controller-runtime constructs the server with our TLSOpts in place.
+	// Mutating mgr.GetWebhookServer() *after* NewManager does not work: the
+	// server's Start path checks `cfg.GetCertificate == nil` and otherwise
+	// calls certwatcher.New, which fails synchronously if the cert files are
+	// not on disk yet and brings the manager down. Setting GetCertificate via
+	// TLSOpts here bypasses certwatcher entirely.
+	var webhookServer webhook.Server
+	if enableWebhook {
+		p, err := strconv.Atoi(os.Getenv(WebhookServicePort))
+		if err != nil || p == 0 {
+			klog.ErrorS(err, "unable to parse the webhook port number")
+			exitWithErrorFunc()
+		}
+		webhookNS := os.Getenv(WebhookNamespace)
+		if webhookNS == "" {
+			klog.ErrorS(fmt.Errorf("%s env var not set", WebhookNamespace), "unable to determine webhook namespace")
+			exitWithErrorFunc()
+		}
+
+		factory := informers.NewSharedInformerFactoryWithOptions(
+			kubeClient,
+			24*time.Hour,
+			informers.WithNamespace(webhookNS),
+			informers.WithTweakListOptions(func(o *metav1.ListOptions) {
+				o.FieldSelector = fields.OneTermEqualSelector("metadata.name", webhookSecretName).String()
+			}),
+		)
+		secretInformer := factory.Core().V1().Secrets().Informer()
+		secretLister := factory.Core().V1().Secrets().Lister()
+		factory.Start(ctx.Done())
+		if !cache.WaitForCacheSync(ctx.Done(), secretInformer.HasSynced) {
+			klog.ErrorS(fmt.Errorf("timed out waiting for informer cache sync"), "unable to sync webhook cert informer")
+			exitWithErrorFunc()
+		}
+
+		certLoader := kaitocert.NewServerCertLoader(secretLister, webhookNS, webhookSecretName, "tls.crt", "tls.key")
+		webhookServer = webhook.NewServer(webhook.Options{
+			Port: p,
+			TLSOpts: []func(*tls.Config){
+				func(c *tls.Config) { c.GetCertificate = certLoader },
+			},
+		})
+	}
+
 	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme: scheme,
 		Metrics: metricsserver.Options{
 			BindAddress: metricsAddr,
 		},
+		WebhookServer:          webhookServer,
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "ef60f9b1.io",
@@ -150,6 +232,8 @@ func main() {
 	k8sclient.SetGlobalClient(mgr.GetClient())
 	kClient := k8sclient.GetGlobalClient()
 
+	k8sclient.SetGlobalClientGoClient(kubeClient)
+
 	ragengineReconciler := controllers.NewRAGEngineReconciler(
 		kClient,
 		mgr.GetScheme(),
@@ -172,28 +256,48 @@ func main() {
 		exitWithErrorFunc()
 	}
 
+	// certReady is wired into the cert-rotator solely to satisfy its API; we
+	// no longer block webhook registration on it. cert-controller's IsReady
+	// is gated on ensureCertsMounted, which only writes to disk during a
+	// refresh — when the Secret already has valid material from a previous
+	// run, no refresh occurs, no disk write happens, and IsReady never
+	// closes.
 	if enableWebhook {
-		klog.InfoS("starting webhook reconcilers")
-		p, err := strconv.Atoi(os.Getenv(WebhookServicePort))
-		if err != nil {
-			klog.ErrorS(err, "unable to parse the webhook port number")
+		klog.InfoS("setting up cert rotator for webhook")
+		webhookNamespace := os.Getenv(WebhookNamespace)
+		webhookServiceName := os.Getenv(WebhookServiceName)
+
+		if err := rotator.AddRotator(mgr, &rotator.CertRotator{
+			SecretKey: types.NamespacedName{
+				Namespace: webhookNamespace,
+				Name:      webhookSecretName,
+			},
+			CertDir:        webhookCertDir,
+			CAName:         "kaito-ragengine-ca",
+			CAOrganization: "kaito",
+			DNSName:        fmt.Sprintf("%s.%s.svc", webhookServiceName, webhookNamespace),
+			IsReady:        certReady,
+			Webhooks: []rotator.WebhookInfo{{
+				Name: validatingWebhookConfigName,
+				Type: rotator.Validating,
+			}},
+		}); err != nil {
+			klog.ErrorS(err, "unable to set up cert rotator")
 			exitWithErrorFunc()
 		}
-		ctx := webhook.WithOptions(ctx, webhook.Options{
-			ServiceName: os.Getenv(WebhookServiceName),
-			Port:        p,
-			SecretName:  "ragengine-webhook-cert",
-		})
-		ctx = sharedmain.WithHealthProbesDisabled(ctx)
-		ctx = sharedmain.WithHADisabled(ctx)
-		go sharedmain.MainWithConfig(ctx, "webhook", ctrl.GetConfigOrDie(), webhooks.NewRAGEngineWebhooks()...)
 
-		// wait 2 seconds to allow reconciling webhookconfiguration and service endpoint.
-		time.Sleep(2 * time.Second)
+		// Register webhook handlers immediately. The Secret-informer-backed
+		// GetCertificate callback returns (nil, nil) until cert-controller
+		// populates the Secret, which causes handshakes to fail cleanly
+		// without tearing down the listener.
+		if err := webhooks.SetupWebhooksWithManager(mgr); err != nil {
+			klog.ErrorS(err, "unable to register webhooks")
+			exitWithErrorFunc()
+		}
 	}
 
 	klog.InfoS("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+	if err := mgr.Start(ctx); err != nil {
 		klog.ErrorS(err, "problem running manager")
 		exitWithErrorFunc()
 	}

@@ -14,84 +14,79 @@
 package webhooks
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
+	kaitoapis "github.com/kaito-project/kaito/pkg/apis"
 )
 
-func TestNewControllerWebhooks(t *testing.T) {
-	tests := []struct {
-		name                     string
-		enableInferenceSet       bool
-		expectedConstructorCount int
-	}{
-		{
-			name:                     "InferenceSet controller disabled",
-			enableInferenceSet:       false,
-			expectedConstructorCount: 2,
-		},
-		{
-			name:                     "InferenceSet controller enabled",
-			enableInferenceSet:       true,
-			expectedConstructorCount: 3,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Save original feature gate state
-			originalValue := featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController]
-			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] = originalValue
-			}()
-
-			// Set feature gate for test
-			featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] = tt.enableInferenceSet
-
-			// Call the function
-			constructors := NewControllerWebhooks()
-
-			// Assert the expected number of constructors
-			assert.Equal(t, tt.expectedConstructorCount, len(constructors))
-
-			// Verify that the first two constructors are always present
-			assert.NotNil(t, constructors[0])
-			assert.NotNil(t, constructors[1])
-
-			// If InferenceSet is enabled, verify the third constructor
-			if tt.enableInferenceSet {
-				assert.NotNil(t, constructors[2])
+// TestKaitoValidatorTypeMismatch ensures the bridge rejects unexpected types
+// rather than panicking when the apiserver dispatches the wrong kind.
+func TestKaitoValidatorTypeMismatch(t *testing.T) {
+	v := &kaitoValidator{
+		kind: "Workspace",
+		validate: func(_ context.Context, obj runtime.Object) *kaitoapis.FieldError {
+			if _, ok := obj.(*kaitov1beta1.Workspace); !ok {
+				return kaitoapis.ErrGeneric("expected v1beta1.Workspace")
 			}
-		})
+			return nil
+		},
 	}
+
+	// A v1alpha1 Workspace is the wrong type for this validator instance.
+	wrong := &kaitov1alpha1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "x"}}
+	_, err := v.ValidateCreate(context.Background(), wrong)
+	require.Error(t, err)
 }
 
-func TestWorkspaceResources(t *testing.T) {
-	// Verify that WorkspaceResources contains the expected GVKs
-	assert.Equal(t, 2, len(WorkspaceResources))
-
-	// Check v1alpha1 Workspace
-	v1alpha1GVK := kaitov1alpha1.GroupVersion.WithKind("Workspace")
-	assert.Contains(t, WorkspaceResources, v1alpha1GVK)
-	assert.IsType(t, &kaitov1alpha1.Workspace{}, WorkspaceResources[v1alpha1GVK])
-
-	// Check v1beta1 Workspace
-	v1beta1GVK := kaitov1beta1.GroupVersion.WithKind("Workspace")
-	assert.Contains(t, WorkspaceResources, v1beta1GVK)
-	assert.IsType(t, &kaitov1beta1.Workspace{}, WorkspaceResources[v1beta1GVK])
+// TestKaitoValidatorDeleteIsNoop confirms ValidateDelete never blocks delete
+// requests, matching the previous Knative configuration which only registered
+// Create + Update.
+func TestKaitoValidatorDeleteIsNoop(t *testing.T) {
+	v := &kaitoValidator{
+		kind: "Workspace",
+		validate: func(_ context.Context, _ runtime.Object) *kaitoapis.FieldError {
+			t.Fatal("validate must not be called on delete")
+			return nil
+		},
+	}
+	warnings, err := v.ValidateDelete(context.Background(), &kaitov1beta1.Workspace{})
+	require.NoError(t, err)
+	assert.Nil(t, warnings)
 }
 
-func TestInferenceSetResources(t *testing.T) {
-	// Verify that InferenceSetResources contains the expected GVK
-	assert.Equal(t, 1, len(InferenceSetResources))
+// TestKaitoValidatorUpdateSetsBaseline checks that ValidateUpdate stashes the
+// old object on the context where the underlying Validate(ctx) method can
+// retrieve it via apis.GetBaseline (the create-vs-update signal).
+func TestKaitoValidatorUpdateSetsBaseline(t *testing.T) {
+	old := &kaitov1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "old"}}
+	newer := &kaitov1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "new"}}
 
-	// Check v1alpha1 InferenceSet
-	v1alpha1GVK := kaitov1alpha1.GroupVersion.WithKind("InferenceSet")
-	assert.Contains(t, InferenceSetResources, v1alpha1GVK)
-	assert.IsType(t, &kaitov1alpha1.InferenceSet{}, InferenceSetResources[v1alpha1GVK])
+	var sawBaseline runtime.Object
+	v := &kaitoValidator{
+		kind: "Workspace",
+		validate: func(ctx context.Context, _ runtime.Object) *kaitoapis.FieldError {
+			if b := kaitoapis.GetBaseline(ctx); b != nil {
+				sawBaseline = b.(runtime.Object)
+			}
+			return nil
+		},
+	}
+
+	_, err := v.ValidateUpdate(context.Background(), old, newer)
+	require.NoError(t, err)
+	assert.Same(t, old, sawBaseline, "ValidateUpdate must seed apis.GetBaseline with the old object")
+
+	// Create path must NOT have a baseline.
+	sawBaseline = nil
+	_, err = v.ValidateCreate(context.Background(), newer)
+	require.NoError(t, err)
+	assert.Nil(t, sawBaseline, "ValidateCreate must not seed a baseline")
 }

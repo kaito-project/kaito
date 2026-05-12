@@ -180,28 +180,26 @@ handling.
 This proposal defines the UX shape only. The following items are deferred to follow-up
 implementation PRs:
 
-- YAML policy loading implementation
-- scanner registry and additional scanners
+- additional scanners beyond the current baseline set
 - audit event model
 - streaming scanning behavior
 - per-scanner fail modes inside the policy YAML
+- configurable failure handling beyond the current fail-closed behavior
 
 ## Follow-Up Implementation Plan
 
 This proposal is intended to support the following implementation sequence:
 
 1. Land the initial non-streaming output guardrails hook. (done)
-2. Define explicit error-handling semantics. *(implemented: hard-coded fail-closed
-  behavior plus `OutputGuardrailsError → HTTP 500`; configurable failure handling is
-  deferred.)*
+2. Define explicit error-handling semantics. (done)
 3. Introduce a runtime YAML policy loader. (done)
-4. Add default ConfigMap support. (done — see "Default ConfigMap Support" above)
+4. Add default ConfigMap support. (done)
 5. Add hot-reload of the guardrails policy ConfigMap. (done)
-6. Refactor scanner construction into a registry/factory structure.
-7. Add more scanners in small batches.
-8. Add audit foundations.
-9. Add minimal streaming scanning support.
-10. Polish graceful UX and operational behavior.
+6. Refactor scanner construction into a registry/factory structure. (done)
+7. Add more scanners in small batches. (partial)
+8. Add audit foundations. (not done)
+9. Add minimal streaming scanning support. (not done)
+10. Polish graceful UX and operational behavior. (partial)
 
 ### Hot-reload runtime behavior (implemented)
 

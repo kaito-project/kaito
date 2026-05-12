@@ -65,10 +65,7 @@ func (n *BYOProvisioner) DisableDriftRemediation(ctx context.Context, workspaceN
 // Workspace. In BYO mode there are no provisioning resources, so needRequeue
 // is always true when nodes are not ready.
 func (n *BYOProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.Workspace) (bool, bool, error) {
-	var matchLabels client.MatchingLabels
-	if ws.Resource.LabelSelector != nil {
-		matchLabels = ws.Resource.LabelSelector.MatchLabels
-	}
+	matchLabels := client.MatchingLabels(kaitov1beta1.SanitizedMatchLabels(ws.Resource.LabelSelector))
 
 	nodeList, err := resources.ListNodes(ctx, n.client, matchLabels)
 	if err != nil {
@@ -105,10 +102,7 @@ func (n *BYOProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kaitov1b
 		Reason: "workspaceResourceStatusNotReady", Message: "node status condition not ready",
 	}
 
-	var matchLabels client.MatchingLabels
-	if ws.Resource.LabelSelector != nil {
-		matchLabels = ws.Resource.LabelSelector.MatchLabels
-	}
+	matchLabels := client.MatchingLabels(kaitov1beta1.SanitizedMatchLabels(ws.Resource.LabelSelector))
 	nodeList, err := resources.ListNodes(ctx, n.client, matchLabels)
 	if err != nil {
 		return nil, err

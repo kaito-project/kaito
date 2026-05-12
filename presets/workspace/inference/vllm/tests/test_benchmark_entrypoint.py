@@ -78,7 +78,7 @@ def test_log_exits_1_on_write_failure():
     assert exc_info.value.code == 1
 
 
-# ── _read_counter ─────────────────────────────────────────────────────────────
+# ── _sum_counter_metric ───────────────────────────────────────────────────────
 
 _METRICS_BODY = b"""\
 # HELP vllm:generation_tokens_total Number of generation tokens processed.
@@ -90,32 +90,62 @@ vllm:prompt_tokens_total{engine="0",model_name="phi-4"} 12345.0
 # HELP vllm:num_requests_running Number of requests in model execution batches.
 # TYPE vllm:num_requests_running gauge
 vllm:num_requests_running{engine="0",model_name="phi-4"} 3.0
+# HELP process_open_fds Number of open file descriptors.
+# TYPE process_open_fds gauge
 process_open_fds 47.0
 """
 
+# Multi-engine deployment (e.g. data-parallel): vLLM emits one series per engine.
+_MULTI_ENGINE_METRICS_BODY = b"""\
+# HELP vllm:generation_tokens_total Number of generation tokens processed.
+# TYPE vllm:generation_tokens_total counter
+vllm:generation_tokens_total{engine="0",model_name="gemma-4-e4b-it"} 408832.0
+vllm:generation_tokens_total{engine="1",model_name="gemma-4-e4b-it"} 407040.0
+# HELP vllm:num_requests_running Number of requests in model execution batches.
+# TYPE vllm:num_requests_running gauge
+vllm:num_requests_running{engine="0",model_name="gemma-4-e4b-it"} 2.0
+vllm:num_requests_running{engine="1",model_name="gemma-4-e4b-it"} 5.0
+"""
 
-def test_read_counter_labelled():
+
+def test_sum_counter_metric_labelled():
     resp = _make_urlopen_response(200, _METRICS_BODY)
     with patch("urllib.request.urlopen", return_value=resp):
-        assert bm._read_counter("vllm:generation_tokens_total") == 987654
+        assert bm._sum_counter_metric("vllm:generation_tokens_total") == 987654
 
 
-def test_read_counter_bare():
+def test_sum_counter_metric_bare():
     """process_open_fds is a real bare (no-label) metric in vLLM's /metrics output."""
     resp = _make_urlopen_response(200, _METRICS_BODY)
     with patch("urllib.request.urlopen", return_value=resp):
-        assert bm._read_counter("process_open_fds") == 47
+        assert bm._sum_counter_metric("process_open_fds") == 47
 
 
-def test_read_counter_not_found():
+def test_sum_counter_metric_aggregates_across_engines():
+    """Multi-engine series for the same metric must be summed (e.g. DP shards)."""
+    resp = _make_urlopen_response(200, _MULTI_ENGINE_METRICS_BODY)
+    with patch("urllib.request.urlopen", return_value=resp):
+        # 408832 + 407040 = 815872
+        assert bm._sum_counter_metric("vllm:generation_tokens_total") == 815872
+
+
+def test_sum_counter_metric_aggregates_gauge_across_engines():
+    """Additive gauges (in-flight request counts) are also summed across shards."""
+    resp = _make_urlopen_response(200, _MULTI_ENGINE_METRICS_BODY)
+    with patch("urllib.request.urlopen", return_value=resp):
+        # 2 + 5 = 7
+        assert bm._sum_counter_metric("vllm:num_requests_running") == 7
+
+
+def test_sum_counter_metric_not_found():
     resp = _make_urlopen_response(200, _METRICS_BODY)
     with patch("urllib.request.urlopen", return_value=resp):
-        assert bm._read_counter("vllm:nonexistent_metric") == 0
+        assert bm._sum_counter_metric("vllm:nonexistent_metric") == 0
 
 
-def test_read_counter_network_error():
+def test_sum_counter_metric_network_error():
     with patch("urllib.request.urlopen", side_effect=OSError("timeout")):
-        assert bm._read_counter("vllm:generation_tokens_total") == 0
+        assert bm._sum_counter_metric("vllm:generation_tokens_total") == 0
 
 
 # ── _compute_max_concurrency ──────────────────────────────────────────────────
@@ -332,7 +362,7 @@ def test_run_benchmark_success(monkeypatch):
 
     mock_report = _mock_report(ttft_mean=42.123, tpot_mean=3.456)
     with (
-        patch.object(bm, "_read_counter", side_effect=read_counter),
+        patch.object(bm, "_sum_counter_metric", side_effect=read_counter),
         patch.object(bm, "_resolve_processor", return_value="mymodel"),
         patch.object(bm, "_compute_max_concurrency", return_value=128),
         patch.object(bm, "_run_guidellm", return_value=mock_report),
@@ -354,7 +384,7 @@ def test_run_benchmark_success(monkeypatch):
 def test_run_benchmark_no_generation():
     mock_report = _mock_report()
     with (
-        patch.object(bm, "_read_counter", return_value=0),
+        patch.object(bm, "_sum_counter_metric", return_value=0),
         patch.object(bm, "_resolve_processor", return_value=""),
         patch.object(bm, "_compute_max_concurrency", return_value=128),
         patch.object(bm, "_run_guidellm", return_value=mock_report),
@@ -367,7 +397,7 @@ def test_run_benchmark_no_generation():
 
 def test_run_benchmark_guidellm_fails():
     with (
-        patch.object(bm, "_read_counter", return_value=0),
+        patch.object(bm, "_sum_counter_metric", return_value=0),
         patch.object(bm, "_resolve_processor", return_value=""),
         patch.object(bm, "_compute_max_concurrency", return_value=128),
         patch.object(bm, "_run_guidellm", return_value=None),
@@ -383,7 +413,7 @@ def test_run_benchmark_guidellm_fails():
 
 def test_drain_already_zero():
     with (
-        patch.object(bm, "_read_counter", return_value=0),
+        patch.object(bm, "_sum_counter_metric", return_value=0),
         patch.object(bm, "_log"),
         patch("time.sleep") as mock_sleep,
     ):
@@ -395,7 +425,7 @@ def test_drain_polls_until_zero():
     # Returns 3, 3, 0 on successive calls
     counter_calls = [3, 3, 0]
     with (
-        patch.object(bm, "_read_counter", side_effect=counter_calls),
+        patch.object(bm, "_sum_counter_metric", side_effect=counter_calls),
         patch.object(bm, "_log"),
         patch("time.sleep") as mock_sleep,
     ):
@@ -409,7 +439,7 @@ def test_drain_timeout():
     # monotonic() returns: initial call (deadline set), then past-deadline on second call
     mono_values = [0.0, 301.0]
     with (
-        patch.object(bm, "_read_counter", return_value=1),
+        patch.object(bm, "_sum_counter_metric", return_value=1),
         patch.object(bm, "_log"),
         patch("time.sleep"),
         patch("time.monotonic", side_effect=mono_values),

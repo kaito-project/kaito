@@ -323,6 +323,7 @@ def generate_answers(
                     messages=messages,
                     max_completion_tokens=max_tokens,
                     temperature=temperature,
+                    extra_body={"chat_template_kwargs": {"enable_thinking": False}},
                 )
                 answer_text = resp.choices[0].message.content or ""
             except Exception as e:

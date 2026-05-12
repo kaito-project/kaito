@@ -141,6 +141,11 @@ func newTestWorkspace(ns, name, instanceType string, targetNodeCount int32, labe
 		},
 		Resource: kaitov1beta1.ResourceSpec{
 			InstanceType: instanceType,
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"apps": "llm",
+				},
+			},
 		},
 		Status: kaitov1beta1.WorkspaceStatus{
 			TargetNodeCount: targetNodeCount,
@@ -160,7 +165,6 @@ func TestGenerateNodePool_Standalone(t *testing.T) {
 	assert.Equal(t, consts.KarpenterManagedByValue, np.Labels[consts.KarpenterLabelManagedBy])
 
 	// Template labels
-	assert.Equal(t, "default-llama-serve", np.Spec.Template.Labels[consts.KarpenterWorkspaceKey])
 	assert.Equal(t, "llama-serve", np.Spec.Template.Labels[consts.KarpenterWorkspaceNameKey])
 	assert.Equal(t, "default", np.Spec.Template.Labels[consts.KarpenterWorkspaceNamespaceKey])
 
@@ -184,8 +188,8 @@ func TestGenerateNodePool_Standalone(t *testing.T) {
 	// Taints
 	assert.Equal(t, 1, len(np.Spec.Template.Spec.Taints))
 	taint := np.Spec.Template.Spec.Taints[0]
-	assert.Equal(t, consts.KarpenterWorkspaceKey, taint.Key)
-	assert.Equal(t, "default-llama-serve", taint.Value)
+	assert.Equal(t, consts.SKUString, taint.Key)
+	assert.Equal(t, consts.GPUString, taint.Value)
 	assert.Equal(t, corev1.TaintEffectNoSchedule, taint.Effect)
 
 	// Disruption — standalone gets budget "1"

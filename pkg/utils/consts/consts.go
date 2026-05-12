@@ -107,8 +107,9 @@ const (
 	EPPImageTag  = "v0.7.1"
 
 	// Routing sidecar for P/D disaggregation on decode workspaces.
-	// The sidecar takes over the public-facing port (5000) so the Service
-	// routes traffic to it. It then forwards to vLLM on the internal port (5001).
+	// The sidecar listens on port 5001 (PortRoutingSidecar) and forwards
+	// to vLLM on port 5000 (PortInferenceServer). The Service targetPort
+	// is set to 5001 so external traffic flows through the routing layer.
 	// See: https://github.com/llm-d/llm-d-routing-sidecar
 	RoutingSidecarImage = "mcr.microsoft.com/oss/v2/llm-d/llm-d-routing-sidecar"
 	RoutingSidecarTag   = "v0.7.1"

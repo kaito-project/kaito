@@ -36,6 +36,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 
@@ -802,9 +803,9 @@ func validateChatCompletionsEndpoint(workspaceObj *kaitov1beta1.Workspace) {
 func cleanupResources(workspaceObj *kaitov1beta1.Workspace) {
 	By("Cleaning up resources", func() {
 		if !CurrentSpecReport().Failed() {
-			// delete workspace
 			err := deleteWorkspace(workspaceObj)
 			Expect(err).NotTo(HaveOccurred(), "Failed to delete workspace")
+			utils.ValidateNodePoolDeletion(ctx, workspaceObj)
 		} else {
 			GinkgoWriter.Printf("test failed, keep %s \n", workspaceObj.Name)
 		}
@@ -842,9 +843,21 @@ func deleteWorkspace(workspaceObj *kaitov1beta1.Workspace) error {
 func cleanupResourcesForInferenceSet(inferenceSetObj *kaitov1alpha1.InferenceSet) {
 	By("Cleaning up InferenceSet resources", func() {
 		if !CurrentSpecReport().Failed() {
-			// delete InferenceSet
+			// List child workspaces before deletion (for NodePool deletion validation)
+			workspaceList := &kaitov1beta1.WorkspaceList{}
+			_ = utils.TestingCluster.KubeClient.List(ctx, workspaceList,
+				client.InNamespace(inferenceSetObj.Namespace),
+				client.MatchingLabels{
+					consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name,
+				})
+
 			err := deleteInferenceSet(inferenceSetObj)
 			Expect(err).NotTo(HaveOccurred(), "Failed to delete InferenceSet")
+
+			// Validate NodePool deletion for each child workspace
+			for i := range workspaceList.Items {
+				utils.ValidateNodePoolDeletion(ctx, &workspaceList.Items[i])
+			}
 		} else {
 			GinkgoWriter.Printf("test failed, keep %s \n", inferenceSetObj.Name)
 		}
@@ -1238,6 +1251,9 @@ var _ = Describe("Workspace Preset", func() {
 
 func validateCreateNode(workspaceObj *kaitov1beta1.Workspace, numOfNode int) {
 	utils.ValidateNodeClaimCreation(ctx, workspaceObj, numOfNode)
+	utils.ValidateWorkspaceTargetNodeCount(ctx, workspaceObj, numOfNode)
+	utils.ValidateNodePoolShape(ctx, workspaceObj, numOfNode)
+	utils.ValidateNodeLabels(ctx, workspaceObj)
 }
 
 // validateInferenceConfig validates that the inference config exists and contains data

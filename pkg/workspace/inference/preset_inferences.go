@@ -30,7 +30,6 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
@@ -719,7 +718,7 @@ func SetDefaultModelWeightsVolume(ctx *generator.WorkspaceGeneratorContext, spec
 // env var; sidecar containers do not use it.
 func applyInferenceRoleEnv(labels map[string]string, containerName string, spec *corev1.PodSpec) {
 	role, ok := labels[v1beta1.LabelInferenceRole]
-	if !ok || (role != string(v1alpha1.MultiRoleInferenceRolePrefill) && role != string(v1alpha1.MultiRoleInferenceRoleDecode)) {
+	if !ok || (role != consts.InferenceRolePrefill && role != consts.InferenceRoleDecode) {
 		return
 	}
 	for i := range spec.Containers {
@@ -797,7 +796,7 @@ func injectRoutingSidecar(spec *corev1.PodSpec) {
 // needsRoutingSidecar returns true if the workspace requires the llm-d routing sidecar.
 func needsRoutingSidecar(ws *v1beta1.Workspace) bool {
 	role, ok := ws.Labels[v1beta1.LabelInferenceRole]
-	if !ok || role != string(v1alpha1.MultiRoleInferenceRoleDecode) {
+	if !ok || role != consts.InferenceRoleDecode {
 		return false
 	}
 	return v1beta1.GetWorkspaceRuntimeName(ws) == pkgmodel.RuntimeNameVLLM

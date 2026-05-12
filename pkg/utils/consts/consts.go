@@ -116,8 +116,10 @@ const (
 	// When the routing sidecar is present, vLLM moves to this internal port.
 	PortInferenceServerInternal = int32(5001)
 
-	// InferenceRoleEnvName is the environment variable used to pass the inference role to vLLM.
+	// Inference role constants for P/D disaggregated serving.
 	InferenceRoleEnvName = "KAITO_INFERENCE_ROLE"
+	InferenceRolePrefill = "prefill"
+	InferenceRoleDecode  = "decode"
 
 	// ConditionReady is the condition type for a ready condition.
 	ConditionReady = "Ready"

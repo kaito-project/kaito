@@ -30,7 +30,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	"github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/sku"
@@ -1412,15 +1411,15 @@ func TestApplyInferenceRoleEnv(t *testing.T) {
 		},
 		{
 			name:          "prefill role - env set",
-			labels:        map[string]string{v1beta1.LabelInferenceRole: string(v1alpha1.MultiRoleInferenceRolePrefill)},
+			labels:        map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRolePrefill},
 			expectEnvSet:  true,
-			expectedValue: string(v1alpha1.MultiRoleInferenceRolePrefill),
+			expectedValue: consts.InferenceRolePrefill,
 		},
 		{
 			name:          "decode role - env set",
-			labels:        map[string]string{v1beta1.LabelInferenceRole: string(v1alpha1.MultiRoleInferenceRoleDecode)},
+			labels:        map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRoleDecode},
 			expectEnvSet:  true,
-			expectedValue: string(v1alpha1.MultiRoleInferenceRoleDecode),
+			expectedValue: consts.InferenceRoleDecode,
 		},
 	}
 
@@ -1465,12 +1464,12 @@ func TestInjectRoutingSidecar(t *testing.T) {
 		},
 		{
 			name:          "prefill role - no sidecar",
-			labels:        map[string]string{v1beta1.LabelInferenceRole: string(v1alpha1.MultiRoleInferenceRolePrefill)},
+			labels:        map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRolePrefill},
 			expectSidecar: false,
 		},
 		{
 			name:          "decode role - sidecar injected",
-			labels:        map[string]string{v1beta1.LabelInferenceRole: string(v1alpha1.MultiRoleInferenceRoleDecode)},
+			labels:        map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRoleDecode},
 			expectSidecar: true,
 		},
 	}

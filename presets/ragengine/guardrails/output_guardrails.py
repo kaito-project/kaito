@@ -125,6 +125,7 @@ class OutputGuardrails:
                 final_action = None
                 triggered_scanners: list[dict[str, Any]] = []
                 for parsed, scanner in built_scanners:
+                    scanner_action_on_hit = parsed.action_on_hit or self.action_on_hit
                     sanitized_output, results_valid, results_score = scan_output(
                         [scanner], prompt, sanitized_output, fail_fast=False
                     )
@@ -134,11 +135,11 @@ class OutputGuardrails:
                     triggered_scanners.append(
                         {
                             "type": parsed.type,
-                            "action": parsed.action_on_hit,
+                            "action": scanner_action_on_hit,
                             "scores": results_score,
                         }
                     )
-                    if parsed.action_on_hit == "block":
+                    if scanner_action_on_hit == "block":
                         final_action = "block"
                         break
 

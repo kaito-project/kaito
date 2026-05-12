@@ -64,3 +64,4 @@ def test_default_guardrails_policy_template_has_non_empty_scanners():
     parsed = _parse_policy_scanner_configs(scanners, str(CHART_TEMPLATE))
     assert parsed
     assert [scanner.type for scanner in parsed] == ["regex"]
+    assert [scanner.action_on_hit for scanner in parsed] == ["redact"]

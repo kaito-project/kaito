@@ -272,6 +272,59 @@ var (
 			},
 		},
 	}
+	MockWorkspaceWithPresetVLLMByoPVC = &v1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "testWorkspace",
+			Namespace: "kaito",
+		},
+		Resource: v1beta1.ResourceSpec{
+			Count:        &gpuNodeCount,
+			InstanceType: "Standard_NC24ads_A100_v4",
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"apps": "test",
+				},
+			},
+		},
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{
+				PresetMeta: v1beta1.PresetMeta{
+					Name: "test-model",
+				},
+				PresetOptions: v1beta1.PresetOptions{
+					ModelWeightsPVC: "my-model-pvc",
+				},
+			},
+		},
+	}
+
+	MockWorkspaceWithPresetVLLMByoPVCSubPath = &v1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "testWorkspace",
+			Namespace: "kaito",
+		},
+		Resource: v1beta1.ResourceSpec{
+			Count:        &gpuNodeCount,
+			InstanceType: "Standard_NC24ads_A100_v4",
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"apps": "test",
+				},
+			},
+		},
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{
+				PresetMeta: v1beta1.PresetMeta{
+					Name: "test-model",
+				},
+				PresetOptions: v1beta1.PresetOptions{
+					ModelWeightsPVC:     "my-model-pvc",
+					ModelWeightsSubPath: "models/test-model",
+				},
+			},
+		},
+	}
+
 	MockInferenceSetWithPresetVLLM = &v1alpha1.InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testInferenceSet",

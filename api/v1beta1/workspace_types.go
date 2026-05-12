@@ -75,6 +75,17 @@ type PresetOptions struct {
 	// ModelAccessSecret is the name of the secret that contains the huggingface access token.
 	// +optional
 	ModelAccessSecret string `json:"modelAccessSecret,omitempty"`
+	// ModelWeightsPVC is the name of a pre-existing PVC in the same namespace
+	// to use as the model weights volume. When set, the controller uses this PVC
+	// instead of creating an EmptyDir or NVMe VolumeClaimTemplate.
+	// Only valid for inference workspaces; rejected for tuning workspaces.
+	// +optional
+	ModelWeightsPVC string `json:"modelWeightsPVC,omitempty"`
+	// ModelWeightsSubPath is an optional subdirectory within the PVC where the
+	// model files are located. Applied as subPath on the VolumeMount.
+	// Requires ModelWeightsPVC to be set.
+	// +optional
+	ModelWeightsSubPath string `json:"modelWeightsSubPath,omitempty"`
 }
 
 // PresetSpec provides the information for rendering preset configurations to run the model inference service.

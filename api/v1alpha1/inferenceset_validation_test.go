@@ -15,11 +15,19 @@ package v1alpha1
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/k8sclient"
 )
 
 func TestInferenceSet_SupportedVerbs(t *testing.T) {
@@ -269,7 +277,7 @@ func TestInferenceSet_validateCreate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.is.validateCreate()
+			err := tt.is.validateCreate(context.Background())
 			if tt.wantErr {
 				assert.NotNil(t, err)
 				if tt.errField != "" {
@@ -285,6 +293,179 @@ func TestInferenceSet_validateCreate(t *testing.T) {
 func TestInferenceSet_validateUpdate(t *testing.T) {
 	is := &InferenceSet{}
 	old := &InferenceSet{}
-	err := is.validateUpdate(old)
+	err := is.validateUpdate(context.Background(), old)
 	assert.Nil(t, err)
+}
+
+func TestInferenceSet_validateBYOPVCAccessMode(t *testing.T) {
+	scheme := runtime.NewScheme()
+	_ = corev1.AddToScheme(scheme)
+	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(
+		&corev1.PersistentVolumeClaim{
+			ObjectMeta: metav1.ObjectMeta{Name: "rwo-pvc", Namespace: "default"},
+			Spec: corev1.PersistentVolumeClaimSpec{
+				AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
+				Resources: corev1.VolumeResourceRequirements{
+					Requests: corev1.ResourceList{corev1.ResourceStorage: resource.MustParse("200Gi")},
+				},
+			},
+		},
+		&corev1.PersistentVolumeClaim{
+			ObjectMeta: metav1.ObjectMeta{Name: "rwx-pvc", Namespace: "default"},
+			Spec: corev1.PersistentVolumeClaimSpec{
+				AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteMany},
+				Resources: corev1.VolumeResourceRequirements{
+					Requests: corev1.ResourceList{corev1.ResourceStorage: resource.MustParse("200Gi")},
+				},
+			},
+		},
+		&corev1.PersistentVolumeClaim{
+			ObjectMeta: metav1.ObjectMeta{Name: "rwop-pvc", Namespace: "default"},
+			Spec: corev1.PersistentVolumeClaimSpec{
+				AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOncePod},
+				Resources: corev1.VolumeResourceRequirements{
+					Requests: corev1.ResourceList{corev1.ResourceStorage: resource.MustParse("200Gi")},
+				},
+			},
+		},
+	).Build()
+	k8sclient.SetGlobalClient(fakeClient)
+
+	tests := []struct {
+		name       string
+		is         *InferenceSet
+		wantErr    bool
+		errContent string
+	}{
+		{
+			name: "RWO PVC with replicas=2 rejected",
+			is: &InferenceSet{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
+				Spec: InferenceSetSpec{
+					Replicas: 2,
+					Template: InferenceSetTemplate{
+						Inference: kaitov1beta1.InferenceSpec{
+							Preset: &kaitov1beta1.PresetSpec{
+								PresetOptions: kaitov1beta1.PresetOptions{ModelWeightsPVC: "rwo-pvc"},
+							},
+						},
+					},
+				},
+			},
+			wantErr:    true,
+			errContent: "does not have ReadWriteMany",
+		},
+		{
+			name: "RWOP PVC with replicas=2 rejected",
+			is: &InferenceSet{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
+				Spec: InferenceSetSpec{
+					Replicas: 2,
+					Template: InferenceSetTemplate{
+						Inference: kaitov1beta1.InferenceSpec{
+							Preset: &kaitov1beta1.PresetSpec{
+								PresetOptions: kaitov1beta1.PresetOptions{ModelWeightsPVC: "rwop-pvc"},
+							},
+						},
+					},
+				},
+			},
+			wantErr:    true,
+			errContent: "does not have ReadWriteMany",
+		},
+		{
+			name: "RWX PVC with replicas=2 accepted",
+			is: &InferenceSet{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
+				Spec: InferenceSetSpec{
+					Replicas: 2,
+					Template: InferenceSetTemplate{
+						Inference: kaitov1beta1.InferenceSpec{
+							Preset: &kaitov1beta1.PresetSpec{
+								PresetOptions: kaitov1beta1.PresetOptions{ModelWeightsPVC: "rwx-pvc"},
+							},
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "RWO PVC with replicas=1 accepted",
+			is: &InferenceSet{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
+				Spec: InferenceSetSpec{
+					Replicas: 1,
+					Template: InferenceSetTemplate{
+						Inference: kaitov1beta1.InferenceSpec{
+							Preset: &kaitov1beta1.PresetSpec{
+								PresetOptions: kaitov1beta1.PresetOptions{ModelWeightsPVC: "rwo-pvc"},
+							},
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "RWOP PVC with replicas=1 accepted",
+			is: &InferenceSet{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
+				Spec: InferenceSetSpec{
+					Replicas: 1,
+					Template: InferenceSetTemplate{
+						Inference: kaitov1beta1.InferenceSpec{
+							Preset: &kaitov1beta1.PresetSpec{
+								PresetOptions: kaitov1beta1.PresetOptions{ModelWeightsPVC: "rwop-pvc"},
+							},
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "No PVC with replicas=3 accepted",
+			is: &InferenceSet{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
+				Spec: InferenceSetSpec{
+					Replicas: 3,
+					Template: InferenceSetTemplate{
+						Inference: kaitov1beta1.InferenceSpec{
+							Preset: &kaitov1beta1.PresetSpec{},
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "No preset with replicas=3 accepted",
+			is: &InferenceSet{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
+				Spec: InferenceSetSpec{
+					Replicas: 3,
+					Template: InferenceSetTemplate{
+						Inference: kaitov1beta1.InferenceSpec{},
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			errs := tc.is.validateBYOPVCAccessMode(context.Background())
+			hasErrs := errs != nil
+			if hasErrs != tc.wantErr {
+				t.Errorf("validateBYOPVCAccessMode() errors = %v, wantErr %v", errs, tc.wantErr)
+			}
+			if hasErrs && tc.errContent != "" {
+				if !strings.Contains(errs.Error(), tc.errContent) {
+					t.Errorf("error = %v, expected to contain %q", errs, tc.errContent)
+				}
+			}
+		})
+	}
 }

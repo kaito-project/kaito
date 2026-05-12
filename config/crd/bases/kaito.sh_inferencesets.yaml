@@ -203,6 +203,19 @@ spec:
                                 description: ModelAccessSecret is the name of the
                                   secret that contains the huggingface access token.
                                 type: string
+                              modelWeightsPVC:
+                                description: |-
+                                  ModelWeightsPVC is the name of a pre-existing PVC in the same namespace
+                                  to use as the model weights volume. When set, the controller uses this PVC
+                                  instead of creating an EmptyDir or NVMe VolumeClaimTemplate.
+                                  Only valid for inference workspaces; rejected for tuning workspaces.
+                                type: string
+                              modelWeightsSubPath:
+                                description: |-
+                                  ModelWeightsSubPath is an optional subdirectory within the PVC where the
+                                  model files are located. Applied as subPath on the VolumeMount.
+                                  Requires ModelWeightsPVC to be set.
+                                type: string
                             type: object
                         required:
                         - name

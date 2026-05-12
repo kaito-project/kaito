@@ -229,11 +229,7 @@ runs:
     - name: create cluster
       shell: bash
       run: |
-        if [ "${{ inputs.node_provisioner }}" == "gpuprovisioner" ]; then
-          make create-aks-cluster
-        else
-          make create-aks-cluster-for-karpenter
-        fi
+        make create-aks-cluster-for-karpenter
       env:
         AZURE_ACR_NAME: ${{ env.CLUSTER_NAME }}
         AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
@@ -251,12 +247,11 @@ runs:
         AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
         TEST_SUITE: ${{ inputs.node_provisioner }}
 
-    - name: Install gpu-provisioner helm chart
-      if: ${{ inputs.node_provisioner == 'gpuprovisioner' }}
+    - name: Install karpenter helm chart
       shell: bash
       run: |
         AZURE_SUBSCRIPTION_ID=$E2E_SUBSCRIPTION_ID \
-        make gpu-provisioner-helm
+        make azure-karpenter-helm
       env:
         AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
         AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}

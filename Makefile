@@ -50,7 +50,7 @@ GPU_PROVISIONER_MSI_NAME ?= gpuprovisionerIdentity
 ## Azure Karpenter parameters
 KARPENTER_NAMESPACE ?= karpenter
 KARPENTER_SA_NAME ?= karpenter-sa
-KARPENTER_VERSION ?= 0.5.1
+KARPENTER_VERSION ?= 1.12.0
 AZURE_KARPENTER_MSI_NAME ?= azkarpenterIdentity
 
 AI_MODELS_REGISTRY ?= modelregistry.azurecr.io

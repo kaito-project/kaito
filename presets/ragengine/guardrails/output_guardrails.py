@@ -58,9 +58,8 @@ class OutputGuardrails:
 
     def _apply_policy_file(self, policy_path: str) -> "OutputGuardrails":
         if not policy_path:
-            # No policy configured: returns self with empty scanner_configs.
-            # Combined with enabled=True this is effectively fail-open.
-            # TODO(next-PR): ship a default policy or refuse to start.
+            # Guardrails-enabled deployments should provide a policy path.
+            # An empty path currently falls back to fail-open.
             return self
 
         try:

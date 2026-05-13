@@ -29,6 +29,7 @@ import (
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/apis"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // ValidateNodeClaimCreation Logic to validate the nodeClaim creation.
@@ -62,8 +63,8 @@ func ValidateNodeClaimCreation(ctx context.Context, workspaceObj *v1beta1.Worksp
 func GetAllValidNodeClaims(ctx context.Context, workspaceObj *v1beta1.Workspace) (*karpenterv1.NodeClaimList, error) {
 	nodeClaimList := &karpenterv1.NodeClaimList{}
 	ls := labels.Set{
-		v1beta1.LabelWorkspaceName:      workspaceObj.Name,
-		v1beta1.LabelWorkspaceNamespace: workspaceObj.Namespace,
+		consts.KarpenterWorkspaceNameKey:      workspaceObj.Name,
+		consts.KarpenterWorkspaceNamespaceKey: workspaceObj.Namespace,
 	}
 
 	err := TestingCluster.KubeClient.List(ctx, nodeClaimList, &client.MatchingLabelsSelector{Selector: ls.AsSelector()})

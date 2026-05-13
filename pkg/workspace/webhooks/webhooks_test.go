@@ -49,6 +49,12 @@ func TestNewControllerWebhooks(t *testing.T) {
 			enableMRI:                true,
 			expectedConstructorCount: 4, // certificates + workspace + inferenceset + MRI
 		},
+		{
+			name:                     "MRI controller enabled without InferenceSet",
+			enableInferenceSet:       false,
+			enableMRI:                true,
+			expectedConstructorCount: 3, // certificates + workspace + MRI
+		},
 	}
 
 	for _, tt := range tests {

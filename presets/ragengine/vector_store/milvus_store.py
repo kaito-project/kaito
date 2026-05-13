@@ -135,7 +135,12 @@ class MilvusVectorStoreHandler(BaseVectorStore):
 
         Queries all entities from the collection to rebuild the docstore,
         then creates a VectorStoreIndex connected to the collection.
+
+        NOTE: This is a full collection scan and can be slow for large collections
+        (e.g. several seconds for ~10k chunks, minutes for hundreds of thousands).
+        Restore time is logged below for observability.
         """
+        start_time = time.monotonic()
         vector_store = self._build_vector_store(collection_name)
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
@@ -159,8 +164,10 @@ class MilvusVectorStoreHandler(BaseVectorStore):
 
         index.set_index_id(collection_name)
         self.index_map[collection_name] = index
+        elapsed_s = time.monotonic() - start_time
         logger.info(
-            f"Restored index '{collection_name}' with {len(llama_docs)} document(s)."
+            f"Restored index '{collection_name}' with {len(llama_docs)} document(s) "
+            f"in {elapsed_s:.2f}s."
         )
 
     def _query_collection_to_docs(self, collection_name: str) -> list[LlamaDocument]:
@@ -381,7 +388,7 @@ class MilvusVectorStoreHandler(BaseVectorStore):
         filter_expr = self._build_milvus_filter(metadata_filter) or ""
 
         try:
-            # Get total count
+            # Get exact total chunk count from Milvus.
             count_result = self.client.query(
                 collection_name=collection_name,
                 filter=filter_expr if filter_expr else "",
@@ -389,12 +396,13 @@ class MilvusVectorStoreHandler(BaseVectorStore):
             )
             total_count = count_result[0].get("count(*)", 0) if count_result else 0
 
-            # Milvus returns chunks (nodes), but we want unique documents.
-            # Deduplicate by doc_id — query enough entities to fill the page.
-            # For simplicity, query a window and deduplicate in Python.
+            # Milvus stores chunks (nodes); a single document can span many chunks.
+            # Milvus has no native group-by-doc_id pagination, so we fetch a window
+            # of entities and deduplicate by doc_id in Python. Over-fetch by 3x to
+            # reduce the number of round-trips when chunks-per-doc is small.
             seen_doc_ids: set[str] = set()
             docs: list[dict[str, Any]] = []
-            batch_size = max(limit * 3, 100)  # Over-fetch to handle chunk dedup
+            batch_size = max(limit * 3, 100)
             milvus_offset = 0
             skipped = 0
 
@@ -426,9 +434,9 @@ class MilvusVectorStoreHandler(BaseVectorStore):
 
                 milvus_offset += len(entities)
 
-            # Total unique doc count (approximate — use count of unique doc_ids seen)
-            # For an exact count we'd need to scan all, which is expensive.
-            # Use total_count as an upper bound.
+            # total_items reflects the exact number of chunks in the collection
+            # (matching Qdrant/FAISS behavior). It is NOT the number of unique
+            # documents — computing that would require scanning every entity.
             return ListDocumentsResponse(
                 documents=docs, count=len(docs), total_items=total_count
             )

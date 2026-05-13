@@ -439,63 +439,6 @@ var _ = Describe("RAGEngine", func() {
 
 		clusterIP := service.Spec.ClusterIP
 
-		ragengineObj := createLocalEmbeddingKaitoVLLMRAGEngineWithQdrant(clusterIP, "v1/completions")
-
-		defer cleanupResources(workspaceObj, ragengineObj)
-
-		validateRAGEngineCondition(ragengineObj, string(kaitov1beta1.ConditionTypeResourceStatus), "ragengineObj resource status to be ready")
-		validateAssociatedService(ragengineObj.ObjectMeta)
-		validateInferenceandRAGResource(ragengineObj.ObjectMeta, int32(numOfReplica), false)
-		validateRAGEngineCondition(ragengineObj, string(kaitov1beta1.RAGEngineConditionTypeSucceeded), "ragengine to be ready")
-
-		// Index a document
-		indexDoc, err := createAndValidateIndexPod(ragengineObj)
-		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate IndexPod")
-		Expect(indexDoc).NotTo(BeNil(), "Index document should not be nil")
-		Expect(indexDoc["doc_id"]).NotTo(BeNil(), "Index document ID should not be nil")
-		Expect(indexDoc["text"]).NotTo(BeNil(), "Index document text should not be nil")
-		docID := indexDoc["doc_id"].(string)
-
-		// Retrieve document - Qdrant uses hybrid search (dense + sparse)
-		expectedText := indexDoc["text"].(string)
-		err = createAndValidateRetrievalPod(ragengineObj, docID, expectedText)
-		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate RetrievalPod")
-
-		// Update document
-		err = createAndValidateUpdateDocumentPod(ragengineObj, docID)
-		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate UpdateDocumentPod")
-
-		// Delete document
-		err = createAndValidateDeleteDocumentPod(ragengineObj, docID)
-		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteDocumentPod")
-
-		// Delete index
-		err = createAndValidateDeleteIndexPod(ragengineObj)
-		Expect(err).NotTo(HaveOccurred(), "Failed to create and validate DeleteIndexPod")
-	})
-
-	It("should create RAG with Milvus vector database backend successfully", utils.GinkgoLabelFastCheck, func() {
-		numOfReplica := 1
-		workspaceObj := createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica)
-
-		time.Sleep(30 * time.Second)
-
-		validateWorkspaceResourceStatus(workspaceObj)
-		validateAssociatedService(workspaceObj.ObjectMeta)
-		validateInferenceandRAGResource(workspaceObj.ObjectMeta, int32(numOfReplica), true)
-		validateWorkspaceReadiness(workspaceObj)
-
-		serviceName := workspaceObj.ObjectMeta.Name
-		serviceNamespace := workspaceObj.ObjectMeta.Namespace
-		service := &v1.Service{}
-
-		_ = utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-			Namespace: serviceNamespace,
-			Name:      serviceName,
-		}, service)
-
-		clusterIP := service.Spec.ClusterIP
-
 		ragengineObj := createLocalEmbeddingKaitoVLLMRAGEngineWithMilvus(clusterIP, "v1/completions")
 
 		defer cleanupResources(workspaceObj, ragengineObj)

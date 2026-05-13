@@ -58,9 +58,8 @@ class OutputGuardrails:
 
     def _apply_policy_file(self, policy_path: str) -> "OutputGuardrails":
         if not policy_path:
-            # No policy configured: returns self with empty scanner_configs.
-            # Combined with enabled=True this is effectively fail-open.
-            # TODO(next-PR): ship a default policy or refuse to start.
+            # Guardrails-enabled deployments should provide a policy path.
+            # An empty path currently falls back to fail-open.
             return self
 
         try:
@@ -79,17 +78,21 @@ class OutputGuardrails:
             logger.warning("output_guardrails_policy_invalid path=%s", policy_path)
             return self
 
+        default_action_on_hit = _normalize_action(
+            policy.get("action"), self.action_on_hit
+        )
         scanner_configs = list(self.scanner_configs)
         if "scanners" in policy:
             scanner_configs = _parse_policy_scanner_configs(
                 policy.get("scanners"),
                 policy_path,
+                default_action_on_hit,
             )
 
         return OutputGuardrails(
             enabled=self.enabled,
             fail_open=self.fail_open,
-            action_on_hit=_normalize_action(policy.get("action"), self.action_on_hit),
+            action_on_hit=default_action_on_hit,
             block_message=_coerce_string(
                 policy.get("blockMessage"), self.block_message
             ),
@@ -105,8 +108,8 @@ class OutputGuardrails:
             return response
 
         try:
-            scanners = self._build_scanners()
-            if not scanners:
+            built_scanners = self._build_scanners_with_configs()
+            if not built_scanners:
                 return response
 
             prompt = self._extract_prompt(request)
@@ -118,25 +121,41 @@ class OutputGuardrails:
                 if message.get("role") != "assistant" or not isinstance(content, str):
                     continue
 
-                sanitized_output, results_valid, results_score = scan_output(
-                    scanners, prompt, content, fail_fast=False
-                )
-                triggered_scanners = {
-                    scanner_name: results_score.get(scanner_name)
-                    for scanner_name, is_valid in results_valid.items()
-                    if not is_valid
-                }
+                sanitized_output = content
+                final_action = None
+                triggered_scanners: list[dict[str, Any]] = []
+                for parsed, scanner in built_scanners:
+                    scanner_action_on_hit = parsed.action_on_hit or self.action_on_hit
+                    sanitized_output, results_valid, results_score = scan_output(
+                        [scanner], prompt, sanitized_output, fail_fast=False
+                    )
+                    if all(results_valid.values()):
+                        continue
+
+                    triggered_scanners.append(
+                        {
+                            "type": parsed.type,
+                            "action": scanner_action_on_hit,
+                            "scores": results_score,
+                        }
+                    )
+                    if scanner_action_on_hit == "block":
+                        final_action = "block"
+                        break
+
+                    final_action = "redact"
+
                 if not triggered_scanners:
                     continue
 
-                if self.action_on_hit == "block":
+                if final_action == "block":
                     message["content"] = self.block_message
                 else:
                     message["content"] = sanitized_output
 
                 logger.info(
                     "output_guardrails_triggered action=%s response_id=%s scanners=%s",
-                    self.action_on_hit,
+                    final_action,
                     response.id,
                     triggered_scanners,
                 )
@@ -155,10 +174,14 @@ class OutputGuardrails:
             ) from exc
 
     def _build_scanners(self) -> list[Any]:
+        return [scanner for _, scanner in self._build_scanners_with_configs()]
+
+    def _build_scanners_with_configs(self) -> list[tuple[ParsedScannerConfig, Any]]:
         scanners: list[Any] = []
         for parsed in self.scanner_configs:
             try:
-                scanners.append(parsed.config.build(self.action_on_hit))
+                scanner_action_on_hit = parsed.action_on_hit or self.action_on_hit
+                scanners.append((parsed, parsed.config.build(scanner_action_on_hit)))
             except Exception:
                 logger.exception(
                     "output_guardrails_policy_scanner_build_failed type=%s",
@@ -183,7 +206,7 @@ class OutputGuardrails:
 
 
 def _parse_policy_scanner_configs(
-    value: Any, policy_path: str
+    value: Any, policy_path: str, default_action_on_hit: str = DEFAULT_ACTION_ON_HIT
 ) -> list[ParsedScannerConfig]:
     if value is None:
         return []
@@ -207,10 +230,14 @@ def _parse_policy_scanner_configs(
             )
             continue
 
+        scanner_action_on_hit = _normalize_action(
+            raw.get("action"), default_action_on_hit
+        )
+
         normalized_raw = {
             _normalize_scanner_key(str(key)): item
             for key, item in raw.items()
-            if key != "type"
+            if key not in {"type", "action"}
         }
         try:
             cfg = schema_cls.from_dict(normalized_raw)
@@ -222,7 +249,13 @@ def _parse_policy_scanner_configs(
             )
             continue
 
-        parsed_configs.append(ParsedScannerConfig(type=scanner_type, config=cfg))
+        parsed_configs.append(
+            ParsedScannerConfig(
+                type=scanner_type,
+                action_on_hit=scanner_action_on_hit,
+                config=cfg,
+            )
+        )
 
     return parsed_configs
 

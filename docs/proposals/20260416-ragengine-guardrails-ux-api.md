@@ -71,13 +71,14 @@ metadata:
   name: ragengine-guardrails-policy
 data:
   guardrails.yaml: |
-    action: redact
     blockMessage: The model output was blocked by output guardrails.
     scanners:
       - type: regex
+        action: redact
         patterns:
           - 'https?://\\S+'
       - type: ban_substrings
+        action: block
         substrings:
           - secret
 ```

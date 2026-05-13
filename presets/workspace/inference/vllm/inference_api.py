@@ -184,11 +184,21 @@ def get_max_gpu_memory_utilization(device_index: int = 0) -> float:
     return gpu_memory_utilization
 
 
-def set_kv_cache_offloading_if_appliable(args: argparse.Namespace) -> None:
+def set_kv_transfer_config_if_applicable(args: argparse.Namespace) -> None:
     """
-    Set KV cache offloading to CPU RAM if applicable.
-    This is only applicable when kaito_kv_cache_cpu_memory_utilization is set.
+    Set KV transfer config and optionally enable KV cache offloading to CPU RAM.
+    - When KAITO_INFERENCE_ROLE is set: use NixlConnector (kv_both + fail policy).
+    - When kaito_kv_cache_cpu_memory_utilization is set: use LMCacheConnectorV1 with CPU offload.
     """
+    # Configure kv_transfer_config for P/D disaggregation using NixlConnector.
+    inference_role = os.environ.get("KAITO_INFERENCE_ROLE", "")
+    if args.kv_transfer_config is None and inference_role in ("prefill", "decode"):
+        args.kv_transfer_config = {
+            "kv_connector": "NixlConnector",
+            "kv_role": "kv_both",
+            "kv_load_failure_policy": "fail",
+        }
+
     if (
         args.kaito_kv_cache_cpu_memory_utilization is None
         or args.kaito_kv_cache_cpu_memory_utilization <= 0
@@ -214,6 +224,7 @@ def set_kv_cache_offloading_if_appliable(args: argparse.Namespace) -> None:
         f"{available_memory_gb * args.kaito_kv_cache_cpu_memory_utilization / args.tensor_parallel_size}"
     )
 
+    # Default to LMCacheConnectorV1 when CPU offload is enabled but no kv_transfer_config set.
     if args.kv_transfer_config is None:
         args.kv_transfer_config = {
             "kv_connector": "LMCacheConnectorV1",
@@ -229,7 +240,7 @@ if __name__ == "__main__":
     if args.lora_modules is None:
         args.lora_modules = load_lora_adapters(args.kaito_adapters_dir)
 
-    set_kv_cache_offloading_if_appliable(args)
+    set_kv_transfer_config_if_applicable(args)
 
     # Run the serving server
     logger.info(f"Starting server on port {args.port}")

@@ -117,18 +117,6 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a Gemma 4 InferenceSet with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
-		numOfReplicas := 2
-		inferenceSetObj := createGemma4InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
-		defer cleanupResourcesForInferenceSet(inferenceSetObj)
-		time.Sleep(120 * time.Second)
-
-		validateInferenceSetStatus(inferenceSetObj)
-		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
-		validateInferenceSetBenchmarkCompleted(inferenceSetObj)
-		validateGatewayAPIInferenceExtensionResources(inferenceSetObj)
-	})
-
 	It("should create a phi4 workspace with adapter successfully", utils.GinkgoLabelA100Required, func() {
 		numOfNode := 1
 		workspaceObj := createPhi4WorkspaceWithAdapterAndVLLM(numOfNode, phi4Adapter)
@@ -372,6 +360,30 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
+	It("should create a Gemma 3 InferenceSet with decode label successfully", Serial, utils.GinkgoLabelFastCheck, func() {
+		numOfReplicas := 1
+		inferenceSetObj := createGemma3InferenceSetWithDecodeLabelAndVLLM(numOfReplicas)
+		defer cleanupResourcesForInferenceSet(inferenceSetObj)
+		time.Sleep(120 * time.Second)
+
+		validateInferenceSetStatus(inferenceSetObj)
+		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
+		validateInferenceSetBenchmarkCompleted(inferenceSetObj)
+		validateGatewayAPIInferenceExtensionResources(inferenceSetObj)
+	})
+
+	It("should create a Gemma 3 InferenceSet with preset public mode successfully", Serial, utils.GinkgoLabelFastCheck, func() {
+		numOfReplicas := 1
+		inferenceSetObj := createGemma3InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
+		defer cleanupResourcesForInferenceSet(inferenceSetObj)
+		time.Sleep(120 * time.Second)
+
+		validateInferenceSetStatus(inferenceSetObj)
+		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
+		validateInferenceSetBenchmarkCompleted(inferenceSetObj)
+		validateGatewayAPIInferenceExtensionResources(inferenceSetObj)
+	})
+
 	It("should create a ministral-3-3b-instruct-2512 workspace with preset public mode successfully", func() {
 		numOfNode := 1
 		workspaceObj := createMinistral3_3BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
@@ -410,16 +422,43 @@ func createPhi4WorkspaceWithAdapterAndVLLM(numOfNode int, validAdapters []kaitov
 	return workspaceObj
 }
 
-func createGemma4InferenceSetWithPresetPublicModeAndVLLM(replicas int) *kaitov1alpha1.InferenceSet {
+func createGemma3InferenceSetWithPresetPublicModeAndVLLM(replicas int) *kaitov1alpha1.InferenceSet {
+	modelSecret := createAndValidateModelSecret()
 	inferenceSetObj := &kaitov1alpha1.InferenceSet{}
-	By("Creating a InferenceSet CR with Gemma 4 preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-gemma4-is-", rand.Intn(1000))
+	By("Creating an InferenceSet CR with Gemma 3 preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-gemma3-is-", rand.Intn(1000))
 		inferenceSetObj = utils.GenerateInferenceSetManifestWithVLLM(uniqueID, namespaceName, "", replicas, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-is-e2e-test-gemma4-vllm"},
-			}, PresetGemma4_E2BInstructModel, nil, nil, "")
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-is-e2e-test-gemma-vllm"},
+			}, PresetGemma3_4BInstructModel, nil, nil, modelSecret.Name)
 		createAndValidateInferenceSet(inferenceSetObj)
+	})
+	return inferenceSetObj
+}
 
+func createGemma3InferenceSetWithDecodeLabelAndVLLM(replicas int) *kaitov1alpha1.InferenceSet {
+	modelSecret := createAndValidateModelSecret()
+	inferenceSetObj := &kaitov1alpha1.InferenceSet{}
+	By("Creating an InferenceSet CR with Gemma 3 and decode label for P/D disaggregation", func() {
+		uniqueID := fmt.Sprint("preset-gemma3-is-decode-", rand.Intn(1000))
+		inferenceSetObj = utils.GenerateInferenceSetManifestWithVLLM(uniqueID, namespaceName, "", replicas, "Standard_NV36ads_A10_v5",
+			&metav1.LabelSelector{
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-is-e2e-test-gemma-vllm-decode"},
+			}, PresetGemma3_4BInstructModel, nil, nil, modelSecret.Name)
+		// Add inference-role label to exercise the P/D disaggregated inference path:
+		// GenerateInferencePodSpec sets KAITO_INFERENCE_ROLE=decode env var and injects
+		// the routing sidecar. inference_api.py uses the env var to configure
+		// NixlConnector kv_transfer_config with kv_both (when no user-provided
+		// kv_transfer_config is set). The workspace reaching Ready status validates
+		// that the inline sidecar injection works correctly with vLLM startup.
+		// TODO: Add explicit assertions that the decode label propagated to the child
+		// Workspace, the StatefulSet pod template contains llm-d-routing-sidecar
+		// container, and the Service/InferencePool targetPort is PortRoutingSidecar.
+		if inferenceSetObj.Spec.Template.Labels == nil {
+			inferenceSetObj.Spec.Template.Labels = make(map[string]string)
+		}
+		inferenceSetObj.Spec.Template.Labels[kaitov1beta1.LabelInferenceRole] = consts.InferenceRoleDecode
+		createAndValidateInferenceSet(inferenceSetObj)
 	})
 	return inferenceSetObj
 }

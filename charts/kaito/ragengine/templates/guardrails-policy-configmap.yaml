@@ -5,10 +5,10 @@ metadata:
   namespace: {{ .Release.Namespace }}
 data:
   guardrails.yaml: |
-    action: block
     blockMessage: The model output was blocked by output guardrails.
     scanners:
       - type: regex
+        action: redact
         patterns:
           - '-----BEGIN (?:[A-Z ]+)?PRIVATE KEY-----'
           - '\bAKIA[0-9A-Z]{16}\b'

@@ -507,7 +507,7 @@ async def test_chat_completions_output_guardrails_fail_closed(
     )
     monkeypatch.setattr(
         guardrails,
-        "_build_scanners",
+        "_build_scanners_with_configs",
         lambda: (_ for _ in ()).throw(RuntimeError("scanner init failed")),
     )
 

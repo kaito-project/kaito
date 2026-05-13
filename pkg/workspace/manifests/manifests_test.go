@@ -26,6 +26,8 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
@@ -88,10 +90,87 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 				},
 			},
 		},
+
+		{
+			name: "decode role with vLLM uses routing sidecar port",
+			workspace: func() *kaitov1alpha1.InferenceSet {
+				ws := base.DeepCopy()
+				if ws.Spec.Template.Labels == nil {
+					ws.Spec.Template.Labels = map[string]string{}
+				}
+				ws.Spec.Template.Labels[kaitov1beta1.LabelInferenceRole] = consts.InferenceRoleDecode
+				ws.Annotations[kaitov1beta1.AnnotationWorkspaceRuntime] = string(pkgmodel.RuntimeNameVLLM)
+				return ws
+			}(),
+			expected: map[string]any{
+				"inferenceExtension": map[string]any{
+					"image": map[string]any{
+						"hub":        consts.EPPImageHub,
+						"name":       consts.EPPImageName,
+						"tag":        consts.EPPImageTag,
+						"pullPolicy": string(corev1.PullIfNotPresent),
+					},
+				},
+				"inferencePool": map[string]any{
+					"targetPorts": []any{
+						map[string]any{
+							"number": float64(consts.PortRoutingSidecar),
+						},
+					},
+					"modelServers": map[string]any{
+						"matchLabels": map[string]any{
+							consts.WorkspaceCreatedByInferenceSetLabel: base.Name,
+							appsv1.PodIndexLabel:                       "0",
+						},
+					},
+				},
+			},
+		},
+
+		{
+			name: "decode role with default runtime (no annotation) uses routing sidecar port",
+			workspace: func() *kaitov1alpha1.InferenceSet {
+				ws := base.DeepCopy()
+				if ws.Spec.Template.Labels == nil {
+					ws.Spec.Template.Labels = map[string]string{}
+				}
+				ws.Spec.Template.Labels[kaitov1beta1.LabelInferenceRole] = consts.InferenceRoleDecode
+				delete(ws.Annotations, kaitov1beta1.AnnotationWorkspaceRuntime)
+				return ws
+			}(),
+			expected: map[string]any{
+				"inferenceExtension": map[string]any{
+					"image": map[string]any{
+						"hub":        consts.EPPImageHub,
+						"name":       consts.EPPImageName,
+						"tag":        consts.EPPImageTag,
+						"pullPolicy": string(corev1.PullIfNotPresent),
+					},
+				},
+				"inferencePool": map[string]any{
+					"targetPorts": []any{
+						map[string]any{
+							"number": float64(consts.PortRoutingSidecar),
+						},
+					},
+					"modelServers": map[string]any{
+						"matchLabels": map[string]any{
+							consts.WorkspaceCreatedByInferenceSetLabel: base.Name,
+							appsv1.PodIndexLabel:                       "0",
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			// Explicitly set vLLM feature gate so decode-role tests are deterministic.
+			origVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+			featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
+			defer func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = origVLLM }()
+
 			helmRelease, err := GenerateInferencePoolHelmRelease(tc.workspace)
 			assert.NoError(t, err)
 			assert.NotNil(t, helmRelease)

@@ -28,6 +28,7 @@ import (
 	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
@@ -805,7 +806,7 @@ func TestSetAdapterPuller(t *testing.T) {
 			spec: &corev1.PodSpec{
 				Containers: []corev1.Container{
 					{
-						Name: "test-container",
+						Name: "test-workspace",
 					},
 				},
 			},
@@ -834,7 +835,7 @@ func TestSetAdapterPuller(t *testing.T) {
 			spec: &corev1.PodSpec{
 				Containers: []corev1.Container{
 					{
-						Name: "test-container",
+						Name: "test-workspace",
 					},
 				},
 			},
@@ -870,7 +871,7 @@ func TestSetAdapterPuller(t *testing.T) {
 			spec: &corev1.PodSpec{
 				Containers: []corev1.Container{
 					{
-						Name: "test-container",
+						Name: "test-workspace",
 					},
 				},
 			},
@@ -900,7 +901,7 @@ func TestSetAdapterPuller(t *testing.T) {
 			spec: &corev1.PodSpec{
 				Containers: []corev1.Container{
 					{
-						Name: "test-container",
+						Name: "test-workspace",
 					},
 				},
 			},
@@ -929,10 +930,10 @@ func TestSetAdapterPuller(t *testing.T) {
 			spec: &corev1.PodSpec{
 				Containers: []corev1.Container{
 					{
-						Name: "container-1",
+						Name: "test-workspace",
 					},
 					{
-						Name: "container-2",
+						Name: "sidecar",
 					},
 				},
 			},
@@ -965,7 +966,7 @@ func TestSetAdapterPuller(t *testing.T) {
 			spec: &corev1.PodSpec{
 				Containers: []corev1.Container{
 					{
-						Name: "test-container",
+						Name: "test-workspace",
 					},
 				},
 			},
@@ -1005,7 +1006,7 @@ func TestSetAdapterPuller(t *testing.T) {
 			spec: &corev1.PodSpec{
 				Containers: []corev1.Container{
 					{
-						Name: "test-container",
+						Name: "test-workspace",
 					},
 				},
 			},
@@ -1040,46 +1041,54 @@ func TestSetAdapterPuller(t *testing.T) {
 				t.Errorf("volumes mismatch: expected %v, got %v", tc.expectedVolumes, actualVolumes)
 			}
 
-			// Check volume mounts on containers (only adapter volumes, not docker-config secret volumes)
+			// Check volume mounts on the main container only (adapter volumes, not docker-config secret volumes)
 			if len(tc.expectedVolumes) > 0 {
-				for _, container := range tc.spec.Containers {
+				var mainContainer *corev1.Container
+				for i := range tc.spec.Containers {
+					if tc.spec.Containers[i].Name == tc.workspace.Name {
+						mainContainer = &tc.spec.Containers[i]
+						break
+					}
+				}
+				if mainContainer != nil {
 					for _, expectedVol := range tc.expectedVolumes {
 						if !strings.HasPrefix(expectedVol, "adapter-volume") {
 							continue // docker-config volumes are only mounted on init containers
 						}
 						foundMount := false
-						for _, mount := range container.VolumeMounts {
+						for _, mount := range mainContainer.VolumeMounts {
 							if mount.Name == expectedVol {
 								foundMount = true
 								break
 							}
 						}
 						if !foundMount {
-							t.Errorf("volume mount %s not found in container %s", expectedVol, container.Name)
+							t.Errorf("volume mount %s not found in main container %s", expectedVol, mainContainer.Name)
 						}
 					}
 				}
 			}
 
-			// Check environment variables
+			// Check environment variables on the main container only
 			if len(tc.expectedEnvVars) > 0 {
-				for _, container := range tc.spec.Containers {
-					actualEnvVarNames := make([]string, 0)
-					for _, env := range container.Env {
-						actualEnvVarNames = append(actualEnvVarNames, env.Name)
+				var mainContainer *corev1.Container
+				for i := range tc.spec.Containers {
+					if tc.spec.Containers[i].Name == tc.workspace.Name {
+						mainContainer = &tc.spec.Containers[i]
+						break
 					}
-
-					// Check if all expected env vars are present
+				}
+				if mainContainer != nil {
 					for _, expectedVar := range tc.expectedEnvVars {
 						found := false
-						for _, actualVar := range actualEnvVarNames {
-							if actualVar == expectedVar {
+						for _, env := range mainContainer.Env {
+							if env.Name == expectedVar {
 								found = true
 								break
 							}
 						}
 						if !found {
-							t.Errorf("expected env var %s not found in container %s", expectedVar, container.Name)
+							t.Errorf("expected env var %s not found in main container %s", expectedVar, mainContainer.Name)
 						}
 					}
 				}
@@ -1143,7 +1152,51 @@ func TestSetModelDownloadInfo(t *testing.T) {
 			spec: &corev1.PodSpec{
 				Containers: []corev1.Container{
 					{
-						Name: "container-1",
+						Name: "test-workspace",
+					},
+				},
+			},
+			expectedEnvVars: []corev1.EnvVar{
+				{
+					Name: "HF_TOKEN",
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{
+								Name: "hf-secret",
+							},
+							Key: "HF_TOKEN",
+						},
+					},
+				},
+			},
+			expectedInitContainer: 0,
+			expectError:           false,
+		},
+		"download at runtime - HF_TOKEN only on main container, not sidecar": {
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "default",
+				},
+				Inference: &v1beta1.InferenceSpec{
+					Preset: &v1beta1.PresetSpec{
+						PresetMeta: v1beta1.PresetMeta{
+							Name: "test-model-download",
+						},
+						PresetOptions: v1beta1.PresetOptions{
+							ModelAccessSecret: "hf-secret",
+						},
+					},
+				},
+			},
+			modelName: "test-model-download",
+			spec: &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: "test-workspace",
+					},
+					{
+						Name: "llm-d-routing-sidecar",
 					},
 				},
 			},
@@ -1181,7 +1234,7 @@ func TestSetModelDownloadInfo(t *testing.T) {
 			spec: &corev1.PodSpec{
 				Containers: []corev1.Container{
 					{
-						Name: "test-container",
+						Name: "test-workspace",
 					},
 				},
 			},
@@ -1224,19 +1277,24 @@ func TestSetModelDownloadInfo(t *testing.T) {
 
 			// Check environment variables if expected
 			if len(tc.expectedEnvVars) > 0 {
+				// HF_TOKEN should only be on the main container (matching workspace name)
+				mainContainerName := tc.workspace.Name
 				for i, container := range tc.spec.Containers {
 					found := false
 					for _, env := range container.Env {
 						if env.Name == "HF_TOKEN" {
 							found = true
 							if !reflect.DeepEqual(env, tc.expectedEnvVars[0]) {
-								t.Errorf("container %d: HF_TOKEN env var mismatch: expected %+v, got %+v",
-									i, tc.expectedEnvVars[0], env)
+								t.Errorf("container %d (%s): HF_TOKEN env var mismatch: expected %+v, got %+v",
+									i, container.Name, tc.expectedEnvVars[0], env)
 							}
 						}
 					}
-					if !found {
-						t.Errorf("container %d: HF_TOKEN env var not found", i)
+					if container.Name == mainContainerName && !found {
+						t.Errorf("container %d (%s): HF_TOKEN env var not found on main container", i, container.Name)
+					}
+					if container.Name != mainContainerName && found {
+						t.Errorf("container %d (%s): HF_TOKEN should not be on non-main container", i, container.Name)
 					}
 				}
 			} else {
@@ -1332,4 +1390,213 @@ func toParameterMap(in []string) map[string]string {
 		}
 	}
 	return ret
+}
+
+func TestApplyInferenceRoleEnv(t *testing.T) {
+	tests := []struct {
+		name          string
+		labels        map[string]string
+		expectEnvSet  bool
+		expectedValue string
+	}{
+		{
+			name:         "no label - no env set",
+			labels:       map[string]string{},
+			expectEnvSet: false,
+		},
+		{
+			name:         "invalid role - no env set",
+			labels:       map[string]string{v1beta1.LabelInferenceRole: "invalid"},
+			expectEnvSet: false,
+		},
+		{
+			name:          "prefill role - env set",
+			labels:        map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRolePrefill},
+			expectEnvSet:  true,
+			expectedValue: consts.InferenceRolePrefill,
+		},
+		{
+			name:          "decode role - env set",
+			labels:        map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRoleDecode},
+			expectEnvSet:  true,
+			expectedValue: consts.InferenceRoleDecode,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			spec := &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{Name: "test-workspace"},
+				},
+			}
+			applyInferenceRoleEnv(tc.labels, "test-workspace", spec)
+
+			found := false
+			for _, e := range spec.Containers[0].Env {
+				if e.Name == consts.InferenceRoleEnvName {
+					found = true
+					if e.Value != tc.expectedValue {
+						t.Errorf("expected value %q, got %q", tc.expectedValue, e.Value)
+					}
+				}
+			}
+			if tc.expectEnvSet && !found {
+				t.Error("expected KAITO_INFERENCE_ROLE to be set")
+			}
+			if !tc.expectEnvSet && found {
+				t.Error("KAITO_INFERENCE_ROLE should not be set")
+			}
+		})
+	}
+}
+
+func TestInjectRoutingSidecar(t *testing.T) {
+	tests := []struct {
+		name          string
+		labels        map[string]string
+		expectSidecar bool
+	}{
+		{
+			name:          "no label - no sidecar",
+			labels:        map[string]string{},
+			expectSidecar: false,
+		},
+		{
+			name:          "prefill role - no sidecar",
+			labels:        map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRolePrefill},
+			expectSidecar: false,
+		},
+		{
+			name:          "decode role - sidecar injected",
+			labels:        map[string]string{v1beta1.LabelInferenceRole: consts.InferenceRoleDecode},
+			expectSidecar: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			// Enable vLLM feature gate for runtime detection
+			originalVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+			featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
+			defer func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = originalVLLM }()
+
+			workspace := &v1beta1.Workspace{}
+			workspace.Labels = tc.labels
+
+			spec := &corev1.PodSpec{
+				Containers: []corev1.Container{
+					{
+						Name: "vllm",
+						Ports: []corev1.ContainerPort{
+							{ContainerPort: int32(consts.PortInferenceServer), Name: "http", Protocol: corev1.ProtocolTCP},
+						},
+						ReadinessProbe: &corev1.Probe{
+							ProbeHandler: corev1.ProbeHandler{
+								HTTPGet: &corev1.HTTPGetAction{
+									Port: intstr.FromInt32(int32(consts.PortInferenceServer)),
+									Path: "/health",
+								},
+							},
+						},
+						LivenessProbe: &corev1.Probe{
+							ProbeHandler: corev1.ProbeHandler{
+								HTTPGet: &corev1.HTTPGetAction{
+									Port: intstr.FromInt32(int32(consts.PortInferenceServer)),
+									Path: "/health",
+								},
+							},
+						},
+					},
+				},
+			}
+
+			// Call production code
+			shouldInject := needsRoutingSidecar(workspace)
+			if shouldInject {
+				injectRoutingSidecar(spec)
+			}
+
+			sidecarCount := 0
+			for _, c := range spec.Containers {
+				if c.Name == "llm-d-routing-sidecar" {
+					sidecarCount++
+				}
+			}
+
+			if tc.expectSidecar && sidecarCount == 0 {
+				t.Error("expected routing sidecar to be present")
+			}
+			if !tc.expectSidecar && sidecarCount > 0 {
+				t.Error("routing sidecar should not be present")
+			}
+			if sidecarCount > 1 {
+				t.Errorf("found %d sidecar containers, expected at most 1", sidecarCount)
+			}
+
+			// Verify sidecar config for decode role
+			if tc.expectSidecar {
+				var sidecar *corev1.Container
+				for i, c := range spec.Containers {
+					if c.Name == "llm-d-routing-sidecar" {
+						sidecar = &spec.Containers[i]
+						break
+					}
+				}
+				if sidecar == nil {
+					t.Fatal("sidecar not found")
+				}
+				expectedImage := fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag)
+				if sidecar.Image != expectedImage {
+					t.Errorf("expected image %q, got %q", expectedImage, sidecar.Image)
+				}
+				if len(sidecar.Ports) != 1 || sidecar.Ports[0].ContainerPort != consts.PortRoutingSidecar {
+					t.Errorf("expected port %d, got %v", consts.PortRoutingSidecar, sidecar.Ports)
+				}
+				expectedArgs := []string{
+					fmt.Sprintf("--port=%d", consts.PortRoutingSidecar),
+					fmt.Sprintf("--vllm-port=%d", consts.PortInferenceServer),
+					"--secure-proxy=false",
+				}
+				if len(sidecar.Args) != len(expectedArgs) {
+					t.Errorf("expected %d args, got %d: %v", len(expectedArgs), len(sidecar.Args), sidecar.Args)
+				} else {
+					for i, expected := range expectedArgs {
+						if sidecar.Args[i] != expected {
+							t.Errorf("expected arg[%d] %q, got %q", i, expected, sidecar.Args[i])
+						}
+					}
+				}
+				// BACKEND_URL should NOT be present
+				for _, env := range sidecar.Env {
+					if env.Name == "BACKEND_URL" {
+						t.Error("BACKEND_URL env should not be present on sidecar")
+					}
+				}
+
+				// With the new sidecar approach, vLLM keeps its default port (5000)
+				// and probes continue to target vLLM directly — no rewriting needed.
+				main := spec.Containers[0]
+				hasDefaultPort := false
+				for _, p := range main.Ports {
+					if p.ContainerPort == int32(consts.PortInferenceServer) {
+						hasDefaultPort = true
+					}
+				}
+				if !hasDefaultPort {
+					t.Errorf("main container should keep containerPort %d", consts.PortInferenceServer)
+				}
+				if main.ReadinessProbe != nil && main.ReadinessProbe.HTTPGet != nil {
+					if main.ReadinessProbe.HTTPGet.Port.IntValue() != int(consts.PortInferenceServer) {
+						t.Errorf("readiness probe should target port %d", consts.PortInferenceServer)
+					}
+				}
+				if main.LivenessProbe != nil && main.LivenessProbe.HTTPGet != nil {
+					if main.LivenessProbe.HTTPGet.Port.IntValue() != int(consts.PortInferenceServer) {
+						t.Errorf("liveness probe should target port %d", consts.PortInferenceServer)
+					}
+				}
+			}
+		})
+	}
 }

@@ -443,9 +443,6 @@ func createGemma3MultiRoleInference() *kaitov1alpha1.MultiRoleInference {
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      uniqueID,
 				Namespace: namespaceName,
-				Annotations: map[string]string{
-					kaitov1beta1.AnnotationWorkspaceRuntime: "vllm",
-				},
 			},
 			Spec: kaitov1alpha1.MultiRoleInferenceSpec{
 				LabelSelector: &metav1.LabelSelector{
@@ -482,9 +479,16 @@ func createGemma3MultiRoleInference() *kaitov1alpha1.MultiRoleInference {
 
 func cleanupResourcesForMultiRoleInference(mriObj *kaitov1alpha1.MultiRoleInference) {
 	By("Cleaning up MultiRoleInference", func() {
-		err := utils.TestingCluster.KubeClient.Delete(ctx, mriObj, &client.DeleteOptions{})
-		if err != nil {
-			GinkgoWriter.Printf("Failed to delete MultiRoleInference %s: %v\n", mriObj.Name, err)
+		if !CurrentSpecReport().Failed() {
+			Eventually(func() error {
+				err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKeyFromObject(mriObj), mriObj)
+				if err != nil {
+					return client.IgnoreNotFound(err)
+				}
+				return utils.TestingCluster.KubeClient.Delete(ctx, mriObj, &client.DeleteOptions{})
+			}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to delete MultiRoleInference")
+		} else {
+			GinkgoWriter.Printf("test failed, keep %s\n", mriObj.Name)
 		}
 	})
 }
@@ -526,17 +530,17 @@ func validateMultiRoleInferenceStatus(mriObj *kaitov1alpha1.MultiRoleInference) 
 			if err != nil {
 				return false
 			}
-			// Check that PrefillReady and DecodeReady conditions exist
-			hasPrefillCond, hasDecodeCond := false, false
+			// Check that PrefillReady and DecodeReady conditions are True
+			prefillReady, decodeReady := false, false
 			for _, cond := range mriObj.Status.Conditions {
-				if cond.Type == string(kaitov1alpha1.MultiRoleInferenceConditionTypePrefillReady) {
-					hasPrefillCond = true
+				if cond.Type == string(kaitov1alpha1.MultiRoleInferenceConditionTypePrefillReady) && cond.Status == metav1.ConditionTrue {
+					prefillReady = true
 				}
-				if cond.Type == string(kaitov1alpha1.MultiRoleInferenceConditionTypeDecodeReady) {
-					hasDecodeCond = true
+				if cond.Type == string(kaitov1alpha1.MultiRoleInferenceConditionTypeDecodeReady) && cond.Status == metav1.ConditionTrue {
+					decodeReady = true
 				}
 			}
-			return hasPrefillCond && hasDecodeCond
+			return prefillReady && decodeReady
 		}, utils.PollTimeout, utils.PollInterval).Should(BeTrue(),
 			"Expected PrefillReady and DecodeReady conditions on MultiRoleInference %s", mriObj.Name)
 	})

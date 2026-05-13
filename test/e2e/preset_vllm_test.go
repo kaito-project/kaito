@@ -516,6 +516,11 @@ func validateMultiRoleInferenceChildInferenceSets(mriObj *kaitov1alpha1.MultiRol
 				if roleLabel != templateRoleLabel {
 					return false
 				}
+				// Verify the parent label is also on template labels
+				templateParentLabel := is.Spec.Template.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent]
+				if templateParentLabel != mriObj.Name {
+					return false
+				}
 				if roleLabel == string(kaitov1alpha1.MultiRoleInferenceRolePrefill) {
 					foundPrefill = true
 				}

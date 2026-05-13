@@ -708,3 +708,18 @@ models:
   numKeyValueHeads: 8
   headDim: 128
   quantMethod: fp8
+- name: mistralai/Mistral-Medium-3.5-128B
+  description: https://huggingface.co/mistralai/Mistral-Medium-3.5-128B
+  license: other
+  modelFileSize: 124.43Gi
+  architectures:
+  - Mistral3ForConditionalGeneration
+  modelTokenLimit: 262144
+  hiddenSize: 12288
+  numHiddenLayers: 88
+  numAttentionHeads: 96
+  numKeyValueHeads: 8
+  loadFormat: mistral
+  configFormat: mistral
+  tokenizerMode: mistral
+  quantMethod: fp8

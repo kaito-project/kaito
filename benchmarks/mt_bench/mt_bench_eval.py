@@ -326,12 +326,16 @@ def generate_answers(
         for turn_idx, turn_text in enumerate(turns):
             messages.append({"role": "user", "content": turn_text})
             try:
+                # Mistral tokenizer mode does not support chat_template_kwargs
+                extra = {}
+                if not model_name.lower().startswith("mistral"):
+                    extra["chat_template_kwargs"] = {"enable_thinking": enable_thinking, "thinking": enable_thinking}
                 resp = client.chat.completions.create(
                     model=model_name,
                     messages=messages,
                     max_completion_tokens=max_tokens,
                     temperature=temperature,
-                    extra_body={"chat_template_kwargs": {"enable_thinking": enable_thinking, "thinking": enable_thinking}},
+                    extra_body=extra,
                 )
                 msg = resp.choices[0].message
                 answer_text = msg.content or ""

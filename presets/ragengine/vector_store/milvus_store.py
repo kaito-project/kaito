@@ -331,18 +331,24 @@ class MilvusVectorStoreHandler(BaseVectorStore):
     ) -> dict[str, Any]:
         """Convert a Milvus query result entity to the dict format expected by
         ListDocumentsResponse."""
-        text = entity.get("text", "")
-        if not text:
+        # Parse the LlamaIndex node payload — it carries text + user metadata.
+        node_content = {}
+        nc_raw = entity.get("_node_content", "")
+        if nc_raw:
             try:
-                nc = json.loads(entity.get("_node_content", "{}"))
-                text = nc.get("text", "")
+                node_content = json.loads(nc_raw)
             except (json.JSONDecodeError, TypeError):
-                text = ""
+                node_content = {}
+
+        text = entity.get("text", "") or node_content.get("text", "")
 
         is_truncated = bool(max_text_length and len(text) > max_text_length)
         truncated = text[:max_text_length] if is_truncated else text
 
-        # Extract user metadata — everything except Milvus/LlamaIndex internal fields
+        # User metadata: prefer dynamic top-level fields (when Milvus auto-extracts
+        # them from the LlamaIndex payload). Fall back to the metadata stored in
+        # the _node_content JSON so we never lose user fields like filename/branch
+        # if the Milvus schema didn't promote them to top-level columns.
         _internal_keys = {
             "id",
             "pk",
@@ -355,6 +361,8 @@ class MilvusVectorStoreHandler(BaseVectorStore):
             "ref_doc_id",
         }
         metadata = {k: v for k, v in entity.items() if k not in _internal_keys}
+        if not metadata:
+            metadata = dict(node_content.get("metadata", {}) or {})
 
         # Compute hash consistently with LlamaIndex
         try:
@@ -362,8 +370,15 @@ class MilvusVectorStoreHandler(BaseVectorStore):
         except Exception:
             hash_value = None
 
+        doc_id = (
+            entity.get("doc_id")
+            or entity.get("ref_doc_id")
+            or node_content.get("ref_doc_id")
+            or str(entity.get("id", ""))
+        )
+
         return {
-            "doc_id": entity.get("doc_id", str(entity.get("id", ""))),
+            "doc_id": doc_id,
             "text": truncated,
             "hash_value": hash_value,
             "metadata": metadata,

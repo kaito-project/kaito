@@ -476,6 +476,15 @@ jobs:
           echo "=== Controller logs ==="
           kubectl logs -l app.kubernetes.io/name=workspace -n ${{ env.KAITO_NAMESPACE }} --tail=-1
 
+          echo "=== Controller previous logs (if restarted) ==="
+          for pod in $(kubectl get pods -l app.kubernetes.io/name=workspace -n ${{ env.KAITO_NAMESPACE }} -o jsonpath='{.items[*].metadata.name}'); do
+            restarts=$(kubectl get pod "$pod" -n ${{ env.KAITO_NAMESPACE }} -o jsonpath='{.status.containerStatuses[0].restartCount}')
+            if [ "$restarts" -gt 0 ] 2>/dev/null; then
+              echo "--- Previous logs for $pod (restarts: $restarts) ---"
+              kubectl logs -n ${{ env.KAITO_NAMESPACE }} "$pod" -p || true
+            fi
+          done
+
           echo "=== Node information ==="
           kubectl describe nodes
 

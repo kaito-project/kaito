@@ -38,6 +38,10 @@ func NewControllerWebhooks() []knativeinjection.ControllerConstructor {
 
 	if featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] {
 		constructor = append(constructor, NewInferenceSetCRDValidationWebhook)
+		// MRI webhook requires GAIE — MRI creates InferencePool + EPP.
+		if featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] {
+			constructor = append(constructor, NewMultiRoleInferenceCRDValidationWebhook)
+		}
 	}
 
 	return constructor
@@ -63,6 +67,16 @@ func NewInferenceSetCRDValidationWebhook(ctx context.Context, _ configmap.Watche
 	)
 }
 
+func NewMultiRoleInferenceCRDValidationWebhook(ctx context.Context, _ configmap.Watcher) *controller.Impl {
+	return validation.NewAdmissionController(ctx,
+		"validation.multiroleinference.kaito.sh",
+		"/validate/multiroleinference.kaito.sh",
+		MultiRoleInferenceResources,
+		func(ctx context.Context) context.Context { return ctx },
+		true,
+	)
+}
+
 var WorkspaceResources = map[schema.GroupVersionKind]resourcesemantics.GenericCRD{
 	kaitov1alpha1.GroupVersion.WithKind("Workspace"): &kaitov1alpha1.Workspace{},
 	kaitov1beta1.GroupVersion.WithKind("Workspace"):  &kaitov1beta1.Workspace{},
@@ -70,4 +84,8 @@ var WorkspaceResources = map[schema.GroupVersionKind]resourcesemantics.GenericCR
 
 var InferenceSetResources = map[schema.GroupVersionKind]resourcesemantics.GenericCRD{
 	kaitov1alpha1.GroupVersion.WithKind("InferenceSet"): &kaitov1alpha1.InferenceSet{},
+}
+
+var MultiRoleInferenceResources = map[schema.GroupVersionKind]resourcesemantics.GenericCRD{
+	kaitov1alpha1.GroupVersion.WithKind("MultiRoleInference"): &kaitov1alpha1.MultiRoleInference{},
 }

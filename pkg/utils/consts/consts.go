@@ -47,6 +47,8 @@ const (
 	FeatureFlagGatewayAPIInferenceExtension = "gatewayAPIInferenceExtension"
 	FeatureFlagEnableInferenceSetController = "enableInferenceSetController"
 
+	FeatureFlagEnableMultiRoleInferenceController = "enableMultiRoleInferenceController"
+
 	// Node provisioner types
 	NodeProvisionerAzureGPU  = "azure-gpu-provisioner"
 	NodeProvisionerKarpenter = "karpenter"
@@ -120,10 +122,9 @@ const (
 	// through the routing layer. vLLM keeps its default port (5000).
 	PortRoutingSidecar = int32(5001)
 
-	// Inference role constants for P/D disaggregated serving.
+	// InferenceRoleEnvName is the environment variable name used to pass the
+	// inference role (prefill/decode) to the model container in P/D disaggregated serving.
 	InferenceRoleEnvName = "KAITO_INFERENCE_ROLE"
-	InferenceRolePrefill = "prefill"
-	InferenceRoleDecode  = "decode"
 
 	// ConditionReady is the condition type for a ready condition.
 	ConditionReady = "Ready"

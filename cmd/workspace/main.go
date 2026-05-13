@@ -48,6 +48,7 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	drift "github.com/kaito-project/kaito/pkg/controllers/drift"
+	multiroleinference "github.com/kaito-project/kaito/pkg/controllers/multiroleinference"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/inferenceset"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
@@ -291,6 +292,22 @@ func main() {
 				klog.ErrorS(err, "unable to create controller", "controller", "Drift")
 				exitWithErrorFunc()
 			}
+		}
+	}
+
+	// MultiRoleInference controller — requires enableMultiRoleInferenceController, InferenceSet controller, and GAIE.
+	if featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] &&
+		featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] &&
+		featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] {
+		mriReconciler := multiroleinference.NewMultiRoleInferenceReconciler(
+			kClient,
+			mgr.GetScheme(),
+			log.Log.WithName("controllers").WithName("MultiRoleInference"),
+			mgr.GetEventRecorderFor("KAITO-MultiRoleInference-controller"),
+		)
+		if err = mriReconciler.SetupWithManager(mgr); err != nil {
+			klog.ErrorS(err, "unable to create controller", "controller", "MultiRoleInference")
+			exitWithErrorFunc()
 		}
 	}
 

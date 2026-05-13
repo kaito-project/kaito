@@ -28,30 +28,42 @@ func TestNewControllerWebhooks(t *testing.T) {
 	tests := []struct {
 		name                     string
 		enableInferenceSet       bool
+		enableGAIE               bool
 		expectedConstructorCount int
 	}{
 		{
 			name:                     "InferenceSet controller disabled",
 			enableInferenceSet:       false,
+			enableGAIE:               false,
 			expectedConstructorCount: 2,
 		},
 		{
-			name:                     "InferenceSet controller enabled",
+			name:                     "InferenceSet controller enabled without GAIE",
 			enableInferenceSet:       true,
-			expectedConstructorCount: 3,
+			enableGAIE:               false,
+			expectedConstructorCount: 3, // certificates + workspace + inferenceset
+		},
+		{
+			name:                     "InferenceSet controller enabled with GAIE",
+			enableInferenceSet:       true,
+			enableGAIE:               true,
+			expectedConstructorCount: 4, // certificates + workspace + inferenceset + MRI
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Save original feature gate state
-			originalValue := featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController]
+			originalIS := featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController]
+			originalGAIE := featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension]
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] = originalValue
+				featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] = originalIS
+				featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = originalGAIE
 			}()
 
-			// Set feature gate for test
+			// Set feature gates for test
 			featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] = tt.enableInferenceSet
+			featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = tt.enableGAIE
 
 			// Call the function
 			constructors := NewControllerWebhooks()

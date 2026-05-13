@@ -79,7 +79,7 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 	// Service/Gateway traffic routes to the sidecar on PortRoutingSidecar.
 	httpTargetPort := consts.PortInferenceServer
 	role, hasRole := workspaceObj.Labels[kaitov1beta1.LabelInferenceRole]
-	if hasRole && role == consts.InferenceRoleDecode && kaitov1beta1.GetWorkspaceRuntimeName(workspaceObj) == pkgmodel.RuntimeNameVLLM {
+	if hasRole && role == string(kaitov1alpha1.MultiRoleInferenceRoleDecode) && kaitov1beta1.GetWorkspaceRuntimeName(workspaceObj) == pkgmodel.RuntimeNameVLLM {
 		httpTargetPort = consts.PortRoutingSidecar
 	}
 
@@ -393,7 +393,7 @@ func GenerateInferencePoolOCIRepository(inferenceSetObj *kaitov1alpha1.Inference
 // explicitly overridden by the kaito.sh/runtime annotation.
 func inferencePoolTargetPort(inferenceSetObj *kaitov1alpha1.InferenceSet) int32 {
 	role := inferenceSetObj.Spec.Template.Labels[kaitov1beta1.LabelInferenceRole]
-	if role != consts.InferenceRoleDecode {
+	if role != string(kaitov1alpha1.MultiRoleInferenceRoleDecode) {
 		return consts.PortInferenceServer
 	}
 	// Mirror GetWorkspaceRuntimeName logic: default to vLLM when feature gate is on.

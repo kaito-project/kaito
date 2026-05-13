@@ -506,10 +506,16 @@ func validateMultiRoleInferenceChildInferenceSets(mriObj *kaitov1alpha1.MultiRol
 			if len(isList.Items) != 2 {
 				return false
 			}
-			// Verify both roles exist
+			// Verify both roles exist in metadata labels and template labels
 			foundPrefill, foundDecode := false, false
 			for _, is := range isList.Items {
 				roleLabel := is.Labels[kaitov1alpha1.LabelInferenceRole]
+				// Also verify the role label is propagated to Spec.Template.Labels
+				// so that downstream pods get the correct role for P/D disaggregation
+				templateRoleLabel := is.Spec.Template.Labels[kaitov1alpha1.LabelInferenceRole]
+				if roleLabel != templateRoleLabel {
+					return false
+				}
 				if roleLabel == string(kaitov1alpha1.MultiRoleInferenceRolePrefill) {
 					foundPrefill = true
 				}

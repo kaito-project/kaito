@@ -171,6 +171,37 @@ jobs:
           E2E_ACR_REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io
           E2E_ACR_REGISTRY_SECRET: ${{ env.CLUSTER_NAME }}-acr-secret
 
+      - name: Collect debug logs on failure
+        if: ${{ failure() }}
+        run: |
+          echo "=== Node Provisioner Controller Logs ==="
+          if [ "${{ inputs.node_provisioner }}" == "gpuprovisioner" ]; then
+            kubectl logs -n "${{ env.GPU_PROVISIONER_NAMESPACE }}" -l app.kubernetes.io/name=gpu-provisioner -c controller --tail=500 || true
+          else
+            kubectl logs -n "${{ env.KARPENTER_NAMESPACE }}" -l app.kubernetes.io/name=karpenter -c controller --tail=500 || true
+          fi
+
+          echo "=== KAITO Workspace Controller Logs ==="
+          kubectl get pods -n kaito-workspace -o name | grep "^pod/kaito-workspace" | sed 's/^pod\///' | xargs -I {} kubectl logs -n kaito-workspace {} --tail=500 || true
+
+          echo "=== NodePools ==="
+          kubectl get nodepools.karpenter.sh -o yaml 2>/dev/null || true
+
+          echo "=== NodeClaims ==="
+          kubectl get nodeclaims.karpenter.sh -o yaml 2>/dev/null || true
+
+          echo "=== Workspaces ==="
+          kubectl get workspaces.kaito.sh -A -o yaml 2>/dev/null || true
+
+          echo "=== Nodes ==="
+          kubectl get nodes -o wide || true
+
+          echo "=== Recent Events (last 50) ==="
+          kubectl get events --sort-by='.lastTimestamp' -A | tail -50 || true
+
+          echo "=== Pods in all namespaces ==="
+          kubectl get pods -A -o wide || true
+
       - name: Cleanup e2e resources
         if: ${{ always() }}
         env:

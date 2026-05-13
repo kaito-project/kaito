@@ -753,6 +753,26 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			useFeatureGate:     true,
 		},
 		{
+			name: "Invalid - matchLabels only contains reserved KAITO labels",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "", // BYO mode
+				Count:        pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						LabelWorkspaceName:      "ws1",
+						LabelWorkspaceNamespace: "ns1",
+					},
+				},
+			},
+			preset:             true,
+			presetNameOverride: "test-validation-static",
+			runtime:            model.RuntimeNameVLLM,
+			expectErrs:         true,
+			errContent:         "matchLabels must contain at least one non-reserved label",
+			testNodes:          []v1.Node{},
+			useFeatureGate:     true,
+		},
+		{
 			name: "Deprecated Model",
 			resourceSpec: &ResourceSpec{
 				InstanceType: "Standard_NC4as_T4_v3",

@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/test"
@@ -161,6 +162,101 @@ func TestGenerateRAGDeploymentManifestDifferentConfigurations(t *testing.T) {
 	}
 }
 
+func TestRAGSetEnvGuardrails(t *testing.T) {
+	findEnv := func(envs []v1.EnvVar, name string) (v1.EnvVar, bool) {
+		for _, e := range envs {
+			if e.Name == name {
+				return e, true
+			}
+		}
+		return v1.EnvVar{}, false
+	}
+
+	baseSpec := func() *kaitov1beta1.RAGEngineSpec {
+		return &kaitov1beta1.RAGEngineSpec{
+			Embedding: &kaitov1beta1.EmbeddingSpec{
+				Local: &kaitov1beta1.LocalEmbeddingSpec{ModelID: "BAAI/bge-small-en-v1.5"},
+			},
+		}
+	}
+
+	t.Run("guardrails unset emits no guardrails envs", func(t *testing.T) {
+		re := &kaitov1beta1.RAGEngine{
+			ObjectMeta: metav1.ObjectMeta{Name: "rg", Namespace: "ns"},
+			Spec:       baseSpec(),
+		}
+		envs := RAGSetEnv(re)
+		for _, name := range []string{"OUTPUT_GUARDRAILS_ENABLED", "OUTPUT_GUARDRAILS_POLICY_PATH"} {
+			if _, ok := findEnv(envs, name); ok {
+				t.Errorf("expected %s to be absent when Guardrails is nil", name)
+			}
+		}
+	})
+
+	t.Run("guardrails enabled with policy", func(t *testing.T) {
+		spec := baseSpec()
+		spec.Guardrails = &kaitov1beta1.GuardrailsSpec{
+			Enabled:      true,
+			ConfigMapRef: &kaitov1beta1.ConfigMapReference{Name: "policy-cm"},
+		}
+		re := &kaitov1beta1.RAGEngine{
+			ObjectMeta: metav1.ObjectMeta{Name: "rg", Namespace: "ns"},
+			Spec:       spec,
+		}
+		envs := RAGSetEnv(re)
+		want := map[string]string{
+			"OUTPUT_GUARDRAILS_ENABLED":     "true",
+			"OUTPUT_GUARDRAILS_POLICY_PATH": GuardrailsPolicyMountPath + "/" + GuardrailsPolicyFileName,
+		}
+		for name, expected := range want {
+			got, ok := findEnv(envs, name)
+			if !ok {
+				t.Errorf("missing env %s", name)
+				continue
+			}
+			if got.Value != expected {
+				t.Errorf("env %s = %q, want %q", name, got.Value, expected)
+			}
+		}
+	})
+
+	t.Run("guardrails without ConfigMap emits no policy path", func(t *testing.T) {
+		spec := baseSpec()
+		spec.Guardrails = &kaitov1beta1.GuardrailsSpec{
+			Enabled: true,
+		}
+		re := &kaitov1beta1.RAGEngine{
+			ObjectMeta: metav1.ObjectMeta{Name: "rg", Namespace: "ns"},
+			Spec:       spec,
+		}
+		envs := RAGSetEnv(re)
+		got, ok := findEnv(envs, "OUTPUT_GUARDRAILS_POLICY_PATH")
+		if !ok {
+			t.Fatalf("missing OUTPUT_GUARDRAILS_POLICY_PATH")
+		}
+		if got.Value != GuardrailsPolicyFilePath {
+			t.Errorf("OUTPUT_GUARDRAILS_POLICY_PATH = %q, want %q", got.Value, GuardrailsPolicyFilePath)
+		}
+	})
+
+	t.Run("guardrails disabled still emits explicit envs", func(t *testing.T) {
+		spec := baseSpec()
+		spec.Guardrails = &kaitov1beta1.GuardrailsSpec{Enabled: false}
+		re := &kaitov1beta1.RAGEngine{
+			ObjectMeta: metav1.ObjectMeta{Name: "rg", Namespace: "ns"},
+			Spec:       spec,
+		}
+		envs := RAGSetEnv(re)
+		got, ok := findEnv(envs, "OUTPUT_GUARDRAILS_ENABLED")
+		if !ok {
+			t.Fatalf("missing OUTPUT_GUARDRAILS_ENABLED")
+		}
+		if got.Value != "false" {
+			t.Errorf("OUTPUT_GUARDRAILS_ENABLED = %q, want %q", got.Value, "false")
+		}
+	})
+}
+
 func TestGenerateRAGServiceManifest(t *testing.T) {
 	t.Run("generate RAG service", func(t *testing.T) {
 		// Mocking the RAGEngine object for the test
@@ -247,6 +343,25 @@ func TestRAGSetEnv(t *testing.T) {
 		}
 		if envMap["MODEL_ID"] != "BAAI/bge-small-en-v1.5" {
 			t.Errorf("expected MODEL_ID 'BAAI/bge-small-en-v1.5', got %s", envMap["MODEL_ID"])
+		}
+	})
+
+	t.Run("test RAG guardrails environment variables", func(t *testing.T) {
+		ragEngine := test.MockRAGEngineWithPreset.DeepCopy()
+		ragEngine.Spec.Guardrails = &kaitov1beta1.GuardrailsSpec{Enabled: true}
+
+		envs := RAGSetEnv(ragEngine)
+
+		envMap := make(map[string]string)
+		for _, env := range envs {
+			envMap[env.Name] = env.Value
+		}
+
+		if envMap["OUTPUT_GUARDRAILS_ENABLED"] != "true" {
+			t.Errorf("expected OUTPUT_GUARDRAILS_ENABLED 'true', got %s", envMap["OUTPUT_GUARDRAILS_ENABLED"])
+		}
+		if envMap["OUTPUT_GUARDRAILS_POLICY_PATH"] != GuardrailsPolicyFilePath {
+			t.Errorf("expected OUTPUT_GUARDRAILS_POLICY_PATH %s, got %s", GuardrailsPolicyFilePath, envMap["OUTPUT_GUARDRAILS_POLICY_PATH"])
 		}
 	})
 }

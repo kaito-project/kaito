@@ -89,11 +89,33 @@ def _health_check() -> bool:
         return False
 
 
-def _read_counter(metric: str) -> int:
-    """Parse a Prometheus counter value from vLLM /metrics.
+def _sum_counter_metric(metric: str) -> int:
+    """Sum all samples for an additive Prometheus metric from vLLM /metrics.
 
-    Handles both labelled (``metric{...} value``) and bare (``metric value``) forms.
-    Returns 0 if the metric is absent or the endpoint is unreachable.
+    Aggregates across label sets (e.g. multiple ``engine`` shards in a
+    tensor/pipeline-parallel deployment).  Returns 0 if the metric is absent
+    or the endpoint is unreachable.
+
+    Intended for **additive** metric types only:
+
+      * counters (``..._total``) — summing yields the total count
+      * gauges where summing is meaningful (e.g. ``vllm:num_requests_running``
+        — total in-flight requests across shards)
+
+    NOT suitable for:
+
+      * histograms / summaries (exposed as ``_bucket`` / ``_sum`` / ``_count``
+        — this function will return 0 for the bare metric name)
+      * non-additive gauges such as utilization percentages
+      * info metrics (label-only; value is always 1)
+
+    Example /metrics output (multi-engine deployment)::
+
+        vllm:generation_tokens_total{engine="0",model_name="gemma-4-e4b-it"} 408832.0
+        vllm:generation_tokens_total{engine="1",model_name="gemma-4-e4b-it"} 407040.0
+
+    For ``metric="vllm:generation_tokens_total"`` this returns ``815872``
+    (408832 + 407040).
     """
     try:
         data = (
@@ -103,13 +125,20 @@ def _read_counter(metric: str) -> int:
         )
     except Exception:
         return 0
-    for line in data.splitlines():
-        if line.startswith(f"{metric}{{") or line.startswith(f"{metric} "):
-            try:
-                return int(float(line.split()[-1]))
-            except (ValueError, IndexError):
-                return 0
-    return 0
+    total = 0.0
+    found = False
+    for family in text_string_to_metric_families(data):
+        for sample in family.samples:
+            # The prometheus_client parser strips the ``_total`` suffix from
+            # counter family names (e.g. family ``vllm:generation_tokens`` for
+            # metric ``vllm:generation_tokens_total``), so match on the raw
+            # ``sample.name`` instead.  This also naturally skips the synthetic
+            # ``_created`` timestamp samples.
+            if sample.name != metric:
+                continue
+            found = True
+            total += sample.value
+    return int(total) if found else 0
 
 
 # ── Benchmark configuration ───────────────────────────────────────────────────
@@ -277,12 +306,13 @@ def _run_benchmark() -> tuple:
     Raises ``RuntimeError`` on any failure so the caller can log it and fall back
     to the sentinel result.
     """
-    t0_gen = _read_counter("vllm:generation_tokens_total")
-    t0_prompt = _read_counter("vllm:prompt_tokens_total")
+    t0_gen = _sum_counter_metric("vllm:generation_tokens_total")
+    t0_prompt = _sum_counter_metric("vllm:prompt_tokens_total")
     t0_epoch = time.time()
 
     processor = _resolve_processor()
     _log(f"processor_resolved PROCESSOR={processor or '<auto>'}")
+    _log(f"benchmark_start epoch={t0_epoch:.1f} t0_gen={t0_gen} t0_prompt={t0_prompt}")
 
     max_concurrency = _compute_max_concurrency()
     _log(
@@ -298,8 +328,9 @@ def _run_benchmark() -> tuple:
     ttft_ms, tpot_ms = _extract_guidellm_metrics(report)
 
     t1_epoch = time.time()
-    t1_gen = _read_counter("vllm:generation_tokens_total")
-    t1_prompt = _read_counter("vllm:prompt_tokens_total")
+    t1_gen = _sum_counter_metric("vllm:generation_tokens_total")
+    t1_prompt = _sum_counter_metric("vllm:prompt_tokens_total")
+    _log(f"benchmark_end epoch={t1_epoch:.1f} t1_gen={t1_gen} t1_prompt={t1_prompt}")
 
     delta_gen = t1_gen - t0_gen
     # Require at least one generated token.  Zero generation means the load did not
@@ -327,7 +358,7 @@ def _drain(timeout: float = 300.0) -> None:
     _log("drain_start")
     deadline = time.monotonic() + timeout
     while True:
-        if _read_counter("vllm:num_requests_running") == 0:
+        if _sum_counter_metric("vllm:num_requests_running") == 0:
             break
         if time.monotonic() >= deadline:
             raise TimeoutError(f"_drain timed out after {timeout}s")

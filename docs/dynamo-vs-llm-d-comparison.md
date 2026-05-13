@@ -194,18 +194,14 @@ KAITO Workspace CRD (extend with P/D mode declaration)
 
 After a hands-on walkthrough, Dynamo revealed additional practical concerns:
 
-#### 1. Dynamo Is Essentially a Showcase Platform for NVIDIA's Full-Stack Software
-
-Dynamo is not just an inference orchestration layer — it's an integrated showcase platform for NVIDIA's full-stack OSS software. Using a Python web framework analogy: **Dynamo is like Django (batteries-included, heavyweight), while llm-d is like Flask (lightweight, flexible, easy to integrate)**. For a project like KAITO that needs to embed into an existing K8s platform, lightweight integration is far superior to adopting a full-stack framework.
-
-#### 2. Runtime Wrapper Complexity Exceeds Expectations
+#### 1. Runtime Wrapper Complexity Exceeds Expectations
 
 Dynamo's runtime wrapper doesn't just handle inference forwarding — it also includes built-in reasoning and tool parsing logic. This means:
 - **Some existing KAITO model presets may be incompatible without adaptation** — Dynamo's wrapper makes its own assumptions about request/response handling. For example, presets that expect KAITO's current prompt formatting or raw model I/O may need changes to align with Dynamo-specific reasoning/tool-parsing behavior before they work correctly.
 - **Extended version dependency chain**: Each new model release requires waiting for ① a vLLM release ② a Dynamo release before support is available
 - The wrapper is written in **Python + Rust** hybrid, making debugging and maintenance difficult
 
-#### 3. Analysis of Dynamo's Two Deployment Modes
+#### 2. Analysis of Dynamo's Two Deployment Modes
 
 **Traditional deployment mode (Central Router)**:
 - Frontend serves as central router, forwarding requests to Worker Pods

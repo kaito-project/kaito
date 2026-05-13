@@ -22,6 +22,7 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -57,10 +58,7 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 
 	if req.ResourceProfile.DisableNodeAutoProvisioning {
 		// NAP is disabled (BYO scenario) — derive GPU config from existing ready nodes.
-		var matchLabels client.MatchingLabels
-		if req.ResourceProfile.LabelSelector != nil {
-			matchLabels = req.ResourceProfile.LabelSelector.MatchLabels
-		}
+		matchLabels := client.MatchingLabels(kaitov1beta1.SanitizedMatchLabels(req.ResourceProfile.LabelSelector))
 		nodeList, listErr := resources.ListNodes(ctx, cl, matchLabels)
 		if listErr != nil {
 			return 0, fmt.Errorf("failed to list ready nodes: %w", listErr)

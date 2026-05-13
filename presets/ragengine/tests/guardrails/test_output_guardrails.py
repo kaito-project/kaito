@@ -48,16 +48,20 @@ def _write_policy(tmp_path, monkeypatch, yaml_content: str, *, enabled: bool = T
     return policy_path
 
 
-def _regex_cfg(patterns=("a",), **kw) -> ParsedScannerConfig:
+def _regex_cfg(patterns=("a",), action_on_hit="redact", **kw) -> ParsedScannerConfig:
     return ParsedScannerConfig(
         type="regex",
+        action_on_hit=action_on_hit,
         config=RegexConfig(patterns=list(patterns), **kw),
     )
 
 
-def _ban_subs_cfg(substrings=("secret",), **kw) -> ParsedScannerConfig:
+def _ban_subs_cfg(
+    substrings=("secret",), action_on_hit="redact", **kw
+) -> ParsedScannerConfig:
     return ParsedScannerConfig(
         type="ban_substrings",
+        action_on_hit=action_on_hit,
         config=BanSubstringsConfig(substrings=list(substrings), **kw),
     )
 
@@ -183,8 +187,8 @@ def test_from_config_loads_yaml_policy(tmp_path, monkeypatch):
     assert guardrails.action_on_hit == "block"
     assert guardrails.block_message == "blocked-by-policy"
     assert guardrails.scanner_configs == [
-        _regex_cfg(patterns=[r"https?://\S+"]),
-        _ban_subs_cfg(substrings=["secret"]),
+        _regex_cfg(patterns=[r"https?://\S+"], action_on_hit="block"),
+        _ban_subs_cfg(substrings=["secret"], action_on_hit="block"),
     ]
 
 
@@ -218,7 +222,9 @@ def test_from_config_replaces_scanners_with_policy_values(tmp_path, monkeypatch)
     guardrails = OutputGuardrails.from_config()
 
     assert guardrails.action_on_hit == "block"
-    assert guardrails.scanner_configs == [_ban_subs_cfg(substrings=["yaml-only"])]
+    assert guardrails.scanner_configs == [
+        _ban_subs_cfg(substrings=["yaml-only"], action_on_hit="block")
+    ]
 
 
 def test_from_config_invalid_action_falls_back_to_default(tmp_path, monkeypatch):
@@ -237,7 +243,9 @@ def test_from_config_invalid_action_falls_back_to_default(tmp_path, monkeypatch)
     guardrails = OutputGuardrails.from_config()
 
     assert guardrails.action_on_hit == "redact"
-    assert guardrails.scanner_configs == [_regex_cfg(patterns=[r"https?://\S+"])]
+    assert guardrails.scanner_configs == [
+        _regex_cfg(patterns=[r"https?://\S+"], action_on_hit="redact")
+    ]
 
 
 def test_from_config_returns_empty_scanners_when_policy_scanners_is_not_a_list(
@@ -257,6 +265,32 @@ def test_from_config_returns_empty_scanners_when_policy_scanners_is_not_a_list(
 
     assert guardrails.action_on_hit == "block"
     assert guardrails.scanner_configs == []
+
+
+def test_from_config_scanner_action_overrides_top_level_action(tmp_path, monkeypatch):
+    _write_policy(
+        tmp_path,
+        monkeypatch,
+        """
+        action: block
+        scanners:
+          - type: regex
+            action: redact
+            patterns:
+              - https?://\\S+
+          - type: ban_substrings
+            substrings:
+              - secret
+        """,
+    )
+
+    guardrails = OutputGuardrails.from_config()
+
+    assert guardrails.action_on_hit == "block"
+    assert guardrails.scanner_configs == [
+        _regex_cfg(patterns=[r"https?://\S+"], action_on_hit="redact"),
+        _ban_subs_cfg(substrings=["secret"], action_on_hit="block"),
+    ]
 
 
 def test_from_config_skips_invalid_scanners_and_filters_non_string_values(
@@ -477,6 +511,24 @@ def test_build_scanners_supports_normalized_ban_substrings_type(
     assert scanners[0].redact is True
 
 
+def test_build_scanners_uses_per_scanner_action(fake_llm_guard_scanners):
+    parsed = [
+        _regex_cfg(patterns=["a"], action_on_hit="redact"),
+        _ban_subs_cfg(substrings=["secret"], action_on_hit="block"),
+    ]
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        action_on_hit="redact",
+        scanner_configs=parsed,
+    )
+
+    scanners = guardrails._build_scanners()
+
+    assert scanners[0].redact is True
+    assert scanners[1].redact is False
+
+
 def test_build_scanners_skips_configs_whose_build_raises(monkeypatch):
     sentinel = object()
     call_count = {"n": 0}
@@ -609,11 +661,67 @@ def test_guard_response_applies_action(
         enabled=True,
         action_on_hit=action,
         block_message=block_message,
-        scanner_configs=[_regex_cfg(patterns=[r"\S+"])],
+        scanner_configs=[_regex_cfg(patterns=[r"\S+"], action_on_hit=action)],
     )
 
     out = guardrails.guard_response(_make_response("dirty"), {"messages": []})
     assert out.choices[0].message.content == expected_content
+
+
+def test_guard_response_applies_mixed_scanner_actions_in_order(monkeypatch):
+    call_outputs = iter(
+        [
+            ("REDACTED-CONTENT", {"regex": False}, {"regex": 0.9}),
+            (
+                "REDACTED-CONTENT",
+                {"ban_substrings": True},
+                {"ban_substrings": 0.0},
+            ),
+        ]
+    )
+
+    def _scan_output(scanners, prompt, output, fail_fast):
+        return next(call_outputs)
+
+    _patch_scan_output(monkeypatch, _scan_output)
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        block_message="blocked!",
+        scanner_configs=[
+            _regex_cfg(patterns=[r"\S+"], action_on_hit="redact"),
+            _ban_subs_cfg(substrings=["secret"], action_on_hit="block"),
+        ],
+    )
+
+    out = guardrails.guard_response(_make_response("dirty"), {"messages": []})
+    assert out.choices[0].message.content == "REDACTED-CONTENT"
+
+
+def test_guard_response_block_wins_when_block_scanner_triggers(monkeypatch):
+    call_outputs = iter(
+        [
+            ("REDACTED-CONTENT", {"regex": False}, {"regex": 0.9}),
+            ("ignored-after-block", {"ban_substrings": False}, {"ban_substrings": 0.7}),
+        ]
+    )
+
+    def _scan_output(scanners, prompt, output, fail_fast):
+        return next(call_outputs)
+
+    _patch_scan_output(monkeypatch, _scan_output)
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        block_message="blocked!",
+        scanner_configs=[
+            _regex_cfg(patterns=[r"\S+"], action_on_hit="redact"),
+            _ban_subs_cfg(substrings=["secret"], action_on_hit="block"),
+        ],
+    )
+
+    out = guardrails.guard_response(_make_response("dirty"), {"messages": []})
+    assert out.choices[0].message.content == "blocked!"
 
 
 # ---------------------------------------------------------------------------

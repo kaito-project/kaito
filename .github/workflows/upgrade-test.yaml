@@ -16,7 +16,7 @@ permissions:
 
 env:
   OLD_CHART_VERSION: ${{ github.event.inputs.old_chart_version || '0.7.1' }}
-  GO_VERSION: "1.26.2"
+  GO_VERSION: "1.26.3"
 
 jobs:
   chart-upgrade-test:

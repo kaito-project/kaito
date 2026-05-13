@@ -37,7 +37,7 @@ rules:
   - apiGroups: ["admissionregistration.k8s.io"]
     resources: ["validatingwebhookconfigurations"]
     verbs: ["update"]
-    resourceNames: ["validation.inferenceset.kaito.sh", "validation.multiroleinference.kaito.sh"]
+    resourceNames: ["validation.inferenceset.kaito.sh"{{- if .Values.featureGates.enableMultiRoleInferenceController }}, "validation.multiroleinference.kaito.sh"{{- end }}]
   - apiGroups: [""]
     resources: ["events"]
     verbs: ["create", "patch", "update"]

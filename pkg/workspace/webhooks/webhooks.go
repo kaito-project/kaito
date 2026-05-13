@@ -38,6 +38,8 @@ func NewControllerWebhooks() []knativeinjection.ControllerConstructor {
 
 	if featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] {
 		constructor = append(constructor, NewInferenceSetCRDValidationWebhook)
+	}
+	if featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] {
 		constructor = append(constructor, NewMultiRoleInferenceCRDValidationWebhook)
 	}
 

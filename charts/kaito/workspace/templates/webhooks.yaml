@@ -54,7 +54,7 @@ webhooks:
           - CREATE
           - UPDATE
 {{- end }}
-{{- if .Values.featureGates.enableInferenceSetController }}
+{{- if .Values.featureGates.enableMultiRoleInferenceController }}
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration

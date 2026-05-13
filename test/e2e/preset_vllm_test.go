@@ -363,7 +363,6 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 	It("should create a MultiRoleInference with prefill and decode roles successfully", Serial, utils.GinkgoLabelFastCheck, func() {
 		mriObj := createGemma3MultiRoleInference()
 		defer cleanupResourcesForMultiRoleInference(mriObj)
-		time.Sleep(120 * time.Second)
 
 		validateMultiRoleInferenceChildInferenceSets(mriObj)
 		validateMultiRoleInferenceStatus(mriObj)
@@ -529,7 +528,7 @@ func validateMultiRoleInferenceChildInferenceSets(mriObj *kaitov1alpha1.MultiRol
 				}
 			}
 			return foundPrefill && foundDecode
-		}, utils.PollTimeout, utils.PollInterval).Should(BeTrue(),
+		}, 20*time.Minute, utils.PollInterval).Should(BeTrue(),
 			"Expected 2 child InferenceSets (prefill + decode) for MultiRoleInference %s", mriObj.Name)
 	})
 }
@@ -552,7 +551,7 @@ func validateMultiRoleInferenceStatus(mriObj *kaitov1alpha1.MultiRoleInference) 
 				}
 			}
 			return prefillReady && decodeReady
-		}, utils.PollTimeout, utils.PollInterval).Should(BeTrue(),
+		}, 20*time.Minute, utils.PollInterval).Should(BeTrue(),
 			"Expected PrefillReady and DecodeReady conditions on MultiRoleInference %s", mriObj.Name)
 	})
 }

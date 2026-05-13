@@ -499,7 +499,7 @@ func createGemma3MultiRoleInference() *kaitov1alpha1.MultiRoleInference {
 
 		By("Creating MultiRoleInference", func() {
 			Eventually(func() error {
-				return TestingCluster.KubeClient.Create(ctx, mriObj, &client.CreateOptions{})
+				return utils.TestingCluster.KubeClient.Create(ctx, mriObj, &client.CreateOptions{})
 			}, utils.PollTimeout, utils.PollInterval).
 				Should(Succeed(), "Failed to create MultiRoleInference")
 		})
@@ -509,7 +509,7 @@ func createGemma3MultiRoleInference() *kaitov1alpha1.MultiRoleInference {
 
 func cleanupResourcesForMultiRoleInference(mriObj *kaitov1alpha1.MultiRoleInference) {
 	By("Cleaning up MultiRoleInference", func() {
-		err := TestingCluster.KubeClient.Delete(ctx, mriObj, &client.DeleteOptions{})
+		err := utils.TestingCluster.KubeClient.Delete(ctx, mriObj, &client.DeleteOptions{})
 		if err != nil {
 			GinkgoWriter.Printf("Failed to delete MultiRoleInference %s: %v\n", mriObj.Name, err)
 		}
@@ -520,7 +520,7 @@ func validateMultiRoleInferenceChildInferenceSets(mriObj *kaitov1alpha1.MultiRol
 	By("Validating child InferenceSets are created for each role", func() {
 		Eventually(func() bool {
 			isList := &kaitov1alpha1.InferenceSetList{}
-			err := TestingCluster.KubeClient.List(ctx, isList,
+			err := utils.TestingCluster.KubeClient.List(ctx, isList,
 				client.InNamespace(mriObj.Namespace),
 				client.MatchingLabels{kaitov1alpha1.LabelMultiRoleInferenceParent: mriObj.Name})
 			if err != nil {
@@ -549,7 +549,7 @@ func validateMultiRoleInferenceChildInferenceSets(mriObj *kaitov1alpha1.MultiRol
 func validateMultiRoleInferenceStatus(mriObj *kaitov1alpha1.MultiRoleInference) {
 	By("Validating MultiRoleInference status conditions", func() {
 		Eventually(func() bool {
-			err := TestingCluster.KubeClient.Get(ctx, client.ObjectKeyFromObject(mriObj), mriObj)
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKeyFromObject(mriObj), mriObj)
 			if err != nil {
 				return false
 			}
@@ -735,7 +735,7 @@ func validateGatewayAPIInferenceExtensionResources(iObj *kaitov1alpha1.Inference
 	By("Checking Flux OCIRepository is Ready", func() {
 		Eventually(func() bool {
 			ociRepository := &sourcev1.OCIRepository{}
-			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+			err := utils.utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
 				Namespace: iObj.Namespace,
 				Name:      kaitoutils.InferencePoolName(iObj.Name),
 			}, ociRepository, &client.GetOptions{})
@@ -754,7 +754,7 @@ func validateGatewayAPIInferenceExtensionResources(iObj *kaitov1alpha1.Inference
 	By("Checking Flux HelmRelease is Ready", func() {
 		Eventually(func() bool {
 			helmRelease := &helmv2.HelmRelease{}
-			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+			err := utils.utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
 				Namespace: iObj.Namespace,
 				Name:      kaitoutils.InferencePoolName(iObj.Name),
 			}, helmRelease, &client.GetOptions{})
@@ -778,7 +778,7 @@ func validateGatewayAPIInferenceExtensionResources(iObj *kaitov1alpha1.Inference
 func validateWorkspaceBenchmarkCompleted(workspaceObj *kaitov1beta1.Workspace) {
 	By("Validating workspace benchmark completed and performance is set", func() {
 		Eventually(func() bool {
-			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+			err := utils.utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
 				Name:      workspaceObj.Name,
 				Namespace: workspaceObj.Namespace,
 			}, workspaceObj)
@@ -867,7 +867,7 @@ func logBenchmarkPhaseElapsed(coreClient *kubernetes.Clientset, wsName, wsNamesp
 func validateInferenceSetBenchmarkCompleted(inferenceSetObj *kaitov1alpha1.InferenceSet) {
 	By("Validating inferenceset aggregated performance is set", func() {
 		Eventually(func() bool {
-			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+			err := utils.utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
 				Name:      inferenceSetObj.Name,
 				Namespace: inferenceSetObj.Namespace,
 			}, inferenceSetObj)
@@ -893,7 +893,7 @@ func validateInferenceSetBenchmarkCompleted(inferenceSetObj *kaitov1alpha1.Infer
 	By("Validating all child workspace benchmarks completed", func() {
 		wsList := &kaitov1beta1.WorkspaceList{}
 		Eventually(func() bool {
-			err := utils.TestingCluster.KubeClient.List(ctx, wsList,
+			err := utils.utils.TestingCluster.KubeClient.List(ctx, wsList,
 				client.InNamespace(inferenceSetObj.Namespace),
 				client.MatchingLabels{consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name},
 			)
@@ -925,7 +925,7 @@ func validateInferenceSetBenchmarkCompleted(inferenceSetObj *kaitov1alpha1.Infer
 			return
 		}
 		wsList := &kaitov1beta1.WorkspaceList{}
-		if err := utils.TestingCluster.KubeClient.List(ctx, wsList,
+		if err := utils.utils.TestingCluster.KubeClient.List(ctx, wsList,
 			client.InNamespace(inferenceSetObj.Namespace),
 			client.MatchingLabels{consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name},
 		); err != nil {

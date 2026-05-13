@@ -38,10 +38,7 @@ func NewControllerWebhooks() []knativeinjection.ControllerConstructor {
 
 	if featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] {
 		constructor = append(constructor, NewInferenceSetCRDValidationWebhook)
-		// MRI webhook requires GAIE — MRI creates InferencePool + EPP.
-		if featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] {
-			constructor = append(constructor, NewMultiRoleInferenceCRDValidationWebhook)
-		}
+		constructor = append(constructor, NewMultiRoleInferenceCRDValidationWebhook)
 	}
 
 	return constructor

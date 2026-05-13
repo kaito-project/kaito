@@ -57,3 +57,4 @@ All models were deployed as KAITO Workspace CRs on AKS and evaluated using the v
 | Qwen/Qwen3.6-35B-A3B | vllm | 8.17 | 7.85 | 8.05 | 8.55 | 9.90 | 8.00 | 8.40 | 7.30 | 7.30 | 2026-05-07 |
 | Qwen/Qwen3.6-27B | vllm | 8.12 | 8.35 | 8.05 | 8.80 | 9.85 | 7.70 | 8.00 | 7.10 | 7.15 | 2026-05-07 |
 | Qwen/Qwen3.5-397B-A17B-GPTQ-Int4 | vllm | 8.53 | 8.25 | 8.35 | 8.80 | 9.95 | 8.75 | 8.55 | 8.00 | 7.60 | 2026-05-07 |
+| moonshotai/Kimi-K2.5 | vllm | 7.64 | 6.45 | 7.75 | 8.35 | 9.40 | 6.05 | 7.85 | 7.65 | 7.65 | 2026-05-12 |

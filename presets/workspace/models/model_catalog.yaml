@@ -679,3 +679,18 @@ models:
   headDim: 256
   quantMethod: gptq
   quantBits: 4
+- name: moonshotai/Kimi-K2.5
+  description: https://huggingface.co/moonshotai/Kimi-K2.5
+  license: modified-mit
+  pipelineTag: image-text-to-text
+  modelFileSize: 554.32Gi
+  architectures:
+  - KimiK25ForConditionalGeneration
+  modelTokenLimit: 262144
+  hiddenSize: 7168
+  numHiddenLayers: 61
+  numAttentionHeads: 64
+  numKeyValueHeads: 64
+  kvLoraRank: 512
+  qkRopeHeadDim: 64
+  quantMethod: pack-quantized

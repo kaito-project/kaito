@@ -69,6 +69,7 @@ var (
 		"HunYuanMoEV1ForCausalLM":                "hunyuan_a13b",
 		"GraniteForCausalLM":                     "granite",
 		"KimiK2ForCausalLM":                      "kimi_k2",
+		"KimiK25ForConditionalGeneration":        "kimi_k2",
 		"MiniMaxM2ForCausalLM":                   "minimax_m2_append_think",
 		"Mistral3ForConditionalGeneration":       "mistral",
 		"MistralForCausalLM":                     "mistral",
@@ -164,6 +165,7 @@ var (
 		"NemotronH_Nano_VL_V2":                   "qwen3_coder",
 		"Phi4MiniForCausalLM":                    "phi4_mini_json",
 		"KimiK2ForCausalLM":                      "kimi_k2",
+		"KimiK25ForConditionalGeneration":        "kimi_k2",
 		"GigaChat3ForCausalLM":                   "gigachat3",
 	}
 

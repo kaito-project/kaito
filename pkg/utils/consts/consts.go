@@ -124,8 +124,6 @@ const (
 
 	// Inference role constants for P/D disaggregated serving.
 	InferenceRoleEnvName = "KAITO_INFERENCE_ROLE"
-	InferenceRolePrefill = "prefill"
-	InferenceRoleDecode  = "decode"
 
 	// ConditionReady is the condition type for a ready condition.
 	ConditionReady = "Ready"

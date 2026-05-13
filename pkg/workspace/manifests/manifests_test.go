@@ -98,7 +98,7 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 				if ws.Spec.Template.Labels == nil {
 					ws.Spec.Template.Labels = map[string]string{}
 				}
-				ws.Spec.Template.Labels[kaitov1beta1.LabelInferenceRole] = consts.InferenceRoleDecode
+				ws.Spec.Template.Labels[kaitov1beta1.LabelInferenceRole] = string(kaitov1alpha1.MultiRoleInferenceRoleDecode)
 				ws.Annotations[kaitov1beta1.AnnotationWorkspaceRuntime] = string(pkgmodel.RuntimeNameVLLM)
 				return ws
 			}(),
@@ -134,7 +134,7 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 				if ws.Spec.Template.Labels == nil {
 					ws.Spec.Template.Labels = map[string]string{}
 				}
-				ws.Spec.Template.Labels[kaitov1beta1.LabelInferenceRole] = consts.InferenceRoleDecode
+				ws.Spec.Template.Labels[kaitov1beta1.LabelInferenceRole] = string(kaitov1alpha1.MultiRoleInferenceRoleDecode)
 				delete(ws.Annotations, kaitov1beta1.AnnotationWorkspaceRuntime)
 				return ws
 			}(),

@@ -694,3 +694,17 @@ models:
   kvLoraRank: 512
   qkRopeHeadDim: 64
   quantMethod: pack-quantized
+- name: MiniMaxAI/MiniMax-M2.7
+  description: https://huggingface.co/MiniMaxAI/MiniMax-M2.7
+  license: other
+  pipelineTag: text-generation
+  modelFileSize: 214.34Gi
+  architectures:
+  - MiniMaxM2ForCausalLM
+  modelTokenLimit: 204800
+  hiddenSize: 3072
+  numHiddenLayers: 62
+  numAttentionHeads: 48
+  numKeyValueHeads: 8
+  headDim: 128
+  quantMethod: fp8

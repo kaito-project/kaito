@@ -195,6 +195,8 @@ var (
 		// JIT compilation with CUDA dev headers (nvcc, cublasLt, nvrtc).
 		// Pin to triton backend to avoid the JIT dependency for now.
 		"mistral-small-4-119b-2603": "triton",
+		// MiniMax-M2.7 FP8 MoE also defaults to FlashInfer CUTLASS which needs nvcc.
+		"minimax-m2.7": "triton",
 	}
 
 	// vllmGdnPrefillBackendPrefixMap maps model name prefixes to their vLLM GDN prefill backend.
@@ -204,6 +206,15 @@ var (
 	vllmGdnPrefillBackendPrefixMap = map[string]string{
 		"qwen3.5": "triton",
 		"qwen3.6": "triton",
+	}
+
+	// vllmExpertParallelEnabled maps model name prefixes to enable expert parallelism.
+	// Expert parallelism distributes MoE experts across TP ranks, which can avoid
+	// FP8 block quantization issues when expert weight dimensions are not divisible
+	// by the quantization block size.
+	// source: https://docs.vllm.ai/en/latest/configuration/engine_args/#-enable-expert-parallel
+	vllmExpertParallelEnabled = map[string]bool{
+		"minimax-m2": true,
 	}
 
 	// catalogOverrides provides hardcoded values for models whose HuggingFace
@@ -664,6 +675,14 @@ func (g *Generator) FinalizeParams() {
 	for prefix, backend := range vllmGdnPrefillBackendPrefixMap {
 		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
 			g.Param.VLLM.ModelRunParams["gdn-prefill-backend"] = backend
+			break
+		}
+	}
+
+	// Enable expert parallelism based on model name prefix
+	for prefix, enabled := range vllmExpertParallelEnabled {
+		if strings.HasPrefix(g.Param.Metadata.Name, prefix) && enabled {
+			g.Param.VLLM.ModelRunParams["enable-expert-parallel"] = ""
 			break
 		}
 	}

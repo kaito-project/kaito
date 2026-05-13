@@ -1,14 +1,14 @@
-{{- if .Values.featureGates.enableInferenceSetController -}}
+{{- if .Values.featureGates.enableMultiRoleInferenceController -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ include "kaito.inferenceSetClusterRoleBindingName" . }}
+  name: {{ include "kaito.fullname" . }}-multiroleinference
   labels:
    {{- include "kaito.labels" . | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ include "kaito.inferenceSetClusterRoleName" . }}
+  name: {{ include "kaito.fullname" . }}-multiroleinference
 subjects:
 - kind: ServiceAccount
   name: {{ include "kaito.serviceAccountName" . }}

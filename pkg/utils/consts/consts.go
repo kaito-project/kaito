@@ -122,7 +122,8 @@ const (
 	// through the routing layer. vLLM keeps its default port (5000).
 	PortRoutingSidecar = int32(5001)
 
-	// Inference role constants for P/D disaggregated serving.
+	// InferenceRoleEnvName is the environment variable name used to pass the
+	// inference role (prefill/decode) to the model container in P/D disaggregated serving.
 	InferenceRoleEnvName = "KAITO_INFERENCE_ROLE"
 
 	// ConditionReady is the condition type for a ready condition.

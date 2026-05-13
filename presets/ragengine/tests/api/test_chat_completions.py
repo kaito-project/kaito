@@ -501,8 +501,8 @@ async def test_chat_completions_output_guardrails_fail_closed(
         ],
     )
     monkeypatch.setattr(
-        ragengine.main,
-        "output_guardrails",
+        ragengine.main.guardrails_reloader,
+        "_current",
         guardrails,
     )
     monkeypatch.setattr(

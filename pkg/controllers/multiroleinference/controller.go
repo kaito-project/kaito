@@ -23,7 +23,6 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/go-logr/logr"
-	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -610,13 +609,11 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	)
 
 	// --- HelmRelease ---
-	// Build matchLabels: stable MRI parent label + pod-index "0".
-	// We use the parent label rather than copying spec.labelSelector.matchLabels
-	// because matchExpressions cannot be represented in InferencePool's matchLabels,
-	// and the parent label is guaranteed to be present on every child pod.
+		// Select only decode pods for InferencePool, since only decode pods run the
+	// routing sidecar on port 5001. Prefill pods don't expose this port.
 	matchLabels := map[string]string{
 		kaitov1alpha1.LabelMultiRoleInferenceParent: mri.Name,
-		appsv1.PodIndexLabel:                        "0",
+		kaitov1alpha1.LabelInferenceRole:            string(kaitov1alpha1.MultiRoleInferenceRoleDecode),
 	}
 
 	// Build EPP extension values with llm-d image and P/D plugins config.

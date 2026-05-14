@@ -689,7 +689,7 @@ func validateMultiRoleInferenceChatCompletions(mriObj *kaitov1alpha1.MultiRoleIn
 				Command: []string{"bash", "-c", fmt.Sprintf(
 					`curl -s --max-time 30 -X POST -H "Content-Type: application/json" `+
 						`-d '{"model":"%s","messages":[{"role":"user","content":"What is Kubernetes?"}],"max_tokens":7,"temperature":0}' `+
-						`http://localhost:5000/v1/chat/completions | grep -e '%s'`,
+						`http://localhost:5001/v1/chat/completions | grep -e '%s'`,
 					modelName, expectedCompletion)},
 				Container: decodeWS.Name,
 				Stdout:    true,

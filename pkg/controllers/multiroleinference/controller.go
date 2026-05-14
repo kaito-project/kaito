@@ -609,11 +609,14 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	)
 
 	// --- HelmRelease ---
-		// Select only decode pods for InferencePool, since only decode pods run the
-	// routing sidecar on port 5001. Prefill pods don't expose this port.
+	// InferencePool selects ALL MRI pods (prefill + decode). EPP's internal
+	// prefill-filter / decode-filter plugins handle role-based selection.
+	// targetPort=5001 (sidecar) is only used by Envoy for user-facing traffic;
+	// EPP routes user requests exclusively to decode pods via decode-filter.
+	// Prefill communication is initiated by the decode sidecar directly to
+	// prefill pod:5000, bypassing InferencePool/Envoy entirely.
 	matchLabels := map[string]string{
 		kaitov1alpha1.LabelMultiRoleInferenceParent: mri.Name,
-		kaitov1alpha1.LabelInferenceRole:            string(kaitov1alpha1.MultiRoleInferenceRoleDecode),
 	}
 
 	// Build EPP extension values with llm-d image and P/D plugins config.

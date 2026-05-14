@@ -56,8 +56,7 @@ class GuardrailsReloader:
         self._policy_path = policy_path
         self._debounce_seconds = max(0.0, debounce_seconds)
         self._factory = factory
-        # Injectable for tests; default binds at start() to avoid importing
-        # watchfiles when hot reload is disabled.
+        # Tests can inject a watcher; otherwise _watch() falls back to watchfiles.
         self._watcher_factory = watcher
         self._current = factory()
         guardrails_policy_loaded_timestamp.set(time.time())
@@ -100,9 +99,7 @@ class GuardrailsReloader:
         except asyncio.CancelledError:
             raise
         except Exception:
-            # Keep the application up even if the watcher dies; operators see
-            # the failure metric and can restart the Pod if the watcher is
-            # permanently broken.
+            # Log watcher failures and keep the app running.
             logger.exception("output_guardrails_reloader_terminated")
 
     def _watch(self) -> Any:
@@ -112,7 +109,6 @@ class GuardrailsReloader:
                 stop_event=self._stop_event,
                 debounce_seconds=self._debounce_seconds,
             )
-        # Keep watchfiles optional when hot reload is disabled in tests.
         from watchfiles import awatch
 
         # Watch the parent directory because ConfigMap updates swap symlinks.
@@ -121,7 +117,6 @@ class GuardrailsReloader:
             if Path(self._policy_path).parent != Path(self._policy_path)
             else self._policy_path
         )
-        # debounce is milliseconds and also acts as a periodic re-check window.
         return awatch(
             watch_target,
             stop_event=self._stop_event,

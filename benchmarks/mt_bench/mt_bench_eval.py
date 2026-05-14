@@ -76,6 +76,14 @@ DATA_DIR = Path(os.environ.get("DATA_DIR", "/app/data"))
 
 # ── Judge prompt templates ────────
 
+TOKENIZATION_PENALTY = (
+    "IMPORTANT: If the response contains garbled text caused by tokenization "
+    "issues, such as the characters \u0120 (used in place of spaces), "
+    "\u010a (used in place of newlines), or similar byte-level BPE artifacts "
+    "that make the text unreadable, you MUST give a score of 1 regardless "
+    "of other qualities."
+)
+
 JUDGE_PROMPTS: dict[str, dict] = {
     "single-v1": {
         "name": "single-v1",
@@ -91,6 +99,8 @@ JUDGE_PROMPTS: dict[str, dict] = {
             "objective as possible. After providing your explanation, you must rate "
             "the response on a scale of 1 to 10 by strictly following this format: "
             '"[[rating]]", for example: "Rating: [[5]]".\n'
+            "\n"
+            f"{TOKENIZATION_PENALTY}\n"
             "\n"
             "[Question]\n"
             "{question}\n"
@@ -116,6 +126,8 @@ JUDGE_PROMPTS: dict[str, dict] = {
             "After providing your explanation, you must rate the response on a scale "
             'of 1 to 10 by strictly following this format: "[[rating]]", for '
             'example: "Rating: [[5]]".\n'
+            "\n"
+            f"{TOKENIZATION_PENALTY}\n"
             "\n"
             "[Question]\n"
             "{question}\n"
@@ -144,6 +156,7 @@ JUDGE_PROMPTS: dict[str, dict] = {
             "explanation, you must rate the response on a scale of 1 to 10 by "
             'strictly following this format: "[[rating]]", for example: '
             '"Rating: [[5]]".\n\n'
+            f"{TOKENIZATION_PENALTY}\n\n"
         ),
         "prompt_template": (
             "<|The Start of Assistant A's Conversation with User|>\n"
@@ -178,6 +191,7 @@ JUDGE_PROMPTS: dict[str, dict] = {
             "After providing your explanation, you must rate the response on a scale "
             'of 1 to 10 by strictly following this format: "[[rating]]", for '
             'example: "Rating: [[5]]".\n\n'
+            f"{TOKENIZATION_PENALTY}\n\n"
         ),
         "prompt_template": (
             "<|The Start of Reference Answer|>\n"

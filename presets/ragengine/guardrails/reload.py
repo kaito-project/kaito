@@ -13,15 +13,9 @@
 
 """Hot-reload support for the output guardrails policy.
 
-The reloader watches the policy file referenced by ``OUTPUT_GUARDRAILS_POLICY_PATH``
-and, on change, rebuilds an :class:`OutputGuardrails` instance. The new instance
-replaces the old one with a single attribute assignment so in-flight requests
-either see the previous policy in full or the new policy in full -- never a
-partially-mutated object.
-
-Filesystem events come from ``watchfiles`` (inotify on Linux). To survive
-ConfigMap atomic-symlink swaps that can race with single events, the watcher
-uses a debounce window that doubles as a safety-net poll interval.
+- Watch policy file changes.
+- Atomically swap the whole OutputGuardrails instance.
+- Watch the parent directory and debounce for ConfigMap symlink updates.
 """
 
 from __future__ import annotations
@@ -112,26 +106,22 @@ class GuardrailsReloader:
             logger.exception("output_guardrails_reloader_terminated")
 
     def _watch(self) -> Any:
-        """Build the async iterator of filesystem-change batches."""
         if self._watcher_factory is not None:
             return self._watcher_factory(
                 self._policy_path,
                 stop_event=self._stop_event,
                 debounce_seconds=self._debounce_seconds,
             )
-        # Local import keeps watchfiles optional for unit tests of the
-        # guardrails core that disable hot reload.
+        # Keep watchfiles optional when hot reload is disabled in tests.
         from watchfiles import awatch
 
-        # ConfigMap mounts are symlinked; watching the parent directory catches
-        # the atomic ``..data`` rename that kubelet performs on update.
+        # Watch the parent directory because ConfigMap updates swap symlinks.
         watch_target = (
             str(Path(self._policy_path).parent)
             if Path(self._policy_path).parent != Path(self._policy_path)
             else self._policy_path
         )
-        # ``debounce`` is in milliseconds; the same window doubles as a
-        # heartbeat that re-checks the file in case an event is missed.
+        # debounce is milliseconds and also acts as a periodic re-check window.
         return awatch(
             watch_target,
             stop_event=self._stop_event,

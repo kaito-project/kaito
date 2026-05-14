@@ -53,18 +53,20 @@ const (
 // MultiRoleInferenceReconciler reconciles a MultiRoleInference object.
 type MultiRoleInferenceReconciler struct {
 	client.Client
-	Log      logr.Logger
-	Scheme   *runtime.Scheme
-	Recorder record.EventRecorder
+	Log                          logr.Logger
+	Scheme                       *runtime.Scheme
+	Recorder                     record.EventRecorder
+	EnableGatewayAPIInferenceExt bool
 }
 
 // NewMultiRoleInferenceReconciler creates a new reconciler.
-func NewMultiRoleInferenceReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, recorder record.EventRecorder) *MultiRoleInferenceReconciler {
+func NewMultiRoleInferenceReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, recorder record.EventRecorder, enableGWIE bool) *MultiRoleInferenceReconciler {
 	return &MultiRoleInferenceReconciler{
-		Client:   client,
-		Scheme:   scheme,
-		Log:      log,
-		Recorder: recorder,
+		Client:                       client,
+		Scheme:                       scheme,
+		Log:                          log,
+		Recorder:                     recorder,
+		EnableGatewayAPIInferenceExt: enableGWIE,
 	}
 }
 
@@ -229,40 +231,42 @@ func (r *MultiRoleInferenceReconciler) addOrUpdateMultiRoleInference(ctx context
 		return ctrl.Result{}, err
 	}
 
-	// Reconcile EPP plugins ConfigMap (Step 5).
-	if err := r.reconcileEPPPluginsConfigMap(ctx, mri); err != nil {
-		log.Error(err, "Failed to reconcile EPP plugins ConfigMap")
-		r.Recorder.Eventf(mri, "Warning", "ReconcileFailed",
-			"Failed to reconcile EPP plugins ConfigMap: %v", err)
-		meta.SetStatusCondition(&mri.Status.Conditions, metav1.Condition{
-			Type:               string(kaitov1alpha1.MultiRoleInferenceConditionTypeReady),
-			Status:             metav1.ConditionFalse,
-			Reason:             "ReconcileFailed",
-			Message:            fmt.Sprintf("Failed to reconcile EPP plugins ConfigMap: %v", err),
-			ObservedGeneration: mri.Generation,
-		})
-		if statusErr := r.Status().Update(ctx, mri); statusErr != nil {
-			log.Error(statusErr, "Failed to update status")
+	// Reconcile EPP plugins ConfigMap and InferencePool (Steps 4 & 5) — only when GWIE is enabled.
+	if r.EnableGatewayAPIInferenceExt {
+		if err := r.reconcileEPPPluginsConfigMap(ctx, mri); err != nil {
+			log.Error(err, "Failed to reconcile EPP plugins ConfigMap")
+			r.Recorder.Eventf(mri, "Warning", "ReconcileFailed",
+				"Failed to reconcile EPP plugins ConfigMap: %v", err)
+			meta.SetStatusCondition(&mri.Status.Conditions, metav1.Condition{
+				Type:               string(kaitov1alpha1.MultiRoleInferenceConditionTypeReady),
+				Status:             metav1.ConditionFalse,
+				Reason:             "ReconcileFailed",
+				Message:            fmt.Sprintf("Failed to reconcile EPP plugins ConfigMap: %v", err),
+				ObservedGeneration: mri.Generation,
+			})
+			if statusErr := r.Status().Update(ctx, mri); statusErr != nil {
+				log.Error(statusErr, "Failed to update status")
+			}
+			return ctrl.Result{}, err
 		}
-		return ctrl.Result{}, err
-	}
 
-	// Reconcile InferencePool via Flux OCIRepository + HelmRelease (Step 4).
-	if err := r.reconcileInferencePool(ctx, mri); err != nil {
-		log.Error(err, "Failed to reconcile InferencePool")
-		r.Recorder.Eventf(mri, "Warning", "ReconcileFailed",
-			"Failed to reconcile InferencePool: %v", err)
-		meta.SetStatusCondition(&mri.Status.Conditions, metav1.Condition{
-			Type:               string(kaitov1alpha1.MultiRoleInferenceConditionTypeReady),
-			Status:             metav1.ConditionFalse,
-			Reason:             "ReconcileFailed",
-			Message:            fmt.Sprintf("Failed to reconcile InferencePool: %v", err),
-			ObservedGeneration: mri.Generation,
-		})
-		if statusErr := r.Status().Update(ctx, mri); statusErr != nil {
-			log.Error(statusErr, "Failed to update status")
+		// Reconcile InferencePool via Flux OCIRepository + HelmRelease (Step 4).
+		if err := r.reconcileInferencePool(ctx, mri); err != nil {
+			log.Error(err, "Failed to reconcile InferencePool")
+			r.Recorder.Eventf(mri, "Warning", "ReconcileFailed",
+				"Failed to reconcile InferencePool: %v", err)
+			meta.SetStatusCondition(&mri.Status.Conditions, metav1.Condition{
+				Type:               string(kaitov1alpha1.MultiRoleInferenceConditionTypeReady),
+				Status:             metav1.ConditionFalse,
+				Reason:             "ReconcileFailed",
+				Message:            fmt.Sprintf("Failed to reconcile InferencePool: %v", err),
+				ObservedGeneration: mri.Generation,
+			})
+			if statusErr := r.Status().Update(ctx, mri); statusErr != nil {
+				log.Error(statusErr, "Failed to update status")
+			}
+			return ctrl.Result{}, err
 		}
-		return ctrl.Result{}, err
 	}
 
 	// Aggregate status from child InferenceSets.
@@ -298,8 +302,6 @@ func (r *MultiRoleInferenceReconciler) aggregateStatus(ctx context.Context, log 
 	prefillReady := r.isInferenceSetReady(roleISMap[string(kaitov1alpha1.MultiRoleInferenceRolePrefill)])
 	decodeReady := r.isInferenceSetReady(roleISMap[string(kaitov1alpha1.MultiRoleInferenceRoleDecode)])
 
-	// TODO: include inferencePoolReady once InferencePool creation is implemented (Step 4).
-	// For now, InferencePool is always not ready.
 	inferencePoolReady := r.isInferencePoolReady(ctx, mri)
 	allReady := prefillReady && decodeReady && inferencePoolReady
 
@@ -529,7 +531,7 @@ const (
 	eppPluginsConfigMapKey = "config.yaml"
 
 	// portRoutingSidecar is the port the routing sidecar listens on for decode pods.
-	portRoutingSidecar = int32(8080)
+	portRoutingSidecar = consts.PortRoutingSidecar
 )
 
 // defaultPDPluginsConfigTemplate is the default EPP plugins YAML template for P/D disaggregated serving.
@@ -561,12 +563,12 @@ plugins:
     name: prefill-filter
     parameters:
       matchLabels:
-        inference-role: prefill
+        kaito.sh/inference-role: prefill
   - type: by-label-selector
     name: decode-filter
     parameters:
       matchLabels:
-        inference-role: decode
+        kaito.sh/inference-role: decode
   - type: load-aware-scorer
     parameters:
       threshold: 10
@@ -687,14 +689,14 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	)
 
 	// --- HelmRelease ---
-	// Build matchLabels: MRI's labelSelector matchLabels + pod-index "0".
-	matchLabels := make(map[string]string)
-	if mri.Spec.LabelSelector != nil && mri.Spec.LabelSelector.MatchLabels != nil {
-		for k, v := range mri.Spec.LabelSelector.MatchLabels {
-			matchLabels[k] = v
-		}
+	// Build matchLabels: stable MRI parent label + pod-index "0".
+	// We use the parent label rather than copying spec.labelSelector.matchLabels
+	// because matchExpressions cannot be represented in InferencePool's matchLabels,
+	// and the parent label is guaranteed to be present on every child pod.
+	matchLabels := map[string]string{
+		kaitov1alpha1.LabelMultiRoleInferenceParent: mri.Name,
+		appsv1.PodIndexLabel:                        "0",
 	}
-	matchLabels[appsv1.PodIndexLabel] = "0"
 
 	// Build EPP extension values with llm-d image and P/D plugins config.
 	eppValues := map[string]any{
@@ -791,11 +793,19 @@ func (r *MultiRoleInferenceReconciler) isInferencePoolReady(ctx context.Context,
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *MultiRoleInferenceReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
+	builder := ctrl.NewControllerManagedBy(mgr).
 		For(&kaitov1alpha1.MultiRoleInference{}).
-		Owns(&kaitov1alpha1.InferenceSet{}).
-		Owns(&sourcev1.OCIRepository{}).
-		Owns(&helmv2.HelmRelease{}).
+		Owns(&kaitov1alpha1.InferenceSet{})
+
+	// Only watch Flux resources when Gateway API Inference Extension is enabled,
+	// because the Flux CRDs are only installed under that feature gate.
+	if r.EnableGatewayAPIInferenceExt {
+		builder = builder.
+			Owns(&sourcev1.OCIRepository{}).
+			Owns(&helmv2.HelmRelease{})
+	}
+
+	return builder.
 		WithOptions(controller.Options{MaxConcurrentReconciles: 3}).
 		Complete(r)
 }

@@ -20,6 +20,11 @@ import (
 	"strings"
 	"time"
 
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/go-logr/logr"
@@ -38,11 +43,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	gaiev1 "sigs.k8s.io/gateway-api-inference-extension/api/v1"
 	gaiev1alpha2 "sigs.k8s.io/gateway-api-inference-extension/apix/v1alpha2"
-
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
-	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (

@@ -37,6 +37,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	gaiev1 "sigs.k8s.io/gateway-api-inference-extension/api/v1"
+	gaiev1alpha2 "sigs.k8s.io/gateway-api-inference-extension/apix/v1alpha2"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
@@ -726,6 +728,8 @@ func (r *MultiRoleInferenceReconciler) SetupWithManager(mgr ctrl.Manager) error 
 		for _, gvk := range []schema.GroupVersionKind{
 			helmv2.GroupVersion.WithKind(helmv2.HelmReleaseKind),
 			sourcev1.GroupVersion.WithKind(sourcev1.OCIRepositoryKind),
+			gaiev1.SchemeGroupVersion.WithKind("InferencePool"),
+			gaiev1alpha2.SchemeGroupVersion.WithKind("InferenceObjective"),
 		} {
 			found, err := utils.EnsureKindExists(mgr.GetConfig(), gvk)
 			if err != nil {

@@ -651,8 +651,7 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 		"inferenceExtension": eppValues,
 		"inferencePool": map[string]any{
 			"targetPorts": []map[string]any{
-				{"number": consts.PortRoutingSidecar},  // decode pods: routing sidecar
-				{"number": consts.PortInferenceServer}, // prefill pods: vLLM direct
+				{"number": consts.PortRoutingSidecar}, // routing sidecar port; GWIE CRD allows only one targetPort (maxItems: 1)
 			},
 			"modelServers": map[string]any{
 				"matchLabels": matchLabels,

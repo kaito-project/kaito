@@ -664,10 +664,25 @@ func validateMultiRoleInferenceChatCompletions(mriObj *kaitov1alpha1.MultiRoleIn
 				GinkgoWriter.Printf("Failed to find decode InferenceSet: %v\n", err)
 				return false
 			}
-			decodeIS := &isList.Items[0]
+			_ = &isList.Items[0] // decode InferenceSet found
 
-			// Get the first pod for the decode InferenceSet (StatefulSet pod: <name>-0)
-			podName := decodeIS.Name + "-0"
+			// The InferenceSet controller creates Workspaces with GenerateName: <inferenceset>-,
+			// so we need to find the actual Workspace to get the correct pod name.
+			wsList := &kaitov1alpha1.WorkspaceList{}
+			err = utils.TestingCluster.KubeClient.List(ctx, wsList,
+				client.InNamespace(namespaceName),
+				client.MatchingLabels{
+					kaitov1alpha1.LabelMultiRoleInferenceParent: mriObj.Name,
+					kaitov1alpha1.LabelInferenceRole:            string(kaitov1alpha1.MultiRoleInferenceRoleDecode),
+				})
+			if err != nil || len(wsList.Items) == 0 {
+				GinkgoWriter.Printf("Failed to find decode Workspace: %v\n", err)
+				return false
+			}
+			decodeWS := &wsList.Items[0]
+
+			// StatefulSet pod name is <workspace.Name>-0
+			podName := decodeWS.Name + "-0"
 
 			expectedCompletion := `"object":"chat.completion`
 			execOption := corev1.PodExecOptions{
@@ -676,7 +691,7 @@ func validateMultiRoleInferenceChatCompletions(mriObj *kaitov1alpha1.MultiRoleIn
 						`-d '{"model":"%s","messages":[{"role":"user","content":"What is Kubernetes?"}],"max_tokens":7,"temperature":0}' `+
 						`http://localhost:5000/v1/chat/completions | grep -e '%s'`,
 					modelName, expectedCompletion)},
-				Container: decodeIS.Name,
+				Container: decodeWS.Name,
 				Stdout:    true,
 				Stderr:    true,
 			}

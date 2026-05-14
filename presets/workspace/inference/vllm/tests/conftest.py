@@ -45,15 +45,18 @@ try:
     import vllm  # noqa: F401
 except (ImportError, Exception):
     # Mock the vllm module tree that inference_api.py touches at import time.
-    _install_mock_tree("vllm", [
-        "entrypoints",
-        "entrypoints.openai",
-        "entrypoints.openai.api_server",
-        "entrypoints.openai.models",
-        "entrypoints.openai.models.protocol",
-        "utils",
-        "utils.argparse_utils",
-    ])
+    _install_mock_tree(
+        "vllm",
+        [
+            "entrypoints",
+            "entrypoints.openai",
+            "entrypoints.openai.api_server",
+            "entrypoints.openai.models",
+            "entrypoints.openai.models.protocol",
+            "utils",
+            "utils.argparse_utils",
+        ],
+    )
 
     # Mock other heavy deps that inference_api imports at module level.
     for mod in ("pynvml", "uvloop", "psutil"):
@@ -61,6 +64,7 @@ except (ImportError, Exception):
 
     # Provide a minimal FlexibleArgumentParser stub so inference_api can subclass it.
     import argparse
+
     fap_mod = types.ModuleType("vllm.utils.argparse_utils")
     fap_mod.FlexibleArgumentParser = argparse.ArgumentParser
     sys.modules["vllm.utils.argparse_utils"] = fap_mod

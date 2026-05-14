@@ -503,9 +503,6 @@ const (
 	// eppPluginsConfigKey is the filename key for EPP plugins config,
 	// used both as the ConfigMap data key and the Helm pluginsConfigFile name.
 	eppPluginsConfigKey = "config.yaml"
-
-	// portRoutingSidecar is the port the routing sidecar listens on for decode pods.
-	portRoutingSidecar = consts.PortRoutingSidecar
 )
 
 // defaultPDPluginsConfigTemplate is the default EPP plugins YAML template for P/D disaggregated serving.
@@ -653,9 +650,10 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	helmValues := map[string]any{
 		"inferenceExtension": eppValues,
 		"inferencePool": map[string]any{
-			"targetPorts": []map[string]any{{
-				"number": portRoutingSidecar,
-			}},
+			"targetPorts": []map[string]any{
+				{"number": consts.PortRoutingSidecar},  // decode pods: routing sidecar
+				{"number": consts.PortInferenceServer}, // prefill pods: vLLM direct
+			},
 			"modelServers": map[string]any{
 				"matchLabels": matchLabels,
 			},

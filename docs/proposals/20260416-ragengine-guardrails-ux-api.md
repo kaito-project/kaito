@@ -211,8 +211,7 @@ it watches the parent directory so Kubernetes symlink updates are detected.
 Reload semantics:
 
 - If a new policy fails to load, the previous policy stays active.
-- Reloads are debounced by `OUTPUT_GUARDRAILS_HOT_RELOAD_DEBOUNCE_SECONDS`
-  (default `60`).
+- Reloads use a 60-second debounce window.
 - Hot reload can be disabled with `OUTPUT_GUARDRAILS_HOT_RELOAD_ENABLED=false`,
   in which case the policy is loaded once at startup.
 

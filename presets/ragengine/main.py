@@ -48,7 +48,6 @@ from ragengine.config import (  # noqa: E402
     DEFAULT_VECTOR_DB_PERSIST_DIR,
     EMBEDDING_SOURCE_TYPE,
     LOCAL_EMBEDDING_MODEL_ID,
-    OUTPUT_GUARDRAILS_HOT_RELOAD_DEBOUNCE_SECONDS,
     OUTPUT_GUARDRAILS_HOT_RELOAD_ENABLED,
     OUTPUT_GUARDRAILS_POLICY_PATH,
     REMOTE_EMBEDDING_ACCESS_SECRET,
@@ -165,13 +164,9 @@ else:
 
 # Initialize RAG operations
 rag_ops = VectorStoreManager(vector_store_handler)
-# The reloader holds the live OutputGuardrails instance and (when enabled)
-# swaps it out atomically when the policy file changes. We always go through
-# ``guardrails_reloader.current`` at the call site so toggling hot reload off
-# is just a no-op background task -- the request path is unchanged.
+
 guardrails_reloader = GuardrailsReloader(
     policy_path=OUTPUT_GUARDRAILS_POLICY_PATH,
-    debounce_seconds=OUTPUT_GUARDRAILS_HOT_RELOAD_DEBOUNCE_SECONDS,
 )
 
 

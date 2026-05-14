@@ -694,6 +694,21 @@ models:
   kvLoraRank: 512
   qkRopeHeadDim: 64
   quantMethod: pack-quantized
+- name: moonshotai/Kimi-K2.6
+  description: https://huggingface.co/moonshotai/Kimi-K2.6
+  license: modified-mit
+  pipelineTag: image-text-to-text
+  modelFileSize: 554.32Gi
+  architectures:
+  - KimiK25ForConditionalGeneration
+  modelTokenLimit: 262144
+  hiddenSize: 7168
+  numHiddenLayers: 61
+  numAttentionHeads: 64
+  numKeyValueHeads: 64
+  kvLoraRank: 512
+  qkRopeHeadDim: 64
+  quantMethod: pack-quantized
 - name: MiniMaxAI/MiniMax-M2.7
   description: https://huggingface.co/MiniMaxAI/MiniMax-M2.7
   license: other

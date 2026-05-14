@@ -329,7 +329,10 @@ def generate_answers(
                 # Mistral tokenizer mode does not support chat_template_kwargs
                 extra = {}
                 if not model_name.lower().startswith("mistral"):
-                    extra["chat_template_kwargs"] = {"enable_thinking": enable_thinking, "thinking": enable_thinking}
+                    extra["chat_template_kwargs"] = {
+                        "enable_thinking": enable_thinking,
+                        "thinking": enable_thinking,
+                    }
                 resp = client.chat.completions.create(
                     model=model_name,
                     messages=messages,
@@ -350,20 +353,21 @@ def generate_answers(
                 if not answer_text and reasoning:
                     log.info(
                         "q%d turn %d content empty, using reasoning (%d chars) as answer",
-                        qid, turn_idx + 1, len(reasoning),
+                        qid,
+                        turn_idx + 1,
+                        len(reasoning),
                     )
                     answer_text = reasoning
-                if verbose:
-                    if not answer_text:
-                        log.warning(
-                            "q%d turn %d EMPTY content. finish_reason=%s, "
-                            "reasoning_len=%d, raw_message=%s",
-                            qid,
-                            turn_idx + 1,
-                            finish,
-                            len(reasoning),
-                            str(msg),
-                        )
+                if verbose and not answer_text:
+                    log.warning(
+                        "q%d turn %d EMPTY content. finish_reason=%s, "
+                        "reasoning_len=%d, raw_message=%s",
+                        qid,
+                        turn_idx + 1,
+                        finish,
+                        len(reasoning),
+                        str(msg),
+                    )
             except Exception as e:
                 log.warning(
                     "Failed to get answer for q%d turn %d: %s", qid, turn_idx + 1, e
@@ -718,7 +722,9 @@ def main() -> None:
     if cfg["categories"]:
         cat_filter = {c.strip() for c in cfg["categories"].split(",")}
         questions = [q for q in questions if q["category"] in cat_filter]
-        log.info("Filtered to %d questions in categories: %s", len(questions), cat_filter)
+        log.info(
+            "Filtered to %d questions in categories: %s", len(questions), cat_filter
+        )
 
     # ── Stage 1: Generate answers ────────────────────────────────────────
     log.info(

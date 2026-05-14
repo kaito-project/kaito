@@ -204,28 +204,19 @@ This proposal is intended to support the following implementation sequence:
 
 ### Hot-reload runtime behavior (implemented)
 
-The RAG runtime watches the guardrails policy file (`OUTPUT_GUARDRAILS_POLICY_PATH`)
-for changes using `watchfiles` (inotify on Linux) and atomically swaps the active
-`OutputGuardrails` instance when the file content changes. ConfigMap volume updates
-are picked up because the runtime watches the parent directory, which catches the
-atomic `..data` symlink swap performed by kubelet.
+The runtime watches the guardrails policy file and swaps the active
+`OutputGuardrails` instance when the policy changes. For ConfigMap-mounted files,
+it watches the parent directory so Kubernetes symlink updates are detected.
 
 Reload semantics:
 
-- Fail-safe: if the new policy fails to load, the previous policy stays in effect
-  and a failure metric is incremented.
-- Debounced: changes are coalesced over a configurable window
-  (`OUTPUT_GUARDRAILS_HOT_RELOAD_DEBOUNCE_SECONDS`, default `60`) to avoid reload
-  storms during rolling ConfigMap updates.
-- Optional: hot-reload can be disabled via
-  `OUTPUT_GUARDRAILS_HOT_RELOAD_ENABLED=false`, in which case the policy is loaded
-  once at startup.
+- If a new policy fails to load, the previous policy stays active.
+- Reloads are debounced by `OUTPUT_GUARDRAILS_HOT_RELOAD_DEBOUNCE_SECONDS`
+  (default `60`).
+- Hot reload can be disabled with `OUTPUT_GUARDRAILS_HOT_RELOAD_ENABLED=false`,
+  in which case the policy is loaded once at startup.
 
 Observability:
 
-- `guardrails_policy_reload_total{result="success|failure|noop"}` counter.
-- `guardrails_policy_loaded_timestamp_seconds` gauge.
-
-The CRD exposure for `guardrails.enabled` can be added later if we decide the final user
-experience should include an explicit RAGEngine spec toggle rather than relying only on
-ConfigMap-based policy.
+- `guardrails_policy_reload_total{result="success|failure|noop"}`
+- `guardrails_policy_loaded_timestamp_seconds`

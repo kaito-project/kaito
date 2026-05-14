@@ -30,6 +30,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -39,6 +40,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -800,6 +802,19 @@ func (r *MultiRoleInferenceReconciler) SetupWithManager(mgr ctrl.Manager) error 
 	// Only watch Flux resources when Gateway API Inference Extension is enabled,
 	// because the Flux CRDs are only installed under that feature gate.
 	if r.EnableGatewayAPIInferenceExt {
+		// Verify prerequisite CRDs exist before configuring watches.
+		for _, gvk := range []schema.GroupVersionKind{
+			helmv2.GroupVersion.WithKind(helmv2.HelmReleaseKind),
+			sourcev1.GroupVersion.WithKind(sourcev1.OCIRepositoryKind),
+		} {
+			found, err := utils.EnsureKindExists(mgr.GetConfig(), gvk)
+			if err != nil {
+				return fmt.Errorf("failed to ensure kind %s exists: %w", gvk.Kind, err)
+			}
+			if !found {
+				return fmt.Errorf("%s not found in the cluster, please ensure the Gateway API Inference Extension and Flux are installed", gvk.String())
+			}
+		}
 		builder = builder.
 			Owns(&sourcev1.OCIRepository{}).
 			Owns(&helmv2.HelmRelease{})

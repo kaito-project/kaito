@@ -34,7 +34,7 @@ rules:
     verbs: ["create", "patch", "update"]
   - apiGroups: [""]
     resources: ["configmaps"]
-    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+    verbs: ["get", "list", "watch"]
   - apiGroups: ["source.toolkit.fluxcd.io"]
     resources: ["ocirepositories"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]

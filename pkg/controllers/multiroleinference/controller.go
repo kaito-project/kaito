@@ -76,7 +76,7 @@ func NewMultiRoleInferenceReconciler(client client.Client, scheme *runtime.Schem
 // +kubebuilder:rbac:groups=kaito.sh,resources=multiroleinferences/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=kaito.sh,resources=multiroleinferences/finalizers,verbs=update
 // +kubebuilder:rbac:groups=kaito.sh,resources=inferencesets,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
 // +kubebuilder:rbac:groups=source.toolkit.fluxcd.io,resources=ocirepositories,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=helm.toolkit.fluxcd.io,resources=helmreleases,verbs=get;list;watch;create;update;patch;delete
 
@@ -172,21 +172,6 @@ func (r *MultiRoleInferenceReconciler) garbageCollectMultiRoleInference(ctx cont
 		return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
 	}
 
-	// Clean up auto-generated EPP plugins ConfigMap (only if we created it).
-	if mri.Spec.EPPPluginsConfig == "" {
-		cmName := eppPluginsConfigMapName(mri.Name)
-		cm := &corev1.ConfigMap{}
-		if err := r.Get(ctx, client.ObjectKey{Name: cmName, Namespace: mri.Namespace}, cm); err == nil {
-			klog.InfoS("Deleting auto-generated EPP plugins ConfigMap", "configmap", cmName, "multiroleinference", klog.KObj(mri))
-			if err := r.Delete(ctx, cm); err != nil && !apierrors.IsNotFound(err) {
-				klog.ErrorS(err, "failed to delete EPP plugins ConfigMap", "configmap", cmName)
-				return ctrl.Result{}, err
-			}
-		} else if !apierrors.IsNotFound(err) {
-			return ctrl.Result{}, err
-		}
-	}
-
 	// Remove the finalizer.
 	controllerutil.RemoveFinalizer(mri, MultiRoleInferenceFinalizer)
 	if err := r.Update(ctx, mri); err != nil {
@@ -233,26 +218,10 @@ func (r *MultiRoleInferenceReconciler) addOrUpdateMultiRoleInference(ctx context
 		return ctrl.Result{}, err
 	}
 
-	// Reconcile EPP plugins ConfigMap and InferencePool (Steps 4 & 5) — only when GWIE is enabled.
+	// Reconcile InferencePool via Flux OCIRepository + HelmRelease — only when GWIE is enabled.
+	// EPP plugins config is passed inline through Helm values (pluginsCustomConfig),
+	// so no separate ConfigMap reconciliation is needed.
 	if r.EnableGatewayAPIInferenceExt {
-		if err := r.reconcileEPPPluginsConfigMap(ctx, mri); err != nil {
-			log.Error(err, "Failed to reconcile EPP plugins ConfigMap")
-			r.Recorder.Eventf(mri, "Warning", "ReconcileFailed",
-				"Failed to reconcile EPP plugins ConfigMap: %v", err)
-			meta.SetStatusCondition(&mri.Status.Conditions, metav1.Condition{
-				Type:               string(kaitov1alpha1.MultiRoleInferenceConditionTypeReady),
-				Status:             metav1.ConditionFalse,
-				Reason:             "ReconcileFailed",
-				Message:            fmt.Sprintf("Failed to reconcile EPP plugins ConfigMap: %v", err),
-				ObservedGeneration: mri.Generation,
-			})
-			if statusErr := r.Status().Update(ctx, mri); statusErr != nil {
-				log.Error(statusErr, "Failed to update status")
-			}
-			return ctrl.Result{}, err
-		}
-
-		// Reconcile InferencePool via Flux OCIRepository + HelmRelease (Step 4).
 		if err := r.reconcileInferencePool(ctx, mri); err != nil {
 			log.Error(err, "Failed to reconcile InferencePool")
 			r.Recorder.Eventf(mri, "Warning", "ReconcileFailed",
@@ -529,8 +498,9 @@ func (r *MultiRoleInferenceReconciler) reconcileInferenceSet(
 }
 
 const (
-	// eppPluginsConfigMapKey is the key used in the ConfigMap data for EPP plugins config.
-	eppPluginsConfigMapKey = "config.yaml"
+	// eppPluginsConfigKey is the filename key for EPP plugins config,
+	// used both as the ConfigMap data key and the Helm pluginsConfigFile name.
+	eppPluginsConfigKey = "config.yaml"
 
 	// portRoutingSidecar is the port the routing sidecar listens on for decode pods.
 	portRoutingSidecar = consts.PortRoutingSidecar
@@ -599,59 +569,9 @@ func defaultPDPluginsConfig(modelName string) string {
 	return strings.ReplaceAll(defaultPDPluginsConfigTemplate, "%%MODEL_NAME%%", modelName)
 }
 
-// eppPluginsConfigMapName returns the name of the auto-generated EPP plugins ConfigMap.
-func eppPluginsConfigMapName(mriName string) string {
-	return fmt.Sprintf("%s-epp-plugins", mriName)
-}
-
 // inferencePoolName returns the name of the InferencePool resources for the MRI.
 func inferencePoolName(mriName string) string {
 	return fmt.Sprintf("%s-inferencepool", mriName)
-}
-
-// reconcileEPPPluginsConfigMap creates or updates the default P/D EPP plugins ConfigMap
-// when spec.eppPluginsConfig is not set. If the user has provided a custom ConfigMap name,
-// this is a no-op.
-func (r *MultiRoleInferenceReconciler) reconcileEPPPluginsConfigMap(
-	ctx context.Context,
-	mri *kaitov1alpha1.MultiRoleInference,
-) error {
-	// If the user provided a custom EPP plugins ConfigMap, skip auto-generation.
-	if mri.Spec.EPPPluginsConfig != "" {
-		return nil
-	}
-
-	cmName := eppPluginsConfigMapName(mri.Name)
-	desired := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      cmName,
-			Namespace: mri.Namespace,
-		},
-	}
-
-	result, err := controllerutil.CreateOrUpdate(ctx, r.Client, desired, func() error {
-		if err := controllerutil.SetControllerReference(mri, desired, r.Scheme); err != nil {
-			return err
-		}
-		if desired.Labels == nil {
-			desired.Labels = make(map[string]string)
-		}
-		desired.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent] = mri.Name
-
-		desired.Data = map[string]string{
-			eppPluginsConfigMapKey: defaultPDPluginsConfig(mri.Spec.Model.Name),
-		}
-		return nil
-	})
-	if err != nil {
-		return fmt.Errorf("CreateOrUpdate EPP plugins ConfigMap %s: %w", cmName, err)
-	}
-
-	klog.V(2).InfoS("Reconciled EPP plugins ConfigMap",
-		"name", cmName,
-		"result", result,
-	)
-	return nil
 }
 
 // reconcileInferencePool creates or updates the Flux OCIRepository and HelmRelease
@@ -717,15 +637,15 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 		if err := r.Get(ctx, client.ObjectKey{Name: mri.Spec.EPPPluginsConfig, Namespace: mri.Namespace}, cm); err != nil {
 			return fmt.Errorf("get user-provided EPP plugins ConfigMap %s: %w", mri.Spec.EPPPluginsConfig, err)
 		}
-		if data, ok := cm.Data[eppPluginsConfigMapKey]; ok {
+		if data, ok := cm.Data[eppPluginsConfigKey]; ok {
 			pluginsYAML = data
 		} else {
-			return fmt.Errorf("EPP plugins ConfigMap %s missing key %s", mri.Spec.EPPPluginsConfig, eppPluginsConfigMapKey)
+			return fmt.Errorf("EPP plugins ConfigMap %s missing key %s", mri.Spec.EPPPluginsConfig, eppPluginsConfigKey)
 		}
 	}
-	eppValues["pluginsConfigFile"] = eppPluginsConfigMapKey
+	eppValues["pluginsConfigFile"] = eppPluginsConfigKey
 	eppValues["pluginsCustomConfig"] = map[string]string{
-		eppPluginsConfigMapKey: pluginsYAML,
+		eppPluginsConfigKey: pluginsYAML,
 	}
 
 	helmValues := map[string]any{

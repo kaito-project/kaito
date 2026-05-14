@@ -365,6 +365,18 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		defer cleanupResourcesForMultiRoleInference(mriObj)
 
 		validateMultiRoleInferenceChildInferenceSets(mriObj)
+
+		// Validate each child InferenceSet's status, replicas, benchmark, and GWIE resources
+		childInferenceSets := getMultiRoleInferenceChildInferenceSets(mriObj)
+		for i := range childInferenceSets {
+			is := &childInferenceSets[i]
+			validateInferenceSetStatus(is)
+			validateInferenceSetReplicas(is, *mriObj.Spec.Roles[0].Replicas)
+			validateInferenceSetBenchmarkCompleted(is)
+		}
+
+		// Validate MRI-owned InferencePool and GWIE resources (shared across all roles)
+		validateMultiRoleInferenceGWIEResources(mriObj)
 		validateMultiRoleInferenceStatus(mriObj)
 	})
 
@@ -553,6 +565,73 @@ func validateMultiRoleInferenceStatus(mriObj *kaitov1alpha1.MultiRoleInference) 
 			return prefillReady && decodeReady
 		}, 20*time.Minute, utils.PollInterval).Should(BeTrue(),
 			"Expected PrefillReady and DecodeReady conditions on MultiRoleInference %s", mriObj.Name)
+	})
+}
+
+// getMultiRoleInferenceChildInferenceSets returns the child InferenceSets for an MRI.
+func getMultiRoleInferenceChildInferenceSets(mriObj *kaitov1alpha1.MultiRoleInference) []kaitov1alpha1.InferenceSet {
+	var children []kaitov1alpha1.InferenceSet
+	Eventually(func() bool {
+		isList := &kaitov1alpha1.InferenceSetList{}
+		err := utils.TestingCluster.KubeClient.List(ctx, isList,
+			client.InNamespace(mriObj.Namespace),
+			client.MatchingLabels{kaitov1alpha1.LabelMultiRoleInferenceParent: mriObj.Name})
+		if err != nil {
+			return false
+		}
+		if len(isList.Items) != len(mriObj.Spec.Roles) {
+			return false
+		}
+		children = isList.Items
+		return true
+	}, 20*time.Minute, utils.PollInterval).Should(BeTrue(),
+		"Expected %d child InferenceSets for MultiRoleInference %s", len(mriObj.Spec.Roles), mriObj.Name)
+	return children
+}
+
+// validateMultiRoleInferenceGWIEResources validates the MRI-owned InferencePool
+// Flux resources (OCIRepository + HelmRelease) are ready.
+func validateMultiRoleInferenceGWIEResources(mriObj *kaitov1alpha1.MultiRoleInference) {
+	poolName := kaitoutils.InferencePoolName(mriObj.Name)
+
+	By("Checking MRI-owned Flux OCIRepository is Ready", func() {
+		Eventually(func() bool {
+			ociRepository := &sourcev1.OCIRepository{}
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: mriObj.Namespace,
+				Name:      poolName,
+			}, ociRepository, &client.GetOptions{})
+			if err != nil {
+				return false
+			}
+			for _, cond := range ociRepository.Status.Conditions {
+				if cond.Type == consts.ConditionReady && cond.Status == metav1.ConditionTrue {
+					return true
+				}
+			}
+			return false
+		}, utils.PollTimeout, utils.PollInterval).Should(BeTrue(),
+			"Failed to validate MRI Flux OCIRepository is Ready for %s", mriObj.Name)
+	})
+
+	By("Checking MRI-owned Flux HelmRelease is Ready", func() {
+		Eventually(func() bool {
+			helmRelease := &helmv2.HelmRelease{}
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: mriObj.Namespace,
+				Name:      poolName,
+			}, helmRelease, &client.GetOptions{})
+			if err != nil {
+				return false
+			}
+			for _, cond := range helmRelease.Status.Conditions {
+				if cond.Type == consts.ConditionReady && cond.Status == metav1.ConditionTrue {
+					return true
+				}
+			}
+			return false
+		}, utils.PollTimeout, utils.PollInterval).Should(BeTrue(),
+			"Failed to validate MRI Flux HelmRelease is Ready for %s", mriObj.Name)
 	})
 }
 

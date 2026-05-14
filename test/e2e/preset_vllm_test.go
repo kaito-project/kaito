@@ -14,6 +14,7 @@
 package e2e
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"math/rand"
@@ -378,6 +379,9 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		// Validate MRI-owned InferencePool and GWIE resources (shared across all roles)
 		validateMultiRoleInferenceGWIEResources(mriObj)
 		validateMultiRoleInferenceStatus(mriObj)
+
+		// Validate chat completions endpoint via a decode pod
+		validateMultiRoleInferenceChatCompletions(mriObj)
 	})
 
 	It("should create a Gemma 3 InferenceSet with preset public mode successfully", Serial, utils.GinkgoLabelFastCheck, func() {
@@ -632,6 +636,67 @@ func validateMultiRoleInferenceGWIEResources(mriObj *kaitov1alpha1.MultiRoleInfe
 			return false
 		}, utils.PollTimeout, utils.PollInterval).Should(BeTrue(),
 			"Failed to validate MRI Flux HelmRelease is Ready for %s", mriObj.Name)
+	})
+}
+
+// validateMultiRoleInferenceChatCompletions validates the /v1/chat/completions
+// endpoint by exec-ing curl into a decode pod.
+func validateMultiRoleInferenceChatCompletions(mriObj *kaitov1alpha1.MultiRoleInference) {
+	modelName := getModelName(mriObj.Spec.Model.Name)
+
+	By("Validating /v1/chat/completions via decode pod", func() {
+		Eventually(func() bool {
+			coreClient, err := utils.GetK8sClientset()
+			if err != nil {
+				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
+				return false
+			}
+
+			// Find a decode InferenceSet's pod
+			isList := &kaitov1alpha1.InferenceSetList{}
+			err = utils.TestingCluster.KubeClient.List(ctx, isList,
+				client.InNamespace(mriObj.Namespace),
+				client.MatchingLabels{
+					kaitov1alpha1.LabelMultiRoleInferenceParent: mriObj.Name,
+					kaitov1alpha1.LabelInferenceRole:            string(kaitov1alpha1.MultiRoleInferenceRoleDecode),
+				})
+			if err != nil || len(isList.Items) == 0 {
+				GinkgoWriter.Printf("Failed to find decode InferenceSet: %v\n", err)
+				return false
+			}
+			decodeIS := &isList.Items[0]
+
+			// Get the first pod for the decode InferenceSet (StatefulSet pod: <name>-0)
+			podName := decodeIS.Name + "-0"
+
+			expectedCompletion := `"object":"chat.completion`
+			execOption := corev1.PodExecOptions{
+				Command: []string{"bash", "-c", fmt.Sprintf(
+					`curl -s --max-time 30 -X POST -H "Content-Type: application/json" `+
+						`-d '{"model":"%s","messages":[{"role":"user","content":"What is Kubernetes?"}],"max_tokens":7,"temperature":0}' `+
+						`http://localhost:5000/v1/chat/completions | grep -e '%s'`,
+					modelName, expectedCompletion)},
+				Container: decodeIS.Name,
+				Stdout:    true,
+				Stderr:    true,
+			}
+
+			k8sConfig, err := utils.GetK8sConfig()
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get k8s config: %v\n", err)
+				return false
+			}
+
+			execCtx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+			defer cancel()
+			_, err = utils.ExecSync(execCtx, k8sConfig, coreClient, mriObj.Namespace, podName, execOption)
+			if err != nil {
+				GinkgoWriter.Printf("validate chat completions fails: %v\n", err)
+				return false
+			}
+			return true
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(),
+			"Failed to validate /v1/chat/completions endpoint on MRI decode pod")
 	})
 }
 

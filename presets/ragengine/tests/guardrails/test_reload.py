@@ -74,6 +74,15 @@ def test_start_is_noop_when_policy_path_is_empty():
     assert reloader._task is None
 
 
+def test_default_debounce_is_short_for_runtime_reload():
+    reloader = GuardrailsReloader(
+        policy_path="/tmp/policy.yaml",
+        factory=_factory([_disabled()]),
+    )
+
+    assert reloader._debounce_seconds == 1.0
+
+
 def test_reload_swaps_in_new_instance_on_change():
     first = _enabled("first")
     second = _enabled("second")

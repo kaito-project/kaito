@@ -50,7 +50,7 @@ class GuardrailsReloader:
         self,
         policy_path: str,
         *,
-        debounce_seconds: float = 60.0,
+        debounce_seconds: float = 1.0,
         factory: GuardrailsFactory = OutputGuardrails.from_config,
         watcher: Callable[..., Any] | None = None,
     ) -> None:

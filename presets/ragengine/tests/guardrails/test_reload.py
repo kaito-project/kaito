@@ -14,9 +14,9 @@
 import asyncio
 import os
 import sys
+import threading
 from dataclasses import replace
 from hashlib import sha256
-import threading
 
 import pytest
 

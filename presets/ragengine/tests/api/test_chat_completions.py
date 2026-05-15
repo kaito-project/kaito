@@ -302,12 +302,12 @@ async def test_chat_completions_output_guardrails_redact(
             enabled=True,
             fail_open=True,
             action_on_hit="redact",
-            scanner_configs=[
+            scanner_configs=(
                 ParsedScannerConfig(
                     type="regex",
                     config=RegexConfig(patterns=[r"https?://\S+"]),
                 ),
-            ],
+            ),
         ),
     )
 
@@ -364,12 +364,12 @@ async def test_chat_completions_output_guardrails_block(
             fail_open=True,
             action_on_hit="block",
             block_message="blocked-by-policy",
-            scanner_configs=[
+            scanner_configs=(
                 ParsedScannerConfig(
                     type="regex",
                     config=RegexConfig(patterns=[r"https?://\S+"]),
                 ),
-            ],
+            ),
         ),
     )
 
@@ -493,12 +493,12 @@ async def test_chat_completions_output_guardrails_fail_closed(
         enabled=True,
         fail_open=False,
         action_on_hit="redact",
-        scanner_configs=[
+        scanner_configs=(
             ParsedScannerConfig(
                 type="regex",
                 config=RegexConfig(patterns=[r"https?://\S+"]),
             ),
-        ],
+        ),
     )
     monkeypatch.setattr(
         ragengine.main.guardrails_reloader,
@@ -506,9 +506,9 @@ async def test_chat_completions_output_guardrails_fail_closed(
         guardrails,
     )
     monkeypatch.setattr(
-        guardrails,
+        OutputGuardrails,
         "_build_scanners_with_configs",
-        lambda: (_ for _ in ()).throw(RuntimeError("scanner init failed")),
+        lambda self: (_ for _ in ()).throw(RuntimeError("scanner init failed")),
     )
 
     response = await async_client.post(

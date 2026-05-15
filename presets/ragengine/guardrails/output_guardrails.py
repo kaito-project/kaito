@@ -36,13 +36,13 @@ class OutputGuardrailsError(RuntimeError):
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class OutputGuardrails:
     enabled: bool
     fail_open: bool = True
     action_on_hit: str = DEFAULT_ACTION_ON_HIT
     block_message: str = DEFAULT_BLOCK_MESSAGE
-    scanner_configs: list[ParsedScannerConfig] = field(default_factory=list)
+    scanner_configs: tuple[ParsedScannerConfig, ...] = field(default_factory=tuple)
 
     @classmethod
     def from_config(cls) -> "OutputGuardrails":
@@ -81,7 +81,7 @@ class OutputGuardrails:
         default_action_on_hit = _normalize_action(
             policy.get("action"), self.action_on_hit
         )
-        scanner_configs = list(self.scanner_configs)
+        scanner_configs = self.scanner_configs
         if "scanners" in policy:
             scanner_configs = _parse_policy_scanner_configs(
                 policy.get("scanners"),
@@ -207,12 +207,12 @@ class OutputGuardrails:
 
 def _parse_policy_scanner_configs(
     value: Any, policy_path: str, default_action_on_hit: str = DEFAULT_ACTION_ON_HIT
-) -> list[ParsedScannerConfig]:
+) -> tuple[ParsedScannerConfig, ...]:
     if value is None:
-        return []
+        return ()
     if not isinstance(value, list):
         logger.warning("output_guardrails_policy_invalid_scanners path=%s", policy_path)
-        return []
+        return ()
 
     parsed_configs: list[ParsedScannerConfig] = []
     for raw in value:
@@ -257,7 +257,7 @@ def _parse_policy_scanner_configs(
             )
         )
 
-    return parsed_configs
+    return tuple(parsed_configs)
 
 
 def _normalize_scanner_key(value: str) -> str:

@@ -295,10 +295,8 @@ func main() {
 		}
 	}
 
-	// MultiRoleInference controller — requires enableMultiRoleInferenceController, InferenceSet controller, and GAIE.
-	if featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] &&
-		featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] &&
-		featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] {
+	// MultiRoleInference controller — requires enableMultiRoleInferenceController.
+	if featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] {
 		mriReconciler := multiroleinference.NewMultiRoleInferenceReconciler(
 			kClient,
 			mgr.GetScheme(),

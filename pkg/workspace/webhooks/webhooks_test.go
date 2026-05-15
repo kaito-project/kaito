@@ -28,26 +28,32 @@ func TestNewControllerWebhooks(t *testing.T) {
 	tests := []struct {
 		name                     string
 		enableInferenceSet       bool
-		enableGAIE               bool
+		enableMRI                bool
 		expectedConstructorCount int
 	}{
 		{
 			name:                     "InferenceSet controller disabled",
 			enableInferenceSet:       false,
-			enableGAIE:               false,
+			enableMRI:                false,
 			expectedConstructorCount: 2,
 		},
 		{
-			name:                     "InferenceSet controller enabled without GAIE",
+			name:                     "InferenceSet controller enabled without MRI",
 			enableInferenceSet:       true,
-			enableGAIE:               false,
+			enableMRI:                false,
 			expectedConstructorCount: 3, // certificates + workspace + inferenceset
 		},
 		{
-			name:                     "InferenceSet controller enabled with GAIE",
+			name:                     "InferenceSet and MRI controllers enabled",
 			enableInferenceSet:       true,
-			enableGAIE:               true,
+			enableMRI:                true,
 			expectedConstructorCount: 4, // certificates + workspace + inferenceset + MRI
+		},
+		{
+			name:                     "MRI controller enabled without InferenceSet",
+			enableInferenceSet:       false,
+			enableMRI:                true,
+			expectedConstructorCount: 3, // certificates + workspace + MRI
 		},
 	}
 
@@ -55,15 +61,15 @@ func TestNewControllerWebhooks(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Save original feature gate state
 			originalIS := featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController]
-			originalGAIE := featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension]
+			originalMRI := featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController]
 			defer func() {
 				featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] = originalIS
-				featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = originalGAIE
+				featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] = originalMRI
 			}()
 
 			// Set feature gates for test
 			featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] = tt.enableInferenceSet
-			featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = tt.enableGAIE
+			featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] = tt.enableMRI
 
 			// Call the function
 			constructors := NewControllerWebhooks()

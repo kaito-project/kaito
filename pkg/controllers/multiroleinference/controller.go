@@ -141,8 +141,8 @@ func (r *MultiRoleInferenceReconciler) deleteMultiRoleInference(ctx context.Cont
 	return r.garbageCollectMultiRoleInference(ctx, log, mri)
 }
 
-// garbageCollectMultiRoleInference deletes all child InferenceSets, cleans up auto-generated
-// ConfigMaps, and removes the finalizer. OCIRepository and HelmRelease are GC'd via ownerReferences.
+// garbageCollectMultiRoleInference deletes all child InferenceSets and removes
+// the finalizer. OCIRepository and HelmRelease are GC'd via ownerReferences.
 func (r *MultiRoleInferenceReconciler) garbageCollectMultiRoleInference(ctx context.Context, log logr.Logger, mri *kaitov1alpha1.MultiRoleInference) (ctrl.Result, error) {
 	// List all child InferenceSets owned by this MRI.
 	isList := &kaitov1alpha1.InferenceSetList{}

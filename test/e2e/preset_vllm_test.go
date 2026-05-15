@@ -46,6 +46,43 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		loadModelVersions()
 	})
 
+	// MRI and InferenceSet tests run first so they are not interrupted by
+	// slow/flaky GPU-provisioning timeouts in the preset workspace tests below.
+	It("should create a MultiRoleInference with prefill and decode roles successfully", Serial, utils.GinkgoLabelFastCheck, func() {
+		mriObj := createGemma3MultiRoleInference()
+		defer cleanupResourcesForMultiRoleInference(mriObj)
+
+		validateMultiRoleInferenceChildInferenceSets(mriObj)
+
+		// Validate each child InferenceSet's status, replicas, benchmark, and GWIE resources
+		childInferenceSets := getMultiRoleInferenceChildInferenceSets(mriObj)
+		for i := range childInferenceSets {
+			is := &childInferenceSets[i]
+			validateInferenceSetStatus(is)
+			validateInferenceSetReplicas(is, *mriObj.Spec.Roles[0].Replicas)
+			validateInferenceSetBenchmarkCompleted(is)
+		}
+
+		// Validate MRI-owned InferencePool and GWIE resources (shared across all roles)
+		validateMultiRoleInferenceGWIEResources(mriObj)
+		validateMultiRoleInferenceStatus(mriObj)
+
+		// Validate chat completions endpoint via a decode pod
+		validateMultiRoleInferenceChatCompletions(mriObj)
+	})
+
+	It("should create a Gemma 3 InferenceSet with preset public mode successfully", Serial, utils.GinkgoLabelFastCheck, func() {
+		numOfReplicas := 1
+		inferenceSetObj := createGemma3InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
+		defer cleanupResourcesForInferenceSet(inferenceSetObj)
+		time.Sleep(120 * time.Second)
+
+		validateInferenceSetStatus(inferenceSetObj)
+		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
+		validateInferenceSetBenchmarkCompleted(inferenceSetObj)
+		validateGatewayAPIInferenceExtensionResources(inferenceSetObj)
+	})
+
 	It("should create a qwen3-coder-30b-a3b-instruct two-node workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 2
 		workspaceObj := createQWen3Coder30BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
@@ -361,41 +398,6 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a MultiRoleInference with prefill and decode roles successfully", Serial, utils.GinkgoLabelFastCheck, func() {
-		mriObj := createGemma3MultiRoleInference()
-		defer cleanupResourcesForMultiRoleInference(mriObj)
-
-		validateMultiRoleInferenceChildInferenceSets(mriObj)
-
-		// Validate each child InferenceSet's status, replicas, benchmark, and GWIE resources
-		childInferenceSets := getMultiRoleInferenceChildInferenceSets(mriObj)
-		for i := range childInferenceSets {
-			is := &childInferenceSets[i]
-			validateInferenceSetStatus(is)
-			validateInferenceSetReplicas(is, *mriObj.Spec.Roles[0].Replicas)
-			validateInferenceSetBenchmarkCompleted(is)
-		}
-
-		// Validate MRI-owned InferencePool and GWIE resources (shared across all roles)
-		validateMultiRoleInferenceGWIEResources(mriObj)
-		validateMultiRoleInferenceStatus(mriObj)
-
-		// Validate chat completions endpoint via a decode pod
-		validateMultiRoleInferenceChatCompletions(mriObj)
-	})
-
-	It("should create a Gemma 3 InferenceSet with preset public mode successfully", Serial, utils.GinkgoLabelFastCheck, func() {
-		numOfReplicas := 1
-		inferenceSetObj := createGemma3InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
-		defer cleanupResourcesForInferenceSet(inferenceSetObj)
-		time.Sleep(120 * time.Second)
-
-		validateInferenceSetStatus(inferenceSetObj)
-		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
-		validateInferenceSetBenchmarkCompleted(inferenceSetObj)
-		validateGatewayAPIInferenceExtensionResources(inferenceSetObj)
-	})
-
 	It("should create a ministral-3-3b-instruct-2512 workspace with preset public mode successfully", func() {
 		numOfNode := 1
 		workspaceObj := createMinistral3_3BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
@@ -687,7 +689,8 @@ func validateMultiRoleInferenceChatCompletions(mriObj *kaitov1alpha1.MultiRoleIn
 			expectedCompletion := `"object":"chat.completion`
 			execOption := corev1.PodExecOptions{
 				Command: []string{"bash", "-c", fmt.Sprintf(
-					`curl -s --max-time 30 -X POST -H "Content-Type: application/json" `+
+					`apt-get update && apt-get install curl -y; `+
+						`curl -s --max-time 30 -X POST -H "Content-Type: application/json" `+
 						`-d '{"model":"%s","messages":[{"role":"user","content":"What is Kubernetes?"}],"max_tokens":7,"temperature":0}' `+
 						`http://localhost:5001/v1/chat/completions | grep -e '%s'`,
 					modelName, expectedCompletion)},

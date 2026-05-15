@@ -28,6 +28,7 @@ import asyncio
 import httpx
 import nest_asyncio
 import pytest_asyncio
+import aiorwlock
 
 from ragengine.main import app, vector_store_handler
 
@@ -51,3 +52,5 @@ def event_loop():
 @pytest_asyncio.fixture(autouse=True)
 def clear_index():
     vector_store_handler.index_map.clear()
+    if vector_store_handler.use_rwlock:
+        vector_store_handler.rwlock = aiorwlock.RWLock()

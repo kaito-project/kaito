@@ -25,10 +25,10 @@ os.environ["LLM_INFERENCE_URL"] = "http://localhost:5000/v1/chat/completions"
 
 import asyncio
 
+import aiorwlock
 import httpx
 import nest_asyncio
 import pytest_asyncio
-import aiorwlock
 
 from ragengine.main import app, vector_store_handler
 

@@ -446,6 +446,8 @@ jobs:
       - name: Debug info
         if: always()
         run: |
+          set +e
+
           echo "=== InferenceSet Status ==="
           kubectl get inferenceset inferenceset-aikit-test -o yaml
 

@@ -14,6 +14,7 @@
 import asyncio
 import os
 import sys
+import threading
 
 import pytest
 
@@ -54,7 +55,7 @@ def test_initial_load_uses_factory_once():
         debounce_seconds=0,
         factory=_factory([initial]),
     )
-    assert reloader.current is initial
+    assert reloader.get_current() is initial
 
 
 def test_start_is_noop_when_policy_path_is_empty():
@@ -81,11 +82,11 @@ def test_reload_swaps_in_new_instance_on_change():
         debounce_seconds=0,
         factory=_factory([first, second]),
     )
-    assert reloader.current is first
+    assert reloader.get_current() is first
 
     reloader._reload()
 
-    assert reloader.current is second
+    assert reloader.get_current() is second
 
 
 def test_reload_keeps_current_when_factory_raises():
@@ -104,7 +105,7 @@ def test_reload_keeps_current_when_factory_raises():
 
     reloader._reload()
 
-    assert reloader.current is first
+    assert reloader.get_current() is first
 
 
 def test_reload_noop_when_policy_unchanged():
@@ -121,7 +122,43 @@ def test_reload_noop_when_policy_unchanged():
     # The reloader keeps the original reference (not the duplicate) when the
     # new policy compares equal -- this avoids churning scanner objects that
     # request handlers may already be holding.
-    assert reloader.current is first
+    assert reloader.get_current() is first
+
+
+def test_get_current_returns_snapshot_while_reload_builds_new_instance():
+    first = _enabled("v1")
+    second = _enabled("v2")
+    reload_started = threading.Event()
+    allow_reload_to_finish = threading.Event()
+    state = {"calls": 0}
+
+    def factory():
+        state["calls"] += 1
+        if state["calls"] == 1:
+            return first
+
+        reload_started.set()
+        assert allow_reload_to_finish.wait(timeout=1)
+        return second
+
+    reloader = GuardrailsReloader(
+        policy_path="/tmp/policy.yaml",
+        debounce_seconds=0,
+        factory=factory,
+    )
+
+    reload_thread = threading.Thread(target=reloader._reload)
+    reload_thread.start()
+
+    assert reload_started.wait(timeout=1)
+    snapshot = reloader.get_current()
+    assert snapshot is first
+
+    allow_reload_to_finish.set()
+    reload_thread.join(timeout=1)
+
+    assert reloader.get_current() is second
+    assert snapshot is first
 
 
 def test_watcher_drives_reload_on_event():
@@ -143,14 +180,14 @@ def test_watcher_drives_reload_on_event():
         reloader.start()
         # Give the watcher task a chance to consume the single yielded batch.
         for _ in range(20):
-            if reloader.current is second:
+            if reloader.get_current() is second:
                 break
             await asyncio.sleep(0.01)
         await reloader.stop()
 
     asyncio.run(run())
 
-    assert reloader.current is second
+    assert reloader.get_current() is second
 
 
 def test_watcher_failure_is_swallowed():
@@ -174,7 +211,7 @@ def test_watcher_failure_is_swallowed():
 
     # The reloader logs and exits cleanly; current policy is unchanged.
     asyncio.run(run())
-    assert reloader.current is first
+    assert reloader.get_current() is first
 
 
 @pytest.mark.parametrize("debounce_seconds", [-1.0, 0.0, 30.0])

@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import threading
 import time
 from collections.abc import Callable
 from pathlib import Path
@@ -58,15 +59,16 @@ class GuardrailsReloader:
         self._factory = factory
         # Tests can inject a watcher; otherwise _watch() falls back to watchfiles.
         self._watcher_factory = watcher
+        self._current_lock = threading.Lock()
         self._current = factory()
         guardrails_policy_loaded_timestamp.set(time.time())
         self._task: asyncio.Task[None] | None = None
         self._stop_event: asyncio.Event | None = None
 
-    @property
-    def current(self) -> OutputGuardrails:
+    def get_current(self) -> OutputGuardrails:
         """Return the most recently loaded :class:`OutputGuardrails` instance."""
-        return self._current
+        with self._current_lock:
+            return self._current
 
     def start(self) -> None:
         """Start the background watcher task. No-op if already running."""
@@ -135,13 +137,15 @@ class GuardrailsReloader:
             )
             return
 
-        if new_instance == self._current:
-            guardrails_policy_reload_total.labels(
-                **{"result": RELOAD_RESULT_NOOP}
-            ).inc()
-            return
+        with self._current_lock:
+            if new_instance == self._current:
+                guardrails_policy_reload_total.labels(
+                    **{"result": RELOAD_RESULT_NOOP}
+                ).inc()
+                return
 
-        self._current = new_instance
+            self._current = new_instance
+
         guardrails_policy_reload_total.labels(**{"result": RELOAD_RESULT_SUCCESS}).inc()
         guardrails_policy_loaded_timestamp.set(time.time())
         logger.info(

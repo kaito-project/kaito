@@ -354,7 +354,8 @@ async def chat_completions(request: dict):
             )
 
         response = await rag_ops.chat_completion(request)
-        response = guardrails_reloader.current.guard_response(response, request)
+        guardrails = guardrails_reloader.get_current()
+        response = guardrails.guard_response(response, request)
         status = STATUS_SUCCESS
         return response
     except HTTPException as http_exc:

@@ -5,7 +5,7 @@ authors:
 reviewers:
   - "@Fei-Guo"
 creation-date: 2026-04-16
-last-updated: 2026-05-06
+last-updated: 2026-05-19
 status: provisional
 see-also:
   - "/docs/proposals/20250715-inference-aware-routing-layer.md"
@@ -181,28 +181,41 @@ handling.
 This proposal defines the UX shape only. The following items are deferred to follow-up
 implementation PRs:
 
-- YAML policy loading implementation
-- scanner registry and additional scanners
+- additional scanners beyond the current baseline set
 - audit event model
 - streaming scanning behavior
 - per-scanner fail modes inside the policy YAML
+- configurable failure handling beyond the current fail-closed behavior
 
 ## Follow-Up Implementation Plan
 
 This proposal is intended to support the following implementation sequence:
 
-1. Land the initial non-streaming output guardrails hook.
-2. Define explicit error-handling semantics. *(implemented: hard-coded fail-closed
-  behavior plus `OutputGuardrailsError → HTTP 500`; configurable failure handling is
-  deferred.)*
-3. Introduce a runtime YAML policy loader.
-4. Add default ConfigMap support. (done — see "Default ConfigMap Support" above)
-5. Refactor scanner construction into a registry/factory structure.
-6. Add more scanners in small batches.
-7. Add audit foundations.
-8. Add minimal streaming scanning support.
-9. Polish graceful UX and operational behavior.
+1. Land the initial non-streaming output guardrails hook. (done)
+2. Define explicit error-handling semantics. (done)
+3. Introduce a runtime YAML policy loader. (done)
+4. Add default ConfigMap support. (done)
+5. Add hot-reload of the guardrails policy ConfigMap. (done)
+6. Refactor scanner construction into a registry/factory structure. (done)
+7. Add more scanners in small batches. (partial)
+8. Add audit foundations. (not done)
+9. Add minimal streaming scanning support. (not done)
+10. Polish graceful UX and operational behavior. (partial)
 
-The CRD exposure for `guardrails.enabled` can be added later if we decide the final user
-experience should include an explicit RAGEngine spec toggle rather than relying only on
-ConfigMap-based policy.
+### Hot-reload runtime behavior (implemented)
+
+The runtime watches the guardrails policy file and swaps the active
+`OutputGuardrails` instance when the policy changes. For ConfigMap-mounted files,
+it watches the parent directory so Kubernetes symlink updates are detected.
+
+Reload semantics:
+
+- If a new policy fails to load, the previous policy stays active.
+- Reloads use a 1-second debounce window.
+- Hot reload can be disabled with `OUTPUT_GUARDRAILS_HOT_RELOAD_ENABLED=false`,
+  in which case the policy is loaded once at startup.
+
+Observability:
+
+- `guardrails_policy_reload_total{result="success|failure|noop"}`
+- `guardrails_policy_loaded_timestamp_seconds`

@@ -593,7 +593,8 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 			return err
 		}
 		ociRepo.Spec = sourcev1.OCIRepositorySpec{
-			URL: consts.InferencePoolChartURL,
+			URL:      consts.InferencePoolChartURL,
+			Interval: metav1.Duration{Duration: 10 * time.Minute},
 			Reference: &sourcev1.OCIRepositoryRef{
 				Tag: consts.InferencePoolChartVersion,
 			},
@@ -675,6 +676,7 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 			return err
 		}
 		helmRelease.Spec = helmv2.HelmReleaseSpec{
+			Interval: metav1.Duration{Duration: 10 * time.Minute},
 			ChartRef: &helmv2.CrossNamespaceSourceReference{
 				Kind:      sourcev1.OCIRepositoryKind,
 				Namespace: mri.Namespace,

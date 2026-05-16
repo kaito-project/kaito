@@ -977,6 +977,7 @@ func logBenchmarkPhaseElapsed(coreClient *kubernetes.Clientset, wsName, wsNamesp
 	podName := wsName + "-0"
 	req := coreClient.CoreV1().Pods(wsNamespace).GetLogs(podName, &corev1.PodLogOptions{
 		TailLines: &tailLines,
+		Container: wsName, // specify container name to handle multi-container pods (e.g., with routing sidecar)
 	})
 	stream, err := req.Stream(ctx)
 	if err != nil {

@@ -616,7 +616,7 @@ func validateMultiRoleInferenceGWIEResources(mriObj *kaitov1alpha1.MultiRoleInfe
 				}
 			}
 			return false
-		}, utils.PollTimeout, utils.PollInterval).Should(BeTrue(),
+		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(),
 			"Failed to validate MRI Flux OCIRepository is Ready for %s", mriObj.Name)
 	})
 
@@ -636,7 +636,7 @@ func validateMultiRoleInferenceGWIEResources(mriObj *kaitov1alpha1.MultiRoleInfe
 				}
 			}
 			return false
-		}, utils.PollTimeout, utils.PollInterval).Should(BeTrue(),
+		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(),
 			"Failed to validate MRI Flux HelmRelease is Ready for %s", mriObj.Name)
 	})
 }

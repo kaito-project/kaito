@@ -37,7 +37,8 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 # with CUDA 12. Reinstall nixl-cu12 to replace the bundled nixl_ep with a CUDA 12
 # compatible version, fixing: ImportError: libcudart.so.13: cannot open shared object file
 # See: https://github.com/vllm-project/vllm/issues/42525
-RUN pip3 install --no-cache-dir --force-reinstall --no-deps nixl-cu12
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip3 install --force-reinstall --no-deps nixl-cu12==1.1.0
 
 # 1. Huggingface transformers
 COPY presets/workspace/inference/${MODEL_TYPE}/inference_api.py \

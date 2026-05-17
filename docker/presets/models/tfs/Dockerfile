@@ -33,6 +33,12 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     uv pip install --system -q -r /workspace/requirements.txt && \
     pip3 uninstall -y uv
 
+# Fix: vLLM >= 0.19.0 bundles nixl_ep compiled against CUDA 13, but torch ships
+# with CUDA 12. Reinstall nixl-cu12 to replace the bundled nixl_ep with a CUDA 12
+# compatible version, fixing: ImportError: libcudart.so.13: cannot open shared object file
+# See: https://github.com/vllm-project/vllm/issues/42525
+RUN pip3 install --no-cache-dir --force-reinstall --no-deps nixl-cu12
+
 # 1. Huggingface transformers
 COPY presets/workspace/inference/${MODEL_TYPE}/inference_api.py \
     presets/workspace/tuning/${MODEL_TYPE}/cli.py \

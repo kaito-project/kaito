@@ -503,7 +503,7 @@ func cleanupResourcesForMultiRoleInference(mriObj *kaitov1alpha1.MultiRoleInfere
 					return client.IgnoreNotFound(err)
 				}
 				return utils.TestingCluster.KubeClient.Delete(ctx, mriObj, &client.DeleteOptions{})
-			}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to delete MultiRoleInference")
+			}, 5*time.Minute, utils.PollInterval).Should(Succeed(), "Failed to delete MultiRoleInference")
 		} else {
 			GinkgoWriter.Printf("test failed, keep %s\n", mriObj.Name)
 		}

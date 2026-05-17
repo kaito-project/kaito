@@ -508,7 +508,7 @@ const (
 // defaultPDPluginsConfigTemplate is the default EPP plugins YAML template for P/D disaggregated serving.
 // Uses the llm-d EndpointPickerConfig format with schedulingProfiles for prefill and decode.
 // The %%MODEL_NAME%% placeholder is replaced with the actual model name from the MRI spec.
-const defaultPDPluginsConfigTemplate = `apiVersion: inference.networking.k8s.io/v1alpha1
+const defaultPDPluginsConfigTemplate = `apiVersion: inference.networking.x-k8s.io/v1alpha1
 kind: EndpointPickerConfig
 featureGates:
   - prepareDataPlugins

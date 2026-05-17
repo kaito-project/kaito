@@ -689,11 +689,19 @@ func validateMultiRoleInferenceChatCompletions(mriObj *kaitov1alpha1.MultiRoleIn
 			expectedCompletion := `"object":"chat.completion`
 			execOption := corev1.PodExecOptions{
 				Command: []string{"bash", "-c", fmt.Sprintf(
-					`apt-get update && apt-get install curl -y; `+
-						`curl -s --max-time 30 -X POST -H "Content-Type: application/json" `+
+					`apt-get update -qq && apt-get install -qq -y curl >/dev/null 2>&1; `+
+						`echo "=== Trying sidecar port 5001 ==="; `+
+						`RESP5001=$(curl -s -o /dev/stderr -w "%%{http_code}" --max-time 10 http://localhost:5001/v1/chat/completions `+
+						`-X POST -H "Content-Type: application/json" `+
+						`-d '{"model":"%s","messages":[{"role":"user","content":"What is Kubernetes?"}],"max_tokens":7,"temperature":0}' 2>&1); `+
+						`echo "Port 5001 response: $RESP5001"; `+
+						`echo "=== Trying vLLM port 5000 ==="; `+
+						`RESP=$(curl -s --max-time 30 -X POST -H "Content-Type: application/json" `+
 						`-d '{"model":"%s","messages":[{"role":"user","content":"What is Kubernetes?"}],"max_tokens":7,"temperature":0}' `+
-						`http://localhost:5001/v1/chat/completions | grep -e '%s'`,
-					modelName, expectedCompletion)},
+						`http://localhost:5000/v1/chat/completions); `+
+						`echo "MRI chat response: $RESP"; `+
+						`echo "$RESP" | grep -e '%s'`,
+					modelName, modelName, expectedCompletion)},
 				Container: decodeWS.Name,
 				Stdout:    true,
 				Stderr:    true,
@@ -707,9 +715,9 @@ func validateMultiRoleInferenceChatCompletions(mriObj *kaitov1alpha1.MultiRoleIn
 
 			execCtx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 			defer cancel()
-			_, err = utils.ExecSync(execCtx, k8sConfig, coreClient, mriObj.Namespace, podName, execOption)
+			stdout, err := utils.ExecSync(execCtx, k8sConfig, coreClient, mriObj.Namespace, podName, execOption)
 			if err != nil {
-				GinkgoWriter.Printf("validate chat completions fails: %v\n", err)
+				GinkgoWriter.Printf("validate chat completions fails: %v, stdout: %s\n", err, stdout)
 				return false
 			}
 			return true

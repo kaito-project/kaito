@@ -3,7 +3,8 @@ kind: DestinationRule
 metadata:
   name: phi-4-inferencepool-epp
 spec:
-  host: phi-4-inferencepool-epp.default.svc.cluster.local
+  host: phi-4-inferencepool-epp
   trafficPolicy:
     tls:
-      mode: DISABLE
+      mode: SIMPLE
+      insecureSkipVerify: true

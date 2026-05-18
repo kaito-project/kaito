@@ -239,6 +239,66 @@ type WorkspaceStatus struct {
 	Performance *Performance `json:"performance,omitempty"`
 }
 
+// CacheProvider identifies a cache backend implementation.
+type CacheProvider string
+
+// CacheMode controls how a workspace interacts with the cache.
+type CacheMode string
+
+const (
+	// CacheModeRequired blocks workload deployment until the cache is ready.
+	CacheModeRequired CacheMode = "Required"
+	// CacheModeOpportunistic uses the cache if available, proceeds without if not.
+	CacheModeOpportunistic CacheMode = "Opportunistic"
+	// CacheModeDisabled disables cache interaction entirely.
+	CacheModeDisabled CacheMode = "Disabled"
+)
+
+// CacheSpec configures distributed caching for model workloads.
+// Each concern (model weights, KV cache) is configured independently with its
+// own provider and mode, allowing different backends per concern.
+type CacheSpec struct {
+	// ModelWeights configures caching of static model weight files.
+	// +optional
+	ModelWeights *ModelWeightsCacheConfig `json:"modelWeights,omitempty"`
+
+	// KVCache configures caching of attention key/value tensors.
+	// +optional
+	KVCache *KVCacheConfig `json:"kvCache,omitempty"`
+}
+
+// ModelWeightsCacheConfig controls how model weight files are cached.
+type ModelWeightsCacheConfig struct {
+	// Provider selects the cache implementation for model weights.
+	// +kubebuilder:validation:MinLength=1
+	Provider CacheProvider `json:"provider"`
+
+	// Mode controls cache behavior.
+	// +kubebuilder:default:="Opportunistic"
+	// +kubebuilder:validation:Enum=Required;Opportunistic;Disabled
+	Mode CacheMode `json:"mode,omitempty"`
+
+	// PrewarmOnDeploy triggers cache population before model serving starts.
+	// +optional
+	PrewarmOnDeploy bool `json:"prewarmOnDeploy,omitempty"`
+
+	// CleanupOnDelete invalidates cached model data when workspace is deleted.
+	// +optional
+	CleanupOnDelete bool `json:"cleanupOnDelete,omitempty"`
+}
+
+// KVCacheConfig controls how attention KV tensors are cached.
+type KVCacheConfig struct {
+	// Provider selects the cache implementation for KV tensors.
+	// +kubebuilder:validation:MinLength=1
+	Provider CacheProvider `json:"provider"`
+
+	// Mode controls cache behavior.
+	// +kubebuilder:default:="Opportunistic"
+	// +kubebuilder:validation:Enum=Required;Opportunistic;Disabled
+	Mode CacheMode `json:"mode,omitempty"`
+}
+
 // Workspace is the Schema for the workspaces API
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
@@ -259,6 +319,7 @@ type Workspace struct {
 	Resource  ResourceSpec    `json:"resource,omitempty"`
 	Inference *InferenceSpec  `json:"inference,omitempty"`
 	Tuning    *TuningSpec     `json:"tuning,omitempty"`
+	Cache     *CacheSpec      `json:"cache,omitempty"`
 	Status    WorkspaceStatus `json:"status,omitempty"`
 }
 

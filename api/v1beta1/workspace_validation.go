@@ -72,6 +72,9 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		klog.InfoS("Validate creation", "workspace", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
 		errs = errs.Also(w.validateCreate().ViaField("spec"))
 		errs = errs.Also(w.validateAnnotations())
+		if w.Cache != nil {
+			errs = errs.Also(w.Cache.validateCreate().ViaField("cache"))
+		}
 		if w.Inference != nil {
 			// Check if the bypass resource checks annotation is set
 			bypassResourceChecks := false
@@ -767,4 +770,42 @@ func (w *Workspace) validateStreamingCSIDriver(ctx context.Context) *apis.FieldE
 		)
 	}
 	return nil
+}
+
+func (c *CacheSpec) validateCreate() (errs *apis.FieldError) {
+	if !featuregates.FeatureGates[consts.FeatureFlagDistributedCache] {
+		errs = errs.Also(apis.ErrGeneric(
+			fmt.Sprintf("feature gate %q is not enabled", consts.FeatureFlagDistributedCache), ""))
+		return errs
+	}
+	if c.ModelWeights == nil && c.KVCache == nil {
+		errs = errs.Also(apis.ErrGeneric("at least one of modelWeights or kvCache must be specified", ""))
+	}
+	if c.ModelWeights != nil {
+		errs = errs.Also(c.ModelWeights.validateCreate().ViaField("modelWeights"))
+	}
+	if c.KVCache != nil {
+		errs = errs.Also(c.KVCache.validateCreate().ViaField("kvCache"))
+	}
+	return errs
+}
+
+func (m *ModelWeightsCacheConfig) validateCreate() (errs *apis.FieldError) {
+	if m.Provider == "" {
+		errs = errs.Also(apis.ErrMissingField("provider"))
+	}
+	if m.Mode != "" && m.Mode != CacheModeRequired && m.Mode != CacheModeOpportunistic && m.Mode != CacheModeDisabled {
+		errs = errs.Also(apis.ErrInvalidValue(string(m.Mode), "mode"))
+	}
+	return errs
+}
+
+func (k *KVCacheConfig) validateCreate() (errs *apis.FieldError) {
+	if k.Provider == "" {
+		errs = errs.Also(apis.ErrMissingField("provider"))
+	}
+	if k.Mode != "" && k.Mode != CacheModeRequired && k.Mode != CacheModeOpportunistic && k.Mode != CacheModeDisabled {
+		errs = errs.Also(apis.ErrInvalidValue(string(k.Mode), "mode"))
+	}
+	return errs
 }

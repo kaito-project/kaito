@@ -427,6 +427,60 @@ spec:
               may reject unrecognized values.
               More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
             type: string
+          cache:
+            description: |-
+              CacheSpec configures distributed caching for model workloads.
+              Each concern (model weights, KV cache) is configured independently with its
+              own provider and mode, allowing different backends per concern.
+            properties:
+              kvCache:
+                description: KVCache configures caching of attention key/value tensors.
+                properties:
+                  mode:
+                    default: Opportunistic
+                    description: Mode controls cache behavior.
+                    enum:
+                    - Required
+                    - Opportunistic
+                    - Disabled
+                    type: string
+                  provider:
+                    description: Provider selects the cache implementation for KV
+                      tensors.
+                    minLength: 1
+                    type: string
+                required:
+                - provider
+                type: object
+              modelWeights:
+                description: ModelWeights configures caching of static model weight
+                  files.
+                properties:
+                  cleanupOnDelete:
+                    description: CleanupOnDelete invalidates cached model data when
+                      workspace is deleted.
+                    type: boolean
+                  mode:
+                    default: Opportunistic
+                    description: Mode controls cache behavior.
+                    enum:
+                    - Required
+                    - Opportunistic
+                    - Disabled
+                    type: string
+                  prewarmOnDeploy:
+                    description: PrewarmOnDeploy triggers cache population before
+                      model serving starts.
+                    type: boolean
+                  provider:
+                    description: Provider selects the cache implementation for model
+                      weights.
+                    minLength: 1
+                    type: string
+                required:
+                - provider
+                type: object
+            type: object
           inference:
             properties:
               adapters:

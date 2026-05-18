@@ -50,6 +50,7 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/cache"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
@@ -327,6 +328,17 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 		}
 	}
 
+	// Check cache readiness when configured. In Required mode, block deployment
+	// until the cache is ready.
+	cacheResult := cache.ReconcileCache(ctx, wObj, &wObj.Status)
+	if cacheResult.BlockDeployment {
+		klog.V(2).InfoS("Cache not ready, blocking deployment", "workspace", klog.KObj(wObj))
+		if cacheResult.RequeueNeeded {
+			return reconcile.Result{RequeueAfter: 10 * time.Second}, nil
+		}
+		return reconcile.Result{}, nil
+	}
+
 	if wObj.Tuning != nil {
 		if err := c.applyTuning(ctx, wObj); err != nil {
 			return reconcile.Result{}, err
@@ -571,6 +583,26 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	if err != nil {
 		klog.ErrorS(err, "failed to get model by name", "model", presetName, "workspace", klog.KObj(wObj))
 		return err
+	}
+
+	// Trigger/track model weight prewarm after model resolution.
+	if wObj.Cache != nil && wObj.Cache.ModelWeights != nil && wObj.Cache.ModelWeights.PrewarmOnDeploy {
+		params := model.GetInferenceParameters()
+		var modelName, modelRevision string
+		if params != nil {
+			modelName = params.Name
+			if params.Version != "" {
+				_, rev, _ := utils.ParseHuggingFaceModelVersion(params.Version)
+				modelRevision = rev
+			}
+		}
+		if modelName == "" {
+			modelName = presetName
+		}
+		cache.ReconcilePrewarm(ctx, wObj, c.Client,
+			modelName, modelRevision,
+			wObj.Inference.Preset.PresetOptions.ModelAccessSecret,
+			&wObj.Status)
 	}
 
 	revisionStr := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]

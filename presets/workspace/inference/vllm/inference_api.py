@@ -109,7 +109,7 @@ class KAITOArgumentParser(argparse.ArgumentParser):
 
         # See https://docs.vllm.ai/en/stable/serving/engine_args.html for more args
         engine_default_args = {
-            "model": "/workspace/vllm/weights",
+            "model": os.environ.get("KAITO_MODEL_PATH", "/workspace/vllm/weights"),
             "cpu_offload_gb": 0,
             "gpu_memory_utilization": get_max_gpu_memory_utilization(),
             "disable_log_stats": False,

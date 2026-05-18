@@ -33,6 +33,7 @@ var (
 		consts.FeatureFlagModelMirror:                        false,
 		consts.FeatureFlagModelStreaming:                     false,
 		consts.FeatureFlagEnableBaseImageAutoUpgrade:         false,
+		consts.FeatureFlagDistributedCache:                   false,
 		//	Add more feature gates here
 	}
 )

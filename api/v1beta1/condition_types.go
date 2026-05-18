@@ -70,4 +70,10 @@ const (
 
 	// WorkspaceConditionTypeModelMirrorReady indicates the ModelMirror download is complete and model is ready for streaming.
 	WorkspaceConditionTypeModelMirrorReady = ConditionType("ModelMirrorReady")
+
+	// WorkspaceConditionTypeModelWeightsCacheReady indicates whether the model weights cache is ready.
+	WorkspaceConditionTypeModelWeightsCacheReady = ConditionType("ModelWeightsCacheReady")
+
+	// WorkspaceConditionTypeKVCacheReady indicates whether the KV cache is ready.
+	WorkspaceConditionTypeKVCacheReady = ConditionType("KVCacheReady")
 )

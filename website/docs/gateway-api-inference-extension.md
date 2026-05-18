@@ -389,11 +389,13 @@ phi-4-decode-pool-epp-xxx-yyy                     1/1     Running   0          5
 
 #### 4. Deploy DestinationRule and HTTPRoute
 
-Apply the DestinationRule and HTTPRoute for the MRI deployment (following the same pattern as Option A):
+With MRI, the KAITO operator creates **two InferencePools** — one for the prefill role and one for the decode role. Each pool has its own EPP service that requires a DestinationRule for TLS bypass (since EPP uses `--secure-serving=true` with a self-signed certificate).
+
+The HTTPRoute targets the **prefill pool** as the entry point. The llm-d scheduler handles internal prefill→decode routing and KV cache transfer automatically.
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/destinationrule-phi-4-mini-instruct.yaml
-kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/httproute-bbr.yaml
+kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/destinationrule-phi-4-mini-instruct-mri.yaml
+kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/httproute-mri.yaml
 ```
 
 #### 5. Test Inference

@@ -679,3 +679,62 @@ models:
   headDim: 256
   quantMethod: gptq
   quantBits: 4
+- name: moonshotai/Kimi-K2.5
+  description: https://huggingface.co/moonshotai/Kimi-K2.5
+  license: modified-mit
+  pipelineTag: image-text-to-text
+  modelFileSize: 554.32Gi
+  architectures:
+  - KimiK25ForConditionalGeneration
+  modelTokenLimit: 262144
+  hiddenSize: 7168
+  numHiddenLayers: 61
+  numAttentionHeads: 64
+  numKeyValueHeads: 64
+  kvLoraRank: 512
+  qkRopeHeadDim: 64
+  quantMethod: pack-quantized
+- name: moonshotai/Kimi-K2.6
+  description: https://huggingface.co/moonshotai/Kimi-K2.6
+  license: modified-mit
+  pipelineTag: image-text-to-text
+  modelFileSize: 554.32Gi
+  architectures:
+  - KimiK25ForConditionalGeneration
+  modelTokenLimit: 262144
+  hiddenSize: 7168
+  numHiddenLayers: 61
+  numAttentionHeads: 64
+  numKeyValueHeads: 64
+  kvLoraRank: 512
+  qkRopeHeadDim: 64
+  quantMethod: pack-quantized
+- name: MiniMaxAI/MiniMax-M2.7
+  description: https://huggingface.co/MiniMaxAI/MiniMax-M2.7
+  license: other
+  pipelineTag: text-generation
+  modelFileSize: 214.34Gi
+  architectures:
+  - MiniMaxM2ForCausalLM
+  modelTokenLimit: 204800
+  hiddenSize: 3072
+  numHiddenLayers: 62
+  numAttentionHeads: 48
+  numKeyValueHeads: 8
+  headDim: 128
+  quantMethod: fp8
+- name: mistralai/Mistral-Medium-3.5-128B
+  description: https://huggingface.co/mistralai/Mistral-Medium-3.5-128B
+  license: other
+  modelFileSize: 124.43Gi
+  architectures:
+  - Mistral3ForConditionalGeneration
+  modelTokenLimit: 262144
+  hiddenSize: 12288
+  numHiddenLayers: 88
+  numAttentionHeads: 96
+  numKeyValueHeads: 8
+  loadFormat: mistral
+  configFormat: mistral
+  tokenizerMode: mistral
+  quantMethod: fp8

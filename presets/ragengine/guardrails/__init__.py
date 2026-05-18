@@ -12,5 +12,6 @@
 # limitations under the License.
 
 from .output_guardrails import OutputGuardrails, OutputGuardrailsError
+from .reload import GuardrailsReloader
 
-__all__ = ["OutputGuardrails", "OutputGuardrailsError"]
+__all__ = ["GuardrailsReloader", "OutputGuardrails", "OutputGuardrailsError"]

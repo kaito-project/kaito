@@ -31,6 +31,8 @@ type InferenceSetTemplate struct {
 	// Standard object's metadata.
 	// More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
 	// +optional
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	// +optional
 	Resource  InferenceSetResourceSpec   `json:"resource"`

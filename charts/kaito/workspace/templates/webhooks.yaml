@@ -53,4 +53,33 @@ webhooks:
         operations:
           - CREATE
           - UPDATE
+{{- end }}
+{{- if .Values.featureGates.enableMultiRoleInferenceController }}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: validation.multiroleinference.kaito.sh
+  labels:
+    {{- include "kaito.labels" . | nindent 4 }}
+webhooks:
+  - name: validation.multiroleinference.kaito.sh
+    admissionReviewVersions: ["v1"]
+    clientConfig:
+      service:
+        name: {{ include "kaito.serviceName" . }}
+        namespace: {{ .Release.Namespace }}
+        port: {{ .Values.webhook.port }}
+    failurePolicy: Fail
+    sideEffects: None
+    rules:
+      - apiGroups:
+          - kaito.sh
+        apiVersions:
+          - v1alpha1
+        resources:
+          - multiroleinferences
+        operations:
+          - CREATE
+          - UPDATE
 {{- end -}}

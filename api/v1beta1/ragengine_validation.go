@@ -34,8 +34,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
-const guardrailsPolicyFileName = "guardrails.yaml"
-
 func (w *RAGEngine) SupportedVerbs() []admissionregistrationv1.OperationType {
 	return []admissionregistrationv1.OperationType{
 		admissionregistrationv1.Create,
@@ -99,25 +97,56 @@ func (w *RAGEngine) validateGuardrails(ctx context.Context) (errs *apis.FieldErr
 	}
 
 	guardrails := w.Spec.Guardrails
-	if guardrails.ConfigMapRef == nil || guardrails.ConfigMapRef.Name == "" {
+	if !guardrails.Enabled {
 		return nil
 	}
 	if k8sclient.Client == nil {
 		return apis.ErrGeneric("Failed to obtain client from context.Context")
 	}
 
+	cmName := DefaultGuardrailsPolicyConfigMapName
+	cmNamespace := w.Namespace
+	field := "configMapRef.name"
+	usesDefaultPolicy := true
+	if guardrails.ConfigMapRef != nil && guardrails.ConfigMapRef.Name != "" {
+		usesDefaultPolicy = false
+		cmName = guardrails.ConfigMapRef.Name
+	} else {
+		releaseNamespace, err := utils.GetReleaseNamespace()
+		if err != nil {
+			return apis.ErrGeneric(
+				fmt.Sprintf("guardrails is enabled, but the default policy release namespace could not be determined: %v", err),
+				"enabled",
+			)
+		}
+		cmNamespace = releaseNamespace
+		field = "enabled"
+	}
+
 	var cm corev1.ConfigMap
-	err := k8sclient.Client.Get(ctx, client.ObjectKey{Name: guardrails.ConfigMapRef.Name, Namespace: w.Namespace}, &cm)
+	err := k8sclient.Client.Get(ctx, client.ObjectKey{Name: cmName, Namespace: cmNamespace}, &cm)
 	if err != nil {
 		if errors.IsNotFound(err) {
+			if usesDefaultPolicy {
+				return apis.ErrGeneric(
+					fmt.Sprintf("guardrails is enabled, but the default policy ConfigMap %q was not found in release namespace %q; debug with 'kubectl get configmap %s -n %s' or set guardrails.configMapRef.name explicitly", cmName, cmNamespace, cmName, cmNamespace),
+					field,
+				)
+			}
 			return apis.ErrGeneric(
-				fmt.Sprintf("ConfigMap '%s' specified in guardrails.configMapRef not found in namespace '%s'", guardrails.ConfigMapRef.Name, w.Namespace),
-				"configMapRef.name",
+				fmt.Sprintf("guardrails.configMapRef.name references ConfigMap %q, but it was not found in namespace %q", cmName, cmNamespace),
+				field,
+			)
+		}
+		if usesDefaultPolicy {
+			return apis.ErrGeneric(
+				fmt.Sprintf("guardrails is enabled, but the default policy ConfigMap %q in release namespace %q could not be read: %v; debug with 'kubectl get configmap %s -n %s' or set guardrails.configMapRef.name explicitly", cmName, cmNamespace, err, cmName, cmNamespace),
+				field,
 			)
 		}
 		return apis.ErrGeneric(
-			fmt.Sprintf("Failed to get ConfigMap '%s' in namespace '%s': %v", guardrails.ConfigMapRef.Name, w.Namespace, err),
-			"configMapRef.name",
+			fmt.Sprintf("failed to get ConfigMap %q referenced by guardrails.configMapRef.name in namespace %q: %v", cmName, cmNamespace, err),
+			field,
 		)
 	}
 
@@ -125,8 +154,8 @@ func (w *RAGEngine) validateGuardrails(ctx context.Context) (errs *apis.FieldErr
 }
 
 func validateGuardrailsPolicyConfigMap(cm *corev1.ConfigMap) *apis.FieldError {
-	if _, ok := cm.Data[guardrailsPolicyFileName]; !ok {
-		return apis.ErrMissingField(fmt.Sprintf("%s in ConfigMap", guardrailsPolicyFileName))
+	if _, ok := cm.Data[GuardrailsPolicyFileName]; !ok {
+		return apis.ErrMissingField(fmt.Sprintf("%s in ConfigMap", GuardrailsPolicyFileName))
 	}
 
 	return nil

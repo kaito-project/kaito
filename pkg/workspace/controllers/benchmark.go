@@ -178,6 +178,7 @@ func reconcileBenchmarkResult(ctx context.Context, wObj *kaitov1beta1.Workspace)
 	tailLines := benchmarkLogTailLines
 	req := k8sclient.GetGlobalClientGoClient().CoreV1().Pods(wObj.Namespace).GetLogs(podName, &corev1.PodLogOptions{
 		TailLines: &tailLines,
+		Container: wObj.Name,
 	})
 	stream, err := req.Stream(ctx)
 	if err != nil {

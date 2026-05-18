@@ -63,6 +63,14 @@ const (
 	// The benchmark is enabled by default. Set to "true" to disable it.
 	// When set on an InferenceSet, it is propagated to all Workspaces the InferenceSet creates.
 	AnnotationDisableBenchmark = KAITOPrefix + "disable-benchmark"
+
+	// LabelMultiRoleInferenceParent identifies the parent MultiRoleInference CR.
+	// Set on child InferenceSets created by the MultiRoleInference controller.
+	LabelMultiRoleInferenceParent = "multiroleinference.kaito.sh/created-by"
+
+	// LabelInferenceRole identifies the inference role (prefill or decode).
+	// Set on child InferenceSets and propagated to workspace pods.
+	LabelInferenceRole = KAITOPrefix + "inference-role"
 )
 
 // GetWorkspaceRuntimeName returns the runtime name of the workspace.

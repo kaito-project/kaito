@@ -27,15 +27,10 @@ import (
 )
 
 const (
-	// GuardrailsPolicyVolumeName is the name of the volume that mounts the
-	// guardrails policy ConfigMap into the RAG engine pod.
 	GuardrailsPolicyVolumeName = "guardrails-policy"
-	// GuardrailsPolicyMountPath is the directory where the guardrails policy
-	// ConfigMap is mounted inside the container.
-	GuardrailsPolicyMountPath = "/etc/ragengine/guardrails"
-	// GuardrailsPolicyFileName is the expected key inside the policy ConfigMap
-	// (validated by the RAGEngine admission webhook).
-	GuardrailsPolicyFileName = "guardrails.yaml"
+	GuardrailsPolicyMountPath  = "/etc/ragengine/guardrails"
+	GuardrailsPolicyFileName   = kaitov1beta1.GuardrailsPolicyFileName
+	GuardrailsPolicyFilePath   = GuardrailsPolicyMountPath + "/" + GuardrailsPolicyFileName
 )
 
 func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1beta1.RAGEngine, revisionNum string, imageName string,
@@ -289,17 +284,15 @@ func RAGSetEnv(ragEngineObj *kaitov1beta1.RAGEngine) []corev1.EnvVar {
 		}
 	}
 
-	// Output guardrails configuration. The Python runtime reads these env vars at
-	// startup; see presets/ragengine/config.py.
 	if g := ragEngineObj.Spec.Guardrails; g != nil {
 		envs = append(envs, corev1.EnvVar{
 			Name:  "OUTPUT_GUARDRAILS_ENABLED",
 			Value: strconv.FormatBool(g.Enabled),
 		})
-		if g.ConfigMapRef != nil && g.ConfigMapRef.Name != "" {
+		if g.Enabled {
 			envs = append(envs, corev1.EnvVar{
 				Name:  "OUTPUT_GUARDRAILS_POLICY_PATH",
-				Value: GuardrailsPolicyMountPath + "/" + GuardrailsPolicyFileName,
+				Value: GuardrailsPolicyFilePath,
 			})
 		}
 	}

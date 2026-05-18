@@ -41,6 +41,7 @@ featureGates:
   disableNodeAutoProvisioning: false
   gatewayAPIInferenceExtension: false
   enableInferenceSetController: false
+  enableMultiRoleInferenceController: false
 defaultNodeImageFamily: ""
 nodeProvisioner: ""
 karpenterProvider: "azure"

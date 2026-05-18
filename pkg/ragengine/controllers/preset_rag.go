@@ -140,15 +140,20 @@ func configStorageVolume(storageSpec *v1beta1.StorageSpec) (corev1.Volume, corev
 	return volume, volumeMount
 }
 
-// configGuardrailsVolume creates a read-only ConfigMap-backed volume containing
-// the guardrails policy document.
-func configGuardrailsVolume(configMapName string) (corev1.Volume, corev1.VolumeMount) {
+func configGuardrailsPolicyVolume(cmName string) (corev1.Volume, corev1.VolumeMount) {
 	return corev1.Volume{
 			Name: manifests.GuardrailsPolicyVolumeName,
 			VolumeSource: corev1.VolumeSource{
 				ConfigMap: &corev1.ConfigMapVolumeSource{
 					LocalObjectReference: corev1.LocalObjectReference{
-						Name: configMapName,
+						Name: cmName,
+					},
+					// The ConfigMap data key and the mounted filename are intentionally the same.
+					Items: []corev1.KeyToPath{
+						{
+							Key:  manifests.GuardrailsPolicyFileName,
+							Path: manifests.GuardrailsPolicyFileName,
+						},
 					},
 				},
 			},
@@ -157,6 +162,34 @@ func configGuardrailsVolume(configMapName string) (corev1.Volume, corev1.VolumeM
 			MountPath: manifests.GuardrailsPolicyMountPath,
 			ReadOnly:  true,
 		}
+}
+
+func ensureGuardrailsPolicyConfigMap(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, kubeClient client.Client) (*corev1.ConfigMap, error) {
+	if ragEngineObj.Spec == nil || ragEngineObj.Spec.Guardrails == nil || !ragEngineObj.Spec.Guardrails.Enabled {
+		return nil, nil
+	}
+
+	userProvided := client.ObjectKey{Namespace: ragEngineObj.Namespace}
+	userOwned := ragEngineObj.Spec.Guardrails.ConfigMapRef != nil &&
+		ragEngineObj.Spec.Guardrails.ConfigMapRef.Name != ""
+	if userOwned {
+		userProvided.Name = ragEngineObj.Spec.Guardrails.ConfigMapRef.Name
+	}
+
+	cm, err := resources.EnsureConfigOrCopyFromDefault(
+		ctx,
+		kubeClient,
+		userProvided,
+		client.ObjectKey{Name: v1beta1.DefaultGuardrailsPolicyConfigMapName},
+	)
+	if err != nil || cm == nil {
+		return cm, err
+	}
+
+	// User-provided ConfigMaps belong to the user; never patch them.
+	// The copied default ConfigMap is shared namespace-wide, so it must stay
+	// unowned by any individual RAGEngine to avoid breaking other workloads.
+	return cm, nil
 }
 
 func CreatePresetRAG(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, revisionNum string, kubeClient client.Client) (client.Object, error) {
@@ -174,13 +207,14 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, revis
 		volumeMounts = append(volumeMounts, storageVolumeMount)
 	}
 
-	// Mount the guardrails policy ConfigMap when one is referenced. The Python
-	// runtime reads OUTPUT_GUARDRAILS_POLICY_PATH (set in RAGSetEnv) which points
-	// at this mount.
-	if g := ragEngineObj.Spec.Guardrails; g != nil && g.ConfigMapRef != nil && g.ConfigMapRef.Name != "" {
-		gv, gm := configGuardrailsVolume(g.ConfigMapRef.Name)
-		volumes = append(volumes, gv)
-		volumeMounts = append(volumeMounts, gm)
+	guardrailsConfigMap, err := ensureGuardrailsPolicyConfigMap(ctx, ragEngineObj, kubeClient)
+	if err != nil {
+		return nil, err
+	}
+	if guardrailsConfigMap != nil {
+		guardrailsVolume, guardrailsVolumeMount := configGuardrailsPolicyVolume(guardrailsConfigMap.Name)
+		volumes = append(volumes, guardrailsVolume)
+		volumeMounts = append(volumeMounts, guardrailsVolumeMount)
 	}
 
 	var resourceReq corev1.ResourceRequirements
@@ -220,7 +254,7 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, revis
 	depObj := manifests.GenerateRAGDeploymentManifest(ragEngineObj, revisionNum, image, imagePullSecretRefs, commands,
 		containerPorts, livenessProbe, readinessProbe, resourceReq, tolerations, volumes, volumeMounts)
 
-	err := resources.CreateResource(ctx, depObj, kubeClient)
+	err = resources.CreateResource(ctx, depObj, kubeClient)
 	if client.IgnoreAlreadyExists(err) != nil {
 		return nil, err
 	}

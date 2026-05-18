@@ -47,6 +47,8 @@ const (
 	FeatureFlagGatewayAPIInferenceExtension = "gatewayAPIInferenceExtension"
 	FeatureFlagEnableInferenceSetController = "enableInferenceSetController"
 
+	FeatureFlagEnableMultiRoleInferenceController = "enableMultiRoleInferenceController"
+
 	// Node provisioner types
 	NodeProvisionerAzureGPU  = "azure-gpu-provisioner"
 	NodeProvisionerKarpenter = "karpenter"
@@ -105,6 +107,24 @@ const (
 	EPPImageHub  = "mcr.microsoft.com/oss/v2/llm-d"
 	EPPImageName = "llm-d-inference-scheduler"
 	EPPImageTag  = "v0.7.1"
+
+	// Routing sidecar for P/D disaggregation on decode workspaces.
+	// The sidecar listens on port 5001 (PortRoutingSidecar) and forwards
+	// to vLLM on port 5000 (PortInferenceServer). The Service targetPort
+	// is set to 5001 so external traffic flows through the routing layer.
+	// See: https://github.com/llm-d/llm-d-routing-sidecar
+	RoutingSidecarImage = "mcr.microsoft.com/oss/v2/llm-d/llm-d-routing-sidecar"
+	RoutingSidecarTag   = "v0.7.1"
+
+	// PortRoutingSidecar is the port the routing sidecar listens on.
+	// When the sidecar is present, the Service targetPort points here
+	// instead of PortInferenceServer so all external traffic flows
+	// through the routing layer. vLLM keeps its default port (5000).
+	PortRoutingSidecar = int32(5001)
+
+	// InferenceRoleEnvName is the environment variable name used to pass the
+	// inference role (prefill/decode) to the model container in P/D disaggregated serving.
+	InferenceRoleEnvName = "KAITO_INFERENCE_ROLE"
 
 	// ConditionReady is the condition type for a ready condition.
 	ConditionReady = "Ready"

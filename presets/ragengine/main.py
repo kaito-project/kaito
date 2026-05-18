@@ -48,6 +48,8 @@ from ragengine.config import (  # noqa: E402
     DEFAULT_VECTOR_DB_PERSIST_DIR,
     EMBEDDING_SOURCE_TYPE,
     LOCAL_EMBEDDING_MODEL_ID,
+    OUTPUT_GUARDRAILS_HOT_RELOAD_ENABLED,
+    OUTPUT_GUARDRAILS_POLICY_PATH,
     REMOTE_EMBEDDING_ACCESS_SECRET,
     REMOTE_EMBEDDING_URL,
     VECTOR_DB_ACCESS_SECRET,
@@ -55,7 +57,7 @@ from ragengine.config import (  # noqa: E402
     VECTOR_DB_URL,
 )
 from ragengine.guardrails import (  # noqa: E402
-    OutputGuardrails,
+    GuardrailsReloader,
     OutputGuardrailsError,
 )
 from ragengine.metrics.prometheus_metrics import (  # noqa: E402
@@ -162,7 +164,21 @@ else:
 
 # Initialize RAG operations
 rag_ops = VectorStoreManager(vector_store_handler)
-output_guardrails = OutputGuardrails.from_config()
+
+guardrails_reloader = GuardrailsReloader(
+    policy_path=OUTPUT_GUARDRAILS_POLICY_PATH,
+)
+
+
+@app.on_event("startup")
+async def _start_guardrails_reloader() -> None:
+    if OUTPUT_GUARDRAILS_HOT_RELOAD_ENABLED:
+        guardrails_reloader.start()
+
+
+@app.on_event("shutdown")
+async def _stop_guardrails_reloader() -> None:
+    await guardrails_reloader.stop()
 
 
 @app.get("/metrics", operation_id="get_metrics", tags=["Monitoring"])
@@ -338,7 +354,8 @@ async def chat_completions(request: dict):
             )
 
         response = await rag_ops.chat_completion(request)
-        response = output_guardrails.guard_response(response, request)
+        guardrails = guardrails_reloader.get_current()
+        response = guardrails.guard_response(response, request)
         status = STATUS_SUCCESS
         return response
     except HTTPException as http_exc:

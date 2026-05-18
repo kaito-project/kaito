@@ -76,6 +76,9 @@ def _parse_bool_env(name: str, default: str = "false") -> bool:
 
 OUTPUT_GUARDRAILS_ENABLED = _parse_bool_env("OUTPUT_GUARDRAILS_ENABLED")
 OUTPUT_GUARDRAILS_POLICY_PATH = os.getenv("OUTPUT_GUARDRAILS_POLICY_PATH", "")
+OUTPUT_GUARDRAILS_HOT_RELOAD_ENABLED = (
+    os.getenv("OUTPUT_GUARDRAILS_HOT_RELOAD_ENABLED", "true").lower() == "true"
+)
 
 """
 =========================================================================

@@ -16,13 +16,12 @@ package model
 import (
 	"testing"
 
+	"github.com/kaito-project/kaito/pkg/sku"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/kaito-project/kaito/pkg/sku"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestPresetParamDeepCopy(t *testing.T) {
@@ -243,8 +242,8 @@ func TestGetInferenceCommandVLLMServedModelName(t *testing.T) {
 			name:          "MRI workspace uses model name over InferenceSet name",
 			vllmModelName: "phi-4-mini-instruct",
 			workspaceLabels: map[string]string{
-				consts.WorkspaceCreatedByInferenceSetLabel:  "phi-4-decode",
-				"multiroleinference.kaito.sh/created-by": "phi-4",
+				consts.WorkspaceCreatedByInferenceSetLabel: "phi-4-decode",
+				"multiroleinference.kaito.sh/created-by":   "phi-4",
 			},
 			expectedServed:    "served-model-name=phi-4-mini-instruct",
 			notExpectedServed: "served-model-name=phi-4-decode",

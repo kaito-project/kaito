@@ -1,21 +1,10 @@
 apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
-  name: phi-4-prefill-pool-epp
+  name: phi-4-mini-instruct-mri-epp
+  namespace: kaito-workspace
 spec:
-  host: phi-4-prefill-pool-epp
+  host: phi-4-mini-instruct-inferencepool-epp.kaito-workspace.svc.cluster.local
   trafficPolicy:
     tls:
-      mode: SIMPLE
-      insecureSkipVerify: true
----
-apiVersion: networking.istio.io/v1
-kind: DestinationRule
-metadata:
-  name: phi-4-decode-pool-epp
-spec:
-  host: phi-4-decode-pool-epp
-  trafficPolicy:
-    tls:
-      mode: SIMPLE
-      insecureSkipVerify: true
+      mode: DISABLE

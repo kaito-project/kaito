@@ -637,6 +637,11 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	eppValues["pluginsCustomConfig"] = map[string]string{
 		eppPluginsConfigKey: pluginsYAML,
 	}
+	// Disable EPP secure-serving (self-signed TLS) — MRI pools run plaintext
+	// behind the mesh, matching standalone InferenceSet behavior.
+	eppValues["flags"] = map[string]string{
+		"secure-serving": "false",
+	}
 
 	helmValues := map[string]any{
 		"inferenceExtension": eppValues,

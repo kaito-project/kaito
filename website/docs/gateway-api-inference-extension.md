@@ -393,6 +393,48 @@ kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/head
 kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/httproute-mri.yaml
 ```
 
+Verify the HTTPRoute is accepted and references are resolved:
+
+```bash
+kubectl describe httproute phi-4-mri
+```
+
+Expected conditions:
+```
+Status:
+  Parents:
+    Conditions:
+      Message:  Route was valid
+      Reason:   Accepted
+      Status:   True
+      Type:     Accepted
+      Message:  All references resolved
+      Reason:   ResolvedRefs
+      Status:   True
+      Type:     ResolvedRefs
+```
+
+Verify the InferencePool status shows it is referenced by the HTTPRoute:
+
+```bash
+kubectl describe inferencepool phi-4-inferencepool
+```
+
+Expected conditions:
+```
+Status:
+  Parents:
+    Conditions:
+      Message:  Referenced by an HTTPRoute accepted by the parentRef Gateway
+      Reason:   Accepted
+      Status:   True
+      Type:     Accepted
+      Message:  Referenced ExtensionRef resolved successfully
+      Reason:   ResolvedRefs
+      Status:   True
+      Type:     ResolvedRefs
+```
+
 #### 5. Test Inference
 
 Export the Gateway ClusterIP and send a request:

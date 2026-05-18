@@ -5,8 +5,9 @@ metadata:
   namespace: kaito-workspace
 spec:
   parentRefs:
-  - name: inference-gateway
-    namespace: istio-system
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: inference-gateway
   rules:
   - matches:
     - path:
@@ -16,4 +17,3 @@ spec:
     - group: inference.networking.x-k8s.io
       kind: InferencePool
       name: phi-4-inferencepool
-      port: 8080

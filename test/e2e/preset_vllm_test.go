@@ -685,23 +685,19 @@ func validateMultiRoleInferenceChatCompletions(mriObj *kaitov1alpha1.MultiRoleIn
 
 			// StatefulSet pod name is <workspace.Name>-0
 			podName := decodeWS.Name + "-0"
+			// Decode workspace service name matches workspace name, exposed on port 80
+			svcEndpoint := fmt.Sprintf("http://%s.%s.svc.cluster.local:80/v1/chat/completions", decodeWS.Name, mriObj.Namespace)
 
 			expectedCompletion := `"object":"chat.completion`
 			execOption := corev1.PodExecOptions{
 				Command: []string{"bash", "-c", fmt.Sprintf(
 					`apt-get update -qq && apt-get install -qq -y curl >/dev/null 2>&1; `+
-						`echo "=== Trying sidecar port 5001 ==="; `+
-						`RESP5001=$(curl -s -o /dev/stderr -w "%%{http_code}" --max-time 10 http://localhost:5001/v1/chat/completions `+
-						`-X POST -H "Content-Type: application/json" `+
-						`-d '{"model":"%s","messages":[{"role":"user","content":"What is Kubernetes?"}],"max_tokens":7,"temperature":0}' 2>&1); `+
-						`echo "Port 5001 response: $RESP5001"; `+
-						`echo "=== Trying vLLM port 5000 ==="; `+
 						`RESP=$(curl -s --max-time 30 -X POST -H "Content-Type: application/json" `+
 						`-d '{"model":"%s","messages":[{"role":"user","content":"What is Kubernetes?"}],"max_tokens":7,"temperature":0}' `+
-						`http://localhost:5000/v1/chat/completions); `+
+						`%s); `+
 						`echo "MRI chat response: $RESP"; `+
 						`echo "$RESP" | grep -e '%s'`,
-					modelName, modelName, expectedCompletion)},
+					modelName, svcEndpoint, expectedCompletion)},
 				Container: decodeWS.Name,
 				Stdout:    true,
 				Stderr:    true,

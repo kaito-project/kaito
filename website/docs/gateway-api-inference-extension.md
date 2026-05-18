@@ -377,11 +377,11 @@ EOF
 Verify that both prefill and decode pods are running:
 
 ```bash
-kubectl get pods -l apps=phi-4
+kubectl get pods -l multiroleinference.kaito.sh/created-by=phi-4
 
-NAME                                    READY   STATUS    RESTARTS   AGE
-phi-4-prefill-0                         1/1     Running   0          5m
-phi-4-decode-0                          1/1     Running   0          5m
+NAME                       READY   STATUS    RESTARTS   AGE
+phi-4-decode-25x54-0       2/2     Running   0          10h
+phi-4-prefill-qkrzk-0      1/1     Running   0          10h
 ```
 
 Verify the InferencePool is created (a single pool covers both prefill and decode roles):
@@ -389,17 +389,17 @@ Verify the InferencePool is created (a single pool covers both prefill and decod
 ```bash
 kubectl get inferencepool
 
-NAME                              AGE
-phi-4-pool                        5m
+NAME                    AGE
+phi-4-inferencepool     9h
 ```
 
 Verify the EPP pod is running for the pool:
 
 ```bash
-kubectl get pods -l inferencepool=phi-4-pool-epp
+kubectl get pods -l inferencepool=phi-4-inferencepool-epp
 
-NAME                                              READY   STATUS    RESTARTS   AGE
-phi-4-pool-epp-xxx-yyy                            1/1     Running   0          5m
+NAME                                          READY   STATUS    RESTARTS   AGE
+phi-4-inferencepool-epp-5d994d5ff-6bmzj       1/1     Running   0          9h
 ```
 
 #### 4. Deploy DestinationRule and HTTPRoute

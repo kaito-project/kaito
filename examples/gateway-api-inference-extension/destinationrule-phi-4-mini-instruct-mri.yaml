@@ -2,9 +2,8 @@ apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
   name: phi-4-inferencepool-epp
-  namespace: kaito-workspace
 spec:
-  host: phi-4-inferencepool-epp.kaito-workspace.svc.cluster.local
+  host: phi-4-inferencepool-epp.default.svc.cluster.local
   trafficPolicy:
     tls:
       mode: DISABLE

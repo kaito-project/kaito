@@ -335,7 +335,7 @@ apiVersion: kaito.sh/v1alpha1
 kind: MultiRoleInference
 metadata:
   name: phi-4
-  namespace: kaito-workspace
+  namespace: default
 spec:
   labelSelector:
     matchLabels:

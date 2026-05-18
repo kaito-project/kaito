@@ -406,7 +406,7 @@ export CLUSTERIP=$(kubectl get svc inference-gateway-istio -o jsonpath='{.spec.c
 kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X POST http://$CLUSTERIP/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek-v3",
+    "model": "phi-4-mini-instruct",
     "messages": [{"role": "user", "content": "What is kubernetes?"}],
     "max_tokens": 100
   }' | jq

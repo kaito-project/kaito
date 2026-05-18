@@ -11,6 +11,7 @@ Gateway API Inference Extension extends [Gateway API](https://gateway-api.sigs.k
 - [InferencePool](https://gateway-api-inference-extension.sigs.k8s.io/api-types/inferencepool/) CRD to represent model-serving backends
 - A reference Endpoint Picker Plugin (EPP) that uses inference server metrics and policies to pick the best backend. In KAITO, the EPP image is overridden to use the [llm-d inference scheduler](https://github.com/llm-d/llm-d-inference-scheduler), which builds on the GWIE EPP with advanced scheduling plugins including KV cache-aware routing, prefill/decode (P/D) disaggregation, and pluggable filters/scorers.
 - Optional [Body-Based Routing](https://github.com/kubernetes-sigs/gateway-api-inference-extension/tree/main/pkg/bbr) (BBR) that extracts model names from OpenAI-style requests and injects a header for routing purposes
+- **Prefill/Decode (P/D) disaggregation** via MultiRoleInference (MRI), enabling separation of compute-intensive prefill and memory-bandwidth-intensive decode phases into independently scalable pod groups
 
 KAITO uses GWIE to route requests for models to the right Workspace pods, improving latency and GPU utilization.
 
@@ -44,6 +45,8 @@ helm upgrade --install kaito-workspace kaito/workspace \
 
 For older versions, you need to explicitly enable both feature gates:
 
+> **Note:** MultiRoleInference (MRI) also requires the same feature gates. No additional flags are needed beyond what is shown below.
+
 ```bash
 export CLUSTER_NAME=kaito
 
@@ -61,6 +64,8 @@ helm upgrade --install kaito-workspace kaito/workspace \
 
 ## How KAITO wires it
 
+### InferenceSet
+
 When the feature gate is enabled, [Flux](https://fluxcd.io/) will be installed in the same namespace as the InferenceSet controller as a Helm dependency. It is used to deploy and manage the GWIE InferencePool Helm chart for each InferenceSet.
 
 When you create an InferenceSet, the KAITO InferenceSet controller will:
@@ -74,11 +79,34 @@ When you create an InferenceSet, the KAITO InferenceSet controller will:
 
 You can inspect these resources with kubectl in the InferenceSet namespace. Updates to the InferenceSet will reconcile these resources.
 
+### MultiRoleInference (MRI)
+
+MultiRoleInference (MRI) enables **prefill/decode (P/D) disaggregation** for large models where separating the two inference phases improves throughput and latency. Instead of a single set of pods handling both phases, MRI creates separate workloads for each role:
+
+- **Prefill pods** handle the initial prompt processing — the compute-intensive phase where all input tokens are processed in parallel to build the KV cache.
+- **Decode pods** handle autoregressive token generation — the memory-bandwidth-intensive phase where tokens are generated one at a time using the KV cache.
+
+When you create a MultiRoleInference resource, KAITO will:
+
+1) Provision separate pod groups for each role (prefill and decode), each with their own instance types optimized for their workload characteristics.
+2) Create separate InferencePools for prefill and decode roles under the hood, each with its own EPP deployment.
+3) The llm-d inference scheduler (EPP) is P/D-aware: it routes incoming requests to prefill pods first for prompt processing, then coordinates KV cache transfer to decode pods for token generation.
+
+This separation allows:
+
+- **Independent scaling** — scale prefill and decode replicas separately based on workload patterns
+- **GPU optimization** — use compute-optimized instances for prefill and memory-bandwidth-optimized instances for decode
+- **Improved throughput** — prefill pods can process new prompts while decode pods generate tokens for previous requests
+
+MRI is ideal for large models like DeepSeek-V3 where the compute profiles of prefill and decode differ significantly.
+
 ## Quickstart
+
+### Option A: InferenceSet (Single-role)
 
 In this quickstart example, we will use Istio as the Gateway API provider to handle traffic management and routing, and deploy KAITO InferenceSet to serve inference models. The following steps demonstrate how to set up an end-to-end inference gateway that routes requests to model-serving backends managed by KAITO.
 
-### 1. Install Istio and Deploy Gateway
+#### 1. Install Istio and Deploy Gateway
 
 First, install Istio base and control plane components, setting flags that enable Gateway API Inference Extension support in the data plane and pilot:
 
@@ -103,7 +131,7 @@ kubectl apply -k "github.com/kubernetes-sigs/gateway-api/config/crd?ref=v1.4.1"
 kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/gateway.yaml
 ```
 
-### 2. Deploy InferenceSet
+#### 2. Deploy InferenceSet
 
 Create a sample KAITO InferenceSet (using a vLLM preset) that will host the model server behind the inference gateway:
 
@@ -147,7 +175,7 @@ kubectl get pod -l inferencepool=phi-4-mini-inferencepool-epp -o jsonpath='{.ite
 # Expected: mcr.microsoft.com/oss/v2/llm-d/llm-d-inference-scheduler:v0.7.1
 ```
 
-### 3. Deploy DestinationRule and HTTPRoute
+#### 3. Deploy DestinationRule and HTTPRoute
 
 Apply an Istio DestinationRule. Since EPP runs with `--secure-serving=true` by default using a self-signed certificate, and Istio doesn't trust self-signed certificates, this DestinationRule bypasses TLS verification as a temporary workaround:
 
@@ -161,7 +189,7 @@ Create the HTTPRoute that targets the InferenceSet's InferencePool (via `.spec.e
 kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/httproute.yaml
 ```
 
-### 4. Test Inference
+#### 4. Test Inference
 
 Verify that the HTTPRoute is properly configured and accepted by the Gateway:
 
@@ -309,7 +337,114 @@ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X POS
 }
 ```
 
-### 4. [Optional] Deploy BBR
+### Option B: MultiRoleInference (Prefill/Decode Disaggregation)
+
+This quickstart demonstrates deploying a large model with prefill/decode disaggregation using MultiRoleInference (MRI). With MRI, prefill pods handle the compute-intensive initial prompt processing while decode pods handle memory-bandwidth-intensive autoregressive token generation, with the llm-d EPP scheduler coordinating KV cache transfer between them.
+
+#### 1. Install Istio and Deploy Gateway
+
+Follow the same Istio and Gateway setup as [Option A, Step 1](#1-install-istio-and-deploy-gateway). If you've already completed Option A, skip this step.
+
+#### 2. Deploy MultiRoleInference
+
+Create a MultiRoleInference resource for DeepSeek-V3 with prefill/decode disaggregation:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/inference/kaito_multiroleinference_deepseek-v3.yaml
+```
+
+The MRI spec defines separate roles:
+
+```yaml
+apiVersion: kaito.sh/v1alpha1
+kind: MultiRoleInference
+metadata:
+  name: deepseek-v3-pd
+spec:
+  labelSelector:
+    matchLabels:
+      apps: deepseek-v3-pd
+  model:
+    name: deepseek-ai/DeepSeek-V3
+    modelAccessSecret: hf-token
+  roles:
+    - type: prefill
+      replicas: 1
+      instanceType: "Standard_NC24ads_A100_v4"
+    - type: decode
+      replicas: 1
+      instanceType: "Standard_NC24ads_A100_v4"
+```
+
+#### 3. Verify Prefill and Decode Pods
+
+Verify that both prefill and decode pods are running:
+
+```bash
+kubectl get pods -l apps=deepseek-v3-pd
+
+NAME                                    READY   STATUS    RESTARTS   AGE
+deepseek-v3-pd-prefill-0                1/1     Running   0          5m
+deepseek-v3-pd-decode-0                 1/1     Running   0          5m
+```
+
+Verify the InferencePools are created for each role:
+
+```bash
+kubectl get inferencepool
+
+NAME                              AGE
+deepseek-v3-pd-prefill-pool       5m
+deepseek-v3-pd-decode-pool        5m
+```
+
+Verify EPP pods are running for each pool:
+
+```bash
+kubectl get pods -l inferencepool
+
+NAME                                              READY   STATUS    RESTARTS   AGE
+deepseek-v3-pd-prefill-pool-epp-xxx-yyy           1/1     Running   0          5m
+deepseek-v3-pd-decode-pool-epp-xxx-yyy            1/1     Running   0          5m
+```
+
+#### 4. Deploy DestinationRule and HTTPRoute
+
+Apply the DestinationRule and HTTPRoute for the MRI deployment (following the same pattern as Option A):
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/destinationrule-deepseek-v3.yaml
+kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/httproute-deepseek-v3.yaml
+```
+
+#### 5. Test Inference
+
+Export the Gateway ClusterIP and send a request:
+
+```bash
+export CLUSTERIP=$(kubectl get svc inference-gateway-istio -o jsonpath='{.spec.clusterIP}')
+kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X POST http://$CLUSTERIP/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-v3",
+    "messages": [{"role": "user", "content": "What is kubernetes?"}],
+    "max_tokens": 100
+  }' | jq
+```
+
+With P/D disaggregation active, the request flow is:
+
+1. The Gateway routes the request to the llm-d EPP scheduler
+2. The EPP sends the request to a **prefill pod**, which processes all input tokens in parallel and builds the KV cache
+3. The KV cache is transferred from the prefill pod to a **decode pod**
+4. The decode pod performs autoregressive token generation using the transferred KV cache
+5. The response streams back through the Gateway to the client
+
+This separation means prefill pods are always available for new requests while decode pods focus on generating tokens — improving overall throughput for large models.
+
+### Body-Based Routing (BBR)
+
+> BBR works with both InferenceSet and MultiRoleInference deployments.
 
 Deploy a second KAITO InferenceSet and DestinationRule with a different model to demonstrate multi-model routing. This step uses [`mistral-7b-instruct`](https://github.com/kaito-project/kaito/blob/main/examples/inference/kaito_inferenceset_mistral_7b-instruct.yaml) as an example:
 

@@ -344,11 +344,13 @@ func (p *PresetParam) buildHuggingfaceInferenceCommand() []string {
 }
 
 func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
-	// If the Workspace was created by an InferenceSet, expose the InferenceSet
-	// name as the served model name so all replicas behind the InferenceSet
-	// share a single, stable model identifier in the OpenAI-compatible API.
+	// For MultiRoleInference workspaces, use the model name as served-model-name
+	// so prefill and decode roles share a single model identifier for EPP routing.
+	// For standalone InferenceSet workspaces, use the InferenceSet name.
 	// Standalone Workspaces keep the model's default served name.
-	if isName, ok := rc.WorkspaceMetadata.Labels[consts.WorkspaceCreatedByInferenceSetLabel]; ok && isName != "" {
+	if _, ok := rc.WorkspaceMetadata.Labels["multiroleinference.kaito.sh/created-by"]; ok && p.VLLM.ModelName != "" {
+		p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
+	} else if isName, ok := rc.WorkspaceMetadata.Labels[consts.WorkspaceCreatedByInferenceSetLabel]; ok && isName != "" {
 		p.VLLM.ModelRunParams["served-model-name"] = isName
 	} else if p.VLLM.ModelName != "" {
 		p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName

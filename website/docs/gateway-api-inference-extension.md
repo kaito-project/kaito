@@ -329,11 +329,13 @@ Follow the same Istio and Gateway setup as [Option A, Step 1](#1-install-istio-a
 
 Create a MultiRoleInference resource for phi-4 with prefill/decode disaggregation:
 
-```yaml
+```bash
+kubectl apply -f - <<EOF
 apiVersion: kaito.sh/v1alpha1
 kind: MultiRoleInference
 metadata:
   name: phi-4
+  namespace: kaito-workspace
 spec:
   labelSelector:
     matchLabels:
@@ -341,18 +343,13 @@ spec:
   model:
     name: phi-4-mini-instruct
   roles:
-    - type: prefill
-      replicas: 1
-      instanceType: Standard_NC24ads_A100_v4
-    - type: decode
-      replicas: 1
-      instanceType: Standard_NC24ads_A100_v4
-```
-
-Apply the above YAML:
-
-```bash
-kubectl apply -f <your-mri-file>.yaml
+  - type: prefill
+    replicas: 1
+    instanceType: Standard_NC24ads_A100_v4
+  - type: decode
+    replicas: 1
+    instanceType: Standard_NC24ads_A100_v4
+EOF
 ```
 
 #### 3. Verify Prefill and Decode Pods

@@ -68,9 +68,9 @@ MultiRoleInference (MRI) enables **prefill/decode (P/D) disaggregation** for lar
 
 When you create a MultiRoleInference resource, KAITO will:
 
-1) Provision separate pod groups for each role (prefill and decode), each with their own instance types optimized for their workload characteristics.
-2) Create separate InferencePools for prefill and decode roles under the hood, each with its own EPP deployment.
-3) The llm-d inference scheduler (EPP) is P/D-aware: it routes incoming requests to prefill pods first for prompt processing, then coordinates KV cache transfer to decode pods for token generation.
+1) Provision separate pod groups for each role (prefill and decode) via child InferenceSets, each with their own instance types optimized for their workload characteristics.
+2) Create a single InferencePool with an EPP (Endpoint Picker) deployment that uses llm-d plugins to handle P/D-aware routing. The pool selects all MRI pods (both prefill and decode), and the EPP internally uses label-based filters to route requests to the correct role.
+3) The EPP uses scheduling profiles (`prefill` and `decode`) with a `prefix-based-pd-decider` plugin to decide which role handles each request. Decode pods communicate directly with prefill pods for KV cache transfer, bypassing the gateway.
 
 This separation allows:
 
@@ -319,7 +319,7 @@ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X POS
 
 ### Option B: MultiRoleInference (Prefill/Decode Disaggregation)
 
-This quickstart demonstrates deploying a large model with prefill/decode disaggregation using MultiRoleInference (MRI). With MRI, prefill pods handle the compute-intensive initial prompt processing while decode pods handle memory-bandwidth-intensive autoregressive token generation, with the llm-d EPP scheduler coordinating KV cache transfer between them.
+This quickstart demonstrates deploying a large model with prefill/decode disaggregation using MultiRoleInference (MRI). With MRI, prefill pods handle the compute-intensive initial prompt processing while decode pods handle memory-bandwidth-intensive autoregressive token generation, with the llm-d EPP using scheduling profiles to route requests to the correct role and decode pods communicating directly with prefill pods for KV cache transfer.
 
 #### 1. Install Istio and Deploy Gateway
 
@@ -367,31 +367,29 @@ phi-4-prefill-0                         1/1     Running   0          5m
 phi-4-decode-0                          1/1     Running   0          5m
 ```
 
-Verify the InferencePools are created for each role:
+Verify the InferencePool is created (a single pool covers both prefill and decode roles):
 
 ```bash
 kubectl get inferencepool
 
 NAME                              AGE
-phi-4-prefill-pool                5m
-phi-4-decode-pool                 5m
+phi-4-pool                        5m
 ```
 
-Verify EPP pods are running for each pool:
+Verify the EPP pod is running for the pool:
 
 ```bash
-kubectl get pods -l inferencepool
+kubectl get pods -l inferencepool=phi-4-pool-epp
 
 NAME                                              READY   STATUS    RESTARTS   AGE
-phi-4-prefill-pool-epp-xxx-yyy                    1/1     Running   0          5m
-phi-4-decode-pool-epp-xxx-yyy                     1/1     Running   0          5m
+phi-4-pool-epp-xxx-yyy                            1/1     Running   0          5m
 ```
 
 #### 4. Deploy DestinationRule and HTTPRoute
 
-With MRI, the KAITO operator creates **two InferencePools** — one for the prefill role and one for the decode role. Each pool has its own EPP service that requires a DestinationRule for TLS bypass (since EPP uses `--secure-serving=true` with a self-signed certificate).
+With MRI, the KAITO operator creates a **single InferencePool** that selects all MRI pods (both prefill and decode). The EPP service requires a DestinationRule for TLS bypass (since EPP uses `--secure-serving=true` with a self-signed certificate).
 
-The HTTPRoute targets the **prefill pool** as the entry point. The llm-d scheduler handles internal prefill→decode routing and KV cache transfer automatically.
+The HTTPRoute targets the InferencePool as the entry point. The llm-d EPP uses scheduling profiles to route requests to the correct role internally.
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/destinationrule-phi-4-mini-instruct-mri.yaml
@@ -416,8 +414,8 @@ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X POS
 With P/D disaggregation active, the request flow is:
 
 1. The Gateway routes the request to the llm-d EPP scheduler
-2. The EPP sends the request to a **prefill pod**, which processes all input tokens in parallel and builds the KV cache
-3. The KV cache is transferred from the prefill pod to a **decode pod**
+2. The EPP's `prefill` scheduling profile routes the request to a **prefill pod**, which processes all input tokens in parallel and builds the KV cache
+3. The **decode pod** communicates directly with the prefill pod to transfer the KV cache (bypassing the gateway)
 4. The decode pod performs autoregressive token generation using the transferred KV cache
 5. The response streams back through the Gateway to the client
 

@@ -98,7 +98,7 @@ This separation allows:
 - **GPU optimization** — use compute-optimized instances for prefill and memory-bandwidth-optimized instances for decode
 - **Improved throughput** — prefill pods can process new prompts while decode pods generate tokens for previous requests
 
-MRI is ideal for large models like DeepSeek-V3 where the compute profiles of prefill and decode differ significantly.
+MRI is ideal for models where the compute profiles of prefill and decode differ significantly.
 
 ## Quickstart
 
@@ -347,33 +347,32 @@ Follow the same Istio and Gateway setup as [Option A, Step 1](#1-install-istio-a
 
 #### 2. Deploy MultiRoleInference
 
-Create a MultiRoleInference resource for DeepSeek-V3 with prefill/decode disaggregation:
-
-```bash
-kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/inference/kaito_multiroleinference_deepseek-v3.yaml
-```
-
-The MRI spec defines separate roles:
+Create a MultiRoleInference resource for phi-4 with prefill/decode disaggregation:
 
 ```yaml
 apiVersion: kaito.sh/v1alpha1
 kind: MultiRoleInference
 metadata:
-  name: deepseek-v3-pd
+  name: phi-4
 spec:
   labelSelector:
     matchLabels:
-      apps: deepseek-v3-pd
+      apps: phi-4
   model:
-    name: deepseek-ai/DeepSeek-V3
-    modelAccessSecret: hf-token
+    name: phi-4-mini-instruct
   roles:
     - type: prefill
       replicas: 1
-      instanceType: "Standard_NC24ads_A100_v4"
+      instanceType: Standard_NC24ads_A100_v4
     - type: decode
       replicas: 1
-      instanceType: "Standard_NC24ads_A100_v4"
+      instanceType: Standard_NC24ads_A100_v4
+```
+
+Apply the above YAML:
+
+```bash
+kubectl apply -f <your-mri-file>.yaml
 ```
 
 #### 3. Verify Prefill and Decode Pods
@@ -381,11 +380,11 @@ spec:
 Verify that both prefill and decode pods are running:
 
 ```bash
-kubectl get pods -l apps=deepseek-v3-pd
+kubectl get pods -l apps=phi-4
 
 NAME                                    READY   STATUS    RESTARTS   AGE
-deepseek-v3-pd-prefill-0                1/1     Running   0          5m
-deepseek-v3-pd-decode-0                 1/1     Running   0          5m
+phi-4-prefill-0                         1/1     Running   0          5m
+phi-4-decode-0                          1/1     Running   0          5m
 ```
 
 Verify the InferencePools are created for each role:
@@ -394,8 +393,8 @@ Verify the InferencePools are created for each role:
 kubectl get inferencepool
 
 NAME                              AGE
-deepseek-v3-pd-prefill-pool       5m
-deepseek-v3-pd-decode-pool        5m
+phi-4-prefill-pool                5m
+phi-4-decode-pool                 5m
 ```
 
 Verify EPP pods are running for each pool:
@@ -404,8 +403,8 @@ Verify EPP pods are running for each pool:
 kubectl get pods -l inferencepool
 
 NAME                                              READY   STATUS    RESTARTS   AGE
-deepseek-v3-pd-prefill-pool-epp-xxx-yyy           1/1     Running   0          5m
-deepseek-v3-pd-decode-pool-epp-xxx-yyy            1/1     Running   0          5m
+phi-4-prefill-pool-epp-xxx-yyy                    1/1     Running   0          5m
+phi-4-decode-pool-epp-xxx-yyy                     1/1     Running   0          5m
 ```
 
 #### 4. Deploy DestinationRule and HTTPRoute
@@ -413,8 +412,8 @@ deepseek-v3-pd-decode-pool-epp-xxx-yyy            1/1     Running   0          5
 Apply the DestinationRule and HTTPRoute for the MRI deployment (following the same pattern as Option A):
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/destinationrule-deepseek-v3.yaml
-kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/httproute-deepseek-v3.yaml
+kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/destinationrule-phi-4-mini-instruct.yaml
+kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/httproute-bbr.yaml
 ```
 
 #### 5. Test Inference

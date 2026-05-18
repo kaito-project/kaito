@@ -7,4 +7,5 @@ spec:
   host: phi-4-inferencepool-epp.kaito-workspace.svc.cluster.local
   trafficPolicy:
     tls:
-      mode: DISABLE
+      mode: SIMPLE
+      insecureSkipVerify: true

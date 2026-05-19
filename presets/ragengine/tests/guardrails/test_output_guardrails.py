@@ -32,6 +32,10 @@ from ragengine.guardrails.scanner_schemas import (
     ParsedScannerConfig,
     RegexConfig,
 )
+from ragengine.metrics.prometheus_metrics import (
+    guardrails_response_actions_total,
+    guardrails_response_scanner_hits_total,
+)
 from ragengine.models import ChatCompletionResponse
 
 # ---------------------------------------------------------------------------
@@ -111,6 +115,16 @@ def _make_tool_call_response() -> ChatCompletionResponse:
 
 def _patch_scan_output(monkeypatch, fn):
     monkeypatch.setattr(output_guardrails_module, "scan_output", fn)
+
+
+def _counter_value(metric, sample_name: str, **labels: str) -> float:
+    for collected in metric.collect():
+        for sample in collected.samples:
+            if sample.name != sample_name:
+                continue
+            if all(sample.labels.get(key) == value for key, value in labels.items()):
+                return sample.value
+    return 0.0
 
 
 @pytest.fixture
@@ -604,6 +618,14 @@ def test_guard_response_skips_non_string_content(monkeypatch):
 
 
 def test_guard_response_passes_through_when_no_scanner_triggered(monkeypatch):
+    before = _counter_value(
+        guardrails_response_actions_total,
+        "ragengine_guardrails_response_actions_total",
+        final_action="allow",
+        stage="response",
+        fail_open="true",
+    )
+
     _patch_scan_output(
         monkeypatch,
         lambda scanners, prompt, output, fail_fast: (
@@ -620,9 +642,25 @@ def test_guard_response_passes_through_when_no_scanner_triggered(monkeypatch):
 
     out = guardrails.guard_response(_make_response("clean output"), {"messages": []})
     assert out.choices[0].message.content == "clean output"
+    after = _counter_value(
+        guardrails_response_actions_total,
+        "ragengine_guardrails_response_actions_total",
+        final_action="allow",
+        stage="response",
+        fail_open="true",
+    )
+    assert after == before + 1
 
 
 def test_guard_response_recovers_when_scan_output_raises(monkeypatch):
+    before = _counter_value(
+        guardrails_response_actions_total,
+        "ragengine_guardrails_response_actions_total",
+        final_action="fail_open",
+        stage="response",
+        fail_open="true",
+    )
+
     def _boom(*args, **kwargs):
         raise RuntimeError("scanner exploded")
 
@@ -636,6 +674,14 @@ def test_guard_response_recovers_when_scan_output_raises(monkeypatch):
 
     # Internal failure must degrade safely: return the original response object.
     assert guardrails.guard_response(response, {"messages": []}) is response
+    after = _counter_value(
+        guardrails_response_actions_total,
+        "ragengine_guardrails_response_actions_total",
+        final_action="fail_open",
+        stage="response",
+        fail_open="true",
+    )
+    assert after == before + 1
 
 
 @pytest.mark.parametrize(
@@ -648,6 +694,14 @@ def test_guard_response_recovers_when_scan_output_raises(monkeypatch):
 def test_guard_response_applies_action(
     monkeypatch, action, block_message, expected_content
 ):
+    before = _counter_value(
+        guardrails_response_actions_total,
+        "ragengine_guardrails_response_actions_total",
+        final_action=action,
+        stage="response",
+        fail_open="true",
+    )
+
     _patch_scan_output(
         monkeypatch,
         lambda scanners, prompt, output, fail_fast: (
@@ -666,6 +720,82 @@ def test_guard_response_applies_action(
 
     out = guardrails.guard_response(_make_response("dirty"), {"messages": []})
     assert out.choices[0].message.content == expected_content
+    after = _counter_value(
+        guardrails_response_actions_total,
+        "ragengine_guardrails_response_actions_total",
+        final_action=action,
+        stage="response",
+        fail_open="true",
+    )
+    assert after == before + 1
+
+
+def test_guard_response_increments_hit_metric(monkeypatch):
+    before = _counter_value(
+        guardrails_response_scanner_hits_total,
+        "ragengine_guardrails_response_scanner_hits_total",
+        scanner_type="regex",
+        action="redact",
+        stage="response",
+    )
+
+    _patch_scan_output(
+        monkeypatch,
+        lambda scanners, prompt, output, fail_fast: (
+            "REDACTED-CONTENT",
+            {"regex": False},
+            {"regex": 0.9},
+        ),
+    )
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        scanner_configs=(_regex_cfg(patterns=[r"\S+"], action_on_hit="redact"),),
+    )
+
+    guardrails.guard_response(_make_response("dirty"), {"messages": []})
+
+    after = _counter_value(
+        guardrails_response_scanner_hits_total,
+        "ragengine_guardrails_response_scanner_hits_total",
+        scanner_type="regex",
+        action="redact",
+        stage="response",
+    )
+    assert after == before + 1
+
+
+def test_guard_response_increments_fail_closed_metric(monkeypatch):
+    before = _counter_value(
+        guardrails_response_actions_total,
+        "ragengine_guardrails_response_actions_total",
+        final_action="fail_closed",
+        stage="response",
+        fail_open="false",
+    )
+
+    def _boom(*args, **kwargs):
+        raise RuntimeError("scanner exploded")
+
+    _patch_scan_output(monkeypatch, _boom)
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        fail_open=False,
+        scanner_configs=(_regex_cfg(patterns=[r"\S+"]),),
+    )
+
+    with pytest.raises(output_guardrails_module.OutputGuardrailsError):
+        guardrails.guard_response(_make_response("dirty"), {"messages": []})
+
+    after = _counter_value(
+        guardrails_response_actions_total,
+        "ragengine_guardrails_response_actions_total",
+        final_action="fail_closed",
+        stage="response",
+        fail_open="false",
+    )
+    assert after == before + 1
 
 
 def test_guard_response_applies_mixed_scanner_actions_in_order(monkeypatch):

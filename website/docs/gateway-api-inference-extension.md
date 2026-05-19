@@ -390,13 +390,13 @@ The HTTPRoute targets the InferencePool as the entry point. The llm-d EPP uses s
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/destinationrule-phi-4-mini-instruct.yaml
-kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/httproute-mri.yaml
+kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/httproute.yaml
 ```
 
 Verify the HTTPRoute is accepted and references are resolved:
 
 ```bash
-kubectl describe httproute phi-4-mini-mri
+kubectl describe httproute llm-route
 ```
 
 Expected conditions:

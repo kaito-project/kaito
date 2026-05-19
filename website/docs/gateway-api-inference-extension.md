@@ -347,19 +347,19 @@ Follow the same Istio and Gateway setup as [Option A, Step 1](#1-install-istio-a
 
 #### 2. Deploy MultiRoleInference
 
-Create a MultiRoleInference resource for phi-4 with prefill/decode disaggregation:
+Create a MultiRoleInference resource for phi-4-mini with prefill/decode disaggregation:
 
 ```bash
 kubectl apply -f - <<EOF
 apiVersion: kaito.sh/v1alpha1
 kind: MultiRoleInference
 metadata:
-  name: phi-4
+  name: phi-4-mini
   namespace: kaito-workspace
 spec:
   labelSelector:
     matchLabels:
-      apps: phi-4
+      apps: phi-4-mini
   model:
     name: phi-4-mini-instruct
   roles:
@@ -377,11 +377,11 @@ EOF
 Verify that both prefill and decode pods are running:
 
 ```bash
-kubectl get pods -l multiroleinference.kaito.sh/created-by=phi-4
+kubectl get pods -l multiroleinference.kaito.sh/created-by=phi-4-mini
 
 NAME                       READY   STATUS    RESTARTS   AGE
-phi-4-decode-25x54-0       2/2     Running   0          10h
-phi-4-prefill-qkrzk-0      1/1     Running   0          10h
+phi-4-mini-decode-25x54-0       2/2     Running   0          10h
+phi-4-mini-prefill-qkrzk-0      1/1     Running   0          10h
 ```
 
 Verify the InferencePool is created (a single pool covers both prefill and decode roles):
@@ -390,16 +390,16 @@ Verify the InferencePool is created (a single pool covers both prefill and decod
 kubectl get inferencepool
 
 NAME                    AGE
-phi-4-inferencepool     9h
+phi-4-mini-inferencepool     9h
 ```
 
 Verify the EPP pod is running for the pool:
 
 ```bash
-kubectl get pods -l inferencepool=phi-4-inferencepool-epp
+kubectl get pods -l inferencepool=phi-4-mini-inferencepool-epp
 
 NAME                                          READY   STATUS    RESTARTS   AGE
-phi-4-inferencepool-epp-5d994d5ff-6bmzj       1/1     Running   0          9h
+phi-4-mini-inferencepool-epp-5d994d5ff-6bmzj       1/1     Running   0          9h
 ```
 
 #### 4. Deploy DestinationRule and HTTPRoute
@@ -416,7 +416,7 @@ kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/head
 Verify the HTTPRoute is accepted and references are resolved:
 
 ```bash
-kubectl describe httproute phi-4-mri
+kubectl describe httproute phi-4-mini-mri
 ```
 
 Expected conditions:
@@ -437,7 +437,7 @@ Status:
 Verify the InferencePool status shows it is referenced by the HTTPRoute:
 
 ```bash
-kubectl describe inferencepool phi-4-inferencepool
+kubectl describe inferencepool phi-4-mini-inferencepool
 ```
 
 Expected conditions:

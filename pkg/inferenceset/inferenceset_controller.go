@@ -415,19 +415,6 @@ func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.
 	if iObj == nil {
 		return fmt.Errorf("InferenceSet object is nil")
 	}
-
-	// Skip GWIE for child InferenceSets managed by MultiRoleInference.
-	// The MRI controller creates a shared InferencePool + EPP for all child InferenceSets.
-	// Use OwnerReferences (controller-managed) instead of labels (easily user-modifiable)
-	// to prevent accidental GWIE bypass on standalone InferenceSets.
-	for _, owner := range iObj.OwnerReferences {
-		if owner.Controller != nil && *owner.Controller &&
-			owner.Kind == "MultiRoleInference" &&
-			owner.APIVersion == kaitov1alpha1.GroupVersion.String() {
-			return nil
-		}
-	}
-
 	runtimeName := kaitov1alpha1.GetInferenceSetRuntimeName(iObj)
 	isPresetInference := iObj.Spec.Template.Inference.Preset != nil
 

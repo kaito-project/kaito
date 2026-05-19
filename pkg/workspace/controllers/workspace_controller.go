@@ -53,6 +53,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
+	"github.com/kaito-project/kaito/pkg/utils/nvme"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/estimator"
@@ -194,6 +195,12 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 			return reconcile.Result{}, err
 		}
 		if err := c.applyInference(ctx, wObj); err != nil {
+			return reconcile.Result{}, err
+		}
+		// Clean up stale local NVMe PVCs that are bound to nodes that no longer
+		// exist (e.g. after Karpenter drift replacement). This unblocks the
+		// StatefulSet from scheduling the pod on the replacement node.
+		if err := c.cleanupStaleNVMePVCs(ctx, wObj); err != nil {
 			return reconcile.Result{}, err
 		}
 	}
@@ -477,6 +484,25 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 
 	// Update it with the latest one generated above.
 	return c.Update(ctx, existingObj)
+}
+
+// cleanupStaleNVMePVCs deletes any local NVMe PVCs for this workspace that are
+// bound to nodes that no longer exist (e.g. after Karpenter drift replacement).
+// The cleanup function itself is safe to call unconditionally — it only deletes
+// PVCs whose backing PV has node affinity to a non-existent node.
+func (c *WorkspaceReconciler) cleanupStaleNVMePVCs(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
+	deleted, err := nvme.CleanupStaleLocalNVMePVCs(ctx, c.Client, wObj.Namespace, wObj.Name)
+	if err != nil {
+		return fmt.Errorf("cleaning up stale NVMe PVCs for workspace %s/%s: %w",
+			wObj.Namespace, wObj.Name, err)
+	}
+	if deleted > 0 {
+		klog.InfoS("Deleted stale local NVMe PVC(s) for workspace",
+			"workspace", klog.KObj(wObj), "deletedPVCs", deleted)
+		c.Recorder.Eventf(wObj, "Normal", "StalePVCsDeleted",
+			"Deleted %d stale local NVMe PVC(s) bound to non-existent node(s)", deleted)
+	}
+	return nil
 }
 
 func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types.NamespacedName, reconcileErr error) error {

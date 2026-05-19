@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"time"
 
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -205,22 +204,6 @@ func (r *DriftReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 				upgrading.workspaceNamespace, upgrading.workspaceName, err)
 		}
 		if !isWorkspaceReady(ws) {
-			// The workspace may be stuck because a local NVMe PVC has node affinity
-			// to the old (now-deleted) node. Clean up stale PVCs so the StatefulSet
-			// can recreate them on the new node.
-			deleted, err := cleanupStaleLocalNVMePVCs(ctx, r.Client, upgrading.workspaceNamespace, upgrading.workspaceName)
-			if err != nil {
-				return ctrl.Result{}, fmt.Errorf("cleaning up stale NVMe PVCs for workspace %s/%s: %w",
-					upgrading.workspaceNamespace, upgrading.workspaceName, err)
-			}
-			if deleted > 0 {
-				klog.V(2).InfoS("Deleted stale local NVMe PVCs for workspace after drift replacement",
-					"workspace", klog.KRef(upgrading.workspaceNamespace, upgrading.workspaceName),
-					"deletedPVCs", deleted)
-				r.Recorder.Eventf(inferenceSet, "Normal", "StalePVCsDeleted",
-					"Deleted %d stale local NVMe PVC(s) for workspace %s/%s after drift node replacement",
-					deleted, upgrading.workspaceNamespace, upgrading.workspaceName)
-			}
 			klog.V(2).InfoS("Workspace workload not yet ready after drift replacement, waiting",
 				"workspace", klog.KRef(upgrading.workspaceNamespace, upgrading.workspaceName))
 			return ctrl.Result{}, nil
@@ -259,81 +242,6 @@ func (r *DriftReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		"Started drift replacement for workspace %s/%s",
 		nextCandidate.workspaceNamespace, nextCandidate.workspaceName)
 	return ctrl.Result{}, nil
-}
-
-// cleanupStaleLocalNVMePVCs deletes PVCs backed by local NVMe storage whose PV has
-// node affinity to a node that no longer exists. This unblocks the StatefulSet from
-// recreating the pod with a fresh PVC on the replacement node after drift.
-// Returns the number of PVCs deleted.
-func cleanupStaleLocalNVMePVCs(ctx context.Context, kubeClient client.Client, namespace, workspaceName string) (int, error) {
-	// List PVCs for this workspace.
-	pvcList := &corev1.PersistentVolumeClaimList{}
-	if err := kubeClient.List(ctx, pvcList,
-		client.InNamespace(namespace),
-		client.MatchingLabels{kaitov1beta1.LabelWorkspaceName: workspaceName},
-	); err != nil {
-		return 0, fmt.Errorf("listing PVCs: %w", err)
-	}
-
-	deleted := 0
-	for i := range pvcList.Items {
-		pvc := &pvcList.Items[i]
-
-		// Only handle PVCs using local NVMe storage.
-		if pvc.Spec.StorageClassName == nil || *pvc.Spec.StorageClassName != consts.LocalNVMeStorageClass {
-			continue
-		}
-		// Only handle Bound PVCs (they have a backing PV).
-		if pvc.Status.Phase != corev1.ClaimBound {
-			continue
-		}
-
-		// Get the backing PV and check its node affinity.
-		pv := &corev1.PersistentVolume{}
-		if err := kubeClient.Get(ctx, types.NamespacedName{Name: pvc.Spec.VolumeName}, pv); err != nil {
-			if errors.IsNotFound(err) {
-				continue
-			}
-			return deleted, fmt.Errorf("getting PV %s: %w", pvc.Spec.VolumeName, err)
-		}
-
-		nodeName := nodeNameFromPVAffinity(pv)
-		if nodeName == "" {
-			continue
-		}
-
-		// Check if the node still exists.
-		node := &corev1.Node{}
-		if err := kubeClient.Get(ctx, types.NamespacedName{Name: nodeName}, node); err != nil {
-			if !errors.IsNotFound(err) {
-				return deleted, fmt.Errorf("checking node %s: %w", nodeName, err)
-			}
-			// Node is gone — delete the stale PVC.
-			klog.V(2).InfoS("Deleting stale local NVMe PVC bound to non-existent node",
-				"pvc", klog.KRef(namespace, pvc.Name), "node", nodeName, "pv", pv.Name)
-			if err := kubeClient.Delete(ctx, pvc); err != nil && !errors.IsNotFound(err) {
-				return deleted, fmt.Errorf("deleting PVC %s/%s: %w", namespace, pvc.Name, err)
-			}
-			deleted++
-		}
-	}
-	return deleted, nil
-}
-
-// nodeNameFromPVAffinity extracts the node name from a PV's node affinity.
-// Returns empty string if the affinity doesn't pin to a single node.
-func nodeNameFromPVAffinity(pv *corev1.PersistentVolume) string {
-	if pv.Spec.NodeAffinity == nil || pv.Spec.NodeAffinity.Required == nil {
-		return ""
-	}
-	for _, term := range pv.Spec.NodeAffinity.Required.NodeSelectorTerms {
-		for _, expr := range term.MatchExpressions {
-			if expr.Operator == corev1.NodeSelectorOpIn && len(expr.Values) == 1 {
-				return expr.Values[0]
-			}
-		}
-	}
-	return ""
 }
 
 // isWorkspaceReady returns true if the workspace has WorkspaceSucceeded=True.

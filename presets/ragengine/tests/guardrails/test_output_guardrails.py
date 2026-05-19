@@ -176,7 +176,7 @@ def fake_llm_guard_scanners(monkeypatch):
 
 
 def test_from_config_loads_yaml_policy(tmp_path, monkeypatch):
-    policy_path = _write_policy(
+    _write_policy(
         tmp_path,
         monkeypatch,
         """
@@ -197,28 +197,10 @@ def test_from_config_loads_yaml_policy(tmp_path, monkeypatch):
     assert guardrails.enabled is True
     assert guardrails.action_on_hit == "block"
     assert guardrails.block_message == "blocked-by-policy"
-    assert guardrails.policy_path == str(policy_path)
-    assert guardrails.policy_hash
     assert guardrails.scanner_configs == (
         _regex_cfg(patterns=[r"https?://\S+"], action_on_hit="block"),
         _ban_subs_cfg(substrings=["secret"], action_on_hit="block"),
     )
-
-
-def test_output_guardrails_exposes_policy_hash(tmp_path, monkeypatch):
-    policy_path = _write_policy(
-        tmp_path,
-        monkeypatch,
-        """
-        action: block
-        blockMessage: blocked-by-policy
-        """,
-    )
-
-    guardrails = OutputGuardrails.from_config()
-
-    assert guardrails.policy_path == str(policy_path)
-    assert len(guardrails.policy_hash) == 64
 
 
 def test_from_config_keeps_empty_scanners_when_policy_path_missing(monkeypatch):

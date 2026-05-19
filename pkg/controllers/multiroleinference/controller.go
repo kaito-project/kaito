@@ -17,6 +17,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
@@ -506,6 +507,7 @@ const (
 
 // defaultPDPluginsConfigTemplate is the default EPP plugins YAML template for P/D disaggregated serving.
 // Uses the llm-d EndpointPickerConfig format with schedulingProfiles for prefill and decode.
+// The %%MODEL_NAME%% placeholder is replaced with the actual model name from the MRI spec.
 const defaultPDPluginsConfigTemplate = `apiVersion: inference.networking.x-k8s.io/v1alpha1
 kind: EndpointPickerConfig
 featureGates:
@@ -519,6 +521,15 @@ plugins:
     parameters:
       deciders:
         prefill: prefix-based-pd-decider
+  - type: precise-prefix-cache-scorer
+    parameters:
+      tokenProcessorConfig:
+        blockSize: 64
+      indexerConfig:
+        kvBlockIndexConfig:
+          enableMetrics: true
+        tokenizersPoolConfig:
+          modelName: %%MODEL_NAME%%
   - type: by-label-selector
     name: prefill-filter
     parameters:
@@ -537,23 +548,24 @@ schedulingProfiles:
   - name: prefill
     plugins:
       - pluginRef: prefill-filter
+      - pluginRef: precise-prefix-cache-scorer
+        weight: 50
       - pluginRef: load-aware-scorer
         weight: 10
       - pluginRef: max-score-picker
   - name: decode
     plugins:
       - pluginRef: decode-filter
+      - pluginRef: precise-prefix-cache-scorer
+        weight: 50
       - pluginRef: load-aware-scorer
         weight: 10
       - pluginRef: max-score-picker
 `
 
-// defaultPDPluginsConfig returns the default P/D plugins config.
-// Note: precise-prefix-cache-scorer is omitted because it requires a tokenizer
-// sidecar (UDS socket) that is not yet deployed by KAITO. Once tokenizer sidecar
-// support is added, this config should be updated to include it.
+// defaultPDPluginsConfig returns the default P/D plugins config with the model name substituted.
 func defaultPDPluginsConfig(modelName string) string {
-	return defaultPDPluginsConfigTemplate
+	return strings.ReplaceAll(defaultPDPluginsConfigTemplate, "%%MODEL_NAME%%", modelName)
 }
 
 // inferencePoolName returns the name of the InferencePool resources for the MRI.

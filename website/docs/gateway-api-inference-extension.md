@@ -409,7 +409,7 @@ With MRI, the KAITO operator creates a **single InferencePool** that selects all
 The HTTPRoute targets the InferencePool as the entry point. The llm-d EPP uses scheduling profiles to route requests to the correct role internally.
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/destinationrule-phi-4-mini-instruct-mri.yaml
+kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/destinationrule-phi-4-mini-instruct.yaml
 kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/httproute-mri.yaml
 ```
 

@@ -57,7 +57,7 @@ var (
 
 	KarpenterWorkspaceSelector, _ = metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
 		MatchExpressions: []metav1.LabelSelectorRequirement{
-			{Key: consts.KarpenterWorkspaceKey, Operator: metav1.LabelSelectorOpExists},
+			{Key: consts.KarpenterWorkspaceNameKey, Operator: metav1.LabelSelectorOpExists},
 		},
 	})
 
@@ -147,8 +147,8 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 		nameLabel:            name,
 		namespaceLabel:       namespace,
 	}
-	if labelSelector != nil && len(labelSelector.MatchLabels) != 0 {
-		nodeClaimLabels = lo.Assign(nodeClaimLabels, labelSelector.MatchLabels)
+	if sanitized := kaitov1beta1.SanitizedMatchLabels(labelSelector); len(sanitized) != 0 {
+		nodeClaimLabels = lo.Assign(nodeClaimLabels, sanitized)
 	}
 
 	nodeClaimAnnotations := map[string]string{

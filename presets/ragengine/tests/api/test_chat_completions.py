@@ -300,13 +300,14 @@ async def test_chat_completions_output_guardrails_redact(
         "_current",
         OutputGuardrails(
             enabled=True,
+            fail_open=True,
             action_on_hit="redact",
-            scanner_configs=[
+            scanner_configs=(
                 ParsedScannerConfig(
                     type="regex",
                     config=RegexConfig(patterns=[r"https?://\S+"]),
                 ),
-            ],
+            ),
         ),
     )
 
@@ -360,14 +361,15 @@ async def test_chat_completions_output_guardrails_block(
         "_current",
         OutputGuardrails(
             enabled=True,
+            fail_open=True,
             action_on_hit="block",
             block_message="blocked-by-policy",
-            scanner_configs=[
+            scanner_configs=(
                 ParsedScannerConfig(
                     type="regex",
                     config=RegexConfig(patterns=[r"https?://\S+"]),
                 ),
-            ],
+            ),
         ),
     )
 
@@ -452,6 +454,75 @@ async def test_chat_completions_output_guardrails_policy_file(
 
     assert response.status_code == 200
     assert response.json()["choices"][0]["message"]["content"] == "blocked-by-policy"
+
+
+@pytest.mark.asyncio
+@respx.mock
+@patch("requests.get")
+async def test_chat_completions_output_guardrails_fail_closed(
+    mock_get, async_client, monkeypatch
+):
+    mock_get.return_value.status_code = 200
+    mock_get.return_value.json.return_value = {
+        "data": [{"id": "mock-model", "max_model_len": 2048}]
+    }
+
+    mock_response = {
+        "id": "chatcmpl-failclosed123",
+        "object": "chat.completion",
+        "created": int(time.time()),
+        "model": "mock-model",
+        "choices": [
+            {
+                "index": 0,
+                "message": {
+                    "role": "assistant",
+                    "content": "Original assistant response",
+                },
+                "finish_reason": "stop",
+            }
+        ],
+    }
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
+
+    import ragengine.main
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        fail_open=False,
+        action_on_hit="redact",
+        scanner_configs=(
+            ParsedScannerConfig(
+                type="regex",
+                config=RegexConfig(patterns=[r"https?://\S+"]),
+            ),
+        ),
+    )
+    monkeypatch.setattr(
+        ragengine.main.guardrails_reloader,
+        "_current",
+        guardrails,
+    )
+    monkeypatch.setattr(
+        OutputGuardrails,
+        "_build_scanners_with_configs",
+        lambda self: (_ for _ in ()).throw(RuntimeError("scanner init failed")),
+    )
+
+    response = await async_client.post(
+        "/v1/chat/completions",
+        json={
+            "model": "mock-model",
+            "messages": [{"role": "user", "content": "Share the link"}],
+        },
+    )
+
+    assert response.status_code == 500
+    assert response.json()["detail"] == (
+        "Output guardrails failed while scanning the model response."
+    )
 
 
 @pytest.mark.asyncio

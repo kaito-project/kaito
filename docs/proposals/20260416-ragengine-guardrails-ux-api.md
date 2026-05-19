@@ -71,13 +71,14 @@ metadata:
   name: ragengine-guardrails-policy
 data:
   guardrails.yaml: |
-    action: redact
     blockMessage: The model output was blocked by output guardrails.
     scanners:
       - type: regex
+        action: redact
         patterns:
           - 'https?://\\S+'
       - type: ban_substrings
+        action: block
         substrings:
           - secret
 ```
@@ -87,60 +88,134 @@ in ConfigMap YAML, not in the CRD.
 
 ### Default ConfigMap Support
 
-Follow-up implementation may provide a default ConfigMap and default mount path so that
-guardrail policy can be enabled without introducing a broad CRD surface in the same step.
+If `spec.guardrails.enabled` is `true` and `configMapRef` is not set, the
+controller copies the default guardrails policy ConfigMap
+(`ragengine-guardrails-policy-template`) into the RAGEngine namespace and mounts
+it into the Pod.
+
+- Auto-copied ConfigMaps are namespace-scoped shared resources and do not carry
+  an `OwnerReference` to any individual RAGEngine. This avoids deleting a
+  shared ConfigMap during cleanup of one RAGEngine while other RAGEngines in the
+  same namespace still depend on it.
+- User-provided ConfigMaps are not modified or owned by the controller.
+- Hot reload is not part of this PR.
+
+The default template provides a conservative baseline of regex scanners for
+obvious credential leakage, including:
+
+- PEM private key headers
+- AWS access key IDs (`AKIA...`)
+- Google API keys (`AIza...`)
+- GitHub tokens (`ghp_`, `gho_`, `ghu_`, `ghs_`, `ghr_`)
+- `sk-...` style API keys
+- `Bearer ...` authorization tokens
+
+This is baseline protection, not a complete content-safety policy. Broader
+scanners can still be added via a custom ConfigMap.
+
+### Runtime Failure Semantics
+
+Output guardrails wrap an external ML pipeline (`llm_guard`) whose scanners may fail at
+runtime (e.g. GPU OOM, model download failure, tokenizer errors, library bugs). The
+runtime is currently hard-coded to fail closed when this happens.
+
+| Env Var                          | Default | Description                                                                                  |
+| -------------------------------- | ------- | -------------------------------------------------------------------------------------------- |
+| `OUTPUT_GUARDRAILS_ENABLED`      | `false` | Master switch. When `false`, guardrails are bypassed entirely. |
+| `OUTPUT_GUARDRAILS_POLICY_PATH`  | `""`    | Path to the policy ConfigMap YAML. When unset, the runtime falls back to the default ConfigMap shipped with the system. |
+
+Behavior:
+
+- **Fail-closed** (current behavior): If a scanner raises during `guard_response`, the
+  runtime raises `OutputGuardrailsError`, which the `/v1/chat/completions` handler maps
+  to `HTTP 500` with a fixed detail message
+  (`"Output guardrails failed while scanning the model response."`). The original
+  exception is preserved via `__cause__` for logs, but is not exposed in the HTTP body.
+  Users who encounter a problematic scanner can work around it by disabling that scanner
+  in the guardrails ConfigMap.
+
+Operator guidance: fail-closed should be paired with model pre-warming, dedicated GPU
+quota for guardrails, and Prometheus alerts on `output_guardrails_failed` log volume to
+avoid converting transient ML failures into request errors.
+
+Example deployment (fail-closed for a regulated workload):
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ragengine-guardrails-failclosed
+spec:
+  containers:
+    - name: ragengine
+      image: kaito/ragengine:latest
+      env:
+        - name: OUTPUT_GUARDRAILS_ENABLED
+          value: "true"
+        - name: OUTPUT_GUARDRAILS_POLICY_PATH
+          value: /etc/ragengine/guardrails.yaml
+      volumeMounts:
+        - name: guardrails-policy
+          mountPath: /etc/ragengine
+  volumes:
+    - name: guardrails-policy
+      configMap:
+        name: ragengine-guardrails-policy
+```
+
+Sample HTTP response when a scanner fails under fail-closed:
+
+```http
+HTTP/1.1 500 Internal Server Error
+Content-Type: application/json
+
+{"detail": "Output guardrails failed while scanning the model response."}
+```
+
+Future work may introduce per-scanner fail modes inside the policy YAML; the env-level
+switch or CRD/API control can be added later if we need operator-configurable failure
+handling.
 
 ## Deferred Scope
 
 This proposal defines the UX shape only. The following items are deferred to follow-up
 implementation PRs:
 
-- runtime error-handling semantics
-- YAML policy loading implementation
-- default ConfigMap wiring
-- scanner registry and additional scanners
+- additional scanners beyond the current baseline set
 - audit event model
 - streaming scanning behavior
+- per-scanner fail modes inside the policy YAML
+- configurable failure handling beyond the current fail-closed behavior
 
 ## Follow-Up Implementation Plan
 
 This proposal is intended to support the following implementation sequence:
 
 1. Land the initial non-streaming output guardrails hook. (done)
-2. Define explicit error-handling semantics. (done — fail-open with metrics)
+2. Define explicit error-handling semantics. (done)
 3. Introduce a runtime YAML policy loader. (done)
-4. Add hot-reload of the guardrails policy ConfigMap. (done)
-5. Add default ConfigMap support.
-6. Refactor scanner construction into a registry/factory structure.
-7. Add more scanners in small batches.
-8. Add audit foundations.
-9. Add minimal streaming scanning support.
-10. Polish graceful UX and operational behavior.
+4. Add default ConfigMap support. (done)
+5. Add hot-reload of the guardrails policy ConfigMap. (done)
+6. Refactor scanner construction into a registry/factory structure. (done)
+7. Add more scanners in small batches. (partial)
+8. Add audit foundations. (not done)
+9. Add minimal streaming scanning support. (not done)
+10. Polish graceful UX and operational behavior. (partial)
 
 ### Hot-reload runtime behavior (implemented)
 
-The RAG runtime watches the guardrails policy file (`OUTPUT_GUARDRAILS_POLICY_PATH`)
-for changes using `watchfiles` (inotify on Linux) and atomically swaps the active
-`OutputGuardrails` instance when the file content changes. ConfigMap volume updates
-are picked up because the runtime watches the parent directory, which catches the
-atomic `..data` symlink swap performed by kubelet.
+The runtime watches the guardrails policy file and swaps the active
+`OutputGuardrails` instance when the policy changes. For ConfigMap-mounted files,
+it watches the parent directory so Kubernetes symlink updates are detected.
 
 Reload semantics:
 
-- Fail-safe: if the new policy fails to load, the previous policy stays in effect
-  and a failure metric is incremented.
-- Debounced: changes are coalesced over a configurable window
-  (`OUTPUT_GUARDRAILS_HOT_RELOAD_DEBOUNCE_SECONDS`, default `60`) to avoid reload
-  storms during rolling ConfigMap updates.
-- Optional: hot-reload can be disabled via
-  `OUTPUT_GUARDRAILS_HOT_RELOAD_ENABLED=false`, in which case the policy is loaded
-  once at startup.
+- If a new policy fails to load, the previous policy stays active.
+- Reloads use a 1-second debounce window.
+- Hot reload can be disabled with `OUTPUT_GUARDRAILS_HOT_RELOAD_ENABLED=false`,
+  in which case the policy is loaded once at startup.
 
 Observability:
 
-- `guardrails_policy_reload_total{result="success|failure|noop"}` counter.
-- `guardrails_policy_loaded_timestamp_seconds` gauge.
-
-The CRD exposure for `guardrails.enabled` can be added later if we decide the final user
-experience should include an explicit RAGEngine spec toggle rather than relying only on
-ConfigMap-based policy.
+- `guardrails_policy_reload_total{result="success|failure|noop"}`
+- `guardrails_policy_loaded_timestamp_seconds`

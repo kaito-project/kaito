@@ -117,18 +117,6 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a Gemma InferenceSet with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
-		numOfReplicas := 2
-		inferenceSetObj := createGemmaInferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
-		defer cleanupResourcesForInferenceSet(inferenceSetObj)
-		time.Sleep(120 * time.Second)
-
-		validateInferenceSetStatus(inferenceSetObj)
-		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
-		validateInferenceSetBenchmarkCompleted(inferenceSetObj)
-		validateGatewayAPIInferenceExtensionResources(inferenceSetObj)
-	})
-
 	It("should create a phi4 workspace with adapter successfully", utils.GinkgoLabelA100Required, func() {
 		numOfNode := 1
 		workspaceObj := createPhi4WorkspaceWithAdapterAndVLLM(numOfNode, phi4Adapter)
@@ -233,9 +221,9 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a gemma-3-4b-it workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should create a gemma-4-E2B-it workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
-		workspaceObj := createGemma3_4BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+		workspaceObj := createGemma4_E2BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)
@@ -256,9 +244,9 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a gemma-3-27b-it workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
+	It("should create a gemma-4-26B-A4B-it workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
 		numOfNode := 1
-		workspaceObj := createGemma3_27BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+		workspaceObj := createGemma4_26BA4BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)
@@ -349,6 +337,49 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
+	It("should create a qwen3.5-2b workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+		numOfNode := 1
+		workspaceObj := createQwen3_5_2BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+
+		validateInferenceResource(workspaceObj, int32(numOfNode))
+
+		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
+		validateModelsEndpoint(workspaceObj)
+		validateChatCompletionsEndpoint(workspaceObj)
+	})
+
+	It("should create a MultiRoleInference with prefill and decode roles successfully", Serial, utils.GinkgoLabelFastCheck, func() {
+		mriObj := createGemma3MultiRoleInference()
+		defer cleanupResourcesForMultiRoleInference(mriObj)
+
+		validateMultiRoleInferenceChildInferenceSets(mriObj)
+		validateMultiRoleInferenceStatus(mriObj)
+	})
+
+	It("should create a Gemma 3 InferenceSet with preset public mode successfully", Serial, utils.GinkgoLabelFastCheck, func() {
+		numOfReplicas := 1
+		inferenceSetObj := createGemma3InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
+		defer cleanupResourcesForInferenceSet(inferenceSetObj)
+		time.Sleep(120 * time.Second)
+
+		validateInferenceSetStatus(inferenceSetObj)
+		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
+		validateInferenceSetBenchmarkCompleted(inferenceSetObj)
+		validateGatewayAPIInferenceExtensionResources(inferenceSetObj)
+	})
+
 	It("should create a ministral-3-3b-instruct-2512 workspace with preset public mode successfully", func() {
 		numOfNode := 1
 		workspaceObj := createMinistral3_3BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
@@ -387,19 +418,142 @@ func createPhi4WorkspaceWithAdapterAndVLLM(numOfNode int, validAdapters []kaitov
 	return workspaceObj
 }
 
-func createGemmaInferenceSetWithPresetPublicModeAndVLLM(replicas int) *kaitov1alpha1.InferenceSet {
+func createGemma3InferenceSetWithPresetPublicModeAndVLLM(replicas int) *kaitov1alpha1.InferenceSet {
 	modelSecret := createAndValidateModelSecret()
 	inferenceSetObj := &kaitov1alpha1.InferenceSet{}
-	By("Creating a InferenceSet CR with Gemma preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-gemma-is-", rand.Intn(1000))
+	By("Creating an InferenceSet CR with Gemma 3 preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-gemma3-is-", rand.Intn(1000))
 		inferenceSetObj = utils.GenerateInferenceSetManifestWithVLLM(uniqueID, namespaceName, "", replicas, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-is-e2e-test-gemma-vllm"},
 			}, PresetGemma3_4BInstructModel, nil, nil, modelSecret.Name)
 		createAndValidateInferenceSet(inferenceSetObj)
-
 	})
 	return inferenceSetObj
+}
+
+func createGemma3MultiRoleInference() *kaitov1alpha1.MultiRoleInference {
+	modelSecret := createAndValidateModelSecret()
+	mriObj := &kaitov1alpha1.MultiRoleInference{}
+	By("Creating a MultiRoleInference CR with Gemma 3 prefill and decode roles", func() {
+		uniqueID := fmt.Sprint("mri-gemma3-pd-", rand.Intn(1000))
+		replicas := int32(1)
+		mriObj = &kaitov1alpha1.MultiRoleInference{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      uniqueID,
+				Namespace: namespaceName,
+			},
+			Spec: kaitov1alpha1.MultiRoleInferenceSpec{
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{"kaito-mri": uniqueID},
+				},
+				Model: kaitov1alpha1.MultiRoleInferenceModelSpec{
+					Name:              string(PresetGemma3_4BInstructModel),
+					ModelAccessSecret: modelSecret.Name,
+				},
+				Roles: []kaitov1alpha1.MultiRoleInferenceRoleSpec{
+					{
+						Type:         kaitov1alpha1.MultiRoleInferenceRolePrefill,
+						Replicas:     &replicas,
+						InstanceType: "Standard_NV36ads_A10_v5",
+					},
+					{
+						Type:         kaitov1alpha1.MultiRoleInferenceRoleDecode,
+						Replicas:     &replicas,
+						InstanceType: "Standard_NV36ads_A10_v5",
+					},
+				},
+			},
+		}
+
+		By("Creating MultiRoleInference", func() {
+			Eventually(func() error {
+				return utils.TestingCluster.KubeClient.Create(ctx, mriObj, &client.CreateOptions{})
+			}, utils.PollTimeout, utils.PollInterval).
+				Should(Succeed(), "Failed to create MultiRoleInference")
+		})
+	})
+	return mriObj
+}
+
+func cleanupResourcesForMultiRoleInference(mriObj *kaitov1alpha1.MultiRoleInference) {
+	By("Cleaning up MultiRoleInference", func() {
+		if !CurrentSpecReport().Failed() {
+			Eventually(func() error {
+				err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKeyFromObject(mriObj), mriObj)
+				if err != nil {
+					return client.IgnoreNotFound(err)
+				}
+				return utils.TestingCluster.KubeClient.Delete(ctx, mriObj, &client.DeleteOptions{})
+			}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to delete MultiRoleInference")
+		} else {
+			GinkgoWriter.Printf("test failed, keep %s\n", mriObj.Name)
+		}
+	})
+}
+
+func validateMultiRoleInferenceChildInferenceSets(mriObj *kaitov1alpha1.MultiRoleInference) {
+	By("Validating child InferenceSets are created for each role", func() {
+		Eventually(func() bool {
+			isList := &kaitov1alpha1.InferenceSetList{}
+			err := utils.TestingCluster.KubeClient.List(ctx, isList,
+				client.InNamespace(mriObj.Namespace),
+				client.MatchingLabels{kaitov1alpha1.LabelMultiRoleInferenceParent: mriObj.Name})
+			if err != nil {
+				return false
+			}
+			if len(isList.Items) != 2 {
+				return false
+			}
+			// Verify both roles exist in metadata labels and template labels
+			foundPrefill, foundDecode := false, false
+			for _, is := range isList.Items {
+				roleLabel := is.Labels[kaitov1alpha1.LabelInferenceRole]
+				// Also verify the role label is propagated to Spec.Template.Labels
+				// so that downstream pods get the correct role for P/D disaggregation
+				templateRoleLabel := is.Spec.Template.Labels[kaitov1alpha1.LabelInferenceRole]
+				if roleLabel != templateRoleLabel {
+					return false
+				}
+				// Verify the parent label is also on template labels
+				templateParentLabel := is.Spec.Template.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent]
+				if templateParentLabel != mriObj.Name {
+					return false
+				}
+				if roleLabel == string(kaitov1alpha1.MultiRoleInferenceRolePrefill) {
+					foundPrefill = true
+				}
+				if roleLabel == string(kaitov1alpha1.MultiRoleInferenceRoleDecode) {
+					foundDecode = true
+				}
+			}
+			return foundPrefill && foundDecode
+		}, 20*time.Minute, utils.PollInterval).Should(BeTrue(),
+			"Expected 2 child InferenceSets (prefill + decode) for MultiRoleInference %s", mriObj.Name)
+	})
+}
+
+func validateMultiRoleInferenceStatus(mriObj *kaitov1alpha1.MultiRoleInference) {
+	By("Validating MultiRoleInference status conditions", func() {
+		Eventually(func() bool {
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKeyFromObject(mriObj), mriObj)
+			if err != nil {
+				return false
+			}
+			// Check that PrefillReady and DecodeReady conditions are True
+			prefillReady, decodeReady := false, false
+			for _, cond := range mriObj.Status.Conditions {
+				if cond.Type == string(kaitov1alpha1.MultiRoleInferenceConditionTypePrefillReady) && cond.Status == metav1.ConditionTrue {
+					prefillReady = true
+				}
+				if cond.Type == string(kaitov1alpha1.MultiRoleInferenceConditionTypeDecodeReady) && cond.Status == metav1.ConditionTrue {
+					decodeReady = true
+				}
+			}
+			return prefillReady && decodeReady
+		}, 20*time.Minute, utils.PollInterval).Should(BeTrue(),
+			"Expected PrefillReady and DecodeReady conditions on MultiRoleInference %s", mriObj.Name)
+	})
 }
 
 func createLlama3_1_8BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int, instanceType string) *kaitov1beta1.Workspace {
@@ -430,16 +584,15 @@ func createLlama3_3_70BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode in
 	return workspaceObj
 }
 
-func createGemma3_4BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
-	modelSecret := createAndValidateModelSecret()
+func createGemma4_E2BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}
 
-	By("Creating a workspace CR with Gemma 3 4B preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-gemma-3-4b-", rand.Intn(1000))
+	By("Creating a workspace CR with Gemma 4 E2B preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-gemma-4-e2b-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gemma-3-4b-vllm"},
-			}, nil, PresetGemma3_4BInstructModel, nil, nil, nil, modelSecret.Name, "")
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gemma-4-e2b-vllm"},
+			}, nil, PresetGemma4_E2BInstructModel, nil, nil, nil, "", "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -447,16 +600,15 @@ func createGemma3_4BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) 
 	return workspaceObj
 }
 
-func createGemma3_27BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
-	modelSecret := createAndValidateModelSecret()
+func createGemma4_26BA4BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}
 
-	By("Creating a workspace CR with Gemma 3 27B preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-gemma-3-27b-", rand.Intn(1000))
+	By("Creating a workspace CR with Gemma 4 26B-A4B preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-gemma-4-26b-a4b-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC24ads_A100_v4",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gemma-3-27b-vllm"},
-			}, nil, PresetGemma3_27BInstructModel, nil, nil, nil, modelSecret.Name, "")
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gemma-4-26b-a4b-vllm"},
+			}, nil, PresetGemma4_26BA4BInstructModel, nil, nil, nil, "", "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})
@@ -541,6 +693,20 @@ func createQwen3_8BAWQWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaito
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-qwen3-8b-awq-vllm"},
 			}, nil, PresetQwen3_8BAWQModel, nil, nil, nil, "", "")
+
+		createAndValidateWorkspace(workspaceObj)
+	})
+	return workspaceObj
+}
+
+func createQwen3_5_2BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
+	By("Creating a workspace CR with Qwen3.5-2B preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-qwen3-5-2b-", rand.Intn(1000))
+		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
+			&metav1.LabelSelector{
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-qwen3-5-2b-vllm"},
+			}, nil, PresetQwen3_5_2BModel, nil, nil, nil, "", "")
 
 		createAndValidateWorkspace(workspaceObj)
 	})

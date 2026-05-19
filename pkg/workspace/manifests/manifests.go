@@ -33,8 +33,8 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/nodeprovision/karpenter"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
@@ -72,6 +72,17 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 	podNameForIndex0 := fmt.Sprintf("%s-0", workspaceObj.Name)
 	selector["statefulset.kubernetes.io/pod-name"] = podNameForIndex0
 
+	// When the routing sidecar is present (decode role + vLLM), route
+	// external traffic through the sidecar port so that all requests
+	// pass through the routing layer. Kubelet container probes still
+	// hit vLLM directly on PortInferenceServer (via PodIP), while
+	// Service/Gateway traffic routes to the sidecar on PortRoutingSidecar.
+	httpTargetPort := consts.PortInferenceServer
+	role, hasRole := workspaceObj.Labels[kaitov1beta1.LabelInferenceRole]
+	if hasRole && role == string(kaitov1alpha1.MultiRoleInferenceRoleDecode) && kaitov1beta1.GetWorkspaceRuntimeName(workspaceObj) == pkgmodel.RuntimeNameVLLM {
+		httpTargetPort = consts.PortRoutingSidecar
+	}
+
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      workspaceObj.Name,
@@ -88,7 +99,7 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 					Name:       "http",
 					Protocol:   corev1.ProtocolTCP,
 					Port:       80,
-					TargetPort: intstr.FromInt32(consts.PortInferenceServer),
+					TargetPort: intstr.FromInt32(httpTargetPort),
 				},
 				{
 					Name:       "ray",
@@ -247,8 +258,9 @@ func GeneratePullerContainers(wObj *kaitov1beta1.Workspace, adapters []kaitov1be
 }
 
 func GenerateManifestWithPodTemplate(workspaceObj *kaitov1beta1.Workspace, tolerations []corev1.Toleration) *appsv1.StatefulSet {
-	nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(workspaceObj.Resource.LabelSelector.MatchLabels))
-	for key, value := range workspaceObj.Resource.LabelSelector.MatchLabels {
+	selectorLabels := kaitov1beta1.SanitizedMatchLabels(workspaceObj.Resource.LabelSelector)
+	nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(selectorLabels))
+	for key, value := range selectorLabels {
 		nodeRequirements = append(nodeRequirements, corev1.NodeSelectorRequirement{
 			Key:      key,
 			Operator: corev1.NodeSelectorOpIn,
@@ -277,25 +289,23 @@ func GenerateManifestWithPodTemplate(workspaceObj *kaitov1beta1.Workspace, toler
 		}
 	}
 
-	// Pin pods to nodes provisioned for this workspace (karpenter only).
-	if consts.IsKarpenterProvisioner() {
-		if templateCopy.Spec.NodeSelector == nil {
-			templateCopy.Spec.NodeSelector = make(map[string]string)
-		}
-		templateCopy.Spec.NodeSelector[consts.KarpenterWorkspaceKey] = karpenter.WorkspaceLabelValue(workspaceObj.Namespace, workspaceObj.Name)
-	}
-
-	// Overwrite affinity
-	templateCopy.Spec.Affinity = &corev1.Affinity{
-		NodeAffinity: &corev1.NodeAffinity{
-			RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
-				NodeSelectorTerms: []corev1.NodeSelectorTerm{
-					{
-						MatchExpressions: nodeRequirements,
+	// Overwrite affinity. Only set node affinity when there are user-defined
+	// node requirements; an empty MatchExpressions list is rejected by the
+	// Kubernetes API server.
+	if len(nodeRequirements) > 0 {
+		templateCopy.Spec.Affinity = &corev1.Affinity{
+			NodeAffinity: &corev1.NodeAffinity{
+				RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+					NodeSelectorTerms: []corev1.NodeSelectorTerm{
+						{
+							MatchExpressions: nodeRequirements,
+						},
 					},
 				},
 			},
-		},
+		}
+	} else {
+		templateCopy.Spec.Affinity = nil
 	}
 
 	// append tolerations
@@ -374,6 +384,29 @@ func GenerateInferencePoolOCIRepository(inferenceSetObj *kaitov1alpha1.Inference
 	}
 }
 
+// inferencePoolTargetPort returns the target port for the InferencePool.
+// For decode-role InferenceSets with vLLM runtime, traffic goes through the
+// routing sidecar on PortRoutingSidecar. For all other cases, traffic goes
+// directly to the inference server on PortInferenceServer.
+// Runtime detection mirrors v1beta1.GetWorkspaceRuntimeName: when the vLLM
+// feature gate is enabled (default), the runtime defaults to vLLM unless
+// explicitly overridden by the kaito.sh/runtime annotation.
+func inferencePoolTargetPort(inferenceSetObj *kaitov1alpha1.InferenceSet) int32 {
+	role := inferenceSetObj.Spec.Template.Labels[kaitov1beta1.LabelInferenceRole]
+	if role != string(kaitov1alpha1.MultiRoleInferenceRoleDecode) {
+		return consts.PortInferenceServer
+	}
+	// Mirror GetWorkspaceRuntimeName logic: default to vLLM when feature gate is on.
+	if !featuregates.FeatureGates[consts.FeatureFlagVLLM] {
+		return consts.PortInferenceServer
+	}
+	runtime := inferenceSetObj.Annotations[kaitov1beta1.AnnotationWorkspaceRuntime]
+	if runtime == string(pkgmodel.RuntimeNameHuggingfaceTransformers) {
+		return consts.PortInferenceServer
+	}
+	return consts.PortRoutingSidecar
+}
+
 // GenerateInferencePoolHelmRelease generates a Flux HelmRelease for the inference pool.
 func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1alpha1.InferenceSet) (*helmv2.HelmRelease, error) {
 	matchLabels := map[string]string{
@@ -399,7 +432,7 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1alpha1.InferenceSe
 		},
 		"inferencePool": map[string]any{
 			"targetPorts": []map[string]any{{
-				"number": consts.PortInferenceServer,
+				"number": inferencePoolTargetPort(inferenceSetObj),
 			}},
 			"modelServers": map[string]any{
 				"matchLabels": matchLabels,

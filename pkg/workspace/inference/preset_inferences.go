@@ -30,10 +30,10 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/nodeprovision/karpenter"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -103,17 +103,6 @@ func defaultTolerations(ws *v1beta1.Workspace) []corev1.Toleration {
 			Key:      consts.SpotInstanceKey,
 			Operator: corev1.TolerationOpEqual,
 			Value:    consts.SpotInstanceValue,
-		})
-	}
-
-	// Tolerate the karpenter workspace taint so inference pods can schedule
-	// on karpenter-provisioned GPU nodes.
-	if consts.IsKarpenterProvisioner() {
-		tolerations = append(tolerations, corev1.Toleration{
-			Effect:   corev1.TaintEffectNoSchedule,
-			Key:      consts.KarpenterWorkspaceKey,
-			Operator: corev1.TolerationOpEqual,
-			Value:    karpenter.WorkspaceLabelValue(ws.Namespace, ws.Name),
 		})
 	}
 
@@ -211,6 +200,7 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	if err != nil {
 		return nil, err
 	}
+
 	ssOpts = append(ssOpts, manifests.SetStatefulSetPodSpec(podSpec))
 
 	return generator.GenerateManifest(gctx, ssOpts...)
@@ -419,8 +409,9 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 		volumeMounts = append(volumeMounts, shmVolumeMount)
 
 		// node selector
-		nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(ctx.Workspace.Resource.LabelSelector.MatchLabels))
-		for key, value := range ctx.Workspace.Resource.LabelSelector.MatchLabels {
+		selectorLabels := v1beta1.SanitizedMatchLabels(ctx.Workspace.Resource.LabelSelector)
+		nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(selectorLabels))
+		for key, value := range selectorLabels {
 			nodeRequirements = append(nodeRequirements, corev1.NodeSelectorRequirement{
 				Key:      key,
 				Operator: corev1.NodeSelectorOpIn,
@@ -463,6 +454,10 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			}
 		}
 
+		// When the routing sidecar is needed, it will be injected after the
+		// main container is created. vLLM keeps its default port (5000).
+		isSidecarNeeded := needsRoutingSidecar(ctx.Workspace)
+
 		commands := inferenceParam.GetInferenceCommand(pkgmodel.RuntimeContext{
 			RuntimeName:          runtimeName,
 			GPUConfig:            gpuConfig,
@@ -478,21 +473,20 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			},
 		})
 
-		if consts.IsKarpenterProvisioner() {
-			spec.NodeSelector = map[string]string{
-				consts.KarpenterWorkspaceKey: karpenter.WorkspaceLabelValue(ctx.Workspace.Namespace, ctx.Workspace.Name),
-			}
-		}
-		spec.Affinity = &corev1.Affinity{
-			NodeAffinity: &corev1.NodeAffinity{
-				RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
-					NodeSelectorTerms: []corev1.NodeSelectorTerm{
-						{
-							MatchExpressions: nodeRequirements,
+		// Only set nodeAffinity when the user supplied selector labels.
+		// An empty MatchExpressions list is rejected by the Kubernetes API server.
+		if len(nodeRequirements) > 0 {
+			spec.Affinity = &corev1.Affinity{
+				NodeAffinity: &corev1.NodeAffinity{
+					RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+						NodeSelectorTerms: []corev1.NodeSelectorTerm{
+							{
+								MatchExpressions: nodeRequirements,
+							},
 						},
 					},
 				},
-			},
+			}
 		}
 		spec.ImagePullSecrets = GetInferenceImageInfo(ctx.Ctx, ctx.Workspace)
 
@@ -516,6 +510,13 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 				VolumeMounts:   volumeMounts,
 			},
 		}
+
+		applyInferenceRoleEnv(ctx.Workspace.Labels, ctx.Workspace.Name, spec)
+
+		if isSidecarNeeded {
+			injectRoutingSidecar(spec)
+		}
+
 		spec.Tolerations = defaultTolerations(ctx.Workspace)
 		spec.Volumes = volumes
 
@@ -539,8 +540,10 @@ func SetModelDownloadInfo(ctx *generator.WorkspaceGeneratorContext, spec *corev1
 			}
 
 			for i := range spec.Containers {
-				// add HF_TOKEN env var to all containers
-				spec.Containers[i].Env = append(spec.Containers[i].Env, envvar)
+				// add HF_TOKEN env var to the main inference container only
+				if spec.Containers[i].Name == ctx.Workspace.Name {
+					spec.Containers[i].Env = append(spec.Containers[i].Env, envvar)
+				}
 			}
 		}
 		return nil
@@ -555,6 +558,18 @@ func SetModelDownloadInfo(ctx *generator.WorkspaceGeneratorContext, spec *corev1
 func SetAdapterPuller(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 	if len(ctx.Workspace.Inference.Adapters) == 0 {
 		return nil
+	}
+
+	// Find the main inference container by workspace name.
+	mainIdx := -1
+	for i := range spec.Containers {
+		if spec.Containers[i].Name == ctx.Workspace.Name {
+			mainIdx = i
+			break
+		}
+	}
+	if mainIdx == -1 {
+		return fmt.Errorf("main inference container %q not found", ctx.Workspace.Name)
 	}
 
 	// Separate adapters by source type
@@ -572,18 +587,14 @@ func SetAdapterPuller(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Pod
 	if len(imageAdapters) > 0 {
 		adapterVolume, adapterVolumeMount := utils.ConfigAdapterVolume(nil)
 		spec.Volumes = append(spec.Volumes, adapterVolume)
-		for i := range spec.Containers { // FIXME: assume only one container in the pod
-			spec.Containers[i].VolumeMounts = append(spec.Containers[i].VolumeMounts, adapterVolumeMount)
-		}
+		spec.Containers[mainIdx].VolumeMounts = append(spec.Containers[mainIdx].VolumeMounts, adapterVolumeMount)
 
 		// add container to pull adapters
 		volumeMounts := []corev1.VolumeMount{adapterVolumeMount}
 		pullerContainers, pullerEnvVars, pullerVolumes := manifests.GeneratePullerContainers(ctx.Workspace, imageAdapters, volumeMounts)
 		spec.InitContainers = append(spec.InitContainers, pullerContainers...)
 		spec.Volumes = append(spec.Volumes, pullerVolumes...)
-		for i := range spec.Containers { // FIXME: assume only one container in the pod
-			spec.Containers[i].Env = append(spec.Containers[i].Env, pullerEnvVars...)
-		}
+		spec.Containers[mainIdx].Env = append(spec.Containers[mainIdx].Env, pullerEnvVars...)
 	}
 
 	// Handle volume-based adapters (mount volume directly, no puller needed)
@@ -601,9 +612,7 @@ func SetAdapterPuller(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Pod
 			MountPath: mountPath,
 		}
 		spec.Volumes = append(spec.Volumes, volume)
-		for i := range spec.Containers {
-			spec.Containers[i].VolumeMounts = append(spec.Containers[i].VolumeMounts, volumeMount)
-		}
+		spec.Containers[mainIdx].VolumeMounts = append(spec.Containers[mainIdx].VolumeMounts, volumeMount)
 
 		// Propagate strength env vars for volume adapters
 		if adapter.Strength != nil {
@@ -611,9 +620,7 @@ func SetAdapterPuller(ctx *generator.WorkspaceGeneratorContext, spec *corev1.Pod
 				Name:  sourceName,
 				Value: *adapter.Strength,
 			}
-			for i := range spec.Containers {
-				spec.Containers[i].Env = append(spec.Containers[i].Env, envVar)
-			}
+			spec.Containers[mainIdx].Env = append(spec.Containers[mainIdx].Env, envVar)
 		}
 	}
 
@@ -680,4 +687,64 @@ func SetDistributedInferenceProbe(ctx *generator.WorkspaceGeneratorContext, spec
 func SetDefaultModelWeightsVolume(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 	spec.Volumes = append(spec.Volumes, utils.DefaultModelWeightsVolume)
 	return nil
+}
+
+// applyInferenceRoleEnv sets KAITO_INFERENCE_ROLE env var on the main inference
+// container (identified by containerName) when the workspace has a valid
+// inference-role label (prefill or decode). Only the main container needs this
+// env var; sidecar containers do not use it.
+func applyInferenceRoleEnv(labels map[string]string, containerName string, spec *corev1.PodSpec) {
+	role, ok := labels[v1beta1.LabelInferenceRole]
+	if !ok || (role != string(kaitov1alpha1.MultiRoleInferenceRolePrefill) && role != string(kaitov1alpha1.MultiRoleInferenceRoleDecode)) {
+		return
+	}
+	for i := range spec.Containers {
+		if spec.Containers[i].Name == containerName {
+			spec.Containers[i].Env = append(spec.Containers[i].Env, corev1.EnvVar{
+				Name:  consts.InferenceRoleEnvName,
+				Value: role,
+			})
+			return
+		}
+	}
+}
+
+// injectRoutingSidecar appends the llm-d routing sidecar container to the pod
+// spec. The sidecar listens on PortRoutingSidecar (5001) and proxies to the
+// main vLLM container which keeps its default PortInferenceServer (5000).
+// No port or probe rewriting is needed on the main container.
+func injectRoutingSidecar(spec *corev1.PodSpec) {
+	if len(spec.Containers) == 0 {
+		return
+	}
+
+	spec.Containers = append(spec.Containers, corev1.Container{
+		Name:  "llm-d-routing-sidecar",
+		Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
+		Args: []string{
+			fmt.Sprintf("--port=%d", consts.PortRoutingSidecar),
+			fmt.Sprintf("--vllm-port=%d", consts.PortInferenceServer),
+			"--secure-proxy=false",
+		},
+		Ports: []corev1.ContainerPort{
+			{ContainerPort: consts.PortRoutingSidecar, Name: "sidecar", Protocol: corev1.ProtocolTCP},
+		},
+		Env: []corev1.EnvVar{
+			{
+				Name: "POD_IP",
+				ValueFrom: &corev1.EnvVarSource{
+					FieldRef: &corev1.ObjectFieldSelector{FieldPath: "status.podIP"},
+				},
+			},
+		},
+	})
+}
+
+// needsRoutingSidecar returns true if the workspace requires the llm-d routing sidecar.
+func needsRoutingSidecar(ws *v1beta1.Workspace) bool {
+	role, ok := ws.Labels[v1beta1.LabelInferenceRole]
+	if !ok || role != string(kaitov1alpha1.MultiRoleInferenceRoleDecode) {
+		return false
+	}
+	return v1beta1.GetWorkspaceRuntimeName(ws) == pkgmodel.RuntimeNameVLLM
 }

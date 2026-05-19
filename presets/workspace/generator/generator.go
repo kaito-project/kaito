@@ -42,17 +42,19 @@ var (
 	safetensorRegex = regexp.MustCompile(`.*\.safetensors`)
 	binRegex        = regexp.MustCompile(`.*\.bin`)
 	mistralRegex    = regexp.MustCompile(`consolidated.*\.safetensors`)
-	// source: https://github.com/vllm-project/vllm/blob/v0.17.1/vllm/reasoning/__init__.py
+	// source: https://github.com/vllm-project/vllm/blob/main/vllm/reasoning/__init__.py
 	reasoningParserModeNamePrefixMap = map[string]string{
 		"deepseek-r1":  "deepseek_r1",
 		"deepseek-v3":  "deepseek_v3",
 		"ernie-4.5":    "ernie45",
+		"gemma-4":      "gemma4",
 		"glm-4.5":      "glm45",
+		"granite-3.2":  "granite",
 		"holo2":        "holo2",
 		"hunyuan-a13b": "hunyuan_a13b",
-		"granite-3.2":  "granite",
 		"kimi-k2":      "kimi_k2",
 		"minimax-m2":   "minimax_m2_append_think",
+		"mistral":      "mistral",
 		"olmo-3":       "olmo3",
 		"qwen3":        "qwen3",
 		"qwq-32b":      "deepseek_r1",
@@ -62,11 +64,14 @@ var (
 		"DeepseekV3ForCausalLM":                  "deepseek_v3",
 		"Ernie4_5_VLMoeForConditionalGeneration": "ernie45",
 		"Ernie4_5_MoeForCausalLM":                "ernie45",
+		"Gemma4ForConditionalGeneration":         "gemma4",
 		"Glm4MoeForCausalLM":                     "glm45",
 		"HunYuanMoEV1ForCausalLM":                "hunyuan_a13b",
 		"GraniteForCausalLM":                     "granite",
 		"KimiK2ForCausalLM":                      "kimi_k2",
+		"KimiK25ForConditionalGeneration":        "kimi_k2",
 		"MiniMaxM2ForCausalLM":                   "minimax_m2_append_think",
+		"Mistral3ForConditionalGeneration":       "mistral",
 		"MistralForCausalLM":                     "mistral",
 		"NemotronForCausalLM":                    "nemotron_v3",
 		"NemotronHForCausalLM":                   "nemotron_v3",
@@ -74,12 +79,14 @@ var (
 		"OlmoForCausalLM":                        "olmo3",
 		"Qwen3ForCausalLM":                       "qwen3",
 		"Qwen3MoeForCausalLM":                    "qwen3",
+		"Qwen3_5ForConditionalGeneration":        "qwen3",
+		"Qwen3_5MoeForConditionalGeneration":     "qwen3",
 		"GptOssForCausalLM":                      "openai_gptoss",
 		"Step3TextForCausalLM":                   "step3",
 		"Step3VLForConditionalGeneration":        "step3",
 	}
 
-	// source: https://github.com/vllm-project/vllm/blob/main/docs/features/tool_calling.md
+	// source: https://github.com/vllm-project/vllm/blob/main/vllm/tool_parsers/__init__.py
 	// key is model name prefix, value is ToolCallParser mode name
 	toolCallParserModeNamePrefixMap = map[string]string{
 		"hermes-2":      "hermes",
@@ -107,6 +114,8 @@ var (
 		"glm-4.7":       "glm47",
 		"qwen3":         "hermes",
 		"qwen3-coder":   "qwen3_xml",
+		"qwen3.5":       "qwen3_coder",
+		"qwen3.6":       "qwen3_coder",
 		"olmo-3":        "olmo3",
 		"gigachat3":     "gigachat3",
 		"ernie-4.5":     "ernie45",
@@ -115,6 +124,7 @@ var (
 		"step3":         "step3",
 		"seed-oss":      "seed_oss",
 		"gemma-3":       "functiongemma",
+		"gemma-4":       "gemma4",
 	}
 
 	// key is model architecture name, value is ToolCallParser mode name
@@ -132,6 +142,8 @@ var (
 		"Qwen2ForCausalLM":                       "hermes",
 		"Qwen3ForCausalLM":                       "hermes",
 		"Qwen3MoeForCausalLM":                    "qwen3_xml",
+		"Qwen3_5ForConditionalGeneration":        "qwen3_coder",
+		"Qwen3_5MoeForConditionalGeneration":     "qwen3_coder",
 		"MiniMaxM1ForCausalLM":                   "minimax",
 		"MiniMaxM2ForCausalLM":                   "minimax_m2",
 		"DeepseekV3ForCausalLM":                  "deepseek_v3",
@@ -142,6 +154,7 @@ var (
 		"Glm4MoeForCausalLM":                     "glm45",
 		"Glm47MoeForCausalLM":                    "glm47",
 		"Gemma3ForCausalLM":                      "functiongemma",
+		"Gemma4ForConditionalGeneration":         "gemma4",
 		"Olmo3ForCausalLM":                       "olmo3",
 		"SeedOssForCausalLM":                     "seed_oss",
 		"Ernie4_5_VLMoeForConditionalGeneration": "ernie45",
@@ -152,6 +165,7 @@ var (
 		"NemotronH_Nano_VL_V2":                   "qwen3_coder",
 		"Phi4MiniForCausalLM":                    "phi4_mini_json",
 		"KimiK2ForCausalLM":                      "kimi_k2",
+		"KimiK25ForConditionalGeneration":        "kimi_k2",
 		"GigaChat3ForCausalLM":                   "gigachat3",
 	}
 
@@ -166,11 +180,49 @@ var (
 		"qwen2.5":     "tool-chat-hermes.jinja",
 	}
 
-	// attentionBackendPrefixMap maps model name prefixes to their vLLM attention backend.
-	attentionBackendPrefixMap = map[string]string{
+	// tokenizerModePrefixMap maps model name prefixes to their vLLM tokenizer mode.
+	tokenizerModePrefixMap = map[string]string{
+		// Use deepseek_v32 tokenizer mode for both DeepSeek R1 and V3 models to avoid special token decoding issues:
+		// https://github.com/kaito-project/kaito/issues/1976
+		"deepseek-r1": "deepseek_v32",
+		"deepseek-v3": "deepseek_v32",
+	}
+
+	// vllmAttentionBackendPrefixMap maps model name prefixes to their vLLM attention backend.
+	// source: https://docs.vllm.ai/en/latest/design/attention_backends/
+	vllmAttentionBackendPrefixMap = map[string]string{
 		// flashinfer attention backend is chosen by default for LLaMA 3 models, which requires the FlashInfer library to be installed lively.
 		// Pin to triton backend as a workaround.
 		"llama-3": "TRITON_ATTN",
+	}
+
+	// vllmMoeBackendOverride maps exact model names to their vLLM MoE backend.
+	// source: https://docs.vllm.ai/en/latest/configuration/engine_args/#-moe-backend
+	vllmMoeBackendOverride = map[string]string{
+		// Mistral Small 4 FP8 defaults to FlashInfer CUTLASS MoE backend which requires
+		// JIT compilation with CUDA dev headers (nvcc, cublasLt, nvrtc).
+		// Pin to triton backend to avoid the JIT dependency for now.
+		"mistral-small-4-119b-2603": "triton",
+		// MiniMax-M2.7 FP8 MoE also defaults to FlashInfer CUTLASS which needs nvcc.
+		"minimax-m2.7": "triton",
+	}
+
+	// vllmGdnPrefillBackendPrefixMap maps model name prefixes to their vLLM GDN prefill backend.
+	// Qwen3.5/3.6 models use hybrid GDN (Gated DeltaNet) attention which defaults to
+	// FlashInfer JIT compilation requiring nvcc. Pin to triton to avoid the dependency.
+	// source: https://docs.vllm.ai/en/latest/configuration/engine_args/#-gdn-prefill-backend
+	vllmGdnPrefillBackendPrefixMap = map[string]string{
+		"qwen3.5": "triton",
+		"qwen3.6": "triton",
+	}
+
+	// vllmExpertParallelEnabled maps model name prefixes to enable expert parallelism.
+	// Expert parallelism distributes MoE experts across TP ranks, which can avoid
+	// FP8 block quantization issues when expert weight dimensions are not divisible
+	// by the quantization block size.
+	// source: https://docs.vllm.ai/en/latest/configuration/engine_args/#-enable-expert-parallel
+	vllmExpertParallelEnabled = map[string]bool{
+		"minimax-m2": true,
 	}
 
 	// catalogOverrides provides hardcoded values for models whose HuggingFace
@@ -449,6 +501,17 @@ func getInt(config map[string]interface{}, keys []string, defaultVal int) int {
 	return defaultVal
 }
 
+// getString looks up the first matching key in config that has a non-empty
+// string value. Keys are tried in order; the first hit wins.
+func getString(config map[string]interface{}, keys []string) string {
+	for _, key := range keys {
+		if val, ok := config[key].(string); ok && val != "" {
+			return val
+		}
+	}
+	return ""
+}
+
 func (g *Generator) ParseModelMetadata() {
 	maxPos := getInt(g.ModelConfig, configKeyMap["modelTokenLimit"], DefaultModelTokenLimit)
 
@@ -603,10 +666,39 @@ func (g *Generator) FinalizeParams() {
 	g.Param.VLLM.ModelRunParams["config_format"] = g.ConfigFormat
 	g.Param.VLLM.ModelRunParams["tokenizer_mode"] = g.TokenizerMode
 
+	// Override tokenizer mode based on model name prefix
+	for prefix, mode := range tokenizerModePrefixMap {
+		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
+			g.Param.VLLM.ModelRunParams["tokenizer_mode"] = mode
+			break
+		}
+	}
+
 	// Set attention backend based on model name prefix
-	for prefix, backend := range attentionBackendPrefixMap {
+	for prefix, backend := range vllmAttentionBackendPrefixMap {
 		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
 			g.Param.VLLM.ModelRunParams["attention-backend"] = backend
+			break
+		}
+	}
+
+	// Set MoE backend based on exact model name match
+	if backend, ok := vllmMoeBackendOverride[g.Param.Metadata.Name]; ok {
+		g.Param.VLLM.ModelRunParams["moe-backend"] = backend
+	}
+
+	// Set GDN prefill backend based on model name prefix
+	for prefix, backend := range vllmGdnPrefillBackendPrefixMap {
+		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
+			g.Param.VLLM.ModelRunParams["gdn-prefill-backend"] = backend
+			break
+		}
+	}
+
+	// Enable expert parallelism based on model name prefix
+	for prefix, enabled := range vllmExpertParallelEnabled {
+		if strings.HasPrefix(g.Param.Metadata.Name, prefix) && enabled {
+			g.Param.VLLM.ModelRunParams["enable-expert-parallel"] = ""
 			break
 		}
 	}

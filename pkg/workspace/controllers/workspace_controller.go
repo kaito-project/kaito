@@ -570,10 +570,7 @@ func (c *WorkspaceReconciler) collectNodeStatusSnapshot(ctx context.Context, wOb
 	}
 
 	// Collect worker node names for status.
-	var matchLabels client.MatchingLabels
-	if wObj.Resource.LabelSelector != nil {
-		matchLabels = wObj.Resource.LabelSelector.MatchLabels
-	}
+	matchLabels := client.MatchingLabels(kaitov1beta1.SanitizedMatchLabels(wObj.Resource.LabelSelector))
 	nodeList, err := resources.ListNodes(ctx, c.Client, matchLabels)
 	if err != nil {
 		return nil, err

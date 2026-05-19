@@ -1,0 +1,35 @@
+{{- if .Values.featureGates.enableMultiRoleInferenceController -}}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "kaito.fullname" . }}-multiroleinference
+  labels:
+    {{- include "kaito.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["kaito.sh"]
+    resources: ["multiroleinferences"]
+    verbs: ["update", "patch","get","list","watch", "create", "delete"]
+  - apiGroups: ["kaito.sh"]
+    resources: ["multiroleinferences/status"]
+    verbs: ["update", "patch","get","list","watch"]
+  - apiGroups: ["kaito.sh"]
+    resources: ["multiroleinferences/finalizers"]
+    verbs: ["update", "patch"]
+  - apiGroups: ["kaito.sh"]
+    resources: ["inferencesets"]
+    verbs: ["update", "patch","get","list","watch","create","delete"]
+  - apiGroups: ["kaito.sh"]
+    resources: ["inferencesets/status"]
+    verbs: ["get","list","watch"]
+  - apiGroups: ["admissionregistration.k8s.io"]
+    resources: ["validatingwebhookconfigurations"]
+    verbs: ["get","list","watch"]
+  - apiGroups: ["admissionregistration.k8s.io"]
+    resources: ["validatingwebhookconfigurations"]
+    verbs: ["update"]
+    resourceNames: ["validation.multiroleinference.kaito.sh"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch", "update"]
+{{- end -}}

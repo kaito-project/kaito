@@ -143,6 +143,7 @@ class ParsedScannerConfig:
 
     type: str
     config: Any
+    action_on_hit: str | None = None
 
 
 def _coerce_string_list(value: Any) -> list[str]:

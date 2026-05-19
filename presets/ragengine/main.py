@@ -48,7 +48,6 @@ from ragengine.config import (  # noqa: E402
     DEFAULT_VECTOR_DB_PERSIST_DIR,
     EMBEDDING_SOURCE_TYPE,
     LOCAL_EMBEDDING_MODEL_ID,
-    OUTPUT_GUARDRAILS_HOT_RELOAD_DEBOUNCE_SECONDS,
     OUTPUT_GUARDRAILS_HOT_RELOAD_ENABLED,
     OUTPUT_GUARDRAILS_POLICY_PATH,
     REMOTE_EMBEDDING_ACCESS_SECRET,
@@ -57,7 +56,10 @@ from ragengine.config import (  # noqa: E402
     VECTOR_DB_TYPE,
     VECTOR_DB_URL,
 )
-from ragengine.guardrails.reload import GuardrailsReloader  # noqa: E402
+from ragengine.guardrails import (  # noqa: E402
+    GuardrailsReloader,
+    OutputGuardrailsError,
+)
 from ragengine.metrics.prometheus_metrics import (  # noqa: E402
     MODE_LOCAL,
     MODE_REMOTE,
@@ -162,13 +164,8 @@ else:
 
 # Initialize RAG operations
 rag_ops = VectorStoreManager(vector_store_handler)
-# The reloader holds the live OutputGuardrails instance and (when enabled)
-# swaps it out atomically when the policy file changes. We always go through
-# ``guardrails_reloader.current`` at the call site so toggling hot reload off
-# is just a no-op background task -- the request path is unchanged.
 guardrails_reloader = GuardrailsReloader(
     policy_path=OUTPUT_GUARDRAILS_POLICY_PATH,
-    debounce_seconds=OUTPUT_GUARDRAILS_HOT_RELOAD_DEBOUNCE_SECONDS,
 )
 
 
@@ -356,12 +353,15 @@ async def chat_completions(request: dict):
             )
 
         response = await rag_ops.chat_completion(request)
-        response = guardrails_reloader.current.guard_response(response, request)
+        guardrails = guardrails_reloader.get_current()
+        response = guardrails.guard_response(response, request)
         status = STATUS_SUCCESS
         return response
     except HTTPException as http_exc:
         # Preserve HTTP exceptions like 422 from reranker
         raise http_exc
+    except OutputGuardrailsError as guardrails_exc:
+        raise HTTPException(status_code=500, detail=str(guardrails_exc))
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))  # Validation issue
     except Exception as e:

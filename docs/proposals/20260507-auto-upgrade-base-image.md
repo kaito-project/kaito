@@ -6,7 +6,7 @@ reviewers:
   - "@Fei-Guo"
   - "@zhuangqh"
 creation-date: 2026-05-07
-last-updated: 2026-05-15
+last-updated: 2026-05-19
 status: provisional
 ---
 
@@ -334,10 +334,11 @@ auto-upgrade feature adds the following changes:
 
 **Key Implementation Notes:**
 
-1. **Parallel Pod Management:** The StatefulSet uses `podManagementPolicy: Parallel`,
-   which means all pods are updated simultaneously during a rolling update — not
-   sequentially by ordinal. This eliminates the need to update existing readiness
-   probes for Worker nodes in distributed inference.
+1. **Sequential Pod Updates:** Despite `podManagementPolicy: Parallel`, the
+   StatefulSet controller still updates pods **one at a time in reverse ordinal
+   order** during a `RollingUpdate`. The `Parallel` policy only affects initial
+   creation and scaling — not rolling updates. This means the worker (pod-1) is
+   updated before the leader (pod-0), which requires the worker probe fix below.
 
 2. **Crash Safety:** The rollout state is fully recoverable from existing state:
    - Workspaces with `kaito.sh/upgrade-to-version` set → upgrade in progress.
@@ -346,6 +347,49 @@ auto-upgrade feature adds the following changes:
    - Workspaces whose StatefulSet image tag differs → needs upgrade.
    If the controller crashes mid-rollout, the next reconcile reconstructs the state
    and resumes.
+
+### Probe Changes
+
+For multi-node distributed inference, the worker pod's startup
+and readiness probes must **not** depend on the leader's `/health` endpoint. During a
+rolling update, the worker (pod-1) is updated first. If the worker's probes check the
+leader's health, a permanent deadlock occurs:
+
+- Worker (new image, potentially new Ray version) cannot join leader (old image, old Ray version)
+- Leader cannot serve `/health` without a worker in its placement group
+- Worker never becomes Ready → StatefulSet never updates leader
+
+**Fix:** Worker probes exit 0 unconditionally. This is safe because:
+- The Service routes traffic only to pod-0 (via `statefulset.kubernetes.io/pod-name` selector)
+- Workers don't expose an HTTP endpoint; their readiness is irrelevant to traffic routing
+- The leader's probes still gate actual service availability
+
+We will update the existing probe commands with a `POD_INDEX` conditional:
+
+```bash
+# Startup probe (benchmark variant)
+if [ "$POD_INDEX" = "0" ]; then
+  python3 /workspace/vllm/benchmark_entrypoint.py
+else
+  true
+fi
+
+# Readiness/liveness probes (non-benchmark)
+if [ "$POD_INDEX" = "0" ]; then
+  python3 /workspace/vllm/multi-node-health-check.py readiness --leader-address=... --vllm-port=5000
+else
+  true
+fi
+```
+
+The `multi-node-health-check.py` script will also enforce this at runtime:
+
+```python
+elif args.probe == "readiness":
+    if not is_leader:
+        sys.exit(0)  # Worker: always ready
+    readiness(args)  # Leader: check /health
+```
 
 ### Failure Handling
 
@@ -417,10 +461,12 @@ We built a proof of concept and measured the downtime during upgrade.
 - Upgrade base image from 0.2.8 to 0.3.0, and manually patch StatefulSet to trigger a rolling upgrade
 
 ### Results
-The downtime was around 6 minutes when the new base image was pre-downloaded,
+The downtime was around 7 minutes when the new base image was pre-downloaded,
 which was mainly caused by:
-- Startup benchmark: ~200s (can we skip running benchmark on upgrade?)
-- torch.compile + vLLM init: ~50s
+- Startup benchmark (execution + drain): ~200s (can we skip running benchmark on upgrade?)
+- Ray cluster formation: ~60s
+- Pod termination/recreation overhead: ~60s
+- CUDAGraph capture + torch.compile + vLLM init: ~50s
 - Model weight loading: ~15s (if from page cache), ~300s (if from NVMe)
 - New base image pull: 0s (if pre-downloaded), ~90s (if pulled on-the-fly)
 
@@ -428,21 +474,18 @@ A detailed breakdown is as below:
 
 | Phase | Duration | Timestamps (UTC) |
 |---|---|---|
-| Pod scheduling + container start | ~5s | 19:49:09 → 19:49:14 |
-| Image pull | ~0s | (cached — "already present on machine") |
-| Ray head start + wait for workers | ~35s | 19:49:14 → 19:49:49 |
-| Python imports + vLLM startup | ~17s | 19:49:49 → 19:50:06 |
-| Model config resolution + EngineCore spawn | ~13s | 19:50:06 → 19:50:19 |
-| Placement group + worker initialization | ~14s | 19:50:19 → 19:50:33 |
-| Weight loading from page cache (both workers) | ~15s | 19:50:33 → 19:50:48 |
-| torch.compile (AOT cache hit) | ~18s | 19:50:48 → 19:51:06 |
-| Engine init (profile, KV cache, warmup) | ~20s | 19:51:06 → 19:51:26 |
-| API server startup + probe scheduling gap | ~14s | 19:51:26 → 19:51:40 |
-| Benchmark execution | ~71s | 19:51:40 → 19:52:51 |
-| Benchmark drain | ~136s | 19:52:51 → 19:55:07 |
-| Controller reconcile | ~2s | 19:55:07 → 19:55:09 |
-| **Total downtime** | **360s (6m 0s)** | 19:49:09 → 19:55:09 |
-
+| SS terminates pod-1 + recreates with 0.3.0 | ~31s | 21:03:00 → 21:03:31 |
+| Pod-1 Ready (worker probe: immediate exit 0) | ~13s | 21:03:31 → 21:03:44 |
+| SS terminates pod-0 + recreates with 0.3.0 | ~29s | 21:03:44 → 21:04:13 |
+| Pod-0 container start + Ray head init | ~10s | 21:04:13 → 21:04:23 |
+| Ray worker (pod-1) joins cluster | ~57s | 21:04:23 → 21:05:20 |
+| vLLM V1 engine init + placement group | ~5s | 21:05:20 → 21:05:25 |
+| Weight loading (15 shards, page cache) | ~7s | 21:05:25 → 21:05:52 (approx) |
+| torch.compile (AOT cache hit, both ranks) | ~15s | 21:05:52 → 21:06:07 |
+| CUDAGraph capture + server ready | ~24s | 21:06:07 → 21:06:31 |
+| Startup benchmark execution | ~71s | 21:06:34 → 21:07:45 |
+| Benchmark drain | ~137s | 21:07:45 → 21:10:02 |
+| **Total (patch → InferenceReady)** | **7m03s** | 21:03:00 → 21:10:03 |
 
 ## Risks and Mitigations
 
@@ -473,8 +516,14 @@ A detailed breakdown is as below:
    - Distributed inference E2E: verify multi-node Workspace upgrades correctly
      (all pods updated simultaneously, Ray cluster reforms, Workspace reaches ready).
 
+## Alternative Considered
+  - Statefulset now supports upgrading more than one pods in parallel by configuring
+    the `.spec.updateStrategy.rollingUpdate.maxUnavailable` field. However, this is a
+    Kubernetes v1.35 beta feature. In future, we can leverage this feature to
+    reduce downtime in multi-node rolling upgrade. 
+ 
 ## Implementation History
-
 - 2026-05-07: Initial proposal created.
 - 2026-05-15: Revised to use in-place StatefulSet rolling update, sequential Workspace
   upgrade via labels and image pre-download.
+- 2026-05-19 Revised to use sequential rolling upgrade for StatefulSet.

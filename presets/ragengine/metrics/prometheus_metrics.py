@@ -287,6 +287,14 @@ RELOAD_RESULT_LABEL = "result"
 RELOAD_RESULT_SUCCESS = "success"
 RELOAD_RESULT_FAILURE = "failure"
 RELOAD_RESULT_NOOP = "noop"
+GUARDRAILS_SCANNER_TYPE_LABEL = "scanner_type"
+GUARDRAILS_STAGE_LABEL = "stage"
+
+guardrails_scanner_build_failures_total = Counter(
+    "ragengine_guardrails_scanner_build_failures_total",
+    "Count of output guardrails scanner build failures.",
+    labelnames=[GUARDRAILS_SCANNER_TYPE_LABEL, GUARDRAILS_STAGE_LABEL],
+)
 
 guardrails_policy_reload_total = Counter(
     "guardrails_policy_reload_total",

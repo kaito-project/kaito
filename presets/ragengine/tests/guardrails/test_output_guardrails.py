@@ -32,6 +32,7 @@ from ragengine.guardrails.scanner_schemas import (
     ParsedScannerConfig,
     RegexConfig,
 )
+from ragengine.metrics.prometheus_metrics import guardrails_scanner_build_failures_total
 from ragengine.models import ChatCompletionResponse
 
 # ---------------------------------------------------------------------------
@@ -113,6 +114,16 @@ def _patch_scan_output(monkeypatch, fn):
     monkeypatch.setattr(output_guardrails_module, "scan_output", fn)
 
 
+def _counter_value(metric, sample_name: str, **labels: str) -> float:
+    for collected in metric.collect():
+        for sample in collected.samples:
+            if sample.name != sample_name:
+                continue
+            if all(sample.labels.get(key) == value for key, value in labels.items()):
+                return sample.value
+    return 0.0
+
+
 @pytest.fixture
 def fake_llm_guard_scanners(monkeypatch):
     """Replace llm_guard's Regex / BanSubstrings with simple recording stubs.
@@ -165,7 +176,7 @@ def fake_llm_guard_scanners(monkeypatch):
 
 
 def test_from_config_loads_yaml_policy(tmp_path, monkeypatch):
-    _write_policy(
+    policy_path = _write_policy(
         tmp_path,
         monkeypatch,
         """
@@ -186,10 +197,28 @@ def test_from_config_loads_yaml_policy(tmp_path, monkeypatch):
     assert guardrails.enabled is True
     assert guardrails.action_on_hit == "block"
     assert guardrails.block_message == "blocked-by-policy"
+    assert guardrails.policy_path == str(policy_path)
+    assert guardrails.policy_hash
     assert guardrails.scanner_configs == (
         _regex_cfg(patterns=[r"https?://\S+"], action_on_hit="block"),
         _ban_subs_cfg(substrings=["secret"], action_on_hit="block"),
     )
+
+
+def test_output_guardrails_exposes_policy_hash(tmp_path, monkeypatch):
+    policy_path = _write_policy(
+        tmp_path,
+        monkeypatch,
+        """
+        action: block
+        blockMessage: blocked-by-policy
+        """,
+    )
+
+    guardrails = OutputGuardrails.from_config()
+
+    assert guardrails.policy_path == str(policy_path)
+    assert len(guardrails.policy_hash) == 64
 
 
 def test_from_config_keeps_empty_scanners_when_policy_path_missing(monkeypatch):
@@ -532,6 +561,12 @@ def test_build_scanners_uses_per_scanner_action(fake_llm_guard_scanners):
 def test_build_scanners_skips_configs_whose_build_raises(monkeypatch):
     sentinel = object()
     call_count = {"n": 0}
+    before = _counter_value(
+        guardrails_scanner_build_failures_total,
+        "ragengine_guardrails_scanner_build_failures_total",
+        scanner_type="regex",
+        stage="build",
+    )
 
     def fake_regex(*args, **kwargs):
         call_count["n"] += 1
@@ -553,6 +588,46 @@ def test_build_scanners_skips_configs_whose_build_raises(monkeypatch):
 
     # First config raised -> skipped; second was built successfully.
     assert guardrails._build_scanners() == [sentinel]
+    after = _counter_value(
+        guardrails_scanner_build_failures_total,
+        "ragengine_guardrails_scanner_build_failures_total",
+        scanner_type="regex",
+        stage="build",
+    )
+    assert after == before + 1
+
+
+def test_scanner_build_failure_increments_metric(monkeypatch):
+    before = _counter_value(
+        guardrails_scanner_build_failures_total,
+        "ragengine_guardrails_scanner_build_failures_total",
+        scanner_type="regex",
+        stage="build",
+    )
+
+    def fake_regex(*args, **kwargs):
+        raise RuntimeError("simulated build failure")
+
+    monkeypatch.setattr(
+        scanner_schemas_module.llm_guard_output_scanners,
+        "Regex",
+        fake_regex,
+        raising=False,
+    )
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        scanner_configs=(_regex_cfg(patterns=["a"]),),
+    )
+
+    assert guardrails._build_scanners() == []
+    after = _counter_value(
+        guardrails_scanner_build_failures_total,
+        "ragengine_guardrails_scanner_build_failures_total",
+        scanner_type="regex",
+        stage="build",
+    )
+    assert after == before + 1
 
 
 def test_regex_config_build_uses_value_lookup_for_fullmatch(

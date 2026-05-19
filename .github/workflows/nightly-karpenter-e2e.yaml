@@ -1,0 +1,41 @@
+name: Nightly Karpenter E2E Tests
+
+on:
+  schedule:
+    - cron: '37 2 * * *' # 2:37 AM UTC daily (off-minute to avoid contention)
+  workflow_dispatch:
+    inputs:
+      ginkgo_label:
+        description: "Ginkgo label filter (default: Nightly)"
+        required: false
+        type: string
+        default: "Nightly"
+      region:
+        description: "The azure location to run the e2e test in"
+        required: false
+        type: string
+        default: "swedencentral"
+
+concurrency:
+  group: nightly-karpenter-e2e
+  cancel-in-progress: true
+
+env:
+  GO_VERSION: "1.26.3"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  run-nightly-e2e:
+    permissions:
+      contents: read
+      id-token: write
+      statuses: write
+    uses: ./.github/workflows/e2e-workflow.yaml
+    with:
+      git_sha: ${{ github.sha }}
+      node_provisioner: azkarpenter
+      ginkgo_label: ${{ inputs.ginkgo_label || 'Nightly' }}
+      region: ${{ inputs.region || 'swedencentral' }}

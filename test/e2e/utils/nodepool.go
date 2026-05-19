@@ -265,6 +265,23 @@ func ValidateNodeLabels(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 	})
 }
 
+// ValidateNodePoolNodeClassRef verifies that the NodePool for a workspace
+// references the expected NodeClass name.
+func ValidateNodePoolNodeClassRef(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, expectedNodeClassName string) {
+	nodePoolName := karpenter.NodePoolName(workspaceObj.Namespace, workspaceObj.Name)
+	ginkgo.By(fmt.Sprintf("Validating NodePool %s references NodeClass %s", nodePoolName, expectedNodeClassName), func() {
+		np := &karpenterv1.NodePool{}
+		gomega.Eventually(func() error {
+			return TestingCluster.KubeClient.Get(ctx, client.ObjectKey{Name: nodePoolName}, np)
+		}, 2*time.Minute, PollInterval).Should(gomega.Succeed(),
+			fmt.Sprintf("NodePool %s should exist", nodePoolName))
+
+		gomega.Expect(np.Spec.Template.Spec.NodeClassRef).NotTo(gomega.BeNil())
+		gomega.Expect(np.Spec.Template.Spec.NodeClassRef.Name).To(gomega.Equal(expectedNodeClassName),
+			"NodeClassRef name should match annotation override")
+	})
+}
+
 // ValidateNodePoolDeletion verifies that the NodePool for a workspace
 // has been deleted (via workspace finalizer).
 func ValidateNodePoolDeletion(ctx context.Context, workspaceObj *kaitov1beta1.Workspace) {

@@ -404,71 +404,11 @@ phi-4-mini-inferencepool-epp-5d994d5ff-6bmzj       1/1     Running   0          
 
 #### 4. Deploy DestinationRule and HTTPRoute
 
-With MRI, the KAITO operator creates a **single InferencePool** that selects all MRI pods (both prefill and decode). The EPP service requires a DestinationRule for TLS bypass (since EPP uses `--secure-serving=true` with a self-signed certificate).
-
-The HTTPRoute targets the InferencePool as the entry point. The llm-d EPP uses scheduling profiles to route requests to the correct role internally.
-
-```bash
-kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/destinationrule-phi-4-mini-instruct.yaml
-kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/httproute.yaml
-```
-
-Verify the HTTPRoute is accepted and references are resolved:
-
-```bash
-kubectl describe httproute llm-route
-```
-
-Expected conditions:
-```
-Status:
-  Parents:
-    Conditions:
-      Message:  Route was valid
-      Reason:   Accepted
-      Status:   True
-      Type:     Accepted
-      Message:  All references resolved
-      Reason:   ResolvedRefs
-      Status:   True
-      Type:     ResolvedRefs
-```
-
-Verify the InferencePool status shows it is referenced by the HTTPRoute:
-
-```bash
-kubectl describe inferencepool phi-4-mini-inferencepool
-```
-
-Expected conditions:
-```
-Status:
-  Parents:
-    Conditions:
-      Message:  Referenced by an HTTPRoute accepted by the parentRef Gateway
-      Reason:   Accepted
-      Status:   True
-      Type:     Accepted
-      Message:  Referenced ExtensionRef resolved successfully
-      Reason:   ResolvedRefs
-      Status:   True
-      Type:     ResolvedRefs
-```
+Follow the same steps as [Option A, Step 3](#3-deploy-destinationrule-and-httproute). The MRI operator creates an InferencePool with the same naming convention (`phi-4-mini-inferencepool`), so the same DestinationRule and HTTPRoute apply.
 
 #### 5. Test Inference
 
-Export the Gateway ClusterIP and send a request:
-
-```bash
-export CLUSTERIP=$(kubectl get svc inference-gateway-istio -o jsonpath='{.spec.clusterIP}')
-kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X POST http://$CLUSTERIP/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "phi-4-mini-instruct",
-    "messages": [{"role": "user", "content": "What is kubernetes?"}],
-    "max_tokens": 100
-  }' | jq
-```
+Follow the same test steps as [Option A, Step 4](#4-test-inference) to send a request via the Gateway.
 
 With P/D disaggregation active, the request flow is:
 

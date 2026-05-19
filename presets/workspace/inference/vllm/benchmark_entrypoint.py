@@ -314,7 +314,7 @@ def _run_benchmark() -> tuple:
     _log(f"processor_resolved PROCESSOR={processor or '<auto>'}")
     _log(f"benchmark_start epoch={t0_epoch:.1f} t0_gen={t0_gen} t0_prompt={t0_prompt}")
 
-    max_concurrency = _compute_max_concurrency()
+    max_concurrency = min(_compute_max_concurrency(), 1024)
     _log(
         f'{{"duration_sec":{BENCHMARK_DURATION},"input_tokens":{BENCHMARK_INPUT_LEN},'
         f'"output_tokens":{BENCHMARK_OUTPUT_LEN},"max_concurrency":{max_concurrency}}}',

@@ -180,6 +180,14 @@ var (
 		"qwen2.5":     "tool-chat-hermes.jinja",
 	}
 
+	// tokenizerModePrefixMap maps model name prefixes to their vLLM tokenizer mode.
+	tokenizerModePrefixMap = map[string]string{
+		// Use deepseek_v32 tokenizer mode for both DeepSeek R1 and V3 models to avoid special token decoding issues:
+		// https://github.com/kaito-project/kaito/issues/1976
+		"deepseek-r1": "deepseek_v32",
+		"deepseek-v3": "deepseek_v32",
+	}
+
 	// vllmAttentionBackendPrefixMap maps model name prefixes to their vLLM attention backend.
 	// source: https://docs.vllm.ai/en/latest/design/attention_backends/
 	vllmAttentionBackendPrefixMap = map[string]string{
@@ -657,6 +665,14 @@ func (g *Generator) FinalizeParams() {
 	g.Param.VLLM.ModelRunParams["load_format"] = g.LoadFormat
 	g.Param.VLLM.ModelRunParams["config_format"] = g.ConfigFormat
 	g.Param.VLLM.ModelRunParams["tokenizer_mode"] = g.TokenizerMode
+
+	// Override tokenizer mode based on model name prefix
+	for prefix, mode := range tokenizerModePrefixMap {
+		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
+			g.Param.VLLM.ModelRunParams["tokenizer_mode"] = mode
+			break
+		}
+	}
 
 	// Set attention backend based on model name prefix
 	for prefix, backend := range vllmAttentionBackendPrefixMap {

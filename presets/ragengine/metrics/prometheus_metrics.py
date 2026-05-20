@@ -324,3 +324,7 @@ guardrails_policy_loaded_timestamp = Gauge(
     "guardrails_policy_loaded_timestamp_seconds",
     "Unix timestamp of the most recent successful output guardrails policy load.",
 )
+guardrails_active_policy = Info(
+    "guardrails_active_policy",
+    "Metadata for the currently active output guardrails policy.",
+)

@@ -33,6 +33,7 @@ from ragengine.metrics.prometheus_metrics import (
     RELOAD_RESULT_FAILURE,
     RELOAD_RESULT_NOOP,
     RELOAD_RESULT_SUCCESS,
+    guardrails_active_policy,
     guardrails_policy_loaded_timestamp,
     guardrails_policy_reload_total,
 )
@@ -61,7 +62,7 @@ class GuardrailsReloader:
         self._watcher_factory = watcher
         self._current_lock = threading.Lock()
         self._current = factory()
-        guardrails_policy_loaded_timestamp.set(time.time())
+        self._update_active_policy_metrics()
         self._task: asyncio.Task[None] | None = None
         self._stop_event: asyncio.Event | None = None
 
@@ -129,28 +130,53 @@ class GuardrailsReloader:
         try:
             new_instance = self._factory()
         except Exception:
+            current_policy_hash = self.get_current().policy_hash or "none"
             guardrails_policy_reload_total.labels(
                 **{"result": RELOAD_RESULT_FAILURE}
             ).inc()
             logger.exception(
-                "output_guardrails_policy_reload_failed path=%s", self._policy_path
+                "output_guardrails_reload_failed path=%s current_policy_hash=%s fallback_action=keep_current",
+                self._policy_path,
+                current_policy_hash,
             )
             return
 
         with self._current_lock:
+            current_policy_hash = self._current.policy_hash or "none"
             if new_instance == self._current:
                 guardrails_policy_reload_total.labels(
                     **{"result": RELOAD_RESULT_NOOP}
                 ).inc()
+                logger.info(
+                    "output_guardrails_reload_noop path=%s policy_hash=%s",
+                    self._policy_path,
+                    current_policy_hash,
+                )
                 return
 
+            old_policy_hash = current_policy_hash
             self._current = new_instance
-
         guardrails_policy_reload_total.labels(**{"result": RELOAD_RESULT_SUCCESS}).inc()
-        guardrails_policy_loaded_timestamp.set(time.time())
+        self._update_active_policy_metrics()
         logger.info(
-            "output_guardrails_policy_reloaded path=%s enabled=%s scanners=%d",
+            "output_guardrails_reload_succeeded path=%s old_policy_hash=%s new_policy_hash=%s enabled=%s scanners=%d",
             self._policy_path,
+            old_policy_hash,
+            new_instance.policy_hash or "none",
             new_instance.enabled,
             len(new_instance.scanner_configs),
+        )
+
+    def _update_active_policy_metrics(self) -> None:
+        with self._current_lock:
+            current = self._current
+
+        guardrails_policy_loaded_timestamp.set(time.time())
+        guardrails_active_policy.info(
+            {
+                "path": current.policy_path or self._policy_path or "",
+                "sha256": current.policy_hash or "none",
+                "enabled": str(current.enabled).lower(),
+                "scanner_count": str(len(current.scanner_configs)),
+            }
         )

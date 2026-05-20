@@ -98,6 +98,7 @@ class OutputGuardrails:
             return self
 
         output_guardrails_policy_load_total.labels(policy_status="success").inc()
+        policy_hash = sha256(policy_bytes).hexdigest()
         output_guardrails_policy_info.info(
             {
                 "path": policy_path,

@@ -14,6 +14,7 @@
 import logging
 import re
 from dataclasses import dataclass, field
+from hashlib import sha256
 from typing import Any
 
 import yaml
@@ -43,6 +44,8 @@ class OutputGuardrails:
     action_on_hit: str = DEFAULT_ACTION_ON_HIT
     block_message: str = DEFAULT_BLOCK_MESSAGE
     scanner_configs: tuple[ParsedScannerConfig, ...] = field(default_factory=tuple)
+    policy_hash: str = ""
+    policy_path: str = ""
 
     @classmethod
     def from_config(cls) -> "OutputGuardrails":
@@ -63,8 +66,9 @@ class OutputGuardrails:
             return self
 
         try:
-            with open(policy_path, encoding="utf-8") as policy_file:
-                policy = yaml.safe_load(policy_file) or {}
+            with open(policy_path, "rb") as policy_file:
+                policy_bytes = policy_file.read()
+            policy = yaml.safe_load(policy_bytes.decode("utf-8")) or {}
         except FileNotFoundError:
             logger.warning("output_guardrails_policy_missing path=%s", policy_path)
             return self
@@ -81,6 +85,7 @@ class OutputGuardrails:
         default_action_on_hit = _normalize_action(
             policy.get("action"), self.action_on_hit
         )
+        policy_hash = sha256(policy_bytes).hexdigest()
         scanner_configs = self.scanner_configs
         if "scanners" in policy:
             scanner_configs = _parse_policy_scanner_configs(
@@ -97,6 +102,8 @@ class OutputGuardrails:
                 policy.get("blockMessage"), self.block_message
             ),
             scanner_configs=scanner_configs,
+            policy_hash=policy_hash,
+            policy_path=policy_path,
         )
 
     def guard_response(

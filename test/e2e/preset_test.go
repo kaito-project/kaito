@@ -1157,7 +1157,7 @@ var _ = Describe("Karpenter Bootstrap", func() {
 		workspaceObj := utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
 			numOfNode, "Standard_NC4as_T4_v3", &metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": uniqueID},
-			}, nil, PresetPhi4MiniModel, nil, nil, nil, "", "")
+			}, nil, PresetPhi3Mini128kModel, nil, nil, nil, "", "")
 
 		// Add NodeClass override annotation
 		if workspaceObj.Annotations == nil {

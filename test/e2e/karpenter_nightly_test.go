@@ -45,7 +45,7 @@ var _ = Describe("Karpenter Nightly", Serial, func() {
 			1, "Standard_NC4as_T4_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": uniqueID},
-			}, PresetPhi4MiniModel, nil, nil, modelSecret.Name)
+			}, PresetPhi3Mini128kModel, nil, nil, modelSecret.Name)
 
 		defer cleanupResourcesForInferenceSet(inferenceSetObj)
 
@@ -116,7 +116,7 @@ var _ = Describe("Karpenter Nightly", Serial, func() {
 			2, "Standard_NC4as_T4_v3",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": uniqueID},
-			}, PresetPhi4MiniModel, nil, nil, modelSecret.Name)
+			}, PresetPhi3Mini128kModel, nil, nil, modelSecret.Name)
 
 		defer cleanupResourcesForInferenceSet(inferenceSetObj)
 

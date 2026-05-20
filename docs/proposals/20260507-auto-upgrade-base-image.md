@@ -140,7 +140,7 @@ type MaintenanceWindow struct {
 
 **Maintenance window semantics:**
 - **Version detection** happens on every reconcile regardless of the window — the
-  controller always knows if an update is available and sets `AutoUpgradeAvailable`.
+  controller always knows if an update is available (`numDriftedWorkspaces > 0`).
 - **Upgrade execution** (tagging Workspaces, pre-downloading images) only happens
   inside the window.
 - **In-progress upgrades** are not interrupted: if the window closes while a Workspace's
@@ -152,7 +152,7 @@ type MaintenanceWindow struct {
 
 | Key | Applied To | Purpose |
 |---|---|---|
-| `kaito.sh/upgrade-to-version` | Workspace | Signals to the Workspace controller that this Workspace should be upgraded to the specified base image version. Set by the InferenceSet controller; removed by the Workspace controller after upgrade completes. |
+| `kaito.sh/upgrade-to-version` | Workspace | Signals to the Workspace controller that this Workspace should be upgraded to the specified base image version. Set by the AutoUpgradeRunner; retained after upgrade completes as an audit trail. |
 
 #### InferenceSetSpec Change
 
@@ -173,23 +173,25 @@ type InferenceSetSpec struct {
 
 | Condition Type | Status | Reason | Meaning |
 |---|---|---|---|
-| `AutoUpgradeAvailable` | `True` | `NewVersionDetected` | Base image version mismatch detected between controller and Workspaces |
-| `AutoUpgradeInProgress` | `True` | `RollingUpgrade` | One or more Workspaces are being upgraded |
-| `AutoUpgradeInProgress` | `False` | `UpgradeComplete` | All Workspaces upgraded successfully |
-| `AutoUpgradeFailed` | `True` | `WorkspaceUpgradeFailed` | A Workspace failed to become ready after upgrade |
+| `AutoUpgradeFailed` | `True` | `WorkspaceUpgradeFailed` | A Workspace failed to become ready after upgrade; rollout halted |
+| `AutoUpgradeFailed` | `False` | `NoFailure` | No upgrade failure (default state) |
+
+Other states are derivable from existing fields:
+- **Upgrade available**: `numDriftedWorkspaces > 0`
+- **Upgrade in progress**: `numDriftedWorkspaces > 0` AND `AutoUpgradeFailed` is `False`
+- **All up-to-date**: `numDriftedWorkspaces == 0`
 
 #### New Status Fields
 
 ```go
 type AutoUpgradeStatus struct {
-    // CurrentVersion is the base image tag hardcoded in the running controller.
-    CurrentVersion string `json:"currentVersion,omitempty"`
-    // WorkspacesUpgraded is the number of Workspaces already running the current version.
-    WorkspacesUpgraded int `json:"workspacesUpgraded,omitempty"`
-    // WorkspacesTotal is the total number of Workspaces managed by this InferenceSet.
-    WorkspacesTotal int `json:"workspacesTotal,omitempty"`
-    // LastUpgradeTime is the timestamp of the last successful Workspace upgrade.
-    LastUpgradeTime *metav1.Time `json:"lastUpgradeTime,omitempty"`
+    // NumDriftedWorkspaces is the number of Workspaces whose base image version
+    // differs from the controller's embedded version. When 0, all Workspaces are
+    // up-to-date.
+    NumDriftedWorkspaces int `json:"numDriftedWorkspaces"`
+    // LastSuccessfulUpgradeTime is the timestamp of the last Workspace that
+    // successfully completed an auto-upgrade.
+    LastSuccessfulUpgradeTime *metav1.Time `json:"lastSuccessfulUpgradeTime,omitempty"`
 }
 ```
 
@@ -220,53 +222,93 @@ spec:
 
 ### Controller Behavior Changes
 
-#### InferenceSet Controller
+#### AutoUpgradeRunner (Background Goroutine)
 
-The InferenceSet controller currently manages the Workspace replica count: it lists
-Workspaces by the `inferenceset.kaito.io/name` label, creates new Workspaces if
-below `spec.replicas`, and deletes excess Workspaces (non-ready first). The
-auto-upgrade feature adds the following responsibilities:
+The auto-upgrade logic runs as a **dedicated background goroutine** registered with
+Kaito's controller manager via `mgr.Add()`. This keeps the InferenceSet controller
+unchanged (focused solely on replica management) and provides a natural fit for
+time-based maintenance window logic.
 
-1. **Version mismatch detection (every reconcile):**
-   After listing Workspaces, the controller fetches each Workspace's StatefulSet and
-   extracts the container image tag. It compares this against the controller's
-   embedded version (`metadata.MustGet("base").Tag`). This check runs unconditionally
-   — even when `autoUpgrade` is not enabled — so that the `AutoUpgradeAvailable`
-   condition always reflects the true state.
+```go
+type AutoUpgradeRunner struct {
+    client   client.Client
+    interval time.Duration  // e.g., 5 * time.Minute
+}
 
-2. **Sequential Workspace tagging:**
-   The controller selects **one** un-upgraded Workspace that does not already have
-   the `kaito.sh/upgrade-to-version` label and adds it. It does not tag the next
-   Workspace until the current one completes (label removed by Workspace controller)
-   or fails (readiness timeout). This serialization is enforced by checking at each
-   reconcile: if any Workspace carries the `kaito.sh/upgrade-to-version` label, skip
-   tagging another.
+func (r *AutoUpgradeRunner) Start(ctx context.Context) error {
+    ticker := time.NewTicker(r.interval)
+    defer ticker.Stop()
+    for {
+        select {
+        case <-ctx.Done():
+            return nil
+        case <-ticker.C:
+            r.reconcileAll(ctx)
+        }
+    }
+}
 
-3. **Status updates:**
-   The controller counts Workspaces whose StatefulSet image matches the controller
-   version and updates `status.autoUpgrade.workspacesUpgraded` and
-   `status.autoUpgrade.workspacesTotal`. It manages the `AutoUpgradeAvailable`,
-   `AutoUpgradeInProgress`, and `AutoUpgradeFailed` conditions.
+func (r *AutoUpgradeRunner) NeedLeaderElection() bool { return true }
+```
 
-4. **Failure handling:**
+The runner is registered at controller setup time:
+```go
+mgr.Add(&AutoUpgradeRunner{client: mgr.GetClient(), interval: 5 * time.Minute})
+```
+
+Controller-runtime starts the goroutine after leader election and stops it (via
+context cancellation) on graceful shutdown or leader loss.
+
+**`reconcileAll()` behavior on each tick:**
+
+1. **List InferenceSets** with `autoUpgrade.enabled: true`.
+
+2. **For each InferenceSet, detect version drift:**
+   List Workspaces by the `inferenceset.kaito.io/name` label, fetch each
+   Workspace's StatefulSet, and compare the container image tag against the
+   controller's embedded version (`metadata.MustGet("base").Tag`).
+
+3. **Update status:**
+   Count drifted Workspaces and update `status.autoUpgrade.numDriftedWorkspaces`
+   on the InferenceSet. Manage the `AutoUpgradeFailed` condition.
+
+4. **Maintenance window check:**
+   If a maintenance window is configured, evaluate whether the current time falls
+   within the window (cron schedule + duration). If outside, skip tagging and
+   return (the next tick will re-check).
+
+5. **Sequential Workspace upgrade (phase-based):**
+   The Runner tracks each Workspace through a state machine:
+
+   | Phase | Condition | Action |
+   |---|---|---|
+   | **Idle** | No label, image differs from controller version | Select as next candidate |
+   | **PreDownload** | Pre-download pod exists, not yet Succeeded | Wait (check on next tick) |
+   | **Tag** | Pre-download Succeeded (or timed out) | Add `kaito.sh/upgrade-to-version` label, delete pre-download pod |
+   | **Upgrading** | Label set, SS image differs from label value | Wait for Workspace to reach InferenceReady |
+   | **Done** | Label set, SS image matches label value | Move to next Workspace |
+
+   Only one Workspace is in PreDownload/Tag/Upgrading at a time.
+
+   **Pre-download details:** The Runner creates a lightweight pod on each node
+   where the Workspace's StatefulSet pods are running. The pod uses the new base
+   image with a no-op command (`["echo", "predownload-complete"]`), minimal
+   resources (10m CPU, 16Mi memory, no GPU), and GPU node tolerations. The pod
+   has an owner reference to the InferenceSet for garbage collection. On each
+   tick, the Runner checks if the pod has Succeeded. After 30 minutes without
+   completion, the Runner proceeds anyway (tags the Workspace; pods will pull
+   on-demand).
+
+6. **Failure handling:**
    If a tagged Workspace fails to reach `InferenceReady` within the readiness
-   timeout, the controller sets `AutoUpgradeFailed=True` and stops tagging further
-   Workspaces. The failed Workspace retains its `kaito.sh/upgrade-to-version` label
-   for operator inspection.
+   timeout, set `AutoUpgradeFailed=True` on the InferenceSet and stop tagging
+   further Workspaces.
 
-5. **Scale interaction during upgrade:**
-   - Scale-up: new Workspaces are created normally. Since `GetBaseImageName()`
-     returns the controller's current version, they are created with the new image
-     and need no upgrade.
-   - Scale-down: the controller's existing deletion logic (non-ready first) is
-     extended to prefer deleting old-version Workspaces over upgraded ones.
-
-6. **Maintenance window enforcement:**
-   Before tagging a Workspace, the controller checks whether the current time falls
-   within the maintenance window (cron schedule + duration). If outside the window,
-   it sets `AutoUpgradeAvailable=True` but does not initiate or continue the rollout.
-   If a Workspace upgrade is already in progress (label set, StatefulSet rolling),
-   it is allowed to complete — the window check only gates the *next* Workspace tag.
+7. **Scale interaction:**
+   - Scale-up: new Workspaces are created by the InferenceSet controller with the
+     current base image (via `GetBaseImageName()`), so they need no upgrade.
+   - Scale-down: the InferenceSet controller's existing deletion logic (non-ready
+     first) is extended to prefer deleting old-version Workspaces over upgraded ones.
 
 #### Workspace Controller
 
@@ -289,29 +331,18 @@ auto-upgrade feature adds the following changes:
    `kaito.sh/upgrade-to-version` label on the Workspace. If present, the method
    proceeds with the StatefulSet update regardless of whether the revision matches.
 
-2. **Pre-download new base image:**
-   Before updating the StatefulSet, the Workspace controller creates a lightweight
-   pod on each node where the Workspace's pods are running. The pod pulls the new
-   base image with a no-op command (`["echo", "predownload-complete"]`), minimal
-   resources (10m CPU, 16Mi memory, no GPU), and GPU node tolerations. For
-   single-node Workspaces, this is one pod; for distributed inference, one pod per
-   node. The Workspace controller waits until the pod(s) complete (image pulled) or
-   a timeout (30 minutes) elapses, then deletes them and proceeds with the
-   StatefulSet update. On timeout, the controller proceeds anyway — pods will pull
-   the image on-demand during restart.
-
-3. **Extended StatefulSet update path:**
+2. **StatefulSet image update:**
    The current selective update modifies `Env`, `VolumeMounts`, `InitContainers`,
    and `Volumes`. When the upgrade label is present, the update additionally sets:
    - `spec.template.spec.containers[0].image` → the new base image (from
      `GetBaseImageName()`, which now returns the controller's current version).
 
    After calling `c.Update(ctx, existingStatefulSet)`, the Kubernetes StatefulSet
-   controller detects the pod template change and begins a rolling update. Since
-   the StatefulSet uses `podManagementPolicy: Parallel`, all pods are terminated
-   and recreated with the new image simultaneously.
+   controller detects the pod template change and begins a rolling update (one pod
+   at a time in reverse ordinal order). The base image is already cached on the
+   node (pre-downloaded by the AutoUpgradeRunner before tagging).
 
-4. **Upgrade completion detection:**
+3. **Upgrade completion detection:**
    The `applyInference()` call is synchronous — it updates the StatefulSet object
    and returns. The actual pod rolling update happens asynchronously, driven by the
    Kubernetes StatefulSet controller. The Workspace controller detects completion
@@ -319,34 +350,6 @@ auto-upgrade feature adds the following changes:
    `ss.Status.ReadyReplicas == replicas` on each reconcile. Once all pods are
    running the new image and pass their readiness probes, `InferenceReady`
    becomes `True`.
-
-5. **Upgrade label cleanup:**
-   Once the Workspace reaches `InferenceReady` and the StatefulSet's container
-   image matches the target version, the Workspace controller removes the
-   `kaito.sh/upgrade-to-version` label. This signals to the InferenceSet
-   controller that the Workspace is done and the next one can be tagged.
-
-6. **Reconcile triggers:**
-   The Workspace controller already watches for Workspace label/annotation changes
-   via the existing `Watches` configuration. When the InferenceSet controller adds
-   the `kaito.sh/upgrade-to-version` label, this triggers a Workspace reconcile
-   automatically.
-
-**Key Implementation Notes:**
-
-1. **Sequential Pod Updates:** Despite `podManagementPolicy: Parallel`, the
-   StatefulSet controller still updates pods **one at a time in reverse ordinal
-   order** during a `RollingUpdate`. The `Parallel` policy only affects initial
-   creation and scaling — not rolling updates. This means the worker (pod-1) is
-   updated before the leader (pod-0), which requires the worker probe fix below.
-
-2. **Crash Safety:** The rollout state is fully recoverable from existing state:
-   - Workspaces with `kaito.sh/upgrade-to-version` set → upgrade in progress.
-   - Workspaces whose StatefulSet image tag matches the controller version →
-     already upgraded.
-   - Workspaces whose StatefulSet image tag differs → needs upgrade.
-   If the controller crashes mid-rollout, the next reconcile reconstructs the state
-   and resumes.
 
 ### Probe Changes
 
@@ -359,7 +362,7 @@ leader's health, a permanent deadlock occurs:
 - Leader cannot serve `/health` without a worker in its placement group
 - Worker never becomes Ready → StatefulSet never updates leader
 
-**Fix:** Worker probes exit 0 unconditionally. This is safe because:
+To address this problem, we will update Worker probes to be Ready unconditionally. This is safe because:
 - The Service routes traffic only to pod-0 (via `statefulset.kubernetes.io/pod-name` selector)
 - Workers don't expose an HTTP endpoint; their readiness is irrelevant to traffic routing
 - The leader's probes still gate actual service availability
@@ -419,38 +422,20 @@ status:
   replicas: 3
   readyReplicas: 3
   autoUpgrade:
-    currentVersion: "0.4.0"
-    workspacesUpgraded: 1        # 1 of 3 upgraded so far
-    workspacesTotal: 3
-    lastUpgradeTime: "2026-05-14T02:30:00Z"
+    numDriftedWorkspaces: 2
+    lastSuccessfulUpgradeTime: "2026-05-14T02:30:00Z"
   conditions:
     - type: Ready
       status: "True"
-    - type: AutoUpgradeAvailable
-      status: "True"
-      reason: NewVersionDetected
-      message: "Base image 0.4.0 available (2 workspaces at 0.3.0)"
-    - type: AutoUpgradeInProgress
-      status: "True"
-      reason: RollingUpgrade
-      message: "Upgrading workspace 2/3 to base image 0.4.0"
+    - type: AutoUpgradeFailed
+      status: "False"
+      reason: NoFailure
 ```
 
 Users can monitor upgrade progress via:
 ```bash
 kubectl get inferenceset my-llm-service -o jsonpath='{.status.autoUpgrade}'
-kubectl get inferenceset my-llm-service -o jsonpath='{.status.conditions[?(@.type=="AutoUpgradeInProgress")]}'
 ```
-
-Kubernetes events are emitted for key lifecycle transitions:
-- `Normal  BaseImageMismatchDetected  Base image 0.4.0 available; 3 workspaces at 0.3.0`
-- `Normal  PreDownloadStarted        Pre-downloading base image 0.4.0 to GPU nodes`
-- `Normal  PreDownloadCompleted       Base image 0.4.0 cached on all target nodes`
-- `Normal  WorkspaceUpgradeStarted   Tagging workspace my-llm-service-abc for upgrade to 0.4.0`
-- `Normal  WorkspaceUpgradeCompleted Workspace my-llm-service-abc upgraded to 0.4.0`
-- `Normal  AllWorkspacesUpgraded     All 3 workspaces upgraded to base image 0.4.0`
-- `Warning WorkspaceUpgradeFailed    Workspace my-llm-service-def failed to become ready after upgrade`
-- `Warning PreDownloadTimeout        Pre-download timed out; proceeding with on-demand pull`
 
 ## Proof of Concept
 We built a proof of concept and measured the downtime during upgrade.
@@ -527,3 +512,4 @@ A detailed breakdown is as below:
 - 2026-05-15: Revised to use in-place StatefulSet rolling update, sequential Workspace
   upgrade via labels and image pre-download.
 - 2026-05-19 Revised to use sequential rolling upgrade for StatefulSet.
+- 2026-05-20 Revised to manage autoupgrade with a dedicate goroutine.

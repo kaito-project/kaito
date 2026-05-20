@@ -248,4 +248,8 @@ func TestGenerateNodePool_CustomCloudConfig(t *testing.T) {
 	assert.Equal(t, "karpenter.k8s.aws", ref.Group)
 	assert.Equal(t, "EC2NodeClass", ref.Kind)
 	assert.Equal(t, "default-ec2", ref.Name)
+
+	// Non-Azure providers should only have instance-type requirement (no placement scope).
+	assert.Equal(t, 1, len(np.Spec.Template.Spec.Requirements))
+	assert.Equal(t, corev1.LabelInstanceTypeStable, np.Spec.Template.Spec.Requirements[0].Key)
 }

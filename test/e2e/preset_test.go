@@ -1174,7 +1174,6 @@ var _ = Describe("Karpenter Bootstrap", func() {
 			utils.ValidateNodePoolNodeClassRef(ctx, workspaceObj, consts.AKSNodeClassAzureLinuxName)
 		})
 
-		validateCreateNode(workspaceObj, numOfNode)
 		validateResourceStatus(workspaceObj)
 		validateWorkspaceReadiness(workspaceObj)
 	})

@@ -54,16 +54,20 @@ def _write_policy(tmp_path, monkeypatch, yaml_content: str, *, enabled: bool = T
     return policy_path
 
 
-def _regex_cfg(patterns=("a",), **kw) -> ParsedScannerConfig:
+def _regex_cfg(patterns=("a",), action_on_hit="redact", **kw) -> ParsedScannerConfig:
     return ParsedScannerConfig(
         type="regex",
+        action_on_hit=action_on_hit,
         config=RegexConfig(patterns=list(patterns), **kw),
     )
 
 
-def _ban_subs_cfg(substrings=("secret",), **kw) -> ParsedScannerConfig:
+def _ban_subs_cfg(
+    substrings=("secret",), action_on_hit="redact", **kw
+) -> ParsedScannerConfig:
     return ParsedScannerConfig(
         type="ban_substrings",
+        action_on_hit=action_on_hit,
         config=BanSubstringsConfig(substrings=list(substrings), **kw),
     )
 
@@ -195,8 +199,8 @@ def test_from_config_loads_yaml_policy(tmp_path, monkeypatch):
     assert guardrails.policy_hash
     assert guardrails.policy_path.endswith("guardrails.yaml")
     assert guardrails.scanner_configs == [
-        _regex_cfg(patterns=[r"https?://\S+"]),
-        _ban_subs_cfg(substrings=["secret"]),
+        _regex_cfg(patterns=[r"https?://\S+"], action_on_hit="block"),
+        _ban_subs_cfg(substrings=["secret"], action_on_hit="block"),
     ]
 
 
@@ -259,7 +263,9 @@ def test_from_config_replaces_scanners_with_policy_values(tmp_path, monkeypatch)
     guardrails = OutputGuardrails.from_config()
 
     assert guardrails.action_on_hit == "block"
-    assert guardrails.scanner_configs == [_ban_subs_cfg(substrings=["yaml-only"])]
+    assert guardrails.scanner_configs == [
+        _ban_subs_cfg(substrings=["yaml-only"], action_on_hit="block")
+    ]
 
 
 def test_from_config_invalid_action_falls_back_to_default(tmp_path, monkeypatch):

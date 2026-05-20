@@ -110,6 +110,7 @@ class OutputGuardrails:
             scanner_configs = _parse_policy_scanner_configs(
                 policy.get("scanners"),
                 policy_path,
+                _normalize_action(policy.get("action"), self.action_on_hit),
             )
 
         return OutputGuardrails(
@@ -185,10 +186,13 @@ class OutputGuardrails:
             ) from exc
 
     def _build_scanners(self) -> list[Any]:
-        scanners: list[Any] = []
+        return [scanner for _, scanner in self._build_scanners_with_configs()]
+
+    def _build_scanners_with_configs(self) -> list[tuple[ParsedScannerConfig, Any]]:
+        scanners: list[tuple[ParsedScannerConfig, Any]] = []
         for parsed in self.scanner_configs:
             try:
-                scanners.append(parsed.config.build(self.action_on_hit))
+                scanners.append((parsed, parsed.config.build(self.action_on_hit)))
                 output_guardrails_scanner_build_total.labels(
                     type=parsed.type, status=STATUS_SUCCESS
                 ).inc()
@@ -221,7 +225,9 @@ class OutputGuardrails:
 
 
 def _parse_policy_scanner_configs(
-    value: Any, policy_path: str
+    value: Any,
+    policy_path: str,
+    default_action_on_hit: str = DEFAULT_ACTION_ON_HIT,
 ) -> list[ParsedScannerConfig]:
     if value is None:
         return []
@@ -245,10 +251,14 @@ def _parse_policy_scanner_configs(
             )
             continue
 
+        scanner_action_on_hit = _normalize_action(
+            raw.get("action"), default_action_on_hit
+        )
+
         normalized_raw = {
             _normalize_scanner_key(str(key)): item
             for key, item in raw.items()
-            if key != "type"
+            if key not in {"type", "action"}
         }
         try:
             cfg = schema_cls.from_dict(normalized_raw)
@@ -260,7 +270,13 @@ def _parse_policy_scanner_configs(
             )
             continue
 
-        parsed_configs.append(ParsedScannerConfig(type=scanner_type, config=cfg))
+        parsed_configs.append(
+            ParsedScannerConfig(
+                type=scanner_type,
+                config=cfg,
+                action_on_hit=scanner_action_on_hit,
+            )
+        )
 
     return parsed_configs
 

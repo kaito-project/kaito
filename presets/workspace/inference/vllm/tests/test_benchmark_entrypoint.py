@@ -364,6 +364,7 @@ def test_run_benchmark_success(monkeypatch):
     with (
         patch.object(bm, "_sum_counter_metric", side_effect=read_counter),
         patch.object(bm, "_resolve_processor", return_value="mymodel"),
+        patch.object(bm, "_predownload_processor", side_effect=lambda p: p),
         patch.object(bm, "_compute_max_concurrency", return_value=128),
         patch.object(bm, "_run_guidellm", return_value=mock_report),
         patch.object(bm, "_log"),
@@ -386,6 +387,7 @@ def test_run_benchmark_no_generation():
     with (
         patch.object(bm, "_sum_counter_metric", return_value=0),
         patch.object(bm, "_resolve_processor", return_value=""),
+        patch.object(bm, "_predownload_processor", side_effect=lambda p: p),
         patch.object(bm, "_compute_max_concurrency", return_value=128),
         patch.object(bm, "_run_guidellm", return_value=mock_report),
         patch.object(bm, "_log"),

@@ -27,6 +27,11 @@ from ragengine.guardrails.output_guardrails import (
     DEFAULT_BLOCK_MESSAGE,
     OutputGuardrails,
 )
+from ragengine.metrics.prometheus_metrics import (
+    scanner_action_total,
+    scanner_build_failure_total,
+    scanner_hit_total,
+)
 from ragengine.guardrails.scanner_schemas import (
     BanSubstringsConfig,
     ParsedScannerConfig,
@@ -111,6 +116,16 @@ def _make_tool_call_response() -> ChatCompletionResponse:
 
 def _patch_scan_output(monkeypatch, fn):
     monkeypatch.setattr(output_guardrails_module, "scan_output", fn)
+
+
+def _counter_value(metric, sample_name: str, **labels: str) -> float:
+    for collected in metric.collect():
+        for sample in collected.samples:
+            if sample.name != sample_name:
+                continue
+            if sample.labels == labels:
+                return sample.value
+    return 0.0
 
 
 @pytest.fixture
@@ -706,7 +721,7 @@ def test_guard_response_recovers_when_scan_output_raises(monkeypatch):
     ],
 )
 def test_guard_response_applies_action(
-    monkeypatch, action, block_message, expected_content
+    monkeypatch, caplog, action, block_message, expected_content
 ):
     _patch_scan_output(
         monkeypatch,
@@ -724,8 +739,26 @@ def test_guard_response_applies_action(
         scanner_configs=(_regex_cfg(patterns=[r"\S+"], action_on_hit=action),),
     )
 
-    out = guardrails.guard_response(_make_response("dirty"), {"messages": []})
+    before_hits = _counter_value(
+        scanner_hit_total, "scanner_hit_total", scanner_type="regex"
+    )
+    before_actions = _counter_value(
+        scanner_action_total, "scanner_action_total", action=action
+    )
+
+    with caplog.at_level("INFO"):
+        out = guardrails.guard_response(_make_response("dirty"), {"messages": []})
+
     assert out.choices[0].message.content == expected_content
+    assert _counter_value(
+        scanner_hit_total, "scanner_hit_total", scanner_type="regex"
+    ) == pytest.approx(before_hits + 1)
+    assert _counter_value(
+        scanner_action_total, "scanner_action_total", action=action
+    ) == pytest.approx(before_actions + 1)
+    assert "output_guardrails_audit event=scanner_hit" in caplog.text
+    assert f"action={action}" in caplog.text
+    assert "output_guardrails_audit event=action_applied" in caplog.text
 
 
 def test_guard_response_applies_mixed_scanner_actions_in_order(monkeypatch):
@@ -782,6 +815,38 @@ def test_guard_response_block_wins_when_block_scanner_triggers(monkeypatch):
 
     out = guardrails.guard_response(_make_response("dirty"), {"messages": []})
     assert out.choices[0].message.content == "blocked!"
+
+
+def test_build_scanners_records_failure_metric_and_audit_log(caplog):
+    class BrokenConfig:
+        def build(self, _action):
+            raise RuntimeError("broken scanner")
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        scanner_configs=(
+            ParsedScannerConfig(
+                type="regex",
+                action_on_hit="redact",
+                config=BrokenConfig(),
+            ),
+        ),
+    )
+    before_failures = _counter_value(
+        scanner_build_failure_total,
+        "scanner_build_failure_total",
+        scanner_type="regex",
+    )
+
+    with caplog.at_level("INFO"):
+        assert guardrails._build_scanners_with_configs() == []
+
+    assert _counter_value(
+        scanner_build_failure_total,
+        "scanner_build_failure_total",
+        scanner_type="regex",
+    ) == pytest.approx(before_failures + 1)
+    assert "output_guardrails_audit event=scanner_build_failure" in caplog.text
 
 
 # ---------------------------------------------------------------------------

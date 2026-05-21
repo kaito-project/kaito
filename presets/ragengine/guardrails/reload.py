@@ -36,12 +36,22 @@ from ragengine.metrics.prometheus_metrics import (
     guardrails_active_policy,
     guardrails_policy_loaded_timestamp,
     guardrails_policy_reload_total,
+    reload_failure_total,
+    reload_success_total,
 )
 
 logger = logging.getLogger(__name__)
 
 
 GuardrailsFactory = Callable[[], OutputGuardrails]
+
+
+def _log_reload_audit(event: str, **fields: Any) -> None:
+    details = " ".join(f"{key}={fields[key]}" for key in sorted(fields))
+    message = f"output_guardrails_reload_audit event={event}"
+    if details:
+        message = f"{message} {details}"
+    logger.info(message)
 
 
 class GuardrailsReloader:
@@ -139,6 +149,13 @@ class GuardrailsReloader:
             guardrails_policy_reload_total.labels(
                 **{"result": RELOAD_RESULT_FAILURE}
             ).inc()
+            reload_failure_total.inc()
+            _log_reload_audit(
+                "failure",
+                path=self._policy_path,
+                current_policy_hash=current_policy_hash,
+                fallback_action="keep_current",
+            )
             logger.exception(
                 "output_guardrails_reload_failed path=%s current_policy_hash=%s fallback_action=keep_current",
                 self._policy_path,
@@ -152,6 +169,11 @@ class GuardrailsReloader:
                 guardrails_policy_reload_total.labels(
                     **{"result": RELOAD_RESULT_NOOP}
                 ).inc()
+                _log_reload_audit(
+                    "noop",
+                    path=self._policy_path,
+                    policy_hash=current_policy_hash,
+                )
                 logger.info(
                     "output_guardrails_reload_noop path=%s policy_hash=%s",
                     self._policy_path,
@@ -162,7 +184,16 @@ class GuardrailsReloader:
             old_policy_hash = current_policy_hash
             self._current = new_instance
         guardrails_policy_reload_total.labels(**{"result": RELOAD_RESULT_SUCCESS}).inc()
+        reload_success_total.inc()
         self._update_active_policy_metrics()
+        _log_reload_audit(
+            "success",
+            path=self._policy_path,
+            old_policy_hash=old_policy_hash,
+            new_policy_hash=new_instance.policy_hash or "none",
+            enabled=str(new_instance.enabled).lower(),
+            scanners=len(new_instance.scanner_configs),
+        )
         logger.info(
             "output_guardrails_reload_succeeded path=%s old_policy_hash=%s new_policy_hash=%s enabled=%s scanners=%d",
             self._policy_path,

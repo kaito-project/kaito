@@ -287,11 +287,36 @@ RELOAD_RESULT_LABEL = "result"
 RELOAD_RESULT_SUCCESS = "success"
 RELOAD_RESULT_FAILURE = "failure"
 RELOAD_RESULT_NOOP = "noop"
+SCANNER_TYPE_LABEL = "scanner_type"
+SCANNER_ACTION_LABEL = "action"
 
 guardrails_policy_reload_total = Counter(
     "guardrails_policy_reload_total",
     "Count of output guardrails policy reload attempts.",
     labelnames=[RELOAD_RESULT_LABEL],
+)
+reload_success_total = Counter(
+    "reload_success_total",
+    "Count of successful output guardrails policy reloads.",
+)
+reload_failure_total = Counter(
+    "reload_failure_total",
+    "Count of failed output guardrails policy reloads.",
+)
+scanner_build_failure_total = Counter(
+    "scanner_build_failure_total",
+    "Count of output guardrails scanner build failures.",
+    labelnames=[SCANNER_TYPE_LABEL],
+)
+scanner_hit_total = Counter(
+    "scanner_hit_total",
+    "Count of output guardrails scanner hits.",
+    labelnames=[SCANNER_TYPE_LABEL],
+)
+scanner_action_total = Counter(
+    "scanner_action_total",
+    "Count of output guardrails scanner actions applied.",
+    labelnames=[SCANNER_ACTION_LABEL],
 )
 guardrails_policy_loaded_timestamp = Gauge(
     "guardrails_policy_loaded_timestamp_seconds",

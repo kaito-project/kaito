@@ -24,7 +24,11 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 
 from ragengine.guardrails.output_guardrails import OutputGuardrails
 from ragengine.guardrails.reload import GuardrailsReloader
-from ragengine.metrics.prometheus_metrics import guardrails_active_policy
+from ragengine.metrics.prometheus_metrics import (
+    guardrails_active_policy,
+    reload_failure_total,
+    reload_success_total,
+)
 
 
 def _factory(instances):
@@ -68,6 +72,16 @@ def _info_labels(metric, sample_name: str) -> dict[str, str]:
             if sample.name == sample_name:
                 return sample.labels
     raise AssertionError(f"sample {sample_name!r} not found")
+
+
+def _counter_value(metric, sample_name: str, **labels: str) -> float:
+    for collected in metric.collect():
+        for sample in collected.samples:
+            if sample.name != sample_name:
+                continue
+            if sample.labels == labels:
+                return sample.value
+    return 0.0
 
 
 def test_initial_load_uses_factory_once():
@@ -130,11 +144,15 @@ def test_reload_swaps_in_new_instance_on_change():
         debounce_seconds=0,
         factory=_factory([first, second]),
     )
+    before_success = _counter_value(reload_success_total, "reload_success_total")
     assert reloader.get_current() is first
 
     reloader._reload()
 
     assert reloader.get_current() is second
+    assert _counter_value(reload_success_total, "reload_success_total") == pytest.approx(
+        before_success + 1
+    )
     labels = _info_labels(guardrails_active_policy, "guardrails_active_policy_info")
     assert labels["path"] == "/tmp/policy.yaml"
     assert labels["sha256"] == second.policy_hash
@@ -152,17 +170,22 @@ def test_reload_keeps_current_when_factory_raises(caplog):
         debounce_seconds=0,
         factory=_factory([first]),
     )
+    before_failure = _counter_value(reload_failure_total, "reload_failure_total")
 
     def boom():
         raise RuntimeError("policy load broke")
 
     reloader._factory = boom
 
-    with caplog.at_level("ERROR"):
+    with caplog.at_level("INFO"):
         reloader._reload()
 
     assert reloader.get_current() is first
     assert "fallback_action=keep_current" in caplog.text
+    assert "output_guardrails_reload_audit event=failure" in caplog.text
+    assert _counter_value(reload_failure_total, "reload_failure_total") == pytest.approx(
+        before_failure + 1
+    )
     labels = _info_labels(guardrails_active_policy, "guardrails_active_policy_info")
     assert labels["sha256"] == first.policy_hash
 
@@ -189,6 +212,7 @@ def test_reload_noop_when_policy_unchanged(caplog):
 
     assert reloader.get_current() is first
     assert "output_guardrails_reload_noop" in caplog.text
+    assert "output_guardrails_reload_audit event=noop" in caplog.text
     assert first.policy_hash in caplog.text
 
 

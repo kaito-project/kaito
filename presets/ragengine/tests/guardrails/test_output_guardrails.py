@@ -31,6 +31,8 @@ from ragengine.guardrails.scanner_schemas import (
     BanSubstringsConfig,
     ParsedScannerConfig,
     RegexConfig,
+    SecretsConfig,
+    SensitiveConfig,
 )
 from ragengine.models import ChatCompletionResponse
 
@@ -63,6 +65,26 @@ def _ban_subs_cfg(
         type="ban_substrings",
         action_on_hit=action_on_hit,
         config=BanSubstringsConfig(substrings=list(substrings), **kw),
+    )
+
+
+def _secrets_cfg(action_on_hit="redact", **kw) -> ParsedScannerConfig:
+    return ParsedScannerConfig(
+        type="secrets",
+        action_on_hit=action_on_hit,
+        config=SecretsConfig(**kw),
+    )
+
+
+def _sensitive_cfg(
+    detectors=("email", "phone", "credit_card", "ip_address"),
+    action_on_hit="redact",
+    **kw,
+) -> ParsedScannerConfig:
+    return ParsedScannerConfig(
+        type="sensitive",
+        action_on_hit=action_on_hit,
+        config=SensitiveConfig(detectors=list(detectors), **kw),
     )
 
 
@@ -189,6 +211,32 @@ def test_from_config_loads_yaml_policy(tmp_path, monkeypatch):
     assert guardrails.scanner_configs == (
         _regex_cfg(patterns=[r"https?://\S+"], action_on_hit="block"),
         _ban_subs_cfg(substrings=["secret"], action_on_hit="block"),
+    )
+
+
+def test_from_config_loads_yaml_policy_with_secrets_and_sensitive(
+    tmp_path, monkeypatch
+):
+    _write_policy(
+        tmp_path,
+        monkeypatch,
+        """
+        action: redact
+        scanners:
+          - type: secrets
+            redactMode: partial
+          - type: sensitive
+            detectors:
+              - email
+              - ip_address
+        """,
+    )
+
+    guardrails = OutputGuardrails.from_config()
+
+    assert guardrails.scanner_configs == (
+        _secrets_cfg(redact_mode="partial"),
+        _sensitive_cfg(detectors=["email", "ip_address"]),
     )
 
 
@@ -405,6 +453,8 @@ def test_parse_policy_scanner_configs_skips_unknown_and_invalid_schema():
             {"type": "unknown_scanner"},
             {"type": "regex"},  # missing required 'patterns'
             {"type": "ban_substrings"},  # missing required 'substrings'
+            {"type": "secrets", "redact_mode": "bogus"},
+            {"type": "sensitive", "detectors": ["email", "bogus"]},
             {"type": "regex", "patterns": ["a"]},
         ],
         "guardrails.yaml",
@@ -479,6 +529,25 @@ def test_parse_policy_scanner_configs_rejects_non_bool_flags():
     )
 
     assert parsed == (_ban_subs_cfg(substrings=["a"], case_sensitive=True),)
+
+
+def test_parse_policy_scanner_configs_accepts_secrets_and_sensitive_aliases():
+    parsed = output_guardrails_module._parse_policy_scanner_configs(
+        [
+            {"type": "secrets", "redact_mode": "partial"},
+            {"type": "pii", "detectors": ["email", "credit_card"]},
+        ],
+        "guardrails.yaml",
+    )
+
+    assert parsed == (
+        _secrets_cfg(redact_mode="partial"),
+        ParsedScannerConfig(
+            type="pii",
+            action_on_hit="redact",
+            config=SensitiveConfig(detectors=["email", "credit_card"]),
+        ),
+    )
 
 
 def test_parse_policy_scanner_configs_skips_redact_incompatible_scanners(
@@ -587,6 +656,79 @@ def test_build_scanners_uses_per_scanner_action(fake_llm_guard_scanners):
 
     assert scanners[0].redact is True
     assert scanners[1].redact is False
+
+
+def test_build_scanners_supports_secrets_type(monkeypatch):
+    class FakeSecrets:
+        def __init__(self, *, redact_mode="all"):
+            self.redact_mode = redact_mode
+
+        def scan(self, output):
+            return f"{self.redact_mode}:{output}", False, 1.0
+
+    monkeypatch.setattr(
+        scanner_schemas_module.llm_guard_input_scanners,
+        "Secrets",
+        FakeSecrets,
+        raising=False,
+    )
+
+    parsed = output_guardrails_module._parse_policy_scanner_configs(
+        [{"type": "secrets", "redactMode": "partial"}],
+        "guardrails.yaml",
+    )
+    guardrails = OutputGuardrails(enabled=True, scanner_configs=parsed)
+
+    scanners = guardrails._build_scanners()
+
+    assert parsed == (_secrets_cfg(redact_mode="partial"),)
+    assert scanners[0].scan("ignored", "secret-value") == (
+        "partial:secret-value",
+        False,
+        1.0,
+    )
+
+
+def test_sensitive_config_build_redacts_requested_detectors_only():
+    scanner = SensitiveConfig(detectors=["email", "ip_address"]).build("redact")
+
+    sanitized, is_valid, risk_score = scanner.scan(
+        "",
+        "Email alice@example.com from 10.0.0.1 but keep 4111 1111 1111 1111",
+    )
+
+    assert sanitized == "Email <EMAIL> from <IP_ADDRESS> but keep 4111 1111 1111 1111"
+    assert is_valid is False
+    assert risk_score == 1.0
+
+
+def test_sensitive_config_detects_luhn_valid_credit_cards_only():
+    scanner = SensitiveConfig(detectors=["credit_card"]).build("redact")
+
+    sanitized, is_valid, risk_score = scanner.scan(
+        "",
+        "good 4111 1111 1111 1111 bad 4111 1111 1111 1112",
+    )
+
+    assert sanitized == "good <CREDIT_CARD> bad 4111 1111 1111 1112"
+    assert is_valid is False
+    assert risk_score == 1.0
+
+
+def test_guard_response_redacts_sensitive_entities_end_to_end():
+    guardrails = OutputGuardrails(
+        enabled=True,
+        scanner_configs=(_sensitive_cfg(detectors=["email", "phone", "ip_address"]),),
+    )
+
+    out = guardrails.guard_response(
+        _make_response("Email alice@example.com or call +1 (206) 555-0100 from 10.0.0.1"),
+        {"messages": []},
+    )
+
+    assert out.choices[0].message.content == (
+        "Email <EMAIL> or call <PHONE> from <IP_ADDRESS>"
+    )
 
 
 def test_build_scanners_skips_configs_whose_build_raises(monkeypatch):

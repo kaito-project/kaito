@@ -258,9 +258,7 @@ def test_from_config_keeps_empty_scanners_when_policy_path_missing(monkeypatch):
     )
 
 
-def test_from_config_records_load_failed_metric_on_yaml_error(
-    tmp_path, monkeypatch
-):
+def test_from_config_records_load_failed_metric_on_yaml_error(tmp_path, monkeypatch):
     _write_policy(
         tmp_path,
         monkeypatch,
@@ -290,9 +288,7 @@ def test_from_config_records_load_failed_metric_on_yaml_error(
     )
 
 
-def test_from_config_records_invalid_metric_for_non_dict_policy(
-    tmp_path, monkeypatch
-):
+def test_from_config_records_invalid_metric_for_non_dict_policy(tmp_path, monkeypatch):
     _write_policy(
         tmp_path,
         monkeypatch,

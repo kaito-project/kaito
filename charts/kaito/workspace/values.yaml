@@ -167,7 +167,7 @@ local-csi-driver:
     enforceEphemeral:
       enabled: false
     hyperconverged:
-      enabled: false
+      enabled: true
   observability:
     metrics:
       enabled: false

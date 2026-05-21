@@ -15,7 +15,6 @@ package utils
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	azurev1beta1 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1beta1"
@@ -26,10 +25,11 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
-// TriggerDrift modifies the default AKSNodeClass to cause Karpenter to detect drift
-// on all NodeClaims referencing it. It adds/updates a drift-trigger annotation.
+// TriggerDrift modifies the default AKSNodeClass spec to cause Karpenter to detect drift
+// on all NodeClaims referencing it. Karpenter hashes the spec (not annotations),
+// so we toggle osDiskSizeGB between 300 and 301.
 func TriggerDrift(ctx context.Context) {
-	ginkgo.By("Updating AKSNodeClass to trigger drift detection", func() {
+	ginkgo.By("Updating AKSNodeClass spec to trigger drift detection", func() {
 		nc := &azurev1beta1.AKSNodeClass{}
 		gomega.Eventually(func() error {
 			if err := TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
@@ -37,12 +37,15 @@ func TriggerDrift(ctx context.Context) {
 			}, nc); err != nil {
 				return err
 			}
-			if nc.Annotations == nil {
-				nc.Annotations = make(map[string]string)
+			// Toggle osDiskSizeGB to change the spec hash.
+			if nc.Spec.OSDiskSizeGB != nil && *nc.Spec.OSDiskSizeGB == 301 {
+				*nc.Spec.OSDiskSizeGB = 300
+			} else {
+				val := int32(301)
+				nc.Spec.OSDiskSizeGB = &val
 			}
-			nc.Annotations["kaito.sh/drift-trigger"] = fmt.Sprintf("%d", time.Now().UnixNano())
 			return TestingCluster.KubeClient.Update(ctx, nc)
 		}, 1*time.Minute, PollInterval).Should(gomega.Succeed(),
-			"Should update AKSNodeClass to trigger drift")
+			"Should update AKSNodeClass spec to trigger drift")
 	})
 }

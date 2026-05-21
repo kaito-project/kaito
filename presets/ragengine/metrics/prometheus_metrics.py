@@ -268,11 +268,6 @@ output_guardrails_policy_load_total = Counter(
     labelnames=[POLICY_STATUS_LABEL],
 )
 
-output_guardrails_policy_info = Info(
-    "output_guardrails_policy",
-    "Metadata for the currently loaded guardrails policy",
-)
-
 output_guardrails_actions_total = Counter(
     "output_guardrails_actions_total",
     "Count of guardrails actions applied to model outputs",

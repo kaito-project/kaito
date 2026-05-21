@@ -29,7 +29,6 @@ from ragengine.metrics.prometheus_metrics import (
     STATUS_FAILURE,
     STATUS_SUCCESS,
     output_guardrails_actions_total,
-    output_guardrails_policy_info,
     output_guardrails_policy_load_total,
     output_guardrails_scanner_build_total,
 )
@@ -72,9 +71,7 @@ class OutputGuardrails:
 
     def _apply_policy_file(self, policy_path: str) -> "OutputGuardrails":
         if not policy_path:
-            # No policy configured: returns self with empty scanner_configs.
-            # Combined with enabled=True this is effectively fail-open.
-            # TODO(next-PR): ship a default policy or refuse to start.
+            # Managed deployments should provide a default policy path; otherwise skip loading.
             return self
 
         try:
@@ -103,12 +100,6 @@ class OutputGuardrails:
         output_guardrails_policy_load_total.labels(policy_status="success").inc()
         default_action_on_hit = _normalize_action(
             policy.get("action"), self.action_on_hit
-        )
-        output_guardrails_policy_info.info(
-            {
-                "path": policy_path,
-                "sha256": policy_hash,
-            }
         )
 
         scanner_configs = self.scanner_configs

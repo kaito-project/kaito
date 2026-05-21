@@ -81,6 +81,42 @@ By prefetching model weights to persistent cloud storage in parallel with GPU pr
 
 ## Proposal
 
+### Prerequisites
+
+**Azure Blob CSI Driver:** The AKS Blob CSI driver must be enabled on the cluster. It is **disabled by default** on AKS. Once enabled, the driver (`blob.csi.azure.com`) supports two mount protocols:
+
+- **BlobFuse** (default) — FUSE-based userspace filesystem. Translates file operations to Blob REST API calls.
+- **NFS** — kernel-level NFS 3.0 mount. Requires Premium storage account. Lower overhead for large sequential writes.
+
+Either protocol works for this feature because:
+- The **download Job** writes model files to the PVC via the mounted filesystem (BlobFuse or NFS both work).
+- The **inference pod** (RunAI streamer) reads directly from Azure Blob via `az://` URI using the Azure SDK — it does **not** read through the filesystem mount.
+
+NFS is recommended for better download write performance, but BlobFuse is also functional. The StorageClass `parameters.protocol` field controls which is used.
+
+KAITO will validate that the Blob CSI driver is available (by checking for the `blob.csi.azure.com` CSIDriver object) before creating the PVC. If the driver is not installed, the ModelPrefetch CR will report a clear error in `status.failureMessage`.
+
+**Enabling the driver and creating the StorageClass** (one-time cluster setup):
+```bash
+# Enable the Blob CSI driver
+az aks update --enable-blob-driver -n <cluster> -g <resource-group>
+
+# Create the NFS-backed StorageClass
+kubectl apply -f - <<EOF
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: blob-nfs
+provisioner: blob.csi.azure.com
+parameters:
+  protocol: nfs
+  skuName: Premium_LRS
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+allowVolumeExpansion: true
+EOF
+```
+
 ### Architecture Overview
 
 ```
@@ -134,7 +170,7 @@ spec:
     accessSecret: "hf-token-secret"     # optional, Secret in kaito-workspace namespace
   storage:
     storageSize: ""                     # auto-computed from model metadata if empty
-    storageClassOverride: ""            # optional: override the auto-created StorageClass
+    storageClassName: "blob-nfs"        # required: name of the pre-created StorageClass
 status:
   phase: Pending | Downloading | Ready
   pvcName: "modelprefetch-qwen--qwen2.5-coder-32b-instruct"
@@ -163,7 +199,7 @@ status:
 A new controller that watches `ModelPrefetch` CRs and manages the download lifecycle:
 
 1. **On CR creation:**
-   - Create StorageClass (provider-specific, if not exists)
+   - Validate StorageClass exists (error if not — user prerequisite)
    - Create PVC (auto-sized from model metadata)
    - Create download Job
 
@@ -235,7 +271,14 @@ The inference pod needs to authenticate to blob storage for RunAI streamer's dir
 
 **The AKS mutating admission webhook** then automatically injects `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, and `AZURE_FEDERATED_TOKEN_FILE` into the inference pod.
 
-**Note:** The download Job does NOT need workload identity — it writes to a CSI-mounted PVC where auth is handled transparently by the node/kubelet identity.
+**Note:** The download Job does NOT need workload identity — it writes to a CSI-mounted PVC where auth is handled transparently by the CSI driver's identity.
+
+**Blob CSI driver permissions (for dynamic PVC provisioning):**
+
+The Blob CSI driver controller needs write permission on a resource group to dynamically create storage accounts when a PVC is provisioned:
+
+- **AKS managed Blob CSI driver** (enabled via `az aks update --enable-blob-driver`): The driver automatically has write permission on the AKS **node resource group** (`MC_*`). No additional configuration needed — storage accounts are created in the node resource group by default.
+- **Open-source Blob CSI driver** (self-installed via Helm): The user must manually grant the driver's identity `Contributor` role on the node resource group. See [Blob CSI driver install docs](https://github.com/kubernetes-sigs/blob-csi-driver/blob/master/docs/install-driver-on-aks.md) for details.
 
 **Documentation:** A troubleshooting guide will explain:
 - How to verify the federated credential is configured correctly
@@ -268,7 +311,7 @@ The CR interface is cloud-agnostic. Provider-specific logic is encapsulated in i
 
 | Concern | Azure Implementation | Future AWS | Future GCP |
 |---|---|---|---|
-| StorageClass | `blob.csi.azure.com`, NFS, Premium_LRS | EFS CSI | GCS Fuse CSI |
+| StorageClass | `blob.csi.azure.com`, NFS protocol, Premium_LRS (requires Blob CSI driver enabled) | EFS CSI | GCS Fuse CSI |
 | `storageURI` format | `az://<container>/<path>` | `s3://<bucket>/<path>` | `gs://<bucket>/<path>` |
 | Storage resolution | Parse volumeHandle: `MC_rg#account#container##ns#` | PV annotation | PV annotation |
 | Streamer env vars | `AZURE_STORAGE_ACCOUNT_NAME` | `AWS_DEFAULT_REGION` | `GOOGLE_APPLICATION_CREDENTIALS` |

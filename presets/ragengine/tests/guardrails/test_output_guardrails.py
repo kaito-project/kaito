@@ -238,6 +238,10 @@ def test_from_config_keeps_empty_scanners_when_policy_path_missing(monkeypatch):
     monkeypatch.setattr(
         config, "OUTPUT_GUARDRAILS_POLICY_PATH", "/tmp/missing-guardrails.yaml"
     )
+    before = _counter_value(
+        output_guardrails_policy_load_total,
+        policy_status="missing",
+    )
 
     guardrails = OutputGuardrails.from_config()
 
@@ -245,6 +249,76 @@ def test_from_config_keeps_empty_scanners_when_policy_path_missing(monkeypatch):
     assert guardrails.action_on_hit == "redact"
     assert guardrails.block_message == DEFAULT_BLOCK_MESSAGE
     assert guardrails.scanner_configs == ()
+    assert (
+        _counter_value(
+            output_guardrails_policy_load_total,
+            policy_status="missing",
+        )
+        == before + 1
+    )
+
+
+def test_from_config_records_load_failed_metric_on_yaml_error(
+    tmp_path, monkeypatch
+):
+    _write_policy(
+        tmp_path,
+        monkeypatch,
+        "scanners:\n  - type: regex\n    patterns:\n      - a\n",
+    )
+
+    before = _counter_value(
+        output_guardrails_policy_load_total,
+        policy_status="load_failed",
+    )
+
+    def raising_safe_load(*args, **kwargs):
+        raise ValueError("boom")
+
+    monkeypatch.setattr(output_guardrails_module.yaml, "safe_load", raising_safe_load)
+
+    guardrails = OutputGuardrails.from_config()
+
+    assert guardrails.enabled is True
+    assert guardrails.scanner_configs == ()
+    assert (
+        _counter_value(
+            output_guardrails_policy_load_total,
+            policy_status="load_failed",
+        )
+        == before + 1
+    )
+
+
+def test_from_config_records_invalid_metric_for_non_dict_policy(
+    tmp_path, monkeypatch
+):
+    _write_policy(
+        tmp_path,
+        monkeypatch,
+        """
+        - type: regex
+          patterns:
+            - a
+        """,
+    )
+
+    before = _counter_value(
+        output_guardrails_policy_load_total,
+        policy_status="invalid",
+    )
+
+    guardrails = OutputGuardrails.from_config()
+
+    assert guardrails.enabled is True
+    assert guardrails.scanner_configs == ()
+    assert (
+        _counter_value(
+            output_guardrails_policy_load_total,
+            policy_status="invalid",
+        )
+        == before + 1
+    )
 
 
 def test_from_config_replaces_scanners_with_policy_values(tmp_path, monkeypatch):

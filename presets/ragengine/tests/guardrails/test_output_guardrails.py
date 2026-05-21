@@ -198,10 +198,10 @@ def test_from_config_loads_yaml_policy(tmp_path, monkeypatch):
     assert guardrails.block_message == "blocked-by-policy"
     assert guardrails.policy_hash
     assert guardrails.policy_path.endswith("guardrails.yaml")
-    assert guardrails.scanner_configs == [
+    assert guardrails.scanner_configs == (
         _regex_cfg(patterns=[r"https?://\S+"], action_on_hit="block"),
         _ban_subs_cfg(substrings=["secret"], action_on_hit="block"),
-    ]
+    )
 
 
 def test_from_config_records_policy_load_metrics(tmp_path, monkeypatch):
@@ -244,7 +244,7 @@ def test_from_config_keeps_empty_scanners_when_policy_path_missing(monkeypatch):
     assert guardrails.enabled is True
     assert guardrails.action_on_hit == "redact"
     assert guardrails.block_message == DEFAULT_BLOCK_MESSAGE
-    assert guardrails.scanner_configs == []
+    assert guardrails.scanner_configs == ()
 
 
 def test_from_config_replaces_scanners_with_policy_values(tmp_path, monkeypatch):
@@ -263,9 +263,9 @@ def test_from_config_replaces_scanners_with_policy_values(tmp_path, monkeypatch)
     guardrails = OutputGuardrails.from_config()
 
     assert guardrails.action_on_hit == "block"
-    assert guardrails.scanner_configs == [
-        _ban_subs_cfg(substrings=["yaml-only"], action_on_hit="block")
-    ]
+    assert guardrails.scanner_configs == (
+        _ban_subs_cfg(substrings=["yaml-only"], action_on_hit="block"),
+    )
 
 
 def test_from_config_invalid_action_falls_back_to_default(tmp_path, monkeypatch):
@@ -284,7 +284,7 @@ def test_from_config_invalid_action_falls_back_to_default(tmp_path, monkeypatch)
     guardrails = OutputGuardrails.from_config()
 
     assert guardrails.action_on_hit == "redact"
-    assert guardrails.scanner_configs == [_regex_cfg(patterns=[r"https?://\S+"])]
+    assert guardrails.scanner_configs == (_regex_cfg(patterns=[r"https?://\S+"]),)
 
 
 def test_from_config_returns_empty_scanners_when_policy_scanners_is_not_a_list(
@@ -303,7 +303,7 @@ def test_from_config_returns_empty_scanners_when_policy_scanners_is_not_a_list(
     guardrails = OutputGuardrails.from_config()
 
     assert guardrails.action_on_hit == "block"
-    assert guardrails.scanner_configs == []
+    assert guardrails.scanner_configs == ()
 
 
 def test_from_config_skips_invalid_scanners_and_filters_non_string_values(
@@ -330,10 +330,10 @@ def test_from_config_skips_invalid_scanners_and_filters_non_string_values(
 
     guardrails = OutputGuardrails.from_config()
 
-    assert guardrails.scanner_configs == [
+    assert guardrails.scanner_configs == (
         _regex_cfg(patterns=[r"https?://\S+"]),
         _ban_subs_cfg(substrings=["secret"]),
-    ]
+    )
 
     scanners = guardrails._build_scanners()
 
@@ -351,7 +351,7 @@ def test_from_config_with_empty_policy_path_keeps_defaults(monkeypatch):
     guardrails = OutputGuardrails.from_config()
 
     assert guardrails.enabled is True
-    assert guardrails.scanner_configs == []
+    assert guardrails.scanner_configs == ()
     assert guardrails.action_on_hit == "redact"
     assert guardrails.block_message == DEFAULT_BLOCK_MESSAGE
 
@@ -378,7 +378,7 @@ def test_from_config_skips_policy_io_when_disabled(tmp_path, monkeypatch):
     guardrails = OutputGuardrails.from_config()
 
     assert guardrails.enabled is False
-    assert guardrails.scanner_configs == []
+    assert guardrails.scanner_configs == ()
     assert str(policy_path) not in open_calls
 
 
@@ -393,7 +393,7 @@ def test_apply_policy_file_handles_yaml_parse_error(tmp_path, monkeypatch):
     guardrails = OutputGuardrails.from_config()
 
     assert guardrails.enabled is True
-    assert guardrails.scanner_configs == []
+    assert guardrails.scanner_configs == ()
     assert guardrails.action_on_hit == "redact"
     assert guardrails.block_message == DEFAULT_BLOCK_MESSAGE
 
@@ -404,7 +404,7 @@ def test_apply_policy_file_rejects_non_dict_top_level(tmp_path, monkeypatch):
     guardrails = OutputGuardrails.from_config()
 
     assert guardrails.enabled is True
-    assert guardrails.scanner_configs == []
+    assert guardrails.scanner_configs == ()
 
 
 # ---------------------------------------------------------------------------
@@ -423,13 +423,13 @@ def test_parse_policy_scanner_configs_skips_unknown_and_invalid_schema():
         "guardrails.yaml",
     )
 
-    assert parsed == [_regex_cfg(patterns=["a"])]
+    assert parsed == (_regex_cfg(patterns=["a"]),)
 
 
 def test_parse_policy_scanner_configs_handles_none_and_blank_type():
     assert (
         output_guardrails_module._parse_policy_scanner_configs(None, "guardrails.yaml")
-        == []
+        == ()
     )
 
     parsed = output_guardrails_module._parse_policy_scanner_configs(
@@ -441,7 +441,7 @@ def test_parse_policy_scanner_configs_handles_none_and_blank_type():
         ],
         "guardrails.yaml",
     )
-    assert parsed == [_regex_cfg(patterns=["ok"])]
+    assert parsed == (_regex_cfg(patterns=["ok"]),)
 
 
 def test_parse_policy_scanner_configs_skips_invalid_match_type():
@@ -457,10 +457,10 @@ def test_parse_policy_scanner_configs_skips_invalid_match_type():
 
     # Invalid match_type values are rejected at parse time; valid ones are
     # accepted case-insensitively and stored in normalized lowercase form.
-    assert parsed == [
+    assert parsed == (
         _ban_subs_cfg(substrings=["a"], match_type="word"),
         _regex_cfg(patterns=["a"], match_type="fullmatch"),
-    ]
+    )
 
 
 def test_parse_policy_scanner_configs_skips_uncompilable_regex_pattern():
@@ -474,7 +474,7 @@ def test_parse_policy_scanner_configs_skips_uncompilable_regex_pattern():
     )
 
     # Any pattern in the list that fails to compile rejects the whole scanner.
-    assert parsed == [_regex_cfg(patterns=[r"\d+"])]
+    assert parsed == (_regex_cfg(patterns=[r"\d+"]),)
 
 
 def test_parse_policy_scanner_configs_rejects_non_bool_flags():
@@ -491,7 +491,67 @@ def test_parse_policy_scanner_configs_rejects_non_bool_flags():
         "guardrails.yaml",
     )
 
-    assert parsed == [_ban_subs_cfg(substrings=["a"], case_sensitive=True)]
+    assert parsed == (_ban_subs_cfg(substrings=["a"], case_sensitive=True),)
+
+
+def test_parse_policy_scanner_configs_skips_redact_incompatible_scanners(
+    monkeypatch,
+):
+    class NonRedactingScannerConfig:
+        supports_redact = False
+
+        @classmethod
+        def from_dict(cls, raw):
+            return cls()
+
+        def build(self, action_on_hit):
+            return object()
+
+    monkeypatch.setitem(
+        output_guardrails_module.SCANNER_REGISTRY,
+        "non_redacting",
+        NonRedactingScannerConfig,
+    )
+
+    parsed = output_guardrails_module._parse_policy_scanner_configs(
+        [
+            {"type": "non_redacting"},
+            {"type": "regex", "patterns": ["a"]},
+        ],
+        "guardrails.yaml",
+        action_on_hit="redact",
+    )
+
+    assert parsed == (_regex_cfg(patterns=["a"]),)
+
+
+def test_parse_policy_scanner_configs_allows_non_redact_scanners_for_block(
+    monkeypatch,
+):
+    class NonRedactingScannerConfig:
+        supports_redact = False
+
+        @classmethod
+        def from_dict(cls, raw):
+            return cls()
+
+        def build(self, action_on_hit):
+            return object()
+
+    monkeypatch.setitem(
+        output_guardrails_module.SCANNER_REGISTRY,
+        "non_redacting",
+        NonRedactingScannerConfig,
+    )
+
+    parsed = output_guardrails_module._parse_policy_scanner_configs(
+        [{"type": "non_redacting"}],
+        "guardrails.yaml",
+        action_on_hit="block",
+    )
+
+    assert len(parsed) == 1
+    assert parsed[0].type == "non_redacting"
 
 
 # ---------------------------------------------------------------------------
@@ -517,7 +577,7 @@ def test_build_scanners_supports_normalized_ban_substrings_type(
 
     scanners = guardrails._build_scanners()
 
-    assert parsed == [_ban_subs_cfg(substrings=["secret"])]
+    assert parsed == (_ban_subs_cfg(substrings=["secret"]),)
     assert len(scanners) == 1
     assert isinstance(scanners[0], FakeBanSubstrings)
     assert scanners[0].substrings == ["secret"]
@@ -683,7 +743,7 @@ def test_guard_response_applies_action(
         enabled=True,
         action_on_hit=action,
         block_message=block_message,
-        scanner_configs=[_regex_cfg(patterns=[r"\S+"])],
+        scanner_configs=[_regex_cfg(patterns=[r"\S+"], action_on_hit=action)],
     )
 
     before = _counter_value(output_guardrails_actions_total, action=action)

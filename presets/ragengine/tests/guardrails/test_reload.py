@@ -82,6 +82,7 @@ def test_initial_load_uses_factory_once():
         factory=_factory([initial]),
     )
     assert reloader.get_current() is initial
+    assert reloader.current is initial
     labels = _info_labels(guardrails_active_policy, "guardrails_active_policy_info")
     assert labels["path"] == "/tmp/does-not-matter"
     assert labels["sha256"] == initial.policy_hash
@@ -99,7 +100,6 @@ def test_start_is_noop_when_policy_path_is_empty():
         await reloader.stop()
 
     asyncio.run(run())
-    # No watcher task is created when there is nothing to watch.
     assert reloader._task is None
 
 
@@ -156,7 +156,6 @@ def test_reload_keeps_current_when_factory_raises(caplog):
     def boom():
         raise RuntimeError("policy load broke")
 
-    # Swap factory in-place so the next call to ``_reload`` raises.
     reloader._factory = boom
 
     with caplog.at_level("ERROR"):
@@ -188,9 +187,6 @@ def test_reload_noop_when_policy_unchanged(caplog):
     with caplog.at_level("INFO"):
         reloader._reload()
 
-    # The reloader keeps the original reference (not the duplicate) when the
-    # new policy compares equal -- this avoids churning scanner objects that
-    # request handlers may already be holding.
     assert reloader.get_current() is first
     assert "output_guardrails_reload_noop" in caplog.text
     assert first.policy_hash in caplog.text
@@ -242,14 +238,12 @@ def test_watcher_drives_reload_on_event():
     )
 
     async def fake_watch(*_args, **_kwargs):
-        # Single change batch then stop iterating.
         yield {("created", "/tmp/policy.yaml")}
 
     reloader._watcher_factory = fake_watch
 
     async def run():
         reloader.start()
-        # Give the watcher task a chance to consume the single yielded batch.
         for _ in range(20):
             if reloader.get_current() is second:
                 break
@@ -280,7 +274,6 @@ def test_watcher_failure_is_swallowed():
         await asyncio.sleep(0.05)
         await reloader.stop()
 
-    # The reloader logs and exits cleanly; current policy is unchanged.
     asyncio.run(run())
     assert reloader.get_current() is first
 

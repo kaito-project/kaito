@@ -71,6 +71,11 @@ class GuardrailsReloader:
         with self._current_lock:
             return self._current
 
+    @property
+    def current(self) -> OutputGuardrails:
+        """Compatibility alias for the most recently loaded policy."""
+        return self.get_current()
+
     def start(self) -> None:
         """Start the background watcher task. No-op if already running."""
         if self._task is not None and not self._task.done():

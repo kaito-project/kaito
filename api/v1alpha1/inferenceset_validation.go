@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/robfig/cron/v3"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/klog/v2"
@@ -55,9 +56,31 @@ func (is *InferenceSet) validateCreate() (errs *apis.FieldError) {
 	if is.Spec.Replicas != nil && *is.Spec.Replicas < 0 {
 		errs = errs.Also(apis.ErrInvalidValue(*is.Spec.Replicas, "replicas", "must be non-negative"))
 	}
+	errs = errs.Also(validateMaintenanceWindow(is.Spec.AutoUpgrade))
 	return errs
 }
 
 func (is *InferenceSet) validateUpdate(_ *InferenceSet) (errs *apis.FieldError) {
+	errs = errs.Also(validateMaintenanceWindow(is.Spec.AutoUpgrade))
+	return errs
+}
+
+func validateMaintenanceWindow(autoUpgrade *AutoUpgradePolicy) (errs *apis.FieldError) {
+	if autoUpgrade == nil || autoUpgrade.MaintenanceWindow == nil {
+		return nil
+	}
+	window := autoUpgrade.MaintenanceWindow
+	if window.Schedule == "" {
+		errs = errs.Also(apis.ErrMissingField("autoUpgrade.maintenanceWindow.schedule"))
+		return errs
+	}
+	if _, err := cron.ParseStandard(window.Schedule); err != nil {
+		errs = errs.Also(apis.ErrInvalidValue(window.Schedule, "autoUpgrade.maintenanceWindow.schedule",
+			fmt.Sprintf("invalid cron expression: %v", err)))
+	}
+	if window.Duration != nil && window.Duration.Duration <= 0 {
+		errs = errs.Also(apis.ErrInvalidValue(window.Duration.Duration.String(), "autoUpgrade.maintenanceWindow.duration",
+			"must be a positive duration"))
+	}
 	return errs
 }

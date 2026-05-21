@@ -301,3 +301,106 @@ func TestInferenceSet_validateUpdate(t *testing.T) {
 	err := is.validateUpdate(old)
 	assert.Nil(t, err)
 }
+
+func TestValidateMaintenanceWindow(t *testing.T) {
+	tests := []struct {
+		name    string
+		policy  *AutoUpgradePolicy
+		wantErr bool
+		errMsg  string
+	}{
+		{
+			name:    "nil policy - no error",
+			policy:  nil,
+			wantErr: false,
+		},
+		{
+			name: "nil maintenance window - no error",
+			policy: &AutoUpgradePolicy{
+				Enabled: true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid cron schedule without duration",
+			policy: &AutoUpgradePolicy{
+				Enabled: true,
+				MaintenanceWindow: &MaintenanceWindow{
+					Schedule: "0 2 * * 6",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid cron schedule with valid duration",
+			policy: &AutoUpgradePolicy{
+				Enabled: true,
+				MaintenanceWindow: &MaintenanceWindow{
+					Schedule: "0 0 * * *",
+					Duration: &metav1.Duration{Duration: 2 * 3600000000000}, // 2h
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "empty schedule",
+			policy: &AutoUpgradePolicy{
+				Enabled: true,
+				MaintenanceWindow: &MaintenanceWindow{
+					Schedule: "",
+				},
+			},
+			wantErr: true,
+			errMsg:  "schedule",
+		},
+		{
+			name: "invalid cron expression",
+			policy: &AutoUpgradePolicy{
+				Enabled: true,
+				MaintenanceWindow: &MaintenanceWindow{
+					Schedule: "not-a-cron",
+				},
+			},
+			wantErr: true,
+			errMsg:  "schedule",
+		},
+		{
+			name: "negative duration",
+			policy: &AutoUpgradePolicy{
+				Enabled: true,
+				MaintenanceWindow: &MaintenanceWindow{
+					Schedule: "0 2 * * 6",
+					Duration: &metav1.Duration{Duration: -1 * 3600000000000}, // -1h
+				},
+			},
+			wantErr: true,
+			errMsg:  "duration",
+		},
+		{
+			name: "zero duration",
+			policy: &AutoUpgradePolicy{
+				Enabled: true,
+				MaintenanceWindow: &MaintenanceWindow{
+					Schedule: "0 2 * * 6",
+					Duration: &metav1.Duration{Duration: 0},
+				},
+			},
+			wantErr: true,
+			errMsg:  "duration",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateMaintenanceWindow(tt.policy)
+			if tt.wantErr {
+				assert.NotNil(t, err)
+				if tt.errMsg != "" {
+					assert.Contains(t, err.Error(), tt.errMsg)
+				}
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
+}

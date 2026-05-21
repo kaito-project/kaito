@@ -344,17 +344,9 @@ func buildBenchmarkStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace, 
 	if !distributed {
 		command = []string{"python3", "/workspace/vllm/benchmark_entrypoint.py"}
 	} else {
-		workerCmd := utils.BuildCmdStr(
-			fmt.Sprintf("%s readiness", DefaultVLLMMultiNodeHealthCheckCommand),
-			map[string]string{
-				"leader-address": utils.GetRayLeaderHost(wObj.ObjectMeta),
-				"vllm-port":      strconv.FormatInt(int64(consts.PortInferenceServer), 10),
-			},
-		)
-		cmd := fmt.Sprintf(
-			`if [ "$POD_INDEX" = "0" ]; then python3 /workspace/vllm/benchmark_entrypoint.py; else %s; fi`,
-			workerCmd,
-		)
+		// Workers exit 0 immediately — they don't serve traffic and don't need to
+		// wait for the leader. This prevents rolling update deadlocks.
+		cmd := `if [ "$POD_INDEX" = "0" ]; then python3 /workspace/vllm/benchmark_entrypoint.py; else true; fi`
 		command = utils.ShellCmd(cmd)
 	}
 
@@ -373,6 +365,12 @@ func buildBenchmarkStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace, 
 func GetBaseImageName() string {
 	presetObj := metadata.MustGet("base")
 	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
+}
+
+// GetBaseImageTag returns just the tag portion of the base image reference.
+func GetBaseImageTag() string {
+	presetObj := metadata.MustGet("base")
+	return presetObj.Tag
 }
 
 func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {

@@ -47,6 +47,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	autoupgrade "github.com/kaito-project/kaito/pkg/controllers/autoupgrade"
 	drift "github.com/kaito-project/kaito/pkg/controllers/drift"
 	multiroleinference "github.com/kaito-project/kaito/pkg/controllers/multiroleinference"
 	"github.com/kaito-project/kaito/pkg/featuregates"
@@ -298,6 +299,17 @@ func main() {
 			)
 			if err = driftReconciler.SetupWithManager(mgr); err != nil {
 				klog.ErrorS(err, "unable to create controller", "controller", "Drift")
+				exitWithErrorFunc()
+			}
+		}
+
+		// Register AutoUpgradeRunner for automatic base image upgrades.
+		if featuregates.FeatureGates[consts.FeatureFlagEnableBaseImageAutoUpgrade] {
+			if err = mgr.Add(&autoupgrade.AutoUpgradeRunner{
+				Client:   kClient,
+				Interval: autoupgrade.DefaultInterval,
+			}); err != nil {
+				klog.ErrorS(err, "unable to register AutoUpgradeRunner")
 				exitWithErrorFunc()
 			}
 		}

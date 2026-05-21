@@ -39,6 +39,56 @@ type InferenceSetTemplate struct {
 	Inference kaitov1beta1.InferenceSpec `json:"inference"`
 }
 
+// AutoUpgradePolicy configures automatic base image upgrade behavior.
+type AutoUpgradePolicy struct {
+	// Enabled controls whether the controller automatically upgrades
+	// Workspace replicas when a newer base image version is detected
+	// after a controller upgrade.
+	// +optional
+	// +kubebuilder:default:=false
+	Enabled bool `json:"enabled"`
+
+	// MaintenanceWindow restricts when upgrades may be applied.
+	// If not specified, upgrades may be applied at any time.
+	// +optional
+	MaintenanceWindow *MaintenanceWindow `json:"maintenanceWindow,omitempty"`
+}
+
+// MaintenanceWindow restricts when auto-upgrades may be applied.
+// The controller will only begin upgrading Workspaces when the current time
+// falls within the specified window.
+type MaintenanceWindow struct {
+	// Schedule is a cron expression (5-field, UTC) defining when upgrades
+	// are permitted to start. The window opens at each cron tick and stays
+	// open for Duration.
+	// Example: "0 2 * * 6" = every Saturday at 02:00 UTC.
+	// +required
+	Schedule string `json:"schedule"`
+
+	// Duration specifies how long the maintenance window stays open after
+	// each cron tick. If a rollout is still in progress when the window
+	// closes, the in-progress Workspace upgrade is allowed to complete
+	// (the controller will not start upgrading the next Workspace until the
+	// next window opens).
+	// Defaults to 4h.
+	// +optional
+	// +kubebuilder:default:="4h"
+	Duration *metav1.Duration `json:"duration,omitempty"`
+}
+
+// AutoUpgradeStatus reports the observed state of automatic base image upgrades.
+type AutoUpgradeStatus struct {
+	// NumDriftedWorkspaces is the number of Workspaces whose base image version
+	// differs from the controller's embedded version. Nil when autoUpgrade is
+	// disabled; 0 means all Workspaces are up-to-date.
+	// +optional
+	NumDriftedWorkspaces *int `json:"numDriftedWorkspaces,omitempty"`
+	// LastSuccessfulUpgradeTime is the timestamp of the last Workspace that
+	// successfully completed an auto-upgrade.
+	// +optional
+	LastSuccessfulUpgradeTime *metav1.Time `json:"lastSuccessfulUpgradeTime,omitempty"`
+}
+
 // InferenceSetSpec defines the desired state of InferenceSet
 type InferenceSetSpec struct {
 	// Template is the template used to create the InferenceSet.
@@ -61,6 +111,12 @@ type InferenceSetSpec struct {
 	// +kubebuilder:validation:Schemaless
 	// +kubebuilder:pruning:PreserveUnknownFields
 	UpdateStrategy appsv1.StatefulSetUpdateStrategy `json:"updateStrategy,omitempty"`
+	// AutoUpgrade configures automatic base image upgrade behavior.
+	// When enabled, the controller detects base image version mismatches
+	// after a controller upgrade and performs in-place rolling updates of
+	// Workspace StatefulSets.
+	// +optional
+	AutoUpgrade *AutoUpgradePolicy `json:"autoUpgrade,omitempty"`
 }
 
 // Metric holds an aggregated benchmark measurement across workspace replicas.
@@ -97,6 +153,9 @@ type InferenceSetStatus struct {
 	// Performance holds aggregated performance characteristics across all workspace replicas.
 	// +optional
 	Performance *Performance `json:"performance,omitempty"`
+	// AutoUpgrade reports the observed state of automatic base image upgrades.
+	// +optional
+	AutoUpgrade *AutoUpgradeStatus `json:"autoUpgrade,omitempty"`
 }
 
 // InferenceSet is the Schema for the InferenceSet API

@@ -44,6 +44,7 @@ featureGates:
   enableMultiRoleInferenceController: false
   ModelMirror: false
   ModelStreaming: false
+  enableBaseImageAutoUpgrade: false
 defaultModelMirrorStorageClass: ""
 defaultStreamingServiceAccount: ""
 defaultNodeImageFamily: ""

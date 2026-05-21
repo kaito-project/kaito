@@ -290,7 +290,12 @@ func ValidateNodePoolDeletion(ctx context.Context, workspaceObj *kaitov1beta1.Wo
 		gomega.Eventually(func() bool {
 			np := &karpenterv1.NodePool{}
 			err := TestingCluster.KubeClient.Get(ctx, client.ObjectKey{Name: nodePoolName}, np)
-			return err != nil
+			if err == nil {
+				return false // still exists
+			}
+			gomega.Expect(client.IgnoreNotFound(err)).NotTo(gomega.HaveOccurred(),
+				fmt.Sprintf("unexpected error checking NodePool %s", nodePoolName))
+			return true // NotFound
 		}, 5*time.Minute, PollInterval).Should(gomega.BeTrue(),
 			fmt.Sprintf("NodePool %s should be deleted after workspace deletion", nodePoolName))
 	})

@@ -806,7 +806,9 @@ func cleanupResources(workspaceObj *kaitov1beta1.Workspace) {
 		if !CurrentSpecReport().Failed() {
 			err := deleteWorkspace(workspaceObj)
 			Expect(err).NotTo(HaveOccurred(), "Failed to delete workspace")
-			utils.ValidateNodePoolDeletion(ctx, workspaceObj)
+			if nodeProvisionerName == "azkarpenter" {
+				utils.ValidateNodePoolDeletion(ctx, workspaceObj)
+			}
 		} else {
 			GinkgoWriter.Printf("test failed, keep %s \n", workspaceObj.Name)
 		}
@@ -846,18 +848,21 @@ func cleanupResourcesForInferenceSet(inferenceSetObj *kaitov1alpha1.InferenceSet
 		if !CurrentSpecReport().Failed() {
 			// List child workspaces before deletion (for NodePool deletion validation)
 			workspaceList := &kaitov1beta1.WorkspaceList{}
-			_ = utils.TestingCluster.KubeClient.List(ctx, workspaceList,
+			err := utils.TestingCluster.KubeClient.List(ctx, workspaceList,
 				client.InNamespace(inferenceSetObj.Namespace),
 				client.MatchingLabels{
 					consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name,
 				})
+			Expect(err).NotTo(HaveOccurred(), "Failed to list child workspaces")
 
-			err := deleteInferenceSet(inferenceSetObj)
+			err = deleteInferenceSet(inferenceSetObj)
 			Expect(err).NotTo(HaveOccurred(), "Failed to delete InferenceSet")
 
-			// Validate NodePool deletion for each child workspace
-			for i := range workspaceList.Items {
-				utils.ValidateNodePoolDeletion(ctx, &workspaceList.Items[i])
+			// Validate NodePool deletion for each child workspace (karpenter only)
+			if nodeProvisionerName == "azkarpenter" {
+				for i := range workspaceList.Items {
+					utils.ValidateNodePoolDeletion(ctx, &workspaceList.Items[i])
+				}
 			}
 		} else {
 			GinkgoWriter.Printf("test failed, keep %s \n", inferenceSetObj.Name)
@@ -1168,8 +1173,6 @@ var _ = Describe("Karpenter Bootstrap", func() {
 		createAndValidateWorkspace(workspaceObj)
 		defer cleanupResources(workspaceObj)
 
-		time.Sleep(30 * time.Second)
-
 		By("Verifying NodePool references azure-linux NodeClass", func() {
 			utils.ValidateNodePoolNodeClassRef(ctx, workspaceObj, consts.AKSNodeClassAzureLinuxName)
 		})
@@ -1331,9 +1334,11 @@ var _ = Describe("Workspace Preset", func() {
 
 func validateCreateNode(workspaceObj *kaitov1beta1.Workspace, numOfNode int) {
 	utils.ValidateNodeClaimCreation(ctx, workspaceObj, numOfNode)
-	utils.ValidateWorkspaceTargetNodeCount(ctx, workspaceObj, numOfNode)
-	utils.ValidateNodePoolShape(ctx, workspaceObj, numOfNode)
-	utils.ValidateNodeLabels(ctx, workspaceObj)
+	if nodeProvisionerName == "azkarpenter" {
+		utils.ValidateWorkspaceTargetNodeCount(ctx, workspaceObj, numOfNode)
+		utils.ValidateNodePoolShape(ctx, workspaceObj, numOfNode)
+		utils.ValidateNodeLabels(ctx, workspaceObj)
+	}
 }
 
 // validateInferenceConfig validates that the inference config exists and contains data

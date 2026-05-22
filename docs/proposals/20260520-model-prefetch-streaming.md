@@ -179,15 +179,8 @@ status:
   pvcName: "modelmirror-a3f7b2c1d4e5f6a7b8c9d0e1f2a3b4c5d6e7"
   modelPath: "/models/qwen/qwen2.5-coder-32b-instruct"
   storageURI: "az://container-name/qwen/qwen2.5-coder-32b-instruct"
-  referencingWorkspaces:                # list of namespace/name pairs
-    - namespace: default
-      name: workspace-qwen-32b
-    - namespace: team-a
-      name: workspace-qwen-32b-finetune
   conditions:
     - type: StorageReady
-      status: "True"
-    - type: DownloadComplete
       status: "True"
     - type: Ready
       status: "True"
@@ -207,9 +200,14 @@ status:
 - `ModelMirror : Workspace = 1:N` — multiple workspaces (across namespaces) can reference the same mirror
 
 **Lifecycle and cleanup:**
-- The controller tracks all referencing Workspaces in `status.referencingWorkspaces`
-- When a Workspace is deleted, the controller removes it from the list
-- The CR persists indefinitely unless manually deleted by the cluster admin (even if no workspaces reference it)
+- The CR persists indefinitely unless manually deleted by the cluster admin
+- The **Workspace status** holds a reference to the ModelMirror CR it uses:
+  ```yaml
+  # In Workspace status
+  status:
+    modelMirror:
+      name: modelmirror-a3f7b2c1d4e5...  # reference to the cluster-scoped ModelMirror CR
+  ```
 
 ### ModelMirror Controller
 

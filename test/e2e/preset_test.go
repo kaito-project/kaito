@@ -847,15 +847,18 @@ func cleanupResourcesForInferenceSet(inferenceSetObj *kaitov1alpha1.InferenceSet
 	By("Cleaning up InferenceSet resources", func() {
 		if !CurrentSpecReport().Failed() {
 			// List child workspaces before deletion (for NodePool deletion validation)
-			workspaceList := &kaitov1beta1.WorkspaceList{}
-			err := utils.TestingCluster.KubeClient.List(ctx, workspaceList,
-				client.InNamespace(inferenceSetObj.Namespace),
-				client.MatchingLabels{
-					consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name,
-				})
-			Expect(err).NotTo(HaveOccurred(), "Failed to list child workspaces")
+			var workspaceList *kaitov1beta1.WorkspaceList
+			if nodeProvisionerName == "azkarpenter" {
+				workspaceList = &kaitov1beta1.WorkspaceList{}
+				err := utils.TestingCluster.KubeClient.List(ctx, workspaceList,
+					client.InNamespace(inferenceSetObj.Namespace),
+					client.MatchingLabels{
+						consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name,
+					})
+				Expect(err).NotTo(HaveOccurred(), "Failed to list child workspaces")
+			}
 
-			err = deleteInferenceSet(inferenceSetObj)
+			err := deleteInferenceSet(inferenceSetObj)
 			Expect(err).NotTo(HaveOccurred(), "Failed to delete InferenceSet")
 
 			// Validate NodePool deletion for each child workspace (karpenter only)

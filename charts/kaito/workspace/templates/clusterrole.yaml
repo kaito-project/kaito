@@ -73,7 +73,7 @@ rules:
     resourceNames: ["validation.workspace.kaito.sh"]
   - apiGroups: [""]
     resources: ["persistentvolumeclaims"]
-    verbs: ["delete", "get", "list", "watch"]
+    verbs: ["get", "list", "watch"]
   - apiGroups: [""]
     resources: ["persistentvolumes"]
     verbs: ["get", "list", "watch", "patch", "delete"]

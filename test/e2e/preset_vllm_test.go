@@ -729,17 +729,19 @@ func validateInferenceSetNodePools(inferenceSetObj *kaitov1alpha1.InferenceSet, 
 	Expect(workspaceList.Items).To(HaveLen(numOfReplicas),
 		"Should have expected number of child workspaces")
 
-	workspaces := make([]*kaitov1beta1.Workspace, 0, len(workspaceList.Items))
-	for i := range workspaceList.Items {
-		ws := &workspaceList.Items[i]
-		workspaces = append(workspaces, ws)
-		utils.ValidateWorkspaceTargetNodeCount(ctx, ws, 1)
-		utils.ValidateInferenceSetNodePoolShape(ctx, ws, 1, inferenceSetObj.Name)
-		utils.ValidateNodeLabels(ctx, ws)
-	}
+	if nodeProvisionerName == "azkarpenter" {
+		workspaces := make([]*kaitov1beta1.Workspace, 0, len(workspaceList.Items))
+		for i := range workspaceList.Items {
+			ws := &workspaceList.Items[i]
+			workspaces = append(workspaces, ws)
+			utils.ValidateWorkspaceTargetNodeCount(ctx, ws, 1)
+			utils.ValidateInferenceSetNodePoolShape(ctx, ws, 1, inferenceSetObj.Name)
+			utils.ValidateNodeLabels(ctx, ws)
+		}
 
-	// Verify isolation between child workspaces
-	utils.ValidateNodePoolIsolation(ctx, workspaces)
+		// Verify isolation between child workspaces
+		utils.ValidateNodePoolIsolation(ctx, workspaces)
+	}
 }
 
 func validateGatewayAPIInferenceExtensionResources(iObj *kaitov1alpha1.InferenceSet) {

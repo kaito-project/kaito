@@ -227,7 +227,7 @@ runs:
         ARCH: amd64
 
     - name: create cluster (karpenter)
-      if: ${{ inputs.node_provisioner != 'gpuprovisioner' }}
+      if: ${{ inputs.node_provisioner == 'azkarpenter' }}
       shell: bash
       run: |
         make create-aks-cluster-for-karpenter
@@ -261,7 +261,7 @@ runs:
         TEST_SUITE: ${{ inputs.node_provisioner }}
 
     - name: Install karpenter helm chart
-      if: ${{ inputs.node_provisioner != 'gpuprovisioner' }}
+      if: ${{ inputs.node_provisioner == 'azkarpenter' }}
       shell: bash
       run: |
         # Ensure yq v4.30+ is available for envsubst(nu) support required by configure-values.sh

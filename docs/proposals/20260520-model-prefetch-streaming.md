@@ -1,5 +1,5 @@
 ---
-title: Model Prefetch and Streaming Automation
+title: Model Mirror and Streaming Automation
 authors:
   - "@scottchen"
 reviewers:
@@ -9,7 +9,7 @@ last-updated: 2026-05-20
 status: provisional
 ---
 
-# Model Prefetch and Streaming Automation
+# Model Mirror and Streaming Automation
 
 ## Table of Contents
 
@@ -19,8 +19,8 @@ status: provisional
   - [Non-Goals/Future Work](#non-goalsfuture-work)
 - [Proposal](#proposal)
   - [Architecture Overview](#architecture-overview)
-  - [ModelPrefetch Custom Resource](#modelprefetch-custom-resource)
-  - [ModelPrefetch Controller](#modelprefetch-controller)
+  - [ModelMirror Custom Resource](#modelmirror-custom-resource)
+  - [ModelMirror Controller](#modelmirror-controller)
   - [Workspace Controller Integration](#workspace-controller-integration)
   - [Inference Pod Configuration](#inference-pod-configuration)
   - [Workload Identity](#workload-identity)
@@ -41,9 +41,9 @@ status: provisional
 
 ## Summary
 
-This proposal introduces automated model prefetch and streaming for KAITO inference workloads. When enabled, KAITO downloads model weights to a cloud blob storage PVC in parallel with GPU node provisioning, then streams the model directly from blob storage to GPU memory using RunAI Model Streamer. This eliminates the sequential wait for both node provisioning AND model download, reducing end-to-end workspace readiness time significantly.
+This proposal introduces automated model mirroring and streaming for KAITO inference workloads. When enabled, KAITO mirrors model weights to a cloud blob storage PVC in parallel with GPU node provisioning, then streams the model directly from blob storage to GPU memory using RunAI Model Streamer. This eliminates the sequential wait for both node provisioning AND model download, reducing end-to-end workspace readiness time significantly.
 
-A new cluster-scoped `ModelPrefetch` Custom Resource manages the download lifecycle independently from workspaces. Models are downloaded once and shared across all workspaces that reference them. The entire feature is gated behind a feature flag and can be opted out per-workspace via annotation.
+A new cluster-scoped `ModelMirror` Custom Resource manages the download lifecycle independently from workspaces. Models are downloaded once and shared across all workspaces that reference them. The entire feature is gated behind a feature flag and can be opted out per-workspace via annotation.
 
 ## Motivation
 
@@ -55,7 +55,7 @@ Current KAITO model loading follows a sequential path:
 
 Steps 1-3 are sequential — model weights cannot begin loading until the GPU node is ready. For large models (30-70+ GiB), this adds significant time to workspace readiness.
 
-By prefetching model weights to persistent cloud storage in parallel with GPU provisioning, and streaming them directly to GPU memory via RunAI Model Streamer, we can overlap the download with node provisioning and eliminate the model-to-disk-to-GPU copy.
+By mirroring model weights to persistent cloud storage in parallel with GPU provisioning, and streaming them directly to GPU memory via RunAI Model Streamer, we can overlap the download with node provisioning and eliminate the model-to-disk-to-GPU copy.
 
 **POC Results (qwen2.5-coder-32b-instruct, 61 GiB, 2x A100):**
 - Download to blob: ~8 minutes (runs in parallel with GPU provisioning)
@@ -66,7 +66,7 @@ By prefetching model weights to persistent cloud storage in parallel with GPU pr
 ### Goals
 
 - Reduce end-to-end workspace readiness time by parallelizing model download with GPU provisioning
-- Provide a cluster-scoped resource for managing prefetched models (download once, use many times)
+- Provide a cluster-scoped resource for managing mirrored models (download once, use many times)
 - Support multi-cloud with a provider-agnostic CR interface
 - Enable distributed streaming for tensor-parallel deployments
 - Maintain backward compatibility — existing workspaces work unchanged when feature is off
@@ -94,7 +94,7 @@ Either protocol works for this feature because:
 
 NFS is recommended for better download write performance, but BlobFuse is also functional. The StorageClass `parameters.protocol` field controls which is used.
 
-KAITO will validate that the Blob CSI driver is available (by checking for the `blob.csi.azure.com` CSIDriver object) before creating the PVC. If the driver is not installed, the ModelPrefetch CR will report a clear error in `status.failureMessage`.
+KAITO will validate that the Blob CSI driver is available (by checking for the `blob.csi.azure.com` CSIDriver object) before creating the PVC. If the driver is not installed, the ModelMirror CR will report a clear error in `status.failureMessage`.
 
 **Enabling the driver and creating the StorageClass** (one-time cluster setup):
 ```bash
@@ -128,7 +128,7 @@ EOF
                          │                               │
                          ▼                               ▼
               ┌──────────────────┐            ┌──────────────────┐
-              │  ModelPrefetch   │            │  Node Provisioning│
+              │  ModelMirror   │            │  Node Provisioning│
               │  CR created/     │            │  (Karpenter)      │
               │  checked         │            │                   │
               └────────┬─────────┘            └────────┬─────────┘
@@ -154,13 +154,13 @@ EOF
                               └─────────────────────────┘
 ```
 
-### ModelPrefetch Custom Resource
+### ModelMirror Custom Resource
 
 A cluster-scoped resource in `kaito.sh/v1alpha1` — one per model, shared across all workspaces.
 
 ```yaml
 apiVersion: kaito.sh/v1alpha1
-kind: ModelPrefetch
+kind: ModelMirror
 metadata:
   name: qwen--qwen2.5-coder-32b-instruct  # derived from model ID
 spec:
@@ -171,11 +171,18 @@ spec:
   storage:
     storageSize: ""                     # auto-computed from model metadata if empty
     storageClassName: "blob-nfs"        # required: name of the pre-created StorageClass
+  idleTTL: ""                           # optional: e.g. "72h". Auto-delete after last workspace removed. Empty = keep forever.
 status:
   phase: Pending | Downloading | Ready
-  pvcName: "modelprefetch-qwen--qwen2.5-coder-32b-instruct"
+  pvcName: "modelmirror-qwen--qwen2.5-coder-32b-instruct"
   modelPath: "/models/qwen/qwen2.5-coder-32b-instruct"
   storageURI: "az://container-name/qwen/qwen2.5-coder-32b-instruct"
+  referencingWorkspaces:                # list of namespace/name pairs
+    - namespace: default
+      name: workspace-qwen-32b
+    - namespace: team-a
+      name: workspace-qwen-32b-finetune
+  idleSince: ""                         # timestamp when last workspace was removed (empty if still referenced)
   conditions:
     - type: StorageReady
       status: "True"
@@ -194,9 +201,19 @@ status:
 - `status.pvcName` is auto-generated — consumers read from status, not spec
 - Phase never reaches "Failed" — CR stays in `Downloading` and keeps retrying indefinitely
 
-### ModelPrefetch Controller
+**Relationships:**
+- `ModelMirror : Model : PVC = 1:1:1` — each CR manages exactly one model in one PVC
+- `ModelMirror : Workspace = 1:N` — multiple workspaces (across namespaces) can reference the same mirror
 
-A new controller that watches `ModelPrefetch` CRs and manages the download lifecycle:
+**Lifecycle and cleanup:**
+- The controller tracks all referencing Workspaces in `status.referencingWorkspaces`
+- When a Workspace is deleted, the controller removes it from the list
+- `spec.idleTTL` (optional): duration after the last referencing Workspace is removed before auto-deleting the CR and its PVC. If not set, the CR persists indefinitely (cluster admin manages manually).
+- Example: `idleTTL: 72h` — if no workspace references this model for 72 hours, delete the mirror and reclaim storage
+
+### ModelMirror Controller
+
+A new controller that watches `ModelMirror` CRs and manages the download lifecycle:
 
 1. **On CR creation:**
    - Validate StorageClass exists (error if not — user prerequisite)
@@ -223,7 +240,7 @@ A new controller that watches `ModelPrefetch` CRs and manages the download lifec
 
 When the `ModelStreaming` feature gate is enabled and the workspace does not have the opt-out annotation:
 
-1. **Before node provisioning:** Check if `ModelPrefetch` CR exists for the workspace's model
+1. **Before node provisioning:** Check if `ModelMirror` CR exists for the workspace's model
    - If not: create it (triggers download in parallel with node provisioning)
    - If exists and `Ready`: proceed immediately
    - If exists and `Downloading`: wait
@@ -231,14 +248,14 @@ When the `ModelStreaming` feature gate is enabled and the workspace does not hav
 2. **Parallel execution:** Node provisioning proceeds independently of model download
 
 3. **Gate before inference pod creation:** Wait for BOTH:
-   - `ModelPrefetch` CR status = `Ready`
+   - `ModelMirror` CR status = `Ready`
    - Nodes ready
 
-4. **Workspace status:** Surface a `ModelPrefetchInProgress` condition with the CR's `failureMessage` if download is failing. This gives users visibility without needing to inspect a separate resource.
+4. **Workspace status:** Surface a `ModelMirrorInProgress` condition with the CR's `failureMessage` if download is failing. This gives users visibility without needing to inspect a separate resource.
 
 ### Inference Pod Configuration
 
-When prefetch + streaming is active, the inference pod is configured differently from the original path:
+When mirror + streaming is active, the inference pod is configured differently from the original path:
 
 | Aspect | Original Path | Streaming Path |
 |--------|---------------|----------------|
@@ -302,7 +319,7 @@ The Blob CSI driver controller needs write permission on a resource group to dyn
 | Feature Gate | Annotation | Result |
 |---|---|---|
 | `ModelStreaming=false` | (any) | Original path (ORAS pull) |
-| `ModelStreaming=true` | not set | Prefetch + stream |
+| `ModelStreaming=true` | not set | Mirror + stream |
 | `ModelStreaming=true` | `"disabled"` | Original path (ORAS pull) |
 
 ### Provider Abstraction
@@ -321,11 +338,11 @@ The CR interface is cloud-agnostic. Provider-specific logic is encapsulated in i
 
 #### Story 1: First workspace for a model
 
-A user creates a workspace for `qwen/qwen2.5-coder-32b-instruct` with `ModelStreaming=true`. KAITO auto-creates the `ModelPrefetch` CR. The download Job starts in parallel with GPU provisioning. Once both complete, the inference pod starts and streams the model from blob in ~16 seconds. Total time savings: ~8-12 minutes vs sequential path.
+A user creates a workspace for `qwen/qwen2.5-coder-32b-instruct` with `ModelStreaming=true`. KAITO auto-creates the `ModelMirror` CR. The download Job starts in parallel with GPU provisioning. Once both complete, the inference pod starts and streams the model from blob in ~16 seconds. Total time savings: ~8-12 minutes vs sequential path.
 
 #### Story 2: Second workspace for the same model
 
-Another user (or the same user in a different namespace) creates a workspace for the same model. The `ModelPrefetch` CR already exists with `phase: Ready`. No download occurs — the workspace proceeds immediately to inference pod creation once GPU is ready.
+Another user (or the same user in a different namespace) creates a workspace for the same model. The `ModelMirror` CR already exists with `phase: Ready`. No download occurs — the workspace proceeds immediately to inference pod creation once GPU is ready.
 
 #### Story 3: Opt-out for debugging
 
@@ -333,7 +350,7 @@ A user encounters a streaming issue and wants to fall back to the original path.
 
 #### Story 4: Download failure
 
-A model download fails repeatedly (e.g. network issues, invalid HF token). The `ModelPrefetch` CR stays in `Downloading` with `failureMessage` updated. The workspace shows `ModelPrefetchInProgress` condition with the error. The CR keeps retrying with exponential backoff. Once the user fixes the issue (e.g. corrects the HF token Secret), the next retry succeeds and both the CR and workspace proceed.
+A model download fails repeatedly (e.g. network issues, invalid HF token). The `ModelMirror` CR stays in `Downloading` with `failureMessage` updated. The workspace shows `ModelMirrorInProgress` condition with the error. The CR keeps retrying with exponential backoff. Once the user fixes the issue (e.g. corrects the HF token Secret), the next retry succeeds and both the CR and workspace proceed.
 
 ## Implementation Details
 
@@ -377,7 +394,7 @@ metadata:
   name: <cr-name>-download
   ownerReferences:
     - apiVersion: kaito.sh/v1alpha1
-      kind: ModelPrefetch
+      kind: ModelMirror
       name: <cr-name>
 spec:
   backoffLimit: 3
@@ -415,7 +432,7 @@ spec:
             claimName: <pvc-name>
 ```
 
-**Download tool:** hfdownloader (Go binary, ~20 MB image). Provides concurrent downloads with built-in per-file retry (4 retries by default). The lightweight image size keeps prefetch Job startup fast (seconds, not minutes). **Future:** Vendor the Go source into KAITO's CI pipeline and publish to MCR (`mcr.microsoft.com/aks/kaito/hfdownloader`) for full supply-chain ownership.
+**Download tool:** hfdownloader (Go binary, ~20 MB image). Provides concurrent downloads with built-in per-file retry (4 retries by default). The lightweight image size keeps mirror Job startup fast (seconds, not minutes). **Future:** Vendor the Go source into KAITO's CI pipeline and publish to MCR (`mcr.microsoft.com/aks/kaito/hfdownloader`) for full supply-chain ownership.
 
 **Job pod TTL:** Set to 24 hours after completion so operators can inspect logs for download issues before the pod is garbage collected.
 
@@ -423,7 +440,7 @@ spec:
 
 1. **Within a single Job attempt:** hfdownloader retries each file up to 4 times internally
 2. **Job backoff:** Kubernetes retries the pod up to `backoffLimit: 3` times
-3. **Job recreation:** When a Job exhausts its backoff limit, the ModelPrefetch controller:
+3. **Job recreation:** When a Job exhausts its backoff limit, the ModelMirror controller:
    - Records the failure message in CR `status.failureMessage`
    - Deletes the failed Job
    - Waits with exponential backoff (1m, 2m, 4m, 8m, 16m, 30m cap)
@@ -450,21 +467,21 @@ This flag is only added when `tensor-parallel-size > 1`. For single-GPU models, 
 ## Test Plan
 
 ### Unit Tests
-- ModelPrefetch controller reconciliation logic
+- ModelMirror controller reconciliation logic
 - CR name derivation from model IDs
 - Storage URI resolution from PVC/PV
 - Feature gate and annotation logic in workspace controller
 
 ### Integration Tests
-- ModelPrefetch CR lifecycle (create → download → ready)
-- Workspace controller interaction with ModelPrefetch CR
-- Multiple workspaces sharing the same ModelPrefetch CR
+- ModelMirror CR lifecycle (create → download → ready)
+- Workspace controller interaction with ModelMirror CR
+- Multiple workspaces sharing the same ModelMirror CR
 
 ### E2E Tests (separate CI job)
 
 A dedicated CI job with blob CSI driver and workload identity prerequisites:
 
-1. **Prefetch + streaming path:**
+1. **Mirror + streaming path:**
    - Create workspace with feature gate on → verify CR created → verify download Job → verify inference streams from blob
    - Second workspace for same model → verify no new download, reuses existing CR
    - Workspace with opt-out annotation → verify falls back to original path
@@ -481,7 +498,7 @@ A dedicated CI job with blob CSI driver and workload identity prerequisites:
 | Blob storage performance varies by region/SKU | Document recommended storage SKU (Premium_LRS); POC validated 3.8 GiB/s |
 | Workload Identity misconfiguration | Troubleshooting documentation; clear error messages in CR status |
 | hfdownloader is third-party, not MCR-hosted | Vendor Go source into KAITO CI and publish to MCR in a future release; pin to known version until then |
-| PVC storage cost for unused models | Document manual cleanup; future: auto-eviction policy (non-goal for v1) |
+| PVC storage cost for unused models | `spec.idleTTL` auto-deletes CR + PVC after last workspace removed; if unset, cluster admin manages manually |
 | Model data corruption on blob | hfdownloader verifies file sizes; future: checksum validation |
 
 ## Alternatives
@@ -502,5 +519,5 @@ A dedicated CI job with blob CSI driver and workload identity prerequisites:
 
 - **Feature gate off by default:** Existing clusters are unaffected. No migration needed.
 - **Enabling the feature:** Set `--feature-gates=ModelStreaming=true`, set up workload identity, ensure blob CSI driver is enabled. New workspaces automatically use streaming. Existing workspaces are not retroactively changed.
-- **Disabling the feature:** Set feature gate to false. New workspaces use original path. Existing `ModelPrefetch` CRs and PVCs remain (no automatic cleanup).
+- **Disabling the feature:** Set feature gate to false. New workspaces use original path. Existing `ModelMirror` CRs and PVCs remain (no automatic cleanup).
 - **Base image update required:** `runai-model-streamer` packages must be added to the KAITO base image before enabling the feature gate.

@@ -164,7 +164,6 @@ else:
 
 # Initialize RAG operations
 rag_ops = VectorStoreManager(vector_store_handler)
-
 guardrails_reloader = GuardrailsReloader(
     policy_path=OUTPUT_GUARDRAILS_POLICY_PATH,
 )

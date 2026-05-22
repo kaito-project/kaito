@@ -50,9 +50,7 @@ _REGEX_MATCH_TYPES = frozenset(m.value for m in RegexMatchType)
 _SECRETS_REDACT_MODES = frozenset({"all", "partial", "hash"})
 _DEFAULT_SENSITIVE_DETECTORS = ("email", "phone", "credit_card", "ip_address")
 _SENSITIVE_DETECTORS = frozenset(_DEFAULT_SENSITIVE_DETECTORS)
-_EMAIL_PATTERN = re.compile(
-    r"\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[A-Za-z]{2,}\b"
-)
+_EMAIL_PATTERN = re.compile(r"\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[A-Za-z]{2,}\b")
 _PHONE_PATTERN = re.compile(r"(?<!\w)(?:\+?\d[\d().\- ]{8,}\d)(?!\w)")
 _CREDIT_CARD_PATTERN = re.compile(r"(?<!\d)(?:\d[ -]?){12,18}\d(?!\d)")
 _IPV4_PATTERN = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
@@ -277,7 +275,9 @@ def _dedupe_strings(values: list[str]) -> list[str]:
     return deduped
 
 
-def _collect_sensitive_matches(text: str, detectors: list[str]) -> list[_SensitiveMatch]:
+def _collect_sensitive_matches(
+    text: str, detectors: list[str]
+) -> list[_SensitiveMatch]:
     matches: list[_SensitiveMatch] = []
     for detector in detectors:
         if detector == "email":
@@ -317,8 +317,13 @@ def _collect_sensitive_matches(text: str, detectors: list[str]) -> list[_Sensiti
 
 def _dedupe_matches(matches: list[_SensitiveMatch]) -> list[_SensitiveMatch]:
     deduped: list[_SensitiveMatch] = []
-    for match in sorted(matches, key=lambda item: (item.start, -(item.end - item.start))):
-        if any(match.start < existing.end and existing.start < match.end for existing in deduped):
+    for match in sorted(
+        matches, key=lambda item: (item.start, -(item.end - item.start))
+    ):
+        if any(
+            match.start < existing.end and existing.start < match.end
+            for existing in deduped
+        ):
             continue
         deduped.append(match)
     return deduped

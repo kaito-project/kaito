@@ -722,7 +722,9 @@ def test_guard_response_redacts_sensitive_entities_end_to_end():
     )
 
     out = guardrails.guard_response(
-        _make_response("Email alice@example.com or call +1 (206) 555-0100 from 10.0.0.1"),
+        _make_response(
+            "Email alice@example.com or call +1 (206) 555-0100 from 10.0.0.1"
+        ),
         {"messages": []},
     )
 

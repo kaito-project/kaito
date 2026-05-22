@@ -213,8 +213,15 @@ class OutputGuardrails:
 
 
 def _parse_policy_scanner_configs(
-    value: Any, policy_path: str, default_action_on_hit: str = DEFAULT_ACTION_ON_HIT
+    value: Any,
+    policy_path: str,
+    default_action_on_hit: str = DEFAULT_ACTION_ON_HIT,
+    *,
+    action_on_hit: str | None = None,
 ) -> tuple[ParsedScannerConfig, ...]:
+    if action_on_hit is not None:
+        default_action_on_hit = action_on_hit
+
     if value is None:
         return ()
     if not isinstance(value, list):
@@ -236,10 +243,18 @@ def _parse_policy_scanner_configs(
                 "output_guardrails_policy_unknown_scanner type=%s", scanner_type
             )
             continue
-
         scanner_action_on_hit = _normalize_action(
             raw.get("action"), default_action_on_hit
         )
+        if scanner_action_on_hit == "redact" and not getattr(
+            schema_cls, "supports_redact", True
+        ):
+            logger.warning(
+                "output_guardrails_policy_incompatible_scanner_action type=%s action=%s",
+                scanner_type,
+                scanner_action_on_hit,
+            )
+            continue
 
         normalized_raw = {
             _normalize_scanner_key(str(key)): item

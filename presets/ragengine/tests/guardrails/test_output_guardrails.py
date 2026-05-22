@@ -481,6 +481,66 @@ def test_parse_policy_scanner_configs_rejects_non_bool_flags():
     assert parsed == (_ban_subs_cfg(substrings=["a"], case_sensitive=True),)
 
 
+def test_parse_policy_scanner_configs_skips_redact_incompatible_scanners(
+    monkeypatch,
+):
+    class NonRedactingScannerConfig:
+        supports_redact = False
+
+        @classmethod
+        def from_dict(cls, raw):
+            return cls()
+
+        def build(self, action_on_hit):
+            return object()
+
+    monkeypatch.setitem(
+        output_guardrails_module.SCANNER_REGISTRY,
+        "non_redacting",
+        NonRedactingScannerConfig,
+    )
+
+    parsed = output_guardrails_module._parse_policy_scanner_configs(
+        [
+            {"type": "non_redacting"},
+            {"type": "regex", "patterns": ["a"]},
+        ],
+        "guardrails.yaml",
+        action_on_hit="redact",
+    )
+
+    assert parsed == (_regex_cfg(patterns=["a"]),)
+
+
+def test_parse_policy_scanner_configs_allows_non_redact_scanners_for_block(
+    monkeypatch,
+):
+    class NonRedactingScannerConfig:
+        supports_redact = False
+
+        @classmethod
+        def from_dict(cls, raw):
+            return cls()
+
+        def build(self, action_on_hit):
+            return object()
+
+    monkeypatch.setitem(
+        output_guardrails_module.SCANNER_REGISTRY,
+        "non_redacting",
+        NonRedactingScannerConfig,
+    )
+
+    parsed = output_guardrails_module._parse_policy_scanner_configs(
+        [{"type": "non_redacting"}],
+        "guardrails.yaml",
+        action_on_hit="block",
+    )
+
+    assert len(parsed) == 1
+    assert parsed[0].type == "non_redacting"
+
+
 # ---------------------------------------------------------------------------
 # _build_scanners
 # ---------------------------------------------------------------------------

@@ -33,6 +33,7 @@ own sys.stdout if /proc/1/fd/1 is not accessible.
 """
 
 import asyncio
+import math
 import os
 import sys
 import time
@@ -40,6 +41,7 @@ import urllib.request
 from pathlib import Path
 
 from huggingface_hub import scan_cache_dir
+from huggingface_hub.constants import HF_HUB_CACHE
 from prometheus_client.parser import text_string_to_metric_families
 
 # ── Configuration ─────────────────────────────────────────────────────────────
@@ -144,16 +146,16 @@ def _sum_counter_metric(metric: str) -> int:
 # ── Benchmark configuration ───────────────────────────────────────────────────
 
 
-def _compute_max_concurrency() -> int:
+def _compute_max_concurrency(processor: str | None = None) -> int:
     """Compute saturation concurrency from vLLM's actual KV cache allocation.
 
-    Parses ``vllm:cache_config_info`` from /metrics to get ``num_gpu_blocks``
-    and ``block_size``, then computes:
+    Parses ``vllm:cache_config_info`` from /metrics to get block pool parameters,
+    then computes blocks-per-request for both attention and Mamba layer groups.
 
-        floor(num_gpu_blocks * block_size / (input_tokens + output_tokens))
-
-    This reflects the true number of requests that fit simultaneously in the
-    KV cache, accounting for gpu_memory_utilization and all runtime factors.
+    For hybrid Mamba models (e.g. NemotronH), attention and Mamba layers allocate
+    blocks **additively** from a shared pool (see ``KVCacheCoordinator.
+    get_num_blocks_to_allocate`` in vLLM).  For pure-attention models, only
+    attention blocks are counted.
 
     Raises ``RuntimeError`` if the metric is absent or unparsable.
     """
@@ -166,28 +168,204 @@ def _compute_max_concurrency() -> int:
     except Exception as exc:
         raise RuntimeError(f"failed to fetch /metrics: {exc}") from exc
 
-    target_metric = "vllm:cache_config_info"
-    for family in text_string_to_metric_families(content):
-        if family.name == target_metric:
-            for sample in family.samples:
-                labels = sample.labels
-                if "num_gpu_blocks" in labels and "block_size" in labels:
-                    # num_gpu_blocks: total KV cache blocks allocated across all GPUs
-                    num_gpu_blocks = int(labels["num_gpu_blocks"])
-                    # block_size: number of tokens each KV cache block holds
-                    block_size = int(labels["block_size"])
-                    seq_len = BENCHMARK_INPUT_LEN + BENCHMARK_OUTPUT_LEN
-                    concurrency = (num_gpu_blocks * block_size) // seq_len
-                    if concurrency <= 0:
-                        raise RuntimeError(
-                            f"computed max_concurrency={concurrency} <= 0 "
-                            f"(num_gpu_blocks={num_gpu_blocks}, block_size={block_size}, seq_len={seq_len})"
-                        )
-                    return concurrency
+    labels = _get_cache_config_labels(content)
+    if labels is None:
+        raise RuntimeError(
+            "vllm:cache_config_info metric or required labels not found in /metrics output"
+        )
 
-    raise RuntimeError(
-        f"{target_metric} metric or required labels not found in /metrics output"
+    num_gpu_blocks = labels["num_gpu_blocks"]
+    block_size = labels["block_size"]
+    seq_len = BENCHMARK_INPUT_LEN + BENCHMARK_OUTPUT_LEN
+
+    config = _load_model_config_dict(processor)
+    layer_counts = (
+        _infer_kv_cache_layer_counts_from_dict(config) if config is not None else None
     )
+    attn_group_count, mamba_group_count = _derive_kv_cache_group_counts(
+        labels, layer_counts
+    )
+    attn_blocks_per_group = math.ceil(seq_len / block_size)
+    mamba_blocks_per_group = _compute_mamba_blocks(labels, seq_len)
+    attn_blocks = attn_group_count * attn_blocks_per_group
+    mamba_blocks = mamba_group_count * mamba_blocks_per_group
+
+    blocks_per_request = attn_blocks + mamba_blocks
+    concurrency = num_gpu_blocks // blocks_per_request
+    if concurrency <= 0:
+        raise RuntimeError(
+            f"computed max_concurrency={concurrency} <= 0 "
+            f"(num_gpu_blocks={num_gpu_blocks}, "
+            f"attn_blocks={attn_blocks}, "
+            f"mamba_blocks={mamba_blocks}, "
+            f"attn_group_count={attn_group_count}, "
+            f"mamba_group_count={mamba_group_count}, "
+            f"seq_len={seq_len})"
+        )
+    return concurrency
+
+
+def _get_cache_config_labels(metrics_text: str) -> dict | None:
+    """Extract validated cache_config_info labels as a typed dict.
+
+    Returns None if the metric is missing or required fields are not valid ints.
+    """
+    for family in text_string_to_metric_families(metrics_text):
+        if family.name != "vllm:cache_config_info":
+            continue
+        for sample in family.samples:
+            raw = sample.labels
+            try:
+                return {
+                    "num_gpu_blocks": int(raw["num_gpu_blocks"]),
+                    "block_size": int(raw["block_size"]),
+                    "mamba_block_size": raw.get("mamba_block_size"),
+                    "mamba_cache_mode": raw.get("mamba_cache_mode"),
+                }
+            except (KeyError, ValueError):
+                continue
+    return None
+
+
+def _compute_mamba_blocks(labels: dict, seq_len: int) -> int:
+    """Return Mamba blocks per request for one Mamba KV-cache group."""
+    raw_size = labels.get("mamba_block_size")
+    mode = labels.get("mamba_cache_mode")
+    try:
+        mamba_block_size = int(raw_size)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return 0
+
+    if mode == "none":
+        return math.ceil(seq_len / mamba_block_size)
+    if mode == "align":
+        return 2
+    if mode == "all":
+        return math.ceil(seq_len / mamba_block_size)
+    return 0
+
+
+def _derive_kv_cache_group_counts(
+    labels: dict, layer_counts: tuple[int, int] | None
+) -> tuple[int, int]:
+    """Derive group counts from layer counts, with metrics fallback."""
+    if layer_counts is None:
+        try:
+            int(labels.get("mamba_block_size"))  # type: ignore[arg-type]
+            has_mamba = labels.get("mamba_cache_mode") is not None
+        except (TypeError, ValueError):
+            has_mamba = False
+        return 1, 1 if has_mamba else 0
+
+    attn_layers, mamba_layers = layer_counts
+    if attn_layers <= 0:
+        return 0, 1 if mamba_layers > 0 else 0
+    if mamba_layers <= 0:
+        return 1, 0
+
+    min_num_layers = min(attn_layers, mamba_layers)
+    max_num_layers = max(attn_layers, mamba_layers)
+    group_size = min_num_layers
+    if max_num_layers < min_num_layers * 1.5:
+        group_size = max_num_layers
+
+    return math.ceil(attn_layers / group_size), math.ceil(mamba_layers / group_size)
+
+
+def _load_model_config_dict(processor: str | None) -> dict | None:
+    """Load the model's ``config.json`` as a dict.
+
+    Two mutually-exclusive paths:
+
+    1. **Baked-in weights** — ``processor`` is the local path
+       ``/workspace/weights`` (or any path containing ``config.json``).
+       Read the file directly; no HF cache scan needed.
+    2. **HF cache (DAR or normal cache)** — ``processor`` is a repo id like
+       ``microsoft/Phi-3-mini-4k-instruct``.  Use ``scan_cache_dir`` to find
+       the snapshot directory and read its ``config.json``.
+
+    Reading the raw JSON bypasses ``transformers`` entirely, so generic
+    ``PretrainedConfig`` degradation cannot strip custom fields like
+    ``hybrid_override_pattern`` or ``layer_types``.
+
+    Returns ``None`` if no config.json can be located or parsed.
+    """
+    import json
+
+    if not processor:
+        return None
+
+    # Case 1: baked-in weights — processor is a local directory path.
+    weights_cfg = Path(processor) / "config.json"
+    if weights_cfg.is_file():
+        try:
+            with open(weights_cfg) as f:
+                return json.load(f)
+        except Exception:
+            return None
+
+    # Case 2: HF cache — processor is a repo_id.
+    try:
+        cache_info = scan_cache_dir()
+    except Exception:
+        return None
+    for repo in cache_info.repos:
+        if repo.repo_id != processor:
+            continue
+        for rev in repo.revisions:
+            cfg = Path(rev.snapshot_path) / "config.json"
+            if cfg.is_file():
+                try:
+                    with open(cfg) as f:
+                        return json.load(f)
+                except Exception:
+                    return None
+
+    return None
+
+
+def _infer_kv_cache_layer_counts_from_dict(root: dict) -> tuple[int, int] | None:
+    """Infer ``(attention_layers, mamba_layers)`` from one config dict."""
+
+    for config in _iter_config_dicts(root):
+        pattern = config.get("hybrid_override_pattern")
+        if isinstance(pattern, str):
+            attn_layers = pattern.count("*")
+            mamba_layers = pattern.count("M")
+            if attn_layers or mamba_layers:
+                return attn_layers, mamba_layers
+
+        layer_types = config.get("layer_types")
+        if isinstance(layer_types, list) and all(
+            isinstance(layer_type, str) for layer_type in layer_types
+        ):
+            attn_layers = sum(
+                1 for layer_type in layer_types if layer_type == "full_attention"
+            )
+            mamba_layers = len(layer_types) - attn_layers
+            if attn_layers or mamba_layers:
+                return attn_layers, mamba_layers
+
+        architectures = config.get("architectures") or []
+        if isinstance(architectures, str):
+            architectures = [architectures]
+        model_type = str(config.get("model_type", "")).lower()
+        num_hidden_layers = config.get("num_hidden_layers")
+        if isinstance(num_hidden_layers, int) and num_hidden_layers > 0:
+            if any("FalconH1" in arch for arch in architectures):
+                return num_hidden_layers, num_hidden_layers
+            if "mamba" in model_type and "num_attention_heads" not in config:
+                return 0, num_hidden_layers
+
+    return None
+
+
+def _iter_config_dicts(config: dict):
+    yield config
+    for key in ("text_config", "llm_config", "model_config"):
+        nested = config.get(key)
+        if isinstance(nested, dict):
+            yield nested
 
 
 def _resolve_processor() -> str:
@@ -195,9 +373,8 @@ def _resolve_processor() -> str:
 
     Case 1 — Baked-in model: tokenizer at ``/workspace/weights`` root
               (``config.json`` present directly under weights).
-    Case 2 — DAR / HF cache: use ``scan_cache_dir`` to read the repo_id
-              directly from the cache metadata (handles both snapshot and
-              ``models--org--name`` layouts).
+    Case 2 — DAR / HF cache: use ``scan_cache_dir`` to read the repo_id from
+              HF cache metadata without parsing cache paths or blob names.
     Case 3 — Nothing found: return ``""`` and let guidellm auto-detect from
               ``/v1/models`` (may fail for unknown models).
     """
@@ -207,9 +384,23 @@ def _resolve_processor() -> str:
     if (weights / "config.json").exists():
         return str(weights)
 
-    # Case 2: DAR or HF cache — ask huggingface_hub for the repo_id
+    # Case 2: DAR or HF cache — ask huggingface_hub for the repo_id.
+    processor = _resolve_processor_from_hf_cache(weights)
+    if processor:
+        return processor
+    processor = _resolve_processor_from_hf_cache(Path(HF_HUB_CACHE))
+    if processor:
+        return processor
+
+    return ""
+
+
+def _resolve_processor_from_hf_cache(cache_dir: Path) -> str:
+    """Resolve the first cached HF repo id from a cache directory."""
+    if not cache_dir.exists():
+        return ""
     try:
-        cache_info = scan_cache_dir(cache_dir=str(weights))
+        cache_info = scan_cache_dir(cache_dir=str(cache_dir))
         repos = sorted(cache_info.repos, key=lambda r: r.repo_id)
         if repos:
             # repo_id is the HuggingFace model identifier (e.g. "microsoft/Phi-3-mini-4k-instruct"),
@@ -218,8 +409,29 @@ def _resolve_processor() -> str:
             return repos[0].repo_id
     except Exception:
         pass
-
     return ""
+
+
+def _predownload_processor(processor: str) -> str:
+    """Pre-download the tokenizer so the download doesn't count toward benchmark time.
+
+    GuideLLM calls ``AutoTokenizer.from_pretrained(processor)`` lazily during
+    synthetic data generation.  Calling it here ensures the files are cached
+    locally before the benchmark clock starts.
+
+    Returns the processor string unchanged (guidellm will hit the local cache).
+    """
+    if not processor:
+        return processor
+    try:
+        from transformers import AutoTokenizer
+
+        _log(f"predownloading_processor processor={processor}")
+        AutoTokenizer.from_pretrained(processor, trust_remote_code=True)
+        _log("predownload_done")
+    except Exception as exc:
+        _log(f"predownload_failed (non-fatal): {exc}")
+    return processor
 
 
 # ── guidellm runner ───────────────────────────────────────────────────────────
@@ -306,20 +518,20 @@ def _run_benchmark() -> tuple:
     Raises ``RuntimeError`` on any failure so the caller can log it and fall back
     to the sentinel result.
     """
-    t0_gen = _sum_counter_metric("vllm:generation_tokens_total")
-    t0_prompt = _sum_counter_metric("vllm:prompt_tokens_total")
-    t0_epoch = time.time()
-
-    processor = _resolve_processor()
+    processor = _predownload_processor(_resolve_processor())
     _log(f"processor_resolved PROCESSOR={processor or '<auto>'}")
-    _log(f"benchmark_start epoch={t0_epoch:.1f} t0_gen={t0_gen} t0_prompt={t0_prompt}")
 
-    max_concurrency = _compute_max_concurrency()
+    max_concurrency = _compute_max_concurrency(processor)
     _log(
         f'{{"duration_sec":{BENCHMARK_DURATION},"input_tokens":{BENCHMARK_INPUT_LEN},'
         f'"output_tokens":{BENCHMARK_OUTPUT_LEN},"max_concurrency":{max_concurrency}}}',
         tag="KAITO_BENCHMARK_CONFIG",
     )
+
+    t0_gen = _sum_counter_metric("vllm:generation_tokens_total")
+    t0_prompt = _sum_counter_metric("vllm:prompt_tokens_total")
+    t0_epoch = time.time()
+    _log(f"benchmark_start epoch={t0_epoch:.1f} t0_gen={t0_gen} t0_prompt={t0_prompt}")
 
     report = _run_guidellm(processor, max_concurrency)
     if report is None:

@@ -32,7 +32,7 @@ time, instead of trying to fix it at runtime.
 
 import re
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, ClassVar
 
 import llm_guard.output_scanners as llm_guard_output_scanners
 from llm_guard.input_scanners.ban_substrings import (
@@ -49,6 +49,7 @@ _REGEX_MATCH_TYPES = frozenset(m.value for m in RegexMatchType)
 
 @dataclass
 class BanSubstringsConfig:
+    supports_redact: ClassVar[bool] = True
     substrings: list[str]
     match_type: str = "word"
     case_sensitive: bool = False
@@ -90,6 +91,7 @@ class BanSubstringsConfig:
 
 @dataclass
 class RegexConfig:
+    supports_redact: ClassVar[bool] = True
     patterns: list[str]
     is_blocked: bool = True
     match_type: str = "search"

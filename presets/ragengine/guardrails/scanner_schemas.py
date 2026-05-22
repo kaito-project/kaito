@@ -131,7 +131,6 @@ class RegexConfig:
         )
 
 
-
 @dataclass
 class JSONConfig:
     supports_redact: ClassVar[bool] = True
@@ -163,7 +162,9 @@ class ReadingTimeConfig:
     def from_dict(cls, raw: dict) -> "ReadingTimeConfig":
         max_time = raw.get("max_time")
         if not (isinstance(max_time, (int, float)) and max_time > 0):
-            raise ValueError("reading_time 'max_time' must be a positive number (minutes)")
+            raise ValueError(
+                "reading_time 'max_time' must be a positive number (minutes)"
+            )
         truncate = _coerce_bool(raw.get("truncate"), False, field="truncate")
         return cls(max_time=float(max_time), truncate=truncate)
 

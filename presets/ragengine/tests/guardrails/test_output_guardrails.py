@@ -373,9 +373,7 @@ def test_from_config_skips_invalid_scanners_and_filters_non_string_values(
     assert scanners[1].redact is True
 
 
-def test_from_config_loads_json_and_reading_time_scanners(
-    tmp_path, monkeypatch
-):
+def test_from_config_loads_json_and_reading_time_scanners(tmp_path, monkeypatch):
     _write_policy(
         tmp_path,
         monkeypatch,

@@ -37,6 +37,6 @@ jobs:
     with:
       pull_request_number: ${{ github.event.pull_request.number }}
       git_sha: ${{ github.event.pull_request.head.sha || github.sha }}
-      node_provisioner: azkarpenter
+      node_provisioner: gpuprovisioner
       ginkgo_label: ${{ inputs.ginkgo_label || '' }}
       region: ${{ inputs.region || 'swedencentral' }}

@@ -163,19 +163,20 @@ A cluster-scoped resource in `kaito.sh/v1alpha1` — one per model, shared acros
 apiVersion: kaito.sh/v1alpha1
 kind: ModelMirror
 metadata:
-  name: qwen--qwen2.5-coder-32b-instruct  # derived from model ID
+  name: modelmirror-a3f7b2c1d4e5f6a7b8c9d0e1f2a3b4c5d6e7  # SHA-256 hash of modelID, truncated
 spec:
   source:
     registry: huggingface               # "huggingface", "oci" (future)
-    name: "qwen/qwen2.5-coder-32b-instruct"
-    accessSecret: "hf-token-secret"     # optional, Secret in kaito-workspace namespace
+    modelID: "qwen/qwen2.5-coder-32b-instruct"
+    accessSecret:                        # optional: ObjectReference to Secret (cluster-scoped CR needs namespace)
+      name: "hf-token-secret"
+      namespace: "kaito-workspace"
   storage:
     storageSize: ""                     # auto-computed from model metadata if empty
     storageClassName: "blob-nfs"        # default: NFS (best performance). Also supports BlobFuse or other StorageClass names.
-  idleTTL: ""                           # optional: e.g. "72h". Auto-delete after last workspace removed. Empty = keep forever.
 status:
-  phase: Pending | Downloading | Ready
-  pvcName: "modelmirror-qwen--qwen2.5-coder-32b-instruct"
+  phase: Pending | Ready
+  pvcName: "modelmirror-a3f7b2c1d4e5f6a7b8c9d0e1f2a3b4c5d6e7"
   modelPath: "/models/qwen/qwen2.5-coder-32b-instruct"
   storageURI: "az://container-name/qwen/qwen2.5-coder-32b-instruct"
   referencingWorkspaces:                # list of namespace/name pairs
@@ -183,7 +184,6 @@ status:
       name: workspace-qwen-32b
     - namespace: team-a
       name: workspace-qwen-32b-finetune
-  idleSince: ""                         # timestamp when last workspace was removed (empty if still referenced)
   conditions:
     - type: StorageReady
       status: "True"
@@ -209,8 +209,7 @@ status:
 **Lifecycle and cleanup:**
 - The controller tracks all referencing Workspaces in `status.referencingWorkspaces`
 - When a Workspace is deleted, the controller removes it from the list
-- `spec.idleTTL` (optional): duration after the last referencing Workspace is removed before auto-deleting the CR and its PVC. If not set, the CR persists indefinitely (cluster admin manages manually).
-- Example: `idleTTL: 72h` — if no workspace references this model for 72 hours, delete the mirror and reclaim storage
+- The CR persists indefinitely unless manually deleted by the cluster admin (even if no workspaces reference it)
 
 ### ModelMirror Controller
 
@@ -218,7 +217,7 @@ A new controller that watches `ModelMirror` CRs and manages the download lifecyc
 
 1. **On CR creation:**
    - Validate StorageClass exists (error if not — user prerequisite)
-   - Create PVC (auto-sized from model metadata)
+   - Create PVC (auto-sized from model metadata) with a finalizer (`kaito.sh/model-mirror-protection`) to ensure PVC persists after the download Job/pod is deleted
    - Create download Job
 
 2. **On Job completion:**
@@ -276,16 +275,17 @@ When mirror + streaming is active, the inference pod is configured differently f
 
 The inference pod needs to authenticate to blob storage for RunAI streamer's direct `az://` access. This uses AKS Workload Identity.
 
-**User responsibilities (manual, one-time setup per cluster):**
+**User responsibilities (per namespace, before creating a workspace):**
 1. Create or identify a Managed Identity with blob read access
-2. Create a Federated Credential linking the identity to the KAITO ServiceAccount
-3. Grant the identity `Storage Blob Data Reader` role on the storage account
+2. Grant the identity `Storage Blob Data Reader` role on the storage account
+3. In each namespace where workspaces will run:
+   - Create a ServiceAccount with annotation `azure.workload.identity/client-id: <client-id>`
+   - Create a Federated Identity Credential (FIC) linking that SA to the Managed Identity
 
 **KAITO responsibilities:**
-1. Define a fixed ServiceAccount name: `kaito-model-streamer`
-2. Accept the identity client ID via environment variable on the controller (`MODEL_STREAMER_IDENTITY_CLIENT_ID`)
-3. Create the SA in each namespace where workspaces are created, with annotation: `azure.workload.identity/client-id=<client-id>`
-4. Set label `azure.workload.identity/use: "true"` on inference pods
+1. Accept the ServiceAccount name via the ModelMirror CR or workspace annotation
+2. Set label `azure.workload.identity/use: "true"` on inference pods
+3. Set `spec.serviceAccountName` on the inference pod to the user-provided SA
 
 **The AKS mutating admission webhook** then automatically injects `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, and `AZURE_FEDERATED_TOKEN_FILE` into the inference pod.
 
@@ -314,6 +314,7 @@ The Blob CSI driver controller needs write permission on a resource group to dyn
 **Workspace annotation opt-out:**
 - `kaito.sh/model-streaming: "disabled"`
 - Allows individual workspaces to bypass streaming even when the gate is globally on
+- **Immutable:** A validating webhook rejects updates that add, remove, or change this annotation after workspace creation. If streaming does not work, the user must recreate the workspace.
 
 **Behavior matrix:**
 
@@ -357,15 +358,33 @@ A model download fails repeatedly (e.g. network issues, invalid HF token). The `
 
 ### CR Naming Convention
 
-HuggingFace model IDs contain slashes (e.g. `qwen/qwen2.5-coder-32b-instruct`) which are invalid in Kubernetes resource names. The CR name is derived by:
-
-1. Lowercase the model ID
-2. Replace `/` with `--`
+The CR name is a hash of the HuggingFace model ID (SHA-256, truncated to 40 hex characters):
 
 Examples:
-- `qwen/Qwen2.5-Coder-32B-Instruct` → `qwen--qwen2.5-coder-32b-instruct`
-- `microsoft/Phi-4` → `microsoft--phi-4`
-- `meta-llama/Llama-3.3-70B-Instruct` → `meta-llama--llama-3.3-70b-instruct`
+- `qwen/Qwen2.5-Coder-32B-Instruct` → `modelmirror-a3f7b2c1d4e5...` (40 chars)
+- `microsoft/Phi-4` → `modelmirror-8e2d1f0a9b3c...`
+
+The actual model ID is always available via `spec.source.modelID` and surfaced in `kubectl get` output via `additionalPrinterColumns`:
+
+```yaml
+additionalPrinterColumns:
+  - name: Model
+    type: string
+    jsonPath: .spec.source.modelID
+  - name: Phase
+    type: string
+    jsonPath: .status.phase
+  - name: Age
+    type: date
+    jsonPath: .metadata.creationTimestamp
+```
+
+```
+$ kubectl get modelmirrors
+NAME                                       MODEL                                  PHASE   AGE
+modelmirror-a3f7b2c1d4e5f6a7b8c9d0e1...   qwen/Qwen2.5-Coder-32B-Instruct       Ready   2h
+modelmirror-8e2d1f0a9b3c4d5e6f7a8b9c...   microsoft/Phi-4                        Ready   1d
+```
 
 ### Storage Account Resolution
 
@@ -499,7 +518,7 @@ A dedicated CI job with blob CSI driver and workload identity prerequisites:
 | Blob storage performance varies by region/SKU | Document recommended storage SKU (Premium_LRS); POC validated 3.8 GiB/s |
 | Workload Identity misconfiguration | Troubleshooting documentation; clear error messages in CR status |
 | hfdownloader is third-party, not MCR-hosted | Vendor Go source into KAITO CI and publish to MCR in a future release; pin to known version until then |
-| PVC storage cost for unused models | `spec.idleTTL` auto-deletes CR + PVC after last workspace removed; if unset, cluster admin manages manually |
+| PVC storage cost for unused models | CR persists until manually deleted by cluster admin; `status.referencingWorkspaces` shows active usage |
 | Model data corruption on blob | hfdownloader verifies file sizes; future: checksum validation |
 
 ## Alternatives
@@ -522,3 +541,10 @@ A dedicated CI job with blob CSI driver and workload identity prerequisites:
 - **Enabling the feature:** Set `--feature-gates=ModelStreaming=true`, set up workload identity, ensure blob CSI driver is enabled. New workspaces automatically use streaming. Existing workspaces are not retroactively changed.
 - **Disabling the feature:** Set feature gate to false. New workspaces use original path. Existing `ModelMirror` CRs and PVCs remain (no automatic cleanup).
 - **Base image update required:** `runai-model-streamer` packages must be added to the KAITO base image before enabling the feature gate.
+- **Helm chart: local-csi-driver optional:** When ModelStreaming is enabled for all workspaces, local NVMe storage is no longer needed for model weights. The chart will expose `local-csi-driver.enabled` (default: `true`) so users can disable it:
+  ```yaml
+  # values.yaml
+  local-csi-driver:
+    enabled: false  # Set to false when using ModelStreaming exclusively
+  ```
+  Note: only disable if **all** workspaces use streaming. If some workspaces opt out via annotation, local-csi-driver is still needed for those.

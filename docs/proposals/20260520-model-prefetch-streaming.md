@@ -70,6 +70,7 @@ By mirroring model weights to persistent cloud storage in parallel with GPU prov
 - Support multi-cloud with a provider-agnostic CR interface
 - Enable distributed streaming for tensor-parallel deployments
 - Maintain backward compatibility — existing workspaces work unchanged when feature is off
+- Eliminate dependency on local NVMe storage (local-csi-driver) for model weights — when enabled, GPU nodes become stateless with respect to model data.
 
 ### Non-Goals/Future Work
 
@@ -92,7 +93,7 @@ Either protocol works for this feature because:
 - The **download Job** writes model files to the PVC via the mounted filesystem (BlobFuse or NFS both work).
 - The **inference pod** (RunAI streamer) reads directly from Azure Blob via `az://` URI using the Azure SDK — it does **not** read through the filesystem mount.
 
-NFS is recommended for better download write performance, but BlobFuse is also functional. The StorageClass `parameters.protocol` field controls which is used.
+NFS is recommended for better download write performance, but BlobFuse is also functional. BlobFuse uses account-key authentication which is more flexible — it even works in non-Azure environments where NFS protocol may not be available. The StorageClass `parameters.protocol` field controls which is used. Users may specify any custom StorageClass name in the CR spec (`spec.storage.storageClassName`).
 
 KAITO will validate that the Blob CSI driver is available (by checking for the `blob.csi.azure.com` CSIDriver object) before creating the PVC. If the driver is not installed, the ModelMirror CR will report a clear error in `status.failureMessage`.
 
@@ -170,7 +171,7 @@ spec:
     accessSecret: "hf-token-secret"     # optional, Secret in kaito-workspace namespace
   storage:
     storageSize: ""                     # auto-computed from model metadata if empty
-    storageClassName: "blob-nfs"        # required: name of the pre-created StorageClass
+    storageClassName: "blob-nfs"        # default: NFS (best performance). Also supports BlobFuse or other StorageClass names.
   idleTTL: ""                           # optional: e.g. "72h". Auto-delete after last workspace removed. Empty = keep forever.
 status:
   phase: Pending | Downloading | Ready

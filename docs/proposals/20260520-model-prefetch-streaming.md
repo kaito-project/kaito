@@ -260,7 +260,7 @@ When mirror + streaming is active, the inference pod is configured differently f
 | `--model=` | Local path or HF ID | `az://<container>/<model-path>` (from CR status) |
 | `--load-format=` | `auto` | `runai_streamer` |
 | Model weights volume | Mounted at `/workspace/weights` | Not mounted |
-| ServiceAccount | default | `kaito-model-streamer` |
+| ServiceAccount | default | User-provided SA with workload identity |
 | Extra config | None | `--model-loader-extra-config '{"distributed": true}'` (TP>1) |
 
 **Environment variables on inference pod:**
@@ -515,7 +515,7 @@ A dedicated CI job with blob CSI driver and workload identity prerequisites:
 | Blob storage performance varies by region/SKU | Document recommended storage SKU (Premium_LRS); POC validated 3.8 GiB/s |
 | Workload Identity misconfiguration | Troubleshooting documentation; clear error messages in CR status |
 | hfdownloader is third-party, not MCR-hosted | Vendor Go source into KAITO CI and publish to MCR in a future release; pin to known version until then |
-| PVC storage cost for unused models | CR persists until manually deleted by cluster admin; `status.referencingWorkspaces` shows active usage |
+| PVC storage cost for unused models | CR persists until manually deleted by cluster admin |
 | Model data corruption on blob | hfdownloader verifies file sizes; future: checksum validation |
 
 ## Alternatives

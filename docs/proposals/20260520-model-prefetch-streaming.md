@@ -163,7 +163,7 @@ A cluster-scoped resource in `kaito.sh/v1alpha1` — one per model, shared acros
 apiVersion: kaito.sh/v1alpha1
 kind: ModelMirror
 metadata:
-  name: modelmirror-a3f7b2c1d4e5f6a7b8c9d0e1f2a3b4c5d6e7  # SHA-256 hash of modelID, truncated
+  name: a3f7b2  # SHA-256 hash of modelID, first 6 characters
 spec:
   source:
     registry: huggingface               # "huggingface", "oci" (future)
@@ -176,7 +176,7 @@ spec:
     storageClassName: "blob-nfs"        # default: NFS (best performance). Also supports BlobFuse or other StorageClass names.
 status:
   phase: Pending | Ready
-  pvcName: "modelmirror-a3f7b2c1d4e5f6a7b8c9d0e1f2a3b4c5d6e7"
+  pvcName: "a3f7b2"
   modelPath: "/models/qwen/qwen2.5-coder-32b-instruct"
   storageURI: "az://container-name/qwen/qwen2.5-coder-32b-instruct"
   conditions:
@@ -193,7 +193,7 @@ status:
 - `spec.source` is generic — not tied to any specific model registry
 - `status.storageURI` is provider-specific (az://, s3://) and is what vLLM receives as `--model=`
 - `status.pvcName` is auto-generated — consumers read from status, not spec
-- Phase never reaches "Failed" — CR stays in `Downloading` and keeps retrying indefinitely
+- Phase never reaches "Failed" — CR stays in `Pending` and keeps retrying indefinitely
 
 **Relationships:**
 - `ModelMirror : Model : PVC = 1:1:1` — each CR manages exactly one model in one PVC
@@ -206,7 +206,7 @@ status:
   # In Workspace status
   status:
     modelMirror:
-      name: modelmirror-a3f7b2c1d4e5...  # reference to the cluster-scoped ModelMirror CR
+      name: a3f7b2  # reference to the cluster-scoped ModelMirror CR
   ```
 
 ### ModelMirror Controller
@@ -227,7 +227,7 @@ A new controller that watches `ModelMirror` CRs and manages the download lifecyc
    - Update `failureMessage` from Job condition
    - Delete the failed Job
    - Recreate Job with exponential backoff (1m, 2m, 4m, ... capped at 30m)
-   - CR stays in `Downloading` phase (never "Failed")
+   - CR stays in `Pending` phase (never "Failed")
 
 4. **Idempotency:**
    - If CR already `Ready`, no action needed
@@ -241,7 +241,7 @@ When the `ModelStreaming` feature gate is enabled and the workspace does not hav
 1. **Before node provisioning:** Check if `ModelMirror` CR exists for the workspace's model
    - If not: create it (triggers download in parallel with node provisioning)
    - If exists and `Ready`: proceed immediately
-   - If exists and `Downloading`: wait
+   - If exists and `Pending`: wait
 
 2. **Parallel execution:** Node provisioning proceeds independently of model download
 
@@ -260,7 +260,6 @@ When mirror + streaming is active, the inference pod is configured differently f
 | `--model=` | Local path or HF ID | `az://<container>/<model-path>` (from CR status) |
 | `--load-format=` | `auto` | `runai_streamer` |
 | Model weights volume | Mounted at `/workspace/weights` | Not mounted |
-| Init container | ORAS puller | None |
 | ServiceAccount | default | `kaito-model-streamer` |
 | Extra config | None | `--model-loader-extra-config '{"distributed": true}'` (TP>1) |
 
@@ -318,9 +317,9 @@ The Blob CSI driver controller needs write permission on a resource group to dyn
 
 | Feature Gate | Annotation | Result |
 |---|---|---|
-| `ModelStreaming=false` | (any) | Original path (ORAS pull) |
+| `ModelStreaming=false` | (any) | Original path (HF download at runtime) |
 | `ModelStreaming=true` | not set | Mirror + stream |
-| `ModelStreaming=true` | `"disabled"` | Original path (ORAS pull) |
+| `ModelStreaming=true` | `"disabled"` | Original path (HF download at runtime) |
 
 ### Provider Abstraction
 
@@ -346,21 +345,21 @@ Another user (or the same user in a different namespace) creates a workspace for
 
 #### Story 3: Opt-out for debugging
 
-A user encounters a streaming issue and wants to fall back to the original path. They add `kaito.sh/model-streaming: "disabled"` to their workspace. The workspace uses the traditional ORAS pull + local weights path.
+A user encounters a streaming issue and wants to fall back to the original path. They add `kaito.sh/model-streaming: "disabled"` to their workspace. The workspace uses the traditional HF download at runtime path.
 
 #### Story 4: Download failure
 
-A model download fails repeatedly (e.g. network issues, invalid HF token). The `ModelMirror` CR stays in `Downloading` with `failureMessage` updated. The workspace shows `ModelMirrorInProgress` condition with the error. The CR keeps retrying with exponential backoff. Once the user fixes the issue (e.g. corrects the HF token Secret), the next retry succeeds and both the CR and workspace proceed.
+A model download fails repeatedly (e.g. network issues, invalid HF token). The `ModelMirror` CR stays in `Pending` with `failureMessage` updated. The workspace shows `ModelMirrorInProgress` condition with the error. The CR keeps retrying with exponential backoff. Once the user fixes the issue (e.g. corrects the HF token Secret), the next retry succeeds and both the CR and workspace proceed.
 
 ## Implementation Details
 
 ### CR Naming Convention
 
-The CR name is a hash of the HuggingFace model ID (SHA-256, truncated to 40 hex characters):
+The CR name is a hash of the HuggingFace model ID (SHA-256, first 6 hex characters):
 
 Examples:
-- `qwen/Qwen2.5-Coder-32B-Instruct` → `modelmirror-a3f7b2c1d4e5...` (40 chars)
-- `microsoft/Phi-4` → `modelmirror-8e2d1f0a9b3c...`
+- `qwen/Qwen2.5-Coder-32B-Instruct` → `a3f7b2`
+- `microsoft/Phi-4` → `8e2d1f`
 
 The actual model ID is always available via `spec.source.modelID` and surfaced in `kubectl get` output via `additionalPrinterColumns`:
 
@@ -379,9 +378,9 @@ additionalPrinterColumns:
 
 ```
 $ kubectl get modelmirrors
-NAME                                       MODEL                                  PHASE   AGE
-modelmirror-a3f7b2c1d4e5f6a7b8c9d0e1...   qwen/Qwen2.5-Coder-32B-Instruct       Ready   2h
-modelmirror-8e2d1f0a9b3c4d5e6f7a8b9c...   microsoft/Phi-4                        Ready   1d
+NAME     MODEL                              PHASE   AGE
+a3f7b2   qwen/Qwen2.5-Coder-32B-Instruct   Ready   2h
+8e2d1f   microsoft/Phi-4                    Ready   1d
 ```
 
 ### Storage Account Resolution
@@ -463,7 +462,7 @@ spec:
    - Deletes the failed Job
    - Waits with exponential backoff (1m, 2m, 4m, 8m, 16m, 30m cap)
    - Creates a new Job
-4. **No terminal failure state:** The CR never moves to a "Failed" phase. It stays in `Downloading` and retries indefinitely until successful or manually deleted.
+4. **No terminal failure state:** The CR never moves to a "Failed" phase. It stays in `Pending` and retries indefinitely until successful or manually deleted.
 
 ### Distributed Streaming Configuration
 
@@ -505,7 +504,7 @@ A dedicated CI job with blob CSI driver and workload identity prerequisites:
    - Workspace with opt-out annotation → verify falls back to original path
 
 2. **Original path (existing tests, unchanged):**
-   - Feature gate off → verify ORAS pull → local weights → normal load
+   - Feature gate off → verify HF download at runtime → normal load
    - All existing E2E tests continue to pass without modification
 
 ## Risks and Mitigations

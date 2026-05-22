@@ -131,8 +131,60 @@ class RegexConfig:
         )
 
 
+@dataclass
+class JSONConfig:
+    supports_redact: ClassVar[bool] = True
+    required_elements: int = 0
+    repair: bool = True
+
+    @classmethod
+    def from_dict(cls, raw: dict) -> "JSONConfig":
+        required_elements = raw.get("required_elements", 0)
+        if not isinstance(required_elements, int) or required_elements < 0:
+            raise ValueError("json 'required_elements' must be a non-negative integer")
+
+        return cls(
+            required_elements=required_elements,
+            repair=_coerce_bool(raw.get("repair"), True, field="repair"),
+        )
+
+    def build(self, action_on_hit: str) -> Any:
+        return llm_guard_output_scanners.JSON(
+            required_elements=self.required_elements,
+            repair=self.repair,
+        )
+
+
+@dataclass
+class ReadingTimeConfig:
+    supports_redact: ClassVar[bool] = True
+    max_time: float
+    truncate: bool = False
+
+    @classmethod
+    def from_dict(cls, raw: dict) -> "ReadingTimeConfig":
+        max_time = raw.get("max_time")
+        if not isinstance(max_time, int | float) or max_time <= 0:
+            raise ValueError(
+                "reading_time 'max_time' must be a positive number in minutes"
+            )
+
+        return cls(
+            max_time=float(max_time),
+            truncate=_coerce_bool(raw.get("truncate"), False, field="truncate"),
+        )
+
+    def build(self, action_on_hit: str) -> Any:
+        return llm_guard_output_scanners.ReadingTime(
+            max_time=self.max_time,
+            truncate=self.truncate,
+        )
+
+
 SCANNER_REGISTRY: dict[str, type] = {
     "ban_substrings": BanSubstringsConfig,
+    "json": JSONConfig,
+    "reading_time": ReadingTimeConfig,
     "regex": RegexConfig,
 }
 

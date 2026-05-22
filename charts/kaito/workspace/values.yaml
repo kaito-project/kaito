@@ -142,6 +142,10 @@ local-csi-driver:
       pullPolicy: Always
     nodeDriverRegistrar:
       pullPolicy: Always
+  manager:
+    deployment:
+      nodeSelector:
+        kubernetes.io/os: linux
   daemonset:
     podSelector:
       app: csi-local-node

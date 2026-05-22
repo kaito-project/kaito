@@ -34,6 +34,7 @@ import re
 from dataclasses import dataclass
 from typing import Any, ClassVar
 
+import llm_guard.input_scanners as llm_guard_input_scanners
 import llm_guard.output_scanners as llm_guard_output_scanners
 from llm_guard.input_scanners.ban_substrings import (
     MatchType as BanSubstringsMatchType,
@@ -45,6 +46,34 @@ from llm_guard.input_scanners.regex import MatchType as RegexMatchType
 # letting the error surface only when the scanner is built.
 _BAN_SUBSTRINGS_MATCH_TYPES = frozenset(m.value for m in BanSubstringsMatchType)
 _REGEX_MATCH_TYPES = frozenset(m.value for m in RegexMatchType)
+
+
+class InvisibleTextOutputAdapter:
+    def __init__(self) -> None:
+        self._scanner = llm_guard_input_scanners.InvisibleText()
+
+    def scan(self, prompt: str, output: str) -> tuple[str, bool, float]:
+        sanitized_output, is_valid, score = self._scanner.scan(output)
+        return sanitized_output, is_valid, score
+
+
+class TokenLimitOutputAdapter:
+    def __init__(
+        self,
+        *,
+        limit: int,
+        encoding_name: str = "cl100k_base",
+        model_name: str | None = None,
+    ) -> None:
+        self._scanner = llm_guard_input_scanners.TokenLimit(
+            limit=limit,
+            encoding_name=encoding_name,
+            model_name=model_name,
+        )
+
+    def scan(self, prompt: str, output: str) -> tuple[str, bool, float]:
+        sanitized_output, is_valid, score = self._scanner.scan(output)
+        return sanitized_output, is_valid, score
 
 
 @dataclass
@@ -131,9 +160,60 @@ class RegexConfig:
         )
 
 
+@dataclass
+class InvisibleTextConfig:
+    supports_redact: ClassVar[bool] = True
+
+    @classmethod
+    def from_dict(cls, raw: dict) -> "InvisibleTextConfig":
+        if raw:
+            raise ValueError("invisible_text does not accept any configuration fields")
+        return cls()
+
+    def build(self, action_on_hit: str) -> Any:
+        return InvisibleTextOutputAdapter()
+
+
+@dataclass
+class TokenLimitConfig:
+    supports_redact: ClassVar[bool] = True
+    limit: int = 4096
+    encoding_name: str = "cl100k_base"
+    model_name: str | None = None
+
+    @classmethod
+    def from_dict(cls, raw: dict) -> "TokenLimitConfig":
+        limit = raw.get("limit", 4096)
+        if not isinstance(limit, int) or limit <= 0:
+            raise ValueError("token_limit 'limit' must be a positive integer")
+
+        encoding_name = raw.get("encoding_name", "cl100k_base")
+        if not isinstance(encoding_name, str) or not encoding_name:
+            raise ValueError("token_limit 'encoding_name' must be a non-empty string")
+
+        model_name = raw.get("model_name")
+        if model_name is not None and (
+            not isinstance(model_name, str) or not model_name
+        ):
+            raise ValueError(
+                "token_limit 'model_name' must be a non-empty string when set"
+            )
+
+        return cls(limit=limit, encoding_name=encoding_name, model_name=model_name)
+
+    def build(self, action_on_hit: str) -> Any:
+        return TokenLimitOutputAdapter(
+            limit=self.limit,
+            encoding_name=self.encoding_name,
+            model_name=self.model_name,
+        )
+
+
 SCANNER_REGISTRY: dict[str, type] = {
     "ban_substrings": BanSubstringsConfig,
+    "invisible_text": InvisibleTextConfig,
     "regex": RegexConfig,
+    "token_limit": TokenLimitConfig,
 }
 
 

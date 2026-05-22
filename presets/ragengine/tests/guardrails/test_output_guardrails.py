@@ -27,15 +27,15 @@ from ragengine.guardrails.output_guardrails import (
     DEFAULT_BLOCK_MESSAGE,
     OutputGuardrails,
 )
-from ragengine.metrics.prometheus_metrics import (
-    scanner_action_total,
-    scanner_build_failure_total,
-    scanner_hit_total,
-)
 from ragengine.guardrails.scanner_schemas import (
     BanSubstringsConfig,
     ParsedScannerConfig,
     RegexConfig,
+)
+from ragengine.metrics.prometheus_metrics import (
+    scanner_action_total,
+    scanner_build_failure_total,
+    scanner_hit_total,
 )
 from ragengine.models import ChatCompletionResponse
 

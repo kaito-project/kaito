@@ -26,7 +26,7 @@ from unittest.mock import MagicMock
 
 def _install_mock_module(name: str) -> None:
     """Install a MagicMock as a top-level module if it is not already importable."""
-    if name not in sys.modules:
+    if name not in sys.modules or not hasattr(sys.modules[name], "__file__"):
         sys.modules[name] = MagicMock()
 
 

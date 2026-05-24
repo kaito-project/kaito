@@ -555,8 +555,9 @@ func defaultPDPluginsConfig() string {
 }
 
 // inferencePoolName returns the name of the InferencePool resources for the MRI.
+// Delegates to the shared utils.InferencePoolName helper.
 func inferencePoolName(mriName string) string {
-	return fmt.Sprintf("%s-inferencepool", mriName)
+	return utils.InferencePoolName(mriName)
 }
 
 // reconcileInferencePool creates or updates the Flux OCIRepository and HelmRelease
@@ -693,7 +694,11 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 }
 
 // isInferencePoolReady checks if the InferencePool HelmRelease is ready.
+// When Gateway API Inference Extension is disabled, no pool is reconciled so we return true.
 func (r *MultiRoleInferenceReconciler) isInferencePoolReady(ctx context.Context, mri *kaitov1alpha1.MultiRoleInference) bool {
+	if !r.EnableGatewayAPIInferenceExt {
+		return true
+	}
 	poolName := inferencePoolName(mri.Name)
 	hr := &helmv2.HelmRelease{}
 	if err := r.Get(ctx, client.ObjectKey{Name: poolName, Namespace: mri.Namespace}, hr); err != nil {

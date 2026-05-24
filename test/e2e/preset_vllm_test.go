@@ -694,7 +694,7 @@ func validateMultiRoleInferenceChatCompletions(mriObj *kaitov1alpha1.MultiRoleIn
 			// Find the decode Workspace to get the service name and pod name
 			wsList := &kaitov1beta1.WorkspaceList{}
 			err = utils.TestingCluster.KubeClient.List(ctx, wsList,
-				client.InNamespace(namespaceName),
+				client.InNamespace(mriObj.Namespace),
 				client.MatchingLabels{
 					kaitov1alpha1.LabelMultiRoleInferenceParent: mriObj.Name,
 					kaitov1alpha1.LabelInferenceRole:            string(kaitov1alpha1.MultiRoleInferenceRoleDecode),

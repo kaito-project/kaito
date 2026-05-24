@@ -50,7 +50,7 @@ GPU_PROVISIONER_MSI_NAME ?= gpuprovisionerIdentity
 ## Azure Karpenter parameters
 KARPENTER_NAMESPACE ?= karpenter
 KARPENTER_SA_NAME ?= karpenter-sa
-KARPENTER_VERSION ?= 0.5.1
+KARPENTER_VERSION ?= 1.12.0
 AZURE_KARPENTER_MSI_NAME ?= azkarpenterIdentity
 
 AI_MODELS_REGISTRY ?= modelregistry.azurecr.io
@@ -516,7 +516,7 @@ gpu-provisioner-helm: ## Install GPU provisioner Helm chart for Azure cluster an
 azure-karpenter-helm: ## Install Azure Karpenter Helm chart and set Azure client env vars and settings in Helm values.
 	curl -sO https://raw.githubusercontent.com/Azure/karpenter-provider-azure/main/hack/deploy/configure-values.sh
 	chmod +x ./configure-values.sh && ./configure-values.sh $(AZURE_CLUSTER_NAME) \
-	$(AZURE_RESOURCE_GROUP) $(KARPENTER_SA_NAME) $(AZURE_KARPENTER_MSI_NAME)
+	$(AZURE_RESOURCE_GROUP) $(KARPENTER_SA_NAME) $(AZURE_KARPENTER_MSI_NAME) false
 
 	helm upgrade --install karpenter oci://mcr.microsoft.com/aks/karpenter/karpenter \
 	--version "$(KARPENTER_VERSION)" \

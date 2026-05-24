@@ -56,10 +56,23 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 		// Validate each child InferenceSet's status, replicas, benchmark, and GWIE resources
 		childInferenceSets := getMultiRoleInferenceChildInferenceSets(mriObj)
+		// Build a map of role name -> expected replicas for accurate validation
+		roleReplicas := map[string]int32{}
+		for _, role := range mriObj.Spec.Roles {
+			if role.Replicas != nil {
+				roleReplicas[string(role.Type)] = *role.Replicas
+			}
+		}
 		for i := range childInferenceSets {
 			is := &childInferenceSets[i]
 			validateInferenceSetStatus(is)
-			validateInferenceSetReplicas(is, *mriObj.Spec.Roles[0].Replicas)
+			// Match replicas by role label instead of assuming all roles have the same count
+			roleName := is.Labels[kaitov1alpha1.LabelInferenceRole]
+			if expectedReplicas, ok := roleReplicas[roleName]; ok {
+				validateInferenceSetReplicas(is, expectedReplicas)
+			} else {
+				validateInferenceSetReplicas(is, *mriObj.Spec.Roles[0].Replicas)
+			}
 			validateInferenceSetBenchmarkCompleted(is)
 		}
 
@@ -702,7 +715,8 @@ func validateMultiRoleInferenceChatCompletions(mriObj *kaitov1alpha1.MultiRoleIn
 			expectedCompletion := `"object":"chat.completion`
 			execOption := corev1.PodExecOptions{
 				Command: []string{"bash", "-c", fmt.Sprintf(
-					`curl -s --max-time 30 -X POST -H "Content-Type: application/json" `+
+					`apt-get update -qq && apt-get install -y -qq curl > /dev/null 2>&1; `+
+						`curl -s --max-time 30 -X POST -H "Content-Type: application/json" `+
 						`-d '{"model":"%s","messages":[{"role":"user","content":"What is Kubernetes?"}],"max_tokens":7,"temperature":0}' `+
 						`%s | tee /dev/stderr | grep -q '%s'`,
 					modelName, svcEndpoint, expectedCompletion)},

@@ -713,10 +713,10 @@ func validateMultiRoleInferenceChatCompletions(mriObj *kaitov1alpha1.MultiRoleIn
 			expectedCompletion := `"object":"chat.completion`
 			execOption := corev1.PodExecOptions{
 				Command: []string{"bash", "-c", fmt.Sprintf(
-					`apt-get update -qq && apt-get install -y -qq curl > /dev/null 2>&1; `+
+					`command -v curl > /dev/null 2>&1 || (apt-get update -qq > /dev/null 2>&1 && apt-get install -y -qq curl > /dev/null 2>&1); `+
 						`curl -s --max-time 30 -X POST -H "Content-Type: application/json" `+
 						`-d '{"model":"%s","messages":[{"role":"user","content":"What is Kubernetes?"}],"max_tokens":7,"temperature":0}' `+
-						`%s | tee /dev/stderr | grep -q '%s'`,
+						`%s | grep -q '%s'`,
 					modelName, svcEndpoint, expectedCompletion)},
 				Container: decodeWS.Name,
 				Stdout:    true,

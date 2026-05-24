@@ -550,7 +550,7 @@ schedulingProfiles:
 // Note: precise-prefix-cache-scorer is omitted because it requires a tokenizer
 // sidecar (UDS socket) that is not yet deployed by KAITO. Once tokenizer sidecar
 // support is added, this config should be updated to include it.
-func defaultPDPluginsConfig(modelName string) string {
+func defaultPDPluginsConfig() string {
 	return defaultPDPluginsConfigTemplate
 }
 
@@ -619,7 +619,7 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	}
 
 	// Load plugins config: either from user-provided ConfigMap or auto-generated default.
-	pluginsYAML := defaultPDPluginsConfig(mri.Spec.Model.Name)
+	pluginsYAML := defaultPDPluginsConfig()
 	if mri.Spec.EPPPluginsConfig != "" {
 		cm := &corev1.ConfigMap{}
 		if err := r.Get(ctx, client.ObjectKey{Name: mri.Spec.EPPPluginsConfig, Namespace: mri.Namespace}, cm); err != nil {

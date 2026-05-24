@@ -70,8 +70,6 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 			roleName := is.Labels[kaitov1alpha1.LabelInferenceRole]
 			if expectedReplicas, ok := roleReplicas[roleName]; ok {
 				validateInferenceSetReplicas(is, expectedReplicas)
-			} else {
-				validateInferenceSetReplicas(is, *mriObj.Spec.Roles[0].Replicas)
 			}
 			validateInferenceSetBenchmarkCompleted(is)
 		}

@@ -351,6 +351,8 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	//   so EPP routes requests by InferenceSet identity.
 	// - Fallback: use VLLM.ModelName if available.
 	if isName, ok := rc.WorkspaceMetadata.Labels[consts.WorkspaceCreatedByInferenceSetLabel]; ok && isName != "" {
+		// Note: string literal used to avoid import cycle with api/v1alpha1 package.
+		// Matches v1alpha1.LabelMultiRoleInferenceParent.
 		if _, isMRI := rc.WorkspaceMetadata.Labels["multiroleinference.kaito.sh/created-by"]; isMRI && p.VLLM.ModelName != "" {
 			p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
 		} else {

@@ -68,9 +68,10 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 			validateInferenceSetStatus(is)
 			// Match replicas by role label instead of assuming all roles have the same count
 			roleName := is.Labels[kaitov1alpha1.LabelInferenceRole]
-			if expectedReplicas, ok := roleReplicas[roleName]; ok {
-				validateInferenceSetReplicas(is, expectedReplicas)
-			}
+			Expect(roleName).NotTo(BeEmpty(), "InferenceSet %s missing required %s label", is.Name, kaitov1alpha1.LabelInferenceRole)
+			expectedReplicas, ok := roleReplicas[roleName]
+			Expect(ok).To(BeTrue(), "InferenceSet %s has unexpected role label %q", is.Name, roleName)
+			validateInferenceSetReplicas(is, expectedReplicas)
 			validateInferenceSetBenchmarkCompleted(is)
 		}
 

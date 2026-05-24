@@ -705,7 +705,7 @@ func (r *MultiRoleInferenceReconciler) isInferencePoolReady(ctx context.Context,
 		return false
 	}
 	for _, cond := range hr.Status.Conditions {
-		if cond.Type == "Ready" && cond.Status == metav1.ConditionTrue &&
+		if cond.Type == consts.ConditionReady && cond.Status == metav1.ConditionTrue &&
 			hr.Status.ObservedGeneration >= hr.Generation {
 			return true
 		}

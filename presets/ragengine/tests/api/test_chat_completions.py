@@ -21,7 +21,43 @@ import pytest
 import respx
 
 from ragengine.guardrails import OutputGuardrails
-from ragengine.guardrails.scanner_schemas import ParsedScannerConfig, RegexConfig
+from ragengine.guardrails.scanner_schemas import (
+    BanSubstringsConfig,
+    ParsedScannerConfig,
+    RegexConfig,
+)
+
+
+def _stream_lines(*lines):
+    async def _iterator():
+        for line in lines:
+            yield line
+
+    return _iterator()
+
+
+def _stream_chunk(*, chunk_id="chatcmpl-stream", content=None, finish_reason=None, role=None):
+    delta = {}
+    if role is not None:
+        delta["role"] = role
+    if content is not None:
+        delta["content"] = content
+    return "data: " + httpx.Response(
+        200,
+        json={
+            "id": chunk_id,
+            "object": "chat.completion.chunk",
+            "created": 1,
+            "model": "mock-model",
+            "choices": [
+                {
+                    "index": 0,
+                    "delta": delta,
+                    "finish_reason": finish_reason,
+                }
+            ],
+        },
+    ).text
 
 
 @pytest.fixture(autouse=True)
@@ -261,6 +297,180 @@ async def test_chat_completions_with_tools(mock_get, async_client):
     assert response_data["choices"][0]["finish_reason"] == "tool_calls"
     assert "tool_calls" in response_data["choices"][0]["message"]
 
+
+@pytest.mark.asyncio
+async def test_chat_completions_streaming_output_guardrails_redact(async_client, monkeypatch):
+    import ragengine.main
+    import ragengine.inference.inference
+
+    async def _mock_stream(self, request):
+        del self, request
+        return _stream_lines(
+            _stream_chunk(role="assistant"),
+            _stream_chunk(content="Visit http://evil."),
+            _stream_chunk(content="example now"),
+            _stream_chunk(finish_reason="stop"),
+            "data: [DONE]",
+        )
+
+    monkeypatch.setattr(
+        ragengine.inference.inference.Inference,
+        "stream_chat_completions_passthrough",
+        _mock_stream,
+    )
+    monkeypatch.setattr(
+        ragengine.main.guardrails_reloader,
+        "_current",
+        OutputGuardrails(
+            enabled=True,
+            fail_open=False,
+            action_on_hit="redact",
+            scanner_configs=(
+                ParsedScannerConfig(
+                    type="regex",
+                    config=RegexConfig(patterns=[r"https?://\S+"]),
+                ),
+            ),
+        ),
+    )
+
+    async with async_client.stream(
+        "POST",
+        "/v1/chat/completions",
+        json={
+            "model": "mock-model",
+            "stream": True,
+            "messages": [{"role": "user", "content": "Share the link"}],
+        },
+    ) as response:
+        body = (await response.aread()).decode("utf-8")
+
+    assert response.status_code == 200
+    assert "[REDACTED]" in body
+    assert "http://evil.example" not in body
+    assert "data: [DONE]" in body
+
+
+@pytest.mark.asyncio
+async def test_chat_completions_streaming_output_guardrails_block(async_client, monkeypatch):
+    import ragengine.main
+    import ragengine.inference.inference
+
+    async def _mock_stream(self, request):
+        del self, request
+        return _stream_lines(
+            _stream_chunk(role="assistant"),
+            _stream_chunk(content="Visit http://evil.example now"),
+            _stream_chunk(finish_reason="stop"),
+            "data: [DONE]",
+        )
+
+    monkeypatch.setattr(
+        ragengine.inference.inference.Inference,
+        "stream_chat_completions_passthrough",
+        _mock_stream,
+    )
+    monkeypatch.setattr(
+        ragengine.main.guardrails_reloader,
+        "_current",
+        OutputGuardrails(
+            enabled=True,
+            fail_open=False,
+            action_on_hit="block",
+            block_message="blocked-by-policy",
+            scanner_configs=(
+                ParsedScannerConfig(
+                    type="regex",
+                    config=RegexConfig(patterns=[r"https?://\S+"]),
+                ),
+            ),
+        ),
+    )
+
+    async with async_client.stream(
+        "POST",
+        "/v1/chat/completions",
+        json={
+            "model": "mock-model",
+            "stream": True,
+            "messages": [{"role": "user", "content": "Share the link"}],
+        },
+    ) as response:
+        body = (await response.aread()).decode("utf-8")
+
+    assert response.status_code == 200
+    assert "blocked-by-policy" in body
+    assert "http://evil.example" not in body
+
+
+@pytest.mark.asyncio
+async def test_chat_completions_streaming_rejects_rag_index(async_client):
+    response = await async_client.post(
+        "/v1/chat/completions",
+        json={
+            "model": "mock-model",
+            "stream": True,
+            "index_name": "test_index",
+            "messages": [{"role": "user", "content": "Share the link"}],
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Streaming with index_name is not supported yet."
+
+
+
+@pytest.mark.asyncio
+async def test_chat_completions_streaming_ban_substrings_block(async_client, monkeypatch):
+    import ragengine.main
+    import ragengine.inference.inference
+
+    async def _mock_stream(self, request):
+        del self, request
+        return _stream_lines(
+            _stream_chunk(role="assistant"),
+            _stream_chunk(content="This is sec"),
+            _stream_chunk(content="ret output"),
+            _stream_chunk(finish_reason="stop"),
+            "data: [DONE]",
+        )
+
+    monkeypatch.setattr(
+        ragengine.inference.inference.Inference,
+        "stream_chat_completions_passthrough",
+        _mock_stream,
+    )
+    monkeypatch.setattr(
+        ragengine.main.guardrails_reloader,
+        "_current",
+        OutputGuardrails(
+            enabled=True,
+            fail_open=False,
+            action_on_hit="block",
+            block_message="blocked-by-policy",
+            scanner_configs=(
+                ParsedScannerConfig(
+                    type="ban_substrings",
+                    config=BanSubstringsConfig(substrings=["secret"]),
+                ),
+            ),
+        ),
+    )
+
+    async with async_client.stream(
+        "POST",
+        "/v1/chat/completions",
+        json={
+            "model": "mock-model",
+            "stream": True,
+            "messages": [{"role": "user", "content": "Share the link"}],
+        },
+    ) as response:
+        body = (await response.aread()).decode("utf-8")
+
+    assert response.status_code == 200
+    assert "blocked-by-policy" in body
+    assert "secret" not in body
 
 @pytest.mark.asyncio
 @respx.mock

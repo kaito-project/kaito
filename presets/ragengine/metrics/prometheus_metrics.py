@@ -280,6 +280,12 @@ output_guardrails_scanner_build_total = Counter(
     labelnames=[TYPE_LABEL, STATUS_LABEL],
 )
 
+output_guardrails_streaming_events_total = Counter(
+    "output_guardrails_streaming_events_total",
+    "Count of output guardrails streaming events by event type",
+    labelnames=["event"],
+)
+
 rag_hybrid_sparse_candidates = Histogram(
     "rag_hybrid_sparse_candidates",
     "Number of sparse (BM25) candidate nodes returned before fusion",

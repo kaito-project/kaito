@@ -364,6 +364,7 @@ def test_run_benchmark_success(monkeypatch):
     with (
         patch.object(bm, "_sum_counter_metric", side_effect=read_counter),
         patch.object(bm, "_resolve_processor", return_value="mymodel"),
+        patch.object(bm, "_predownload_processor", side_effect=lambda p: p),
         patch.object(bm, "_compute_max_concurrency", return_value=128),
         patch.object(bm, "_run_guidellm", return_value=mock_report),
         patch.object(bm, "_log"),
@@ -386,6 +387,7 @@ def test_run_benchmark_no_generation():
     with (
         patch.object(bm, "_sum_counter_metric", return_value=0),
         patch.object(bm, "_resolve_processor", return_value=""),
+        patch.object(bm, "_predownload_processor", side_effect=lambda p: p),
         patch.object(bm, "_compute_max_concurrency", return_value=128),
         patch.object(bm, "_run_guidellm", return_value=mock_report),
         patch.object(bm, "_log"),
@@ -563,3 +565,70 @@ def test_main_drain_called_only_on_success(monkeypatch):
         bm.main()
 
     mock_drain.assert_not_called()
+
+
+# ── _infer_kv_cache_layer_counts_from_dict ────────────────────────────────────
+
+_TESTS_DIR = Path(__file__).resolve().parent
+
+
+def test_infer_kv_cache_layer_counts_nemotron_h():
+    """nemotron-3-nano-30b-a3b uses hybrid_override_pattern → (attn=6, mamba=23)."""
+    config_path = _TESTS_DIR / "nemotron-3-nano-30b-a3b-config.json"
+    config = json.loads(config_path.read_text())
+    result = bm._infer_kv_cache_layer_counts_from_dict(config)
+    # pattern = "MEMEM*EMEMEM*EMEMEM*EMEMEM*EMEMEM*EMEMEMEM*EMEMEMEME"
+    # '*' count = 6 (attention layers), 'M' count = 23 (mamba layers)
+    assert result == (6, 23)
+
+
+def test_infer_kv_cache_layer_counts_pure_attention():
+    """Pure-attention model (no mamba fields) returns (num_hidden_layers, 0)."""
+    config = {
+        "architectures": ["LlamaForCausalLM"],
+        "model_type": "llama",
+        "num_hidden_layers": 32,
+    }
+    result = bm._infer_kv_cache_layer_counts_from_dict(config)
+    assert result is None
+
+
+def test_infer_kv_cache_layer_counts_pure_mamba():
+    """Pure-mamba model (mamba model_type, no attention heads) returns (0, layers)."""
+    config = {
+        "architectures": ["MambaForCausalLM"],
+        "model_type": "mamba",
+        "num_hidden_layers": 64,
+    }
+    result = bm._infer_kv_cache_layer_counts_from_dict(config)
+    assert result == (0, 64)
+
+
+def test_infer_kv_cache_layer_counts_falcon_h1():
+    """FalconH1 model returns (num_hidden_layers, num_hidden_layers)."""
+    config = {
+        "architectures": ["FalconH1ForCausalLM"],
+        "model_type": "falcon_h1",
+        "num_hidden_layers": 48,
+    }
+    result = bm._infer_kv_cache_layer_counts_from_dict(config)
+    assert result == (48, 48)
+
+
+def test_infer_kv_cache_layer_counts_layer_types():
+    """layer_types list is used when hybrid_override_pattern is absent."""
+    config = {
+        "layer_types": ["full_attention", "mamba", "full_attention", "mamba", "mamba"],
+    }
+    result = bm._infer_kv_cache_layer_counts_from_dict(config)
+    assert result == (2, 3)
+
+
+def test_infer_kv_cache_layer_counts_unknown_returns_none():
+    """Config with no recognisable pattern fields returns None."""
+    config = {
+        "model_type": "gpt2",
+        "num_hidden_layers": 12,
+    }
+    result = bm._infer_kv_cache_layer_counts_from_dict(config)
+    assert result is None

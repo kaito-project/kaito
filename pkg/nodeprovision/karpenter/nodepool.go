@@ -67,6 +67,29 @@ func isInferenceSetWorkspace(ws *kaitov1beta1.Workspace) bool {
 	return ok
 }
 
+// nodePoolRequirements builds the NodePool requirements list.
+// The instance-type requirement is always included. Provider-specific
+// requirements (e.g. Azure placement scope) are added based on the
+// NodeClassConfig group.
+func nodePoolRequirements(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) []karpenterv1.NodeSelectorRequirementWithMinValues {
+	reqs := []karpenterv1.NodeSelectorRequirementWithMinValues{
+		{
+			Key:      corev1.LabelInstanceTypeStable,
+			Operator: corev1.NodeSelectorOpIn,
+			Values:   []string{ws.Resource.InstanceType},
+		},
+	}
+	// Azure Karpenter requires regional placement scope.
+	if cfg.Group == "karpenter.azure.com" {
+		reqs = append(reqs, karpenterv1.NodeSelectorRequirementWithMinValues{
+			Key:      consts.AzurePlacementScopeLabel,
+			Operator: corev1.NodeSelectorOpIn,
+			Values:   []string{consts.AzurePlacementRegional},
+		})
+	}
+	return reqs
+}
+
 // generateNodePool builds a karpenter NodePool manifest for the given Workspace.
 func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) *karpenterv1.NodePool {
 	nodePoolName := NodePoolName(ws.Namespace, ws.Name)
@@ -127,13 +150,7 @@ func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) *karpente
 						Kind:  cfg.Kind,
 						Name:  nodeClassName,
 					},
-					Requirements: []karpenterv1.NodeSelectorRequirementWithMinValues{
-						{
-							Key:      corev1.LabelInstanceTypeStable,
-							Operator: corev1.NodeSelectorOpIn,
-							Values:   []string{ws.Resource.InstanceType},
-						},
-					},
+					Requirements: nodePoolRequirements(ws, cfg),
 					Taints: []corev1.Taint{
 						{
 							Key:    consts.SKUString,

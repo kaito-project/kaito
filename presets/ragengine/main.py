@@ -21,8 +21,8 @@ from urllib.parse import unquote
 import nest_asyncio
 from fastapi import FastAPI, HTTPException, Query, Request  # noqa: E402
 from openai.types.chat import CompletionCreateParams  # noqa: E402
-from pydantic import ValidationError  # noqa: E402
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # noqa: E402
+from pydantic import ValidationError  # noqa: E402
 from starlette.responses import Response, StreamingResponse  # noqa: E402
 
 nest_asyncio.apply()  # Allow nested event loops (LlamaIndex sync internals inside FastAPI async)
@@ -409,14 +409,16 @@ async def _chat_completions_streaming_response(request: dict) -> StreamingRespon
         )
 
     openai_request = _coerce_openai_chat_request(request)
-    upstream_stream = await rag_ops.vector_store.llm.stream_chat_completions_passthrough(
-        openai_request
+    upstream_stream = (
+        await rag_ops.vector_store.llm.stream_chat_completions_passthrough(
+            openai_request
+        )
     )
     guardrails = guardrails_reloader.get_current()
 
     async def _passthrough_stream():
         async for line in upstream_stream:
-            yield f"{line}\n".encode("utf-8")
+            yield f"{line}\n".encode()
 
     if not guardrails.enabled or not guardrails.scanner_configs:
         return StreamingResponse(_passthrough_stream(), media_type="text/event-stream")

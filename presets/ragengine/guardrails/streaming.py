@@ -21,7 +21,10 @@ from typing import Any, Literal
 
 from llm_guard import scan_output
 
-from ragengine.guardrails.output_guardrails import OutputGuardrails, OutputGuardrailsError
+from ragengine.guardrails.output_guardrails import (
+    OutputGuardrails,
+    OutputGuardrailsError,
+)
 from ragengine.guardrails.scanner_schemas import ParsedScannerConfig
 from ragengine.metrics.prometheus_metrics import (
     output_guardrails_actions_total,
@@ -138,7 +141,8 @@ class StreamingGuardrailsProcessor:
                 DeterministicStreamingScanner(
                     parsed=parsed,
                     scanner=scanner,
-                    action_on_hit=parsed.action_on_hit or self._guardrails.action_on_hit,
+                    action_on_hit=parsed.action_on_hit
+                    or self._guardrails.action_on_hit,
                 )
             )
         return scanners
@@ -186,7 +190,10 @@ class StreamingGuardrailsProcessor:
 
         for scanner in self._scanners:
             decision = scanner.finalize(prompt, sanitized_content)
-            if decision.state == STREAMING_DECISION_EMIT and decision.content == sanitized_content:
+            if (
+                decision.state == STREAMING_DECISION_EMIT
+                and decision.content == sanitized_content
+            ):
                 continue
 
             triggered_scanners.append(
@@ -256,4 +263,4 @@ class StreamingGuardrailsProcessor:
 
     @staticmethod
     def _format_sse(payload: dict[str, Any]) -> bytes:
-        return f"data: {json.dumps(payload)}\n\n".encode("utf-8")
+        return f"data: {json.dumps(payload)}\n\n".encode()

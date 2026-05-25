@@ -82,7 +82,6 @@ const (
 	// machine related consts
 	ProvisionerName           = "default"
 	LabelGPUProvisionerCustom = "kaito.sh/machine-type"
-	LabelProvisionerName      = "karpenter.sh/provisioner-name"
 
 	// azure gpu sku prefix
 	GpuSkuPrefix = "Standard_N"
@@ -135,6 +134,10 @@ const (
 	NodeImageFamilyAzureLinux = "azurelinux"
 	SpotInstanceKey           = "kubernetes.azure.com/scalesetpriority"
 	SpotInstanceValue         = "spot"
+
+	// Azure karpenter-provider-azure labels.
+	AzurePlacementScopeLabel = "karpenter.azure.com/placement-scope"
+	AzurePlacementRegional   = "regional"
 
 	// Karpenter NodePool management labels and values.
 	KarpenterWorkspaceNameKey         = "karpenter.kaito.sh/workspace-name"

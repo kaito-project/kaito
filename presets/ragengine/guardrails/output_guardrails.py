@@ -26,10 +26,10 @@ from ragengine.guardrails.scanner_schemas import (
     ParsedScannerConfig,
 )
 from ragengine.metrics.prometheus_metrics import (
-    guardrails_response_actions_total,
-    guardrails_response_scanner_hits_total,
     STATUS_FAILURE,
     STATUS_SUCCESS,
+    guardrails_response_actions_total,
+    guardrails_response_scanner_hits_total,
     output_guardrails_actions_total,
     output_guardrails_policy_load_total,
     output_guardrails_scanner_build_total,

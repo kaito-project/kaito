@@ -36,28 +36,33 @@ def _stream_lines(*lines):
     return _iterator()
 
 
-def _stream_chunk(*, chunk_id="chatcmpl-stream", content=None, finish_reason=None, role=None):
+def _stream_chunk(
+    *, chunk_id="chatcmpl-stream", content=None, finish_reason=None, role=None
+):
     delta = {}
     if role is not None:
         delta["role"] = role
     if content is not None:
         delta["content"] = content
-    return "data: " + httpx.Response(
-        200,
-        json={
-            "id": chunk_id,
-            "object": "chat.completion.chunk",
-            "created": 1,
-            "model": "mock-model",
-            "choices": [
-                {
-                    "index": 0,
-                    "delta": delta,
-                    "finish_reason": finish_reason,
-                }
-            ],
-        },
-    ).text
+    return (
+        "data: "
+        + httpx.Response(
+            200,
+            json={
+                "id": chunk_id,
+                "object": "chat.completion.chunk",
+                "created": 1,
+                "model": "mock-model",
+                "choices": [
+                    {
+                        "index": 0,
+                        "delta": delta,
+                        "finish_reason": finish_reason,
+                    }
+                ],
+            },
+        ).text
+    )
 
 
 @pytest.fixture(autouse=True)
@@ -299,9 +304,11 @@ async def test_chat_completions_with_tools(mock_get, async_client):
 
 
 @pytest.mark.asyncio
-async def test_chat_completions_streaming_output_guardrails_redact(async_client, monkeypatch):
-    import ragengine.main
+async def test_chat_completions_streaming_output_guardrails_redact(
+    async_client, monkeypatch
+):
     import ragengine.inference.inference
+    import ragengine.main
 
     async def _mock_stream(self, request):
         del self, request
@@ -352,9 +359,11 @@ async def test_chat_completions_streaming_output_guardrails_redact(async_client,
 
 
 @pytest.mark.asyncio
-async def test_chat_completions_streaming_output_guardrails_block(async_client, monkeypatch):
-    import ragengine.main
+async def test_chat_completions_streaming_output_guardrails_block(
+    async_client, monkeypatch
+):
     import ragengine.inference.inference
+    import ragengine.main
 
     async def _mock_stream(self, request):
         del self, request
@@ -416,14 +425,17 @@ async def test_chat_completions_streaming_rejects_rag_index(async_client):
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == "Streaming with index_name is not supported yet."
-
+    assert (
+        response.json()["detail"] == "Streaming with index_name is not supported yet."
+    )
 
 
 @pytest.mark.asyncio
-async def test_chat_completions_streaming_ban_substrings_block(async_client, monkeypatch):
-    import ragengine.main
+async def test_chat_completions_streaming_ban_substrings_block(
+    async_client, monkeypatch
+):
     import ragengine.inference.inference
+    import ragengine.main
 
     async def _mock_stream(self, request):
         del self, request
@@ -471,6 +483,7 @@ async def test_chat_completions_streaming_ban_substrings_block(async_client, mon
     assert response.status_code == 200
     assert "blocked-by-policy" in body
     assert "secret" not in body
+
 
 @pytest.mark.asyncio
 @respx.mock

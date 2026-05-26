@@ -101,13 +101,13 @@ it into the Pod.
 - Hot reload is not part of this PR.
 
 The default template provides a conservative deterministic baseline for
-credential and lightweight PII leakage. It combines:
+credential and lightweight PII leakage:
 
-- regex scanners for a few high-signal token formats
+- a regex scanner for a few high-signal token formats
 - a `secrets` scanner backed by `detect-secrets`
 - a lightweight `sensitive` scanner for common PII patterns
 
-The built-in regex baseline still covers obvious credential leakage, including:
+The regex scanner covers obvious credential leakage, including:
 
 - PEM private key headers
 - AWS access key IDs (`AKIA...`)
@@ -116,14 +116,14 @@ The built-in regex baseline still covers obvious credential leakage, including:
 - `sk-...` style API keys
 - `Bearer ...` authorization tokens
 
-The lightweight `sensitive` scanner covers:
+The `sensitive` scanner covers:
 
 - email addresses
 - phone numbers
 - credit card-like numbers (Luhn-validated)
 - IPv4 addresses
 
-This is baseline protection, not a complete content-safety policy. Broader
+This is baseline protection, not a complete content-safety policy. Additional
 scanners can still be added via a custom ConfigMap.
 
 ### Runtime Failure Semantics

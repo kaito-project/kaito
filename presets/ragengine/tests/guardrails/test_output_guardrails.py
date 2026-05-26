@@ -36,7 +36,6 @@ from ragengine.guardrails.scanner_schemas import (
 from ragengine.metrics.prometheus_metrics import (
     guardrails_response_actions_total,
     guardrails_response_scanner_hits_total,
-    output_guardrails_actions_total,
     output_guardrails_policy_load_total,
     output_guardrails_scanner_build_total,
 )
@@ -761,8 +760,6 @@ def test_guard_response_passes_through_when_no_scanner_triggered(monkeypatch):
     before = _counter_value(
         guardrails_response_actions_total,
         final_action="allow",
-        stage="response",
-        fail_open="true",
     )
 
     _patch_scan_output(
@@ -785,21 +782,12 @@ def test_guard_response_passes_through_when_no_scanner_triggered(monkeypatch):
         _counter_value(
             guardrails_response_actions_total,
             final_action="allow",
-            stage="response",
-            fail_open="true",
         )
         == before + 1
     )
 
 
 def test_guard_response_recovers_when_scan_output_raises(monkeypatch):
-    before = _counter_value(
-        guardrails_response_actions_total,
-        final_action="fail_open",
-        stage="response",
-        fail_open="true",
-    )
-
     def _boom(*args, **kwargs):
         raise RuntimeError("scanner exploded")
 
@@ -813,15 +801,6 @@ def test_guard_response_recovers_when_scan_output_raises(monkeypatch):
 
     # Internal failure must degrade safely: return the original response object.
     assert guardrails.guard_response(response, {"messages": []}) is response
-    assert (
-        _counter_value(
-            guardrails_response_actions_total,
-            final_action="fail_open",
-            stage="response",
-            fail_open="true",
-        )
-        == before + 1
-    )
 
 
 @pytest.mark.parametrize(
@@ -837,8 +816,6 @@ def test_guard_response_applies_action(
     response_before = _counter_value(
         guardrails_response_actions_total,
         final_action=action,
-        stage="response",
-        fail_open="true",
     )
 
     _patch_scan_output(
@@ -857,17 +834,12 @@ def test_guard_response_applies_action(
         scanner_configs=[_regex_cfg(patterns=[r"\S+"], action_on_hit=action)],
     )
 
-    before = _counter_value(output_guardrails_actions_total, action=action)
-
     out = guardrails.guard_response(_make_response("dirty"), {"messages": []})
     assert out.choices[0].message.content == expected_content
-    assert _counter_value(output_guardrails_actions_total, action=action) == before + 1
     assert (
         _counter_value(
             guardrails_response_actions_total,
             final_action=action,
-            stage="response",
-            fail_open="true",
         )
         == response_before + 1
     )
@@ -878,7 +850,6 @@ def test_guard_response_increments_hit_metric(monkeypatch):
         guardrails_response_scanner_hits_total,
         scanner_type="regex",
         action="redact",
-        stage="response",
     )
 
     _patch_scan_output(
@@ -902,7 +873,6 @@ def test_guard_response_increments_hit_metric(monkeypatch):
             guardrails_response_scanner_hits_total,
             scanner_type="regex",
             action="redact",
-            stage="response",
         )
         == before + 1
     )
@@ -912,8 +882,6 @@ def test_guard_response_increments_fail_closed_metric(monkeypatch):
     before = _counter_value(
         guardrails_response_actions_total,
         final_action="fail_closed",
-        stage="response",
-        fail_open="false",
     )
 
     def _boom(*args, **kwargs):
@@ -934,8 +902,6 @@ def test_guard_response_increments_fail_closed_metric(monkeypatch):
         _counter_value(
             guardrails_response_actions_total,
             final_action="fail_closed",
-            stage="response",
-            fail_open="false",
         )
         == before + 1
     )

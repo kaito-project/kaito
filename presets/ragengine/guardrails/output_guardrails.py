@@ -30,7 +30,6 @@ from ragengine.metrics.prometheus_metrics import (
     STATUS_SUCCESS,
     guardrails_response_actions_total,
     guardrails_response_scanner_hits_total,
-    output_guardrails_actions_total,
     output_guardrails_policy_load_total,
     output_guardrails_scanner_build_total,
 )
@@ -40,7 +39,6 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_BLOCK_MESSAGE = "The model output was blocked by output guardrails."
 DEFAULT_ACTION_ON_HIT = "redact"
-RESPONSE_STAGE = "response"
 
 
 class OutputGuardrailsError(RuntimeError):
@@ -161,7 +159,6 @@ class OutputGuardrails:
                     guardrails_response_scanner_hits_total.labels(
                         scanner_type=parsed.type,
                         action=scanner_action_on_hit,
-                        stage=RESPONSE_STAGE,
                     ).inc()
 
                     triggered_scanners.append(
@@ -187,7 +184,6 @@ class OutputGuardrails:
                     message["content"] = sanitized_output
 
                 self._record_response_action(final_action)
-                output_guardrails_actions_total.labels(action=final_action).inc()
                 logger.info(
                     "output_guardrails_triggered action=%s response_id=%s scanners=%s policy_hash=%s",
                     final_action,
@@ -198,9 +194,8 @@ class OutputGuardrails:
 
             return ChatCompletionResponse(**response_data)
         except Exception as exc:
-            self._record_response_action(
-                "fail_open" if self.fail_open else "fail_closed"
-            )
+            if not self.fail_open:
+                self._record_response_action("fail_closed")
             logger.exception(
                 "output_guardrails_failed fail_open=%s response_id=%s",
                 self.fail_open,
@@ -218,8 +213,6 @@ class OutputGuardrails:
     def _record_response_action(self, final_action: str) -> None:
         guardrails_response_actions_total.labels(
             final_action=final_action,
-            stage=RESPONSE_STAGE,
-            fail_open=str(self.fail_open).lower(),
         ).inc()
 
     def _build_scanners_with_configs(self) -> list[tuple[ParsedScannerConfig, Any]]:

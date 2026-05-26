@@ -828,12 +828,8 @@ def test_guard_response_applies_action(
         scanner_configs=[_regex_cfg(patterns=[r"\S+"], action_on_hit=action)],
     )
 
-    before_hits = _counter_value(
-        scanner_hit_total, scanner_type="regex"
-    )
-    before_actions = _counter_value(
-        scanner_action_total, action=action
-    )
+    before_hits = _counter_value(scanner_hit_total, scanner_type="regex")
+    before_actions = _counter_value(scanner_action_total, action=action)
     before_output_actions = _counter_value(
         output_guardrails_actions_total,
         action=action,
@@ -843,12 +839,12 @@ def test_guard_response_applies_action(
         out = guardrails.guard_response(_make_response("dirty"), {"messages": []})
 
     assert out.choices[0].message.content == expected_content
-    assert _counter_value(
-        scanner_hit_total, scanner_type="regex"
-    ) == pytest.approx(before_hits + 1)
-    assert _counter_value(
-        scanner_action_total, action=action
-    ) == pytest.approx(before_actions + 1)
+    assert _counter_value(scanner_hit_total, scanner_type="regex") == pytest.approx(
+        before_hits + 1
+    )
+    assert _counter_value(scanner_action_total, action=action) == pytest.approx(
+        before_actions + 1
+    )
     assert _counter_value(
         output_guardrails_actions_total,
         action=action,

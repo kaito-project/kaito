@@ -376,6 +376,12 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 		validateInferenceSetStatus(inferenceSetObj)
 		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
+
+		// Validate NodePool shape and isolation for each child workspace (karpenter only)
+		if nodeProvisionerName == "azkarpenter" {
+			validateInferenceSetNodePools(inferenceSetObj, numOfReplicas)
+		}
+
 		validateInferenceSetBenchmarkCompleted(inferenceSetObj)
 		validateGatewayAPIInferenceExtensionResources(inferenceSetObj)
 	})
@@ -711,6 +717,31 @@ func createQwen3_5_2BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
+}
+
+func validateInferenceSetNodePools(inferenceSetObj *kaitov1alpha1.InferenceSet, numOfReplicas int) {
+	// List child workspaces by InferenceSet label
+	workspaceList := &kaitov1beta1.WorkspaceList{}
+	err := utils.TestingCluster.KubeClient.List(ctx, workspaceList,
+		client.InNamespace(inferenceSetObj.Namespace),
+		client.MatchingLabels{
+			consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name,
+		})
+	Expect(err).NotTo(HaveOccurred())
+	Expect(workspaceList.Items).To(HaveLen(numOfReplicas),
+		"Should have expected number of child workspaces")
+
+	workspaces := make([]*kaitov1beta1.Workspace, 0, len(workspaceList.Items))
+	for i := range workspaceList.Items {
+		ws := &workspaceList.Items[i]
+		workspaces = append(workspaces, ws)
+		utils.ValidateWorkspaceTargetNodeCount(ctx, ws, 1)
+		utils.ValidateInferenceSetNodePoolShape(ctx, ws, 1, inferenceSetObj.Name)
+		utils.ValidateNodeLabels(ctx, ws)
+	}
+
+	// Verify isolation between child workspaces
+	utils.ValidateNodePoolIsolation(ctx, workspaces)
 }
 
 func validateGatewayAPIInferenceExtensionResources(iObj *kaitov1alpha1.InferenceSet) {

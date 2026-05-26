@@ -42,8 +42,14 @@ rules:
   - apiGroups: ["apiextensions.k8s.io"]
     resources: ["customresourcedefinitions"]
     verbs: ["get", "list"]
+  {{- if or (eq .Values.nodeProvisioner "karpenter") (eq .Values.nodeProvisioner "azure-gpu-provisioner") }}
   - apiGroups: ["karpenter.sh"]
-    resources: ["machines", "machines/status", "nodeclaims", "nodeclaims/status", "nodepools", "nodepools/status"]
+    resources: ["machines", "machines/status", "nodeclaims", "nodeclaims/status"]
+    verbs: ["get","list","watch","create", "delete", "update", "patch"]
+  {{- end }}
+  {{- if eq .Values.nodeProvisioner "karpenter" }}
+  - apiGroups: ["karpenter.sh"]
+    resources: ["nodepools", "nodepools/status"]
     verbs: ["get","list","watch","create", "delete", "update", "patch"]
   {{- if eq .Values.cloudProviderName "azure" }}
   - apiGroups: [ "karpenter.azure.com" ]
@@ -53,6 +59,7 @@ rules:
   - apiGroups: [ "karpenter.k8s.aws" ]
     resources: [ "ec2nodeclasses"]
     verbs: [ "get","list","watch","create", "delete", "update", "patch" ]
+  {{- end }}
   {{- end }}
   - apiGroups: ["admissionregistration.k8s.io"]
     resources: ["validatingwebhookconfigurations"]

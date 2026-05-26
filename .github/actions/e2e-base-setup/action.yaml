@@ -226,14 +226,23 @@ runs:
       env:
         ARCH: amd64
 
-    - name: create cluster
+    - name: create cluster (karpenter)
+      if: ${{ inputs.node_provisioner == 'azkarpenter' }}
       shell: bash
       run: |
-        if [ "${{ inputs.node_provisioner }}" == "gpuprovisioner" ]; then
-          make create-aks-cluster
-        else
-          make create-aks-cluster-for-karpenter
-        fi
+        make create-aks-cluster-for-karpenter
+      env:
+        AZURE_ACR_NAME: ${{ env.CLUSTER_NAME }}
+        AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
+        AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+        AZURE_LOCATION: ${{ inputs.region }}
+        AKS_K8S_VERSION: ${{ inputs.k8s_version }}
+
+    - name: create cluster (gpu-provisioner)
+      if: ${{ inputs.node_provisioner == 'gpuprovisioner' }}
+      shell: bash
+      run: |
+        make create-aks-cluster
       env:
         AZURE_ACR_NAME: ${{ env.CLUSTER_NAME }}
         AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
@@ -250,6 +259,19 @@ runs:
         AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
         AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
         TEST_SUITE: ${{ inputs.node_provisioner }}
+
+    - name: Install karpenter helm chart
+      if: ${{ inputs.node_provisioner == 'azkarpenter' }}
+      shell: bash
+      run: |
+        # Ensure yq v4.30+ is available for envsubst(nu) support required by configure-values.sh
+        sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64
+        sudo chmod +x /usr/local/bin/yq
+        AZURE_SUBSCRIPTION_ID=$E2E_SUBSCRIPTION_ID \
+        make azure-karpenter-helm
+      env:
+        AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
+        AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
 
     - name: Install gpu-provisioner helm chart
       if: ${{ inputs.node_provisioner == 'gpuprovisioner' }}
@@ -273,7 +295,7 @@ runs:
         REGISTRY: ${{ env.REGISTRY }}
         VERSION: ${{ env.VERSION }}
         TEST_SUITE: ${{ inputs.node_provisioner }}
-        HELM_INSTALL_EXTRA_ARGS: "--set featureGates.gatewayAPIInferenceExtension=true --set featureGates.enableInferenceSetController=true --set featureGates.enableMultiRoleInferenceController=true"
+        HELM_INSTALL_EXTRA_ARGS: "--set featureGates.gatewayAPIInferenceExtension=true --set featureGates.enableInferenceSetController=true --set featureGates.enableMultiRoleInferenceController=true --set nodeProvisioner=${{ inputs.node_provisioner == 'gpuprovisioner' && 'azure-gpu-provisioner' || 'karpenter' }}"
 
     - name: Set up E2E ACR Credentials and Secret
       shell: bash

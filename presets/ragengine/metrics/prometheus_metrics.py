@@ -16,6 +16,9 @@ from prometheus_client import Counter, Gauge, Histogram, Info
 
 STATUS_LABEL = "status"
 MODE_LABEL = "mode"
+ACTION_LABEL = "action"
+TYPE_LABEL = "type"
+POLICY_STATUS_LABEL = "policy_status"
 
 # These are the labels that will be used in the metrics
 STATUS_SUCCESS = "success"
@@ -256,6 +259,25 @@ rag_hybrid_dense_candidates = Histogram(
     "rag_hybrid_dense_candidates",
     "Number of dense (vector) candidate nodes returned before fusion",
     buckets=(0, 1, 2, 3, 5, 10, 20, 50, 100),
+)
+
+# Guardrails metrics
+output_guardrails_policy_load_total = Counter(
+    "output_guardrails_policy_load_total",
+    "Count of guardrails policy load attempts by outcome",
+    labelnames=[POLICY_STATUS_LABEL],
+)
+
+output_guardrails_actions_total = Counter(
+    "output_guardrails_actions_total",
+    "Count of guardrails actions applied to model outputs",
+    labelnames=[ACTION_LABEL],
+)
+
+output_guardrails_scanner_build_total = Counter(
+    "output_guardrails_scanner_build_total",
+    "Count of guardrails scanner build attempts by type and outcome",
+    labelnames=[TYPE_LABEL, STATUS_LABEL],
 )
 
 rag_hybrid_sparse_candidates = Histogram(

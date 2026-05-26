@@ -43,7 +43,7 @@ featureGates:
   enableInferenceSetController: false
   enableMultiRoleInferenceController: false
 defaultNodeImageFamily: ""
-nodeProvisioner: ""
+nodeProvisioner: "azure-gpu-provisioner"
 karpenterProvider: "azure"
 karpenterProviders:
   azure:
@@ -167,7 +167,7 @@ local-csi-driver:
     enforceEphemeral:
       enabled: false
     hyperconverged:
-      enabled: false
+      enabled: true
   observability:
     metrics:
       enabled: false

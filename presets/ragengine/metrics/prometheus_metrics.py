@@ -311,7 +311,6 @@ RELOAD_RESULT_FAILURE = "failure"
 RELOAD_RESULT_NOOP = "noop"
 GUARDRAILS_SCANNER_TYPE_LABEL = "scanner_type"
 GUARDRAILS_FINAL_ACTION_LABEL = "final_action"
-GUARDRAILS_FAIL_OPEN_LABEL = "fail_open"
 GUARDRAILS_STAGE_LABEL = "stage"
 
 guardrails_policy_reload_total = Counter(
@@ -330,7 +329,6 @@ guardrails_response_actions_total = Counter(
     labelnames=[
         GUARDRAILS_FINAL_ACTION_LABEL,
         GUARDRAILS_STAGE_LABEL,
-        GUARDRAILS_FAIL_OPEN_LABEL,
     ],
 )
 guardrails_policy_loaded_timestamp = Gauge(

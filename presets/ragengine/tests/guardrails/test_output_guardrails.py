@@ -36,6 +36,7 @@ from ragengine.guardrails.scanner_schemas import (
 from ragengine.metrics.prometheus_metrics import (
     guardrails_response_actions_total,
     guardrails_response_scanner_hits_total,
+    output_guardrails_actions_total,
     output_guardrails_policy_load_total,
     output_guardrails_scanner_build_total,
     scanner_action_total,
@@ -846,7 +847,6 @@ def test_guard_response_applies_action(
         scanner_configs=[_regex_cfg(patterns=[r"\S+"], action_on_hit=action)],
     )
 
-<<<<<<< HEAD
     before_hits = _counter_value(scanner_hit_total, scanner_type="regex")
     before_actions = _counter_value(scanner_action_total, action=action)
     before_output_actions = _counter_value(
@@ -868,6 +868,13 @@ def test_guard_response_applies_action(
         output_guardrails_actions_total,
         action=action,
     ) == pytest.approx(before_output_actions + 1)
+    assert (
+        _counter_value(
+            guardrails_response_actions_total,
+            final_action=action,
+        )
+        == response_before + 1
+    )
     assert "output_guardrails_audit event=scanner_hit" in caplog.text
     assert f"action={action}" in caplog.text
     assert "output_guardrails_audit event=action_applied" in caplog.text
@@ -957,16 +964,6 @@ def test_build_scanners_records_failure_metric_and_audit_log(caplog):
         scanner_type="regex",
     ) == pytest.approx(before_failures + 1)
     assert "output_guardrails_audit event=scanner_build_failure" in caplog.text
-=======
-    out = guardrails.guard_response(_make_response("dirty"), {"messages": []})
-    assert out.choices[0].message.content == expected_content
-    assert (
-        _counter_value(
-            guardrails_response_actions_total,
-            final_action=action,
-        )
-        == response_before + 1
-    )
 
 
 def test_guard_response_increments_hit_metric(monkeypatch):
@@ -1029,7 +1026,6 @@ def test_guard_response_increments_fail_closed_metric(monkeypatch):
         )
         == before + 1
     )
->>>>>>> upstream/main
 
 
 # ---------------------------------------------------------------------------

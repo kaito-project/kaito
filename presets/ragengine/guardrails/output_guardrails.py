@@ -30,6 +30,7 @@ from ragengine.metrics.prometheus_metrics import (
     STATUS_SUCCESS,
     guardrails_response_actions_total,
     guardrails_response_scanner_hits_total,
+    output_guardrails_actions_total,
     output_guardrails_policy_load_total,
     output_guardrails_scanner_build_total,
     scanner_action_total,
@@ -167,15 +168,11 @@ class OutputGuardrails:
                     if all(results_valid.values()):
                         continue
 
-<<<<<<< HEAD
-                    scanner_hit_total.labels(scanner_type=parsed.type).inc()
-=======
                     guardrails_response_scanner_hits_total.labels(
                         scanner_type=parsed.type,
                         action=scanner_action_on_hit,
                     ).inc()
-
->>>>>>> upstream/main
+                    scanner_hit_total.labels(scanner_type=parsed.type).inc()
                     triggered_scanners.append(
                         {
                             "type": parsed.type,
@@ -205,7 +202,7 @@ class OutputGuardrails:
                 else:
                     message["content"] = sanitized_output
 
-<<<<<<< HEAD
+                self._record_response_action(final_action)
                 scanner_action_total.labels(action=final_action).inc()
                 output_guardrails_actions_total.labels(action=final_action).inc()
                 _log_guardrails_audit(
@@ -214,9 +211,6 @@ class OutputGuardrails:
                     action=final_action,
                     scanner_count=len(triggered_scanners),
                 )
-=======
-                self._record_response_action(final_action)
->>>>>>> upstream/main
                 logger.info(
                     "output_guardrails_triggered action=%s response_id=%s scanners=%s policy_hash=%s",
                     final_action,

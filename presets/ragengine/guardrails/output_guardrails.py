@@ -28,7 +28,8 @@ from ragengine.guardrails.scanner_schemas import (
 from ragengine.metrics.prometheus_metrics import (
     STATUS_FAILURE,
     STATUS_SUCCESS,
-    output_guardrails_actions_total,
+    guardrails_response_actions_total,
+    guardrails_response_scanner_hits_total,
     output_guardrails_policy_load_total,
     output_guardrails_scanner_build_total,
     scanner_action_total,
@@ -156,7 +157,7 @@ class OutputGuardrails:
                     continue
 
                 sanitized_output = content
-                final_action = None
+                final_action = "allow"
                 triggered_scanners: list[dict[str, Any]] = []
                 for parsed, scanner in built_scanners:
                     scanner_action_on_hit = parsed.action_on_hit or self.action_on_hit
@@ -166,7 +167,15 @@ class OutputGuardrails:
                     if all(results_valid.values()):
                         continue
 
+<<<<<<< HEAD
                     scanner_hit_total.labels(scanner_type=parsed.type).inc()
+=======
+                    guardrails_response_scanner_hits_total.labels(
+                        scanner_type=parsed.type,
+                        action=scanner_action_on_hit,
+                    ).inc()
+
+>>>>>>> upstream/main
                     triggered_scanners.append(
                         {
                             "type": parsed.type,
@@ -188,6 +197,7 @@ class OutputGuardrails:
                     final_action = "redact"
 
                 if not triggered_scanners:
+                    self._record_response_action("allow")
                     continue
 
                 if final_action == "block":
@@ -195,6 +205,7 @@ class OutputGuardrails:
                 else:
                     message["content"] = sanitized_output
 
+<<<<<<< HEAD
                 scanner_action_total.labels(action=final_action).inc()
                 output_guardrails_actions_total.labels(action=final_action).inc()
                 _log_guardrails_audit(
@@ -203,6 +214,9 @@ class OutputGuardrails:
                     action=final_action,
                     scanner_count=len(triggered_scanners),
                 )
+=======
+                self._record_response_action(final_action)
+>>>>>>> upstream/main
                 logger.info(
                     "output_guardrails_triggered action=%s response_id=%s scanners=%s policy_hash=%s",
                     final_action,
@@ -213,6 +227,8 @@ class OutputGuardrails:
 
             return ChatCompletionResponse(**response_data)
         except Exception as exc:
+            if not self.fail_open:
+                self._record_response_action("fail_closed")
             logger.exception(
                 "output_guardrails_failed fail_open=%s response_id=%s",
                 self.fail_open,
@@ -226,6 +242,11 @@ class OutputGuardrails:
 
     def _build_scanners(self) -> list[Any]:
         return [scanner for _, scanner in self._build_scanners_with_configs()]
+
+    def _record_response_action(self, final_action: str) -> None:
+        guardrails_response_actions_total.labels(
+            final_action=final_action,
+        ).inc()
 
     def _build_scanners_with_configs(self) -> list[tuple[ParsedScannerConfig, Any]]:
         scanners: list[tuple[ParsedScannerConfig, Any]] = []

@@ -34,7 +34,8 @@ from ragengine.guardrails.scanner_schemas import (
     RegexConfig,
 )
 from ragengine.metrics.prometheus_metrics import (
-    output_guardrails_actions_total,
+    guardrails_response_actions_total,
+    guardrails_response_scanner_hits_total,
     output_guardrails_policy_load_total,
     output_guardrails_scanner_build_total,
     scanner_action_total,
@@ -768,6 +769,11 @@ def test_guard_response_skips_non_string_content(monkeypatch):
 
 
 def test_guard_response_passes_through_when_no_scanner_triggered(monkeypatch):
+    before = _counter_value(
+        guardrails_response_actions_total,
+        final_action="allow",
+    )
+
     _patch_scan_output(
         monkeypatch,
         lambda scanners, prompt, output, fail_fast: (
@@ -784,6 +790,13 @@ def test_guard_response_passes_through_when_no_scanner_triggered(monkeypatch):
 
     out = guardrails.guard_response(_make_response("clean output"), {"messages": []})
     assert out.choices[0].message.content == "clean output"
+    assert (
+        _counter_value(
+            guardrails_response_actions_total,
+            final_action="allow",
+        )
+        == before + 1
+    )
 
 
 def test_guard_response_recovers_when_scan_output_raises(monkeypatch):
@@ -812,6 +825,11 @@ def test_guard_response_recovers_when_scan_output_raises(monkeypatch):
 def test_guard_response_applies_action(
     monkeypatch, caplog, action, block_message, expected_content
 ):
+    response_before = _counter_value(
+        guardrails_response_actions_total,
+        final_action=action,
+    )
+
     _patch_scan_output(
         monkeypatch,
         lambda scanners, prompt, output, fail_fast: (
@@ -828,6 +846,7 @@ def test_guard_response_applies_action(
         scanner_configs=[_regex_cfg(patterns=[r"\S+"], action_on_hit=action)],
     )
 
+<<<<<<< HEAD
     before_hits = _counter_value(scanner_hit_total, scanner_type="regex")
     before_actions = _counter_value(scanner_action_total, action=action)
     before_output_actions = _counter_value(
@@ -938,6 +957,79 @@ def test_build_scanners_records_failure_metric_and_audit_log(caplog):
         scanner_type="regex",
     ) == pytest.approx(before_failures + 1)
     assert "output_guardrails_audit event=scanner_build_failure" in caplog.text
+=======
+    out = guardrails.guard_response(_make_response("dirty"), {"messages": []})
+    assert out.choices[0].message.content == expected_content
+    assert (
+        _counter_value(
+            guardrails_response_actions_total,
+            final_action=action,
+        )
+        == response_before + 1
+    )
+
+
+def test_guard_response_increments_hit_metric(monkeypatch):
+    before = _counter_value(
+        guardrails_response_scanner_hits_total,
+        scanner_type="regex",
+        action="redact",
+    )
+
+    _patch_scan_output(
+        monkeypatch,
+        lambda scanners, prompt, output, fail_fast: (
+            "REDACTED-CONTENT",
+            {"regex": False},
+            {"regex": 0.9},
+        ),
+    )
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        scanner_configs=(_regex_cfg(patterns=[r"\S+"], action_on_hit="redact"),),
+    )
+
+    guardrails.guard_response(_make_response("dirty"), {"messages": []})
+
+    assert (
+        _counter_value(
+            guardrails_response_scanner_hits_total,
+            scanner_type="regex",
+            action="redact",
+        )
+        == before + 1
+    )
+
+
+def test_guard_response_increments_fail_closed_metric(monkeypatch):
+    before = _counter_value(
+        guardrails_response_actions_total,
+        final_action="fail_closed",
+    )
+
+    def _boom(*args, **kwargs):
+        raise RuntimeError("scanner exploded")
+
+    _patch_scan_output(monkeypatch, _boom)
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        fail_open=False,
+        scanner_configs=(_regex_cfg(patterns=[r"\S+"]),),
+    )
+
+    with pytest.raises(output_guardrails_module.OutputGuardrailsError):
+        guardrails.guard_response(_make_response("dirty"), {"messages": []})
+
+    assert (
+        _counter_value(
+            guardrails_response_actions_total,
+            final_action="fail_closed",
+        )
+        == before + 1
+    )
+>>>>>>> upstream/main
 
 
 # ---------------------------------------------------------------------------

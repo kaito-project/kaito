@@ -389,7 +389,7 @@ func (r *MultiRoleInferenceReconciler) reconcileInferenceSet(
 		// Spec — only reconcile replicas when explicitly set (non-nil).
 		// When nil, autoscaling is assumed and the controller skips replica reconciliation.
 		if role.Replicas != nil {
-			desired.Spec.Replicas = int(*role.Replicas)
+			desired.Spec.Replicas = role.Replicas
 		}
 
 		// LabelSelector — start from the MRI's labelSelector and inject role info.

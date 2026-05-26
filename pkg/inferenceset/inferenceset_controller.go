@@ -209,12 +209,16 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	klog.InfoS("Found workspaces for inference set", "name", iObj.Name, "current", len(wsList.Items), "desired", iObj.Spec.Replicas)
+	desiredReplicas := int32(1)
+	if iObj.Spec.Replicas != nil {
+		desiredReplicas = *iObj.Spec.Replicas
+	}
+	klog.InfoS("Found workspaces for inference set", "name", iObj.Name, "current", len(wsList.Items), "desired", desiredReplicas)
 
-	replicaNumToDelete := len(wsList.Items) - iObj.Spec.Replicas
+	replicaNumToDelete := len(wsList.Items) - int(desiredReplicas)
 	var deletingWorkspaces []string
 	if replicaNumToDelete > 0 {
-		klog.InfoS("Found extra workspaces, deleting...", "current", len(wsList.Items), "desired", iObj.Spec.Replicas)
+		klog.InfoS("Found extra workspaces, deleting...", "current", len(wsList.Items), "desired", desiredReplicas)
 		// first delete workspace that is not in ready state
 		for _, ws := range wsList.Items {
 			if !ws.DeletionTimestamp.IsZero() {
@@ -266,9 +270,9 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 		}
 	}
 
-	replicaNumToCreate := iObj.Spec.Replicas - len(wsList.Items)
+	replicaNumToCreate := int(desiredReplicas) - len(wsList.Items)
 	if replicaNumToCreate > 0 {
-		klog.InfoS("Need to create more workspaces...", "current", len(wsList.Items), "desired", iObj.Spec.Replicas)
+		klog.InfoS("Need to create more workspaces...", "current", len(wsList.Items), "desired", desiredReplicas)
 		for i := range replicaNumToCreate {
 			workspaceObj := &kaitov1beta1.Workspace{}
 			workspaceObj.GenerateName = iObj.Name + "-"
@@ -315,7 +319,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 
 	// update the replicas in the status
 	if err = inferenceset.UpdateInferenceSetStatus(ctx, c.Client, &client.ObjectKey{Name: iObj.Name, Namespace: iObj.Namespace}, func(status *kaitov1alpha1.InferenceSetStatus) error {
-		status.Replicas = iObj.Spec.Replicas
+		status.Replicas = int(desiredReplicas)
 		status.ReadyReplicas = readyReplicas
 		// set selector for HPA/VPA
 		status.Selector = fmt.Sprintf("%s=%s", consts.WorkspaceCreatedByInferenceSetLabel, iObj.Name)
@@ -359,7 +363,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 		return reconcile.Result{}, err
 	}
 
-	if readyReplicas == iObj.Spec.Replicas {
+	if readyReplicas == int(desiredReplicas) {
 		if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1alpha1.InferenceSetConditionTypeReady, metav1.ConditionTrue,
 			"inferencesetReady", "inferenceset is ready"); err != nil {
 			klog.ErrorS(err, "failed to update inferenceset status", "inferenceset", klog.KObj(iObj))
@@ -367,7 +371,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 		}
 	} else {
 		if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1alpha1.InferenceSetConditionTypeReady, metav1.ConditionFalse,
-			"inferencesetNotReady", fmt.Sprintf("inferenceset is not ready, %d/%d replicas are ready", readyReplicas, iObj.Spec.Replicas)); err != nil {
+			"inferencesetNotReady", fmt.Sprintf("inferenceset is not ready, %d/%d replicas are ready", readyReplicas, desiredReplicas)); err != nil {
 			klog.ErrorS(err, "failed to update inferenceset status", "inferenceset", klog.KObj(iObj))
 			return reconcile.Result{}, err
 		}
@@ -375,15 +379,15 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 
 	// Surface benchmark progress when the annotation is set.
 	if kaitov1alpha1.ShouldRunBenchmark(iObj) {
-		if benchmarkedReplicas == iObj.Spec.Replicas && iObj.Spec.Replicas > 0 {
+		if benchmarkedReplicas == int(desiredReplicas) && desiredReplicas > 0 {
 			if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1alpha1.InferenceSetConditionTypeBenchmarkCompleted, metav1.ConditionTrue,
-				"BenchmarkCompleted", fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, iObj.Spec.Replicas)); err != nil {
+				"BenchmarkCompleted", fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, desiredReplicas)); err != nil {
 				klog.ErrorS(err, "failed to update inferenceset benchmark status", "inferenceset", klog.KObj(iObj))
 				return reconcile.Result{}, err
 			}
 		} else {
 			if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1alpha1.InferenceSetConditionTypeBenchmarkCompleted, metav1.ConditionFalse,
-				"BenchmarkPending", fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, iObj.Spec.Replicas)); err != nil {
+				"BenchmarkPending", fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, desiredReplicas)); err != nil {
 				klog.ErrorS(err, "failed to update inferenceset benchmark status", "inferenceset", klog.KObj(iObj))
 				return reconcile.Result{}, err
 			}

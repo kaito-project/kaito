@@ -36,8 +36,6 @@ from ragengine.metrics.prometheus_metrics import (
     guardrails_active_policy,
     guardrails_policy_loaded_timestamp,
     guardrails_policy_reload_total,
-    reload_failure_total,
-    reload_success_total,
 )
 
 logger = logging.getLogger(__name__)
@@ -149,7 +147,6 @@ class GuardrailsReloader:
             guardrails_policy_reload_total.labels(
                 **{"result": RELOAD_RESULT_FAILURE}
             ).inc()
-            reload_failure_total.inc()
             _log_reload_audit(
                 "failure",
                 path=self._policy_path,
@@ -184,7 +181,6 @@ class GuardrailsReloader:
             old_policy_hash = current_policy_hash
             self._current = new_instance
         guardrails_policy_reload_total.labels(**{"result": RELOAD_RESULT_SUCCESS}).inc()
-        reload_success_total.inc()
         self._update_active_policy_metrics()
         _log_reload_audit(
             "success",

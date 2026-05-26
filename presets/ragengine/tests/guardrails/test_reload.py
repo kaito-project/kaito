@@ -24,11 +24,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 
 from ragengine.guardrails.output_guardrails import OutputGuardrails
 from ragengine.guardrails.reload import GuardrailsReloader
-from ragengine.metrics.prometheus_metrics import (
-    guardrails_active_policy,
-    reload_failure_total,
-    reload_success_total,
-)
+from ragengine.metrics.prometheus_metrics import guardrails_active_policy
 
 
 def _factory(instances):
@@ -144,15 +140,11 @@ def test_reload_swaps_in_new_instance_on_change():
         debounce_seconds=0,
         factory=_factory([first, second]),
     )
-    before_success = _counter_value(reload_success_total, "reload_success_total")
     assert reloader.get_current() is first
 
     reloader._reload()
 
     assert reloader.get_current() is second
-    assert _counter_value(
-        reload_success_total, "reload_success_total"
-    ) == pytest.approx(before_success + 1)
     labels = _info_labels(guardrails_active_policy, "guardrails_active_policy_info")
     assert labels["path"] == "/tmp/policy.yaml"
     assert labels["sha256"] == second.policy_hash
@@ -170,7 +162,6 @@ def test_reload_keeps_current_when_factory_raises(caplog):
         debounce_seconds=0,
         factory=_factory([first]),
     )
-    before_failure = _counter_value(reload_failure_total, "reload_failure_total")
 
     def boom():
         raise RuntimeError("policy load broke")
@@ -183,9 +174,6 @@ def test_reload_keeps_current_when_factory_raises(caplog):
     assert reloader.get_current() is first
     assert "fallback_action=keep_current" in caplog.text
     assert "output_guardrails_reload_audit event=failure" in caplog.text
-    assert _counter_value(
-        reload_failure_total, "reload_failure_total"
-    ) == pytest.approx(before_failure + 1)
     labels = _info_labels(guardrails_active_policy, "guardrails_active_policy_info")
     assert labels["sha256"] == first.policy_hash
 

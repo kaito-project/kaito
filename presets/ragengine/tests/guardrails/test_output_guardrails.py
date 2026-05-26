@@ -39,9 +39,6 @@ from ragengine.metrics.prometheus_metrics import (
     output_guardrails_actions_total,
     output_guardrails_policy_load_total,
     output_guardrails_scanner_build_total,
-    scanner_action_total,
-    scanner_build_failure_total,
-    scanner_hit_total,
 )
 from ragengine.models import ChatCompletionResponse
 
@@ -847,8 +844,6 @@ def test_guard_response_applies_action(
         scanner_configs=[_regex_cfg(patterns=[r"\S+"], action_on_hit=action)],
     )
 
-    before_hits = _counter_value(scanner_hit_total, scanner_type="regex")
-    before_actions = _counter_value(scanner_action_total, action=action)
     before_output_actions = _counter_value(
         output_guardrails_actions_total,
         action=action,
@@ -858,12 +853,6 @@ def test_guard_response_applies_action(
         out = guardrails.guard_response(_make_response("dirty"), {"messages": []})
 
     assert out.choices[0].message.content == expected_content
-    assert _counter_value(scanner_hit_total, scanner_type="regex") == pytest.approx(
-        before_hits + 1
-    )
-    assert _counter_value(scanner_action_total, action=action) == pytest.approx(
-        before_actions + 1
-    )
     assert _counter_value(
         output_guardrails_actions_total,
         action=action,
@@ -951,18 +940,20 @@ def test_build_scanners_records_failure_metric_and_audit_log(caplog):
             ),
         ),
     )
-    before_failures = _counter_value(
-        scanner_build_failure_total,
-        scanner_type="regex",
+    failure_before = _counter_value(
+        output_guardrails_scanner_build_total,
+        type="regex",
+        status="failure",
     )
 
     with caplog.at_level("INFO"):
         assert guardrails._build_scanners_with_configs() == []
 
     assert _counter_value(
-        scanner_build_failure_total,
-        scanner_type="regex",
-    ) == pytest.approx(before_failures + 1)
+        output_guardrails_scanner_build_total,
+        type="regex",
+        status="failure",
+    ) == pytest.approx(failure_before + 1)
     assert "output_guardrails_audit event=scanner_build_failure" in caplog.text
 
 

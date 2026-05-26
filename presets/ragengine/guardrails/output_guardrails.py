@@ -33,9 +33,6 @@ from ragengine.metrics.prometheus_metrics import (
     output_guardrails_actions_total,
     output_guardrails_policy_load_total,
     output_guardrails_scanner_build_total,
-    scanner_action_total,
-    scanner_build_failure_total,
-    scanner_hit_total,
 )
 from ragengine.models import ChatCompletionResponse, get_message_content
 
@@ -172,7 +169,6 @@ class OutputGuardrails:
                         scanner_type=parsed.type,
                         action=scanner_action_on_hit,
                     ).inc()
-                    scanner_hit_total.labels(scanner_type=parsed.type).inc()
                     triggered_scanners.append(
                         {
                             "type": parsed.type,
@@ -203,7 +199,6 @@ class OutputGuardrails:
                     message["content"] = sanitized_output
 
                 self._record_response_action(final_action)
-                scanner_action_total.labels(action=final_action).inc()
                 output_guardrails_actions_total.labels(action=final_action).inc()
                 _log_guardrails_audit(
                     "action_applied",
@@ -252,7 +247,6 @@ class OutputGuardrails:
                     type=parsed.type, status=STATUS_SUCCESS
                 ).inc()
             except Exception:
-                scanner_build_failure_total.labels(scanner_type=parsed.type).inc()
                 _log_guardrails_audit(
                     "scanner_build_failure",
                     scanner_type=parsed.type,

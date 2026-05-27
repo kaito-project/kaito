@@ -109,7 +109,7 @@ spec:
               replicas:
                 default: 1
                 description: Replicas is the desired number of workspaces to be created.
-                minimum: 1
+                minimum: 0
                 type: integer
               template:
                 description: Template is the template used to create the InferenceSet.

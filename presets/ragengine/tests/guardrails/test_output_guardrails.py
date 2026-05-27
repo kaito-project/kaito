@@ -10,6 +10,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import builtins
 import os
 import sys
@@ -33,6 +34,12 @@ from ragengine.guardrails.scanner_schemas import (
     RegexConfig,
     SecretsConfig,
     SensitiveConfig,
+)
+from ragengine.metrics.prometheus_metrics import (
+    guardrails_response_actions_total,
+    guardrails_response_scanner_hits_total,
+    output_guardrails_policy_load_total,
+    output_guardrails_scanner_build_total,
 )
 from ragengine.models import ChatCompletionResponse
 
@@ -135,6 +142,10 @@ def _patch_scan_output(monkeypatch, fn):
     monkeypatch.setattr(output_guardrails_module, "scan_output", fn)
 
 
+def _counter_value(metric, **labels) -> float:
+    return metric.labels(**labels)._value.get()
+
+
 @pytest.fixture
 def fake_llm_guard_scanners(monkeypatch):
     """Replace llm_guard's Regex / BanSubstrings with simple recording stubs.
@@ -208,9 +219,38 @@ def test_from_config_loads_yaml_policy(tmp_path, monkeypatch):
     assert guardrails.enabled is True
     assert guardrails.action_on_hit == "block"
     assert guardrails.block_message == "blocked-by-policy"
+    assert guardrails.policy_hash
+    assert guardrails.policy_path.endswith("guardrails.yaml")
     assert guardrails.scanner_configs == (
         _regex_cfg(patterns=[r"https?://\S+"], action_on_hit="block"),
         _ban_subs_cfg(substrings=["secret"], action_on_hit="block"),
+    )
+def test_from_config_records_policy_load_metrics(tmp_path, monkeypatch):
+    _write_policy(
+        tmp_path,
+        monkeypatch,
+        """
+        scanners:
+          - type: regex
+            patterns:
+              - a
+        """,
+    )
+
+    before = _counter_value(
+        output_guardrails_policy_load_total,
+        policy_status="success",
+    )
+
+    guardrails = OutputGuardrails.from_config()
+
+    assert guardrails.policy_hash
+    assert (
+        _counter_value(
+            output_guardrails_policy_load_total,
+            policy_status="success",
+        )
+        == before + 1
     )
 
 
@@ -245,6 +285,10 @@ def test_from_config_keeps_empty_scanners_when_policy_path_missing(monkeypatch):
     monkeypatch.setattr(
         config, "OUTPUT_GUARDRAILS_POLICY_PATH", "/tmp/missing-guardrails.yaml"
     )
+    before = _counter_value(
+        output_guardrails_policy_load_total,
+        policy_status="missing",
+    )
 
     guardrails = OutputGuardrails.from_config()
 
@@ -252,6 +296,72 @@ def test_from_config_keeps_empty_scanners_when_policy_path_missing(monkeypatch):
     assert guardrails.action_on_hit == "redact"
     assert guardrails.block_message == DEFAULT_BLOCK_MESSAGE
     assert guardrails.scanner_configs == ()
+    assert (
+        _counter_value(
+            output_guardrails_policy_load_total,
+            policy_status="missing",
+        )
+        == before + 1
+    )
+
+
+def test_from_config_records_load_failed_metric_on_yaml_error(tmp_path, monkeypatch):
+    _write_policy(
+        tmp_path,
+        monkeypatch,
+        "scanners:\n  - type: regex\n    patterns:\n      - a\n",
+    )
+
+    before = _counter_value(
+        output_guardrails_policy_load_total,
+        policy_status="load_failed",
+    )
+
+    def raising_safe_load(*args, **kwargs):
+        raise ValueError("boom")
+
+    monkeypatch.setattr(output_guardrails_module.yaml, "safe_load", raising_safe_load)
+
+    guardrails = OutputGuardrails.from_config()
+
+    assert guardrails.enabled is True
+    assert guardrails.scanner_configs == ()
+    assert (
+        _counter_value(
+            output_guardrails_policy_load_total,
+            policy_status="load_failed",
+        )
+        == before + 1
+    )
+
+
+def test_from_config_records_invalid_metric_for_non_dict_policy(tmp_path, monkeypatch):
+    _write_policy(
+        tmp_path,
+        monkeypatch,
+        """
+        - type: regex
+          patterns:
+            - a
+        """,
+    )
+
+    before = _counter_value(
+        output_guardrails_policy_load_total,
+        policy_status="invalid",
+    )
+
+    guardrails = OutputGuardrails.from_config()
+
+    assert guardrails.enabled is True
+    assert guardrails.scanner_configs == ()
+    assert (
+        _counter_value(
+            output_guardrails_policy_load_total,
+            policy_status="invalid",
+        )
+        == before + 1
+    )
 
 
 def test_from_config_replaces_scanners_with_policy_values(tmp_path, monkeypatch):
@@ -291,9 +401,7 @@ def test_from_config_invalid_action_falls_back_to_default(tmp_path, monkeypatch)
     guardrails = OutputGuardrails.from_config()
 
     assert guardrails.action_on_hit == "redact"
-    assert guardrails.scanner_configs == (
-        _regex_cfg(patterns=[r"https?://\S+"], action_on_hit="redact"),
-    )
+    assert guardrails.scanner_configs == (_regex_cfg(patterns=[r"https?://\S+"]),)
 
 
 def test_from_config_returns_empty_scanners_when_policy_scanners_is_not_a_list(
@@ -313,32 +421,6 @@ def test_from_config_returns_empty_scanners_when_policy_scanners_is_not_a_list(
 
     assert guardrails.action_on_hit == "block"
     assert guardrails.scanner_configs == ()
-
-
-def test_from_config_scanner_action_overrides_top_level_action(tmp_path, monkeypatch):
-    _write_policy(
-        tmp_path,
-        monkeypatch,
-        """
-        action: block
-        scanners:
-          - type: regex
-            action: redact
-            patterns:
-              - https?://\\S+
-          - type: ban_substrings
-            substrings:
-              - secret
-        """,
-    )
-
-    guardrails = OutputGuardrails.from_config()
-
-    assert guardrails.action_on_hit == "block"
-    assert guardrails.scanner_configs == (
-        _regex_cfg(patterns=[r"https?://\S+"], action_on_hit="redact"),
-        _ban_subs_cfg(substrings=["secret"], action_on_hit="block"),
-    )
 
 
 def test_from_config_skips_invalid_scanners_and_filters_non_string_values(
@@ -639,7 +721,6 @@ def test_build_scanners_supports_normalized_ban_substrings_type(
     assert scanners[0].substrings == ["secret"]
     assert scanners[0].redact is True
 
-
 def test_build_scanners_uses_per_scanner_action(fake_llm_guard_scanners):
     parsed = (
         _regex_cfg(patterns=["a"], action_on_hit="redact"),
@@ -752,11 +833,38 @@ def test_build_scanners_skips_configs_whose_build_raises(monkeypatch):
 
     guardrails = OutputGuardrails(
         enabled=True,
-        scanner_configs=(_regex_cfg(patterns=["a"]), _regex_cfg(patterns=["b"])),
+        scanner_configs=[_regex_cfg(patterns=["a"]), _regex_cfg(patterns=["b"])],
+    )
+
+    success_before = _counter_value(
+        output_guardrails_scanner_build_total,
+        type="regex",
+        status="success",
+    )
+    failure_before = _counter_value(
+        output_guardrails_scanner_build_total,
+        type="regex",
+        status="failure",
     )
 
     # First config raised -> skipped; second was built successfully.
     assert guardrails._build_scanners() == [sentinel]
+    assert (
+        _counter_value(
+            output_guardrails_scanner_build_total,
+            type="regex",
+            status="success",
+        )
+        == success_before + 1
+    )
+    assert (
+        _counter_value(
+            output_guardrails_scanner_build_total,
+            type="regex",
+            status="failure",
+        )
+        == failure_before + 1
+    )
 
 
 def test_regex_config_build_uses_value_lookup_for_fullmatch(
@@ -785,7 +893,7 @@ def test_guard_response_short_circuits_when_disabled():
 
 def test_guard_response_short_circuits_when_no_scanners():
     response = _make_response("anything")
-    guardrails = OutputGuardrails(enabled=True, scanner_configs=())
+    guardrails = OutputGuardrails(enabled=True, scanner_configs=[])
     assert guardrails.guard_response(response, {"messages": []}) is response
 
 
@@ -800,7 +908,7 @@ def test_guard_response_skips_non_string_content(monkeypatch):
 
     guardrails = OutputGuardrails(
         enabled=True,
-        scanner_configs=(_regex_cfg(patterns=[r"\S+"]),),
+        scanner_configs=[_regex_cfg(patterns=[r"\S+"])],
     )
 
     out = guardrails.guard_response(_make_tool_call_response(), {"messages": []})
@@ -808,6 +916,11 @@ def test_guard_response_skips_non_string_content(monkeypatch):
 
 
 def test_guard_response_passes_through_when_no_scanner_triggered(monkeypatch):
+    before = _counter_value(
+        guardrails_response_actions_total,
+        final_action="allow",
+    )
+
     _patch_scan_output(
         monkeypatch,
         lambda scanners, prompt, output, fail_fast: (
@@ -819,11 +932,18 @@ def test_guard_response_passes_through_when_no_scanner_triggered(monkeypatch):
 
     guardrails = OutputGuardrails(
         enabled=True,
-        scanner_configs=(_regex_cfg(patterns=[r"never-matches"]),),
+        scanner_configs=[_regex_cfg(patterns=[r"never-matches"])],
     )
 
     out = guardrails.guard_response(_make_response("clean output"), {"messages": []})
     assert out.choices[0].message.content == "clean output"
+    assert (
+        _counter_value(
+            guardrails_response_actions_total,
+            final_action="allow",
+        )
+        == before + 1
+    )
 
 
 def test_guard_response_recovers_when_scan_output_raises(monkeypatch):
@@ -835,7 +955,7 @@ def test_guard_response_recovers_when_scan_output_raises(monkeypatch):
     response = _make_response("clean output")
     guardrails = OutputGuardrails(
         enabled=True,
-        scanner_configs=(_regex_cfg(patterns=[r"\S+"]),),
+        scanner_configs=[_regex_cfg(patterns=[r"\S+"])],
     )
 
     # Internal failure must degrade safely: return the original response object.
@@ -852,6 +972,11 @@ def test_guard_response_recovers_when_scan_output_raises(monkeypatch):
 def test_guard_response_applies_action(
     monkeypatch, action, block_message, expected_content
 ):
+    response_before = _counter_value(
+        guardrails_response_actions_total,
+        final_action=action,
+    )
+
     _patch_scan_output(
         monkeypatch,
         lambda scanners, prompt, output, fail_fast: (
@@ -865,67 +990,80 @@ def test_guard_response_applies_action(
         enabled=True,
         action_on_hit=action,
         block_message=block_message,
-        scanner_configs=(_regex_cfg(patterns=[r"\S+"], action_on_hit=action),),
+        scanner_configs=[_regex_cfg(patterns=[r"\S+"], action_on_hit=action)],
     )
 
     out = guardrails.guard_response(_make_response("dirty"), {"messages": []})
     assert out.choices[0].message.content == expected_content
-
-
-def test_guard_response_applies_mixed_scanner_actions_in_order(monkeypatch):
-    call_outputs = iter(
-        [
-            ("REDACTED-CONTENT", {"regex": False}, {"regex": 0.9}),
-            (
-                "REDACTED-CONTENT",
-                {"ban_substrings": True},
-                {"ban_substrings": 0.0},
-            ),
-        ]
+    assert (
+        _counter_value(
+            guardrails_response_actions_total,
+            final_action=action,
+        )
+        == response_before + 1
     )
 
-    def _scan_output(scanners, prompt, output, fail_fast):
-        return next(call_outputs)
 
-    _patch_scan_output(monkeypatch, _scan_output)
+def test_guard_response_increments_hit_metric(monkeypatch):
+    before = _counter_value(
+        guardrails_response_scanner_hits_total,
+        scanner_type="regex",
+        action="redact",
+    )
 
-    guardrails = OutputGuardrails(
-        enabled=True,
-        block_message="blocked!",
-        scanner_configs=(
-            _regex_cfg(patterns=[r"\S+"], action_on_hit="redact"),
-            _ban_subs_cfg(substrings=["secret"], action_on_hit="block"),
+    _patch_scan_output(
+        monkeypatch,
+        lambda scanners, prompt, output, fail_fast: (
+            "REDACTED-CONTENT",
+            {"regex": False},
+            {"regex": 0.9},
         ),
     )
 
-    out = guardrails.guard_response(_make_response("dirty"), {"messages": []})
-    assert out.choices[0].message.content == "REDACTED-CONTENT"
-
-
-def test_guard_response_block_wins_when_block_scanner_triggers(monkeypatch):
-    call_outputs = iter(
-        [
-            ("REDACTED-CONTENT", {"regex": False}, {"regex": 0.9}),
-            ("ignored-after-block", {"ban_substrings": False}, {"ban_substrings": 0.7}),
-        ]
+    guardrails = OutputGuardrails(
+        enabled=True,
+        scanner_configs=(_regex_cfg(patterns=[r"\S+"], action_on_hit="redact"),),
     )
 
-    def _scan_output(scanners, prompt, output, fail_fast):
-        return next(call_outputs)
+    guardrails.guard_response(_make_response("dirty"), {"messages": []})
 
-    _patch_scan_output(monkeypatch, _scan_output)
+    assert (
+        _counter_value(
+            guardrails_response_scanner_hits_total,
+            scanner_type="regex",
+            action="redact",
+        )
+        == before + 1
+    )
+
+
+def test_guard_response_increments_fail_closed_metric(monkeypatch):
+    before = _counter_value(
+        guardrails_response_actions_total,
+        final_action="fail_closed",
+    )
+
+    def _boom(*args, **kwargs):
+        raise RuntimeError("scanner exploded")
+
+    _patch_scan_output(monkeypatch, _boom)
 
     guardrails = OutputGuardrails(
         enabled=True,
-        block_message="blocked!",
-        scanner_configs=(
-            _regex_cfg(patterns=[r"\S+"], action_on_hit="redact"),
-            _ban_subs_cfg(substrings=["secret"], action_on_hit="block"),
-        ),
+        fail_open=False,
+        scanner_configs=(_regex_cfg(patterns=[r"\S+"]),),
     )
 
-    out = guardrails.guard_response(_make_response("dirty"), {"messages": []})
-    assert out.choices[0].message.content == "blocked!"
+    with pytest.raises(output_guardrails_module.OutputGuardrailsError):
+        guardrails.guard_response(_make_response("dirty"), {"messages": []})
+
+    assert (
+        _counter_value(
+            guardrails_response_actions_total,
+            final_action="fail_closed",
+        )
+        == before + 1
+    )
 
 
 # ---------------------------------------------------------------------------

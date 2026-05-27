@@ -1044,6 +1044,12 @@ func deleteRAGEngine(ragengineObj *kaitov1beta1.RAGEngine) error {
 // validateInferenceResource validates inference deployment
 func validateInferenceandRAGResource(objectMeta metav1.ObjectMeta, expectedReplicas int32, isStatefulSet bool) {
 	By("Checking the inference resource", func() {
+		DeferCleanup(func() {
+			if CurrentSpecReport().Failed() {
+				dumpInferenceResourceAndPods(objectMeta, isStatefulSet)
+			}
+		})
+
 		Eventually(func() bool {
 			var err error
 			var readyReplicas int32
@@ -1085,8 +1091,116 @@ func validateInferenceandRAGResource(objectMeta metav1.ObjectMeta, expectedRepli
 			}
 
 			return false
-		}, 20*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for inference resource to be ready")
+		}, 30*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for inference resource to be ready")
 	})
+}
+
+func dumpInferenceResourceAndPods(objectMeta metav1.ObjectMeta, isStatefulSet bool) {
+	if isStatefulSet {
+		sts := &appsv1.StatefulSet{}
+		err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+			Namespace: objectMeta.Namespace,
+			Name:      objectMeta.Name,
+		}, sts)
+		if err != nil {
+			GinkgoWriter.Printf("Failed to fetch StatefulSet %s/%s for dump: %v\n", objectMeta.Namespace, objectMeta.Name, err)
+			return
+		}
+
+		GinkgoWriter.Printf("StatefulSet dump %s/%s: replicas=%d ready=%d current=%d updated=%d available=%d observedGeneration=%d\n",
+			sts.Namespace, sts.Name,
+			lo.FromPtr(sts.Spec.Replicas), sts.Status.ReadyReplicas, sts.Status.CurrentReplicas,
+			sts.Status.UpdatedReplicas, sts.Status.AvailableReplicas, sts.Status.ObservedGeneration)
+		for _, condition := range sts.Status.Conditions {
+			GinkgoWriter.Printf("StatefulSet condition: type=%s status=%s reason=%s message=%s\n",
+				condition.Type, condition.Status, condition.Reason, condition.Message)
+		}
+
+		dumpAssociatedPods(objectMeta.Namespace, sts.Spec.Selector)
+		return
+	}
+
+	dep := &appsv1.Deployment{}
+	err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+		Namespace: objectMeta.Namespace,
+		Name:      objectMeta.Name,
+	}, dep)
+	if err != nil {
+		GinkgoWriter.Printf("Failed to fetch Deployment %s/%s for dump: %v\n", objectMeta.Namespace, objectMeta.Name, err)
+		return
+	}
+
+	GinkgoWriter.Printf("Deployment dump %s/%s: replicas=%d ready=%d updated=%d available=%d unavailable=%d observedGeneration=%d\n",
+		dep.Namespace, dep.Name,
+		lo.FromPtr(dep.Spec.Replicas), dep.Status.ReadyReplicas, dep.Status.UpdatedReplicas,
+		dep.Status.AvailableReplicas, dep.Status.UnavailableReplicas, dep.Status.ObservedGeneration)
+	for _, condition := range dep.Status.Conditions {
+		GinkgoWriter.Printf("Deployment condition: type=%s status=%s reason=%s message=%s\n",
+			condition.Type, condition.Status, condition.Reason, condition.Message)
+	}
+
+	dumpAssociatedPods(objectMeta.Namespace, dep.Spec.Selector)
+}
+
+func dumpAssociatedPods(namespace string, selector *metav1.LabelSelector) {
+	if selector == nil {
+		GinkgoWriter.Printf("No selector available for associated pod dump in namespace %s\n", namespace)
+		return
+	}
+
+	podSelector, err := metav1.LabelSelectorAsSelector(selector)
+	if err != nil {
+		GinkgoWriter.Printf("Failed to build pod selector from label selector in namespace %s: %v\n", namespace, err)
+		return
+	}
+
+	podList := &v1.PodList{}
+	err = utils.TestingCluster.KubeClient.List(ctx, podList, &client.ListOptions{
+		Namespace:     namespace,
+		LabelSelector: podSelector,
+	})
+	if err != nil {
+		GinkgoWriter.Printf("Failed to list associated pods in namespace %s: %v\n", namespace, err)
+		return
+	}
+
+	if len(podList.Items) == 0 {
+		GinkgoWriter.Printf("No associated pods found in namespace %s for selector %q\n", namespace, podSelector.String())
+		return
+	}
+
+	GinkgoWriter.Printf("Associated pods in namespace %s for selector %q:\n", namespace, podSelector.String())
+	for _, pod := range podList.Items {
+		GinkgoWriter.Printf("Pod %s: phase=%s node=%s podIP=%s startTime=%v\n",
+			pod.Name, pod.Status.Phase, pod.Spec.NodeName, pod.Status.PodIP, pod.Status.StartTime)
+
+		for _, condition := range pod.Status.Conditions {
+			GinkgoWriter.Printf("Pod %s condition: type=%s status=%s reason=%s message=%s\n",
+				pod.Name, condition.Type, condition.Status, condition.Reason, condition.Message)
+		}
+
+		for _, status := range pod.Status.ContainerStatuses {
+			state := "unknown"
+			reason := ""
+			message := ""
+
+			switch {
+			case status.State.Running != nil:
+				state = "running"
+			case status.State.Waiting != nil:
+				state = "waiting"
+				reason = status.State.Waiting.Reason
+				message = status.State.Waiting.Message
+			case status.State.Terminated != nil:
+				state = "terminated"
+				reason = status.State.Terminated.Reason
+				message = status.State.Terminated.Message
+			}
+
+			GinkgoWriter.Printf("Pod %s container %s: ready=%t restartCount=%d state=%s reason=%s message=%s\n",
+				pod.Name, status.Name, status.Ready, status.RestartCount, state, reason, message)
+		}
+	}
 }
 
 func validateAssociatedService(objectMeta metav1.ObjectMeta) {

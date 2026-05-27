@@ -51,9 +51,9 @@ func (is *InferenceSet) Validate(ctx context.Context) (errs *apis.FieldError) {
 }
 
 func (is *InferenceSet) validateCreate() (errs *apis.FieldError) {
-	// Validate replicas is at least 1
-	if is.Spec.Replicas < 1 {
-		errs = errs.Also(apis.ErrInvalidValue(is.Spec.Replicas, "replicas", "must be at least 1"))
+	// Validate replicas is non-negative
+	if is.Spec.Replicas != nil && *is.Spec.Replicas < 0 {
+		errs = errs.Also(apis.ErrInvalidValue(*is.Spec.Replicas, "replicas", "must be non-negative"))
 	}
 	return errs
 }

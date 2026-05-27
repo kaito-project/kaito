@@ -225,6 +225,8 @@ def test_from_config_loads_yaml_policy(tmp_path, monkeypatch):
         _regex_cfg(patterns=[r"https?://\S+"], action_on_hit="block"),
         _ban_subs_cfg(substrings=["secret"], action_on_hit="block"),
     )
+
+
 def test_from_config_records_policy_load_metrics(tmp_path, monkeypatch):
     _write_policy(
         tmp_path,
@@ -720,6 +722,7 @@ def test_build_scanners_supports_normalized_ban_substrings_type(
     assert isinstance(scanners[0], FakeBanSubstrings)
     assert scanners[0].substrings == ["secret"]
     assert scanners[0].redact is True
+
 
 def test_build_scanners_uses_per_scanner_action(fake_llm_guard_scanners):
     parsed = (

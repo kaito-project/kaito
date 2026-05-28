@@ -18,6 +18,7 @@ import textwrap
 import time
 
 import pytest
+from llm_guard import scan_output
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
@@ -771,6 +772,22 @@ def test_build_scanners_supports_secrets_type(monkeypatch):
         False,
         1.0,
     )
+
+
+def test_secrets_config_build_works_with_scan_output_end_to_end():
+    scanner = SecretsConfig(redact_mode="partial").build("redact")
+    original_output = "Contact me at AKIA1234567890ABCDEF for access."
+
+    sanitized_output, results_valid, results_score = scan_output(
+        [scanner],
+        "ignored prompt",
+        original_output,
+        fail_fast=False,
+    )
+
+    assert sanitized_output != original_output
+    assert any(valid is False for valid in results_valid.values())
+    assert results_score
 
 
 def test_sensitive_config_build_redacts_requested_detectors_only():

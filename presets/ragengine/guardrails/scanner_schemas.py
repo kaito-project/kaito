@@ -72,7 +72,7 @@ class _OutputSecretsScanner:
         return self._scanner.scan(output)
 
 
-class _DeterministicSensitiveScanner:
+class _PatternPIIScanner:
     def __init__(self, *, detectors: list[str], redact: bool) -> None:
         self._detectors = list(detectors)
         self._redact = redact
@@ -143,7 +143,7 @@ class SensitiveConfig:
         return cls(detectors=_dedupe_strings(detectors))
 
     def build(self, action_on_hit: str) -> Any:
-        return _DeterministicSensitiveScanner(
+        return _PatternPIIScanner(
             detectors=self.detectors,
             redact=(action_on_hit == "redact"),
         )

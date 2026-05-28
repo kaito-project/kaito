@@ -1281,7 +1281,10 @@ def test_guard_response_with_real_reading_time_scanner_allows_exact_threshold_ou
         {"messages": []},
     )
 
-    assert out.choices[0].message.content == "One two three four five six seven eight nine ten."
+    assert (
+        out.choices[0].message.content
+        == "One two three four five six seven eight nine ten."
+    )
 
 
 def test_guard_response_applies_mixed_scanner_actions_in_order(monkeypatch):

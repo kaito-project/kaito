@@ -22,12 +22,6 @@ NOTE: Validation here is the runtime safety net for cases the
 admission webhook cannot cover (failurePolicy=Ignore, pre-existing
 CRs, ConfigMap-mounted policies, version skew). Bad configs are
 logged and skipped so the rest of the chain still runs.
-
-TODO: Many llm_guard scanners (e.g. Toxicity, Bias, Language) do not
-support redaction; pairing them with action=redact would be a no-op.
-When adding such scanners, declare a per-schema `supports_redact` flag
-and reject the (action=redact + non-redact scanner) combination at parse
-time, instead of trying to fix it at runtime.
 """
 
 import ipaddress
@@ -121,7 +115,7 @@ class SensitiveConfig:
 
     @classmethod
     def from_dict(cls, raw: dict) -> "SensitiveConfig":
-        detectors_value = raw.get("detectors", raw.get("entity_types"))
+        detectors_value = raw.get("detectors")
         if detectors_value is None:
             return cls(detectors=list(_DEFAULT_SENSITIVE_DETECTORS))
 
@@ -238,7 +232,6 @@ SCANNER_REGISTRY: dict[str, type] = {
     "regex": RegexConfig,
     "secrets": SecretsConfig,
     "sensitive": SensitiveConfig,
-    "pii": SensitiveConfig,
 }
 
 

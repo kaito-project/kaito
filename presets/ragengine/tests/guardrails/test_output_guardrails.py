@@ -616,11 +616,11 @@ def test_parse_policy_scanner_configs_rejects_non_bool_flags():
     assert parsed == (_ban_subs_cfg(substrings=["a"], case_sensitive=True),)
 
 
-def test_parse_policy_scanner_configs_accepts_secrets_and_sensitive_aliases():
+def test_parse_policy_scanner_configs_accepts_secrets_and_sensitive():
     parsed = output_guardrails_module._parse_policy_scanner_configs(
         [
             {"type": "secrets", "redact_mode": "partial"},
-            {"type": "pii", "detectors": ["email", "credit_card"]},
+            {"type": "sensitive", "detectors": ["email", "credit_card"]},
         ],
         "guardrails.yaml",
     )
@@ -628,7 +628,7 @@ def test_parse_policy_scanner_configs_accepts_secrets_and_sensitive_aliases():
     assert parsed == (
         _secrets_cfg(redact_mode="partial"),
         ParsedScannerConfig(
-            type="pii",
+            type="sensitive",
             action_on_hit="redact",
             config=SensitiveConfig(detectors=["email", "credit_card"]),
         ),

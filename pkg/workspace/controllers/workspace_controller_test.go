@@ -23,6 +23,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	appsv1 "k8s.io/api/apps/v1"
@@ -1013,7 +1014,7 @@ func TestSyncWorkspaceStatus(t *testing.T) {
 			statefulSet: &appsv1.StatefulSet{
 				ObjectMeta: v1.ObjectMeta{Name: test.MockWorkspaceDistributedModel.Name, Namespace: test.MockWorkspaceDistributedModel.Namespace},
 				Spec: appsv1.StatefulSetSpec{
-					Replicas: func() *int32 { c := int32(1); return &c }(),
+					Replicas: lo.ToPtr(int32(1)),
 				},
 				Status: appsv1.StatefulSetStatus{ReadyReplicas: 1},
 			},

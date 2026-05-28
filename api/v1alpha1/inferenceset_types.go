@@ -46,8 +46,8 @@ type InferenceSetSpec struct {
 	// Replicas is the desired number of workspaces to be created.
 	// +optional
 	// +kubebuilder:default:=1
-	// +kubebuilder:validation:Minimum=1
-	Replicas int `json:"replicas,omitempty"`
+	// +kubebuilder:validation:Minimum=0
+	Replicas *int32 `json:"replicas,omitempty"`
 	// NodeCountLimit is the maximum number of GPU nodes that can be created for the InferenceSet.
 	// If not specified, there is no limit on the number of GPU nodes that can be created.
 	// +optional

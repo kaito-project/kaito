@@ -15,23 +15,34 @@ package multiroleinference
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
+	helmv2 "github.com/fluxcd/helm-controller/api/v2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/go-logr/logr"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	gaiev1 "sigs.k8s.io/gateway-api-inference-extension/api/v1"
+	gaiev1alpha2 "sigs.k8s.io/gateway-api-inference-extension/apix/v1alpha2"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
@@ -45,18 +56,20 @@ const (
 // MultiRoleInferenceReconciler reconciles a MultiRoleInference object.
 type MultiRoleInferenceReconciler struct {
 	client.Client
-	Log      logr.Logger
-	Scheme   *runtime.Scheme
-	Recorder record.EventRecorder
+	Log                          logr.Logger
+	Scheme                       *runtime.Scheme
+	Recorder                     record.EventRecorder
+	EnableGatewayAPIInferenceExt bool
 }
 
 // NewMultiRoleInferenceReconciler creates a new reconciler.
-func NewMultiRoleInferenceReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, recorder record.EventRecorder) *MultiRoleInferenceReconciler {
+func NewMultiRoleInferenceReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, recorder record.EventRecorder, enableGWIE bool) *MultiRoleInferenceReconciler {
 	return &MultiRoleInferenceReconciler{
-		Client:   client,
-		Scheme:   scheme,
-		Log:      log,
-		Recorder: recorder,
+		Client:                       client,
+		Scheme:                       scheme,
+		Log:                          log,
+		Recorder:                     recorder,
+		EnableGatewayAPIInferenceExt: enableGWIE,
 	}
 }
 
@@ -64,6 +77,9 @@ func NewMultiRoleInferenceReconciler(client client.Client, scheme *runtime.Schem
 // +kubebuilder:rbac:groups=kaito.sh,resources=multiroleinferences/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=kaito.sh,resources=multiroleinferences/finalizers,verbs=update
 // +kubebuilder:rbac:groups=kaito.sh,resources=inferencesets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
+// +kubebuilder:rbac:groups=source.toolkit.fluxcd.io,resources=ocirepositories,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=helm.toolkit.fluxcd.io,resources=helmreleases,verbs=get;list;watch;create;update;patch;delete
 
 func (r *MultiRoleInferenceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("multiroleinference", req.NamespacedName)
@@ -125,7 +141,8 @@ func (r *MultiRoleInferenceReconciler) deleteMultiRoleInference(ctx context.Cont
 	return r.garbageCollectMultiRoleInference(ctx, log, mri)
 }
 
-// garbageCollectMultiRoleInference deletes all child InferenceSets and removes the finalizer.
+// garbageCollectMultiRoleInference deletes all child InferenceSets and removes
+// the finalizer. OCIRepository and HelmRelease are GC'd via ownerReferences.
 func (r *MultiRoleInferenceReconciler) garbageCollectMultiRoleInference(ctx context.Context, log logr.Logger, mri *kaitov1alpha1.MultiRoleInference) (ctrl.Result, error) {
 	// List all child InferenceSets owned by this MRI.
 	isList := &kaitov1alpha1.InferenceSetList{}
@@ -202,6 +219,28 @@ func (r *MultiRoleInferenceReconciler) addOrUpdateMultiRoleInference(ctx context
 		return ctrl.Result{}, err
 	}
 
+	// Reconcile InferencePool via Flux OCIRepository + HelmRelease — only when GWIE is enabled.
+	// EPP plugins config is passed inline through Helm values (pluginsCustomConfig),
+	// so no separate ConfigMap reconciliation is needed.
+	if r.EnableGatewayAPIInferenceExt {
+		if err := r.reconcileInferencePool(ctx, mri); err != nil {
+			log.Error(err, "Failed to reconcile InferencePool")
+			r.Recorder.Eventf(mri, "Warning", "ReconcileFailed",
+				"Failed to reconcile InferencePool: %v", err)
+			meta.SetStatusCondition(&mri.Status.Conditions, metav1.Condition{
+				Type:               string(kaitov1alpha1.MultiRoleInferenceConditionTypeReady),
+				Status:             metav1.ConditionFalse,
+				Reason:             "ReconcileFailed",
+				Message:            fmt.Sprintf("Failed to reconcile InferencePool: %v", err),
+				ObservedGeneration: mri.Generation,
+			})
+			if statusErr := r.Status().Update(ctx, mri); statusErr != nil {
+				log.Error(statusErr, "Failed to update status")
+			}
+			return ctrl.Result{}, err
+		}
+	}
+
 	// Aggregate status from child InferenceSets.
 	if err := r.aggregateStatus(ctx, log, mri); err != nil {
 		log.Error(err, "Failed to aggregate status")
@@ -235,9 +274,7 @@ func (r *MultiRoleInferenceReconciler) aggregateStatus(ctx context.Context, log 
 	prefillReady := r.isInferenceSetReady(roleISMap[string(kaitov1alpha1.MultiRoleInferenceRolePrefill)])
 	decodeReady := r.isInferenceSetReady(roleISMap[string(kaitov1alpha1.MultiRoleInferenceRoleDecode)])
 
-	// TODO: include inferencePoolReady once InferencePool creation is implemented (Step 4).
-	// For now, InferencePool is always not ready.
-	inferencePoolReady := false
+	inferencePoolReady := r.isInferencePoolReady(ctx, mri)
 	allReady := prefillReady && decodeReady && inferencePoolReady
 
 	// Set prefill condition.
@@ -284,13 +321,20 @@ func (r *MultiRoleInferenceReconciler) aggregateStatus(ctx context.Context, log 
 		ObservedGeneration: mri.Generation,
 	})
 
-	// TODO: Check InferencePool readiness (Step 4 — InferencePool not yet created by this controller).
-	// For now, mark InferencePoolReady as False with reason "NotImplemented".
+	// Check InferencePool readiness.
+	condStatus = metav1.ConditionFalse
+	reason = "InferencePoolNotReady"
+	message = "InferencePool is not ready"
+	if inferencePoolReady {
+		condStatus = metav1.ConditionTrue
+		reason = "InferencePoolReady"
+		message = "InferencePool is ready"
+	}
 	meta.SetStatusCondition(&mri.Status.Conditions, metav1.Condition{
 		Type:               string(kaitov1alpha1.MultiRoleInferenceConditionTypeInferencePoolReady),
-		Status:             metav1.ConditionFalse,
-		Reason:             "NotImplemented",
-		Message:            "InferencePool creation is not yet implemented",
+		Status:             condStatus,
+		Reason:             reason,
+		Message:            message,
 		ObservedGeneration: mri.Generation,
 	})
 
@@ -389,7 +433,7 @@ func (r *MultiRoleInferenceReconciler) reconcileInferenceSet(
 		// Spec — only reconcile replicas when explicitly set (non-nil).
 		// When nil, autoscaling is assumed and the controller skips replica reconciliation.
 		if role.Replicas != nil {
-			desired.Spec.Replicas = int(*role.Replicas)
+			desired.Spec.Replicas = role.Replicas
 		}
 
 		// LabelSelector — start from the MRI's labelSelector and inject role info.
@@ -454,11 +498,251 @@ func (r *MultiRoleInferenceReconciler) reconcileInferenceSet(
 	return nil
 }
 
+const (
+	// eppPluginsConfigKey is the filename key for EPP plugins config,
+	// used both as the ConfigMap data key and the Helm pluginsConfigFile name.
+	eppPluginsConfigKey = "config.yaml"
+)
+
+// defaultPDPluginsConfigTemplate is the default EPP plugins YAML template for P/D disaggregated serving.
+// Uses the llm-d EndpointPickerConfig format with schedulingProfiles for prefill and decode.
+const defaultPDPluginsConfigTemplate = `apiVersion: inference.networking.x-k8s.io/v1alpha1
+kind: EndpointPickerConfig
+plugins:
+  - type: disagg-headers-handler
+  - type: prefix-based-pd-decider
+    parameters:
+      nonCachedTokens: 4
+  - type: disagg-profile-handler
+    parameters:
+      deciders:
+        prefill: prefix-based-pd-decider
+  - type: by-label-selector
+    name: prefill-filter
+    parameters:
+      matchLabels:
+        kaito.sh/inference-role: prefill
+  - type: by-label-selector
+    name: decode-filter
+    parameters:
+      matchLabels:
+        kaito.sh/inference-role: decode
+  - type: load-aware-scorer
+    parameters:
+      threshold: 10
+  - type: max-score-picker
+schedulingProfiles:
+  - name: prefill
+    plugins:
+      - pluginRef: prefill-filter
+      - pluginRef: load-aware-scorer
+        weight: 10
+      - pluginRef: max-score-picker
+  - name: decode
+    plugins:
+      - pluginRef: decode-filter
+      - pluginRef: load-aware-scorer
+        weight: 10
+      - pluginRef: max-score-picker
+`
+
+// defaultPDPluginsConfig returns the default P/D plugins config.
+// Note: precise-prefix-cache-scorer is omitted because it requires a tokenizer
+// sidecar (UDS socket) that is not yet deployed by KAITO. Once tokenizer sidecar
+// support is added, this config should be updated to include it.
+func defaultPDPluginsConfig() string {
+	return defaultPDPluginsConfigTemplate
+}
+
+// inferencePoolName returns the name of the InferencePool resources for the MRI.
+// Delegates to the shared utils.InferencePoolName helper.
+func inferencePoolName(mriName string) string {
+	return utils.InferencePoolName(mriName)
+}
+
+// reconcileInferencePool creates or updates the Flux OCIRepository and HelmRelease
+// that render an InferencePool CR + EPP deployment, owned by the MRI.
+func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
+	ctx context.Context,
+	mri *kaitov1alpha1.MultiRoleInference,
+) error {
+	poolName := inferencePoolName(mri.Name)
+
+	// --- OCIRepository ---
+	ociRepo := &sourcev1.OCIRepository{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      poolName,
+			Namespace: mri.Namespace,
+		},
+	}
+
+	ociResult, err := controllerutil.CreateOrUpdate(ctx, r.Client, ociRepo, func() error {
+		if err := controllerutil.SetControllerReference(mri, ociRepo, r.Scheme); err != nil {
+			return err
+		}
+		ociRepo.Spec = sourcev1.OCIRepositorySpec{
+			URL:      consts.InferencePoolChartURL,
+			Interval: metav1.Duration{Duration: 10 * time.Minute},
+			Reference: &sourcev1.OCIRepositoryRef{
+				Tag: consts.InferencePoolChartVersion,
+			},
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("CreateOrUpdate OCIRepository %s: %w", poolName, err)
+	}
+	klog.V(2).InfoS("Reconciled InferencePool OCIRepository",
+		"name", poolName,
+		"result", ociResult,
+	)
+
+	// --- HelmRelease ---
+	// InferencePool selects ALL MRI pods (prefill + decode). EPP's internal
+	// prefill-filter / decode-filter plugins handle role-based selection.
+	// targetPort=5001 (sidecar) is only used by Envoy for user-facing traffic;
+	// EPP routes user requests exclusively to decode pods via decode-filter.
+	// Prefill communication is initiated by the decode sidecar directly to
+	// prefill pod:5000, bypassing InferencePool/Envoy entirely.
+	matchLabels := map[string]string{
+		kaitov1alpha1.LabelMultiRoleInferenceParent: mri.Name,
+		appsv1.PodIndexLabel:                        "0", // Only leader pod (ordinal 0) serves inference traffic
+	}
+
+	// Build EPP extension values with llm-d image and P/D plugins config.
+	eppValues := map[string]any{
+		"image": map[string]string{
+			"hub":        consts.EPPImageHub,
+			"name":       consts.EPPImageName,
+			"tag":        consts.EPPImageTag,
+			"pullPolicy": string(corev1.PullIfNotPresent),
+		},
+	}
+
+	// Load plugins config: either from user-provided ConfigMap or auto-generated default.
+	pluginsYAML := defaultPDPluginsConfig()
+	if mri.Spec.EPPPluginsConfig != "" {
+		cm := &corev1.ConfigMap{}
+		if err := r.Get(ctx, client.ObjectKey{Name: mri.Spec.EPPPluginsConfig, Namespace: mri.Namespace}, cm); err != nil {
+			return fmt.Errorf("get user-provided EPP plugins ConfigMap %s: %w", mri.Spec.EPPPluginsConfig, err)
+		}
+		if data, ok := cm.Data[eppPluginsConfigKey]; ok {
+			pluginsYAML = data
+		} else {
+			return fmt.Errorf("EPP plugins ConfigMap %s missing key %s", mri.Spec.EPPPluginsConfig, eppPluginsConfigKey)
+		}
+	}
+	eppValues["pluginsConfigFile"] = eppPluginsConfigKey
+	eppValues["pluginsCustomConfig"] = map[string]string{
+		eppPluginsConfigKey: pluginsYAML,
+	}
+	// Disable EPP secure-serving (self-signed TLS) — MRI pools run plaintext
+	// behind the mesh, matching standalone InferenceSet behavior.
+	eppValues["flags"] = map[string]string{
+		"secure-serving": "false",
+	}
+
+	helmValues := map[string]any{
+		"inferenceExtension": eppValues,
+		"inferencePool": map[string]any{
+			"targetPorts": []map[string]any{
+				{"number": consts.PortRoutingSidecar}, // routing sidecar port; GWIE CRD allows only one targetPort (maxItems: 1)
+			},
+			"modelServers": map[string]any{
+				"matchLabels": matchLabels,
+			},
+		},
+	}
+	rawHelmValues, err := json.Marshal(helmValues)
+	if err != nil {
+		return fmt.Errorf("marshal HelmRelease values: %w", err)
+	}
+
+	helmRelease := &helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      poolName,
+			Namespace: mri.Namespace,
+		},
+	}
+
+	helmResult, err := controllerutil.CreateOrUpdate(ctx, r.Client, helmRelease, func() error {
+		if err := controllerutil.SetControllerReference(mri, helmRelease, r.Scheme); err != nil {
+			return err
+		}
+		helmRelease.Spec = helmv2.HelmReleaseSpec{
+			Interval: metav1.Duration{Duration: 10 * time.Minute},
+			ChartRef: &helmv2.CrossNamespaceSourceReference{
+				Kind:      sourcev1.OCIRepositoryKind,
+				Namespace: mri.Namespace,
+				Name:      poolName,
+			},
+			Values: &apiextensionsv1.JSON{
+				Raw: rawHelmValues,
+			},
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("CreateOrUpdate HelmRelease %s: %w", poolName, err)
+	}
+	klog.V(2).InfoS("Reconciled InferencePool HelmRelease",
+		"name", poolName,
+		"result", helmResult,
+	)
+
+	return nil
+}
+
+// isInferencePoolReady checks if the InferencePool HelmRelease is ready.
+// When Gateway API Inference Extension is disabled, no pool is reconciled so we return true.
+func (r *MultiRoleInferenceReconciler) isInferencePoolReady(ctx context.Context, mri *kaitov1alpha1.MultiRoleInference) bool {
+	if !r.EnableGatewayAPIInferenceExt {
+		return true
+	}
+	poolName := inferencePoolName(mri.Name)
+	hr := &helmv2.HelmRelease{}
+	if err := r.Get(ctx, client.ObjectKey{Name: poolName, Namespace: mri.Namespace}, hr); err != nil {
+		return false
+	}
+	for _, cond := range hr.Status.Conditions {
+		if cond.Type == consts.ConditionReady && cond.Status == metav1.ConditionTrue &&
+			hr.Status.ObservedGeneration >= hr.Generation {
+			return true
+		}
+	}
+	return false
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *MultiRoleInferenceReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
+	builder := ctrl.NewControllerManagedBy(mgr).
 		For(&kaitov1alpha1.MultiRoleInference{}).
-		Owns(&kaitov1alpha1.InferenceSet{}).
+		Owns(&kaitov1alpha1.InferenceSet{})
+
+	// Only watch Flux resources when Gateway API Inference Extension is enabled,
+	// because the Flux CRDs are only installed under that feature gate.
+	if r.EnableGatewayAPIInferenceExt {
+		// Verify prerequisite CRDs exist before configuring watches.
+		for _, gvk := range []schema.GroupVersionKind{
+			helmv2.GroupVersion.WithKind(helmv2.HelmReleaseKind),
+			sourcev1.GroupVersion.WithKind(sourcev1.OCIRepositoryKind),
+			gaiev1.SchemeGroupVersion.WithKind("InferencePool"),
+			gaiev1alpha2.SchemeGroupVersion.WithKind("InferenceObjective"),
+		} {
+			found, err := utils.EnsureKindExists(mgr.GetConfig(), gvk)
+			if err != nil {
+				return fmt.Errorf("failed to ensure kind %s exists: %w", gvk.Kind, err)
+			}
+			if !found {
+				return fmt.Errorf("%s not found in the cluster, please ensure the Gateway API Inference Extension and Flux are installed", gvk.String())
+			}
+		}
+		builder = builder.
+			Owns(&sourcev1.OCIRepository{}).
+			Owns(&helmv2.HelmRelease{})
+	}
+
+	return builder.
 		WithOptions(controller.Options{MaxConcurrentReconciles: 3}).
 		Complete(r)
 }

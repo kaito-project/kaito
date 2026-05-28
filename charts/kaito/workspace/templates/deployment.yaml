@@ -42,9 +42,7 @@ spec:
             {{- if .Values.defaultNodeImageFamily }}
             - --default-node-image-family={{ .Values.defaultNodeImageFamily }}
             {{- end }}
-            {{- if .Values.nodeProvisioner }}
             - --node-provisioner={{ .Values.nodeProvisioner }}
-            {{- end }}
             {{- if eq .Values.nodeProvisioner "karpenter" }}
             {{- $provider := index .Values.karpenterProviders .Values.karpenterProvider }}
             - --karpenter-node-class-group={{ $provider.group }}

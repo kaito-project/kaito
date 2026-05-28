@@ -1185,6 +1185,55 @@ def test_guard_response_with_real_json_scanner_blocks_invalid_output(
     assert out.choices[0].message.content == "invalid-json"
 
 
+def test_guard_response_with_real_json_scanner_allows_valid_output(
+    tmp_path, monkeypatch
+):
+    _write_policy(
+        tmp_path,
+        monkeypatch,
+        """
+        action: block
+        blockMessage: invalid-json
+        scanners:
+          - type: json
+            required_elements: 1
+            repair: false
+        """,
+    )
+
+    guardrails = OutputGuardrails.from_config()
+
+    out = guardrails.guard_response(
+        _make_response('{"a": 1, "b": [true, false], "c": "ok"}'),
+        {"messages": []},
+    )
+
+    assert out.choices[0].message.content == '{"a": 1, "b": [true, false], "c": "ok"}'
+
+
+def test_guard_response_with_real_json_scanner_repair_true_keeps_simple_malformed_json(
+    tmp_path, monkeypatch
+):
+    _write_policy(
+        tmp_path,
+        monkeypatch,
+        """
+        action: block
+        blockMessage: invalid-json
+        scanners:
+          - type: json
+                        required_elements: 0
+            repair: true
+        """,
+    )
+
+    guardrails = OutputGuardrails.from_config()
+
+    out = guardrails.guard_response(_make_response('{"a": 1, "b": 2'), {"messages": []})
+
+    assert out.choices[0].message.content == '{"a": 1, "b": 2'
+
+
 def test_guard_response_with_real_reading_time_scanner_truncates_output(
     tmp_path, monkeypatch
 ):
@@ -1207,6 +1256,32 @@ def test_guard_response_with_real_reading_time_scanner_truncates_output(
     )
 
     assert out.choices[0].message.content == "one two"
+
+
+def test_guard_response_with_real_reading_time_scanner_allows_exact_threshold_output(
+    tmp_path, monkeypatch
+):
+    _write_policy(
+        tmp_path,
+        monkeypatch,
+        """
+        action: block
+        blockMessage: too-long
+        scanners:
+          - type: reading_time
+            max_time: 0.05
+            truncate: false
+        """,
+    )
+
+    guardrails = OutputGuardrails.from_config()
+
+    out = guardrails.guard_response(
+        _make_response("One two three four five six seven eight nine ten."),
+        {"messages": []},
+    )
+
+    assert out.choices[0].message.content == "One two three four five six seven eight nine ten."
 
 
 def test_guard_response_applies_mixed_scanner_actions_in_order(monkeypatch):

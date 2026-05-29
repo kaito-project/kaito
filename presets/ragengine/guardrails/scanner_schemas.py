@@ -228,6 +228,7 @@ class RegexConfig:
 
 
 @dataclass
+# Validates that the output is parseable JSON.
 class JSONConfig:
     supports_redact: ClassVar[bool] = True
     required_elements: int = 0
@@ -249,6 +250,8 @@ class JSONConfig:
 
 
 @dataclass
+# Enforces a maximum estimated reading time for the output and can truncate
+# responses that exceed the configured limit.
 class ReadingTimeConfig:
     supports_redact: ClassVar[bool] = True
     max_time: float

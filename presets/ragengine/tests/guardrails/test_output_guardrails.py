@@ -530,7 +530,7 @@ def test_from_config_loads_json_and_reading_time_scanners(tmp_path, monkeypatch)
 
     assert guardrails.scanner_configs == (
         _json_cfg(required_elements=1, repair=False),
-                _reading_time_cfg(max_time=fifteen_seconds_in_minutes, truncate=True),
+        _reading_time_cfg(max_time=fifteen_seconds_in_minutes, truncate=True),
     )
 
 

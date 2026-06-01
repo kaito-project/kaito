@@ -252,14 +252,14 @@ class JSONConfig:
 
 
 @dataclass
-# Enforces a maximum estimated reading time for the output using llm_guard's
-# average reading speed heuristic (about 200 words per minute). max_time is
-# expressed in minutes, and truncate controls whether over-budget responses are
-# shortened to fit within that limit.
+# Enforces a maximum reading-time budget for the output using llm_guard's
+# average reading-speed heuristic (about 200 words per minute). Configure
+# max_time in minutes, and use truncate to shorten outputs that exceed the
+# budget instead of rejecting them outright.
 class ReadingTimeConfig:
     supports_redact: ClassVar[bool] = True
-    # Maximum allowed reading time in minutes. Values are fractional minutes;
-    # for example, 0.25 means one quarter of a minute (15 seconds).
+    # Maximum allowed reading time, expressed in fractional minutes. For
+    # example, 0.25 means one quarter of a minute (15 seconds).
     max_time: float
     truncate: bool = False
 

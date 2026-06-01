@@ -258,7 +258,8 @@ class JSONConfig:
 # shortened to fit within that limit.
 class ReadingTimeConfig:
     supports_redact: ClassVar[bool] = True
-    # Maximum allowed reading time in minutes; 0.25 means 15 seconds.
+    # Maximum allowed reading time in minutes. Values are fractional minutes;
+    # for example, 0.25 means one quarter of a minute (15 seconds).
     max_time: float
     truncate: bool = False
 

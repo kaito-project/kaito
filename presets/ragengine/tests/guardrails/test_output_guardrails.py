@@ -507,26 +507,30 @@ def test_from_config_skips_invalid_scanners_and_filters_non_string_values(
 
 
 def test_from_config_loads_json_and_reading_time_scanners(tmp_path, monkeypatch):
+    # ReadingTime expects minutes, so 0.25 means 15 seconds.
+    fifteen_seconds_in_minutes = 0.25
+    policy = """
+    action: redact
+    scanners:
+      - type: json
+        required_elements: 1
+        repair: false
+      - type: reading_time
+        max_time: 0.25
+        truncate: true
+    """
+
     _write_policy(
         tmp_path,
         monkeypatch,
-        """
-        action: redact
-        scanners:
-          - type: json
-            required_elements: 1
-            repair: false
-          - type: reading_time
-            max_time: 0.25
-            truncate: true
-        """,
+        policy,
     )
 
     guardrails = OutputGuardrails.from_config()
 
     assert guardrails.scanner_configs == (
         _json_cfg(required_elements=1, repair=False),
-        _reading_time_cfg(max_time=0.25, truncate=True),
+                _reading_time_cfg(max_time=fifteen_seconds_in_minutes, truncate=True),
     )
 
 

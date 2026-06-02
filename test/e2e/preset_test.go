@@ -447,6 +447,18 @@ func validateAssociatedService(workspaceObj *kaitov1beta1.Workspace) {
 // validateInferenceResource validates inference StatefulSet
 func validateInferenceResource(workspaceObj *kaitov1beta1.Workspace, expectedReplicas int32) {
 	By("Checking the inference resource", func() {
+		defer func() {
+			sts := &appsv1.StatefulSet{}
+			if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: workspaceObj.Namespace,
+				Name:      workspaceObj.Name,
+			}, sts); err == nil && sts.Status.ReadyReplicas != expectedReplicas {
+				GinkgoWriter.Printf("StatefulSet '%s' not ready: readyReplicas=%d, expected=%d\n",
+					workspaceObj.Name, sts.Status.ReadyReplicas, expectedReplicas)
+				printWorkspaceDiagnostics(workspaceObj)
+			}
+		}()
+
 		Eventually(func() bool {
 			sts := &appsv1.StatefulSet{
 				ObjectMeta: metav1.ObjectMeta{
@@ -579,6 +591,7 @@ func validateTuningResource(workspaceObj *kaitov1beta1.Workspace) {
 
 			if jobFailed > 0 {
 				GinkgoWriter.Printf("Job '%s' is in a failed state.\n", workspaceObj.Name)
+				printTuningJobDiagnostics(workspaceObj)
 				return false
 			}
 
@@ -586,9 +599,164 @@ func validateTuningResource(workspaceObj *kaitov1beta1.Workspace) {
 				return true
 			}
 
+			GinkgoWriter.Printf("Job '%s' status: active=%d, failed=%d, succeeded=%d\n",
+				workspaceObj.Name, job.Status.Active, jobFailed, jobSucceeded)
 			return false
 		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for Tuning resource to be ready")
+
+		// If we reach here after timeout, print diagnostics
+		job := &batchv1.Job{}
+		if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+			Namespace: workspaceObj.Namespace,
+			Name:      workspaceObj.Name,
+		}, job); err == nil && job.Status.Succeeded == 0 {
+			printTuningJobDiagnostics(workspaceObj)
+		}
 	})
+}
+
+// printTuningJobDiagnostics prints detailed diagnostics for a tuning job including
+// pod logs (init containers + main container), job conditions, and namespace events.
+func printTuningJobDiagnostics(workspaceObj *kaitov1beta1.Workspace) {
+	GinkgoWriter.Printf("\n=== Tuning Job Diagnostics for '%s' ===\n", workspaceObj.Name)
+
+	printWorkspaceConditions(workspaceObj)
+
+	// Print job conditions
+	job := &batchv1.Job{}
+	if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+		Namespace: workspaceObj.Namespace,
+		Name:      workspaceObj.Name,
+	}, job); err == nil {
+		GinkgoWriter.Printf("Job conditions:\n")
+		for _, c := range job.Status.Conditions {
+			GinkgoWriter.Printf("  %s: %s (reason=%s, message=%s)\n", c.Type, c.Status, c.Reason, c.Message)
+		}
+	}
+
+	printPodDiagnostics(workspaceObj.Namespace, fmt.Sprintf("job-name=%s", workspaceObj.Name))
+	printNamespaceEvents(workspaceObj.Namespace)
+	GinkgoWriter.Printf("\n=== End Diagnostics ===\n")
+}
+
+// printWorkspaceDiagnostics prints detailed diagnostics for a workspace including
+// pod logs, container statuses, and namespace events.
+func printWorkspaceDiagnostics(workspaceObj *kaitov1beta1.Workspace) {
+	GinkgoWriter.Printf("\n=== Workspace Diagnostics for '%s' ===\n", workspaceObj.Name)
+	GinkgoWriter.Printf("Workspace state: %s\n", workspaceObj.Status.State)
+
+	printWorkspaceConditions(workspaceObj)
+
+	var labelSelector string
+	if workspaceObj.Tuning != nil {
+		labelSelector = fmt.Sprintf("job-name=%s", workspaceObj.Name)
+	} else {
+		labelSelector = fmt.Sprintf("app=%s", workspaceObj.Name)
+	}
+
+	printPodDiagnostics(workspaceObj.Namespace, labelSelector)
+	printNamespaceEvents(workspaceObj.Namespace)
+	GinkgoWriter.Printf("\n=== End Workspace Diagnostics ===\n")
+}
+
+// printWorkspaceConditions prints the workspace status conditions.
+func printWorkspaceConditions(workspaceObj *kaitov1beta1.Workspace) {
+	ws := &kaitov1beta1.Workspace{}
+	if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+		Namespace: workspaceObj.Namespace,
+		Name:      workspaceObj.Name,
+	}, ws); err == nil {
+		GinkgoWriter.Printf("Workspace conditions:\n")
+		for _, c := range ws.Status.Conditions {
+			GinkgoWriter.Printf("  %s: %s (reason=%s, message=%s)\n", c.Type, c.Status, c.Reason, c.Message)
+		}
+	}
+}
+
+// printPodDiagnostics lists pods matching the label selector and prints their
+// conditions, container statuses, and logs (init + main containers).
+func printPodDiagnostics(namespace, labelSelector string) {
+	coreClient, err := utils.GetK8sClientset()
+	if err != nil {
+		GinkgoWriter.Printf("Failed to create core client: %v\n", err)
+		return
+	}
+
+	pods, err := coreClient.CoreV1().Pods(namespace).List(context.Background(), metav1.ListOptions{
+		LabelSelector: labelSelector,
+	})
+	if err != nil {
+		GinkgoWriter.Printf("Failed to list pods (selector=%s): %v\n", labelSelector, err)
+		return
+	}
+
+	for _, pod := range pods.Items {
+		GinkgoWriter.Printf("\n--- Pod: %s (phase=%s) ---\n", pod.Name, pod.Status.Phase)
+
+		for _, c := range pod.Status.Conditions {
+			GinkgoWriter.Printf("  Condition %s: %s (reason=%s, message=%s)\n", c.Type, c.Status, c.Reason, c.Message)
+		}
+
+		for _, cs := range pod.Status.InitContainerStatuses {
+			GinkgoWriter.Printf("  InitContainer '%s': ready=%v, restartCount=%d\n", cs.Name, cs.Ready, cs.RestartCount)
+			if cs.State.Waiting != nil {
+				GinkgoWriter.Printf("    Waiting: reason=%s, message=%s\n", cs.State.Waiting.Reason, cs.State.Waiting.Message)
+			}
+			if cs.State.Terminated != nil {
+				GinkgoWriter.Printf("    Terminated: exitCode=%d, reason=%s, message=%s\n", cs.State.Terminated.ExitCode, cs.State.Terminated.Reason, cs.State.Terminated.Message)
+			}
+			logs, logErr := utils.GetPodLogs(coreClient, namespace, pod.Name, cs.Name)
+			if logErr != nil {
+				GinkgoWriter.Printf("  InitContainer '%s' logs: (error: %v)\n", cs.Name, logErr)
+			} else {
+				GinkgoWriter.Printf("  InitContainer '%s' logs (last 50 lines):\n%s\n", cs.Name, lastNLines(logs, 50))
+			}
+		}
+
+		for _, cs := range pod.Status.ContainerStatuses {
+			GinkgoWriter.Printf("  Container '%s': ready=%v, restartCount=%d\n", cs.Name, cs.Ready, cs.RestartCount)
+			if cs.State.Waiting != nil {
+				GinkgoWriter.Printf("    Waiting: reason=%s, message=%s\n", cs.State.Waiting.Reason, cs.State.Waiting.Message)
+			}
+			if cs.State.Terminated != nil {
+				GinkgoWriter.Printf("    Terminated: exitCode=%d, reason=%s, message=%s\n", cs.State.Terminated.ExitCode, cs.State.Terminated.Reason, cs.State.Terminated.Message)
+			}
+			logs, logErr := utils.GetPodLogs(coreClient, namespace, pod.Name, cs.Name)
+			if logErr != nil {
+				GinkgoWriter.Printf("  Container '%s' logs: (error: %v)\n", cs.Name, logErr)
+			} else {
+				GinkgoWriter.Printf("  Container '%s' logs (last 100 lines):\n%s\n", cs.Name, lastNLines(logs, 100))
+			}
+		}
+	}
+}
+
+// printNamespaceEvents prints recent events for Pods, Jobs, and StatefulSets in the namespace.
+func printNamespaceEvents(namespace string) {
+	coreClient, err := utils.GetK8sClientset()
+	if err != nil {
+		return
+	}
+	events, err := coreClient.CoreV1().Events(namespace).List(context.Background(), metav1.ListOptions{})
+	if err == nil {
+		GinkgoWriter.Printf("\n--- Recent events in namespace '%s' ---\n", namespace)
+		for _, event := range events.Items {
+			if event.InvolvedObject.Kind == "Pod" || event.InvolvedObject.Kind == "Job" || event.InvolvedObject.Kind == "StatefulSet" {
+				GinkgoWriter.Printf("  %s %s/%s: %s (reason=%s, count=%d)\n",
+					event.LastTimestamp.Format(time.RFC3339), event.InvolvedObject.Kind, event.InvolvedObject.Name,
+					event.Message, event.Reason, event.Count)
+			}
+		}
+	}
+}
+
+// lastNLines returns the last n lines of a string.
+func lastNLines(s string, n int) string {
+	lines := strings.Split(s, "\n")
+	if len(lines) <= n {
+		return s
+	}
+	return strings.Join(lines[len(lines)-n:], "\n")
 }
 
 func validateTuningJobInputOutput(workspaceObj *kaitov1beta1.Workspace, inputImage string, outputImage string, inputVolume *corev1.Volume, outputVolume *corev1.Volume) {
@@ -693,6 +861,23 @@ func validateACRTuningResultsUploaded(workspaceObj *kaitov1beta1.Workspace, jobN
 // validateWorkspaceReadiness validates workspace readiness
 func validateWorkspaceReadiness(workspaceObj *kaitov1beta1.Workspace) {
 	By("Checking the workspace status is ready", func() {
+		defer func() {
+			// Print diagnostics if workspace never became ready
+			ws := &kaitov1beta1.Workspace{}
+			if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: workspaceObj.Namespace,
+				Name:      workspaceObj.Name,
+			}, ws); err == nil {
+				_, ready := lo.Find(ws.Status.Conditions, func(condition metav1.Condition) bool {
+					return condition.Type == string(kaitov1beta1.WorkspaceConditionTypeSucceeded) &&
+						condition.Status == metav1.ConditionTrue
+				})
+				if !ready {
+					printWorkspaceDiagnostics(ws)
+				}
+			}
+		}()
+
 		Eventually(func() bool {
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
 				Namespace: workspaceObj.Namespace,
@@ -707,6 +892,12 @@ func validateWorkspaceReadiness(workspaceObj *kaitov1beta1.Workspace) {
 				return condition.Type == string(kaitov1beta1.WorkspaceConditionTypeSucceeded) &&
 					condition.Status == metav1.ConditionTrue
 			})
+			if !conditionFound {
+				GinkgoWriter.Printf("Workspace '%s' conditions:\n", workspaceObj.Name)
+				for _, c := range workspaceObj.Status.Conditions {
+					GinkgoWriter.Printf("  %s: %s (reason=%s, message=%s)\n", c.Type, c.Status, c.Reason, c.Message)
+				}
+			}
 			return conditionFound
 		}, 12*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for workspace to be ready")
 	})

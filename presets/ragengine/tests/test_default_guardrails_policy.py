@@ -31,6 +31,12 @@ TESTDATA_POLICY = (
     / "testdata"
     / "json_reading_time_policy.yaml"
 )
+INVISIBLE_TEXT_TOKEN_LIMIT_TESTDATA_POLICY = (
+    Path(__file__).resolve().parent
+    / "guardrails"
+    / "testdata"
+    / "invisible_text_token_limit_policy.yaml"
+)
 
 
 def _extract_default_policy_text() -> str:
@@ -83,4 +89,17 @@ def test_json_and_reading_time_policy_fixture_parses():
     parsed = _parse_policy_scanner_configs(policy.get("scanners"), str(TESTDATA_POLICY))
 
     assert [scanner.type for scanner in parsed] == ["json", "reading_time"]
+    assert [scanner.action_on_hit for scanner in parsed] == ["redact", "redact"]
+
+
+def test_invisible_text_and_token_limit_policy_fixture_parses():
+    policy = yaml.safe_load(
+        INVISIBLE_TEXT_TOKEN_LIMIT_TESTDATA_POLICY.read_text(encoding="utf-8")
+    )
+
+    parsed = _parse_policy_scanner_configs(
+        policy.get("scanners"), str(INVISIBLE_TEXT_TOKEN_LIMIT_TESTDATA_POLICY)
+    )
+
+    assert [scanner.type for scanner in parsed] == ["invisible_text", "token_limit"]
     assert [scanner.action_on_hit for scanner in parsed] == ["redact", "redact"]

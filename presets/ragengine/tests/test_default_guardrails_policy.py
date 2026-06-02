@@ -25,11 +25,17 @@ CHART_TEMPLATE = (
     / "templates"
     / "guardrails-policy-configmap.yaml"
 )
-TESTDATA_POLICY = (
+JSON_READING_TIME_TESTDATA_POLICY = (
     Path(__file__).resolve().parent
     / "guardrails"
     / "testdata"
     / "json_reading_time_policy.yaml"
+)
+INVISIBLE_TEXT_TOKEN_LIMIT_TESTDATA_POLICY = (
+    Path(__file__).resolve().parent
+    / "guardrails"
+    / "testdata"
+    / "invisible_text_token_limit_policy.yaml"
 )
 
 
@@ -78,9 +84,28 @@ def test_default_guardrails_policy_template_has_non_empty_scanners():
 
 
 def test_json_and_reading_time_policy_fixture_parses():
-    policy = yaml.safe_load(TESTDATA_POLICY.read_text(encoding="utf-8"))
+    policy = yaml.safe_load(
+        JSON_READING_TIME_TESTDATA_POLICY.read_text(encoding="utf-8")
+    )
 
-    parsed = _parse_policy_scanner_configs(policy.get("scanners"), str(TESTDATA_POLICY))
+    parsed = _parse_policy_scanner_configs(
+        policy.get("scanners"),
+        str(JSON_READING_TIME_TESTDATA_POLICY),
+    )
 
     assert [scanner.type for scanner in parsed] == ["json", "reading_time"]
+    assert [scanner.action_on_hit for scanner in parsed] == ["redact", "redact"]
+
+
+def test_invisible_text_and_token_limit_policy_fixture_parses():
+    policy = yaml.safe_load(
+        INVISIBLE_TEXT_TOKEN_LIMIT_TESTDATA_POLICY.read_text(encoding="utf-8")
+    )
+
+    parsed = _parse_policy_scanner_configs(
+        policy.get("scanners"),
+        str(INVISIBLE_TEXT_TOKEN_LIMIT_TESTDATA_POLICY),
+    )
+
+    assert [scanner.type for scanner in parsed] == ["invisible_text", "token_limit"]
     assert [scanner.action_on_hit for scanner in parsed] == ["redact", "redact"]

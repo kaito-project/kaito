@@ -1,0 +1,6 @@
+action: redact
+scanners:
+  - type: invisible_text
+  - type: token_limit
+    limit: 128
+    encoding_name: cl100k_base

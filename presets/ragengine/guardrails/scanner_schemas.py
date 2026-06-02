@@ -109,6 +109,8 @@ class SecretsConfig:
 
 
 @dataclass
+# Detects common sensitive data such as email addresses, phone numbers,
+# credit cards, and IP addresses.
 class SensitiveConfig:
     supports_redact: ClassVar[bool] = True
     detectors: list[str]

@@ -304,10 +304,63 @@ class TokenLimitConfig:
         )
 
 
+@dataclass
+# Validates that the output is parseable JSON.
+class JSONConfig:
+    supports_redact: ClassVar[bool] = True
+    required_elements: int = 0
+    repair: bool = True
+
+    @classmethod
+    def from_dict(cls, raw: dict) -> "JSONConfig":
+        required_elements = raw.get("required_elements", 0)
+        if not isinstance(required_elements, int) or required_elements < 0:
+            raise ValueError("json 'required_elements' must be a non-negative integer")
+        repair = _coerce_bool(raw.get("repair"), True, field="repair")
+        return cls(required_elements=required_elements, repair=repair)
+
+    def build(self, action_on_hit: str) -> Any:
+        return llm_guard_output_scanners.JSON(
+            required_elements=self.required_elements,
+            repair=self.repair,
+        )
+
+
+@dataclass
+# Enforces a reading-time limit for the output using llm_guard's average
+# reading-speed heuristic (about 200 words per minute). max_time is expressed
+# in minutes. If truncate is true, outputs that exceed the limit are shortened
+# to fit; otherwise they are marked invalid.
+class ReadingTimeConfig:
+    supports_redact: ClassVar[bool] = True
+    # Maximum allowed reading time, expressed in fractional minutes. For
+    # example, 0.25 means one quarter of a minute (15 seconds).
+    max_time: float
+    truncate: bool = False
+
+    @classmethod
+    def from_dict(cls, raw: dict) -> "ReadingTimeConfig":
+        max_time = raw.get("max_time")
+        if not (isinstance(max_time, (int, float)) and max_time > 0):
+            raise ValueError(
+                "reading_time 'max_time' must be a positive number (minutes)"
+            )
+        truncate = _coerce_bool(raw.get("truncate"), False, field="truncate")
+        return cls(max_time=float(max_time), truncate=truncate)
+
+    def build(self, action_on_hit: str) -> Any:
+        return llm_guard_output_scanners.ReadingTime(
+            max_time=self.max_time,
+            truncate=self.truncate,
+        )
+
+
 SCANNER_REGISTRY: dict[str, type] = {
     "ban_substrings": BanSubstringsConfig,
     "invisible_text": InvisibleTextConfig,
     "regex": RegexConfig,
+    "json": JSONConfig,
+    "reading_time": ReadingTimeConfig,
     "token_limit": TokenLimitConfig,
     "secrets": SecretsConfig,
     "sensitive": SensitiveConfig,

@@ -109,8 +109,24 @@ jobs:
       - name: Deploy KEDA Kaito Scaler
         run: |
           helm repo add keda-kaito-scaler https://kaito-project.github.io/keda-kaito-scaler/charts/kaito-project
-          helm upgrade --install keda-kaito-scaler -n ${{ env.KAITO_NAMESPACE }} keda-kaito-scaler/keda-kaito-scaler
-          kubectl wait --for=condition=available --timeout=300s deployment/keda-kaito-scaler -n ${{ env.KAITO_NAMESPACE }}
+          # keda-kaito-scaler must be in the same namespace as KEDA (shares TLS secrets)
+          helm upgrade --install keda-kaito-scaler -n keda keda-kaito-scaler/keda-kaito-scaler
+          kubectl wait --for=condition=available --timeout=300s deployment/keda-kaito-scaler -n keda
+
+          # Wait for keda-kaito-scaler TLS certs to be fully provisioned before
+          # KEDA attempts its first gRPC connection (avoids pool poisoning).
+          echo "Waiting for keda-kaito-scaler TLS certs..."
+          for i in $(seq 1 30); do
+            if kubectl get secret keda-kaito-scaler-server-certs -n keda -o jsonpath='{.data.ca\.crt}' 2>/dev/null | grep -q .; then
+              echo "✓ TLS certs ready"
+              break
+            fi
+            sleep 2
+          done
+
+          # Restart KEDA operator to pick up certs with a clean gRPC pool
+          kubectl -n keda rollout restart deploy/keda-operator
+          kubectl -n keda rollout status deploy/keda-operator --timeout=120s
 
       - name: Create AIKit workspace
         run: |

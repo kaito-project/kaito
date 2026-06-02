@@ -172,13 +172,15 @@ spec:
       name: "hf-token-secret"
       namespace: "kaito-workspace"
   storage:
-    storageSize: ""                     # auto-computed from model metadata if empty
+    storageSize: ""                     # auto-computed from HF tree API (sum of *.safetensors file sizes + 10% buffer) if empty
     storageClassName: "blob-nfs"        # default: NFS (best performance). Also supports BlobFuse or other StorageClass names.
 status:
   phase: Pending | Ready
   pvcName: "a3f7b2"
+  pvcNamespace: "default"             # namespace of the first workspace that triggered the mirror
   modelPath: "/models/qwen/qwen2.5-coder-32b-instruct"
   storageURI: "az://container-name/qwen/qwen2.5-coder-32b-instruct"
+  accountName: "storageaccountname"   # resolved from PV volumeHandle (parts[1])
   conditions:
     - type: StorageReady
       status: "True"
@@ -214,13 +216,17 @@ status:
 A new controller that watches `ModelMirror` CRs and manages the download lifecycle:
 
 1. **On CR creation:**
-   - Validate StorageClass exists (error if not — user prerequisite)
-   - Create PVC (auto-sized from model metadata) with a finalizer (`kaito.sh/model-mirror-protection`) to ensure PVC persists after the download Job/pod is deleted
-   - Create download Job
+   - Add finalizer `kaito.sh/model-mirror-cleanup` to the CR (ensures proper cleanup on deletion)
+   - Validate CSIDriver `blob.csi.azure.com` exists (error if not)
+   - Validate StorageClass exists and has `volumeBindingMode: Immediate` (error if `WaitForFirstConsumer` — PVC would never bind without a pod)
+   - If `spec.source.accessSecret` is set, the download Job references it via `secretKeyRef` (the Job runs in the same namespace as the secret — see below)
+   - Create PVC (using resolved size) in the namespace of the first workspace that triggers the mirror, with a finalizer (`kaito.sh/model-mirror-protection`) to ensure PVC persists after the download Job/pod is deleted
+   - Create download Job in the same namespace as the PVC
 
 2. **On Job completion:**
    - Update CR status to `Ready`
    - Populate `storageURI` (resolved from PVC → PV → CSI volumeHandle)
+   - Set `status.modelPath` = `/models/{spec.source.modelID}` (verbatim, case-sensitive — matches hfdownloader output directory)
    - Set `lastDownloadTime`
 
 3. **On Job failure:**
@@ -229,7 +235,11 @@ A new controller that watches `ModelMirror` CRs and manages the download lifecyc
    - Recreate Job with exponential backoff (1m, 2m, 4m, ... capped at 30m)
    - CR stays in `Pending` phase (never "Failed")
 
-4. **Idempotency:**
+4. **On CR deletion** (finalizer cleanup):
+   - Remove finalizer from PVC (allows PVC deletion)
+   - Remove CR finalizer (allows CR deletion to complete)
+
+5. **Idempotency:**
    - If CR already `Ready`, no action needed
    - If PVC exists and is bound, skip PVC creation
    - If Job exists and is running, wait for it
@@ -240,6 +250,7 @@ When the `ModelStreaming` feature gate is enabled and the workspace does not hav
 
 1. **Before node provisioning:** Check if `ModelMirror` CR exists for the workspace's model
    - If not: create it (triggers download in parallel with node provisioning)
+   - StorageClass for the CR is determined by: workspace annotation `kaito.sh/model-storage-class` → controller flag `--default-model-storage-class` (required when feature gate is on)
    - If exists and `Ready`: proceed immediately
    - If exists and `Pending`: wait
 
@@ -260,7 +271,7 @@ When mirror + streaming is active, the inference pod is configured differently f
 | `--model=` | Local path or HF ID | `az://<container>/<model-path>` (from CR status) |
 | `--load-format=` | `auto` | `runai_streamer` |
 | Model weights volume | Mounted at `/workspace/weights` | Not mounted |
-| ServiceAccount | default | User-provided SA with workload identity |
+| ServiceAccount | default | Determined by: workspace annotation `kaito.sh/streaming-service-account` → controller flag `--default-streaming-service-account` |
 | Extra config | None | `--model-loader-extra-config '{"distributed": true}'` (TP>1) |
 
 **Environment variables on inference pod:**
@@ -280,9 +291,10 @@ The inference pod needs to authenticate to blob storage for RunAI streamer's dir
    - Create a Federated Identity Credential (FIC) linking that SA to the Managed Identity
 
 **KAITO responsibilities:**
-1. Accept the ServiceAccount name via the ModelMirror CR or workspace annotation
+1. Accept the ServiceAccount name via workspace annotation `kaito.sh/streaming-service-account` (override) or controller flag `--default-streaming-service-account` (cluster-wide default)
 2. Set label `azure.workload.identity/use: "true"` on inference pods
-3. Set `spec.serviceAccountName` on the inference pod to the user-provided SA
+3. Set `spec.serviceAccountName` on the inference pod to the resolved SA name
+4. Validate that the SA exists in the workspace namespace before creating the inference pod
 
 **The AKS mutating admission webhook** then automatically injects `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, and `AZURE_FEDERATED_TOKEN_FILE` into the inference pod.
 
@@ -290,10 +302,9 @@ The inference pod needs to authenticate to blob storage for RunAI streamer's dir
 
 **Blob CSI driver permissions (for dynamic PVC provisioning):**
 
-The Blob CSI driver controller needs write permission on a resource group to dynamically create storage accounts when a PVC is provisioned:
+When no `storageAccount` is specified in the StorageClass, the driver dynamically creates a storage account in the AKS node resource group (`MC_*`). The control plane identity already has the required permissions on this resource group — no additional RBAC setup needed.
 
-- **AKS managed Blob CSI driver** (enabled via `az aks update --enable-blob-driver`): The driver automatically has write permission on the AKS **node resource group** (`MC_*`). No additional configuration needed — storage accounts are created in the node resource group by default.
-- **Open-source Blob CSI driver** (self-installed via Helm): The user must manually grant the driver's identity `Contributor` role on the node resource group. See [Blob CSI driver install docs](https://github.com/kubernetes-sigs/blob-csi-driver/blob/master/docs/install-driver-on-aks.md) for details.
+**Note:** If the StorageClass specifies a pre-created `storageAccount` in a different resource group, the control plane identity must be explicitly granted `Storage Account Contributor` on that storage account.
 
 **Documentation:** A troubleshooting guide will explain:
 - How to verify the federated credential is configured correctly
@@ -307,6 +318,26 @@ The Blob CSI driver controller needs write permission on a resource group to dyn
 - Name: `ModelStreaming`
 - Default: `false` (opt-in initially)
 - Passed via `--feature-gates=ModelStreaming=true` on the controller
+
+**Controller flags:**
+
+| Flag | Required | Description | Example |
+|---|---|---|---|
+| `--default-model-storage-class` | **Yes** (when feature gate on) | StorageClass used when creating ModelMirror PVCs. Cluster-wide setting. | `blob-nfs` |
+| `--default-streaming-service-account` | No (optional) | Default ServiceAccount for inference pods. Useful when SA name is unified across all namespaces. | `kaito-model-streamer` |
+
+These are set via Helm values and require a controller restart (Helm upgrade) to change.
+
+**Workspace annotations:**
+
+| Annotation | Description |
+|---|---|
+| `kaito.sh/model-storage-class` | Override the cluster-wide default StorageClass for this workspace's ModelMirror CR (optional) |
+| `kaito.sh/streaming-service-account` | ServiceAccount name for this workspace's inference pod. Required when `--default-streaming-service-account` is not set (SA varies per namespace). |
+
+**Resolution order:**
+- **StorageClass**: workspace annotation `kaito.sh/model-storage-class` → controller flag `--default-model-storage-class`
+- **ServiceAccount**: workspace annotation `kaito.sh/streaming-service-account` → controller flag `--default-streaming-service-account` → error if neither set
 
 **Workspace annotation opt-out:**
 - `kaito.sh/model-streaming: "disabled"`
@@ -415,15 +446,20 @@ metadata:
       name: <cr-name>
 spec:
   backoffLimit: 3
-  ttlSecondsAfterFinished: 86400  # 24 hours for log inspection
   template:
     spec:
       restartPolicy: OnFailure
       containers:
         - name: downloader
-          image: <image-with-hfdownloader>  # TODO: find MCR-hosted alternative
+          image: <image-with-hfdownloader>  # TODO: Store image on MCR
           command: ["/bin/sh", "-c"]
-          args: ["<download-script>"]
+          args:
+            - |
+              hfdownloader download "<model-id>" --local-dir /models -F safetensors -E "original,.pth"
+              # Safety net: remove any remaining empty directories.
+              # runai-model-streamer crashes on directories (IsADirectoryError) when pulling
+              # files from Azure blob, so we keep only flat files.
+              find /models/<model-id>/ -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true
           env:
             - name: MODEL_ID
               value: "<model-id>"
@@ -449,9 +485,9 @@ spec:
             claimName: <pvc-name>
 ```
 
-**Download tool:** hfdownloader (Go binary, ~20 MB image). Provides concurrent downloads with built-in per-file retry (4 retries by default). The lightweight image size keeps mirror Job startup fast (seconds, not minutes). **Future:** Vendor the Go source into KAITO's CI pipeline and publish to MCR (`mcr.microsoft.com/aks/kaito/hfdownloader`) for full supply-chain ownership.
+**Download tool:** hfdownloader (Go binary, ~20 MB image). Provides concurrent downloads with built-in per-file retry (4 retries by default). The lightweight image size keeps mirror Job startup fast (seconds, not minutes). The download command includes safetensors files only (`-F safetensors`) and excludes non-safetensor formats (`-E "original,.pth"`) since RunAI streamer only reads `*.safetensors` files. A post-download `find` removes any remaining empty directories as a safety net. **Future:** Vendor the Go source into KAITO's CI pipeline and publish to MCR (`mcr.microsoft.com/aks/kaito/hfdownloader`) for full supply-chain ownership.
 
-**Job pod TTL:** Set to 24 hours after completion so operators can inspect logs for download issues before the pod is garbage collected.
+**Job pod Lifecycle:** Job Pod is kept forever unless manually deleted by the user.
 
 ### Failure Handling and Retry Strategy
 

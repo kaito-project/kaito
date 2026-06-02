@@ -399,13 +399,15 @@ jobs:
           MODELS_RESPONSE=$(curl -s http://localhost:8080/v1/models)
           echo "Models response: $MODELS_RESPONSE"
 
-          # Validate that the response contains at least one non-empty model id.
-          if echo "$MODELS_RESPONSE" | jq -e '(.data | type == "array") and (.data | length > 0) and (.data[0].id | type == "string") and (.data[0].id | length > 0)' >/dev/null; then
-            MODEL_NAME=$(echo "$MODELS_RESPONSE" | jq -r '.data[0].id')
-            echo "Extracted model name: $MODEL_NAME"
+          # Extract the first model name from the response
+          MODEL_NAME=$(echo "$MODELS_RESPONSE" | jq -r '.data[0].id')
+          echo "Extracted model name: $MODEL_NAME"
+
+          # Check if response contains 'llama'
+          if echo "$MODELS_RESPONSE" | grep -i 'llama'; then
             echo 'Model response validation passed!'
           else
-            echo 'Model response validation failed - missing usable model id'
+            echo 'Model response validation failed - no llama model found'
             kill $PORT_FORWARD_PID
             exit 1
           fi

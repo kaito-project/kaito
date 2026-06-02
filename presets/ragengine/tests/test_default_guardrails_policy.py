@@ -84,7 +84,9 @@ def test_default_guardrails_policy_template_has_non_empty_scanners():
 
 
 def test_json_and_reading_time_policy_fixture_parses():
-    policy = yaml.safe_load(JSON_READING_TIME_TESTDATA_POLICY.read_text(encoding="utf-8"))
+    policy = yaml.safe_load(
+        JSON_READING_TIME_TESTDATA_POLICY.read_text(encoding="utf-8")
+    )
 
     parsed = _parse_policy_scanner_configs(
         policy.get("scanners"),

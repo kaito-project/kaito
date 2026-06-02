@@ -581,30 +581,30 @@ def test_from_config_loads_invisible_text_and_token_limit_scanners(
 
 
 def test_from_config_loads_json_and_reading_time_scanners(tmp_path, monkeypatch):
-        fifteen_seconds_in_minutes = 0.25
-        policy = (
-                "action: redact\n"
-                "scanners:\n"
-                "  - type: json\n"
-                "    required_elements: 1\n"
-                "    repair: false\n"
-                "  - type: reading_time\n"
-                "    max_time: 0.25\n"
-                "    truncate: true\n"
-        )
+    fifteen_seconds_in_minutes = 0.25
+    policy = (
+        "action: redact\n"
+        "scanners:\n"
+        "  - type: json\n"
+        "    required_elements: 1\n"
+        "    repair: false\n"
+        "  - type: reading_time\n"
+        "    max_time: 0.25\n"
+        "    truncate: true\n"
+    )
 
-        _write_policy(
-                tmp_path,
-                monkeypatch,
-                policy,
-        )
+    _write_policy(
+        tmp_path,
+        monkeypatch,
+        policy,
+    )
 
-        guardrails = OutputGuardrails.from_config()
+    guardrails = OutputGuardrails.from_config()
 
-        assert guardrails.scanner_configs == (
-                _json_cfg(required_elements=1, repair=False),
-                _reading_time_cfg(max_time=fifteen_seconds_in_minutes, truncate=True),
-        )
+    assert guardrails.scanner_configs == (
+        _json_cfg(required_elements=1, repair=False),
+        _reading_time_cfg(max_time=fifteen_seconds_in_minutes, truncate=True),
+    )
 
 
 def test_from_config_with_empty_policy_path_keeps_defaults(monkeypatch):
@@ -933,6 +933,8 @@ def test_build_scanners_uses_per_scanner_action(fake_llm_guard_scanners):
 
     assert scanners[0].redact is True
     assert scanners[1].redact is False
+
+
 def test_build_scanners_builds_invisible_text_and_token_limit(fake_llm_guard_scanners):
     _, _, FakeInvisibleText, FakeTokenLimit, _, _ = fake_llm_guard_scanners
 

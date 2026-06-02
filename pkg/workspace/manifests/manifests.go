@@ -133,6 +133,13 @@ func GenerateStatefulSetManifest(revisionNum string, replicas int) func(*generat
 				klog.Infof("Adding label %s=%s to statefulset selector", consts.WorkspaceCreatedByInferenceSetLabel, createdBy)
 				selector[consts.WorkspaceCreatedByInferenceSetLabel] = createdBy
 			}
+			// Propagate MRI parent and inference-role labels to pod templates for InferencePool endpoint selection.
+			if parent, exists := ctx.Workspace.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent]; exists {
+				selector[kaitov1alpha1.LabelMultiRoleInferenceParent] = parent
+			}
+			if role, exists := ctx.Workspace.Labels[kaitov1alpha1.LabelInferenceRole]; exists {
+				selector[kaitov1alpha1.LabelInferenceRole] = role
+			}
 		}
 		labelselector := &metav1.LabelSelector{
 			MatchLabels: selector,
@@ -286,6 +293,15 @@ func GenerateManifestWithPodTemplate(workspaceObj *kaitov1beta1.Workspace, toler
 			klog.Infof("Adding label %s=%s to statefulset selector", consts.WorkspaceCreatedByInferenceSetLabel, createdBy)
 			templateCopy.ObjectMeta.Labels[consts.WorkspaceCreatedByInferenceSetLabel] = createdBy
 			labelselector.MatchLabels[consts.WorkspaceCreatedByInferenceSetLabel] = createdBy
+		}
+		// Propagate MRI parent and inference-role labels to pod templates for InferencePool endpoint selection.
+		if parent, exists := workspaceObj.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent]; exists {
+			templateCopy.ObjectMeta.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent] = parent
+			labelselector.MatchLabels[kaitov1alpha1.LabelMultiRoleInferenceParent] = parent
+		}
+		if role, exists := workspaceObj.Labels[kaitov1alpha1.LabelInferenceRole]; exists {
+			templateCopy.ObjectMeta.Labels[kaitov1alpha1.LabelInferenceRole] = role
+			labelselector.MatchLabels[kaitov1alpha1.LabelInferenceRole] = role
 		}
 	}
 

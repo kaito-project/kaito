@@ -16,6 +16,9 @@ from prometheus_client import Counter, Gauge, Histogram, Info
 
 STATUS_LABEL = "status"
 MODE_LABEL = "mode"
+ACTION_LABEL = "action"
+TYPE_LABEL = "type"
+POLICY_STATUS_LABEL = "policy_status"
 
 # These are the labels that will be used in the metrics
 STATUS_SUCCESS = "success"
@@ -258,6 +261,25 @@ rag_hybrid_dense_candidates = Histogram(
     buckets=(0, 1, 2, 3, 5, 10, 20, 50, 100),
 )
 
+# Guardrails metrics
+output_guardrails_policy_load_total = Counter(
+    "output_guardrails_policy_load_total",
+    "Count of guardrails policy load attempts by outcome",
+    labelnames=[POLICY_STATUS_LABEL],
+)
+
+output_guardrails_actions_total = Counter(
+    "output_guardrails_actions_total",
+    "Count of guardrails actions applied to model outputs",
+    labelnames=[ACTION_LABEL],
+)
+
+output_guardrails_scanner_build_total = Counter(
+    "output_guardrails_scanner_build_total",
+    "Count of guardrails scanner build attempts by type and outcome",
+    labelnames=[TYPE_LABEL, STATUS_LABEL],
+)
+
 rag_hybrid_sparse_candidates = Histogram(
     "rag_hybrid_sparse_candidates",
     "Number of sparse (BM25) candidate nodes returned before fusion",
@@ -287,11 +309,23 @@ RELOAD_RESULT_LABEL = "result"
 RELOAD_RESULT_SUCCESS = "success"
 RELOAD_RESULT_FAILURE = "failure"
 RELOAD_RESULT_NOOP = "noop"
+GUARDRAILS_SCANNER_TYPE_LABEL = "scanner_type"
+GUARDRAILS_FINAL_ACTION_LABEL = "final_action"
 
 guardrails_policy_reload_total = Counter(
     "guardrails_policy_reload_total",
     "Count of output guardrails policy reload attempts.",
     labelnames=[RELOAD_RESULT_LABEL],
+)
+guardrails_response_scanner_hits_total = Counter(
+    "ragengine_guardrails_response_scanner_hits_total",
+    "Count of output guardrails scanner hits while scanning responses.",
+    labelnames=[GUARDRAILS_SCANNER_TYPE_LABEL, ACTION_LABEL],
+)
+guardrails_response_actions_total = Counter(
+    "ragengine_guardrails_response_actions_total",
+    "Count of final output guardrails actions while scanning responses.",
+    labelnames=[GUARDRAILS_FINAL_ACTION_LABEL],
 )
 guardrails_policy_loaded_timestamp = Gauge(
     "guardrails_policy_loaded_timestamp_seconds",

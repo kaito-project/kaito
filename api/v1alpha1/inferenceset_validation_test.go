@@ -20,6 +20,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"knative.dev/pkg/apis"
 )
 
 func TestInferenceSet_SupportedVerbs(t *testing.T) {
@@ -48,26 +49,27 @@ func TestInferenceSet_SupportedVerbs(t *testing.T) {
 	}
 }
 
+func ptrInt32(i int32) *int32 { return &i }
 func TestInferenceSet_SetDefaults(t *testing.T) {
 	tests := []struct {
 		name            string
 		inferenceset    *InferenceSet
-		expectedReplica int
+		expectedReplica *int32
 	}{
 		{
-			name: "replicas should default to 1 when not set",
+			name: "explicit replicas 0 is preserved by SetDefaults (scale-to-zero)",
 			inferenceset: &InferenceSet{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-inferenceset",
 					Namespace: "default",
 				},
 				Spec: InferenceSetSpec{
-					// Replicas omitted - represented as 0 (zero value for int)
-					// This simulates what happens when the field is not present in YAML/JSON
-					Replicas: 0,
+					// Explicit 0 should not be overridden by SetDefaults.
+					// The CRD schema default handles the truly-omitted case at admission time.
+					Replicas: ptrInt32(0),
 				},
 			},
-			expectedReplica: 1,
+			expectedReplica: ptrInt32(0),
 		},
 		{
 			name: "replicas should not change when already set",
@@ -77,10 +79,10 @@ func TestInferenceSet_SetDefaults(t *testing.T) {
 					Namespace: "default",
 				},
 				Spec: InferenceSetSpec{
-					Replicas: 3,
+					Replicas: ptrInt32(3),
 				},
 			},
-			expectedReplica: 3,
+			expectedReplica: ptrInt32(3),
 		},
 	}
 
@@ -109,7 +111,7 @@ func TestInferenceSet_Validate(t *testing.T) {
 					Namespace: "default",
 				},
 				Spec: InferenceSetSpec{
-					Replicas: 1,
+					Replicas: ptrInt32(1),
 				},
 			},
 			oldIS:   nil,
@@ -123,7 +125,7 @@ func TestInferenceSet_Validate(t *testing.T) {
 					Namespace: "default",
 				},
 				Spec: InferenceSetSpec{
-					Replicas: 1,
+					Replicas: ptrInt32(1),
 				},
 			},
 			oldIS:    nil,
@@ -138,7 +140,7 @@ func TestInferenceSet_Validate(t *testing.T) {
 					Namespace: "default",
 				},
 				Spec: InferenceSetSpec{
-					Replicas: 1,
+					Replicas: ptrInt32(1),
 				},
 			},
 			oldIS:    nil,
@@ -153,7 +155,7 @@ func TestInferenceSet_Validate(t *testing.T) {
 					Namespace: "default",
 				},
 				Spec: InferenceSetSpec{
-					Replicas: 1,
+					Replicas: ptrInt32(1),
 				},
 			},
 			oldIS:    nil,
@@ -168,7 +170,7 @@ func TestInferenceSet_Validate(t *testing.T) {
 					Namespace: "default",
 				},
 				Spec: InferenceSetSpec{
-					Replicas: 1,
+					Replicas: ptrInt32(1),
 				},
 			},
 			oldIS: &InferenceSet{
@@ -177,25 +179,24 @@ func TestInferenceSet_Validate(t *testing.T) {
 					Namespace: "default",
 				},
 				Spec: InferenceSetSpec{
-					Replicas: 1,
+					Replicas: ptrInt32(1),
 				},
 			},
 			wantErr: false,
 		},
 		{
-			name: "invalid replicas value less than 1",
+			name: "valid replicas value 0 (scale-to-zero)",
 			inferencSet: &InferenceSet{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "valid-name",
 					Namespace: "default",
 				},
 				Spec: InferenceSetSpec{
-					Replicas: 0,
+					Replicas: ptrInt32(0),
 				},
 			},
-			oldIS:    nil,
-			wantErr:  true,
-			errField: "replicas",
+			oldIS:   nil,
+			wantErr: false,
 		},
 		{
 			name: "invalid replicas negative value",
@@ -205,7 +206,7 @@ func TestInferenceSet_Validate(t *testing.T) {
 					Namespace: "default",
 				},
 				Spec: InferenceSetSpec{
-					Replicas: -1,
+					Replicas: ptrInt32(-1),
 				},
 			},
 			oldIS:    nil,
@@ -217,6 +218,9 @@ func TestInferenceSet_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
+			if tt.oldIS != nil {
+				ctx = apis.WithinUpdate(ctx, tt.oldIS)
+			}
 			err := tt.inferencSet.Validate(ctx)
 			if tt.wantErr {
 				assert.NotNil(t, err)
@@ -241,29 +245,38 @@ func TestInferenceSet_validateCreate(t *testing.T) {
 			name: "valid replicas value",
 			is: &InferenceSet{
 				Spec: InferenceSetSpec{
-					Replicas: 1,
+					Replicas: ptrInt32(1),
 				},
 			},
 			wantErr: false,
 		},
 		{
-			name: "invalid replicas value 0",
+			name: "valid replicas value 0 (scale-to-zero)",
 			is: &InferenceSet{
 				Spec: InferenceSetSpec{
-					Replicas: 0,
+					Replicas: ptrInt32(0),
 				},
 			},
-			wantErr:  true,
-			errField: "replicas",
+			wantErr: false,
 		},
 		{
 			name: "valid replicas value greater than 1",
 			is: &InferenceSet{
 				Spec: InferenceSetSpec{
-					Replicas: 5,
+					Replicas: ptrInt32(5),
 				},
 			},
 			wantErr: false,
+		},
+		{
+			name: "invalid negative replicas value",
+			is: &InferenceSet{
+				Spec: InferenceSetSpec{
+					Replicas: ptrInt32(-1),
+				},
+			},
+			wantErr:  true,
+			errField: "replicas",
 		},
 	}
 

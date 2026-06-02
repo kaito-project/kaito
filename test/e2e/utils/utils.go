@@ -334,7 +334,7 @@ func GenerateInferenceSetManifest(name, namespace, imageName string, replicas in
 			Namespace: namespace,
 		},
 		Spec: kaitov1alpha1.InferenceSetSpec{
-			Replicas: replicas,
+			Replicas: lo.ToPtr(int32(replicas)),
 			Selector: labelSelector,
 			Template: kaitov1alpha1.InferenceSetTemplate{
 				Resource: kaitov1alpha1.InferenceSetResourceSpec{

@@ -54,6 +54,46 @@ spec:
           spec:
             description: Spec defines the desired state of InferenceSet
             properties:
+              autoUpgrade:
+                description: |-
+                  AutoUpgrade configures automatic base image upgrade behavior.
+                  When enabled, the controller detects base image version mismatches
+                  after a controller upgrade and performs in-place rolling updates of
+                  Workspace StatefulSets.
+                properties:
+                  enabled:
+                    default: false
+                    description: |-
+                      Enabled controls whether the controller automatically upgrades
+                      Workspace replicas when a newer base image version is detected
+                      after a controller upgrade.
+                    type: boolean
+                  maintenanceWindow:
+                    description: |-
+                      MaintenanceWindow restricts when upgrades may be applied.
+                      If not specified, upgrades may be applied at any time.
+                    properties:
+                      duration:
+                        default: 4h
+                        description: |-
+                          Duration specifies how long the maintenance window stays open after
+                          each cron tick. If a rollout is still in progress when the window
+                          closes, the in-progress Workspace upgrade is allowed to complete
+                          (the controller will not start upgrading the next Workspace until the
+                          next window opens).
+                          Defaults to 4h.
+                        type: string
+                      schedule:
+                        description: |-
+                          Schedule is a cron expression (5-field, UTC) defining when upgrades
+                          are permitted to start. The window opens at each cron tick and stays
+                          open for Duration.
+                          Example: "0 2 * * 6" = every Saturday at 02:00 UTC.
+                        type: string
+                    required:
+                    - schedule
+                    type: object
+                type: object
               labelSelector:
                 description: workspace created by InferenceSet controller would use
                   this label in resource.labelSelector
@@ -109,6 +149,7 @@ spec:
               replicas:
                 default: 1
                 description: Replicas is the desired number of workspaces to be created.
+                format: int32
                 minimum: 0
                 type: integer
               template:
@@ -218,7 +259,6 @@ spec:
                     description: |-
                       Standard object's metadata.
                       More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
-                    type: object
                     x-kubernetes-preserve-unknown-fields: true
                   resource:
                     properties:
@@ -246,6 +286,23 @@ spec:
           status:
             description: Status defines the observed state of InferenceSet
             properties:
+              autoUpgrade:
+                description: AutoUpgrade reports the observed state of automatic base
+                  image upgrades.
+                properties:
+                  lastSuccessfulUpgradeTime:
+                    description: |-
+                      LastSuccessfulUpgradeTime is the timestamp of the last Workspace that
+                      successfully completed an auto-upgrade.
+                    format: date-time
+                    type: string
+                  numDriftedWorkspaces:
+                    description: |-
+                      NumDriftedWorkspaces is the number of Workspaces whose base image version
+                      differs from the controller's embedded version. Nil when autoUpgrade is
+                      disabled; 0 means all Workspaces are up-to-date.
+                    type: integer
+                type: object
               conditions:
                 description: Conditions report the current conditions of the InferenceSet.
                 items:

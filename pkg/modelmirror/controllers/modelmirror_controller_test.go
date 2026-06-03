@@ -77,7 +77,7 @@ func TestReconcile_AlreadyReady(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if result.Requeue || result.RequeueAfter != 0 {
+	if result.RequeueAfter != 0 {
 		t.Errorf("expected no requeue for Ready CR, got %+v", result)
 	}
 }
@@ -107,7 +107,7 @@ func TestReconcile_AddsFinalizer(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if !result.Requeue {
+	if result.RequeueAfter == 0 {
 		t.Error("expected requeue after adding finalizer")
 	}
 

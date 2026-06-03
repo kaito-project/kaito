@@ -100,7 +100,7 @@ func (r *ModelMirrorReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		if err := r.Update(ctx, cr); err != nil {
 			return ctrl.Result{}, err
 		}
-		return ctrl.Result{Requeue: true}, nil
+		return ctrl.Result{RequeueAfter: 1 * time.Second}, nil
 	}
 
 	// Step 1: Validate CSIDriver
@@ -131,7 +131,7 @@ func (r *ModelMirrorReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		if err := r.Update(ctx, cr); err != nil {
 			return ctrl.Result{}, err
 		}
-		return ctrl.Result{Requeue: true}, nil
+		return ctrl.Result{RequeueAfter: 1 * time.Second}, nil
 	}
 
 	// Step 4: Ensure PVC

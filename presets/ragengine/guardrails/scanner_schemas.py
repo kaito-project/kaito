@@ -277,7 +277,8 @@ class InvisibleTextConfig:
 
 @dataclass
 # Enforces a maximum output token budget using llm_guard's tiktoken-based
-# counting. limit is the token cap, while encoding_name and model_name control
+# counting. Outputs whose token count exceeds limit are marked invalid. This
+# limits tokens, not characters or words; encoding_name and model_name control
 # which tokenizer is used for counting.
 class TokenLimitConfig:
     supports_redact: ClassVar[bool] = True

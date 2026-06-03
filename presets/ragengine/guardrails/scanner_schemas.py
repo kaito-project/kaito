@@ -145,7 +145,7 @@ class SensitiveConfig:
         )
 
 
-# Adapts llm_guard's input-side InvisibleText scanner for output guardrails.
+# Adapts llm_guard InvisibleText for model output scanning.
 class InvisibleTextOutputAdapter:
     def __init__(self) -> None:
         self._scanner = llm_guard_input_scanners.InvisibleText()
@@ -155,7 +155,7 @@ class InvisibleTextOutputAdapter:
         return sanitized_output, is_valid, score
 
 
-# Adapts llm_guard's input-side TokenLimit scanner for output guardrails.
+# Adapts llm_guard TokenLimit to limit model output token count.
 class TokenLimitOutputAdapter:
     def __init__(
         self,

@@ -955,6 +955,27 @@ def test_build_scanners_builds_invisible_text_and_token_limit(fake_llm_guard_sca
     assert scanners[1]._scanner.encoding_name == "cl100k_base"
 
 
+def test_build_scanners_forwards_token_limit_model_name(fake_llm_guard_scanners):
+    _, _, _, FakeTokenLimit, _, _ = fake_llm_guard_scanners
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        scanner_configs=(
+            _token_limit_cfg(
+                limit=32,
+                encoding_name="cl100k_base",
+                model_name="gpt-4",
+            ),
+        ),
+    )
+
+    scanners = guardrails._build_scanners()
+
+    assert len(scanners) == 1
+    assert isinstance(scanners[0]._scanner, FakeTokenLimit)
+    assert scanners[0]._scanner.model_name == "gpt-4"
+
+
 def test_build_scanners_builds_json_and_reading_time(fake_llm_guard_scanners):
     _, _, _, _, FakeJSON, FakeReadingTime = fake_llm_guard_scanners
 

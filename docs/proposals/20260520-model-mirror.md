@@ -232,7 +232,7 @@ A new controller that watches `ModelMirror` CRs and manages the download lifecyc
 3. **On Job failure:**
    - Update `failureMessage` from Job condition
    - Delete the failed Job
-   - Recreate Job with exponential backoff (1m, 2m, 4m, ... capped at 30m)
+   - Recreate Job after a constant 5-minute interval
    - CR stays in `Pending` phase (never "Failed")
 
 4. **On CR deletion** (finalizer cleanup):
@@ -354,7 +354,7 @@ These are set via Helm values and require a controller restart (Helm upgrade) to
 
 ### Provider Abstraction
 
-The CR interface is cloud-agnostic. Provider-specific logic is encapsulated in internal implementations selected by the existing `--cloud-provider` controller flag.
+The CR interface is cloud-agnostic. Provider-specific logic is encapsulated behind a `CloudProvider` interface (`pkg/modelmirror/storage/provider.go`) with methods for CSI driver validation, volumeHandle parsing, and storage URI construction. The provider is resolved at startup from the existing `CLOUD_PROVIDER` env var (Helm `cloudProviderName`). Currently only Azure is implemented; enabling `ModelStreaming` with a non-Azure provider fails at startup with a clear error.
 
 | Concern | Azure Implementation | Future AWS | Future GCP |
 |---|---|---|---|
@@ -380,7 +380,7 @@ A user encounters a streaming issue and wants to fall back to the original path.
 
 #### Story 4: Download failure
 
-A model download fails repeatedly (e.g. network issues, invalid HF token). The `ModelMirror` CR stays in `Pending` with `failureMessage` updated. The workspace shows `ModelMirrorInProgress` condition with the error. The CR keeps retrying with exponential backoff. Once the user fixes the issue (e.g. corrects the HF token Secret), the next retry succeeds and both the CR and workspace proceed.
+A model download fails repeatedly (e.g. network issues, invalid HF token). The `ModelMirror` CR stays in `Pending` with `failureMessage` updated. The workspace shows `ModelMirrorInProgress` condition with the error. The CR keeps retrying every 5 minutes. Once the user fixes the issue (e.g. corrects the HF token Secret), the next retry succeeds and both the CR and workspace proceed.
 
 ## Implementation Details
 
@@ -455,7 +455,7 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - |
-              hfdownloader download "<model-id>" --local-dir /models -F safetensors -E "original,.pth"
+              hfdownloader download "<model-id>" --local-dir /models -F safetensors -E "original"
               # Safety net: remove any remaining empty directories.
               # runai-model-streamer crashes on directories (IsADirectoryError) when pulling
               # files from Azure blob, so we keep only flat files.
@@ -485,7 +485,7 @@ spec:
             claimName: <pvc-name>
 ```
 
-**Download tool:** hfdownloader (Go binary, ~20 MB image). Provides concurrent downloads with built-in per-file retry (4 retries by default). The lightweight image size keeps mirror Job startup fast (seconds, not minutes). The download command includes safetensors files only (`-F safetensors`) and excludes non-safetensor formats (`-E "original,.pth"`) since RunAI streamer only reads `*.safetensors` files. A post-download `find` removes any remaining empty directories as a safety net. **Future:** Vendor the Go source into KAITO's CI pipeline and publish to MCR (`mcr.microsoft.com/aks/kaito/hfdownloader`) for full supply-chain ownership.
+**Download tool:** hfdownloader (Go binary, ~20 MB image). Provides concurrent downloads with built-in per-file retry (4 retries by default). The lightweight image size keeps mirror Job startup fast (seconds, not minutes). The download command includes safetensors files only (`-F safetensors`) and excludes non-safetensor formats (`-E "original"`) since RunAI streamer only reads `*.safetensors` files. A post-download `find` removes any remaining empty directories as a safety net. **Future:** Vendor the Go source into KAITO's CI pipeline and publish to MCR (`mcr.microsoft.com/aks/kaito/hfdownloader`) for full supply-chain ownership.
 
 **Job pod Lifecycle:** Job Pod is kept forever unless manually deleted by the user.
 
@@ -496,7 +496,7 @@ spec:
 3. **Job recreation:** When a Job exhausts its backoff limit, the ModelMirror controller:
    - Records the failure message in CR `status.failureMessage`
    - Deletes the failed Job
-   - Waits with exponential backoff (1m, 2m, 4m, 8m, 16m, 30m cap)
+   - Requeues after a constant 5-minute interval
    - Creates a new Job
 4. **No terminal failure state:** The CR never moves to a "Failed" phase. It stays in `Pending` and retries indefinitely until successful or manually deleted.
 

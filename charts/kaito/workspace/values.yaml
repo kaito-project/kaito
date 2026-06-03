@@ -42,6 +42,9 @@ featureGates:
   gatewayAPIInferenceExtension: false
   enableInferenceSetController: false
   enableMultiRoleInferenceController: false
+  ModelStreaming: false
+defaultModelStorageClass: ""
+defaultStreamingServiceAccount: ""
 defaultNodeImageFamily: ""
 nodeProvisioner: "azure-gpu-provisioner"
 karpenterProvider: "azure"

@@ -52,6 +52,8 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/inferenceset"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
+	mmcontrollers "github.com/kaito-project/kaito/pkg/modelmirror/controllers"
+	"github.com/kaito-project/kaito/pkg/modelmirror/storage"
 	nodeprovisionmanager "github.com/kaito-project/kaito/pkg/nodeprovision/manager"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -107,6 +109,8 @@ func main() {
 	var kubeClientQPS int = 30
 	var kubeClientBurst int = 50
 	var printVersionAndExit bool
+	var defaultModelStorageClass string
+	var defaultStreamingServiceAccount string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.IntVar(&kubeClientQPS, "kube-client-qps", kubeClientQPS, "the rate of qps to kube-apiserver.")
@@ -124,6 +128,8 @@ func main() {
 	flag.StringVar(&karpenterNodeClassVersion, "karpenter-node-class-version", "v1beta1", "Karpenter NodeClass API version. Only used when node-provisioner=karpenter.")
 	flag.StringVar(&karpenterNodeClassResourceName, "karpenter-node-class-resource-name", "aksnodeclasses", "Plural resource name for the NodeClass CRD (e.g. aksnodeclasses). Combined with --karpenter-node-class-group to form the full CRD name. Only used when node-provisioner=karpenter.")
 	flag.BoolVar(&printVersionAndExit, "version", false, "Print version and exit.")
+	flag.StringVar(&defaultModelStorageClass, "default-model-storage-class", "", "StorageClass for ModelMirror PVCs (required when ModelStreaming=true).")
+	flag.StringVar(&defaultStreamingServiceAccount, "default-streaming-service-account", "", "Default ServiceAccount for streaming inference pods.")
 	opts := zap.Options{
 		Development: true,
 	}
@@ -302,6 +308,28 @@ func main() {
 		)
 		if err = mriReconciler.SetupWithManager(mgr); err != nil {
 			klog.ErrorS(err, "unable to create controller", "controller", "MultiRoleInference")
+			exitWithErrorFunc()
+		}
+	}
+
+	// ModelMirror controller — requires ModelStreaming feature gate.
+	if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+		var cloudProvider storage.CloudProvider
+		switch os.Getenv("CLOUD_PROVIDER") {
+		case consts.AzureCloudName:
+			cloudProvider = storage.NewAzureBlobProvider()
+		default:
+			klog.ErrorS(fmt.Errorf("model streaming is not supported for cloud provider %q",
+				os.Getenv("CLOUD_PROVIDER")), "only 'azure' is currently supported")
+			exitWithErrorFunc()
+		}
+		mmReconciler := mmcontrollers.NewModelMirrorReconciler(
+			kClient,
+			log.Log.WithName("controllers").WithName("ModelMirror"),
+			cloudProvider,
+		)
+		if err = mmReconciler.SetupWithManager(mgr); err != nil {
+			klog.ErrorS(err, "unable to create controller", "controller", "ModelMirror")
 			exitWithErrorFunc()
 		}
 	}

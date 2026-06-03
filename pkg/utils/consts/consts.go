@@ -48,6 +48,7 @@ const (
 	FeatureFlagEnableInferenceSetController = "enableInferenceSetController"
 
 	FeatureFlagEnableMultiRoleInferenceController = "enableMultiRoleInferenceController"
+	FeatureFlagModelStreaming                     = "ModelStreaming"
 
 	// Node provisioner types
 	NodeProvisionerAzureGPU  = "azure-gpu-provisioner"

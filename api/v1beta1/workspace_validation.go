@@ -34,6 +34,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
+	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -98,6 +99,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		errs = errs.Also(
 			w.validateUpdate(old).ViaField("spec"),
 			w.Resource.validateUpdate(&old.Resource).ViaField("resource"),
+			w.validateModelStreamingAnnotationImmutable(old),
 		)
 		if w.Inference != nil {
 			errs = errs.Also(w.Inference.validateUpdate(old.Inference).ViaField("inference"))
@@ -711,4 +713,16 @@ func validateDuplicateName(adapters []AdapterSpec, nameMap map[string]bool) (err
 		}
 	}
 	return errs
+}
+
+func (w *Workspace) validateModelStreamingAnnotationImmutable(old *Workspace) *apis.FieldError {
+	oldVal := old.GetAnnotations()[mmconsts.AnnotationModelStreaming]
+	newVal := w.GetAnnotations()[mmconsts.AnnotationModelStreaming]
+	if oldVal != newVal {
+		return apis.ErrGeneric(
+			fmt.Sprintf("annotation %s is immutable after creation", mmconsts.AnnotationModelStreaming),
+			fmt.Sprintf("metadata.annotations[%s]", mmconsts.AnnotationModelStreaming),
+		)
+	}
+	return nil
 }

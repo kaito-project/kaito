@@ -131,7 +131,12 @@ func FetchCatalogEntry(repo, token string) (*CatalogEntry, error) {
 	g := NewGenerator(repo, token)
 
 	// Fetch model info (license, pipeline, base_model)
-	license, pipelineTag, baseModel := fetchModelInfo(g, repo)
+	// For GGUF models, use g.ModelRepo which has the quant suffix stripped.
+	infoRepo := repo
+	if g.IsGGUFModel {
+		infoRepo = g.ModelRepo
+	}
+	license, pipelineTag, baseModel := fetchModelInfo(g, infoRepo)
 
 	if err := g.FetchModelMetadata(); err != nil {
 		return nil, err
@@ -141,7 +146,7 @@ func FetchCatalogEntry(repo, token string) (*CatalogEntry, error) {
 
 	entry := &CatalogEntry{
 		Name:          repo,
-		Description:   fmt.Sprintf("%s/%s", HuggingFaceWebsite, repo),
+		Description:   fmt.Sprintf("%s/%s", HuggingFaceWebsite, infoRepo),
 		License:       license,
 		PipelineTag:   pipelineTag,
 		BaseModel:     baseModel,

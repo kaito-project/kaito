@@ -396,20 +396,36 @@ def _resolve_processor() -> str:
 
 
 def _resolve_processor_from_hf_cache(cache_dir: Path) -> str:
-    """Resolve the first cached HF repo id from a cache directory."""
+    """Resolve a cached HF repo id that has a usable tokenizer.
+
+    Iterates through cached repos (sorted alphabetically) and returns the
+    first one whose tokenizer can be successfully loaded. This handles GGUF
+    repos gracefully — they typically lack tokenizer files and will be skipped
+    in favor of the base model repo that was downloaded via --tokenizer.
+    """
     if not cache_dir.exists():
         return ""
     try:
         cache_info = scan_cache_dir(cache_dir=str(cache_dir))
         repos = sorted(cache_info.repos, key=lambda r: r.repo_id)
-        if repos:
-            # repo_id is the HuggingFace model identifier (e.g. "microsoft/Phi-3-mini-4k-instruct"),
-            # not a local path. guidellm/vLLM accept it as the --processor value and resolve the
-            # tokenizer from the HF Hub (or local cache if HF_HUB_OFFLINE is set).
-            return repos[0].repo_id
     except Exception:
-        pass
+        return ""
+
+    for repo in repos:
+        if _has_tokenizer(repo.repo_id):
+            return repo.repo_id
     return ""
+
+
+def _has_tokenizer(repo_id: str) -> bool:
+    """Check whether a HF repo has a loadable tokenizer."""
+    try:
+        from transformers import AutoTokenizer
+
+        AutoTokenizer.from_pretrained(repo_id, trust_remote_code=True)
+        return True
+    except Exception:
+        return False
 
 
 def _predownload_processor(processor: str) -> str:

@@ -38,7 +38,7 @@ func TestGeneratePreset(t *testing.T) {
 					Name:                   "phi-4-mini-instruct",
 					Architectures:          []string{"Phi3ForCausalLM"},
 					ModelType:              "tfs",
-					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "microsoft/Phi-4-mini-instruct"),
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "microsoft/phi-4-mini-instruct"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "7.15Gi",
@@ -92,7 +92,7 @@ func TestGeneratePreset(t *testing.T) {
 					Name:                   "ministral-3-8b-instruct-2512",
 					Architectures:          []string{"Mistral3ForConditionalGeneration"},
 					ModelType:              "tfs",
-					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Ministral-3-8B-Instruct-2512"),
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/ministral-3-8b-instruct-2512"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "9.70Gi",
@@ -120,7 +120,7 @@ func TestGeneratePreset(t *testing.T) {
 					Name:                   "mistral-large-3-675b-instruct-2512",
 					Architectures:          []string{"MistralLarge3ForCausalLM"},
 					ModelType:              "tfs",
-					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Mistral-Large-3-675B-Instruct-2512"),
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/mistral-large-3-675b-instruct-2512"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "634.70Gi",
@@ -149,7 +149,7 @@ func TestGeneratePreset(t *testing.T) {
 					Name:                   "qwen3-coder-30b-a3b-instruct",
 					Architectures:          []string{"Qwen3MoeForCausalLM"},
 					ModelType:              "tfs",
-					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "Qwen/Qwen3-Coder-30B-A3B-Instruct"),
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "qwen/qwen3-coder-30b-a3b-instruct"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "56.87Gi",
@@ -178,7 +178,7 @@ func TestGeneratePreset(t *testing.T) {
 					Name:                   "qwen3-8b",
 					Architectures:          []string{"Qwen3ForCausalLM"},
 					ModelType:              "tfs",
-					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "Qwen/Qwen3-8B"),
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "qwen/qwen3-8b"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "15.26Gi",
@@ -207,7 +207,7 @@ func TestGeneratePreset(t *testing.T) {
 					Name:                   "deepseek-v3.1",
 					Architectures:          []string{"DeepseekV3ForCausalLM"},
 					ModelType:              "tfs",
-					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "deepseek-ai/DeepSeek-V3.1"),
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "deepseek-ai/deepseek-v3.1"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "641.30Gi",
@@ -237,7 +237,7 @@ func TestGeneratePreset(t *testing.T) {
 					Name:                   "deepseek-v3",
 					Architectures:          []string{"DeepseekV3ForCausalLM"},
 					ModelType:              "tfs",
-					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "deepseek-ai/DeepSeek-V3"),
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "deepseek-ai/deepseek-v3"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "641.30Gi",
@@ -267,7 +267,7 @@ func TestGeneratePreset(t *testing.T) {
 					Name:                   "nemotron-orchestrator-8b",
 					Architectures:          []string{"Qwen3ForCausalLM"},
 					ModelType:              "tfs",
-					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "nvidia/Nemotron-Orchestrator-8B"),
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "nvidia/nemotron-orchestrator-8b"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "30.51Gi",
@@ -296,7 +296,7 @@ func TestGeneratePreset(t *testing.T) {
 					Name:                   "qwen3-8b-awq",
 					Architectures:          []string{"Qwen3ForCausalLM"},
 					ModelType:              "tfs",
-					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "Qwen/Qwen3-8B-AWQ"),
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "qwen/qwen3-8b-awq"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "5.68Gi",
@@ -484,7 +484,7 @@ func TestLoadFromCatalog(t *testing.T) {
 					Name:                   "phi-4-mini-instruct",
 					Architectures:          []string{"Phi3ForCausalLM"},
 					ModelType:              "tfs",
-					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "microsoft/Phi-4-mini-instruct"),
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "microsoft/phi-4-mini-instruct"),
 					DownloadAtRuntime:      true,
 					ModelFileSize:          "7.15Gi",
 					BytesPerToken:          131072,
@@ -539,7 +539,7 @@ func TestLoadFromCatalog(t *testing.T) {
 					Name:                   "mistral-7b-v0.3",
 					Architectures:          []string{"MistralForCausalLM"},
 					ModelType:              "tfs",
-					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Mistral-7B-v0.3"),
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/mistral-7b-v0.3"),
 					DownloadAtRuntime:      true,
 					ModelFileSize:          "13.50Gi",
 					BytesPerToken:          131072,
@@ -558,7 +558,7 @@ func TestLoadFromCatalog(t *testing.T) {
 					Name:                   "ministral-3-8b-instruct-2512",
 					Architectures:          []string{"Mistral3ForConditionalGeneration"},
 					ModelType:              "tfs",
-					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Ministral-3-8B-Instruct-2512"),
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/ministral-3-8b-instruct-2512"),
 					DownloadAtRuntime:      true,
 					ModelFileSize:          "9.70Gi",
 					BytesPerToken:          139264,
@@ -571,6 +571,26 @@ func TestLoadFromCatalog(t *testing.T) {
 		{
 			modelRepo:   "some-org/unknown-model",
 			expectFound: false,
+		},
+		{
+			modelRepo:   "Qwen/Qwen3-8B-GGUF:Q4_K_M",
+			expectFound: true,
+			expectedParam: model.PresetParam{
+				Metadata: model.Metadata{
+					Name:                   "qwen3-8b-gguf",
+					Architectures:          []string{"Qwen3ForCausalLM"},
+					ModelType:              "tfs",
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "Qwen/Qwen3-8B-GGUF"),
+					DownloadAtRuntime:      true,
+					ModelFileSize:          "4.68Gi",
+					BytesPerToken:          147456,
+					ModelTokenLimit:        40960,
+					DiskStorageRequirement: "84Gi",
+					ReasoningParser:        "qwen3",
+					ToolCallParser:         "hermes",
+				},
+				AttnType: "GQA",
+			},
 		},
 	}
 
@@ -603,6 +623,17 @@ func TestLoadFromCatalog(t *testing.T) {
 			assert.Equal(t, tc.expectedParam.Metadata.DiskStorageRequirement, gen.Param.Metadata.DiskStorageRequirement)
 			assert.Equal(t, tc.expectedParam.Metadata.ToolCallParser, gen.Param.Metadata.ToolCallParser)
 			assert.Equal(t, tc.expectedParam.AttnType, gen.Param.AttnType)
+
+			// GGUF-specific assertions
+			if gen.IsGGUFModel {
+				assert.Equal(t, "gguf", gen.Param.VLLM.ModelRunParams["load_format"])
+				assert.Equal(t, "auto", gen.Param.VLLM.ModelRunParams["config_format"], "GGUF models must use config_format=auto, not gguf")
+				assert.Equal(t, "auto", gen.Param.VLLM.ModelRunParams["tokenizer_mode"], "GGUF models must use tokenizer_mode=auto, not gguf")
+				assert.Equal(t, gen.ModelRepo+":"+gen.QuantType, gen.Param.VLLM.ModelRunParams["model"])
+				assert.NotEmpty(t, gen.BaseModel, "BaseModel should be auto-populated from catalog")
+				assert.Equal(t, gen.BaseModel, gen.Param.VLLM.ModelRunParams["hf-config-path"])
+				assert.Equal(t, gen.BaseModel, gen.Param.VLLM.ModelRunParams["tokenizer"])
+			}
 		})
 	}
 }
@@ -817,4 +848,121 @@ func TestMergeTextConfigWithLLMConfig(t *testing.T) {
 
 	// Existing top-level value should not be overwritten
 	assert.Equal(t, float64(4096), gen.ModelConfig["max_position_embeddings"])
+}
+
+func TestNewGenerator_GGUFNameParsing(t *testing.T) {
+	cases := []struct {
+		name          string
+		modelRepo     string
+		wantBase      string
+		wantQuantType string
+	}{
+		{
+			name:          "GGUF with quant type",
+			modelRepo:     "unsloth/Qwen3-0.6B-GGUF:Q4_K_M",
+			wantBase:      "unsloth/Qwen3-0.6B-GGUF",
+			wantQuantType: "Q4_K_M",
+		},
+		{
+			name:          "Standard model without colon",
+			modelRepo:     "microsoft/Phi-4-mini-instruct",
+			wantBase:      "microsoft/phi-4-mini-instruct",
+			wantQuantType: "",
+		},
+		{
+			name:          "GGUF with extended quant type",
+			modelRepo:     "bartowski/Qwen3-8B-GGUF:Q5_K_L",
+			wantBase:      "bartowski/Qwen3-8B-GGUF",
+			wantQuantType: "Q5_K_L",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			gen := NewGenerator(tc.modelRepo, "")
+			assert.Equal(t, tc.wantBase, gen.ModelRepo)
+			assert.Equal(t, tc.wantQuantType, gen.QuantType)
+		})
+	}
+}
+
+func TestSelectWeightFiles_GGUF(t *testing.T) {
+	files := []FileInfo{
+		{Path: "Qwen3-0.6B-BF16.gguf", Size: 1198182848},
+		{Path: "Qwen3-0.6B-Q4_K_M.gguf", Size: 531116736},
+		{Path: "Qwen3-0.6B-Q8_0.gguf", Size: 678919104},
+		{Path: "config.json", Size: 1024},
+	}
+
+	t.Run("selects matching GGUF file by quant type", func(t *testing.T) {
+		gen := NewGenerator("unsloth/Qwen3-0.6B-GGUF:Q4_K_M", "")
+		selected := gen.selectWeightFiles(files)
+		assert.Len(t, selected, 1)
+		assert.Equal(t, "Qwen3-0.6B-Q4_K_M.gguf", selected[0].Path)
+		assert.Equal(t, int64(531116736), selected[0].Size)
+	})
+
+	t.Run("returns nil when no GGUF file matches", func(t *testing.T) {
+		gen := NewGenerator("unsloth/Qwen3-0.6B-GGUF:Q3_K_S", "")
+		selected := gen.selectWeightFiles(files)
+		assert.Nil(t, selected)
+	})
+
+	t.Run("non-GGUF model ignores GGUF files", func(t *testing.T) {
+		mixedFiles := []FileInfo{
+			{Path: "model.safetensors", Size: 1000000},
+			{Path: "Qwen3-0.6B-Q4_K_M.gguf", Size: 531116736},
+		}
+		gen := NewGenerator("some-org/some-model", "")
+		selected := gen.selectWeightFiles(mixedFiles)
+		assert.Len(t, selected, 1)
+		assert.Equal(t, "model.safetensors", selected[0].Path)
+	})
+}
+
+func TestSetGGUFMode(t *testing.T) {
+	gen := NewGenerator("unsloth/Qwen3-0.6B-GGUF:Q4_K_M", "")
+	gen.setGGUFMode()
+	assert.Equal(t, "gguf", gen.LoadFormat)
+	assert.Equal(t, "auto", gen.ConfigFormat)
+	assert.Equal(t, "auto", gen.TokenizerMode)
+}
+
+func TestFinalizeParams_GGUF(t *testing.T) {
+	gen := NewGenerator("unsloth/Qwen3-0.6B-GGUF:Q4_K_M", "")
+	gen.setGGUFMode()
+	gen.ModelConfig = map[string]interface{}{
+		"hidden_size":             float64(1024),
+		"num_hidden_layers":       float64(28),
+		"num_attention_heads":     float64(16),
+		"num_key_value_heads":     float64(8),
+		"head_dim":                float64(128),
+		"max_position_embeddings": float64(40960),
+	}
+
+	gen.FinalizeParams()
+
+	assert.Equal(t, "unsloth/Qwen3-0.6B-GGUF:Q4_K_M", gen.Param.VLLM.ModelRunParams["model"])
+	assert.Equal(t, "gguf", gen.Param.VLLM.ModelRunParams["load_format"])
+	assert.Equal(t, "auto", gen.Param.VLLM.ModelRunParams["config_format"])
+}
+
+func TestFinalizeParams_BaseModel(t *testing.T) {
+	gen := NewGenerator("unsloth/Qwen3-0.6B-GGUF:Q4_K_M", "")
+	gen.BaseModel = "Qwen/Qwen3-0.6B"
+	gen.setGGUFMode()
+	gen.ModelConfig = map[string]interface{}{
+		"hidden_size":             float64(1024),
+		"num_hidden_layers":       float64(28),
+		"num_attention_heads":     float64(16),
+		"num_key_value_heads":     float64(8),
+		"head_dim":                float64(128),
+		"max_position_embeddings": float64(40960),
+	}
+
+	gen.FinalizeParams()
+
+	assert.Equal(t, "Qwen/Qwen3-0.6B", gen.Param.VLLM.ModelRunParams["hf-config-path"])
+	assert.Equal(t, "Qwen/Qwen3-0.6B", gen.Param.VLLM.ModelRunParams["tokenizer"])
+	assert.Equal(t, "unsloth/Qwen3-0.6B-GGUF:Q4_K_M", gen.Param.VLLM.ModelRunParams["model"])
 }

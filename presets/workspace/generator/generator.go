@@ -42,6 +42,7 @@ var (
 	safetensorRegex = regexp.MustCompile(`.*\.safetensors`)
 	binRegex        = regexp.MustCompile(`.*\.bin`)
 	mistralRegex    = regexp.MustCompile(`consolidated.*\.safetensors`)
+	ggufRegex       = regexp.MustCompile(`.*\.gguf`)
 	// source: https://github.com/vllm-project/vllm/blob/main/vllm/reasoning/__init__.py
 	reasoningParserModeNamePrefixMap = map[string]string{
 		"deepseek-r1":  "deepseek_r1",
@@ -251,10 +252,13 @@ var (
 
 type Generator struct {
 	ModelRepo      string
+	QuantType      string // GGUF quantization type (e.g., "Q4_K_M"); empty for non-GGUF models
 	Token          string
 	Param          model.PresetParam
 	CatalogData    []byte // Optional embedded catalog YAML
+	IsGGUFModel    bool
 	IsMistralModel bool
+	BaseModel      string
 
 	// Analyzed params
 	LoadFormat    string
@@ -264,11 +268,31 @@ type Generator struct {
 }
 
 func NewGenerator(modelRepo, token string) *Generator {
+	// Strip GGUF quant suffix (e.g., "unsloth/Qwen3-0.6B-GGUF:Q4_K_M" -> repo="unsloth/Qwen3-0.6B-GGUF", quant="Q4_K_M")
+	var quantType string
+	var isGGUF bool
+	if idx := strings.LastIndex(modelRepo, ":"); idx > 0 {
+		// Only split if the colon is after a "/" (i.e., it's repo_id:quant, not a scheme)
+		if strings.Contains(modelRepo[:idx], "/") {
+			quantType = modelRepo[idx+1:]
+			modelRepo = modelRepo[:idx]
+			isGGUF = true
+		}
+	}
+
+	// Lowercase non-GGUF repo IDs for consistent registry keys and prefix matching.
+	// Preserve original case for GGUF models to avoid model resolvement issues on vLLM.
+	if !isGGUF {
+		modelRepo = strings.ToLower(modelRepo)
+	}
+
 	nameParts := strings.Split(modelRepo, "/")
 	modelNameSafe := strings.ToLower(nameParts[len(nameParts)-1])
 
 	gen := &Generator{
 		ModelRepo:     modelRepo,
+		QuantType:     quantType,
+		IsGGUFModel:   isGGUF,
 		Token:         token,
 		LoadFormat:    "auto",
 		ConfigFormat:  "auto",
@@ -342,11 +366,19 @@ func (g *Generator) FetchModelMetadata() error {
 
 	selectedFiles := g.selectWeightFiles(files)
 	if len(selectedFiles) == 0 {
-		return fmt.Errorf("no .safetensors or .bin files found")
+		return fmt.Errorf("no .safetensors or .bin or .gguf files found")
 	}
 
 	if g.IsMistralModel {
 		g.setMistralMode()
+	}
+	if g.IsGGUFModel {
+		g.setGGUFMode()
+		// Auto-deduce the base model from HuggingFace model card metadata.
+		_, _, baseModels := fetchModelInfo(g, g.ModelRepo)
+		if len(baseModels) > 0 {
+			g.BaseModel = baseModels[0]
+		}
 	}
 
 	g.Param.Metadata.ModelFileSize = calculateModelFileSize(selectedFiles)
@@ -378,10 +410,11 @@ func (g *Generator) listRepoFiles() ([]FileInfo, error) {
 // selectWeightFiles picks the model weight files to use and detects whether
 // the model uses Mistral format. For Mistral-format models (those with
 // consolidated*.safetensors), it sets g.IsMistralModel and returns only the
-// consolidated files. For standard models, it prefers .safetensors over .bin
+// consolidated files. For GGUF models, it returns the single GGUF file matching
+// the requested quant type. For standard models, it prefers .safetensors over .bin
 // when both are present.
 func (g *Generator) selectWeightFiles(files []FileInfo) []FileInfo {
-	var safetensors, bins, mistral []FileInfo
+	var safetensors, bins, mistral, ggufs []FileInfo
 
 	for _, f := range files {
 		if mistralRegex.MatchString(f.Path) {
@@ -391,7 +424,14 @@ func (g *Generator) selectWeightFiles(files []FileInfo) []FileInfo {
 			safetensors = append(safetensors, f)
 		} else if binRegex.MatchString(f.Path) {
 			bins = append(bins, f)
+		} else if ggufRegex.MatchString(f.Path) {
+			ggufs = append(ggufs, f)
 		}
+	}
+
+	// GGUF mode: filter by quant type if specified
+	if g.IsGGUFModel && len(ggufs) > 0 {
+		return g.selectGGUFFile(ggufs)
 	}
 
 	if len(mistral) > 0 {
@@ -406,10 +446,29 @@ func (g *Generator) selectWeightFiles(files []FileInfo) []FileInfo {
 	return bins
 }
 
+// selectGGUFFile finds the GGUF file matching the requested quant type.
+// It matches files containing the quant type string (case-insensitive).
+func (g *Generator) selectGGUFFile(ggufs []FileInfo) []FileInfo {
+	quantUpper := strings.ToUpper(g.QuantType)
+	for _, f := range ggufs {
+		fileUpper := strings.ToUpper(f.Path)
+		if strings.Contains(fileUpper, quantUpper) {
+			return []FileInfo{f}
+		}
+	}
+	return nil
+}
+
 func (g *Generator) setMistralMode() {
 	g.LoadFormat = "mistral"
 	g.ConfigFormat = "mistral"
 	g.TokenizerMode = "mistral"
+}
+
+func (g *Generator) setGGUFMode() {
+	g.LoadFormat = "gguf"
+	g.ConfigFormat = "auto"
+	g.TokenizerMode = "auto"
 }
 
 func calculateModelFileSize(files []FileInfo) string {
@@ -423,11 +482,17 @@ func calculateModelFileSize(files []FileInfo) string {
 
 // fetchAndParseConfig downloads and parses the model's config.json. For
 // Mistral-format models, it falls back to params.json if config.json is absent.
+// For GGUF models without config.json, it falls back to the base model's config.json.
 func (g *Generator) fetchAndParseConfig() error {
 	configBody, err := g.fetchConfigFile("config.json")
 	if err != nil && g.IsMistralModel {
 		// config.json not available; fall back to params.json (Mistral native format).
 		configBody, err = g.fetchConfigFile("params.json")
+	}
+	if err != nil && g.BaseModel != "" {
+		// config.json not available in model repo; fall back to base model repo.
+		url := fmt.Sprintf("%s/%s/resolve/main/config.json", HuggingFaceWebsite, g.BaseModel)
+		configBody, err = g.fetchURL(url)
 	}
 	if err != nil {
 		return fmt.Errorf("error fetching config: %v", err)
@@ -674,6 +739,17 @@ func (g *Generator) FinalizeParams() {
 		}
 	}
 
+	// For GGUF models, set --model to the full repo_id:quant_type format.
+	if g.IsGGUFModel {
+		g.Param.VLLM.ModelRunParams["model"] = g.ModelRepo + ":" + g.QuantType
+	}
+
+	// For GGUF models, auto-set --hf-config-path and --tokenizer from the base model.
+	if g.BaseModel != "" {
+		g.Param.VLLM.ModelRunParams["hf-config-path"] = g.BaseModel
+		g.Param.VLLM.ModelRunParams["tokenizer"] = g.BaseModel
+	}
+
 	// Set attention backend based on model name prefix
 	for prefix, backend := range vllmAttentionBackendPrefixMap {
 		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
@@ -723,8 +799,13 @@ func (g *Generator) loadFromCatalog() bool {
 	}
 
 	var entry *CatalogEntry
+	// For GGUF models, match by full repo:quant name; otherwise match by repo.
+	lookupName := g.ModelRepo
+	if g.IsGGUFModel && g.QuantType != "" {
+		lookupName = g.ModelRepo + ":" + g.QuantType
+	}
 	for i, m := range catalog.Models {
-		if strings.EqualFold(m.Name, g.ModelRepo) {
+		if strings.EqualFold(m.Name, lookupName) {
 			entry = &catalog.Models[i]
 			break
 		}
@@ -771,18 +852,18 @@ func (g *Generator) loadFromCatalog() bool {
 	g.Param.Metadata.ModelFileSize = entry.ModelFileSize
 	g.Param.VLLM.ModelRunParams = make(map[string]string)
 
+	if len(entry.BaseModel) > 0 {
+		g.BaseModel = entry.BaseModel[0]
+	}
+
 	if entry.LoadFormat != "" {
 		g.LoadFormat = entry.LoadFormat
 	}
 	if entry.ConfigFormat != "" {
 		g.ConfigFormat = entry.ConfigFormat
-	} else if entry.LoadFormat != "" {
-		g.ConfigFormat = entry.LoadFormat
 	}
 	if entry.TokenizerMode != "" {
 		g.TokenizerMode = entry.TokenizerMode
-	} else if entry.LoadFormat != "" {
-		g.TokenizerMode = entry.LoadFormat
 	}
 
 	return true

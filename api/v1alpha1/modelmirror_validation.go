@@ -15,10 +15,15 @@ package v1alpha1
 
 import (
 	"context"
+	"reflect"
 
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/apimachinery/pkg/types"
 	"knative.dev/pkg/apis"
+
+	"github.com/kaito-project/kaito/pkg/k8sclient"
 )
 
 func (m *ModelMirror) SupportedVerbs() []admissionregistrationv1.OperationType {
@@ -28,19 +33,26 @@ func (m *ModelMirror) SupportedVerbs() []admissionregistrationv1.OperationType {
 	}
 }
 
-func (m *ModelMirror) Validate(_ context.Context) (errs *apis.FieldError) {
-	if m.Spec.Source.ModelID == "" {
-		errs = errs.Also(apis.ErrMissingField("spec.source.modelID"))
+func (m *ModelMirror) Validate(ctx context.Context) (errs *apis.FieldError) {
+	base := apis.GetBaseline(ctx)
+	if base != nil {
+		old := base.(*ModelMirror)
+		if !reflect.DeepEqual(m.Spec, old.Spec) {
+			errs = errs.Also(apis.ErrGeneric("ModelMirror spec is immutable; delete and recreate to change", "spec"))
+		}
+		return errs
 	}
-	if m.Spec.Source.Registry == "" {
-		errs = errs.Also(apis.ErrMissingField("spec.source.registry"))
-	} else if m.Spec.Source.Registry != "huggingface" {
+
+	// Value validation (presence enforced by CRD schema)
+	if m.Spec.Source.Registry != "huggingface" {
 		errs = errs.Also(apis.ErrInvalidValue(m.Spec.Source.Registry, "spec.source.registry"))
 	}
-	if m.Spec.Storage.StorageSize != "" {
-		if _, err := resource.ParseQuantity(m.Spec.Storage.StorageSize); err != nil {
-			errs = errs.Also(apis.ErrInvalidValue(m.Spec.Storage.StorageSize, "spec.storage.storageSize"))
-		}
+	if _, err := resource.ParseQuantity(m.Spec.Storage.Size); err != nil {
+		errs = errs.Also(apis.ErrInvalidValue(m.Spec.Storage.Size, "spec.storage.size"))
+	}
+	sc := &storagev1.StorageClass{}
+	if err := k8sclient.Client.Get(ctx, types.NamespacedName{Name: m.Spec.Storage.StorageClassName}, sc); err != nil {
+		errs = errs.Also(apis.ErrInvalidValue(m.Spec.Storage.StorageClassName, "spec.storage.storageClassName"))
 	}
 	return errs
 }

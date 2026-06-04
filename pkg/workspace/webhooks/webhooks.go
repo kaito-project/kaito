@@ -42,7 +42,7 @@ func NewControllerWebhooks() []knativeinjection.ControllerConstructor {
 	if featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] {
 		constructor = append(constructor, NewMultiRoleInferenceCRDValidationWebhook)
 	}
-	if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+	if featuregates.FeatureGates[consts.FeatureFlagModelMirror] {
 		constructor = append(constructor, NewModelMirrorCRDValidationWebhook)
 	}
 

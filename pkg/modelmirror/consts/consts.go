@@ -20,7 +20,7 @@ const (
 
 	// Annotations
 	AnnotationModelStreaming          = "kaito.sh/model-streaming"
-	AnnotationModelStorageClass       = "kaito.sh/model-storage-class"
+	AnnotationModelMirrorStorageClass = "kaito.sh/model-mirror-storage-class"
 	AnnotationStreamingServiceAccount = "kaito.sh/streaming-service-account"
 
 	// Conditions
@@ -29,9 +29,6 @@ const (
 
 	// Downloader image
 	DownloaderImage = "alpine:3.20" // TODO: Move to MCR with hfdownloader pre-installed
-
-	// HuggingFace tree API endpoint
-	HFTreeAPITemplate = "https://huggingface.co/api/models/%s/tree/main"
 )
 
 // DownloadExcludePatterns is the list of patterns to exclude from HF downloads.

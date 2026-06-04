@@ -38,6 +38,12 @@ type ModelMirrorSpec struct {
 	Source ModelMirrorSource `json:"source"`
 	// +kubebuilder:validation:Required
 	Storage ModelMirrorStorage `json:"storage"`
+	// PVCName is the name of the PersistentVolumeClaim to create for model storage.
+	// +kubebuilder:validation:Required
+	PVCName string `json:"pvcName"`
+	// PVCNamespace is the namespace where the PVC and download Job will be created.
+	// +kubebuilder:validation:Required
+	PVCNamespace string `json:"pvcNamespace"`
 }
 
 type ModelMirrorSource struct {
@@ -54,12 +60,12 @@ type ModelMirrorSource struct {
 }
 
 type ModelMirrorStorage struct {
-	// StorageSize is the PVC size. Auto-computed from model metadata if empty.
-	// +optional
-	StorageSize string `json:"storageSize,omitempty"`
+	// Size is the PVC size (e.g. "20Gi").
+	// +kubebuilder:validation:Required
+	Size string `json:"size"`
 	// StorageClassName is the StorageClass to use for the PVC.
-	// +optional
-	StorageClassName string `json:"storageClassName,omitempty"`
+	// +kubebuilder:validation:Required
+	StorageClassName string `json:"storageClassName"`
 }
 
 type ModelMirrorPhase string
@@ -72,11 +78,7 @@ const (
 type ModelMirrorStatus struct {
 	// +kubebuilder:validation:Enum=Pending;Ready
 	Phase            ModelMirrorPhase   `json:"phase,omitempty"`
-	PVCName          string             `json:"pvcName,omitempty"`
-	PVCNamespace     string             `json:"pvcNamespace,omitempty"`
 	ModelPath        string             `json:"modelPath,omitempty"`
-	StorageURI       string             `json:"storageURI,omitempty"`
-	AccountName      string             `json:"accountName,omitempty"`
 	Conditions       []metav1.Condition `json:"conditions,omitempty"`
 	FailureMessage   string             `json:"failureMessage,omitempty"`
 	LastDownloadTime *metav1.Time       `json:"lastDownloadTime,omitempty"`

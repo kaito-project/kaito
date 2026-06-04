@@ -17,18 +17,12 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
-	"io"
-	"math"
-	"net/http"
-	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
-	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -41,29 +35,23 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/modelmirror/download"
-	"github.com/kaito-project/kaito/pkg/modelmirror/storage"
 )
 
 const (
 	jobRetryInterval = 5 * time.Minute
-	giBBytes         = 1024 * 1024 * 1024
 )
 
 // ModelMirrorReconciler reconciles ModelMirror objects.
 type ModelMirrorReconciler struct {
 	client.Client
-	Log           logr.Logger
-	HTTPClient    *http.Client
-	CloudProvider storage.CloudProvider
+	Log logr.Logger
 }
 
 // NewModelMirrorReconciler creates a new reconciler instance.
-func NewModelMirrorReconciler(c client.Client, log logr.Logger, cloudProvider storage.CloudProvider) *ModelMirrorReconciler {
+func NewModelMirrorReconciler(c client.Client, log logr.Logger) *ModelMirrorReconciler {
 	return &ModelMirrorReconciler{
-		Client:        c,
-		Log:           log,
-		HTTPClient:    &http.Client{Timeout: 30 * time.Second},
-		CloudProvider: cloudProvider,
+		Client: c,
+		Log:    log,
 	}
 }
 
@@ -103,56 +91,25 @@ func (r *ModelMirrorReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{RequeueAfter: 1 * time.Second}, nil
 	}
 
-	// Step 1: Validate CSIDriver
-	csiDriverName := r.CloudProvider.CSIDriverName()
-	csiDriver := &storagev1.CSIDriver{}
-	if err := r.Get(ctx, types.NamespacedName{Name: csiDriverName}, csiDriver); err != nil {
-		return r.setFailureAndRequeue(ctx, cr, fmt.Sprintf("CSIDriver %q not found: %v", csiDriverName, err))
-	}
-
-	// Step 2: Validate StorageClass
-	sc := &storagev1.StorageClass{}
-	if err := r.Get(ctx, types.NamespacedName{Name: cr.Spec.Storage.StorageClassName}, sc); err != nil {
-		return r.setFailureAndRequeue(ctx, cr, fmt.Sprintf("StorageClass %q not found: %v", cr.Spec.Storage.StorageClassName, err))
-	}
-
-	// Guard: PVCNamespace must be set (set by workspace controller in Phase 2)
-	if cr.Status.PVCNamespace == "" {
-		return r.setFailureAndRequeue(ctx, cr, "status.pvcNamespace not set; waiting for workspace controller")
-	}
-
-	// Step 3: Resolve storageSize if empty
-	if cr.Spec.Storage.StorageSize == "" {
-		size, err := r.resolveStorageSize(ctx, cr)
-		if err != nil {
-			return r.setFailureAndRequeue(ctx, cr, fmt.Sprintf("failed to resolve storage size: %v", err))
-		}
-		cr.Spec.Storage.StorageSize = size
-		if err := r.Update(ctx, cr); err != nil {
-			return ctrl.Result{}, err
-		}
-		return ctrl.Result{RequeueAfter: 1 * time.Second}, nil
-	}
-
-	// Step 4: Ensure PVC
+	// Step 1: Ensure PVC
 	if err := r.ensurePVC(ctx, cr); err != nil {
 		return ctrl.Result{}, err
 	}
 
-	// Step 5: Ensure download Job
+	// Step 3: Ensure download Job
 	if err := r.ensureDownloadJob(ctx, cr, log); err != nil {
 		return ctrl.Result{}, err
 	}
 
-	// Step 6: Check Job status
+	// Step 4: Check Job status
 	return r.checkJobStatus(ctx, cr, log)
 }
 
 func (r *ModelMirrorReconciler) handleDeletion(ctx context.Context, cr *kaitov1alpha1.ModelMirror) (ctrl.Result, error) {
 	// Remove PVC finalizer
-	if cr.Status.PVCName != "" && cr.Status.PVCNamespace != "" {
+	if cr.Spec.PVCName != "" && cr.Spec.PVCNamespace != "" {
 		pvc := &corev1.PersistentVolumeClaim{}
-		if err := r.Get(ctx, types.NamespacedName{Name: cr.Status.PVCName, Namespace: cr.Status.PVCNamespace}, pvc); err == nil {
+		if err := r.Get(ctx, types.NamespacedName{Name: cr.Spec.PVCName, Namespace: cr.Spec.PVCNamespace}, pvc); err == nil {
 			if controllerutil.ContainsFinalizer(pvc, mmconsts.ModelMirrorPVCFinalizer) {
 				controllerutil.RemoveFinalizer(pvc, mmconsts.ModelMirrorPVCFinalizer)
 				if err := r.Update(ctx, pvc); err != nil {
@@ -170,12 +127,11 @@ func (r *ModelMirrorReconciler) handleDeletion(ctx context.Context, cr *kaitov1a
 }
 
 func (r *ModelMirrorReconciler) ensurePVC(ctx context.Context, cr *kaitov1alpha1.ModelMirror) error {
-	pvcName := cr.Name
+	pvcName := cr.Spec.PVCName
 	pvc := &corev1.PersistentVolumeClaim{}
-	err := r.Get(ctx, types.NamespacedName{Name: pvcName, Namespace: cr.Status.PVCNamespace}, pvc)
+	err := r.Get(ctx, types.NamespacedName{Name: pvcName, Namespace: cr.Spec.PVCNamespace}, pvc)
 	if err == nil {
 		// PVC already exists — check if bound
-		cr.Status.PVCName = pvcName
 		if pvc.Status.Phase == corev1.ClaimBound {
 			setCondition(cr, mmconsts.ConditionTypeStorageReady, metav1.ConditionTrue, "PVCBound", "PVC is bound")
 		}
@@ -186,11 +142,11 @@ func (r *ModelMirrorReconciler) ensurePVC(ctx context.Context, cr *kaitov1alpha1
 	}
 
 	// Create PVC
-	storageSize := resource.MustParse(cr.Spec.Storage.StorageSize)
+	storageSize := resource.MustParse(cr.Spec.Storage.Size)
 	pvc = &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:       pvcName,
-			Namespace:  cr.Status.PVCNamespace,
+			Namespace:  cr.Spec.PVCNamespace,
 			Finalizers: []string{mmconsts.ModelMirrorPVCFinalizer},
 		},
 		Spec: corev1.PersistentVolumeClaimSpec{
@@ -206,14 +162,13 @@ func (r *ModelMirrorReconciler) ensurePVC(ctx context.Context, cr *kaitov1alpha1
 	if err := r.Create(ctx, pvc); err != nil {
 		return err
 	}
-	cr.Status.PVCName = pvcName
 	return r.Status().Update(ctx, cr)
 }
 
 func (r *ModelMirrorReconciler) ensureDownloadJob(ctx context.Context, cr *kaitov1alpha1.ModelMirror, log logr.Logger) error {
 	jobName := cr.Name + "-download"
 	job := &batchv1.Job{}
-	err := r.Get(ctx, types.NamespacedName{Name: jobName, Namespace: cr.Status.PVCNamespace}, job)
+	err := r.Get(ctx, types.NamespacedName{Name: jobName, Namespace: cr.Spec.PVCNamespace}, job)
 	if err == nil {
 		return nil
 	}
@@ -222,14 +177,14 @@ func (r *ModelMirrorReconciler) ensureDownloadJob(ctx context.Context, cr *kaito
 	}
 
 	job = download.BuildDownloadJob(cr)
-	log.Info("Creating download Job", "job", jobName, "namespace", cr.Status.PVCNamespace)
+	log.Info("Creating download Job", "job", jobName, "namespace", cr.Spec.PVCNamespace)
 	return r.Create(ctx, job)
 }
 
 func (r *ModelMirrorReconciler) checkJobStatus(ctx context.Context, cr *kaitov1alpha1.ModelMirror, log logr.Logger) (ctrl.Result, error) {
 	jobName := cr.Name + "-download"
 	job := &batchv1.Job{}
-	if err := r.Get(ctx, types.NamespacedName{Name: jobName, Namespace: cr.Status.PVCNamespace}, job); err != nil {
+	if err := r.Get(ctx, types.NamespacedName{Name: jobName, Namespace: cr.Spec.PVCNamespace}, job); err != nil {
 		if errors.IsNotFound(err) {
 			return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
 		}
@@ -263,33 +218,8 @@ func (r *ModelMirrorReconciler) checkJobStatus(ctx context.Context, cr *kaitov1a
 }
 
 func (r *ModelMirrorReconciler) handleJobSuccess(ctx context.Context, cr *kaitov1alpha1.ModelMirror, log logr.Logger) (ctrl.Result, error) {
-	pvc := &corev1.PersistentVolumeClaim{}
-	if err := r.Get(ctx, types.NamespacedName{Name: cr.Status.PVCName, Namespace: cr.Status.PVCNamespace}, pvc); err != nil {
-		return ctrl.Result{}, err
-	}
-
-	if pvc.Spec.VolumeName == "" {
-		return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
-	}
-
-	pv := &corev1.PersistentVolume{}
-	if err := r.Get(ctx, types.NamespacedName{Name: pvc.Spec.VolumeName}, pv); err != nil {
-		return ctrl.Result{}, err
-	}
-
-	if pv.Spec.CSI == nil {
-		return ctrl.Result{}, fmt.Errorf("PV %s has no CSI spec", pv.Name)
-	}
-
-	accountName, containerName, err := r.CloudProvider.ParseVolumeHandle(pv.Spec.CSI.VolumeHandle)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-
 	modelID := cr.Spec.Source.ModelID
 	cr.Status.Phase = kaitov1alpha1.ModelMirrorPhaseReady
-	cr.Status.StorageURI = r.CloudProvider.BuildStorageURI(containerName, modelID)
-	cr.Status.AccountName = accountName
 	cr.Status.ModelPath = "/models/" + modelID
 	cr.Status.FailureMessage = ""
 	cr.Status.LastDownloadTime = ptr.To(metav1.Now())
@@ -297,76 +227,8 @@ func (r *ModelMirrorReconciler) handleJobSuccess(ctx context.Context, cr *kaitov
 	setCondition(cr, mmconsts.ConditionTypeReady, metav1.ConditionTrue, "DownloadSucceeded", "Model download completed")
 	setCondition(cr, mmconsts.ConditionTypeStorageReady, metav1.ConditionTrue, "PVCBound", "PVC is bound")
 
-	log.Info("ModelMirror is Ready", "storageURI", cr.Status.StorageURI)
+	log.Info("ModelMirror is Ready", "modelPath", cr.Status.ModelPath)
 	return ctrl.Result{}, r.Status().Update(ctx, cr)
-}
-
-func (r *ModelMirrorReconciler) setFailureAndRequeue(ctx context.Context, cr *kaitov1alpha1.ModelMirror, msg string) (ctrl.Result, error) {
-	cr.Status.FailureMessage = msg
-	cr.Status.Phase = kaitov1alpha1.ModelMirrorPhasePending
-	setCondition(cr, mmconsts.ConditionTypeReady, metav1.ConditionFalse, "ReconcileError", msg)
-	if err := r.Status().Update(ctx, cr); err != nil {
-		return ctrl.Result{}, err
-	}
-	return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
-}
-
-// resolveStorageSize queries HuggingFace tree API and computes total safetensors size.
-func (r *ModelMirrorReconciler) resolveStorageSize(ctx context.Context, cr *kaitov1alpha1.ModelMirror) (string, error) {
-	url := fmt.Sprintf(mmconsts.HFTreeAPITemplate, cr.Spec.Source.ModelID)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return "", err
-	}
-
-	// Add auth token if access secret provided
-	if cr.Spec.Source.AccessSecret != nil {
-		secret := &corev1.Secret{}
-		if err := r.Get(ctx, types.NamespacedName{
-			Name:      cr.Spec.Source.AccessSecret.Name,
-			Namespace: cr.Spec.Source.AccessSecret.Namespace,
-		}, secret); err == nil {
-			if token, ok := secret.Data["token"]; ok {
-				req.Header.Set("Authorization", "Bearer "+string(token))
-			}
-		}
-	}
-
-	resp, err := r.HTTPClient.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("HuggingFace tree API request failed: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
-		return "", fmt.Errorf("HuggingFace tree API returned %d: %s", resp.StatusCode, string(body))
-	}
-
-	var entries []struct {
-		Path string `json:"path"`
-		Size int64  `json:"size"`
-		Type string `json:"type"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&entries); err != nil {
-		return "", fmt.Errorf("failed to decode HF tree API response: %w", err)
-	}
-
-	var totalBytes int64
-	for _, e := range entries {
-		if e.Type == "file" && strings.HasSuffix(e.Path, ".safetensors") && !strings.Contains(e.Path, "/") {
-			totalBytes += e.Size
-		}
-	}
-
-	if totalBytes == 0 {
-		return "", fmt.Errorf("no .safetensors files found for model %s", cr.Spec.Source.ModelID)
-	}
-
-	// Add 10% buffer and round up to nearest GiB
-	buffered := float64(totalBytes) * 1.1
-	gib := int64(math.Ceil(buffered / float64(giBBytes)))
-	return fmt.Sprintf("%dGi", gib), nil
 }
 
 func setCondition(cr *kaitov1alpha1.ModelMirror, condType string, status metav1.ConditionStatus, reason, message string) {

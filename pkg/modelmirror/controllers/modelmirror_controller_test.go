@@ -30,7 +30,6 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
-	"github.com/kaito-project/kaito/pkg/modelmirror/storage"
 )
 
 func TestCRName(t *testing.T) {
@@ -69,7 +68,7 @@ func TestReconcile_AlreadyReady(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(cr).Build()
-	r := NewModelMirrorReconciler(client, zap.New(zap.UseDevMode(true)), storage.NewAzureBlobProvider())
+	r := NewModelMirrorReconciler(client, zap.New(zap.UseDevMode(true)))
 
 	result, err := r.Reconcile(context.Background(), ctrl.Request{
 		NamespacedName: types.NamespacedName{Name: "abc123"},
@@ -92,14 +91,16 @@ func TestReconcile_AddsFinalizer(t *testing.T) {
 	cr := &kaitov1alpha1.ModelMirror{
 		ObjectMeta: metav1.ObjectMeta{Name: "abc123"},
 		Spec: kaitov1alpha1.ModelMirrorSpec{
-			Source:  kaitov1alpha1.ModelMirrorSource{Registry: "huggingface", ModelID: "test/model"},
-			Storage: kaitov1alpha1.ModelMirrorStorage{StorageClassName: "blob-nfs", StorageSize: "10Gi"},
+			Source:       kaitov1alpha1.ModelMirrorSource{Registry: "huggingface", ModelID: "test/model"},
+			Storage:      kaitov1alpha1.ModelMirrorStorage{StorageClassName: "blob-nfs", Size: "10Gi"},
+			PVCName:      "abc123",
+			PVCNamespace: "default",
 		},
 		Status: kaitov1alpha1.ModelMirrorStatus{Phase: kaitov1alpha1.ModelMirrorPhasePending},
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(cr).Build()
-	r := NewModelMirrorReconciler(client, zap.New(zap.UseDevMode(true)), storage.NewAzureBlobProvider())
+	r := NewModelMirrorReconciler(client, zap.New(zap.UseDevMode(true)))
 
 	result, err := r.Reconcile(context.Background(), ctrl.Request{
 		NamespacedName: types.NamespacedName{Name: "abc123"},
@@ -122,46 +123,6 @@ func TestReconcile_AddsFinalizer(t *testing.T) {
 	}
 	if !found {
 		t.Error("finalizer not added to CR")
-	}
-}
-
-func TestReconcile_MissingCSIDriver(t *testing.T) {
-	scheme := runtime.NewScheme()
-	_ = kaitov1alpha1.AddToScheme(scheme)
-	_ = batchv1.AddToScheme(scheme)
-	_ = corev1.AddToScheme(scheme)
-	_ = storagev1.AddToScheme(scheme)
-
-	cr := &kaitov1alpha1.ModelMirror{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:       "abc123",
-			Finalizers: []string{mmconsts.ModelMirrorFinalizer},
-		},
-		Spec: kaitov1alpha1.ModelMirrorSpec{
-			Source:  kaitov1alpha1.ModelMirrorSource{Registry: "huggingface", ModelID: "test/model"},
-			Storage: kaitov1alpha1.ModelMirrorStorage{StorageClassName: "blob-nfs", StorageSize: "10Gi"},
-		},
-		Status: kaitov1alpha1.ModelMirrorStatus{Phase: kaitov1alpha1.ModelMirrorPhasePending},
-	}
-
-	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(cr).WithStatusSubresource(cr).Build()
-	r := NewModelMirrorReconciler(client, zap.New(zap.UseDevMode(true)), storage.NewAzureBlobProvider())
-
-	result, err := r.Reconcile(context.Background(), ctrl.Request{
-		NamespacedName: types.NamespacedName{Name: "abc123"},
-	})
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if result.RequeueAfter != 30*time.Second {
-		t.Errorf("expected 30s requeue, got %v", result.RequeueAfter)
-	}
-
-	// Verify failure message set
-	updated := &kaitov1alpha1.ModelMirror{}
-	_ = client.Get(context.Background(), types.NamespacedName{Name: "abc123"}, updated)
-	if updated.Status.FailureMessage == "" {
-		t.Error("expected failureMessage to be set")
 	}
 }
 

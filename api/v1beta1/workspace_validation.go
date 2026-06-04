@@ -99,8 +99,10 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		errs = errs.Also(
 			w.validateUpdate(old).ViaField("spec"),
 			w.Resource.validateUpdate(&old.Resource).ViaField("resource"),
-			w.validateModelStreamingAnnotationImmutable(old),
 		)
+		if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+			errs = errs.Also(w.validateModelStreamingAnnotationImmutable(old))
+		}
 		if w.Inference != nil {
 			errs = errs.Also(w.Inference.validateUpdate(old.Inference).ViaField("inference"))
 		}

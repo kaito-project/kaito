@@ -51,6 +51,14 @@ spec:
             type: object
           spec:
             properties:
+              pvcName:
+                description: PVCName is the name of the PersistentVolumeClaim to create
+                  for model storage.
+                type: string
+              pvcNamespace:
+                description: PVCNamespace is the namespace where the PVC and download
+                  Job will be created.
+                type: string
               source:
                 properties:
                   accessSecret:
@@ -103,6 +111,8 @@ spec:
                   registry:
                     description: Registry is the source registry type. Currently only
                       "huggingface" is supported.
+                    enum:
+                    - huggingface
                     type: string
                 required:
                 - modelID
@@ -110,23 +120,24 @@ spec:
                 type: object
               storage:
                 properties:
+                  size:
+                    description: Size is the PVC size (e.g. "20Gi").
+                    type: string
                   storageClassName:
                     description: StorageClassName is the StorageClass to use for the
                       PVC.
                     type: string
-                  storageSize:
-                    description: StorageSize is the PVC size. Auto-computed from model
-                      metadata if empty.
-                    type: string
+                required:
+                - size
                 type: object
             required:
+            - pvcName
+            - pvcNamespace
             - source
             - storage
             type: object
           status:
             properties:
-              accountName:
-                type: string
               conditions:
                 items:
                   description: Condition contains details for one aspect of the current
@@ -191,12 +202,9 @@ spec:
               modelPath:
                 type: string
               phase:
-                type: string
-              pvcName:
-                type: string
-              pvcNamespace:
-                type: string
-              storageURI:
+                enum:
+                - Pending
+                - Ready
                 type: string
             type: object
         type: object

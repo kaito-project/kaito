@@ -86,9 +86,6 @@ rules:
   - apiGroups: ["storage.k8s.io"]
     resources: ["storageclasses"]
     verbs: ["get", "list", "watch"]
-  - apiGroups: ["storage.k8s.io"]
-    resources: ["csinodes", "csidrivers"]
-    verbs: ["get", "list", "watch"]
   {{- if .Values.featureGates.gatewayAPIInferenceExtension }}
   - apiGroups: ["source.toolkit.fluxcd.io"]
     resources: ["ocirepositories"]

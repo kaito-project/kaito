@@ -39,8 +39,8 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
             - --feature-gates={{ include "utils.joinKeyValuePairs" .Values.featureGates }}
-            {{- if .Values.defaultModelStorageClass }}
-            - --default-model-storage-class={{ .Values.defaultModelStorageClass }}
+            {{- if .Values.defaultModelMirrorStorageClass }}
+            - --default-model-mirror-storage-class={{ .Values.defaultModelMirrorStorageClass }}
             {{- end }}
             {{- if .Values.defaultStreamingServiceAccount }}
             - --default-streaming-service-account={{ .Values.defaultStreamingServiceAccount }}

@@ -84,20 +84,24 @@ By mirroring model weights to persistent cloud storage in parallel with GPU prov
 
 ### Prerequisites
 
-**Azure Blob CSI Driver:** The AKS Blob CSI driver must be enabled on the cluster. It is **disabled by default** on AKS. Once enabled, the driver (`blob.csi.azure.com`) supports two mount protocols:
+**Storage setup:** The user must configure a StorageClass and ensure the underlying storage driver is available. ModelMirror is storage-agnostic — any StorageClass that supports `ReadWriteMany` PVCs works. For Azure Blob NFS (recommended for streaming):
 
-- **BlobFuse** (default) — FUSE-based userspace filesystem. Translates file operations to Blob REST API calls.
-- **NFS** — kernel-level NFS 3.0 mount. Requires Premium storage account. Lower overhead for large sequential writes.
+- **Azure Blob CSI Driver:** Must be enabled on the cluster (disabled by default on AKS). Once enabled, the driver (`blob.csi.azure.com`) supports two mount protocols:
 
-Either protocol works for this feature because:
-- The **download Job** writes model files to the PVC via the mounted filesystem (BlobFuse or NFS both work).
-- The **inference pod** (RunAI streamer) reads directly from Azure Blob via `az://` URI using the Azure SDK — it does **not** read through the filesystem mount.
+  - **BlobFuse** (default) — FUSE-based userspace filesystem. Translates file operations to Blob REST API calls.
+  - **NFS** — kernel-level NFS 3.0 mount. Requires Premium storage account. Lower overhead for large sequential writes.
 
-NFS is recommended for better download write performance, but BlobFuse is also functional. BlobFuse uses account-key authentication which is more flexible — it even works in non-Azure environments where NFS protocol may not be available. The StorageClass `parameters.protocol` field controls which is used. Users may specify any custom StorageClass name in the CR spec (`spec.storage.storageClassName`).
+  Either protocol works for this feature because:
+  - The **download Job** writes model files to the PVC via the mounted filesystem (BlobFuse or NFS both work).
+  - The **inference pod** (RunAI streamer) reads directly from Azure Blob via `az://` URI using the Azure SDK — it does **not** read through the filesystem mount.
 
-KAITO will validate that the Blob CSI driver is available (by checking for the `blob.csi.azure.com` CSIDriver object) before creating the PVC. If the driver is not installed, the ModelMirror CR will report a clear error in `status.failureMessage`.
+  NFS is recommended for better download write performance, but BlobFuse is also functional. BlobFuse uses account-key authentication which is more flexible — it even works in non-Azure environments where NFS protocol may not be available. The StorageClass `parameters.protocol` field controls which is used.
 
-**Enabling the driver and creating the StorageClass** (one-time cluster setup):
+- **StorageClass:** Must be created with the desired provisioner and parameters.
+
+ModelMirror does not validate the storage driver — if the CSI driver is missing, the PVC will remain unbound and the download Job will stay pending. The user is responsible for ensuring their storage infrastructure is configured.
+
+**Example setup (Azure Blob NFS):**
 ```bash
 # Enable the Blob CSI driver
 az aks update --enable-blob-driver -n <cluster> -g <resource-group>
@@ -157,7 +161,9 @@ EOF
 
 ### ModelMirror Custom Resource
 
-A cluster-scoped resource in `kaito.sh/v1alpha1` — one per model, shared across all workspaces.
+A cluster-scoped resource in `kaito.sh/v1alpha1` — one per model, shared across all workspaces. The CR is storage-agnostic: it downloads a model to a PVC using any user-provided StorageClass. Cloud provider-specific logic (streaming URIs, volumeHandle parsing) is handled by the workspace controller, not ModelMirror.
+
+The CR can be created either by the workspace controller (Phase 2) or directly by the user.
 
 ```yaml
 apiVersion: kaito.sh/v1alpha1
@@ -166,21 +172,19 @@ metadata:
   name: a3f7b2  # SHA-256 hash of modelID, first 6 characters
 spec:
   source:
-    registry: huggingface               # "huggingface", "oci" (future)
+    registry: huggingface               # only supported value
     modelID: "qwen/qwen2.5-coder-32b-instruct"
-    accessSecret:                        # optional: ObjectReference to Secret (cluster-scoped CR needs namespace)
+    accessSecret:                        # optional: ObjectReference to Secret
       name: "hf-token-secret"
       namespace: "kaito-workspace"
   storage:
-    storageSize: ""                     # auto-computed from HF tree API (sum of *.safetensors file sizes + 10% buffer) if empty
-    storageClassName: "blob-nfs"        # default: NFS (best performance). Also supports BlobFuse or other StorageClass names.
+    size: "70Gi"                        # required — PVC size
+    storageClassName: "blob-nfs"        # StorageClass to use
+  pvcName: "a3f7b2"                     # required — PVC name
+  pvcNamespace: "default"               # required — namespace for PVC and download Job
 status:
   phase: Pending | Ready
-  pvcName: "a3f7b2"
-  pvcNamespace: "default"             # namespace of the first workspace that triggered the mirror
   modelPath: "/models/qwen/qwen2.5-coder-32b-instruct"
-  storageURI: "az://container-name/qwen/qwen2.5-coder-32b-instruct"
-  accountName: "storageaccountname"   # resolved from PV volumeHandle (parts[1])
   conditions:
     - type: StorageReady
       status: "True"
@@ -192,9 +196,10 @@ status:
 
 **Key design decisions:**
 - Cluster-scoped: survives workspace deletion, shared across workspaces and namespaces
+- **Spec is fully immutable** — validating webhook rejects all spec updates. Delete and recreate to change.
 - `spec.source` is generic — not tied to any specific model registry
-- `status.storageURI` is provider-specific (az://, s3://) and is what vLLM receives as `--model=`
-- `status.pvcName` is auto-generated — consumers read from status, not spec
+- All required fields (pvcName, pvcNamespace, size) are in spec — the CR is self-contained at creation time
+- No cloud provider-specific fields in status — the workspace controller derives streaming URIs from PVC → PV when needed
 - Phase never reaches "Failed" — CR stays in `Pending` and keeps retrying indefinitely
 
 **Relationships:**
@@ -213,19 +218,16 @@ status:
 
 ### ModelMirror Controller
 
-A new controller that watches `ModelMirror` CRs and manages the download lifecycle:
+A new controller that watches `ModelMirror` CRs and manages the download lifecycle. The controller is storage-agnostic — it creates PVCs using the user-provided StorageClass and does not interact with cloud provider APIs.
 
 1. **On CR creation:**
    - Add finalizer `kaito.sh/model-mirror-cleanup` to the CR (ensures proper cleanup on deletion)
-   - Validate CSIDriver `blob.csi.azure.com` exists (error if not)
-   - Validate StorageClass exists and has `volumeBindingMode: Immediate` (error if `WaitForFirstConsumer` — PVC would never bind without a pod)
-   - If `spec.source.accessSecret` is set, the download Job references it via `secretKeyRef` (the Job runs in the same namespace as the secret — see below)
-   - Create PVC (using resolved size) in the namespace of the first workspace that triggers the mirror, with a finalizer (`kaito.sh/model-mirror-protection`) to ensure PVC persists after the download Job/pod is deleted
-   - Create download Job in the same namespace as the PVC
+   - Validate StorageClass exists (error if not)
+   - Create PVC (using spec.pvcName, spec.pvcNamespace, spec.storage.size) with a finalizer (`kaito.sh/model-mirror-protection`)
+   - Create download Job in spec.pvcNamespace
 
 2. **On Job completion:**
    - Update CR status to `Ready`
-   - Populate `storageURI` (resolved from PVC → PV → CSI volumeHandle)
    - Set `status.modelPath` = `/models/{spec.source.modelID}` (verbatim, case-sensitive — matches hfdownloader output directory)
    - Set `lastDownloadTime`
 
@@ -246,11 +248,16 @@ A new controller that watches `ModelMirror` CRs and manages the download lifecyc
 
 ### Workspace Controller Integration
 
-When the `ModelStreaming` feature gate is enabled and the workspace does not have the opt-out annotation:
+When the `ModelStreaming` feature gate is enabled and the workspace does not have the opt-out annotation, the workspace controller is responsible for:
+
+**ModelMirror CR lifecycle:**
 
 1. **Before node provisioning:** Check if `ModelMirror` CR exists for the workspace's model
-   - If not: create it (triggers download in parallel with node provisioning)
-   - StorageClass for the CR is determined by: workspace annotation `kaito.sh/model-storage-class` → controller flag `--default-model-storage-class` (required when feature gate is on)
+   - If not: create it with derived spec fields:
+     - `pvcName`: auto-generated (e.g., CR name)
+     - `pvcNamespace`: workspace namespace
+     - `size`: read from model metadata (`DiskStorageRequirement` in the model preset registry — all preset models have this information). No HuggingFace API calls needed.
+     - `storageClassName`: from workspace annotation `kaito.sh/model-mirror-storage-class` → controller flag `--default-model-mirror-storage-class`
    - If exists and `Ready`: proceed immediately
    - If exists and `Pending`: wait
 
@@ -262,20 +269,32 @@ When the `ModelStreaming` feature gate is enabled and the workspace does not hav
 
 4. **Workspace status:** Surface a `ModelMirrorInProgress` condition with the CR's `failureMessage` if download is failing. This gives users visibility without needing to inspect a separate resource.
 
+**Cloud provider-specific inference pod configuration (responsibilities moved from ModelMirror controller):**
+
+5. **Storage URI resolution:** Build the streaming URI (e.g., `az://<container>/<modelID>`) from PVC → PV → CSI volumeHandle. This is provider-specific parsing (Azure: `parts[2]` of `#`-separated volumeHandle).
+
+6. **Storage account name:** Extract from PV volumeHandle (Azure: `parts[1]`) for `AZURE_STORAGE_ACCOUNT_NAME` env var on the inference pod.
+
+7. **Workload identity:** Set `azure.workload.identity/use: "true"` label and `serviceAccountName` on the inference pod.
+
+8. **Streaming configuration:** Set `--model=<storageURI>`, `--load-format=runai_streamer`, and distributed streaming config on the inference pod.
+
+These are abstracted behind a `CloudProvider` interface in the workspace controller scope, making it straightforward to add S3/GCS support.
+
 ### Inference Pod Configuration
 
 When mirror + streaming is active, the inference pod is configured differently from the original path:
 
 | Aspect | Original Path | Streaming Path |
 |--------|---------------|----------------|
-| `--model=` | Local path or HF ID | `az://<container>/<model-path>` (from CR status) |
+| `--model=` | Local path or HF ID | `az://<container>/<model-path>` (resolved by workspace controller from PVC → PV → volumeHandle) |
 | `--load-format=` | `auto` | `runai_streamer` |
 | Model weights volume | Mounted at `/workspace/weights` | Not mounted |
 | ServiceAccount | default | Determined by: workspace annotation `kaito.sh/streaming-service-account` → controller flag `--default-streaming-service-account` |
 | Extra config | None | `--model-loader-extra-config '{"distributed": true}'` (TP>1) |
 
 **Environment variables on inference pod:**
-- `AZURE_STORAGE_ACCOUNT_NAME` — resolved dynamically from PVC → PV → volumeHandle
+- `AZURE_STORAGE_ACCOUNT_NAME` — resolved by the workspace controller from PVC → PV → volumeHandle
 
 **Pre-requisite:** `runai-model-streamer` and `runai-model-streamer-azure` Python packages pre-installed in the KAITO base image.
 
@@ -314,16 +333,27 @@ When no `storageAccount` is specified in the StorageClass, the driver dynamicall
 
 ### Feature Gate and Opt-Out
 
-**Feature gate:**
-- Name: `ModelStreaming`
-- Default: `false` (opt-in initially)
-- Passed via `--feature-gates=ModelStreaming=true` on the controller
+**Feature gates:**
+
+Two separate feature gates control ModelMirror and streaming:
+
+| Gate | Default | Controls |
+|---|---|---|
+| `ModelMirror` | `false` | ModelMirror controller + webhook. Enables the "download model to PVC" functionality. |
+| `ModelStreaming` | `false` | Workspace controller integration + inference pod streaming config. **Requires `ModelMirror=true`.** |
+
+The controller validates at startup that `ModelStreaming=true` requires `ModelMirror=true` and fails with a clear error otherwise.
+
+- `ModelMirror=true` alone: users can manually create ModelMirror CRs to pre-download models to storage.
+- `ModelMirror=true,ModelStreaming=true`: workspace controller auto-creates ModelMirror CRs and configures inference pods to stream from blob.
+
+Passed via `--feature-gates=ModelMirror=true,ModelStreaming=true` on the controller.
 
 **Controller flags:**
 
 | Flag | Required | Description | Example |
 |---|---|---|---|
-| `--default-model-storage-class` | **Yes** (when feature gate on) | StorageClass used when creating ModelMirror PVCs. Cluster-wide setting. | `blob-nfs` |
+| `--default-model-mirror-storage-class` | **Yes** (when feature gate on) | StorageClass used when creating ModelMirror PVCs. Cluster-wide setting. | `blob-nfs` |
 | `--default-streaming-service-account` | No (optional) | Default ServiceAccount for inference pods. Useful when SA name is unified across all namespaces. | `kaito-model-streamer` |
 
 These are set via Helm values and require a controller restart (Helm upgrade) to change.
@@ -332,17 +362,17 @@ These are set via Helm values and require a controller restart (Helm upgrade) to
 
 | Annotation | Description |
 |---|---|
-| `kaito.sh/model-storage-class` | Override the cluster-wide default StorageClass for this workspace's ModelMirror CR (optional) |
+| `kaito.sh/model-mirror-storage-class` | Override the cluster-wide default StorageClass for this workspace's ModelMirror CR (optional) |
 | `kaito.sh/streaming-service-account` | ServiceAccount name for this workspace's inference pod. Required when `--default-streaming-service-account` is not set (SA varies per namespace). |
 
 **Resolution order:**
-- **StorageClass**: workspace annotation `kaito.sh/model-storage-class` → controller flag `--default-model-storage-class`
+- **StorageClass**: workspace annotation `kaito.sh/model-mirror-storage-class` → controller flag `--default-model-mirror-storage-class`
 - **ServiceAccount**: workspace annotation `kaito.sh/streaming-service-account` → controller flag `--default-streaming-service-account` → error if neither set
 
 **Workspace annotation opt-out:**
 - `kaito.sh/model-streaming: "disabled"`
 - Allows individual workspaces to bypass streaming even when the gate is globally on
-- **Immutable:** A validating webhook rejects updates that add, remove, or change this annotation after workspace creation. If streaming does not work, the user must recreate the workspace.
+- **Immutable:** A validating webhook (gated on `ModelStreaming=true`) rejects updates that add, remove, or change this annotation after workspace creation. If streaming does not work, the user must recreate the workspace.
 
 **Behavior matrix:**
 
@@ -354,7 +384,7 @@ These are set via Helm values and require a controller restart (Helm upgrade) to
 
 ### Provider Abstraction
 
-The CR interface is cloud-agnostic. Provider-specific logic is encapsulated behind a `CloudProvider` interface (`pkg/modelmirror/storage/provider.go`) with methods for CSI driver validation, volumeHandle parsing, and storage URI construction. The provider is resolved at startup from the existing `CLOUD_PROVIDER` env var (Helm `cloudProviderName`). Currently only Azure is implemented; enabling `ModelStreaming` with a non-Azure provider fails at startup with a clear error.
+The ModelMirror CRD and controller are storage-agnostic — they work with any StorageClass and do not contain cloud provider-specific logic. Provider-specific concerns (storage URI construction, volumeHandle parsing, streaming env vars, workload identity) are handled by the **workspace controller** (Phase 2), which encapsulates this logic behind a `CloudProvider` interface. The provider is resolved at startup from the existing `CLOUD_PROVIDER` env var (Helm `cloudProviderName`). Currently only Azure is planned; enabling `ModelStreaming` with a non-Azure provider fails at startup with a clear error.
 
 | Concern | Azure Implementation | Future AWS | Future GCP |
 |---|---|---|---|
@@ -414,11 +444,11 @@ a3f7b2   qwen/Qwen2.5-Coder-32B-Instruct   Ready   2h
 8e2d1f   microsoft/Phi-4                    Ready   1d
 ```
 
-### Storage Account Resolution
+### Storage Account Resolution (Workspace Controller — Phase 2)
 
-The storage account name and container are resolved dynamically at runtime from the PVC referenced in the CR status:
+The storage account name and container are resolved by the **workspace controller** (not the ModelMirror controller) when configuring the inference pod. The workspace controller reads the PVC from the ModelMirror CR's `spec.pvcName`:
 
-1. Read PVC from CR `status.pvcName`
+1. Read PVC from ModelMirror CR `spec.pvcName` in `spec.pvcNamespace`
 2. Get the bound PV from `pvc.spec.volumeName`
 3. Parse the CSI `volumeHandle` on the PV
 
@@ -522,8 +552,9 @@ This flag is only added when `tensor-parallel-size > 1`. For single-GPU models, 
 ### Unit Tests
 - ModelMirror controller reconciliation logic
 - CR name derivation from model IDs
-- Storage URI resolution from PVC/PV
 - Feature gate and annotation logic in workspace controller
+- Validating webhook: ModelMirror field validation + spec immutability
+- Validating webhook: immutable `kaito.sh/model-streaming` annotation
 
 ### Integration Tests
 - ModelMirror CR lifecycle (create → download → ready)

@@ -83,7 +83,7 @@ webhooks:
           - CREATE
           - UPDATE
 {{- end }}
-{{- if .Values.featureGates.ModelStreaming }}
+{{- if .Values.featureGates.ModelMirror }}
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration

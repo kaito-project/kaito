@@ -31,7 +31,11 @@ COPY presets/workspace/dependencies/requirements.txt /workspace/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip3 install --no-cache-dir "uv==${UV_VERSION}" && \
     uv pip install --system -q -r /workspace/requirements.txt && \
-    pip3 uninstall -y uv
+    pip3 uninstall -y uv && \
+    # Remove nixl-cu13: it requires libcudart.so.13 which is not available in this
+    # image (only CUDA 12 runtime is bundled). nixl-cu12 remains and is sufficient.
+    # nixl-cu13 is pulled transitively via lmcache -> nixl meta-package.
+    pip3 uninstall -y nixl-cu13 || true
 
 # 1. Huggingface transformers
 COPY presets/workspace/inference/${MODEL_TYPE}/inference_api.py \

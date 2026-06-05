@@ -28,15 +28,19 @@ FROM dependencies AS base
 
 COPY presets/workspace/dependencies/requirements.txt /workspace/requirements.txt
 
+ENV LMCACHE_VERSION=0.4.6
+
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip3 install --no-cache-dir "uv==${UV_VERSION}" && \
     uv pip install --system -q -r /workspace/requirements.txt && \
-    pip3 uninstall -y uv && \
-    # Remove nixl-cu13: it requires libcudart.so.13 which is not available in this
-    # image (only CUDA 12 runtime is bundled). nixl-cu12 remains and is sufficient.
-    # nixl-cu13 is pulled transitively via lmcache -> nixl meta-package.
-    # TODO: We need to uninstall nixl-cu12 instead if vllm upgrades to use CUDA 13
-    pip3 uninstall -y nixl-cu13 || true
+    # Pin LMCache to use CUDA 12.9 wheel since it uses CUDA 13 wheel by default and is not compatible with Kaito's current vllm setup.
+    # --extra-index-url https://download.pytorch.org/whl/cu129 ensures the CUDA 12.9 build of PyTorch is resolved.
+    # TODO: Remove this once vLLM switches to use CUDA 13 wheel by default
+    uv pip install --system lmcache==${LMCACHE_VERSION} \
+        --extra-index-url https://download.pytorch.org/whl/cu129 \
+        --find-links https://github.com/LMCache/LMCache/releases/expanded_assets/v${LMCACHE_VERSION}-cu129 \
+        --index-strategy unsafe-best-match && \
+    pip3 uninstall -y uv
 
 # 1. Huggingface transformers
 COPY presets/workspace/inference/${MODEL_TYPE}/inference_api.py \

@@ -499,10 +499,9 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	return c.Update(ctx, existingObj)
 }
 
-// refreshInferenceConfig updates the default inference config ConfigMap in the workspace
-// namespace with the latest content from the release namespace. This is needed during base
-// image auto-upgrades because a newer base image may use a newer vllm version with different
-// valid parameters (e.g., swap-space was removed in vllm v1).
+// refreshInferenceConfig deletes and recreates the default inference config ConfigMap in the
+// workspace namespace from the current release template. This is needed during base image
+// auto-upgrades because the content of the default config may change with a newer base image.
 func (c *WorkspaceReconciler) refreshInferenceConfig(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
 	_, err := resources.EnsureConfigOrCopyFromDefault(ctx, c.Client,
 		client.ObjectKey{
@@ -512,7 +511,7 @@ func (c *WorkspaceReconciler) refreshInferenceConfig(ctx context.Context, wObj *
 		client.ObjectKey{
 			Name: kaitov1beta1.DefaultInferenceConfigTemplate,
 		},
-		true, // forceRefresh
+		true, // forceRefresh: delete + recreate from release template
 	)
 	return err
 }

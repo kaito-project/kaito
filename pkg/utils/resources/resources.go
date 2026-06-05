@@ -149,13 +149,10 @@ func CheckResourceStatus(obj client.Object, kubeClient client.Client, timeoutDur
 //   - Use the default config template
 //   - Check if it exists in the target namespace
 //   - If not, copy from release namespace to target namespace
-//   - If forceRefresh is true, update the existing copy from the release template
-//     (needed during base image auto-upgrades when vllm parameters may have changed)
+//   - If forceRefresh is true, delete the existing copy and create a new one from the release template
 func EnsureConfigOrCopyFromDefault(ctx context.Context, kubeClient client.Client,
 	userProvided, systemDefault client.ObjectKey, forceRefresh bool,
 ) (*corev1.ConfigMap, error) {
-	shouldRefresh := forceRefresh
-
 	// If user specified a config, use that
 	if userProvided.Name != "" {
 		userCM := &corev1.ConfigMap{}
@@ -188,27 +185,23 @@ func EnsureConfigOrCopyFromDefault(ctx context.Context, kubeClient client.Client
 			return nil, err
 		}
 	} else {
-		if !shouldRefresh {
+		if !forceRefresh {
 			klog.Infof("Default ConfigMap already exists in target namespace: %s, no action taken.", userProvided.Namespace)
 			return existingCM, nil
 		}
 
-		// Force refresh: update the existing ConfigMap with the latest template from release namespace
-		templateCM := &corev1.ConfigMap{}
-		if err := GetResource(ctx, systemDefault.Name, systemDefault.Namespace, kubeClient, templateCM); err != nil {
-			return nil, fmt.Errorf("failed to get default ConfigMap from release namespace for refresh: %v", err)
-		}
-		existingCM.Data = templateCM.Data
-		klog.InfoS("Refreshing default ConfigMap from release template",
+		// Force refresh: delete the existing stale ConfigMap so it can be recreated
+		// from the release namespace template below. This ensures we always get a fresh
+		// copy regardless of informer cache state.
+		klog.InfoS("Deleting stale default ConfigMap for refresh",
 			"configMap", existingCM.Name, "namespace", userProvided.Namespace)
-		if err := kubeClient.Update(ctx, existingCM); err != nil {
-			return nil, fmt.Errorf("failed to update default ConfigMap in target namespace %s: %v",
-				userProvided.Namespace, err)
+		if err := kubeClient.Delete(ctx, existingCM); err != nil && !errors.IsNotFound(err) {
+			return nil, fmt.Errorf("failed to delete stale ConfigMap %s in namespace %s: %v",
+				existingCM.Name, userProvided.Namespace, err)
 		}
-		return existingCM, nil
 	}
 
-	// Copy default template from release namespace if not found
+	// Copy default template from release namespace (either not found or just deleted for refresh)
 	templateCM := &corev1.ConfigMap{}
 	err = GetResource(ctx, systemDefault.Name, systemDefault.Namespace, kubeClient, templateCM)
 	if err != nil {

@@ -473,11 +473,14 @@ func TestEnsureInferenceConfigMapForceRefresh(t *testing.T) {
 						}
 					}).Return(nil).Once()
 
-				// Update: write the refreshed data
-				c.On("Update", mock.IsType(context.Background()), mock.MatchedBy(func(cm *corev1.ConfigMap) bool {
-					return cm.Name == "inference-params-template" &&
-						cm.Namespace == "workspace-namespace" &&
-						cm.Data["inference_config.yaml"] == "vllm:\n  cpu-offload-gb: 0\n"
+				// Delete: remove stale ConfigMap
+				c.On("Delete", mock.IsType(context.Background()), mock.MatchedBy(func(cm *corev1.ConfigMap) bool {
+					return cm.Name == "inference-params-template" && cm.Namespace == "workspace-namespace"
+				}), mock.Anything).Return(nil)
+
+				// Create: new ConfigMap in workspace namespace with refreshed data
+				c.On("Create", mock.IsType(context.Background()), mock.MatchedBy(func(cm *corev1.ConfigMap) bool {
+					return cm.Name == "inference-params-template" && cm.Namespace == "workspace-namespace"
 				}), mock.Anything).Return(nil)
 			},
 			userProvided: client.ObjectKey{

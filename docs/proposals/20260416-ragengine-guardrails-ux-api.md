@@ -82,7 +82,6 @@ metadata:
   name: ragengine-guardrails-policy
 data:
   guardrails.yaml: |
-    action: redact
     blockMessage: The model output was blocked by output guardrails.
     scanners:
       - type: regex
@@ -102,9 +101,10 @@ Policy parsing is permissive by design:
 - invalid actions fall back to the default action
 - one invalid scanner does not prevent other valid scanners from running
 
-The top-level `action` is optional. It serves only as the default action for
-scanner entries that omit their own `action`; if both are present, the
-scanner-level `action` wins.
+This example uses explicit scanner-level `action` values, so it does not need a
+top-level `action`. A top-level `action` is optional and serves only as the
+default for scanner entries that omit their own `action`; if both are present,
+the scanner-level `action` wins.
 
 ### Default ConfigMap Support
 

@@ -182,14 +182,28 @@ func (r *ModelMirrorReconciler) ensureDownloadJob(ctx context.Context, cr *kaito
 	); err != nil {
 		return err
 	}
+
+	var latestFailTime *metav1.Time
 	for i := range jobList.Items {
 		job := &jobList.Items[i]
 		if !isJobFailed(job) {
 			return nil // Active or succeeded Job exists
 		}
+		// Track the most recent failure time
+		for _, cond := range job.Status.Conditions {
+			if cond.Type == batchv1.JobFailed && cond.Status == corev1.ConditionTrue {
+				if latestFailTime == nil || cond.LastTransitionTime.After(latestFailTime.Time) {
+					latestFailTime = &cond.LastTransitionTime
+				}
+			}
+		}
 	}
 
-	// No active Job — create a new one
+	// If a Job failed recently, wait before retrying
+	if latestFailTime != nil && time.Since(latestFailTime.Time) < jobRetryInterval {
+		return nil
+	}
+
 	job := download.BuildDownloadJob(cr)
 	log.Info("Creating download Job", "namespace", cr.Spec.JobNamespace)
 	return r.Create(ctx, job)

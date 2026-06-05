@@ -175,11 +175,6 @@ jobs:
           yq -i '(.image.repository) = "'"${REGISTRY}"'/workspace"' ./charts/kaito/workspace/values.yaml
           yq -i '(.image.tag) = "test"' ./charts/kaito/workspace/values.yaml
 
-          # Delete the old inference-params-template ConfigMap in the default namespace.
-          # The old chart (0.10.0) includes "swap-space: 4" which is invalid in vllm v1.
-          # The new controller will recreate it with correct content on next reconcile.
-          kubectl delete configmap inference-params-template -n default --ignore-not-found
-
           helm upgrade kaito-workspace ./charts/kaito/workspace \
             --namespace kaito-workspace \
             --set featureGates.enableBaseImageAutoUpgrade=true \

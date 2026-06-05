@@ -128,7 +128,7 @@ jobs:
                 instanceType: "Standard_NV36ads_A10_v5"
               inference:
                 preset:
-                  name: phi-3-mini-128k-instruct
+                  name: mistral-7b-instruct
           EOF
 
       - name: Wait for workspace readiness (old controller)
@@ -159,7 +159,6 @@ jobs:
           if [ $SECONDS -ge $end ]; then
             echo "Timeout waiting for workspace readiness"
             kubectl get workspace -o yaml
-            kubectl get inferenceset -o yaml
             kubectl get pods -l kaito.sh/workspace="$WS_NAME" -o yaml 2>/dev/null || true
             kubectl describe pods -l kaito.sh/workspace="$WS_NAME" 2>/dev/null | tail -50 || true
             echo "=== Pod logs ==="
@@ -242,7 +241,7 @@ jobs:
           done
 
           # Now wait for the upgrade to complete
-          end=$((SECONDS+2400))
+          end=$((SECONDS+1200))
           while [ $SECONDS -lt $end ]; do
             SS_IMAGE=$(kubectl get statefulset "$WS_NAME" -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
             SS_READY=$(kubectl get statefulset "$WS_NAME" -o jsonpath='{.status.readyReplicas}' 2>/dev/null || true)
@@ -264,10 +263,15 @@ jobs:
 
           if [ $SECONDS -ge $end ]; then
             echo "Timeout: workspace did not complete upgrade"
+            echo "=== Workspace status ==="
             kubectl get workspace "$WS_NAME" -o yaml
+            echo "=== StatefulSet status ==="
             kubectl get statefulset "$WS_NAME" -o yaml
+            echo "=== Pod status ==="
             kubectl get pods -l kaito.sh/workspace="$WS_NAME" -o yaml 2>/dev/null || true
+            echo "=== Pod describe ==="
             kubectl describe pods -l kaito.sh/workspace="$WS_NAME" 2>/dev/null | tail -80 || true
+            echo "=== Pod logs ==="
             kubectl logs deploy/kaito-workspace -n kaito-workspace --tail=200
             exit 1
           fi

@@ -38,12 +38,9 @@ type ModelMirrorSpec struct {
 	Source ModelMirrorSource `json:"source"`
 	// +kubebuilder:validation:Required
 	Storage ModelMirrorStorage `json:"storage"`
-	// PVCName is the name of the PersistentVolumeClaim to create for model storage.
+	// JobNamespace is the namespace where the PVC and download Job will be created.
 	// +kubebuilder:validation:Required
-	PVCName string `json:"pvcName"`
-	// PVCNamespace is the namespace where the PVC and download Job will be created.
-	// +kubebuilder:validation:Required
-	PVCNamespace string `json:"pvcNamespace"`
+	JobNamespace string `json:"jobNamespace"`
 }
 
 type ModelMirrorSource struct {

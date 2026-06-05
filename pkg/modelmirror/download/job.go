@@ -92,7 +92,7 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.Name + "-download",
-			Namespace: cr.Spec.PVCNamespace,
+			Namespace: cr.Spec.JobNamespace,
 			OwnerReferences: []metav1.OwnerReference{
 				{
 					APIVersion:         kaitov1alpha1.GroupVersion.String(),
@@ -115,7 +115,7 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 							Name: "model-storage",
 							VolumeSource: corev1.VolumeSource{
 								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-									ClaimName: cr.Spec.PVCName,
+									ClaimName: cr.Name,
 								},
 							},
 						},

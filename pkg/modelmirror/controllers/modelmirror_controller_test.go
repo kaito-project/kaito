@@ -32,29 +32,6 @@ import (
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 )
 
-func TestCRName(t *testing.T) {
-	tests := []struct {
-		modelID string
-	}{
-		{"Qwen/Qwen2.5-Coder-32B-Instruct"},
-		{"meta-llama/Llama-3.1-8B-Instruct"},
-	}
-	for _, tt := range tests {
-		name := CRName(tt.modelID)
-		if len(name) != 6 {
-			t.Errorf("CRName(%q) = %q, want 6 chars", tt.modelID, name)
-		}
-		// Deterministic
-		if CRName(tt.modelID) != name {
-			t.Errorf("CRName(%q) is not deterministic", tt.modelID)
-		}
-	}
-	// Different models produce different names
-	if CRName("model-a") == CRName("model-b") {
-		t.Error("different models should produce different CR names")
-	}
-}
-
 func TestReconcile_AlreadyReady(t *testing.T) {
 	scheme := runtime.NewScheme()
 	_ = kaitov1alpha1.AddToScheme(scheme)
@@ -93,8 +70,7 @@ func TestReconcile_AddsFinalizer(t *testing.T) {
 		Spec: kaitov1alpha1.ModelMirrorSpec{
 			Source:       kaitov1alpha1.ModelMirrorSource{Registry: "huggingface", ModelID: "test/model"},
 			Storage:      kaitov1alpha1.ModelMirrorStorage{StorageClassName: "blob-nfs", Size: "10Gi"},
-			PVCName:      "abc123",
-			PVCNamespace: "default",
+			JobNamespace: "default",
 		},
 		Status: kaitov1alpha1.ModelMirrorStatus{Phase: kaitov1alpha1.ModelMirrorPhasePending},
 	}

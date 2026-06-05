@@ -15,8 +15,6 @@ package controllers
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -53,12 +51,6 @@ func NewModelMirrorReconciler(c client.Client, log logr.Logger) *ModelMirrorReco
 		Client: c,
 		Log:    log,
 	}
-}
-
-// CRName derives the ModelMirror CR name from a model ID (first 6 hex chars of SHA-256).
-func CRName(modelID string) string {
-	h := sha256.Sum256([]byte(modelID))
-	return hex.EncodeToString(h[:])[:6]
 }
 
 func (r *ModelMirrorReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
@@ -107,14 +99,12 @@ func (r *ModelMirrorReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 func (r *ModelMirrorReconciler) handleDeletion(ctx context.Context, cr *kaitov1alpha1.ModelMirror) (ctrl.Result, error) {
 	// Remove PVC finalizer
-	if cr.Spec.PVCName != "" && cr.Spec.PVCNamespace != "" {
-		pvc := &corev1.PersistentVolumeClaim{}
-		if err := r.Get(ctx, types.NamespacedName{Name: cr.Spec.PVCName, Namespace: cr.Spec.PVCNamespace}, pvc); err == nil {
-			if controllerutil.ContainsFinalizer(pvc, mmconsts.ModelMirrorPVCFinalizer) {
-				controllerutil.RemoveFinalizer(pvc, mmconsts.ModelMirrorPVCFinalizer)
-				if err := r.Update(ctx, pvc); err != nil {
-					return ctrl.Result{}, err
-				}
+	pvc := &corev1.PersistentVolumeClaim{}
+	if err := r.Get(ctx, types.NamespacedName{Name: cr.Name, Namespace: cr.Spec.JobNamespace}, pvc); err == nil {
+		if controllerutil.ContainsFinalizer(pvc, mmconsts.ModelMirrorPVCFinalizer) {
+			controllerutil.RemoveFinalizer(pvc, mmconsts.ModelMirrorPVCFinalizer)
+			if err := r.Update(ctx, pvc); err != nil {
+				return ctrl.Result{}, err
 			}
 		}
 	}
@@ -127,9 +117,9 @@ func (r *ModelMirrorReconciler) handleDeletion(ctx context.Context, cr *kaitov1a
 }
 
 func (r *ModelMirrorReconciler) ensurePVC(ctx context.Context, cr *kaitov1alpha1.ModelMirror) error {
-	pvcName := cr.Spec.PVCName
+	pvcName := cr.Name
 	pvc := &corev1.PersistentVolumeClaim{}
-	err := r.Get(ctx, types.NamespacedName{Name: pvcName, Namespace: cr.Spec.PVCNamespace}, pvc)
+	err := r.Get(ctx, types.NamespacedName{Name: pvcName, Namespace: cr.Spec.JobNamespace}, pvc)
 	if err == nil {
 		// PVC already exists — check if bound
 		if pvc.Status.Phase == corev1.ClaimBound {
@@ -146,7 +136,7 @@ func (r *ModelMirrorReconciler) ensurePVC(ctx context.Context, cr *kaitov1alpha1
 	pvc = &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:       pvcName,
-			Namespace:  cr.Spec.PVCNamespace,
+			Namespace:  cr.Spec.JobNamespace,
 			Finalizers: []string{mmconsts.ModelMirrorPVCFinalizer},
 		},
 		Spec: corev1.PersistentVolumeClaimSpec{
@@ -168,7 +158,7 @@ func (r *ModelMirrorReconciler) ensurePVC(ctx context.Context, cr *kaitov1alpha1
 func (r *ModelMirrorReconciler) ensureDownloadJob(ctx context.Context, cr *kaitov1alpha1.ModelMirror, log logr.Logger) error {
 	jobName := cr.Name + "-download"
 	job := &batchv1.Job{}
-	err := r.Get(ctx, types.NamespacedName{Name: jobName, Namespace: cr.Spec.PVCNamespace}, job)
+	err := r.Get(ctx, types.NamespacedName{Name: jobName, Namespace: cr.Spec.JobNamespace}, job)
 	if err == nil {
 		return nil
 	}
@@ -177,14 +167,14 @@ func (r *ModelMirrorReconciler) ensureDownloadJob(ctx context.Context, cr *kaito
 	}
 
 	job = download.BuildDownloadJob(cr)
-	log.Info("Creating download Job", "job", jobName, "namespace", cr.Spec.PVCNamespace)
+	log.Info("Creating download Job", "job", jobName, "namespace", cr.Spec.JobNamespace)
 	return r.Create(ctx, job)
 }
 
 func (r *ModelMirrorReconciler) checkJobStatus(ctx context.Context, cr *kaitov1alpha1.ModelMirror, log logr.Logger) (ctrl.Result, error) {
 	jobName := cr.Name + "-download"
 	job := &batchv1.Job{}
-	if err := r.Get(ctx, types.NamespacedName{Name: jobName, Namespace: cr.Spec.PVCNamespace}, job); err != nil {
+	if err := r.Get(ctx, types.NamespacedName{Name: jobName, Namespace: cr.Spec.JobNamespace}, job); err != nil {
 		if errors.IsNotFound(err) {
 			return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
 		}

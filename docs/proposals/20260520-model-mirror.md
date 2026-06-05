@@ -180,8 +180,7 @@ spec:
   storage:
     size: "70Gi"                        # required — PVC size
     storageClassName: "blob-nfs"        # StorageClass to use
-  pvcName: "a3f7b2"                     # required — PVC name
-  pvcNamespace: "default"               # required — namespace for PVC and download Job
+  jobNamespace: "default"               # required — namespace for PVC and download Job
 status:
   phase: Pending | Ready
   modelPath: "/models/qwen/qwen2.5-coder-32b-instruct"
@@ -198,7 +197,7 @@ status:
 - Cluster-scoped: survives workspace deletion, shared across workspaces and namespaces
 - **Spec is fully immutable** — validating webhook rejects all spec updates. Delete and recreate to change.
 - `spec.source` is generic — not tied to any specific model registry
-- All required fields (pvcName, pvcNamespace, size) are in spec — the CR is self-contained at creation time
+- All required fields (jobNamespace, size, storageClassName) are in spec — the CR is self-contained at creation time
 - No cloud provider-specific fields in status — the workspace controller derives streaming URIs from PVC → PV when needed
 - Phase never reaches "Failed" — CR stays in `Pending` and keeps retrying indefinitely
 
@@ -223,8 +222,8 @@ A new controller that watches `ModelMirror` CRs and manages the download lifecyc
 1. **On CR creation:**
    - Add finalizer `kaito.sh/model-mirror-cleanup` to the CR (ensures proper cleanup on deletion)
    - Validate StorageClass exists (error if not)
-   - Create PVC (using spec.pvcName, spec.pvcNamespace, spec.storage.size) with a finalizer (`kaito.sh/model-mirror-protection`)
-   - Create download Job in spec.pvcNamespace
+   - Create PVC (using CR name in spec.jobNamespace, spec.storage.size) with a finalizer (`kaito.sh/model-mirror-protection`)
+   - Create download Job in spec.jobNamespace
 
 2. **On Job completion:**
    - Update CR status to `Ready`
@@ -254,8 +253,7 @@ When the `ModelStreaming` feature gate is enabled and the workspace does not hav
 
 1. **Before node provisioning:** Check if `ModelMirror` CR exists for the workspace's model
    - If not: create it with derived spec fields:
-     - `pvcName`: auto-generated (e.g., CR name)
-     - `pvcNamespace`: workspace namespace
+     - `jobNamespace`: workspace namespace
      - `size`: read from model metadata (`DiskStorageRequirement` in the model preset registry — all preset models have this information). No HuggingFace API calls needed.
      - `storageClassName`: from workspace annotation `kaito.sh/model-mirror-storage-class` → controller flag `--default-model-mirror-storage-class`
    - If exists and `Ready`: proceed immediately
@@ -416,7 +414,7 @@ A model download fails repeatedly (e.g. network issues, invalid HF token). The `
 
 ### CR Naming Convention
 
-The CR name is a hash of the HuggingFace model ID (SHA-256, first 6 hex characters):
+The CR name is a hash of the HuggingFace model ID (SHA-256, first 6 hex characters). This naming convention is enforced by the workspace controller (Phase 2); when users create CRs directly, they can choose any name.
 
 Examples:
 - `qwen/Qwen2.5-Coder-32B-Instruct` → `a3f7b2`
@@ -446,9 +444,9 @@ a3f7b2   qwen/Qwen2.5-Coder-32B-Instruct   Ready   2h
 
 ### Storage Account Resolution (Workspace Controller — Phase 2)
 
-The storage account name and container are resolved by the **workspace controller** (not the ModelMirror controller) when configuring the inference pod. The workspace controller reads the PVC from the ModelMirror CR's `spec.pvcName`:
+The storage account name and container are resolved by the **workspace controller** (not the ModelMirror controller) when configuring the inference pod. The workspace controller reads the PVC using the ModelMirror CR's name (PVC shares the CR name) in `spec.jobNamespace`:
 
-1. Read PVC from ModelMirror CR `spec.pvcName` in `spec.pvcNamespace`
+1. Read PVC (name = CR name) from ModelMirror CR's `spec.jobNamespace`
 2. Get the bound PV from `pvc.spec.volumeName`
 3. Parse the CSI `volumeHandle` on the PV
 

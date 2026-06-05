@@ -49,12 +49,8 @@ spec:
             type: object
           spec:
             properties:
-              pvcName:
-                description: PVCName is the name of the PersistentVolumeClaim to create
-                  for model storage.
-                type: string
-              pvcNamespace:
-                description: PVCNamespace is the namespace where the PVC and download
+              jobNamespace:
+                description: JobNamespace is the namespace where the PVC and download
                   Job will be created.
                 type: string
               source:
@@ -130,8 +126,7 @@ spec:
                 - storageClassName
                 type: object
             required:
-            - pvcName
-            - pvcNamespace
+            - jobNamespace
             - source
             - storage
             type: object

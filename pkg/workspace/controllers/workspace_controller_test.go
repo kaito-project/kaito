@@ -527,6 +527,7 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 			ctx := context.Background()
 
 			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+			t.Setenv("RELEASE_NAMESPACE", "kaito")
 			if tc.workspace.Status.TargetNodeCount == 0 {
 				req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(t.Context(), &tc.workspace, mockClient)
 				if reqErr != nil {

@@ -288,6 +288,7 @@ func TestGeneratePresetInference(t *testing.T) {
 		t.Run(k, func(t *testing.T) {
 			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 			t.Setenv("PRESET_REGISTRY_NAME", "test-registry")
+			t.Setenv("RELEASE_NAMESPACE", "kaito")
 
 			mockClient := test.NewClient()
 			tc.callMocks(mockClient)

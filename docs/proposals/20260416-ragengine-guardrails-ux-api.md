@@ -16,7 +16,7 @@ see-also:
 This document describes the current user-visible behavior of RAGEngine output
 guardrails as implemented today.
 
-The current model is intentionally small at the CRD layer:
+The CRD currently exposes only a minimal guardrails toggle:
 
 ```yaml
 spec:
@@ -30,9 +30,15 @@ than in scanner-specific CRD fields.
 ## Current Support
 
 - Output guardrails run on non-streaming `/v1/chat/completions` responses.
-- The runtime currently supports two scanner types:
+- The runtime currently supports these scanner types:
   - `regex`
   - `ban_substrings`
+  - `json`
+  - `reading_time`
+  - `secrets`
+  - `sensitive`
+  - `invisible_text`
+  - `token_limit`
 - Each scanner can use `action: redact` or `action: block`.
 - Policies are loaded from a YAML file referenced by
   `OUTPUT_GUARDRAILS_POLICY_PATH`.

@@ -28,7 +28,7 @@ import (
 // DefaultSKUHandler is the package-level CloudSKUHandler used by callers that
 // do not want to resolve a handler from the environment on every call. It is
 // expected to be initialized once at process startup via GetSKUHandler.
-var DefaultSKUHandler CloudSKUHandler
+var DefaultSKUHandler CloudSKUHandler = nil
 
 // GetSKUHandler returns the CloudSKUHandler for the current cloud provider
 // as configured via the CLOUD_PROVIDER environment variable.
@@ -54,7 +54,16 @@ func IsAzureCloudProvider() bool {
 // GetGPUConfigBySKU returns the GPUConfig for the given instance type using
 // the cloud provider configured via the CLOUD_PROVIDER environment variable.
 func GetGPUConfigBySKU(instanceType string) (*GPUConfig, error) {
-	config := DefaultSKUHandler.GetGPUConfigBySKU(instanceType)
+	handler := DefaultSKUHandler
+	if handler == nil {
+		h, err := GetSKUHandler()
+		if err != nil {
+			return nil, apis.ErrInvalidValue(fmt.Sprintf("Failed to get SKU handler: %v", err), "sku")
+		}
+		handler = h
+	}
+
+	config := handler.GetGPUConfigBySKU(instanceType)
 	if config == nil {
 		return nil, apis.ErrInvalidValue(fmt.Sprintf("Unsupported SKU '%s' for cloud provider", instanceType), "sku")
 	}

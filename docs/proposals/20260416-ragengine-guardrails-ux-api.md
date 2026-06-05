@@ -30,6 +30,7 @@ than in scanner-specific CRD fields.
 ## Current Support
 
 - Output guardrails run on non-streaming `/v1/chat/completions` responses.
+- The runtime currently supports these scanner types:
   - `regex`
   - `ban_substrings`
   - `json`
@@ -214,7 +215,7 @@ YAML shape:
 ```yaml
 scanners:
   - type: json
-  action: redact
+    action: redact
     repair: false
 ```
 

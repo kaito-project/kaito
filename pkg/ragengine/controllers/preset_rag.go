@@ -183,6 +183,7 @@ func ensureGuardrailsPolicyConfigMap(ctx context.Context, ragEngineObj *v1beta1.
 		kubeClient,
 		userProvided,
 		client.ObjectKey{Name: v1beta1.DefaultGuardrailsPolicyConfigMapName},
+		false,
 	)
 	if err != nil || cm == nil {
 		return cm, err

@@ -383,6 +383,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			client.ObjectKey{
 				Name: v1beta1.DefaultInferenceConfigTemplate,
 			},
+			false,
 		)
 		if err != nil {
 			return err

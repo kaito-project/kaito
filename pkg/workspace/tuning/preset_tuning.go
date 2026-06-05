@@ -293,6 +293,7 @@ func SetTrainingResultVolume(ctx *generator.WorkspaceGeneratorContext, spec *cor
 			Name:      ctx.Workspace.Tuning.Config,
 		},
 		client.ObjectKey{Name: defaultConfigName},
+		false,
 	)
 	if err != nil {
 		return err

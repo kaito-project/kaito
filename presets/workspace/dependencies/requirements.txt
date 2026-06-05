@@ -3,7 +3,7 @@
 # Core Dependencies
 vllm==0.19.1
 transformers[serving] ==5.6.0
-huggingface-hub>=1.11.0,<2.0
+huggingface-hub==1.11.0
 torch==2.10.0
 accelerate>=1.4.0
 fastapi[standard] >= 0.115.0

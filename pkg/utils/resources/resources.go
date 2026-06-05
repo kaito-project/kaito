@@ -149,9 +149,12 @@ func CheckResourceStatus(obj client.Object, kubeClient client.Client, timeoutDur
 //   - Use the default config template
 //   - Check if it exists in the target namespace
 //   - If not, copy from release namespace to target namespace
+//   - If forceRefresh is true, update the existing copy from the release template
+//     (needed during base image auto-upgrades when vllm parameters may have changed)
 func EnsureConfigOrCopyFromDefault(ctx context.Context, kubeClient client.Client,
-	userProvided, systemDefault client.ObjectKey,
+	userProvided, systemDefault client.ObjectKey, forceRefresh bool,
 ) (*corev1.ConfigMap, error) {
+	shouldRefresh := forceRefresh
 
 	// If user specified a config, use that
 	if userProvided.Name != "" {
@@ -168,19 +171,7 @@ func EnsureConfigOrCopyFromDefault(ctx context.Context, kubeClient client.Client
 		return userCM, nil
 	}
 
-	// Check if default configmap already exists in target namespace
-	existingCM := &corev1.ConfigMap{}
-	err := GetResource(ctx, systemDefault.Name, userProvided.Namespace, kubeClient, existingCM)
-	if err != nil {
-		if !errors.IsNotFound(err) {
-			return nil, err
-		}
-	} else {
-		klog.Infof("Default ConfigMap already exists in target namespace: %s, no action taken.", userProvided.Namespace)
-		return existingCM, nil
-	}
-
-	// Copy default template from release namespace if not found
+	// Resolve release namespace for the template
 	if systemDefault.Namespace == "" {
 		releaseNamespace, err := utils.GetReleaseNamespace()
 		if err != nil {
@@ -189,6 +180,35 @@ func EnsureConfigOrCopyFromDefault(ctx context.Context, kubeClient client.Client
 		systemDefault.Namespace = releaseNamespace
 	}
 
+	// Check if default configmap already exists in target namespace
+	existingCM := &corev1.ConfigMap{}
+	err := GetResource(ctx, systemDefault.Name, userProvided.Namespace, kubeClient, existingCM)
+	if err != nil {
+		if !errors.IsNotFound(err) {
+			return nil, err
+		}
+	} else {
+		if !shouldRefresh {
+			klog.Infof("Default ConfigMap already exists in target namespace: %s, no action taken.", userProvided.Namespace)
+			return existingCM, nil
+		}
+
+		// Force refresh: update the existing ConfigMap with the latest template from release namespace
+		templateCM := &corev1.ConfigMap{}
+		if err := GetResource(ctx, systemDefault.Name, systemDefault.Namespace, kubeClient, templateCM); err != nil {
+			return nil, fmt.Errorf("failed to get default ConfigMap from release namespace for refresh: %v", err)
+		}
+		existingCM.Data = templateCM.Data
+		klog.InfoS("Refreshing default ConfigMap from release template",
+			"configMap", existingCM.Name, "namespace", userProvided.Namespace)
+		if err := kubeClient.Update(ctx, existingCM); err != nil {
+			return nil, fmt.Errorf("failed to update default ConfigMap in target namespace %s: %v",
+				userProvided.Namespace, err)
+		}
+		return existingCM, nil
+	}
+
+	// Copy default template from release namespace if not found
 	templateCM := &corev1.ConfigMap{}
 	err = GetResource(ctx, systemDefault.Name, systemDefault.Namespace, kubeClient, templateCM)
 	if err != nil {

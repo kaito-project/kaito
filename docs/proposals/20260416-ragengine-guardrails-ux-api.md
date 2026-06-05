@@ -102,6 +102,10 @@ Policy parsing is permissive by design:
 - invalid actions fall back to the default action
 - one invalid scanner does not prevent other valid scanners from running
 
+The top-level `action` is optional. It serves only as the default action for
+scanner entries that omit their own `action`; if both are present, the
+scanner-level `action` wins.
+
 ### Default ConfigMap Support
 
 If `spec.guardrails.enabled` is `true` and `configMapRef` is not set, the
@@ -210,7 +214,7 @@ YAML shape:
 ```yaml
 scanners:
   - type: json
-    action: redact
+  action: redact
     repair: false
 ```
 

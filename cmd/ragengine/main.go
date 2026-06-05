@@ -47,6 +47,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/ragengine/controllers"
 	"github.com/kaito-project/kaito/pkg/ragengine/webhooks"
+	"github.com/kaito-project/kaito/pkg/sku"
 	karpenterutils "github.com/kaito-project/kaito/pkg/utils/karpenter"
 	"github.com/kaito-project/kaito/pkg/version"
 )
@@ -118,6 +119,13 @@ func main() {
 	cfg := ctrl.GetConfigOrDie()
 	cfg.UserAgent = ragengineController
 	setRestConfig(cfg, kubeClientQPS, kubeClientBurst)
+
+	skuHandler, err := sku.GetSKUHandler()
+	if err != nil {
+		klog.ErrorS(err, "unable to initialize SKU handler")
+		exitWithErrorFunc()
+	}
+	sku.DefaultSKUHandler = skuHandler
 
 	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme: scheme,

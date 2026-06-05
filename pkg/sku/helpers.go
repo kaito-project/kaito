@@ -25,6 +25,11 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
+// DefaultSKUHandler is the package-level CloudSKUHandler used by callers that
+// do not want to resolve a handler from the environment on every call. It is
+// expected to be initialized once at process startup via GetSKUHandler.
+var DefaultSKUHandler CloudSKUHandler
+
 // GetSKUHandler returns the CloudSKUHandler for the current cloud provider
 // as configured via the CLOUD_PROVIDER environment variable.
 func GetSKUHandler() (CloudSKUHandler, error) {
@@ -49,12 +54,7 @@ func IsAzureCloudProvider() bool {
 // GetGPUConfigBySKU returns the GPUConfig for the given instance type using
 // the cloud provider configured via the CLOUD_PROVIDER environment variable.
 func GetGPUConfigBySKU(instanceType string) (*GPUConfig, error) {
-	skuHandler, err := GetSKUHandler()
-	if err != nil {
-		return nil, apis.ErrInvalidValue(fmt.Sprintf("Failed to get SKU handler: %v", err), "sku")
-	}
-
-	config := skuHandler.GetGPUConfigBySKU(instanceType)
+	config := DefaultSKUHandler.GetGPUConfigBySKU(instanceType)
 	if config == nil {
 		return nil, apis.ErrInvalidValue(fmt.Sprintf("Unsupported SKU '%s' for cloud provider", instanceType), "sku")
 	}

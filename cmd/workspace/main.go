@@ -53,6 +53,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/inferenceset"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	nodeprovisionmanager "github.com/kaito-project/kaito/pkg/nodeprovision/manager"
+	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	karpenterutils "github.com/kaito-project/kaito/pkg/utils/karpenter"
 	"github.com/kaito-project/kaito/pkg/version"
@@ -139,6 +140,13 @@ func main() {
 		klog.ErrorS(err, "unable to set `feature-gates` flag")
 		exitWithErrorFunc()
 	}
+
+	skuHandler, err := sku.GetSKUHandler()
+	if err != nil {
+		klog.ErrorS(err, "unable to initialize SKU handler")
+		exitWithErrorFunc()
+	}
+	sku.DefaultSKUHandler = skuHandler
 
 	// Expose the resolved provisioner type for downstream scheduling logic.
 	consts.ActiveNodeProvisioner = nodeProvisionerType

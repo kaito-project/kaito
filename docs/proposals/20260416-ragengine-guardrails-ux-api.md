@@ -30,7 +30,6 @@ than in scanner-specific CRD fields.
 ## Current Support
 
 - Output guardrails run on non-streaming `/v1/chat/completions` responses.
-- The runtime currently supports these scanner types:
   - `regex`
   - `ban_substrings`
   - `json`
@@ -87,11 +86,12 @@ data:
       - type: regex
         action: redact
         patterns:
-          - '-----BEGIN (?:[A-Z ]+)?PRIVATE KEY-----'
+          - 'https?://\\S+'
       - type: ban_substrings
         action: block
         substrings:
-          - secret
+          - For Internal Use Only
+          - Do Not Distribute
 ```
 
 Policy parsing is permissive by design:

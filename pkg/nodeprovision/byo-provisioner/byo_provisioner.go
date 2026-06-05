@@ -22,7 +22,7 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
-	"github.com/kaito-project/kaito/pkg/utils/resources"
+	"github.com/kaito-project/kaito/pkg/utils/nodes"
 )
 
 // BYOProvisioner is a no-op NodeProvisioner for BYO (Bring Your Own) node
@@ -67,7 +67,7 @@ func (n *BYOProvisioner) DisableDriftRemediation(ctx context.Context, workspaceN
 func (n *BYOProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.Workspace) (bool, bool, error) {
 	matchLabels := client.MatchingLabels(kaitov1beta1.SanitizedMatchLabels(ws.Resource.LabelSelector))
 
-	nodeList, err := resources.ListNodes(ctx, n.client, matchLabels)
+	nodeList, err := nodes.ListNodes(ctx, n.client, matchLabels)
 	if err != nil {
 		return false, true, err
 	}
@@ -75,7 +75,7 @@ func (n *BYOProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.
 	targetNodeCount := int(ws.Status.TargetNodeCount)
 	readyCount := 0
 	for i := range nodeList.Items {
-		if resources.NodeIsReadyAndNotDeleting(&nodeList.Items[i]) {
+		if nodes.NodeIsReadyAndNotDeleting(&nodeList.Items[i]) {
 			readyCount++
 		}
 	}
@@ -103,13 +103,13 @@ func (n *BYOProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kaitov1b
 	}
 
 	matchLabels := client.MatchingLabels(kaitov1beta1.SanitizedMatchLabels(ws.Resource.LabelSelector))
-	nodeList, err := resources.ListNodes(ctx, n.client, matchLabels)
+	nodeList, err := nodes.ListNodes(ctx, n.client, matchLabels)
 	if err != nil {
 		return nil, err
 	}
 	readyCount := 0
 	for i := range nodeList.Items {
-		if resources.NodeIsReadyAndNotDeleting(&nodeList.Items[i]) {
+		if nodes.NodeIsReadyAndNotDeleting(&nodeList.Items[i]) {
 			readyCount++
 		}
 	}

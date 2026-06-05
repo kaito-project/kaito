@@ -53,8 +53,8 @@ import (
 	"github.com/kaito-project/kaito/pkg/inferenceset"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	nodeprovisionmanager "github.com/kaito-project/kaito/pkg/nodeprovision/manager"
-	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	karpenterutils "github.com/kaito-project/kaito/pkg/utils/karpenter"
 	"github.com/kaito-project/kaito/pkg/version"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
@@ -80,9 +80,9 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(kaitov1alpha1.AddToScheme(scheme))
 	utilruntime.Must(kaitov1beta1.AddToScheme(scheme))
-	utilruntime.Must(kaitoutils.KarpenterSchemeBuilder.AddToScheme(scheme))
+	utilruntime.Must(karpenterutils.KarpenterSchemeBuilder.AddToScheme(scheme))
 	utilruntime.Must(azurev1beta1.SchemeBuilder.AddToScheme(scheme))
-	utilruntime.Must(kaitoutils.AwsSchemeBuilder.AddToScheme(scheme))
+	utilruntime.Must(karpenterutils.AwsSchemeBuilder.AddToScheme(scheme))
 	utilruntime.Must(helmv2.AddToScheme(scheme))
 	utilruntime.Must(sourcev1.AddToScheme(scheme))
 	utilruntime.Must(apiextensionsv1.AddToScheme(scheme))

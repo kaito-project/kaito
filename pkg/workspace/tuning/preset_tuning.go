@@ -29,10 +29,12 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
+	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/workspace/image"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
@@ -70,7 +72,7 @@ func defaultTolerations() []corev1.Toleration {
 		},
 	}
 
-	if utils.IsAzureCloudProvider() {
+	if sku.IsAzureCloudProvider() {
 		tolerations = append(tolerations, corev1.Toleration{
 			Effect:   corev1.TaintEffectNoSchedule,
 			Key:      consts.SpotInstanceKey,
@@ -143,7 +145,7 @@ func GetTrainingOutputDir(ctx context.Context, configMap *corev1.ConfigMap) (str
 func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, revisionNum string,
 	model pkgmodel.Model, kubeClient client.Client) (client.Object, error) {
 
-	gpuConfig, err := utils.GetGPUConfigBySKU(workspaceObj.Resource.InstanceType)
+	gpuConfig, err := sku.GetGPUConfigBySKU(workspaceObj.Resource.InstanceType)
 	if err != nil {
 		return nil, err
 	}
@@ -201,10 +203,10 @@ func GenerateBasicTuningPodSpec(skuNumGPUs int) func(*generator.WorkspaceGenerat
 		// resource requirements
 		resourceRequirements := corev1.ResourceRequirements{
 			Requests: corev1.ResourceList{
-				corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
+				corev1.ResourceName(nodes.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
 			},
 			Limits: corev1.ResourceList{
-				corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
+				corev1.ResourceName(nodes.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
 			},
 		}
 

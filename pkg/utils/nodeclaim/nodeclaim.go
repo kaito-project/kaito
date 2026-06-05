@@ -42,7 +42,7 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/apis"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/resources"
+	"github.com/kaito-project/kaito/pkg/utils/nodes"
 )
 
 var (
@@ -134,7 +134,7 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 	klog.InfoS("GenerateNodeClaimManifest", "object", obj)
 
 	// Determine the type of the input object and extract relevant fields
-	instanceType, namespace, name, labelSelector, nameLabel, namespaceLabel, err := resources.ExtractObjFields(obj)
+	instanceType, namespace, name, labelSelector, nameLabel, namespaceLabel, err := nodes.ExtractObjFields(obj)
 	if err != nil {
 		klog.Error(err)
 		return nil
@@ -250,7 +250,7 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 // GenerateNodeClaimName generates a nodeClaim name from the given workspace or RAGEngine.
 func GenerateNodeClaimName(obj client.Object) string {
 	// Determine the type of the input object and extract relevant fields
-	_, namespace, name, _, _, _, err := resources.ExtractObjFields(obj)
+	_, namespace, name, _, _, _, err := nodes.ExtractObjFields(obj)
 	if err != nil {
 		return ""
 	}
@@ -270,7 +270,7 @@ func CreateNodeClaim(ctx context.Context, nodeClaimObj *karpenterv1.NodeClaim, k
 func WaitForPendingNodeClaims(ctx context.Context, obj client.Object, kubeClient client.Client) error {
 
 	// Determine the type of the input object and retrieve the InstanceType
-	instanceType, _, _, _, _, _, err := resources.ExtractObjFields(obj)
+	instanceType, _, _, _, _, _, err := nodes.ExtractObjFields(obj)
 	if err != nil {
 		return err
 	}

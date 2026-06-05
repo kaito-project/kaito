@@ -42,7 +42,6 @@ func NewAzureSKUHandler() CloudSKUHandler {
 		{SKU: "Standard_NV12s_v3", GPUCount: 1, GPUMem: resource.MustParse("8Gi"), GPUModel: "NVIDIA M60", CUDAComputeCapability: 5.2},
 		{SKU: "Standard_NV24s_v3", GPUCount: 2, GPUMem: resource.MustParse("16Gi"), GPUModel: "NVIDIA M60", CUDAComputeCapability: 5.2},
 		{SKU: "Standard_NV48s_v3", GPUCount: 4, GPUMem: resource.MustParse("32Gi"), GPUModel: "NVIDIA M60", CUDAComputeCapability: 5.2},
-		{SKU: "Standard_NV32as_v4", GPUCount: 1, GPUMem: resource.MustParse("16Gi"), GPUModel: "AMD Radeon Instinct MI25"},
 
 		// Not supporting partial gpu skus for now
 		// {SKU: "Standard_NG8ads_V620_v1", GPUCount: 1.0 / 4.0, GPUMem: 8, GPUModel: "AMD Radeon PRO V620"},

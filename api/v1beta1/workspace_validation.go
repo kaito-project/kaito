@@ -463,7 +463,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 
 			for _, node := range nodeList.Items {
 				// Try to get GPU configuration from nvidia.com labels first
-				gpuConfig, err := utils.GetGPUConfigFromNodeLabels(&node)
+				gpuConfig, err := sku.GetGPUConfigFromNodeLabels(&node)
 				if err != nil {
 					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get GPU config from nvidia labels on node %s: %v", node.Name, err)))
 					return errs
@@ -495,7 +495,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 		}
 	} else { // NAP enabled
 		// Regardless of if preset is empty or not, we do want to make sure the instance type is valid for NAP and can't skip node validation like BYO.
-		skuHandler, err := utils.GetSKUHandler()
+		skuHandler, err := sku.GetSKUHandler()
 		if err != nil {
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get SKU handler: %v", err), "instanceType"))
 			return errs

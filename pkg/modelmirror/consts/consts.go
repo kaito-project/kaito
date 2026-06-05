@@ -27,6 +27,9 @@ const (
 	ConditionTypeStorageReady = "StorageReady"
 	ConditionTypeReady        = "Ready"
 
+	// Labels
+	LabelModelMirrorName = "kaito.sh/model-mirror-name"
+
 	// Downloader image
 	DownloaderImage = "alpine:3.20" // TODO: Move to MCR with hfdownloader pre-installed
 )

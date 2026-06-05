@@ -15,7 +15,7 @@ rules:
     verbs: ["get", "update", "patch"]
   - apiGroups: [""]
     resources: ["persistentvolumeclaims"]
-    verbs: ["create", "update", "patch"]
+    verbs: ["create", "update", "patch", "delete"]
   - apiGroups: ["admissionregistration.k8s.io"]
     resources: ["validatingwebhookconfigurations"]
     verbs: ["update"]

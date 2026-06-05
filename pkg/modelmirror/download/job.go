@@ -91,21 +91,15 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      cr.Name + "-download",
-			Namespace: cr.Spec.JobNamespace,
-			OwnerReferences: []metav1.OwnerReference{
-				{
-					APIVersion:         kaitov1alpha1.GroupVersion.String(),
-					Kind:               "ModelMirror",
-					Name:               cr.Name,
-					UID:                cr.UID,
-					Controller:         ptr.To(true),
-					BlockOwnerDeletion: ptr.To(true),
-				},
+			GenerateName: cr.Name + "-download-",
+			Namespace:    cr.Spec.JobNamespace,
+			Labels: map[string]string{
+				mmconsts.LabelModelMirrorName: cr.Name,
 			},
 		},
 		Spec: batchv1.JobSpec{
-			BackoffLimit: ptr.To(int32(3)),
+			BackoffLimit:            ptr.To(int32(3)),
+			TTLSecondsAfterFinished: ptr.To(int32(3600)), // 1 hour — keeps failed pods for debugging
 			Template: corev1.PodTemplateSpec{
 				Spec: corev1.PodSpec{
 					RestartPolicy: corev1.RestartPolicyOnFailure,

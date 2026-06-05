@@ -15,6 +15,7 @@ package v1alpha1
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
@@ -45,7 +46,9 @@ func (m *ModelMirror) Validate(ctx context.Context) (errs *apis.FieldError) {
 
 	// Value validation (presence enforced by CRD schema)
 	if m.Spec.Source.Registry != "huggingface" {
-		errs = errs.Also(apis.ErrInvalidValue(m.Spec.Source.Registry, "spec.source.registry"))
+		errs = errs.Also(apis.ErrInvalidValue(
+			fmt.Sprintf("%q is not supported, only \"huggingface\" is supported", m.Spec.Source.Registry),
+			"spec.source.registry"))
 	}
 	if _, err := resource.ParseQuantity(m.Spec.Storage.Size); err != nil {
 		errs = errs.Also(apis.ErrInvalidValue(m.Spec.Storage.Size, "spec.storage.size"))

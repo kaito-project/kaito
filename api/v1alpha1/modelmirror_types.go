@@ -20,7 +20,7 @@ import (
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:path=modelmirrors,scope=Cluster,shortName=mm
+// +kubebuilder:resource:path=modelmirrors,scope=Cluster
 // +kubebuilder:printcolumn:name="Model",type=string,JSONPath=`.spec.source.modelID`
 // +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`

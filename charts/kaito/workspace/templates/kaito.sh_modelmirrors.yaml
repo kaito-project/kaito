@@ -11,8 +11,6 @@ spec:
     kind: ModelMirror
     listKind: ModelMirrorList
     plural: modelmirrors
-    shortNames:
-    - mm
     singular: modelmirror
   scope: Cluster
   versions:
@@ -129,6 +127,7 @@ spec:
                     type: string
                 required:
                 - size
+                - storageClassName
                 type: object
             required:
             - pvcName

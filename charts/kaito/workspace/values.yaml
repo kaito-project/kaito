@@ -117,6 +117,7 @@ flux2:
   policies:
     create: false
 gpu-feature-discovery:
+  deviceDiscoveryStrategy: "nvml"
   affinity:
     nodeAffinity: {}
   nfd:

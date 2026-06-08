@@ -1,8 +1,8 @@
+# syntax=docker/dockerfile:1
 FROM python:3.12-slim AS dependencies
 
 ARG MODEL_TYPE
 ARG VERSION
-ARG UV_VERSION=0.10.10
 
 # https://docs.ray.io/en/latest/cluster/usage-stats.html
 ENV RAY_USAGE_STATS_ENABLED="1"
@@ -26,20 +26,13 @@ RUN apt-get update -y && apt upgrade -y && \
 
 FROM dependencies AS base
 
-COPY presets/workspace/dependencies/requirements.txt /workspace/requirements.txt
+ARG UV_VERSION=0.10.10
 
-ENV LMCACHE_VERSION=0.4.6
+COPY presets/workspace/dependencies/requirements.txt /workspace/requirements.txt
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip3 install --no-cache-dir "uv==${UV_VERSION}" && \
     uv pip install --system -q -r /workspace/requirements.txt && \
-    # Pin LMCache to use CUDA 12.9 wheel since it uses CUDA 13 wheel by default and is not compatible with Kaito's current vllm setup.
-    # --extra-index-url https://download.pytorch.org/whl/cu129 ensures the CUDA 12.9 build of PyTorch is resolved.
-    # TODO: Remove this once vLLM switches to use CUDA 13 wheel by default
-    uv pip install --system lmcache==${LMCACHE_VERSION} \
-        --extra-index-url https://download.pytorch.org/whl/cu129 \
-        --find-links https://github.com/LMCache/LMCache/releases/expanded_assets/v${LMCACHE_VERSION}-cu129 \
-        --index-strategy unsafe-best-match && \
     pip3 uninstall -y uv
 
 # 1. Huggingface transformers
@@ -59,8 +52,8 @@ COPY presets/workspace/inference/vllm/inference_api.py \
     /workspace/vllm/
 
 RUN VLLM_VERSION=$(grep 'vllm==' /workspace/requirements.txt | cut -d'=' -f3) && \
-    curl -o /workspace/vllm/multi-node-serving.sh \
-    https://raw.githubusercontent.com/vllm-project/vllm/refs/tags/v${VLLM_VERSION}/examples/online_serving/multi-node-serving.sh && \
+    curl --fail -o /workspace/vllm/multi-node-serving.sh \
+    https://raw.githubusercontent.com/vllm-project/vllm/refs/tags/v${VLLM_VERSION}/examples/ray_serving/multi-node-serving.sh && \
     chmod +x /workspace/vllm/multi-node-serving.sh
 
 # Chat template

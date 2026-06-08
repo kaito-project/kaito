@@ -651,7 +651,7 @@ func printWorkspaceDiagnostics(workspaceObj *kaitov1beta1.Workspace) {
 	if workspaceObj.Tuning != nil {
 		labelSelector = fmt.Sprintf("job-name=%s", workspaceObj.Name)
 	} else {
-		labelSelector = fmt.Sprintf("app=%s", workspaceObj.Name)
+		labelSelector = fmt.Sprintf("%s=%s", kaitov1beta1.LabelWorkspaceName, workspaceObj.Name)
 	}
 
 	printPodDiagnostics(workspaceObj.Namespace, labelSelector)

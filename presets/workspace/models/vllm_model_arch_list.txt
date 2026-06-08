@@ -203,6 +203,7 @@ Mamba2ForCausalLM
 MambaForCausalLM
 MantisForConditionalGeneration
 MedusaModel
+MellumForCausalLM
 MiDashengLMModel
 MiMoForCausalLM
 MiMoMTPModel

@@ -368,17 +368,56 @@ Current semantics:
 - if reload fails, the previous policy remains active
 - if the newly loaded policy is identical to the current one, the reload is a noop
 
-Guardrails-specific Prometheus metrics currently exposed by the runtime include:
+Guardrails-specific Prometheus metrics currently exposed by the runtime:
 
-- `output_guardrails_policy_load_total`
-- `output_guardrails_scanner_build_total`
-- `output_guardrails_actions_total`
-- `guardrails_policy_reload_total`
-- `guardrails_policy_loaded_timestamp_seconds`
-- `guardrails_active_policy_info`
+| Metric | Labels | Meaning |
+| --- | --- | --- |
+| `output_guardrails_policy_load_total` | `policy_status` | Policy load attempts by outcome: `success`, `missing`, `invalid`, `load_failed` |
+| `output_guardrails_scanner_build_total` | `type`, `status` | Scanner build attempts by scanner type and outcome |
+| `output_guardrails_actions_total` | `action` | Applied output actions, currently `redact` or `block` |
+| `guardrails_policy_reload_total` | `result` | Reload results: `success`, `failure`, `noop` |
+| `guardrails_policy_loaded_timestamp_seconds` | none | Unix timestamp of the most recent active policy update |
+| `guardrails_active_policy_info` | `path`, `sha256`, `enabled`, `scanner_count` | Metadata for the active policy |
 
-The runtime also emits structured logs for policy loading, scanner build
-failures, runtime trigger events, and hot reload outcomes.
+Request-level metrics such as `rag_chat_requests_total` still capture overall
+API success and failure for `/v1/chat/completions`, including failures caused
+by guardrails.
+
+The runtime emits structured guardrails logs with stable event names and
+fields.
+
+Common policy-load events:
+
+| Event | Key fields |
+| --- | --- |
+| `output_guardrails_policy_missing` | `path` |
+| `output_guardrails_policy_load_failed` | `path` |
+| `output_guardrails_policy_invalid` | `path` |
+| `output_guardrails_policy_invalid_scanners` | `path` |
+| `output_guardrails_policy_unknown_scanner` | `type` |
+| `output_guardrails_policy_invalid_scanner_config` | `type`, `error` |
+| `output_guardrails_policy_incompatible_scanner_action` | `type`, `action` |
+| `output_guardrails_policy_invalid_action` | `action` |
+
+Runtime and reload events:
+
+| Event | Key fields |
+| --- | --- |
+| `output_guardrails_triggered` | `action`, `response_id`, `scanners`, `policy_hash` |
+| `output_guardrails_failed` | `fail_open`, `response_id` |
+| `output_guardrails_policy_scanner_build_failed` | `type`, `policy_hash`, `path` |
+| `output_guardrails_hot_reload_disabled` | `reason` |
+| `output_guardrails_reloader_terminated` | stack trace in logger exception output |
+| `output_guardrails_reload_failed` | `path`, `current_policy_hash`, `fallback_action` |
+| `output_guardrails_reload_noop` | `path`, `policy_hash` |
+| `output_guardrails_reload_succeeded` | `path`, `old_policy_hash`, `new_policy_hash`, `enabled`, `scanners` |
+
+`output_guardrails_triggered.scanners` is a list of per-scanner summaries that
+includes at least:
+
+- `type`
+- `action`
+- `scores`
 
 ## Known Limitations
 

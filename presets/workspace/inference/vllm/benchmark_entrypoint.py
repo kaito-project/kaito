@@ -467,6 +467,7 @@ def _run_guidellm(processor: str, max_concurrency: int):
         rate=[float(max_concurrency)],
         max_seconds=BENCHMARK_DURATION,
         processor=processor or None,
+        processor_args={"trust_remote_code": True},
         data_num_workers=0,
         random_seed=int(time.time()),
         outputs=[],

@@ -16,3 +16,13 @@ data:
           - '\bgh[pousr]_[A-Za-z0-9_]{20,}\b'
           - '(?i)\bsk-[A-Za-z0-9]{20,}\b'
           - '(?i)\bbearer\s+[A-Za-z0-9._\-]{20,}\b'
+      - type: secrets
+        action: redact
+        redactMode: partial
+      - type: sensitive
+        action: redact
+        detectors:
+          - email
+          - phone
+          - credit_card
+          - ip_address

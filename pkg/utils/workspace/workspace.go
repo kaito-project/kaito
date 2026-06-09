@@ -17,6 +17,7 @@ import (
 	"context"
 	"reflect"
 
+	appsv1 "k8s.io/api/apps/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -123,4 +124,19 @@ func UpdateWorkspaceWithRetry(ctx context.Context, c client.Client, wObj *kaitov
 		}
 		return c.Update(ctx, latestWorkspace)
 	})
+}
+
+// GetInferenceContainerImage returns the image of the inference container in the StatefulSet's pod template.
+// The inference container is identified by having the same name as the StatefulSet itself.
+// Falls back to the first container if no name match is found.
+func GetInferenceContainerImage(ss *appsv1.StatefulSet) string {
+	for i := range ss.Spec.Template.Spec.Containers {
+		if ss.Spec.Template.Spec.Containers[i].Name == ss.Name {
+			return ss.Spec.Template.Spec.Containers[i].Image
+		}
+	}
+	if len(ss.Spec.Template.Spec.Containers) == 0 {
+		return ""
+	}
+	return ss.Spec.Template.Spec.Containers[0].Image
 }

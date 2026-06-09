@@ -315,11 +315,23 @@ RELOAD_RESULT_LABEL = "result"
 RELOAD_RESULT_SUCCESS = "success"
 RELOAD_RESULT_FAILURE = "failure"
 RELOAD_RESULT_NOOP = "noop"
+GUARDRAILS_SCANNER_TYPE_LABEL = "scanner_type"
+GUARDRAILS_FINAL_ACTION_LABEL = "final_action"
 
 guardrails_policy_reload_total = Counter(
     "guardrails_policy_reload_total",
     "Count of output guardrails policy reload attempts.",
     labelnames=[RELOAD_RESULT_LABEL],
+)
+guardrails_response_scanner_hits_total = Counter(
+    "ragengine_guardrails_response_scanner_hits_total",
+    "Count of output guardrails scanner hits while scanning responses.",
+    labelnames=[GUARDRAILS_SCANNER_TYPE_LABEL, ACTION_LABEL],
+)
+guardrails_response_actions_total = Counter(
+    "ragengine_guardrails_response_actions_total",
+    "Count of final output guardrails actions while scanning responses.",
+    labelnames=[GUARDRAILS_FINAL_ACTION_LABEL],
 )
 guardrails_policy_loaded_timestamp = Gauge(
     "guardrails_policy_loaded_timestamp_seconds",

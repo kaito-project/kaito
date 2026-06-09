@@ -42,6 +42,11 @@ featureGates:
   gatewayAPIInferenceExtension: false
   enableInferenceSetController: false
   enableMultiRoleInferenceController: false
+  ModelMirror: false
+  ModelStreaming: false
+  enableBaseImageAutoUpgrade: false
+defaultModelMirrorStorageClass: ""
+defaultStreamingServiceAccount: ""
 defaultNodeImageFamily: ""
 nodeProvisioner: "azure-gpu-provisioner"
 karpenterProvider: "azure"

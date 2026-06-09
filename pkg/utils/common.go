@@ -18,54 +18,21 @@ import (
 	"net/url"
 	"os"
 	"sort"
-	"strconv"
 	"strings"
 
-	awsapis "github.com/aws/karpenter-provider-aws/pkg/apis"
-	awsv1 "github.com/aws/karpenter-provider-aws/pkg/apis/v1"
 	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	karpenterapis "sigs.k8s.io/karpenter/pkg/apis"
-	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
-	"github.com/kaito-project/kaito/pkg/apis"
-	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
 	errInvalidModelVersionURL = "invalid model version URL: %s. Expected format: https://huggingface.co/<org>/<model>/commit/<revision>"
-)
-
-var (
-	karpenterSchemeGroupVersion = schema.GroupVersion{Group: karpenterapis.Group, Version: "v1"}
-	awsSchemeGroupVersion       = schema.GroupVersion{Group: awsapis.Group, Version: "v1"}
-
-	KarpenterSchemeBuilder = runtime.NewSchemeBuilder(func(scheme *runtime.Scheme) error {
-		scheme.AddKnownTypes(karpenterSchemeGroupVersion,
-			&karpenterv1.NodePool{},
-			&karpenterv1.NodePoolList{},
-			&karpenterv1.NodeClaim{},
-			&karpenterv1.NodeClaimList{},
-		)
-		metav1.AddToGroupVersion(scheme, karpenterSchemeGroupVersion)
-		return nil
-	})
-	AwsSchemeBuilder = runtime.NewSchemeBuilder(func(scheme *runtime.Scheme) error {
-		scheme.AddKnownTypes(awsSchemeGroupVersion,
-			&awsv1.EC2NodeClass{},
-			&awsv1.EC2NodeClassList{},
-		)
-		metav1.AddToGroupVersion(scheme, awsSchemeGroupVersion)
-		return nil
-	})
 )
 
 func Contains(s []string, e string) bool {
@@ -135,88 +102,6 @@ func GetReleaseNamespace() (string, error) {
 		return namespace, nil
 	}
 	return "", fmt.Errorf("failed to determine release namespace from file %s and env var %s", namespaceFilePath, consts.DefaultReleaseNamespaceEnvVar)
-}
-
-func GetSKUHandler() (sku.CloudSKUHandler, error) {
-	// Get the cloud provider from the environment
-	provider := os.Getenv("CLOUD_PROVIDER")
-
-	if provider == "" {
-		return nil, apis.ErrMissingField("CLOUD_PROVIDER environment variable must be set")
-	}
-	// Select the correct SKU handler based on the cloud provider
-	skuHandler := sku.GetCloudSKUHandler(provider)
-	if skuHandler == nil {
-		return nil, apis.ErrInvalidValue(fmt.Sprintf("Unsupported cloud provider %s", provider), "CLOUD_PROVIDER")
-	}
-
-	return skuHandler, nil
-}
-
-func IsAzureCloudProvider() bool {
-	return os.Getenv("CLOUD_PROVIDER") == consts.AzureCloudName
-}
-
-func GetGPUConfigBySKU(instanceType string) (*sku.GPUConfig, error) {
-	skuHandler, err := GetSKUHandler()
-	if err != nil {
-		return nil, apis.ErrInvalidValue(fmt.Sprintf("Failed to get SKU handler: %v", err), "sku")
-	}
-
-	config := skuHandler.GetGPUConfigBySKU(instanceType)
-	if config == nil {
-		return nil, apis.ErrInvalidValue(fmt.Sprintf("Unsupported SKU '%s' for cloud provider", instanceType), "sku")
-	}
-
-	return config, nil
-}
-
-// GetGPUConfigFromNodeLabels extracts GPU configuration from nvidia.com labels on a node
-func GetGPUConfigFromNodeLabels(node *corev1.Node) (*sku.GPUConfig, error) {
-	gpuProduct, hasGPUProduct := node.Labels[consts.NvidiaGPUProduct]
-	gpuCountStr, hasGPUCount := node.Labels[consts.NvidiaGPUCount]
-	gpuMemoryStr, hasGPUMemory := node.Labels[consts.NvidiaGPUMemory]
-
-	// Check if all required nvidia.com labels are present
-	if !hasGPUProduct || !hasGPUCount || !hasGPUMemory {
-		return nil, fmt.Errorf("missing required nvidia.com labels on node %s", node.Name)
-	}
-
-	// Parse GPU count
-	gpuCount, err := strconv.Atoi(gpuCountStr)
-	if err != nil {
-		return nil, fmt.Errorf("invalid nvidia.com/gpu.count value on node %s: %s", node.Name, gpuCountStr)
-	}
-
-	// Parse GPU memory (nvidia.com/gpu.memory is per-GPU memory in MiB).
-	gpuMemoryMiB, err := strconv.Atoi(gpuMemoryStr)
-	if err != nil {
-		return nil, fmt.Errorf("invalid nvidia.com/gpu.memory value on node %s: %s", node.Name, gpuMemoryStr)
-	}
-
-	gpuMemGiB := int64((float64(gpuMemoryMiB)/1024)+0.5) * int64(gpuCount)
-
-	// Parse CUDA compute capability from nvidia.com/cuda.compute.major and nvidia.com/cuda.compute.minor labels.
-	// These are set by the NVIDIA GPU Feature Discovery (GFD) DaemonSet.
-	var cudaComputeCap float64
-	if majorStr, ok := node.Labels[consts.NvidiaCUDAComputeCapMajor]; ok {
-		if major, err := strconv.Atoi(majorStr); err == nil {
-			cudaComputeCap = float64(major)
-			if minorStr, ok := node.Labels[consts.NvidiaCUDAComputeCapMinor]; ok {
-				if minor, err := strconv.Atoi(minorStr); err == nil {
-					cudaComputeCap += float64(minor) / 10.0
-				}
-			}
-		}
-	}
-
-	return &sku.GPUConfig{
-		SKU:                   "unknown", // SKU is not available from node labels
-		GPUCount:              gpuCount,
-		GPUModel:              gpuProduct,
-		GPUMem:                *resource.NewQuantity(gpuMemGiB*consts.GiBToBytes, resource.BinarySI),
-		CUDAComputeCapability: cudaComputeCap,
-	}, nil
 }
 
 func ExtractAndValidateRepoName(image string) error {

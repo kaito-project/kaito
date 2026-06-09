@@ -26,7 +26,7 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
-	"github.com/kaito-project/kaito/pkg/utils/resources"
+	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/workspace/resource"
 )
 
@@ -58,7 +58,7 @@ func (g *AzureGPUProvisioner) Start(ctx context.Context) error { return nil }
 
 // ProvisionNodes creates NodeClaims via the Azure gpu-provisioner backend.
 func (g *AzureGPUProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {
-	readyNodes, err := resources.GetReadyNodes(ctx, g.nodeClaimManager.Client, ws)
+	readyNodes, err := nodes.GetReadyNodes(ctx, g.nodeClaimManager.Client, ws)
 	if err != nil {
 		return fmt.Errorf("failed to list ready nodes: %w", err)
 	}
@@ -108,7 +108,7 @@ func (g *AzureGPUProvisioner) DisableDriftRemediation(ctx context.Context, works
 func (g *AzureGPUProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.Workspace) (bool, bool, error) {
 	// List nodes once and derive both readyNodes (for NodeClaim check) and
 	// readyCount with correct instance type (for node readiness check).
-	nodeList, err := resources.ListNodes(ctx, g.nodeClaimManager.Client, kaitov1beta1.SanitizedMatchLabels(ws.Resource.LabelSelector))
+	nodeList, err := nodes.ListNodes(ctx, g.nodeClaimManager.Client, kaitov1beta1.SanitizedMatchLabels(ws.Resource.LabelSelector))
 	if err != nil {
 		return false, false, fmt.Errorf("failed to list nodes: %w", err)
 	}
@@ -117,7 +117,7 @@ func (g *AzureGPUProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1b
 	readyWithInstanceType := 0
 	for i := range nodeList.Items {
 		node := &nodeList.Items[i]
-		if resources.NodeIsReadyAndNotDeleting(node) {
+		if nodes.NodeIsReadyAndNotDeleting(node) {
 			readyNodes = append(readyNodes, node)
 			if instanceType, ok := node.Labels[corev1.LabelInstanceTypeStable]; ok && instanceType == ws.Resource.InstanceType {
 				readyWithInstanceType++
@@ -180,7 +180,7 @@ func (g *AzureGPUProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kai
 		Reason: "workspaceResourceStatusNotReady", Message: "node claim or node status condition not ready",
 	}
 
-	nodeList, err := resources.ListNodes(ctx, g.nodeClaimManager.Client, kaitov1beta1.SanitizedMatchLabels(ws.Resource.LabelSelector))
+	nodeList, err := nodes.ListNodes(ctx, g.nodeClaimManager.Client, kaitov1beta1.SanitizedMatchLabels(ws.Resource.LabelSelector))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list nodes: %w", err)
 	}
@@ -188,7 +188,7 @@ func (g *AzureGPUProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kai
 	readyWithInstanceType := 0
 	for i := range nodeList.Items {
 		node := &nodeList.Items[i]
-		if resources.NodeIsReadyAndNotDeleting(node) {
+		if nodes.NodeIsReadyAndNotDeleting(node) {
 			readyNodes = append(readyNodes, node)
 			if it, ok := node.Labels[corev1.LabelInstanceTypeStable]; ok && it == ws.Resource.InstanceType {
 				readyWithInstanceType++

@@ -34,6 +34,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
+	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -99,6 +100,9 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 			w.validateUpdate(old).ViaField("spec"),
 			w.Resource.validateUpdate(&old.Resource).ViaField("resource"),
 		)
+		if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+			errs = errs.Also(w.validateModelStreamingAnnotationImmutable(old))
+		}
 		if w.Inference != nil {
 			errs = errs.Also(w.Inference.validateUpdate(old.Inference).ViaField("inference"))
 		}
@@ -463,7 +467,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 
 			for _, node := range nodeList.Items {
 				// Try to get GPU configuration from nvidia.com labels first
-				gpuConfig, err := utils.GetGPUConfigFromNodeLabels(&node)
+				gpuConfig, err := sku.GetGPUConfigFromNodeLabels(&node)
 				if err != nil {
 					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get GPU config from nvidia labels on node %s: %v", node.Name, err)))
 					return errs
@@ -495,7 +499,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 		}
 	} else { // NAP enabled
 		// Regardless of if preset is empty or not, we do want to make sure the instance type is valid for NAP and can't skip node validation like BYO.
-		skuHandler, err := utils.GetSKUHandler()
+		skuHandler, err := sku.GetSKUHandler()
 		if err != nil {
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get SKU handler: %v", err), "instanceType"))
 			return errs
@@ -711,4 +715,16 @@ func validateDuplicateName(adapters []AdapterSpec, nameMap map[string]bool) (err
 		}
 	}
 	return errs
+}
+
+func (w *Workspace) validateModelStreamingAnnotationImmutable(old *Workspace) *apis.FieldError {
+	oldVal := old.GetAnnotations()[mmconsts.AnnotationModelStreaming]
+	newVal := w.GetAnnotations()[mmconsts.AnnotationModelStreaming]
+	if oldVal != newVal {
+		return apis.ErrGeneric(
+			fmt.Sprintf("annotation %s is immutable after creation", mmconsts.AnnotationModelStreaming),
+			fmt.Sprintf("metadata.annotations[%s]", mmconsts.AnnotationModelStreaming),
+		)
+	}
+	return nil
 }

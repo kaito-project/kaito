@@ -101,7 +101,7 @@ func (w *RAGEngine) validateCreate() (errs *apis.FieldError) {
 func (r *ResourceSpec) validateRAGCreate() (errs *apis.FieldError) {
 	instanceType := string(r.InstanceType)
 
-	skuHandler, err := utils.GetSKUHandler()
+	skuHandler, err := sku.GetSKUHandler()
 	if err != nil {
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get SKU handler: %v", err), "instanceType"))
 		return errs

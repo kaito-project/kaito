@@ -30,7 +30,7 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/utils/resources"
+	nodeutil "github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
@@ -82,7 +82,7 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 						Name: "test-node",
 						Labels: map[string]string{
 							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
-							resources.LabelKeyNvidia:       resources.LabelValueNvidia,
+							nodeutil.LabelKeyNvidia:        nodeutil.LabelValueNvidia,
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -93,7 +93,7 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 							},
 						},
 						Capacity: corev1.ResourceList{
-							resources.CapacityNvidiaGPU: resource.MustParse("1"),
+							nodeutil.CapacityNvidiaGPU: resource.MustParse("1"),
 						},
 					},
 				}
@@ -209,7 +209,7 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 						Name: "test-node",
 						Labels: map[string]string{
 							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
-							resources.LabelKeyNvidia:       resources.LabelValueNvidia,
+							nodeutil.LabelKeyNvidia:        nodeutil.LabelValueNvidia,
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -220,7 +220,7 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 							},
 						},
 						Capacity: corev1.ResourceList{
-							resources.CapacityNvidiaGPU: resource.MustParse("0"),
+							nodeutil.CapacityNvidiaGPU: resource.MustParse("0"),
 						},
 					},
 				}
@@ -332,7 +332,7 @@ func TestSetNodePluginsReadyCondition_AdditionalCases(t *testing.T) {
 						Name: "test-node",
 						Labels: map[string]string{
 							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
-							resources.LabelKeyNvidia:       resources.LabelValueNvidia,
+							nodeutil.LabelKeyNvidia:        nodeutil.LabelValueNvidia,
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -343,7 +343,7 @@ func TestSetNodePluginsReadyCondition_AdditionalCases(t *testing.T) {
 							},
 						},
 						Capacity: corev1.ResourceList{
-							resources.CapacityNvidiaGPU: resource.MustParse("1"),
+							nodeutil.CapacityNvidiaGPU: resource.MustParse("1"),
 						},
 					},
 				}
@@ -480,7 +480,7 @@ func TestCheckNodePlugin(t *testing.T) {
 							},
 						},
 						Capacity: corev1.ResourceList{
-							resources.CapacityNvidiaGPU: resource.MustParse("1"),
+							nodeutil.CapacityNvidiaGPU: resource.MustParse("1"),
 						},
 					},
 				}
@@ -517,7 +517,7 @@ func TestCheckNodePlugin(t *testing.T) {
 						Name: "test-node",
 						Labels: map[string]string{
 							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
-							resources.LabelKeyNvidia:       resources.LabelValueNvidia,
+							nodeutil.LabelKeyNvidia:        nodeutil.LabelValueNvidia,
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -528,7 +528,7 @@ func TestCheckNodePlugin(t *testing.T) {
 							},
 						},
 						Capacity: corev1.ResourceList{
-							resources.CapacityNvidiaGPU: resource.MustParse("0"),
+							nodeutil.CapacityNvidiaGPU: resource.MustParse("0"),
 						},
 					},
 				}
@@ -571,7 +571,7 @@ func TestCheckNodePlugin(t *testing.T) {
 						Name: "test-node",
 						Labels: map[string]string{
 							corev1.LabelInstanceTypeStable: "Standard_NC12s_v2",
-							resources.LabelKeyNvidia:       resources.LabelValueNvidia,
+							nodeutil.LabelKeyNvidia:        nodeutil.LabelValueNvidia,
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -582,7 +582,7 @@ func TestCheckNodePlugin(t *testing.T) {
 							},
 						},
 						Capacity: corev1.ResourceList{
-							resources.CapacityNvidiaGPU: resource.MustParse("1"),
+							nodeutil.CapacityNvidiaGPU: resource.MustParse("1"),
 						},
 					},
 				}
@@ -616,7 +616,7 @@ func TestCheckNodePlugin(t *testing.T) {
 						Name: "test-node",
 						Labels: map[string]string{
 							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
-							resources.LabelKeyNvidia:       resources.LabelValueNvidia,
+							nodeutil.LabelKeyNvidia:        nodeutil.LabelValueNvidia,
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -627,7 +627,7 @@ func TestCheckNodePlugin(t *testing.T) {
 							},
 						},
 						Capacity: corev1.ResourceList{
-							resources.CapacityNvidiaGPU: resource.MustParse("1"),
+							nodeutil.CapacityNvidiaGPU: resource.MustParse("1"),
 						},
 					},
 				}
@@ -665,7 +665,7 @@ func TestCheckNodePlugin(t *testing.T) {
 					},
 					Status: corev1.NodeStatus{
 						Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}},
-						Capacity:   corev1.ResourceList{resources.CapacityNvidiaGPU: resource.MustParse("1")},
+						Capacity:   corev1.ResourceList{nodeutil.CapacityNvidiaGPU: resource.MustParse("1")},
 					},
 				}
 				mockClient.CreateOrUpdateObjectInMap(node)

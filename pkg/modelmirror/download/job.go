@@ -1,0 +1,122 @@
+// Copyright (c) KAITO authors.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package download
+
+import (
+	"strings"
+
+	batchv1 "k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
+
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
+)
+
+// BuildDownloadJob constructs the Job that downloads model files to the PVC.
+func BuildDownloadJob(cr *kaitov1alpha1.ModelMirror) *batchv1.Job {
+	excludePatterns := strings.Join(mmconsts.DownloadExcludePatterns, ",")
+	modelID := cr.Spec.Source.ModelID
+
+	// Post-download cleanup: hfdownloader pre-creates subdirectories (e.g. original/)
+	// before downloading, so even excluded directories leave empty folders on the PVC.
+	// Azure Blob NFS creates a zero-byte object for each empty directory, and RunAI
+	// model streamer iterates all objects in the container. We remove all subdirectories
+	// as a safety net.
+	script := `set -e
+apk add --no-cache curl > /dev/null 2>&1
+ARCH=$(uname -m)
+case "$ARCH" in x86_64) ARCH_SUFFIX="amd64" ;; aarch64) ARCH_SUFFIX="arm64" ;; *) echo "Unsupported arch: $ARCH"; exit 1 ;; esac
+HFD_VERSION=$(curl -sI https://github.com/bodaay/HuggingFaceModelDownloader/releases/latest | grep -i ^location: | sed 's|.*/v||;s/\r//')
+curl -sL -o /usr/local/bin/hfdownloader "https://github.com/bodaay/HuggingFaceModelDownloader/releases/download/v${HFD_VERSION}/hfdownloader_linux_${ARCH_SUFFIX}_v${HFD_VERSION}"
+chmod +x /usr/local/bin/hfdownloader
+HF_TOKEN_FLAG=""
+if [ -n "${HF_TOKEN:-}" ]; then HF_TOKEN_FLAG="-t $HF_TOKEN"; fi
+hfdownloader download "${MODEL_ID}" --local-dir /models -F safetensors -E "${EXCLUDE_PATTERNS}" $HF_TOKEN_FLAG
+find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true`
+
+	envVars := []corev1.EnvVar{
+		{Name: "EXCLUDE_PATTERNS", Value: excludePatterns},
+		{Name: "MODEL_ID", Value: modelID},
+	}
+
+	// Always declare HF_TOKEN — optional:true means Kubernetes silently skips it
+	// if the secret doesn't exist.
+	if cr.Spec.Source.AccessSecret != nil {
+		envVars = append(envVars, corev1.EnvVar{
+			Name: "HF_TOKEN",
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{Name: cr.Spec.Source.AccessSecret.Name},
+					Key:                  "token",
+					Optional:             ptr.To(true),
+				},
+			},
+		})
+	}
+
+	container := corev1.Container{
+		Name:    "downloader",
+		Image:   mmconsts.DownloaderImage,
+		Command: []string{"/bin/sh", "-c"},
+		Args:    []string{script},
+		Env:     envVars,
+		Resources: corev1.ResourceRequirements{
+			Requests: corev1.ResourceList{
+				corev1.ResourceCPU:    resource.MustParse("500m"),
+				corev1.ResourceMemory: resource.MustParse("512Mi"),
+			},
+			Limits: corev1.ResourceList{
+				corev1.ResourceCPU:    resource.MustParse("2"),
+				corev1.ResourceMemory: resource.MustParse("2Gi"),
+			},
+		},
+		VolumeMounts: []corev1.VolumeMount{
+			{Name: "model-storage", MountPath: "/models"},
+		},
+	}
+
+	job := &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			GenerateName: cr.Name + "-download-",
+			Namespace:    cr.Spec.JobNamespace,
+			Labels: map[string]string{
+				mmconsts.LabelModelMirrorName: cr.Name,
+			},
+		},
+		Spec: batchv1.JobSpec{
+			BackoffLimit:            ptr.To(int32(3)),
+			TTLSecondsAfterFinished: ptr.To(int32(3600)), // 1 hour — keeps failed pods for debugging
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					RestartPolicy: corev1.RestartPolicyOnFailure,
+					Containers:    []corev1.Container{container},
+					Volumes: []corev1.Volume{
+						{
+							Name: "model-storage",
+							VolumeSource: corev1.VolumeSource{
+								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+									ClaimName: cr.Name,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	return job
+}

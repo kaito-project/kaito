@@ -300,7 +300,7 @@ Use this endpoint to permanently remove an index and all its data when it is no 
 
 The RAGEngine provides an OpenAI-compatible chat completions endpoint at `/v1/chat/completions`. This endpoint allows you to use RAG capabilities with the familiar OpenAI API format, making it easy to integrate with existing applications that use OpenAI's chat completions.
 
-An initial non-streaming output guardrails hook is also available for this endpoint. See [RAG Output Guardrails](./rag-output-guardrails.md) for the current scope and limitations.
+Output guardrails are also available for the non-streaming version of this endpoint. See [RAG Output Guardrails](./rag-output-guardrails.md) for current behavior, configuration, and limitations.
 
 ### RAG Bypass Conditions
 

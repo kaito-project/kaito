@@ -18,6 +18,7 @@ import textwrap
 import time
 
 import pytest
+from llm_guard import scan_output
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
@@ -30,11 +31,18 @@ from ragengine.guardrails.output_guardrails import (
 )
 from ragengine.guardrails.scanner_schemas import (
     BanSubstringsConfig,
+    InvisibleTextConfig,
+    JSONConfig,
     ParsedScannerConfig,
+    ReadingTimeConfig,
     RegexConfig,
+    SecretsConfig,
+    SensitiveConfig,
+    TokenLimitConfig,
 )
 from ragengine.metrics.prometheus_metrics import (
-    output_guardrails_actions_total,
+    guardrails_response_actions_total,
+    guardrails_response_scanner_hits_total,
     output_guardrails_policy_load_total,
     output_guardrails_scanner_build_total,
 )
@@ -69,6 +77,60 @@ def _ban_subs_cfg(
         type="ban_substrings",
         action_on_hit=action_on_hit,
         config=BanSubstringsConfig(substrings=list(substrings), **kw),
+    )
+
+
+def _invisible_text_cfg(action_on_hit="redact") -> ParsedScannerConfig:
+    return ParsedScannerConfig(
+        type="invisible_text",
+        action_on_hit=action_on_hit,
+        config=InvisibleTextConfig(),
+    )
+
+
+def _token_limit_cfg(limit=10, action_on_hit="redact", **kw) -> ParsedScannerConfig:
+    return ParsedScannerConfig(
+        type="token_limit",
+        action_on_hit=action_on_hit,
+        config=TokenLimitConfig(limit=limit, **kw),
+    )
+
+
+def _json_cfg(required_elements=0, action_on_hit="redact", **kw) -> ParsedScannerConfig:
+    return ParsedScannerConfig(
+        type="json",
+        action_on_hit=action_on_hit,
+        config=JSONConfig(required_elements=required_elements, **kw),
+    )
+
+
+def _reading_time_cfg(
+    max_time=0.5, action_on_hit="redact", **kw
+) -> ParsedScannerConfig:
+    return ParsedScannerConfig(
+        type="reading_time",
+        action_on_hit=action_on_hit,
+        config=ReadingTimeConfig(max_time=max_time, **kw),
+    )
+
+
+def _secrets_cfg(action_on_hit="redact", **kw) -> ParsedScannerConfig:
+    return ParsedScannerConfig(
+        type="secrets",
+        action_on_hit=action_on_hit,
+        config=SecretsConfig(**kw),
+    )
+
+
+def _sensitive_cfg(
+    detectors=("email", "phone", "credit_card", "ip_address"),
+    action_on_hit="redact",
+    **kw,
+) -> ParsedScannerConfig:
+    return ParsedScannerConfig(
+        type="sensitive",
+        action_on_hit=action_on_hit,
+        config=SensitiveConfig(detectors=list(detectors), **kw),
     )
 
 
@@ -154,6 +216,29 @@ def fake_llm_guard_scanners(monkeypatch):
             self.contains_all = contains_all
             self.redact = redact
 
+    class FakeInvisibleText:
+        def scan(self, prompt):
+            return prompt.replace("\u200b", ""), "\u200b" not in prompt, 1.0
+
+    class FakeTokenLimit:
+        def __init__(self, *, limit=4096, encoding_name="cl100k_base", model_name=None):
+            self.limit = limit
+            self.encoding_name = encoding_name
+            self.model_name = model_name
+
+        def scan(self, prompt):
+            return prompt[: self.limit], len(prompt) <= self.limit, 1.0
+
+    class FakeJSON:
+        def __init__(self, *, required_elements=0, repair=True):
+            self.required_elements = required_elements
+            self.repair = repair
+
+    class FakeReadingTime:
+        def __init__(self, max_time, *, truncate=False):
+            self.max_time = max_time
+            self.truncate = truncate
+
     monkeypatch.setattr(
         scanner_schemas_module.llm_guard_output_scanners,
         "Regex",
@@ -166,7 +251,38 @@ def fake_llm_guard_scanners(monkeypatch):
         FakeBanSubstrings,
         raising=False,
     )
-    return FakeRegex, FakeBanSubstrings
+    monkeypatch.setattr(
+        scanner_schemas_module.llm_guard_input_scanners,
+        "InvisibleText",
+        FakeInvisibleText,
+        raising=False,
+    )
+    monkeypatch.setattr(
+        scanner_schemas_module.llm_guard_input_scanners,
+        "TokenLimit",
+        FakeTokenLimit,
+        raising=False,
+    )
+    monkeypatch.setattr(
+        scanner_schemas_module.llm_guard_output_scanners,
+        "JSON",
+        FakeJSON,
+        raising=False,
+    )
+    monkeypatch.setattr(
+        scanner_schemas_module.llm_guard_output_scanners,
+        "ReadingTime",
+        FakeReadingTime,
+        raising=False,
+    )
+    return (
+        FakeRegex,
+        FakeBanSubstrings,
+        FakeInvisibleText,
+        FakeTokenLimit,
+        FakeJSON,
+        FakeReadingTime,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -230,6 +346,32 @@ def test_from_config_records_policy_load_metrics(tmp_path, monkeypatch):
             policy_status="success",
         )
         == before + 1
+    )
+
+
+def test_from_config_loads_yaml_policy_with_secrets_and_sensitive(
+    tmp_path, monkeypatch
+):
+    _write_policy(
+        tmp_path,
+        monkeypatch,
+        """
+        action: redact
+        scanners:
+          - type: secrets
+            redactMode: partial
+          - type: sensitive
+            detectors:
+              - email
+              - ip_address
+        """,
+    )
+
+    guardrails = OutputGuardrails.from_config()
+
+    assert guardrails.scanner_configs == (
+        _secrets_cfg(redact_mode="partial"),
+        _sensitive_cfg(detectors=["email", "ip_address"]),
     )
 
 
@@ -414,6 +556,57 @@ def test_from_config_skips_invalid_scanners_and_filters_non_string_values(
     assert scanners[1].redact is True
 
 
+def test_from_config_loads_invisible_text_and_token_limit_scanners(
+    tmp_path, monkeypatch
+):
+    _write_policy(
+        tmp_path,
+        monkeypatch,
+        """
+        action: redact
+        scanners:
+          - type: invisible_text
+          - type: token_limit
+            limit: 128
+            encoding_name: cl100k_base
+        """,
+    )
+
+    guardrails = OutputGuardrails.from_config()
+
+    assert guardrails.scanner_configs == (
+        _invisible_text_cfg(),
+        _token_limit_cfg(limit=128, encoding_name="cl100k_base"),
+    )
+
+
+def test_from_config_loads_json_and_reading_time_scanners(tmp_path, monkeypatch):
+    fifteen_seconds_in_minutes = 0.25
+    policy = (
+        "action: redact\n"
+        "scanners:\n"
+        "  - type: json\n"
+        "    required_elements: 1\n"
+        "    repair: false\n"
+        "  - type: reading_time\n"
+        "    max_time: 0.25\n"
+        "    truncate: true\n"
+    )
+
+    _write_policy(
+        tmp_path,
+        monkeypatch,
+        policy,
+    )
+
+    guardrails = OutputGuardrails.from_config()
+
+    assert guardrails.scanner_configs == (
+        _json_cfg(required_elements=1, repair=False),
+        _reading_time_cfg(max_time=fifteen_seconds_in_minutes, truncate=True),
+    )
+
+
 def test_from_config_with_empty_policy_path_keeps_defaults(monkeypatch):
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_ENABLED", True)
     monkeypatch.setattr(config, "OUTPUT_GUARDRAILS_POLICY_PATH", "")
@@ -488,6 +681,8 @@ def test_parse_policy_scanner_configs_skips_unknown_and_invalid_schema():
             {"type": "unknown_scanner"},
             {"type": "regex"},  # missing required 'patterns'
             {"type": "ban_substrings"},  # missing required 'substrings'
+            {"type": "secrets", "redact_mode": "bogus"},
+            {"type": "sensitive", "detectors": ["email", "bogus"]},
             {"type": "regex", "patterns": ["a"]},
         ],
         "guardrails.yaml",
@@ -555,13 +750,81 @@ def test_parse_policy_scanner_configs_rejects_non_bool_flags():
             {"type": "ban_substrings", "substrings": ["a"], "case_sensitive": "false"},
             {"type": "ban_substrings", "substrings": ["a"], "contains_all": 1},
             {"type": "regex", "patterns": ["a"], "is_blocked": "no"},
+            {"type": "json", "repair": "yes"},
+            {"type": "reading_time", "max_time": 0.5, "truncate": "no"},
             # Native YAML booleans (already parsed to Python bool) are accepted.
             {"type": "ban_substrings", "substrings": ["a"], "case_sensitive": True},
+            {"type": "json", "repair": True},
+            {"type": "reading_time", "max_time": 0.5, "truncate": True},
         ],
         "guardrails.yaml",
     )
 
-    assert parsed == (_ban_subs_cfg(substrings=["a"], case_sensitive=True),)
+    assert parsed == (
+        _ban_subs_cfg(substrings=["a"], case_sensitive=True),
+        _json_cfg(repair=True),
+        _reading_time_cfg(max_time=0.5, truncate=True),
+    )
+
+
+def test_parse_policy_scanner_configs_rejects_invalid_invisible_text_and_token_limit_values():
+    parsed = output_guardrails_module._parse_policy_scanner_configs(
+        [
+            {"type": "invisible_text", "unexpected": True},
+            {"type": "token_limit", "limit": 0},
+            {"type": "token_limit", "limit": -1},
+            {"type": "token_limit", "limit": "many"},
+            {"type": "token_limit", "limit": 32, "encoding_name": ""},
+            {"type": "token_limit", "limit": 32, "model_name": ""},
+            {"type": "token_limit", "limit": 64, "encoding_name": "cl100k_base"},
+            {"type": "invisible_text"},
+        ],
+        "guardrails.yaml",
+    )
+
+    assert parsed == (
+        _token_limit_cfg(limit=64, encoding_name="cl100k_base"),
+        _invisible_text_cfg(),
+    )
+
+
+def test_parse_policy_scanner_configs_rejects_invalid_json_and_reading_time_values():
+    parsed = output_guardrails_module._parse_policy_scanner_configs(
+        [
+            {"type": "json", "required_elements": -1},
+            {"type": "json", "required_elements": 1.5},
+            {"type": "reading_time", "max_time": 0},
+            {"type": "reading_time", "max_time": -0.1},
+            {"type": "reading_time", "max_time": "fast"},
+            {"type": "json", "required_elements": 2, "repair": False},
+            {"type": "reading_time", "max_time": 0.1, "truncate": False},
+        ],
+        "guardrails.yaml",
+    )
+
+    assert parsed == (
+        _json_cfg(required_elements=2, repair=False),
+        _reading_time_cfg(max_time=0.1, truncate=False),
+    )
+
+
+def test_parse_policy_scanner_configs_accepts_secrets_and_sensitive():
+    parsed = output_guardrails_module._parse_policy_scanner_configs(
+        [
+            {"type": "secrets", "redact_mode": "partial"},
+            {"type": "sensitive", "detectors": ["email", "credit_card"]},
+        ],
+        "guardrails.yaml",
+    )
+
+    assert parsed == (
+        _secrets_cfg(redact_mode="partial"),
+        ParsedScannerConfig(
+            type="sensitive",
+            action_on_hit="redact",
+            config=SensitiveConfig(detectors=["email", "credit_card"]),
+        ),
+    )
 
 
 def test_parse_policy_scanner_configs_skips_redact_incompatible_scanners(
@@ -632,7 +895,7 @@ def test_parse_policy_scanner_configs_allows_non_redact_scanners_for_block(
 def test_build_scanners_supports_normalized_ban_substrings_type(
     fake_llm_guard_scanners,
 ):
-    _, FakeBanSubstrings = fake_llm_guard_scanners
+    _, FakeBanSubstrings, _, _, _, _ = fake_llm_guard_scanners
 
     parsed = output_guardrails_module._parse_policy_scanner_configs(
         [{"type": "ban-substrings", "substrings": ["secret"]}],
@@ -652,6 +915,178 @@ def test_build_scanners_supports_normalized_ban_substrings_type(
     assert isinstance(scanners[0], FakeBanSubstrings)
     assert scanners[0].substrings == ["secret"]
     assert scanners[0].redact is True
+
+
+def test_build_scanners_uses_per_scanner_action(fake_llm_guard_scanners):
+    parsed = (
+        _regex_cfg(patterns=["a"], action_on_hit="redact"),
+        _ban_subs_cfg(substrings=["secret"], action_on_hit="block"),
+    )
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        action_on_hit="redact",
+        scanner_configs=parsed,
+    )
+
+    scanners = guardrails._build_scanners()
+
+    assert scanners[0].redact is True
+    assert scanners[1].redact is False
+
+
+def test_build_scanners_builds_invisible_text_and_token_limit(fake_llm_guard_scanners):
+    _, _, FakeInvisibleText, FakeTokenLimit, _, _ = fake_llm_guard_scanners
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        scanner_configs=(
+            _invisible_text_cfg(),
+            _token_limit_cfg(limit=32, encoding_name="cl100k_base"),
+        ),
+    )
+
+    scanners = guardrails._build_scanners()
+
+    assert len(scanners) == 2
+    assert isinstance(scanners[0]._scanner, FakeInvisibleText)
+    assert isinstance(scanners[1]._scanner, FakeTokenLimit)
+    assert scanners[1]._scanner.limit == 32
+    assert scanners[1]._scanner.encoding_name == "cl100k_base"
+
+
+def test_build_scanners_forwards_token_limit_model_name(fake_llm_guard_scanners):
+    _, _, _, FakeTokenLimit, _, _ = fake_llm_guard_scanners
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        scanner_configs=(
+            _token_limit_cfg(
+                limit=32,
+                encoding_name="cl100k_base",
+                model_name="gpt-4",
+            ),
+        ),
+    )
+
+    scanners = guardrails._build_scanners()
+
+    assert len(scanners) == 1
+    assert isinstance(scanners[0]._scanner, FakeTokenLimit)
+    assert scanners[0]._scanner.model_name == "gpt-4"
+
+
+def test_build_scanners_builds_json_and_reading_time(fake_llm_guard_scanners):
+    _, _, _, _, FakeJSON, FakeReadingTime = fake_llm_guard_scanners
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        scanner_configs=(
+            _json_cfg(required_elements=2, repair=False),
+            _reading_time_cfg(max_time=0.25, truncate=True),
+        ),
+    )
+
+    scanners = guardrails._build_scanners()
+
+    assert len(scanners) == 2
+    assert isinstance(scanners[0], FakeJSON)
+    assert scanners[0].required_elements == 2
+    assert scanners[0].repair is False
+    assert isinstance(scanners[1], FakeReadingTime)
+    assert scanners[1].max_time == 0.25
+    assert scanners[1].truncate is True
+
+
+def test_build_scanners_supports_secrets_type(monkeypatch):
+    class FakeSecrets:
+        def __init__(self, *, redact_mode="all"):
+            self.redact_mode = redact_mode
+
+        def scan(self, output):
+            return f"{self.redact_mode}:{output}", False, 1.0
+
+    monkeypatch.setattr(
+        scanner_schemas_module.llm_guard_input_scanners,
+        "Secrets",
+        FakeSecrets,
+        raising=False,
+    )
+
+    parsed = output_guardrails_module._parse_policy_scanner_configs(
+        [{"type": "secrets", "redactMode": "partial"}],
+        "guardrails.yaml",
+    )
+    guardrails = OutputGuardrails(enabled=True, scanner_configs=parsed)
+
+    scanners = guardrails._build_scanners()
+
+    assert parsed == (_secrets_cfg(redact_mode="partial"),)
+    assert scanners[0].scan("ignored", "secret-value") == (
+        "partial:secret-value",
+        False,
+        1.0,
+    )
+
+
+def test_secrets_config_build_works_with_scan_output_end_to_end():
+    scanner = SecretsConfig(redact_mode="partial").build("redact")
+    original_output = "Contact me at AKIA1234567890ABCDEF for access."
+
+    sanitized_output, results_valid, results_score = scan_output(
+        [scanner],
+        "ignored prompt",
+        original_output,
+        fail_fast=False,
+    )
+
+    assert sanitized_output != original_output
+    assert any(valid is False for valid in results_valid.values())
+    assert results_score
+
+
+def test_sensitive_config_build_redacts_requested_detectors_only():
+    scanner = SensitiveConfig(detectors=["email", "ip_address"]).build("redact")
+
+    sanitized, is_valid, risk_score = scanner.scan(
+        "",
+        "Email alice@example.com from 10.0.0.1 but keep 4111 1111 1111 1111",
+    )
+
+    assert sanitized == "Email <EMAIL> from <IP_ADDRESS> but keep 4111 1111 1111 1111"
+    assert is_valid is False
+    assert risk_score == 1.0
+
+
+def test_sensitive_config_detects_luhn_valid_credit_cards_only():
+    scanner = SensitiveConfig(detectors=["credit_card"]).build("redact")
+
+    sanitized, is_valid, risk_score = scanner.scan(
+        "",
+        "good 4111 1111 1111 1111 bad 4111 1111 1111 1112",
+    )
+
+    assert sanitized == "good <CREDIT_CARD> bad 4111 1111 1111 1112"
+    assert is_valid is False
+    assert risk_score == 1.0
+
+
+def test_guard_response_redacts_sensitive_entities_end_to_end():
+    guardrails = OutputGuardrails(
+        enabled=True,
+        scanner_configs=(_sensitive_cfg(detectors=["email", "phone", "ip_address"]),),
+    )
+
+    out = guardrails.guard_response(
+        _make_response(
+            "Email alice@example.com or call +1 (206) 555-0100 from 10.0.0.1"
+        ),
+        {"messages": []},
+    )
+
+    assert out.choices[0].message.content == (
+        "Email <EMAIL> or call <PHONE> from <IP_ADDRESS>"
+    )
 
 
 def test_build_scanners_skips_configs_whose_build_raises(monkeypatch):
@@ -756,6 +1191,11 @@ def test_guard_response_skips_non_string_content(monkeypatch):
 
 
 def test_guard_response_passes_through_when_no_scanner_triggered(monkeypatch):
+    before = _counter_value(
+        guardrails_response_actions_total,
+        final_action="allow",
+    )
+
     _patch_scan_output(
         monkeypatch,
         lambda scanners, prompt, output, fail_fast: (
@@ -772,6 +1212,13 @@ def test_guard_response_passes_through_when_no_scanner_triggered(monkeypatch):
 
     out = guardrails.guard_response(_make_response("clean output"), {"messages": []})
     assert out.choices[0].message.content == "clean output"
+    assert (
+        _counter_value(
+            guardrails_response_actions_total,
+            final_action="allow",
+        )
+        == before + 1
+    )
 
 
 def test_guard_response_recovers_when_scan_output_raises(monkeypatch):
@@ -800,6 +1247,11 @@ def test_guard_response_recovers_when_scan_output_raises(monkeypatch):
 def test_guard_response_applies_action(
     monkeypatch, action, block_message, expected_content
 ):
+    response_before = _counter_value(
+        guardrails_response_actions_total,
+        final_action=action,
+    )
+
     _patch_scan_output(
         monkeypatch,
         lambda scanners, prompt, output, fail_fast: (
@@ -816,11 +1268,299 @@ def test_guard_response_applies_action(
         scanner_configs=[_regex_cfg(patterns=[r"\S+"], action_on_hit=action)],
     )
 
-    before = _counter_value(output_guardrails_actions_total, action=action)
-
     out = guardrails.guard_response(_make_response("dirty"), {"messages": []})
     assert out.choices[0].message.content == expected_content
-    assert _counter_value(output_guardrails_actions_total, action=action) == before + 1
+
+    assert (
+        _counter_value(
+            guardrails_response_actions_total,
+            final_action=action,
+        )
+        == response_before + 1
+    )
+
+
+def test_guard_response_with_real_invisible_text_scanner_redacts_output(
+    tmp_path, monkeypatch
+):
+    _write_policy(
+        tmp_path,
+        monkeypatch,
+        """
+        action: redact
+        scanners:
+          - type: invisible_text
+        """,
+    )
+
+    guardrails = OutputGuardrails.from_config()
+
+    out = guardrails.guard_response(
+        _make_response("hello\u200bworld"), {"messages": []}
+    )
+
+    assert out.choices[0].message.content == "helloworld"
+
+
+def test_guard_response_with_real_token_limit_scanner_truncates_output(
+    tmp_path, monkeypatch
+):
+    _write_policy(
+        tmp_path,
+        monkeypatch,
+        """
+        action: redact
+        scanners:
+          - type: token_limit
+            limit: 1
+            encoding_name: cl100k_base
+        """,
+    )
+
+    guardrails = OutputGuardrails.from_config()
+
+    out = guardrails.guard_response(_make_response("hello world"), {"messages": []})
+
+    assert out.choices[0].message.content == "hello"
+
+
+def test_guard_response_preserves_truncated_output_for_reading_time(monkeypatch):
+    _patch_scan_output(
+        monkeypatch,
+        lambda scanners, prompt, output, fail_fast: (
+            "one two three",
+            {"reading_time": False},
+            {"reading_time": 1.0},
+        ),
+    )
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        action_on_hit="redact",
+        scanner_configs=(_reading_time_cfg(max_time=0.01, truncate=True),),
+    )
+
+    out = guardrails.guard_response(
+        _make_response("one two three four five six"), {"messages": []}
+    )
+    assert out.choices[0].message.content == "one two three"
+
+
+def test_guard_response_with_real_json_scanner_blocks_invalid_output(
+    tmp_path, monkeypatch
+):
+    _write_policy(
+        tmp_path,
+        monkeypatch,
+        """
+        action: block
+        blockMessage: invalid-json
+        scanners:
+          - type: json
+            required_elements: 1
+            repair: false
+        """,
+    )
+
+    guardrails = OutputGuardrails.from_config()
+
+    out = guardrails.guard_response(_make_response("plain text only"), {"messages": []})
+
+    assert out.choices[0].message.content == "invalid-json"
+
+
+def test_guard_response_with_real_json_scanner_allows_valid_output(
+    tmp_path, monkeypatch
+):
+    _write_policy(
+        tmp_path,
+        monkeypatch,
+        """
+        action: block
+        blockMessage: invalid-json
+        scanners:
+          - type: json
+            required_elements: 1
+            repair: false
+        """,
+    )
+
+    guardrails = OutputGuardrails.from_config()
+
+    out = guardrails.guard_response(
+        _make_response('{"a": 1, "b": [true, false], "c": "ok"}'),
+        {"messages": []},
+    )
+
+    assert out.choices[0].message.content == '{"a": 1, "b": [true, false], "c": "ok"}'
+
+
+def test_guard_response_with_real_json_scanner_repair_true_keeps_simple_malformed_json(
+    tmp_path, monkeypatch
+):
+    _write_policy(
+        tmp_path,
+        monkeypatch,
+        """
+        action: block
+        blockMessage: invalid-json
+        scanners:
+          - type: json
+            required_elements: 0
+            repair: true
+        """,
+    )
+
+    guardrails = OutputGuardrails.from_config()
+
+    out = guardrails.guard_response(_make_response('{"a": 1, "b": 2'), {"messages": []})
+
+    assert out.choices[0].message.content == '{"a": 1, "b": 2'
+
+
+def test_guard_response_with_real_reading_time_scanner_truncates_output(
+    tmp_path, monkeypatch
+):
+    _write_policy(
+        tmp_path,
+        monkeypatch,
+        """
+        action: redact
+        scanners:
+          - type: reading_time
+            max_time: 0.01
+            truncate: true
+        """,
+    )
+
+    guardrails = OutputGuardrails.from_config()
+
+    out = guardrails.guard_response(
+        _make_response("one two three four five six"), {"messages": []}
+    )
+
+    assert out.choices[0].message.content == "one two"
+
+
+def test_guard_response_with_real_reading_time_scanner_allows_exact_threshold_output(
+    tmp_path, monkeypatch
+):
+    _write_policy(
+        tmp_path,
+        monkeypatch,
+        """
+        action: block
+        blockMessage: too-long
+        scanners:
+          - type: reading_time
+            max_time: 0.05
+            truncate: false
+        """,
+    )
+
+    guardrails = OutputGuardrails.from_config()
+
+    out = guardrails.guard_response(
+        _make_response("One two three four five six seven eight nine ten."),
+        {"messages": []},
+    )
+
+    assert (
+        out.choices[0].message.content
+        == "One two three four five six seven eight nine ten."
+    )
+
+
+def test_guard_response_applies_mixed_scanner_actions_in_order(monkeypatch):
+    call_outputs = iter(
+        [
+            ("REDACTED-CONTENT", {"regex": False}, {"regex": 0.9}),
+            (
+                "REDACTED-CONTENT",
+                {"ban_substrings": True},
+                {"ban_substrings": 0.0},
+            ),
+        ]
+    )
+
+    def _scan_output(scanners, prompt, output, fail_fast):
+        return next(call_outputs)
+
+    _patch_scan_output(monkeypatch, _scan_output)
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        block_message="blocked!",
+        scanner_configs=(
+            _regex_cfg(patterns=[r"\S+"], action_on_hit="redact"),
+            _ban_subs_cfg(substrings=["secret"], action_on_hit="block"),
+        ),
+    )
+
+    out = guardrails.guard_response(_make_response("dirty"), {"messages": []})
+    assert out.choices[0].message.content == "REDACTED-CONTENT"
+
+
+def test_guard_response_increments_hit_metric(monkeypatch):
+    before = _counter_value(
+        guardrails_response_scanner_hits_total,
+        scanner_type="regex",
+        action="redact",
+    )
+
+    _patch_scan_output(
+        monkeypatch,
+        lambda scanners, prompt, output, fail_fast: (
+            "REDACTED-CONTENT",
+            {"regex": False},
+            {"regex": 0.9},
+        ),
+    )
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        scanner_configs=(_regex_cfg(patterns=[r"\S+"], action_on_hit="redact"),),
+    )
+
+    guardrails.guard_response(_make_response("dirty"), {"messages": []})
+
+    assert (
+        _counter_value(
+            guardrails_response_scanner_hits_total,
+            scanner_type="regex",
+            action="redact",
+        )
+        == before + 1
+    )
+
+
+def test_guard_response_increments_fail_closed_metric(monkeypatch):
+    before = _counter_value(
+        guardrails_response_actions_total,
+        final_action="fail_closed",
+    )
+
+    def _boom(*args, **kwargs):
+        raise RuntimeError("scanner exploded")
+
+    _patch_scan_output(monkeypatch, _boom)
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        fail_open=False,
+        scanner_configs=(_regex_cfg(patterns=[r"\S+"]),),
+    )
+
+    with pytest.raises(output_guardrails_module.OutputGuardrailsError):
+        guardrails.guard_response(_make_response("dirty"), {"messages": []})
+
+    assert (
+        _counter_value(
+            guardrails_response_actions_total,
+            final_action="fail_closed",
+        )
+        == before + 1
+    )
 
 
 # ---------------------------------------------------------------------------

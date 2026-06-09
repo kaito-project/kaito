@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -529,7 +530,7 @@ func TestComputeInferenceSetHash(t *testing.T) {
 				},
 			},
 			Spec: kaitov1alpha1.InferenceSetSpec{
-				Replicas: 3,
+				Replicas: lo.ToPtr(int32(3)),
 			},
 		}
 
@@ -549,7 +550,7 @@ func TestComputeInferenceSetHash(t *testing.T) {
 				Namespace: "default",
 			},
 			Spec: kaitov1alpha1.InferenceSetSpec{
-				Replicas: 3,
+				Replicas: lo.ToPtr(int32(3)),
 			},
 		}
 
@@ -559,7 +560,7 @@ func TestComputeInferenceSetHash(t *testing.T) {
 				Namespace: "default",
 			},
 			Spec: kaitov1alpha1.InferenceSetSpec{
-				Replicas: 3,
+				Replicas: lo.ToPtr(int32(3)),
 			},
 		}
 
@@ -576,7 +577,7 @@ func TestComputeInferenceSetHash(t *testing.T) {
 				Namespace: "default",
 			},
 			Spec: kaitov1alpha1.InferenceSetSpec{
-				Replicas: 3,
+				Replicas: lo.ToPtr(int32(3)),
 			},
 		}
 
@@ -586,7 +587,7 @@ func TestComputeInferenceSetHash(t *testing.T) {
 				Namespace: "default",
 			},
 			Spec: kaitov1alpha1.InferenceSetSpec{
-				Replicas: 5,
+				Replicas: lo.ToPtr(int32(5)),
 			},
 		}
 
@@ -603,7 +604,7 @@ func TestComputeInferenceSetHash(t *testing.T) {
 				Namespace: "default",
 			},
 			Spec: kaitov1alpha1.InferenceSetSpec{
-				Replicas: 3,
+				Replicas: lo.ToPtr(int32(3)),
 			},
 			Status: kaitov1alpha1.InferenceSetStatus{
 				Conditions: []metav1.Condition{},
@@ -616,7 +617,7 @@ func TestComputeInferenceSetHash(t *testing.T) {
 				Namespace: "default",
 			},
 			Spec: kaitov1alpha1.InferenceSetSpec{
-				Replicas: 3,
+				Replicas: lo.ToPtr(int32(3)),
 			},
 			Status: kaitov1alpha1.InferenceSetStatus{
 				Conditions: []metav1.Condition{
@@ -655,7 +656,7 @@ func TestComputeInferenceSetHash(t *testing.T) {
 				},
 			},
 			Spec: kaitov1alpha1.InferenceSetSpec{
-				Replicas: 3,
+				Replicas: lo.ToPtr(int32(3)),
 			},
 		}
 
@@ -668,7 +669,7 @@ func TestComputeInferenceSetHash(t *testing.T) {
 				},
 			},
 			Spec: kaitov1alpha1.InferenceSetSpec{
-				Replicas: 3,
+				Replicas: lo.ToPtr(int32(3)),
 			},
 		}
 
@@ -691,7 +692,7 @@ func TestMarshalInferenceSetFields(t *testing.T) {
 	t.Run("Should marshal InferenceSet fields successfully", func(t *testing.T) {
 		inferenceset := &kaitov1alpha1.InferenceSet{
 			Spec: kaitov1alpha1.InferenceSetSpec{
-				Replicas: 3,
+				Replicas: lo.ToPtr(int32(3)),
 			},
 		}
 
@@ -740,7 +741,7 @@ func TestMarshalInferenceSetFields(t *testing.T) {
 	t.Run("Should exclude Status field", func(t *testing.T) {
 		inferenceset := &kaitov1alpha1.InferenceSet{
 			Spec: kaitov1alpha1.InferenceSetSpec{
-				Replicas: 3,
+				Replicas: lo.ToPtr(int32(3)),
 			},
 			Status: kaitov1alpha1.InferenceSetStatus{
 				Conditions: []metav1.Condition{
@@ -785,7 +786,7 @@ func TestMarshalInferenceSetFields(t *testing.T) {
 				},
 			},
 			Spec: kaitov1alpha1.InferenceSetSpec{
-				Replicas: 5,
+				Replicas: lo.ToPtr(int32(5)),
 			},
 		}
 
@@ -807,7 +808,7 @@ func TestMarshalInferenceSetFields(t *testing.T) {
 				Namespace: "default",
 			},
 			Spec: kaitov1alpha1.InferenceSetSpec{
-				Replicas: 3,
+				Replicas: lo.ToPtr(int32(3)),
 			},
 		}
 

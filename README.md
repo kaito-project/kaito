@@ -59,6 +59,7 @@ The details of the service APIs can be found in this [document](https://kaito-pr
 - **BYO models using HuggingFace runtime**: If you plan to run any BYO models using the HuggingFace runtime, check this [doc](https://kaito-project.github.io/kaito/docs/custom-model). Note: KAITO only supports BYO models hosted in HuggingFace.
 - **CPU models**: Please check this [doc](https://kaito-project.github.io/kaito/docs/aikit) for running CPU models using [aikit](https://github.com/kaito-project/aikit/).
 - **RAGEngine**: Please check the installation guidance and usage documents [here](https://kaito-project.github.io/kaito/docs/rag).
+- **RAGEngine Output Guardrails**: Please check the current behavior, configuration, and limitations [here](https://kaito-project.github.io/kaito/docs/rag-output-guardrails).
 
 
 ## Contributing

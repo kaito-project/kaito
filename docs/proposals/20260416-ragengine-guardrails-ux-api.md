@@ -1,22 +1,23 @@
 ---
-title: RAGEngine Guardrails Current Behavior
+title: RAGEngine Guardrails UX and API
 authors:
   - "@xiaoqi-7"
 reviewers:
   - "@Fei-Guo"
 creation-date: 2026-04-16
-last-updated: 2026-05-25
-status: implemented
+last-updated: 2026-05-19
+status: provisional
 see-also:
   - "/docs/proposals/20250715-inference-aware-routing-layer.md"
 ---
 
 ## Summary
 
-This document describes the current user-visible behavior of RAGEngine output
-guardrails as implemented today.
+This proposal defines the intended user-facing model for RAGEngine output guardrails.
+The goal is to keep the CRD surface minimal while allowing guardrail policy to evolve as
+we add more scanners and runtime capabilities.
 
-The CRD currently exposes only a minimal guardrails toggle:
+The proposed user model is:
 
 ```yaml
 spec:
@@ -24,39 +25,27 @@ spec:
     enabled: true
 ```
 
-Detailed scanner behavior lives in a mounted `guardrails.yaml` policy file rather
-than in scanner-specific CRD fields.
+Detailed guardrail behavior is stored in a ConfigMap as YAML rather than modeled as
+scanner-specific fields in the `RAGEngine` CRD.
 
-## Current Support
+## Goals
 
-- Output guardrails run on non-streaming `/v1/chat/completions` responses.
-- The runtime currently supports these scanner types:
-  - `regex`
-  - `ban_substrings`
-  - `json`
-  - `reading_time`
-  - `secrets`
-  - `sensitive`
-  - `invisible_text`
-  - `token_limit`
-- Each scanner can use `action: redact` or `action: block`.
-- Policies are loaded from a YAML file referenced by
-  `OUTPUT_GUARDRAILS_POLICY_PATH`.
-- Policy hot reload is supported.
-- Guardrails expose Prometheus metrics and structured logs.
+- Define a small, stable UX entry point for enabling RAGEngine guardrails.
+- Keep detailed guardrail policy outside the CRD in a ConfigMap-backed YAML document.
+- Allow scanner additions and policy evolution without repeated CRD changes.
 
-## Current Non-Support
+## Non-Goals
 
-- Streaming guardrails are not implemented.
-- Scanner-specific CRD fields are not implemented.
-- Per-scanner fail-open/fail-closed controls are not implemented.
-- Audit event storage is not implemented.
+- Implement the full runtime behavior in this PR.
+- Expose scanner-specific configuration in the CRD.
+- Finalize streaming, auditing, or error-handling semantics in this document.
 
-## UX and Configuration
+## Proposed UX and API Shape
 
 ### Minimal CRD Entry Point
 
-The user-facing enablement switch remains a minimal `guardrails.enabled` field.
+The intended user-facing switch is a minimal `guardrails.enabled` field in the
+`RAGEngine` spec.
 
 ```yaml
 apiVersion: kaito.sh/v1beta1
@@ -68,12 +57,12 @@ spec:
     enabled: true
 ```
 
-The CRD does not currently expose scanner-specific fields such as `action`,
-`patterns`, `substrings`, or `blockMessage`.
+At this stage, the proposal does not add scanner-specific CRD fields such as `action`,
+`scanners`, `patterns`, or `blockMessage`.
 
 ### ConfigMap-Based YAML Policy
 
-Detailed policy is defined in YAML and delivered through a ConfigMap-mounted file.
+Detailed policy is defined in YAML and delivered through a ConfigMap.
 
 ```yaml
 apiVersion: v1
@@ -91,21 +80,11 @@ data:
       - type: ban_substrings
         action: block
         substrings:
-          - For Internal Use Only
-          - Do Not Distribute
+          - secret
 ```
 
-Policy parsing is permissive by design:
-
-- unknown scanner types are skipped
-- invalid scanner configs are skipped
-- invalid actions fall back to the default action
-- one invalid scanner does not prevent other valid scanners from running
-
-This example uses explicit scanner-level `action` values, so it does not need a
-top-level `action`. A top-level `action` is optional and serves only as the
-default for scanner entries that omit their own `action`; if both are present,
-the scanner-level `action` wins.
+The exact YAML schema can evolve, but the design principle is fixed: detailed policy lives
+in ConfigMap YAML, not in the CRD.
 
 ### Default ConfigMap Support
 
@@ -119,6 +98,7 @@ it into the Pod.
   shared ConfigMap during cleanup of one RAGEngine while other RAGEngines in the
   same namespace still depend on it.
 - User-provided ConfigMaps are not modified or owned by the controller.
+- Hot reload is not part of this PR.
 
 The default template provides a conservative deterministic baseline for
 credential and lightweight PII leakage:
@@ -145,323 +125,6 @@ The `sensitive` scanner covers:
 
 This is baseline protection, not a complete content-safety policy. Additional
 scanners can still be added via a custom ConfigMap.
-
-## Supported Scanners
-
-For clarity, the single-scanner examples below show only scanner-level
-`action` values. Multi-scanner policies can also set an optional top-level
-default `action` for scanner entries that omit one.
-
-Common action behavior:
-
-- `redact`: scanner-specific sanitization is applied and scanning continues
-- `block`: the full assistant message is replaced with `blockMessage`
-
-### `regex`
-
-Purpose:
-Match output content against one or more regular expressions.
-
-YAML shape:
-
-```yaml
-scanners:
-  - type: regex
-    action: redact
-    patterns:
-      - '(?i)ssn:\\s*\\d{3}-\\d{2}-\\d{4}'
-```
-
-Supported fields:
-
-- `patterns`: required non-empty list of regex strings
-- `match_type`: optional, defaults to `search`
-- `is_blocked`: optional boolean, defaults to `true`
-
-### `ban_substrings`
-
-Purpose:
-Match output content against exact substrings using llm-guard substring matching.
-
-Example use case:
-Block common internal-only disclosure labels in model output.
-
-YAML shape:
-
-```yaml
-scanners:
-  - type: ban_substrings
-    action: redact
-    substrings:
-      - For Internal Use Only
-      - Do Not Distribute
-    match_type: word
-```
-
-Supported fields:
-
-- `substrings`: required non-empty list of strings
-- `match_type`: optional, defaults to `word`
-- `case_sensitive`: optional boolean, defaults to `false`
-- `contains_all`: optional boolean, defaults to `false`
-
-### `json`
-
-Purpose:
-Validate that output is parseable JSON.
-
-YAML shape:
-
-```yaml
-scanners:
-  - type: json
-    action: redact
-    repair: false
-```
-
-Supported fields:
-
-- `required_elements`: optional non-negative integer, defaults to `0`
-- `repair`: optional boolean, defaults to `true`
-
-Action behavior notes:
-
-- with `redact`, valid JSON is returned as-is and invalid output is handled by the runtime action
-
-### `reading_time`
-
-Purpose:
-Limit output length by estimated reading time.
-
-YAML shape:
-
-```yaml
-scanners:
-  - type: reading_time
-    action: redact
-    max_time: 0.25
-    truncate: true
-```
-
-Supported fields:
-
-- `max_time`: required positive number, expressed in minutes
-- `truncate`: optional boolean, defaults to `false`
-
-Action behavior notes:
-
-- with `redact`, `truncate: true` shortens over-limit output to fit
-
-### `secrets`
-
-Purpose:
-Detect likely secrets in output using llm-guard's deterministic secrets scanner.
-
-YAML shape:
-
-```yaml
-scanners:
-  - type: secrets
-    action: redact
-    redact_mode: partial
-```
-
-Supported fields:
-
-- `redact_mode`: optional string, one of `all`, `partial`, `hash`; defaults to `all`
-
-### `sensitive`
-
-Purpose:
-Detect common sensitive data in output such as email addresses, phone numbers,
-credit cards, and IPv4 addresses.
-
-YAML shape:
-
-```yaml
-scanners:
-  - type: sensitive
-    action: redact
-    detectors:
-      - email
-```
-
-Supported fields:
-
-- `detectors`: optional list drawn from `email`, `phone`, `credit_card`, `ip_address`
-
-### `invisible_text`
-
-Purpose:
-Detect and remove invisible or non-printable Unicode characters from model output.
-
-YAML shape:
-
-```yaml
-scanners:
-  - type: invisible_text
-    action: redact
-```
-
-Supported fields:
-
-- no scanner-specific config fields
-
-Action behavior notes:
-
-- with `redact`, invisible characters are removed from the output
-
-### `token_limit`
-
-Purpose:
-Limit the token count of model output.
-
-YAML shape:
-
-```yaml
-scanners:
-  - type: token_limit
-    action: redact
-    limit: 128
-    encoding_name: cl100k_base
-```
-
-Supported fields:
-
-- `limit`: optional positive integer, defaults to `4096`
-- `encoding_name`: optional non-empty string, defaults to `cl100k_base`
-- `model_name`: optional non-empty string
-
-Action behavior notes:
-
-- with `redact`, valid output is returned as-is and over-limit output is handled by the runtime action
-
-## Failure Semantics
-
-### Runtime Behavior
-
-The runtime is currently fail-closed.
-
-Relevant environment variables:
-
-| Env Var | Default | Description |
-| --- | --- | --- |
-| `OUTPUT_GUARDRAILS_ENABLED` | `false` | Master switch. When `false`, guardrails are bypassed. |
-| `OUTPUT_GUARDRAILS_POLICY_PATH` | `""` | Absolute path to the mounted `guardrails.yaml` file. |
-| `OUTPUT_GUARDRAILS_HOT_RELOAD_ENABLED` | `true` | Enables background hot reload of the policy file. |
-
-Current behavior:
-
-- If guardrails are disabled, no policy file is loaded.
-- If the policy path is empty, the runtime skips policy loading and keeps the in-memory defaults.
-- If policy loading fails, the runtime logs the failure and keeps the current guardrails instance.
-- If scanner execution raises during response scanning, the runtime raises
-  `OutputGuardrailsError` and `/v1/chat/completions` returns HTTP 500.
-
-Sample error response:
-
-```http
-HTTP/1.1 500 Internal Server Error
-Content-Type: application/json
-
-{"detail": "Output guardrails failed while scanning the model response."}
-```
-
-### Parse-Time vs Runtime Failure Handling
-
-Policy parsing is best-effort, scanner execution is fail-closed.
-
-- parse-time config issues are logged and the invalid scanner is skipped
-- runtime scanner failures cause request failure
-
-## Reload Behavior
-
-Hot reload is implemented by `GuardrailsReloader`.
-
-Current semantics:
-
-- the policy is loaded once during process startup
-- when hot reload is enabled, the runtime watches the policy file parent directory
-  so ConfigMap symlink swaps are detected
-- reload events are debounced by 1 second
-- a successfully loaded new policy atomically replaces the old one
-- if reload fails, the previous policy remains active
-- if the newly loaded policy is identical to the current one, the reload is a noop
-
-## Metrics
-
-Guardrails-specific Prometheus metrics currently exposed by the runtime:
-
-| Metric | Labels | Meaning |
-| --- | --- | --- |
-| `output_guardrails_policy_load_total` | `policy_status` | Policy load attempts by outcome: `success`, `missing`, `invalid`, `load_failed` |
-| `output_guardrails_scanner_build_total` | `type`, `status` | Scanner build attempts by scanner type and outcome |
-| `output_guardrails_actions_total` | `action` | Applied output actions, currently `redact` or `block` |
-| `guardrails_policy_reload_total` | `result` | Reload results: `success`, `failure`, `noop` |
-| `guardrails_policy_loaded_timestamp_seconds` | none | Unix timestamp of the most recent active policy update |
-| `guardrails_active_policy_info` | `path`, `sha256`, `enabled`, `scanner_count` | Metadata for the active policy |
-
-Request-level metrics such as `rag_chat_requests_total` still capture overall API
-success and failure for `/v1/chat/completions`, including failures caused by
-guardrails.
-
-## Structured Logs
-
-The runtime emits structured guardrails logs with stable event names and fields.
-
-Common policy-load events:
-
-| Event | Key fields |
-| --- | --- |
-| `output_guardrails_policy_missing` | `path` |
-| `output_guardrails_policy_load_failed` | `path` |
-| `output_guardrails_policy_invalid` | `path` |
-| `output_guardrails_policy_invalid_scanners` | `path` |
-| `output_guardrails_policy_unknown_scanner` | `type` |
-| `output_guardrails_policy_invalid_scanner_config` | `type`, `error` |
-| `output_guardrails_policy_incompatible_scanner_action` | `type`, `action` |
-| `output_guardrails_policy_invalid_action` | `action` |
-
-Runtime and reload events:
-
-| Event | Key fields |
-| --- | --- |
-| `output_guardrails_triggered` | `action`, `response_id`, `scanners`, `policy_hash` |
-| `output_guardrails_failed` | `fail_open`, `response_id` |
-| `output_guardrails_policy_scanner_build_failed` | `type`, `policy_hash`, `path` |
-| `output_guardrails_hot_reload_disabled` | `reason` |
-| `output_guardrails_reloader_terminated` | stack trace in logger exception output |
-| `output_guardrails_reload_failed` | `path`, `current_policy_hash`, `fallback_action` |
-| `output_guardrails_reload_noop` | `path`, `policy_hash` |
-| `output_guardrails_reload_succeeded` | `path`, `old_policy_hash`, `new_policy_hash`, `enabled`, `scanners` |
-
-`output_guardrails_triggered.scanners` is a list of per-scanner summaries that
-includes at least:
-
-- `type`
-- `action`
-- `scores`
-
-## Known Limitations
-
-- Output guardrails only run on assistant messages with string `content`.
-- Responses that contain tool calls but no string content are skipped.
-- Output guardrails currently run only on the non-streaming `/v1/chat/completions`
-  response path.
-- Streaming responses are not scanned before tokens are returned to the client.
-- There is no per-scanner runtime fail mode; request-time scanner failures are fail-closed.
-- There is no scanner-specific CRD surface; detailed policy must be provided in YAML.
-- The default policy template enables deterministic baseline leakage protection, not a full content-safety policy.
-- There is no audit-event persistence model yet.
-
-## Streaming Status
-
-Streaming support is not implemented yet.
-
-Today, output guardrails are applied after `rag_ops.chat_completion(request)`
-returns a full `ChatCompletionResponse`, and before the final non-streaming HTTP
-response is returned. There is no corresponding streaming interception point in
-the current FastAPI `/v1/chat/completions` handler.
 
 ### Runtime Failure Semantics
 

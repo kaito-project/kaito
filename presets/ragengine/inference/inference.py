@@ -403,7 +403,7 @@ class Inference(CustomLLM):
             logger.error(
                 f'Error fetching models from {models_url}: {e}. "model" parameter will not be included with inference call.'
             )
-            return None
+            return None, None
 
     def _get_default_model_info(self) -> (str, int):
         """

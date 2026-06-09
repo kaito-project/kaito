@@ -55,7 +55,7 @@ if _PARENT not in sys.path:
     sys.path.insert(0, _PARENT)
 
 import inference_api  # noqa: E402
-from inference_api import (
+from inference_api import (  # noqa: E402
     ModelDownloadMonitor,
     _download_in_progress,
     _hf_model_total_bytes,

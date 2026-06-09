@@ -47,14 +47,17 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	autoupgrade "github.com/kaito-project/kaito/pkg/controllers/autoupgrade"
 	drift "github.com/kaito-project/kaito/pkg/controllers/drift"
 	multiroleinference "github.com/kaito-project/kaito/pkg/controllers/multiroleinference"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/inferenceset"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
+	mmcontrollers "github.com/kaito-project/kaito/pkg/modelmirror/controllers"
 	nodeprovisionmanager "github.com/kaito-project/kaito/pkg/nodeprovision/manager"
-	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	karpenterutils "github.com/kaito-project/kaito/pkg/utils/karpenter"
 	"github.com/kaito-project/kaito/pkg/version"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
@@ -80,9 +83,9 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(kaitov1alpha1.AddToScheme(scheme))
 	utilruntime.Must(kaitov1beta1.AddToScheme(scheme))
-	utilruntime.Must(kaitoutils.KarpenterSchemeBuilder.AddToScheme(scheme))
+	utilruntime.Must(karpenterutils.KarpenterSchemeBuilder.AddToScheme(scheme))
 	utilruntime.Must(azurev1beta1.SchemeBuilder.AddToScheme(scheme))
-	utilruntime.Must(kaitoutils.AwsSchemeBuilder.AddToScheme(scheme))
+	utilruntime.Must(karpenterutils.AwsSchemeBuilder.AddToScheme(scheme))
 	utilruntime.Must(helmv2.AddToScheme(scheme))
 	utilruntime.Must(sourcev1.AddToScheme(scheme))
 	utilruntime.Must(apiextensionsv1.AddToScheme(scheme))
@@ -106,6 +109,8 @@ func main() {
 	var kubeClientQPS int = 30
 	var kubeClientBurst int = 50
 	var printVersionAndExit bool
+	var defaultModelMirrorStorageClass string
+	var defaultStreamingServiceAccount string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.IntVar(&kubeClientQPS, "kube-client-qps", kubeClientQPS, "the rate of qps to kube-apiserver.")
@@ -117,12 +122,14 @@ func main() {
 		"Enable webhook for controller manager. Default is true.")
 	flag.StringVar(&featureGates, "feature-gates", "vLLM=true,disableNodeAutoProvisioning=false", "Enable Kaito feature gates. Default: vLLM=true,disableNodeAutoProvisioning=false.")
 	flag.StringVar(&defaultNodeImageFamily, "default-node-image-family", "", "Default node image family annotation for generated NodeClaims. Supported values: azurelinux, ubuntu. Empty means ubuntu. Unsupported values cause startup failure.")
-	flag.StringVar(&nodeProvisionerType, "node-provisioner", "", "Node provisioner type. Supported values: azure-gpu-provisioner, karpenter, byo. Default: azure-gpu-provisioner. If empty, inferred from feature gates for backward compatibility.")
+	flag.StringVar(&nodeProvisionerType, "node-provisioner", "azure-gpu-provisioner", "Node provisioner type. Supported values: azure-gpu-provisioner, karpenter, byo. Default: azure-gpu-provisioner.")
 	flag.StringVar(&karpenterNodeClassGroup, "karpenter-node-class-group", "karpenter.azure.com", "Karpenter NodeClass API group. Only used when node-provisioner=karpenter.")
 	flag.StringVar(&karpenterNodeClassKind, "karpenter-node-class-kind", "AKSNodeClass", "Karpenter NodeClass API kind. Only used when node-provisioner=karpenter.")
 	flag.StringVar(&karpenterNodeClassVersion, "karpenter-node-class-version", "v1beta1", "Karpenter NodeClass API version. Only used when node-provisioner=karpenter.")
 	flag.StringVar(&karpenterNodeClassResourceName, "karpenter-node-class-resource-name", "aksnodeclasses", "Plural resource name for the NodeClass CRD (e.g. aksnodeclasses). Combined with --karpenter-node-class-group to form the full CRD name. Only used when node-provisioner=karpenter.")
 	flag.BoolVar(&printVersionAndExit, "version", false, "Print version and exit.")
+	flag.StringVar(&defaultModelMirrorStorageClass, "default-model-mirror-storage-class", "", "StorageClass for ModelMirror PVCs (required when ModelStreaming=true).")
+	flag.StringVar(&defaultStreamingServiceAccount, "default-streaming-service-account", "", "Default ServiceAccount for streaming inference pods.")
 	opts := zap.Options{
 		Development: true,
 	}
@@ -140,16 +147,18 @@ func main() {
 		exitWithErrorFunc()
 	}
 
-	// Resolve node provisioner type: if --node-provisioner is not explicitly set,
-	// infer from feature gates for backward compatibility.
-	if nodeProvisionerType == "" {
-		switch {
-		case featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]:
-			nodeProvisionerType = consts.NodeProvisionerBYO
-		default:
-			nodeProvisionerType = consts.NodeProvisionerAzureGPU
-		}
-		klog.InfoS("--node-provisioner not set, inferred from feature gates", "type", nodeProvisionerType)
+	skuHandler, err := sku.GetSKUHandler()
+	if err != nil {
+		klog.ErrorS(err, "unable to initialize SKU handler")
+		exitWithErrorFunc()
+	}
+	sku.DefaultSKUHandler = skuHandler
+
+	// ModelStreaming requires ModelMirror
+	if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] && !featuregates.FeatureGates[consts.FeatureFlagModelMirror] {
+		klog.ErrorS(fmt.Errorf("ModelStreaming feature gate requires ModelMirror to be enabled"),
+			"set --feature-gates=ModelMirror=true,ModelStreaming=true")
+		exitWithErrorFunc()
 	}
 
 	// Expose the resolved provisioner type for downstream scheduling logic.
@@ -293,6 +302,17 @@ func main() {
 				exitWithErrorFunc()
 			}
 		}
+
+		// Register AutoUpgradeRunner for automatic base image upgrades.
+		if featuregates.FeatureGates[consts.FeatureFlagEnableBaseImageAutoUpgrade] {
+			if err = mgr.Add(&autoupgrade.AutoUpgradeRunner{
+				Client:   kClient,
+				Interval: autoupgrade.DefaultInterval,
+			}); err != nil {
+				klog.ErrorS(err, "unable to register AutoUpgradeRunner")
+				exitWithErrorFunc()
+			}
+		}
 	}
 
 	// MultiRoleInference controller — requires enableMultiRoleInferenceController.
@@ -302,9 +322,22 @@ func main() {
 			mgr.GetScheme(),
 			log.Log.WithName("controllers").WithName("MultiRoleInference"),
 			mgr.GetEventRecorderFor("KAITO-MultiRoleInference-controller"),
+			featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension],
 		)
 		if err = mriReconciler.SetupWithManager(mgr); err != nil {
 			klog.ErrorS(err, "unable to create controller", "controller", "MultiRoleInference")
+			exitWithErrorFunc()
+		}
+	}
+
+	// ModelMirror controller — requires ModelMirror feature gate.
+	if featuregates.FeatureGates[consts.FeatureFlagModelMirror] {
+		mmReconciler := mmcontrollers.NewModelMirrorReconciler(
+			kClient,
+			log.Log.WithName("controllers").WithName("ModelMirror"),
+		)
+		if err = mmReconciler.SetupWithManager(mgr); err != nil {
+			klog.ErrorS(err, "unable to create controller", "controller", "ModelMirror")
 			exitWithErrorFunc()
 		}
 	}

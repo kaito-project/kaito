@@ -100,8 +100,14 @@ it into the Pod.
 - User-provided ConfigMaps are not modified or owned by the controller.
 - Hot reload is not part of this PR.
 
-The default template provides a conservative baseline of regex scanners for
-obvious credential leakage, including:
+The default template provides a conservative deterministic baseline for
+credential and lightweight PII leakage:
+
+- a regex scanner for a few high-signal token formats
+- a `secrets` scanner backed by `detect-secrets`
+- a lightweight `sensitive` scanner for common PII patterns
+
+The regex scanner covers obvious credential leakage, including:
 
 - PEM private key headers
 - AWS access key IDs (`AKIA...`)
@@ -110,7 +116,14 @@ obvious credential leakage, including:
 - `sk-...` style API keys
 - `Bearer ...` authorization tokens
 
-This is baseline protection, not a complete content-safety policy. Broader
+The `sensitive` scanner covers:
+
+- email addresses
+- phone numbers
+- credit card-like numbers (Luhn-validated)
+- IPv4 addresses
+
+This is baseline protection, not a complete content-safety policy. Additional
 scanners can still be added via a custom ConfigMap.
 
 ### Runtime Failure Semantics

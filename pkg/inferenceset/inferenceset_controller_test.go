@@ -23,6 +23,7 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	appsv1 "k8s.io/api/apps/v1"
@@ -391,7 +392,7 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 	makeInferenceSet := func(replicas int, benchmarkOff bool) *v1alpha1.InferenceSet {
 		iObj := &v1alpha1.InferenceSet{
 			ObjectMeta: v1.ObjectMeta{Name: "phi-4-mini", Namespace: "default"},
-			Spec:       v1alpha1.InferenceSetSpec{Replicas: replicas},
+			Spec:       v1alpha1.InferenceSetSpec{Replicas: lo.ToPtr(int32(replicas))},
 		}
 		if benchmarkOff {
 			iObj.Annotations = map[string]string{
@@ -464,6 +465,14 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 			expectBenchmarkStatus: v1.ConditionFalse,
 			expectBenchmarkMsg:    "2/3 replicas benchmarked",
 		},
+		"zero replicas (scale-to-zero) — benchmark not applicable": {
+			workspaces:            []v1beta1.Workspace{},
+			inferenceset:          makeInferenceSet(0, false),
+			expectedTPM:           "",
+			expectBenchmarkCond:   true,
+			expectBenchmarkStatus: v1.ConditionFalse,
+			expectBenchmarkMsg:    "0/0 replicas benchmarked",
+		},
 	}
 
 	for name, tc := range tests {
@@ -486,14 +495,14 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 
 			assert.True(t, v1alpha1.IsRunBenchmarkEnabled(tc.inferenceset))
 
-			allBenchmarked := benchmarkedReplicas == tc.inferenceset.Spec.Replicas && tc.inferenceset.Spec.Replicas > 0
+			allBenchmarked := tc.inferenceset.Spec.Replicas != nil && benchmarkedReplicas == int(*tc.inferenceset.Spec.Replicas) && *tc.inferenceset.Spec.Replicas > 0
 			if tc.expectBenchmarkStatus == v1.ConditionTrue {
 				assert.True(t, allBenchmarked)
 			} else {
 				assert.False(t, allBenchmarked)
 			}
 			assert.Equal(t, tc.expectBenchmarkMsg,
-				fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, tc.inferenceset.Spec.Replicas))
+				fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, *tc.inferenceset.Spec.Replicas))
 		})
 	}
 }

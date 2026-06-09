@@ -25,8 +25,10 @@ import (
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/ragengine/manifests"
+	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 )
 
@@ -67,7 +69,7 @@ var (
 		{
 			Effect:   corev1.TaintEffectNoSchedule,
 			Operator: corev1.TolerationOpExists,
-			Key:      resources.CapacityNvidiaGPU,
+			Key:      nodes.CapacityNvidiaGPU,
 		},
 		{
 			Effect:   corev1.TaintEffectNoSchedule,
@@ -181,6 +183,7 @@ func ensureGuardrailsPolicyConfigMap(ctx context.Context, ragEngineObj *v1beta1.
 		kubeClient,
 		userProvided,
 		client.ObjectKey{Name: v1beta1.DefaultGuardrailsPolicyConfigMapName},
+		false,
 	)
 	if err != nil || cm == nil {
 		return cm, err
@@ -221,17 +224,17 @@ func CreatePresetRAG(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, revis
 
 	if ragEngineObj.Spec.Embedding.Local != nil && ragEngineObj.Spec.Compute != nil && ragEngineObj.Spec.Compute.InstanceType != "" {
 		instanceType := ragEngineObj.Spec.Compute.InstanceType
-		gpuConfig, err := utils.GetGPUConfigBySKU(instanceType)
+		gpuConfig, err := sku.GetGPUConfigBySKU(instanceType)
 		// If GetGPUConfigBySKU returns error, skip GPU resource allocation (e.g., CPU-only instances)
 		if err == nil && gpuConfig != nil {
 			skuNumGPUs := gpuConfig.GPUCount
 
 			resourceReq = corev1.ResourceRequirements{
 				Requests: corev1.ResourceList{
-					corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
+					corev1.ResourceName(nodes.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
 				},
 				Limits: corev1.ResourceList{
-					corev1.ResourceName(resources.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
+					corev1.ResourceName(nodes.CapacityNvidiaGPU): *resource.NewQuantity(int64(skuNumGPUs), resource.DecimalSI),
 				},
 			}
 		}

@@ -34,7 +34,7 @@ def main(IMG='controller:latest', DISABLE_SECURITY_CONTEXT=True):
 
     def yaml():
         cluster_name = k8s_context() if not settings.get('cluster_name') else settings['cluster_name']
-        helm_template = 'helm template kaito-workspace ./charts/kaito/workspace --namespace kaito-workspace --set clusterName={} --set image.repository=controller --set image.tag=latest --set featureGates.gatewayAPIInferenceExtension={} --set featureGates.disableNodeAutoProvisioning={}'.format(cluster_name, feature_gates['gatewayAPIInferenceExtension'], feature_gates['disableNodeAutoProvisioning'])
+        helm_template = 'helm template kaito-workspace ./charts/kaito/workspace --namespace kaito-workspace --set clusterName={} --set image.repository=controller --set image.tag=latest --set enableBaseImageAutoUpgrade={} --set featureGates.gatewayAPIInferenceExtension={} --set featureGates.disableNodeAutoProvisioning={} --set featureGates.enableInferenceSetController={}'.format(cluster_name, feature_gates.get('enableBaseImageAutoUpgrade', False), feature_gates['gatewayAPIInferenceExtension'], feature_gates['disableNodeAutoProvisioning'], feature_gates.get('enableInferenceSetController', False))
         # Set the image name and tag to controller:latest for Tilt to
         # substitute later during docker_build_with_restart
         data = local(helm_template, quiet=True)

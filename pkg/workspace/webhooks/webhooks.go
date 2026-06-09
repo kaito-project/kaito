@@ -42,6 +42,9 @@ func NewControllerWebhooks() []knativeinjection.ControllerConstructor {
 	if featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] {
 		constructor = append(constructor, NewMultiRoleInferenceCRDValidationWebhook)
 	}
+	if featuregates.FeatureGates[consts.FeatureFlagModelMirror] {
+		constructor = append(constructor, NewModelMirrorCRDValidationWebhook)
+	}
 
 	return constructor
 }
@@ -87,4 +90,18 @@ var InferenceSetResources = map[schema.GroupVersionKind]resourcesemantics.Generi
 
 var MultiRoleInferenceResources = map[schema.GroupVersionKind]resourcesemantics.GenericCRD{
 	kaitov1alpha1.GroupVersion.WithKind("MultiRoleInference"): &kaitov1alpha1.MultiRoleInference{},
+}
+
+func NewModelMirrorCRDValidationWebhook(ctx context.Context, _ configmap.Watcher) *controller.Impl {
+	return validation.NewAdmissionController(ctx,
+		"validation.modelmirror.kaito.sh",
+		"/validate/modelmirror.kaito.sh",
+		ModelMirrorResources,
+		func(ctx context.Context) context.Context { return ctx },
+		true,
+	)
+}
+
+var ModelMirrorResources = map[schema.GroupVersionKind]resourcesemantics.GenericCRD{
+	kaitov1alpha1.GroupVersion.WithKind("ModelMirror"): &kaitov1alpha1.ModelMirror{},
 }

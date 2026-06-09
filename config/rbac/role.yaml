@@ -5,9 +5,17 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - kaito.sh
+  - ""
   resources:
-  - workspaces
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - helm.toolkit.fluxcd.io
+  resources:
+  - helmreleases
   verbs:
   - create
   - delete
@@ -20,7 +28,7 @@ rules:
   - kaito.sh
   resources:
   - inferencesets
-  - inferencesets/status
+  - multiroleinferences
   verbs:
   - create
   - delete
@@ -32,8 +40,21 @@ rules:
 - apiGroups:
   - kaito.sh
   resources:
-  - multiroleinferences
+  - multiroleinferences/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - kaito.sh
+  resources:
   - multiroleinferences/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - source.toolkit.fluxcd.io
+  resources:
+  - ocirepositories
   verbs:
   - create
   - delete
@@ -41,12 +62,4 @@ rules:
   - list
   - patch
   - update
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - persistentvolumeclaims
-  verbs:
-  - get
-  - list
   - watch

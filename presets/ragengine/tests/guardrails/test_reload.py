@@ -15,6 +15,8 @@ import asyncio
 import os
 import sys
 import threading
+from dataclasses import replace
+from hashlib import sha256
 
 import pytest
 
@@ -22,6 +24,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 
 from ragengine.guardrails.output_guardrails import OutputGuardrails
 from ragengine.guardrails.reload import GuardrailsReloader
+from ragengine.metrics.prometheus_metrics import guardrails_active_policy
 
 
 def _factory(instances):
@@ -48,14 +51,41 @@ def _enabled(block_message: str = "blocked") -> OutputGuardrails:
     return OutputGuardrails(enabled=True, block_message=block_message)
 
 
+def _with_policy_meta(
+    guardrails: OutputGuardrails, *, policy_path: str, content: str, scanners: int = 0
+) -> OutputGuardrails:
+    return replace(
+        guardrails,
+        policy_path=policy_path,
+        policy_hash=sha256(content.encode("utf-8")).hexdigest(),
+        scanner_configs=tuple(object() for _ in range(scanners)),
+    )
+
+
+def _info_labels(metric, sample_name: str) -> dict[str, str]:
+    for collected in metric.collect():
+        for sample in collected.samples:
+            if sample.name == sample_name:
+                return sample.labels
+    raise AssertionError(f"sample {sample_name!r} not found")
+
+
 def test_initial_load_uses_factory_once():
-    initial = _disabled()
+    initial = _with_policy_meta(
+        _disabled(),
+        policy_path="/tmp/does-not-matter",
+        content="enabled: false\n",
+    )
     reloader = GuardrailsReloader(
         policy_path="/tmp/does-not-matter",
         debounce_seconds=0,
         factory=_factory([initial]),
     )
     assert reloader.get_current() is initial
+    assert reloader.current is initial
+    labels = _info_labels(guardrails_active_policy, "guardrails_active_policy_info")
+    assert labels["path"] == "/tmp/does-not-matter"
+    assert labels["sha256"] == initial.policy_hash
 
 
 def test_start_is_noop_when_policy_path_is_empty():
@@ -70,7 +100,6 @@ def test_start_is_noop_when_policy_path_is_empty():
         await reloader.stop()
 
     asyncio.run(run())
-    # No watcher task is created when there is nothing to watch.
     assert reloader._task is None
 
 
@@ -84,8 +113,18 @@ def test_default_debounce_is_short_for_runtime_reload():
 
 
 def test_reload_swaps_in_new_instance_on_change():
-    first = _enabled("first")
-    second = _enabled("second")
+    first = _with_policy_meta(
+        _enabled("first"),
+        policy_path="/tmp/policy.yaml",
+        content="blockMessage: first\n",
+        scanners=1,
+    )
+    second = _with_policy_meta(
+        _enabled("second"),
+        policy_path="/tmp/policy.yaml",
+        content="blockMessage: second\n",
+        scanners=2,
+    )
     reloader = GuardrailsReloader(
         policy_path="/tmp/policy.yaml",
         debounce_seconds=0,
@@ -96,10 +135,18 @@ def test_reload_swaps_in_new_instance_on_change():
     reloader._reload()
 
     assert reloader.get_current() is second
+    labels = _info_labels(guardrails_active_policy, "guardrails_active_policy_info")
+    assert labels["path"] == "/tmp/policy.yaml"
+    assert labels["sha256"] == second.policy_hash
+    assert labels["scanner_count"] == "2"
 
 
-def test_reload_keeps_current_when_factory_raises():
-    first = _enabled("first")
+def test_reload_keeps_current_when_factory_raises(caplog):
+    first = _with_policy_meta(
+        _enabled("first"),
+        policy_path="/tmp/policy.yaml",
+        content="blockMessage: first\n",
+    )
     reloader = GuardrailsReloader(
         policy_path="/tmp/policy.yaml",
         debounce_seconds=0,
@@ -109,29 +156,40 @@ def test_reload_keeps_current_when_factory_raises():
     def boom():
         raise RuntimeError("policy load broke")
 
-    # Swap factory in-place so the next call to ``_reload`` raises.
     reloader._factory = boom
 
-    reloader._reload()
+    with caplog.at_level("ERROR"):
+        reloader._reload()
 
     assert reloader.get_current() is first
+    assert "fallback_action=keep_current" in caplog.text
+    labels = _info_labels(guardrails_active_policy, "guardrails_active_policy_info")
+    assert labels["sha256"] == first.policy_hash
 
 
-def test_reload_noop_when_policy_unchanged():
-    first = _enabled("same")
-    duplicate = _enabled("same")
+def test_reload_noop_when_policy_unchanged(caplog):
+    first = _with_policy_meta(
+        _enabled("same"),
+        policy_path="/tmp/policy.yaml",
+        content="blockMessage: same\n",
+    )
+    duplicate = _with_policy_meta(
+        _enabled("same"),
+        policy_path="/tmp/policy.yaml",
+        content="blockMessage: same\n",
+    )
     reloader = GuardrailsReloader(
         policy_path="/tmp/policy.yaml",
         debounce_seconds=0,
         factory=_factory([first, duplicate]),
     )
 
-    reloader._reload()
+    with caplog.at_level("INFO"):
+        reloader._reload()
 
-    # The reloader keeps the original reference (not the duplicate) when the
-    # new policy compares equal -- this avoids churning scanner objects that
-    # request handlers may already be holding.
     assert reloader.get_current() is first
+    assert "output_guardrails_reload_noop" in caplog.text
+    assert first.policy_hash in caplog.text
 
 
 def test_get_current_returns_snapshot_while_reload_builds_new_instance():
@@ -180,14 +238,12 @@ def test_watcher_drives_reload_on_event():
     )
 
     async def fake_watch(*_args, **_kwargs):
-        # Single change batch then stop iterating.
         yield {("created", "/tmp/policy.yaml")}
 
     reloader._watcher_factory = fake_watch
 
     async def run():
         reloader.start()
-        # Give the watcher task a chance to consume the single yielded batch.
         for _ in range(20):
             if reloader.get_current() is second:
                 break
@@ -218,7 +274,6 @@ def test_watcher_failure_is_swallowed():
         await asyncio.sleep(0.05)
         await reloader.stop()
 
-    # The reloader logs and exits cleanly; current policy is unchanged.
     asyncio.run(run())
     assert reloader.get_current() is first
 

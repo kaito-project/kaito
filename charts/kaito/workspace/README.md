@@ -37,7 +37,7 @@ helm install workspace ./charts/kaito/workspace  \
 | securityContext.readOnlyRootFilesystem         | bool   | `true`                                                   | Allowed values: `true`, `false`.                              |
 | securityContext.capabilities.drop[0]           | string | `"ALL"`                                                  | Linux capability name, or the special value `ALL`.            |
 | defaultNodeImageFamily                         | string | `""`                                                     | Default NodeClaim image-family annotation. Only used by the GPU provisioner path (not karpenter). Allowed values: `""` (treated as `ubuntu`), `ubuntu`, `azurelinux`. Any other value causes controller startup failure. |
-| nodeProvisioner                                | string | `""`                                                     | Node provisioner type. Allowed values: `""` (inferred from feature gates for backward compatibility), `azure-gpu-provisioner`, `karpenter`, `byo`. |
+| nodeProvisioner                                | string | `"azure-gpu-provisioner"`                                | Node provisioner type. Allowed values: `azure-gpu-provisioner`, `karpenter`, `byo`. |
 | karpenterProvider                              | string | `"azure"`                                                | Selects which provider block under `karpenterProviders` to use. Only used when `nodeProvisioner=karpenter`. |
 | karpenterProviders.azure.group                 | string | `"karpenter.azure.com"`                                  | Karpenter NodeClass API group. |
 | karpenterProviders.azure.kind                  | string | `"AKSNodeClass"`                                         | Karpenter NodeClass API kind. |

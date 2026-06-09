@@ -18,13 +18,13 @@ Below are the current proposals in various stages of integration:
 - [Phi-4 Instruct](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20241212-phi4-instruct.md) - Microsoft's latest Phi-4 instruction-tuned model
 - [Distributed Inference](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20250325-distributed-inference.md) - Support for distributed inference across multiple GPUs
 - [Model as OCI Artifacts](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20250609-model-as-oci-artifacts.md) - Packaging models as OCI artifacts
-- [RAGEngine Guardrails UX and API](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20260416-ragengine-guardrails-ux-api.md) - Minimal enable switch plus ConfigMap-based YAML policy for RAGEngine guardrails
 
 ### Integrated Status
 - [Mistral Instruct](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20240205-mistral-instruct.md) - Mistral AI's instruction-tuned model
 - [Mistral](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20240205-mistral.md) - Base Mistral model
 - [Phi-2](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20240206-phi-2.md) - Microsoft's Phi-2 small language model
 - [Phi-3 Instruct](https://github.com/kaito-project/kaito/blob/main/docs/proposals/20240527-phi3-instruct.md) - Microsoft's Phi-3 instruction-tuned model
+- [RAGEngine Guardrails](./rag-output-guardrails.md) - Current RAGEngine output guardrails behavior, configuration, and limitations
 
 ## Proposal Process
 

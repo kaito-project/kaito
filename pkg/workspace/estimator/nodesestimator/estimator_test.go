@@ -28,7 +28,7 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/resources"
+	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 	workspaceutil "github.com/kaito-project/kaito/pkg/utils/workspace"
 )
@@ -357,7 +357,7 @@ func TestNodeEstimator_EstimateNodeCount_BYO(t *testing.T) {
 							},
 						},
 						Capacity: corev1.ResourceList{
-							resources.CapacityNvidiaGPU: resource.MustParse("4"), // 4 A100 GPUs
+							nodes.CapacityNvidiaGPU: resource.MustParse("4"), // 4 A100 GPUs
 						},
 					},
 				}

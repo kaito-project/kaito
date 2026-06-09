@@ -49,9 +49,11 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/ragengine/manifests"
+	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
+	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 )
 
@@ -404,7 +406,7 @@ func (c *RAGEngineReconciler) applyRAGEngineResource(ctx context.Context, ragEng
 
 	// Ensure all gpu plugins are running successfully.
 	instanceType := ragEngineObj.Spec.Compute.InstanceType
-	knownGPUConfig, err := utils.GetGPUConfigBySKU(instanceType)
+	knownGPUConfig, err := sku.GetGPUConfigBySKU(instanceType)
 	// If GetGPUConfigBySKU returns error, skip GPU plugin installation (e.g., CPU-only instances)
 	if err != nil {
 		klog.InfoS("Skipping GPU plugin installation, no GPU config found", "ragengine", klog.KObj(ragEngineObj), "instanceType", instanceType)
@@ -456,7 +458,7 @@ func (c *RAGEngineReconciler) applyRAGEngineResource(ctx context.Context, ragEng
 func (c *RAGEngineReconciler) getAllQualifiedNodes(ctx context.Context, ragEngineObj *kaitov1beta1.RAGEngine) ([]*corev1.Node, error) {
 	var qualifiedNodes []*corev1.Node
 
-	nodeList, err := resources.ListNodes(ctx, c.Client, kaitov1beta1.SanitizedMatchLabels(ragEngineObj.Spec.Compute.LabelSelector))
+	nodeList, err := nodes.ListNodes(ctx, c.Client, kaitov1beta1.SanitizedMatchLabels(ragEngineObj.Spec.Compute.LabelSelector))
 	if err != nil {
 		return nil, err
 	}
@@ -532,7 +534,7 @@ func (c *RAGEngineReconciler) CreateNodeClaim(ctx context.Context, ragEngineObj 
 	}
 
 	// get the node object from the nodeClaim status nodeName.
-	return resources.GetNode(ctx, newNodeClaim.Status.NodeName, c.Client)
+	return nodes.GetNode(ctx, newNodeClaim.Status.NodeName, c.Client)
 }
 
 // ensureNodePlugins ensures node plugins are installed.
@@ -549,18 +551,18 @@ func (c *RAGEngineReconciler) ensureNodePlugins(ctx context.Context, ragEngineOb
 			return fmt.Errorf("node plugin installation timed out. node %s is not ready", nodeObj.Name)
 		default:
 			// get fresh node object
-			freshNode, err := resources.GetNode(ctx, nodeObj.Name, c.Client)
+			freshNode, err := nodes.GetNode(ctx, nodeObj.Name, c.Client)
 			if err != nil {
 				klog.ErrorS(err, "cannot get node", "node", nodeObj.Name)
 				return err
 			}
 
 			//Nvidia Plugin
-			if found := resources.CheckNvidiaPlugin(ctx, freshNode); found {
+			if found := nodes.CheckNvidiaPlugin(ctx, freshNode); found {
 				return nil
 			}
 
-			err = resources.UpdateNodeWithLabel(ctx, freshNode, resources.LabelKeyNvidia, resources.LabelValueNvidia, c.Client)
+			err = nodes.UpdateNodeWithLabel(ctx, freshNode, nodes.LabelKeyNvidia, nodes.LabelValueNvidia, c.Client)
 			if apierrors.IsNotFound(err) {
 				klog.ErrorS(err, "nvidia plugin cannot be installed, node not found", "node", freshNode.Name)
 				if updateErr := c.updateStatusConditionIfNotMatch(ctx, ragEngineObj, kaitov1beta1.ConditionTypeNodeClaimStatus, metav1.ConditionFalse,

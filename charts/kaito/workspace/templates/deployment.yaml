@@ -39,12 +39,16 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
             - --feature-gates={{ include "utils.joinKeyValuePairs" .Values.featureGates }}
+            {{- if .Values.defaultModelMirrorStorageClass }}
+            - --default-model-mirror-storage-class={{ .Values.defaultModelMirrorStorageClass }}
+            {{- end }}
+            {{- if .Values.defaultStreamingServiceAccount }}
+            - --default-streaming-service-account={{ .Values.defaultStreamingServiceAccount }}
+            {{- end }}
             {{- if .Values.defaultNodeImageFamily }}
             - --default-node-image-family={{ .Values.defaultNodeImageFamily }}
             {{- end }}
-            {{- if .Values.nodeProvisioner }}
             - --node-provisioner={{ .Values.nodeProvisioner }}
-            {{- end }}
             {{- if eq .Values.nodeProvisioner "karpenter" }}
             {{- $provider := index .Values.karpenterProviders .Values.karpenterProvider }}
             - --karpenter-node-class-group={{ $provider.group }}

@@ -361,6 +361,12 @@ class _PreDownloadMetricsServer:
     def __init__(self, sock_dup: socket.socket) -> None:
         class _Handler(BaseHTTPRequestHandler):
             def do_GET(self) -> None:
+                if self.path.split("?", 1)[0] != "/metrics":
+                    self.send_response(404)
+                    self.send_header("Content-Length", "0")
+                    self.send_header("Connection", "close")
+                    self.end_headers()
+                    return
                 output = generate_latest(_registry)
                 self.send_response(200)
                 self.send_header("Content-Type", CONTENT_TYPE_LATEST)

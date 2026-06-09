@@ -21,6 +21,7 @@ import (
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -28,6 +29,38 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/presets/workspace/generator"
 )
+
+const (
+	// defaultReadinessTimeout is the startup probe timeout for typical preset models.
+	defaultReadinessTimeout = 30 * time.Minute
+
+	// largeModelReadinessTimeout is the startup probe timeout for large preset models
+	// whose runtime weight download and load exceed the default window.
+	largeModelReadinessTimeout = 60 * time.Minute
+
+	// largeModelSizeThreshold is the model weight size above which
+	// largeModelReadinessTimeout is used instead of defaultReadinessTimeout.
+	largeModelSizeThreshold = "300Gi"
+)
+
+// readinessTimeoutForModelSize returns the startup probe timeout for a preset model
+// based on its weight size (from model_catalog.yaml). Models larger than
+// largeModelSizeThreshold get a longer timeout to accommodate the extended
+// download/load time; all others use the default.
+func readinessTimeoutForModelSize(modelFileSize string) time.Duration {
+	if modelFileSize == "" {
+		return defaultReadinessTimeout
+	}
+	size, err := resource.ParseQuantity(modelFileSize)
+	if err != nil {
+		return defaultReadinessTimeout
+	}
+	threshold := resource.MustParse(largeModelSizeThreshold)
+	if size.Cmp(threshold) > 0 {
+		return largeModelReadinessTimeout
+	}
+	return defaultReadinessTimeout
+}
 
 var (
 	//go:embed model_catalog.yaml
@@ -198,7 +231,7 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 			Transformers: tfsParam,
 			VLLM:         vllmParam,
 		},
-		ReadinessTimeout: time.Duration(30) * time.Minute,
+		ReadinessTimeout: readinessTimeoutForModelSize(m.model.ModelFileSize),
 	}
 
 	return presetParam

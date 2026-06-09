@@ -101,6 +101,12 @@ if __name__ == "__main__":
         )
         liveness(args)
     elif args.probe == "readiness":
+        if not is_leader:
+            # Worker pods don't serve traffic directly (the main Service targets
+            # only the leader via pod-name selector). Making workers always-ready
+            # prevents StatefulSet rolling update deadlocks where the worker's
+            # readiness depends on the leader being healthy.
+            sys.exit(0)
         assert args.vllm_port is not None, (
             "VLLM port must be specified for readiness probe"
         )

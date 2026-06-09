@@ -38,7 +38,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
-	"github.com/kaito-project/kaito/pkg/utils/resources"
+	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/workspace/resource"
 )
 
@@ -243,14 +243,14 @@ func countCoveredNodes(ctx context.Context, c client.Client, ws *kaitov1beta1.Wo
 	}
 
 	// Count ready nodes (all types).
-	nodeList, err := resources.ListNodes(ctx, c, kaitov1beta1.SanitizedMatchLabels(ws.Resource.LabelSelector))
+	nodeList, err := nodes.ListNodes(ctx, c, kaitov1beta1.SanitizedMatchLabels(ws.Resource.LabelSelector))
 	if err != nil {
 		return 0, 0, fmt.Errorf("listing nodes: %w", err)
 	}
 	byoCount := 0
 	for i := range nodeList.Items {
 		node := &nodeList.Items[i]
-		if !resources.NodeIsReadyAndNotDeleting(node) {
+		if !nodes.NodeIsReadyAndNotDeleting(node) {
 			continue
 		}
 		if node.Labels[corev1.LabelInstanceTypeStable] != ws.Resource.InstanceType {

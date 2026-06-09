@@ -45,6 +45,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
@@ -53,6 +54,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
+	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/estimator"
@@ -457,26 +459,71 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	}
 
 	currentRevisionStr, ok := annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
-	// If the current workload revision matches the one in Workspace, we do not need to update it.
-	if ok && currentRevisionStr == revisionStr {
+	baseImageUpgrade := shouldUpgradeBaseImage(wObj, existingObj, desiredStatefulSet)
+
+	// If the current workload revision matches the one in Workspace and no upgrade is pending,
+	// we do not need to update it.
+	if ok && currentRevisionStr == revisionStr && !baseImageUpgrade {
 		return nil
 	}
 
-	desiredPodSpec := desiredStatefulSet.Spec.Template.Spec
-	spec := &existingObj.Spec.Template.Spec
+	if baseImageUpgrade {
+		if err := c.refreshInferenceConfig(ctx, wObj); err != nil {
+			klog.ErrorS(err, "failed to refresh default inference config during upgrade", "workspace", klog.KObj(wObj))
+			// Non-fatal: proceed with upgrade even if config refresh fails
+		}
 
-	// Selectively update the pod spec fields that are relevant to inference,
-	// and leave the rest unchanged in case user has customized them.
-	spec.Containers[0].Env = desiredPodSpec.Containers[0].Env
-	spec.Containers[0].VolumeMounts = desiredPodSpec.Containers[0].VolumeMounts
-	spec.InitContainers = desiredPodSpec.InitContainers
-	spec.Volumes = desiredPodSpec.Volumes
+		// On base image upgrade, update all mutable fields of the StatefulSet
+		// https://github.com/kubernetes/kubernetes/blob/master/pkg/apis/apps/validation/validation.go#L268C1-L269C1
+		existingObj.Spec.Template = desiredStatefulSet.Spec.Template
+		existingObj.Spec.Replicas = desiredStatefulSet.Spec.Replicas
+		existingObj.Spec.Ordinals = desiredStatefulSet.Spec.Ordinals
+		existingObj.Spec.UpdateStrategy = desiredStatefulSet.Spec.UpdateStrategy
+		existingObj.Spec.MinReadySeconds = desiredStatefulSet.Spec.MinReadySeconds
+		existingObj.Spec.PersistentVolumeClaimRetentionPolicy = desiredStatefulSet.Spec.PersistentVolumeClaimRetentionPolicy
+	} else {
+		// Selectively update the pod spec fields that are relevant to inference,
+		// and leave the rest unchanged in case user has customized them.
+		desiredPodSpec := desiredStatefulSet.Spec.Template.Spec
+		spec := &existingObj.Spec.Template.Spec
+		spec.Containers[0].Env = desiredPodSpec.Containers[0].Env
+		spec.Containers[0].VolumeMounts = desiredPodSpec.Containers[0].VolumeMounts
+		spec.InitContainers = desiredPodSpec.InitContainers
+		spec.Volumes = desiredPodSpec.Volumes
+	}
 
 	annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = revisionStr
 	existingObj.SetAnnotations(annotations)
 
 	// Update it with the latest one generated above.
 	return c.Update(ctx, existingObj)
+}
+
+// refreshInferenceConfig deletes and recreates the default inference config ConfigMap in the
+// workspace namespace from the current release template. This is needed during base image
+// auto-upgrades because the content of the default config may change with a newer base image.
+func (c *WorkspaceReconciler) refreshInferenceConfig(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
+	_, err := resources.EnsureConfigOrCopyFromDefault(ctx, c.Client,
+		client.ObjectKey{
+			Name:      wObj.Inference.Config,
+			Namespace: wObj.Namespace,
+		},
+		client.ObjectKey{
+			Name: kaitov1beta1.DefaultInferenceConfigTemplate,
+		},
+		true, // forceRefresh: delete + recreate from release template
+	)
+	return err
+}
+
+// shouldUpgradeBaseImage checks if an auto-upgrade has been requested via the upgrade label
+// and the image hasn't been updated yet. The label value must match the controller's
+// current desired base image tag to prevent stale labels from triggering upgrades.
+func shouldUpgradeBaseImage(wObj *kaitov1beta1.Workspace, existingObj, desiredStatefulSet *appsv1.StatefulSet) bool {
+	upgradeVersion := wObj.Labels[kaitov1alpha1.LabelUpgradeToVersion]
+	return upgradeVersion != "" &&
+		upgradeVersion == inference.GetBaseImageTag() &&
+		workspace.GetInferenceContainerImage(existingObj) != workspace.GetInferenceContainerImage(desiredStatefulSet)
 }
 
 func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types.NamespacedName, reconcileErr error) error {
@@ -571,7 +618,7 @@ func (c *WorkspaceReconciler) collectNodeStatusSnapshot(ctx context.Context, wOb
 
 	// Collect worker node names for status.
 	matchLabels := client.MatchingLabels(kaitov1beta1.SanitizedMatchLabels(wObj.Resource.LabelSelector))
-	nodeList, err := resources.ListNodes(ctx, c.Client, matchLabels)
+	nodeList, err := nodes.ListNodes(ctx, c.Client, matchLabels)
 	if err != nil {
 		return nil, err
 	}

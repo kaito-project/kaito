@@ -38,6 +38,7 @@ import (
 	kubefake "k8s.io/client-go/kubernetes/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
@@ -48,6 +49,7 @@ import (
 	workspaceutil "github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/estimator"
 	"github.com/kaito-project/kaito/pkg/workspace/estimator/nodesestimator"
+	"github.com/kaito-project/kaito/pkg/workspace/inference"
 )
 
 func TestSelectWorkspaceNodes(t *testing.T) {
@@ -525,6 +527,7 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 			ctx := context.Background()
 
 			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+			t.Setenv("RELEASE_NAMESPACE", "kaito")
 			if tc.workspace.Status.TargetNodeCount == 0 {
 				req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(t.Context(), &tc.workspace, mockClient)
 				if reqErr != nil {
@@ -1449,6 +1452,241 @@ func TestSetWorkspaceCondition(t *testing.T) {
 				assert.Equal(t, tc.expectedReason, condition.Reason)
 				assert.Equal(t, tc.expectedMessage, condition.Message)
 			}
+		})
+	}
+}
+
+func TestShouldUpgradeBaseImage(t *testing.T) {
+	baseTag := inference.GetBaseImageTag()
+	baseImage := "mcr.microsoft.com/aks/kaito/kaito-base:" + baseTag
+	tests := []struct {
+		name     string
+		ws       *v1beta1.Workspace
+		existing *appsv1.StatefulSet
+		desired  *appsv1.StatefulSet
+		expect   bool
+	}{
+		{
+			name: "upgrade label matches current tag and image differs",
+			ws: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{
+					Labels: map[string]string{
+						kaitov1alpha1.LabelUpgradeToVersion: baseTag,
+					},
+				},
+			},
+			existing: &appsv1.StatefulSet{
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{{Image: "mcr.microsoft.com/aks/kaito/kaito-base:0.0.1"}},
+						},
+					},
+				},
+			},
+			desired: &appsv1.StatefulSet{
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{{Image: baseImage}},
+						},
+					},
+				},
+			},
+			expect: true,
+		},
+		{
+			name: "upgrade label matches but image already matches",
+			ws: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{
+					Labels: map[string]string{
+						kaitov1alpha1.LabelUpgradeToVersion: baseTag,
+					},
+				},
+			},
+			existing: &appsv1.StatefulSet{
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{{Image: baseImage}},
+						},
+					},
+				},
+			},
+			desired: &appsv1.StatefulSet{
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{{Image: baseImage}},
+						},
+					},
+				},
+			},
+			expect: false,
+		},
+		{
+			name: "stale upgrade label does not match current tag",
+			ws: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{
+					Labels: map[string]string{
+						kaitov1alpha1.LabelUpgradeToVersion: "0.0.1",
+					},
+				},
+			},
+			existing: &appsv1.StatefulSet{
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{{Image: "mcr.microsoft.com/aks/kaito/kaito-base:0.0.1"}},
+						},
+					},
+				},
+			},
+			desired: &appsv1.StatefulSet{
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{{Image: baseImage}},
+						},
+					},
+				},
+			},
+			expect: false,
+		},
+		{
+			name: "no upgrade label",
+			ws: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{
+					Labels: map[string]string{},
+				},
+			},
+			existing: &appsv1.StatefulSet{
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{{Image: "mcr.microsoft.com/aks/kaito/kaito-base:0.0.1"}},
+						},
+					},
+				},
+			},
+			desired: &appsv1.StatefulSet{
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{{Image: baseImage}},
+						},
+					},
+				},
+			},
+			expect: false,
+		},
+		{
+			name: "nil labels",
+			ws: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{},
+			},
+			existing: &appsv1.StatefulSet{
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{{Image: "old:v1"}},
+						},
+					},
+				},
+			},
+			desired: &appsv1.StatefulSet{
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{{Image: "new:v2"}},
+						},
+					},
+				},
+			},
+			expect: false,
+		},
+		{
+			name: "upgrade with sidecar containers - matches by statefulset name",
+			ws: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{
+					Name: "my-workspace",
+					Labels: map[string]string{
+						kaitov1alpha1.LabelUpgradeToVersion: baseTag,
+					},
+				},
+			},
+			existing: &appsv1.StatefulSet{
+				ObjectMeta: v1.ObjectMeta{Name: "my-workspace"},
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{Name: "http-proxy", Image: "proxy:latest"},
+								{Name: "my-workspace", Image: "mcr.microsoft.com/aks/kaito/kaito-base:0.0.1"},
+							},
+						},
+					},
+				},
+			},
+			desired: &appsv1.StatefulSet{
+				ObjectMeta: v1.ObjectMeta{Name: "my-workspace"},
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{Name: "http-proxy", Image: "proxy:latest"},
+								{Name: "my-workspace", Image: baseImage},
+							},
+						},
+					},
+				},
+			},
+			expect: true,
+		},
+		{
+			name: "no upgrade when sidecar differs but inference container matches",
+			ws: &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{
+					Name: "my-workspace",
+					Labels: map[string]string{
+						kaitov1alpha1.LabelUpgradeToVersion: baseTag,
+					},
+				},
+			},
+			existing: &appsv1.StatefulSet{
+				ObjectMeta: v1.ObjectMeta{Name: "my-workspace"},
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{Name: "http-proxy", Image: "proxy:v1"},
+								{Name: "my-workspace", Image: baseImage},
+							},
+						},
+					},
+				},
+			},
+			desired: &appsv1.StatefulSet{
+				ObjectMeta: v1.ObjectMeta{Name: "my-workspace"},
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{Name: "http-proxy", Image: "proxy:v2"},
+								{Name: "my-workspace", Image: baseImage},
+							},
+						},
+					},
+				},
+			},
+			expect: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := shouldUpgradeBaseImage(tt.ws, tt.existing, tt.desired)
+			assert.Equal(t, tt.expect, got)
 		})
 	}
 }

@@ -371,7 +371,7 @@ func TestEnsureInferenceConfigMap(t *testing.T) {
 		},
 		"Error finding release namespace": {
 			callMocks: func(c *test.MockClient) {
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(apierrors.NewNotFound(schema.GroupResource{}, "inference-config-template"))
+				// No Get calls expected - function fails early on release namespace resolution
 			},
 			userProvided: client.ObjectKey{
 				Namespace: "workspace-namespace",
@@ -421,11 +421,150 @@ func TestEnsureInferenceConfigMap(t *testing.T) {
 			mockClient := test.NewClient()
 			tc.callMocks(mockClient)
 
-			_, err := EnsureConfigOrCopyFromDefault(context.Background(), mockClient, tc.userProvided, systemDefault)
+			_, err := EnsureConfigOrCopyFromDefault(context.Background(), mockClient, tc.userProvided, systemDefault, false)
 			if tc.expectedError != "" {
 				assert.EqualError(t, err, tc.expectedError)
 			} else {
 				assert.NoError(t, err)
+			}
+			mockClient.AssertExpectations(t)
+		})
+	}
+}
+
+func TestEnsureInferenceConfigMapForceRefresh(t *testing.T) {
+	systemDefault := client.ObjectKey{
+		Name: "inference-params-template",
+	}
+
+	testcases := map[string]struct {
+		callMocks        func(c *test.MockClient)
+		releaseNamespace string
+		userProvided     client.ObjectKey
+		expectedError    string
+		expectedData     map[string]string
+	}{
+		"Force refresh updates existing config from release template": {
+			releaseNamespace: "release-namespace",
+			callMocks: func(c *test.MockClient) {
+				// First Get: find existing ConfigMap in workspace namespace (stale data)
+				c.On("Get", mock.IsType(context.Background()), mock.MatchedBy(func(key client.ObjectKey) bool {
+					return key.Namespace == "workspace-namespace" && key.Name == "inference-params-template"
+				}), mock.IsType(&corev1.ConfigMap{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						cm := args.Get(2).(*corev1.ConfigMap)
+						cm.Name = "inference-params-template"
+						cm.Namespace = "workspace-namespace"
+						cm.Data = map[string]string{
+							"inference_config.yaml": "vllm:\n  swap-space: 4\n",
+						}
+					}).Return(nil).Once()
+
+				// Second Get: fetch template from release namespace (new data)
+				c.On("Get", mock.IsType(context.Background()), mock.MatchedBy(func(key client.ObjectKey) bool {
+					return key.Namespace == "release-namespace" && key.Name == "inference-params-template"
+				}), mock.IsType(&corev1.ConfigMap{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						cm := args.Get(2).(*corev1.ConfigMap)
+						cm.Name = "inference-params-template"
+						cm.Namespace = "release-namespace"
+						cm.Data = map[string]string{
+							"inference_config.yaml": "vllm:\n  cpu-offload-gb: 0\n",
+						}
+					}).Return(nil).Once()
+
+				// Delete: remove stale ConfigMap
+				c.On("Delete", mock.IsType(context.Background()), mock.MatchedBy(func(cm *corev1.ConfigMap) bool {
+					return cm.Name == "inference-params-template" && cm.Namespace == "workspace-namespace"
+				}), mock.Anything).Return(nil)
+
+				// Create: new ConfigMap in workspace namespace with refreshed data
+				c.On("Create", mock.IsType(context.Background()), mock.MatchedBy(func(cm *corev1.ConfigMap) bool {
+					return cm.Name == "inference-params-template" && cm.Namespace == "workspace-namespace"
+				}), mock.Anything).Return(nil)
+			},
+			userProvided: client.ObjectKey{
+				Namespace: "workspace-namespace",
+			},
+			expectedError: "",
+			expectedData: map[string]string{
+				"inference_config.yaml": "vllm:\n  cpu-offload-gb: 0\n",
+			},
+		},
+		"Force refresh with user-specified config is a no-op": {
+			releaseNamespace: "release-namespace",
+			callMocks: func(c *test.MockClient) {
+				// Should only get the user-specified ConfigMap
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						cm := args.Get(2).(*corev1.ConfigMap)
+						cm.Name = "my-custom-config"
+						cm.Namespace = "workspace-namespace"
+						cm.Data = map[string]string{
+							"inference_config.yaml": "custom: true\n",
+						}
+					}).Return(nil)
+			},
+			userProvided: client.ObjectKey{
+				Namespace: "workspace-namespace",
+				Name:      "my-custom-config",
+			},
+			expectedError: "",
+			expectedData: map[string]string{
+				"inference_config.yaml": "custom: true\n",
+			},
+		},
+		"Force refresh when config does not exist yet copies from release": {
+			releaseNamespace: "release-namespace",
+			callMocks: func(c *test.MockClient) {
+				// First Get: ConfigMap not found in workspace namespace
+				c.On("Get", mock.IsType(context.Background()), mock.MatchedBy(func(key client.ObjectKey) bool {
+					return key.Namespace == "workspace-namespace" && key.Name == "inference-params-template"
+				}), mock.IsType(&corev1.ConfigMap{}), mock.Anything).
+					Return(apierrors.NewNotFound(schema.GroupResource{}, "inference-params-template")).Times(4)
+
+				// Second Get: fetch template from release namespace
+				c.On("Get", mock.IsType(context.Background()), mock.MatchedBy(func(key client.ObjectKey) bool {
+					return key.Namespace == "release-namespace" && key.Name == "inference-params-template"
+				}), mock.IsType(&corev1.ConfigMap{}), mock.Anything).
+					Run(func(args mock.Arguments) {
+						cm := args.Get(2).(*corev1.ConfigMap)
+						cm.Name = "inference-params-template"
+						cm.Namespace = "release-namespace"
+						cm.Data = map[string]string{
+							"inference_config.yaml": "vllm:\n  cpu-offload-gb: 0\n",
+						}
+					}).Return(nil)
+
+				// Create: new ConfigMap in workspace namespace
+				c.On("Create", mock.IsType(context.Background()), mock.MatchedBy(func(cm *corev1.ConfigMap) bool {
+					return cm.Name == "inference-params-template" && cm.Namespace == "workspace-namespace"
+				}), mock.Anything).Return(nil)
+			},
+			userProvided: client.ObjectKey{
+				Namespace: "workspace-namespace",
+			},
+			expectedError: "",
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			if tc.releaseNamespace != "" {
+				t.Setenv(consts.DefaultReleaseNamespaceEnvVar, tc.releaseNamespace)
+			}
+
+			mockClient := test.NewClient()
+			tc.callMocks(mockClient)
+
+			result, err := EnsureConfigOrCopyFromDefault(context.Background(), mockClient, tc.userProvided, systemDefault, true)
+			if tc.expectedError != "" {
+				assert.EqualError(t, err, tc.expectedError)
+			} else {
+				assert.NoError(t, err)
+				if tc.expectedData != nil {
+					assert.Equal(t, tc.expectedData, result.Data)
+				}
 			}
 			mockClient.AssertExpectations(t)
 		})

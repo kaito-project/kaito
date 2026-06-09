@@ -71,6 +71,11 @@ const (
 	// LabelInferenceRole identifies the inference role (prefill or decode).
 	// Set on child InferenceSets and propagated to workspace pods.
 	LabelInferenceRole = KAITOPrefix + "inference-role"
+
+	// LabelUpgradeToVersion signals to the Workspace controller that this Workspace
+	// should be upgraded to the specified base image version. Set by the AutoUpgradeRunner;
+	// retained after upgrade completes as an audit trail.
+	LabelUpgradeToVersion = KAITOPrefix + "upgrade-to-version"
 )
 
 // GetWorkspaceRuntimeName returns the runtime name of the workspace.

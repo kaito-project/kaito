@@ -36,8 +36,8 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	karpenterutils "github.com/kaito-project/kaito/pkg/utils/karpenter"
 )
 
 var testConfig = NodeClassConfig{
@@ -53,7 +53,7 @@ func testScheme() *runtime.Scheme {
 	s := runtime.NewScheme()
 	_ = corev1.AddToScheme(s)
 	_ = apiextensionsv1.AddToScheme(s)
-	_ = utils.KarpenterSchemeBuilder.AddToScheme(s)
+	_ = karpenterutils.KarpenterSchemeBuilder.AddToScheme(s)
 	return s
 }
 

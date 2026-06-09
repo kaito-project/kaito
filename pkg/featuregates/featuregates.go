@@ -30,6 +30,9 @@ var (
 		consts.FeatureFlagGatewayAPIInferenceExtension:       false,
 		consts.FeatureFlagEnableInferenceSetController:       false,
 		consts.FeatureFlagEnableMultiRoleInferenceController: false,
+		consts.FeatureFlagModelMirror:                        false,
+		consts.FeatureFlagModelStreaming:                     false,
+		consts.FeatureFlagEnableBaseImageAutoUpgrade:         false,
 		//	Add more feature gates here
 	}
 )

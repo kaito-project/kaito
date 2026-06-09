@@ -465,8 +465,10 @@ spec:
                 description: Guardrails configures output guardrails for chat completions.
                 properties:
                   configMapRef:
-                    description: ConfigMapRef points to a ConfigMap that contains
-                      a guardrails.yaml policy document.
+                    description: |-
+                      ConfigMapRef points to a ConfigMap that contains a guardrails.yaml policy document.
+                      When omitted and guardrails are enabled, the controller copies the default
+                      ragengine-guardrails-policy-template ConfigMap from the release namespace.
                     properties:
                       name:
                         description: Name is the name of the ConfigMap in the same

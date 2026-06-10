@@ -224,20 +224,20 @@ func TestGetInferenceCommandVLLMServedModelName(t *testing.T) {
 			expectedServed: "served-model-name=default-model",
 		},
 		{
-			name:          "InferenceSet workspace uses InferenceSet name",
+			name:          "InferenceSet workspace uses model name",
 			vllmModelName: "default-model",
 			workspaceLabels: map[string]string{
 				consts.WorkspaceCreatedByInferenceSetLabel: "my-inferenceset",
 			},
-			expectedServed:    "served-model-name=my-inferenceset",
-			notExpectedServed: "served-model-name=default-model",
+			expectedServed:    "served-model-name=default-model",
+			notExpectedServed: "served-model-name=my-inferenceset",
 		},
 		{
-			name: "InferenceSet workspace overrides even when VLLM.ModelName is empty",
+			name: "InferenceSet workspace with empty ModelName has no served-model-name",
 			workspaceLabels: map[string]string{
 				consts.WorkspaceCreatedByInferenceSetLabel: "my-inferenceset",
 			},
-			expectedServed: "served-model-name=my-inferenceset",
+			notExpectedServed: "served-model-name=",
 		},
 		{
 			name:          "MRI workspace uses model name over InferenceSet name",
@@ -279,7 +279,9 @@ func TestGetInferenceCommandVLLMServedModelName(t *testing.T) {
 			}
 			cmd := p.GetInferenceCommand(rc)
 			require.Len(t, cmd, 3)
-			assert.Contains(t, cmd[2], tt.expectedServed)
+			if tt.expectedServed != "" {
+				assert.Contains(t, cmd[2], tt.expectedServed)
+			}
 			if tt.notExpectedServed != "" {
 				assert.NotContains(t, cmd[2], tt.notExpectedServed)
 			}

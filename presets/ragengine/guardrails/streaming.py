@@ -48,6 +48,10 @@ class StreamingDecision:
 
 
 class StreamingScanner:
+    # Streaming redact remains finalize-only until incremental redaction
+    # semantics are explicitly defined.
+    supports_early_block = False
+
     def on_chunk(self, text: str) -> StreamingDecision:
         raise NotImplementedError
 
@@ -129,11 +133,17 @@ class StreamingFinalizeResult:
 
 
 class StreamingGuardrailsProcessor:
-    def __init__(self, guardrails: OutputGuardrails, request: dict[str, Any]) -> None:
+    def __init__(
+        self,
+        guardrails: OutputGuardrails,
+        request: dict[str, Any],
+        scanners: list[StreamingScanner] | None = None,
+    ) -> None:
         self._guardrails = guardrails
         self._request = request
         self._accumulator = ChunkAccumulator()
-        self._scanners = self._build_streaming_scanners()
+        self._scanners = scanners or self._build_streaming_scanners()
+        self._blocked_during_stream = False
 
     def _build_streaming_scanners(self) -> list[DeterministicStreamingScanner]:
         scanners: list[DeterministicStreamingScanner] = []
@@ -165,12 +175,38 @@ class StreamingGuardrailsProcessor:
                 chunk = json.loads(payload)
                 self._accumulator.add_chunk(chunk)
                 for scanner in self._scanners:
-                    scanner.on_chunk(self._accumulator.content)
+                    decision = scanner.on_chunk(self._accumulator.content)
+                    if decision.state == STREAMING_DECISION_ERROR:
+                        raise OutputGuardrailsError(
+                            "Output guardrails failed while scanning the streamed model response."
+                        )
+                    if (
+                        decision.state == STREAMING_DECISION_EMIT
+                        and decision.content != self._accumulator.content
+                    ):
+                        raise OutputGuardrailsError(
+                            "Streaming guardrails only support finalize-time redaction."
+                        )
+                    if decision.state == STREAMING_DECISION_BLOCK:
+                        self._blocked_during_stream = True
+                        self._accumulator.finish_reason = "content_filter"
+                        async for chunk_bytes in self._finalize_stream():
+                            yield chunk_bytes
+                        return
 
             async for chunk in self._finalize_stream():
                 yield chunk
         except Exception:
-            logger.exception("output_guardrails_streaming_failed")
+            logger.exception(
+                "output_guardrails_streaming_failed fail_open=%s",
+                self._guardrails.fail_open,
+            )
+            if self._guardrails.fail_open:
+                async for chunk_bytes in self._emit_passthrough_stream():
+                    yield chunk_bytes
+                return
+
+            output_guardrails_actions_total.labels(action="fail_closed").inc()
             error = {
                 "error": {
                     "message": "Output guardrails failed while scanning the streamed model response.",
@@ -195,7 +231,30 @@ class StreamingGuardrailsProcessor:
                 self._guardrails.policy_hash,
             )
 
-        if result.content:
+        finish_reason = self._accumulator.finish_reason
+        if result.action == "block":
+            finish_reason = "content_filter"
+        async for chunk_bytes in self._emit_terminal_stream(
+            result.content,
+            finish_reason=finish_reason or "stop",
+        ):
+            yield chunk_bytes
+
+    @staticmethod
+    def _format_sse(payload: dict[str, Any]) -> bytes:
+        return f"data: {json.dumps(payload)}\n\n".encode()
+
+    async def _emit_passthrough_stream(self) -> AsyncIterator[bytes]:
+        async for chunk_bytes in self._emit_terminal_stream(
+            self._accumulator.content,
+            finish_reason=self._accumulator.finish_reason or "stop",
+        ):
+            yield chunk_bytes
+
+    async def _emit_terminal_stream(
+        self, content: str, *, finish_reason: str
+    ) -> AsyncIterator[bytes]:
+        if content:
             yield self._format_sse(
                 {
                     "id": self._accumulator.response_id or "chatcmpl-stream",
@@ -207,7 +266,7 @@ class StreamingGuardrailsProcessor:
                             "index": 0,
                             "delta": {
                                 "role": self._accumulator.role,
-                                "content": result.content,
+                                "content": content,
                             },
                             "finish_reason": None,
                         }
@@ -225,18 +284,20 @@ class StreamingGuardrailsProcessor:
                     {
                         "index": 0,
                         "delta": {},
-                        "finish_reason": self._accumulator.finish_reason or "stop",
+                        "finish_reason": finish_reason,
                     }
                 ],
             }
         )
         yield b"data: [DONE]\n\n"
 
-    @staticmethod
-    def _format_sse(payload: dict[str, Any]) -> bytes:
-        return f"data: {json.dumps(payload)}\n\n".encode()
-
     def _finalize_content(self, prompt: str) -> StreamingFinalizeResult:
+        if self._blocked_during_stream:
+            return StreamingFinalizeResult(
+                content=self._guardrails.block_message,
+                action="block",
+            )
+
         sanitized_content = self._accumulator.content
         triggered_scanners: list[dict[str, Any]] = []
         final_action: str | None = None

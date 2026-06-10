@@ -1547,7 +1547,7 @@ async def test_chat_completions_stream_returns_guardrails_error_event(async_clie
         ),
         patch(
             "ragengine.main.guardrails_reloader.get_current",
-            return_value=OutputGuardrails(enabled=True),
+            return_value=OutputGuardrails(enabled=True, fail_open=False),
         ),
     ):
         async with async_client.stream(

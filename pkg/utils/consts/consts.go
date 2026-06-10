@@ -118,18 +118,17 @@ const (
 	TokenizerSidecarPort  = 8100
 
 	// Routing sidecar for P/D disaggregation on decode workspaces.
-	// The sidecar listens on port 5001 (PortRoutingSidecar) and forwards
-	// to vLLM on port 5000 (PortInferenceServer). The Service targetPort
-	// is set to 5001 so external traffic flows through the routing layer.
+	// The sidecar listens on port 5000 (PortInferenceServer) so the Service
+	// can target port 5000 uniformly across prefill and decode pods.
+	// vLLM on decode pods is moved to port 5001 (PortDecodeVLLM).
 	// See: https://github.com/llm-d/llm-d-routing-sidecar
 	RoutingSidecarImage = "mcr.microsoft.com/oss/v2/llm-d/llm-d-routing-sidecar"
 	RoutingSidecarTag   = "v0.8.0"
 
-	// PortRoutingSidecar is the port the routing sidecar listens on.
-	// When the sidecar is present, the Service targetPort points here
-	// instead of PortInferenceServer so all external traffic flows
-	// through the routing layer. vLLM keeps its default port (5000).
-	PortRoutingSidecar = int32(5001)
+	// PortDecodeVLLM is the port vLLM listens on in decode pods.
+	// The routing sidecar occupies port 5000 (PortInferenceServer), so vLLM
+	// is moved to 5001. The sidecar forwards traffic to this port.
+	PortDecodeVLLM = int32(5001)
 
 	// InferenceRoleEnvName is the environment variable name used to pass the
 	// inference role (prefill/decode) to the model container in P/D disaggregated serving.

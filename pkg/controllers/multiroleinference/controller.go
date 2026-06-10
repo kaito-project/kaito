@@ -617,10 +617,9 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	// --- HelmRelease ---
 	// InferencePool selects ALL MRI pods (prefill + decode). EPP's internal
 	// prefill-filter / decode-filter plugins handle role-based selection.
-	// targetPort=5001 (sidecar) is only used by Envoy for user-facing traffic;
-	// EPP routes user requests exclusively to decode pods via decode-filter.
-	// Prefill communication is initiated by the decode sidecar directly to
-	// prefill pod:5000, bypassing InferencePool/Envoy entirely.
+	// targetPort=5000 (PortInferenceServer) — on decode pods the routing sidecar
+	// listens on 5000 and forwards to vLLM on 5001; on prefill pods vLLM
+	// listens directly on 5000. EPP routes user requests to decode pods.
 	matchLabels := map[string]string{
 		kaitov1alpha1.LabelMultiRoleInferenceParent: mri.Name,
 		appsv1.PodIndexLabel:                        "0", // Only leader pod (ordinal 0) serves inference traffic
@@ -696,7 +695,7 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 		"inferenceExtension": eppValues,
 		"inferencePool": map[string]any{
 			"targetPorts": []map[string]any{
-				{"number": consts.PortRoutingSidecar}, // routing sidecar port; GWIE CRD allows only one targetPort (maxItems: 1)
+				{"number": consts.PortInferenceServer}, // sidecar (decode) or vLLM (prefill) on port 5000
 			},
 			"modelServers": map[string]any{
 				"matchLabels": matchLabels,

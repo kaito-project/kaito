@@ -719,24 +719,49 @@ func applyInferenceRoleEnv(labels map[string]string, containerName string, spec 
 }
 
 // injectRoutingSidecar appends the llm-d routing sidecar container to the pod
-// spec. The sidecar listens on PortRoutingSidecar (5001) and proxies to the
-// main vLLM container which keeps its default PortInferenceServer (5000).
-// No port or probe rewriting is needed on the main container.
+// spec. The sidecar listens on PortInferenceServer (5000) and proxies to the
+// main vLLM container which is moved to PortDecodeVLLM (5001) on decode pods.
+// The main container's port and command are rewritten accordingly.
 func injectRoutingSidecar(spec *corev1.PodSpec) {
 	if len(spec.Containers) == 0 {
 		return
+	}
+
+	// Rewrite the main vLLM container port from 5000 to 5001
+	for i := range spec.Containers[0].Ports {
+		if spec.Containers[0].Ports[i].ContainerPort == consts.PortInferenceServer {
+			spec.Containers[0].Ports[i].ContainerPort = consts.PortDecodeVLLM
+		}
+	}
+
+	// Override vLLM's listening port via environment variable.
+	// The inference_api.py uses 5000+LOCAL_RANK by default; we override to 5001.
+	spec.Containers[0].Env = append(spec.Containers[0].Env, corev1.EnvVar{
+		Name:  "VLLM_PORT",
+		Value: strconv.FormatInt(int64(consts.PortDecodeVLLM), 10),
+	})
+
+	// Also rewrite probes to point at the new vLLM port
+	if spec.Containers[0].StartupProbe != nil && spec.Containers[0].StartupProbe.HTTPGet != nil {
+		spec.Containers[0].StartupProbe.HTTPGet.Port = intstr.FromInt32(consts.PortDecodeVLLM)
+	}
+	if spec.Containers[0].LivenessProbe != nil && spec.Containers[0].LivenessProbe.HTTPGet != nil {
+		spec.Containers[0].LivenessProbe.HTTPGet.Port = intstr.FromInt32(consts.PortDecodeVLLM)
+	}
+	if spec.Containers[0].ReadinessProbe != nil && spec.Containers[0].ReadinessProbe.HTTPGet != nil {
+		spec.Containers[0].ReadinessProbe.HTTPGet.Port = intstr.FromInt32(consts.PortDecodeVLLM)
 	}
 
 	spec.Containers = append(spec.Containers, corev1.Container{
 		Name:  "llm-d-routing-sidecar",
 		Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
 		Args: []string{
-			fmt.Sprintf("--port=%d", consts.PortRoutingSidecar),
-			fmt.Sprintf("--vllm-port=%d", consts.PortInferenceServer),
+			fmt.Sprintf("--port=%d", consts.PortInferenceServer),
+			fmt.Sprintf("--vllm-port=%d", consts.PortDecodeVLLM),
 			"--secure-proxy=false",
 		},
 		Ports: []corev1.ContainerPort{
-			{ContainerPort: consts.PortRoutingSidecar, Name: "sidecar", Protocol: corev1.ProtocolTCP},
+			{ContainerPort: consts.PortInferenceServer, Name: "sidecar", Protocol: corev1.ProtocolTCP},
 		},
 		Env: []corev1.EnvVar{
 			{

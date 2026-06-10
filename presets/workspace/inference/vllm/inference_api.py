@@ -541,9 +541,10 @@ if __name__ == "__main__":
 
         api_server.setup_server = _patched_setup
 
-        # Stop the metrics thread just before vLLM's app starts accepting
-        # connections, so only one listener is active at a time.  Zero both
-        # gauges so Prometheus sees a clean state once vLLM is serving.
+        # By the time build_and_serve runs, model downloading, KV cache
+        # allocation, and model warmup are all complete. Stop the metrics
+        # thread just before vLLM's app starts accepting connections, so
+        # only one listener is active at a time.
         _orig_build_and_serve = api_server.build_and_serve
 
         async def _patched_build_and_serve(

@@ -224,20 +224,20 @@ func TestGetInferenceCommandVLLMServedModelName(t *testing.T) {
 			expectedServed: "served-model-name=default-model",
 		},
 		{
-			name:          "InferenceSet workspace uses model name",
+			name:          "InferenceSet workspace uses InferenceSet name",
 			vllmModelName: "default-model",
 			workspaceLabels: map[string]string{
 				consts.WorkspaceCreatedByInferenceSetLabel: "my-inferenceset",
 			},
-			expectedServed:    "served-model-name=default-model",
-			notExpectedServed: "served-model-name=my-inferenceset",
+			expectedServed:    "served-model-name=my-inferenceset",
+			notExpectedServed: "served-model-name=default-model",
 		},
 		{
-			name: "InferenceSet workspace with empty ModelName has no served-model-name",
+			name: "InferenceSet workspace overrides even when VLLM.ModelName is empty",
 			workspaceLabels: map[string]string{
 				consts.WorkspaceCreatedByInferenceSetLabel: "my-inferenceset",
 			},
-			notExpectedServed: "served-model-name=",
+			expectedServed: "served-model-name=my-inferenceset",
 		},
 		{
 			name:          "MRI workspace uses model name over InferenceSet name",

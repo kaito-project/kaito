@@ -27,6 +27,7 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 type Model interface {
@@ -343,8 +344,21 @@ func (p *PresetParam) buildHuggingfaceInferenceCommand() []string {
 }
 
 func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
-	// Set served-model-name so EPP can route requests by model identity.
-	if p.VLLM.ModelName != "" {
+	// For InferenceSet-managed workspaces, determine the served-model-name:
+	// - MRI workspaces (have multiroleinference.kaito.sh/created-by label): use VLLM.ModelName
+	//   so all roles share a single model identifier for EPP routing.
+	// - Standalone InferenceSet workspaces: use the InferenceSet name (label value)
+	//   so EPP routes requests by InferenceSet identity.
+	// - Fallback: use VLLM.ModelName if available.
+	if isName, ok := rc.WorkspaceMetadata.Labels[consts.WorkspaceCreatedByInferenceSetLabel]; ok && isName != "" {
+		// Note: string literal used to avoid import cycle with api/v1alpha1 package.
+		// Matches v1alpha1.LabelMultiRoleInferenceParent.
+		if _, isMRI := rc.WorkspaceMetadata.Labels["multiroleinference.kaito.sh/created-by"]; isMRI && p.VLLM.ModelName != "" {
+			p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
+		} else {
+			p.VLLM.ModelRunParams["served-model-name"] = isName
+		}
+	} else if p.VLLM.ModelName != "" {
 		p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
 	}
 	if rc.MaxModelLen > 0 {

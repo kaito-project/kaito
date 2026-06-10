@@ -218,6 +218,29 @@ runs:
       env:
         WEIGHTS_DIR: "/datadrive"
 
+    - name: Mirror pinned base image overrides into test ACR
+      shell: bash
+      run: |
+        # baseImageOverrides pins legacy GPU SKU families (e.g. NV-series A10) to an
+        # older base image tag that the new default base image cannot replace due to
+        # driver incompatibility. When the base image's registry has been overridden
+        # to the per-run test ACR (i.e. the base image was rebuilt above), those
+        # pinned tags do not exist there, so workloads on pinned SKUs fail to pull
+        # them. Mirror each pinned tag from the canonical published registry into the
+        # test ACR. If the base registry was not overridden, the pins resolve against
+        # the public registry directly and there is nothing to do.
+        BASE_REGISTRY=$(yq '.models[] | select(.name == "base") | .registry' presets/workspace/models/supported_models.yaml)
+        if [ "$BASE_REGISTRY" != "$REGISTRY" ]; then
+          echo "Base registry is '$BASE_REGISTRY' (not the test ACR); pinned overrides resolve against it, nothing to mirror."
+          exit 0
+        fi
+        SRC_REGISTRY="mcr.microsoft.com/aks/kaito"
+        yq '.models[] | select(.name == "base") | .baseImageOverrides[].tag' presets/workspace/models/supported_models.yaml | tr -d '"' | while read -r tag; do
+          [ -z "$tag" ] && continue
+          echo "Mirroring $SRC_REGISTRY/kaito-base:$tag -> $REGISTRY/kaito-base:$tag"
+          docker buildx imagetools create --tag "$REGISTRY/kaito-base:$tag" "$SRC_REGISTRY/kaito-base:$tag"
+        done
+
     - name: build KAITO image
       if: ${{ inputs.isRelease == 'false' }}
       shell: bash

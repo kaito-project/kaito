@@ -487,6 +487,9 @@ func validateInferenceResource(workspaceObj *kaitov1beta1.Workspace, expectedRep
 
 func validateInferenceSetReplicas(inferenceSetObj *kaitov1alpha1.InferenceSet, expectedReplicas int32) {
 	By("Checking the InferenceSet replicas", func() {
+		// Only log when the replica summary changes to avoid repeating the same
+		// lines on every poll.
+		lastSummary := ""
 		Eventually(func() bool {
 			var totalReadyReplicas int32 = 0
 
@@ -497,6 +500,7 @@ func validateInferenceSetReplicas(inferenceSetObj *kaitov1alpha1.InferenceSet, e
 				return false
 			}
 
+			var summary strings.Builder
 			for _, sts := range stsList.Items {
 				if !strings.HasPrefix(sts.Name, inferenceSetObj.Name) {
 					continue
@@ -504,8 +508,13 @@ func validateInferenceSetReplicas(inferenceSetObj *kaitov1alpha1.InferenceSet, e
 				if strings.Contains(sts.Name, "-inferencepool-") {
 					continue
 				}
-				GinkgoWriter.Printf("StatefulSet %s has %d ready replicas\n", sts.Name, sts.Status.ReadyReplicas)
+				fmt.Fprintf(&summary, "  %s: %d ready replicas\n", sts.Name, sts.Status.ReadyReplicas)
 				totalReadyReplicas += sts.Status.ReadyReplicas
+			}
+
+			if s := summary.String(); s != lastSummary {
+				GinkgoWriter.Printf("InferenceSet '%s' replicas:\n%s", inferenceSetObj.Name, s)
+				lastSummary = s
 			}
 
 			return totalReadyReplicas == expectedReplicas
@@ -566,52 +575,43 @@ func validateRevision(workspaceObj *kaitov1beta1.Workspace, revisionStr string) 
 // validateTuningResource validates tuning deployment
 func validateTuningResource(workspaceObj *kaitov1beta1.Workspace) {
 	By("Checking the tuning resource", func() {
-		Eventually(func() bool {
-			var err error
-			var jobFailed, jobSucceeded int32
-
-			job := &batchv1.Job{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      workspaceObj.Name,
-					Namespace: workspaceObj.Namespace,
-				},
-			}
-			err = utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+		// Print diagnostics once if the job never succeeds. A deferred func still
+		// runs while Ginkgo unwinds a failed/timed-out assertion, so this covers
+		// both cases without re-dumping logs on every poll.
+		defer func() {
+			job := &batchv1.Job{}
+			if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
 				Namespace: workspaceObj.Namespace,
 				Name:      workspaceObj.Name,
-			}, job)
-
-			if err != nil {
-				GinkgoWriter.Printf("Error fetching resource: %v\n", err)
-				return false
-			}
-
-			jobFailed = job.Status.Failed
-			jobSucceeded = job.Status.Succeeded
-
-			if jobFailed > 0 {
-				GinkgoWriter.Printf("Job '%s' is in a failed state.\n", workspaceObj.Name)
+			}, job); err == nil && job.Status.Succeeded == 0 {
 				printTuningJobDiagnostics(workspaceObj)
+			}
+		}()
+
+		// Only log when the job status changes to avoid flooding the output with an
+		// identical line on every poll over the (up to 10 minute) wait.
+		lastStatus := ""
+		Eventually(func() bool {
+			job := &batchv1.Job{}
+			if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: workspaceObj.Namespace,
+				Name:      workspaceObj.Name,
+			}, job); err != nil {
+				GinkgoWriter.Printf("Job '%s': error fetching: %v\n", workspaceObj.Name, err)
 				return false
 			}
 
-			if jobSucceeded > 0 {
+			if job.Status.Succeeded > 0 {
 				return true
 			}
 
-			GinkgoWriter.Printf("Job '%s' status: active=%d, failed=%d, succeeded=%d\n",
-				workspaceObj.Name, job.Status.Active, jobFailed, jobSucceeded)
+			if status := fmt.Sprintf("active=%d, failed=%d, succeeded=%d",
+				job.Status.Active, job.Status.Failed, job.Status.Succeeded); status != lastStatus {
+				GinkgoWriter.Printf("Job '%s' status: %s\n", workspaceObj.Name, status)
+				lastStatus = status
+			}
 			return false
 		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for Tuning resource to be ready")
-
-		// If we reach here after timeout, print diagnostics
-		job := &batchv1.Job{}
-		if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-			Namespace: workspaceObj.Namespace,
-			Name:      workspaceObj.Name,
-		}, job); err == nil && job.Status.Succeeded == 0 {
-			printTuningJobDiagnostics(workspaceObj)
-		}
 	})
 }
 

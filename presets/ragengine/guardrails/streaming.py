@@ -27,7 +27,11 @@ from ragengine.guardrails.output_guardrails import (
     OutputGuardrails,
     OutputGuardrailsError,
 )
-from ragengine.guardrails.scanner_schemas import ParsedScannerConfig, RegexConfig
+from ragengine.guardrails.scanner_schemas import (
+    BanSubstringsConfig,
+    ParsedScannerConfig,
+    RegexConfig,
+)
 from ragengine.metrics.prometheus_metrics import (
     guardrails_response_scanner_hits_total,
     output_guardrails_actions_total,
@@ -116,6 +120,34 @@ class RegexStreamingScanner(DeterministicStreamingScanner):
 
 
 @dataclass
+class BanSubstringsStreamingScanner(DeterministicStreamingScanner):
+    _blocked: bool = False
+
+    def on_chunk(self, text: str) -> StreamingDecision:
+        if self.action_on_hit != "block":
+            return StreamingDecision(state=STREAMING_DECISION_BUFFER)
+
+        _, results_valid, results_score = scan_output(
+            [self.scanner], "", text, fail_fast=False
+        )
+        if all(results_valid.values()):
+            return StreamingDecision(state=STREAMING_DECISION_BUFFER)
+
+        self._blocked = True
+        return StreamingDecision(
+            state=STREAMING_DECISION_BLOCK,
+            content=text,
+            scores=results_score,
+        )
+
+    def finalize(self, prompt: str, content: str) -> StreamingDecision:
+        if self._blocked:
+            return StreamingDecision(state=STREAMING_DECISION_BLOCK, content=content)
+
+        return super().finalize(prompt, content)
+
+
+@dataclass
 class ChunkAccumulator:
     response_id: str = ""
     created: int = 0
@@ -179,6 +211,18 @@ class StreamingGuardrailsProcessor:
                             re.compile(pattern) for pattern in parsed.config.patterns
                         ),
                         match_type=parsed.config.match_type,
+                    )
+                )
+                continue
+
+            if parsed.type == "ban_substrings" and isinstance(
+                parsed.config, BanSubstringsConfig
+            ):
+                scanners.append(
+                    BanSubstringsStreamingScanner(
+                        parsed=parsed,
+                        scanner=scanner,
+                        action_on_hit=action_on_hit,
                     )
                 )
                 continue

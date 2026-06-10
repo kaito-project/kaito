@@ -14,6 +14,7 @@
 import re
 import textwrap
 import time
+from collections.abc import AsyncIterator
 from unittest.mock import patch
 
 import httpx
@@ -22,6 +23,11 @@ import respx
 
 from ragengine.guardrails import OutputGuardrails
 from ragengine.guardrails.scanner_schemas import ParsedScannerConfig, RegexConfig
+
+
+async def _stream_lines(*lines: str) -> AsyncIterator[str]:
+    for line in lines:
+        yield line
 
 
 @pytest.fixture(autouse=True)
@@ -1478,3 +1484,46 @@ async def test_chat_completions_no_max_tokens_specified(mock_get, async_client):
         # Verify the response reaches our business logic (not a validation error)
         assert response.status_code != 422  # Not a validation error
         assert response.status_code in [200, 400, 500]  # Various possible outcomes
+
+
+@pytest.mark.asyncio
+async def test_chat_completions_stream_passthrough_buffer_finalize(async_client):
+    request_payload = {
+        "model": "mock-model",
+        "stream": True,
+        "messages": [{"role": "user", "content": "hello"}],
+    }
+
+    with (
+        patch(
+            "ragengine.inference.inference.Inference.chat_completions_stream_passthrough",
+            return_value=_stream_lines(
+                'data: {"id":"chatcmpl-stream","object":"chat.completion.chunk","created":1,"model":"mock-model","choices":[{"index":0,"delta":{"role":"assistant","content":"hello "},"finish_reason":null}]}',
+                'data: {"id":"chatcmpl-stream","object":"chat.completion.chunk","created":1,"model":"mock-model","choices":[{"index":0,"delta":{"content":"world"},"finish_reason":"stop"}]}',
+                "data: [DONE]",
+            ),
+        ),
+        patch(
+            "ragengine.main.guardrails_reloader.get_current",
+            return_value=OutputGuardrails(
+                enabled=True,
+                scanner_configs=(
+                    ParsedScannerConfig(
+                        type="regex",
+                        config=RegexConfig(patterns=["forbidden"]),
+                        action_on_hit="redact",
+                    ),
+                ),
+            ),
+        ),
+    ):
+        async with async_client.stream(
+            "POST", "/v1/chat/completions", json=request_payload
+        ) as response:
+            assert response.status_code == 200
+            body = await response.aread()
+
+    text = body.decode()
+    assert 'data: {"id": "chatcmpl-stream", "object": "chat.completion.chunk"' in text
+    assert '"content": "hello world"' in text
+    assert text.rstrip().endswith("data: [DONE]")

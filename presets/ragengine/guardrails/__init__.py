@@ -13,5 +13,12 @@
 
 from .output_guardrails import OutputGuardrails, OutputGuardrailsError
 from .reload import GuardrailsReloader
+from .streaming import StreamingDecision, StreamingGuardrailsProcessor
 
-__all__ = ["GuardrailsReloader", "OutputGuardrails", "OutputGuardrailsError"]
+__all__ = [
+    "GuardrailsReloader",
+    "OutputGuardrails",
+    "OutputGuardrailsError",
+    "StreamingDecision",
+    "StreamingGuardrailsProcessor",
+]

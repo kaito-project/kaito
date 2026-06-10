@@ -344,12 +344,8 @@ func (p *PresetParam) buildHuggingfaceInferenceCommand() []string {
 }
 
 func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
-	// For InferenceSet-managed workspaces (both MRI and standalone), use the model name
-	// as served-model-name so all roles share a single model identifier for EPP routing.
-	// p.VLLM.ModelName is derived from the workspace's inference.preset.name field.
-	if _, ok := rc.WorkspaceMetadata.Labels[consts.WorkspaceCreatedByInferenceSetLabel]; ok && p.VLLM.ModelName != "" {
-		p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
-	} else if p.VLLM.ModelName != "" {
+	// Set served-model-name so EPP can route requests by model identity.
+	if p.VLLM.ModelName != "" {
 		p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
 	}
 	if rc.MaxModelLen > 0 {

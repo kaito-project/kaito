@@ -516,7 +516,7 @@ plugins:
   - type: disagg-headers-handler
   - type: token-producer
     parameters:
-      modelName: %%MODEL_NAME%%
+      modelName: "%%MODEL_NAME%%"
       vllm:
         http: "http://localhost:8100"
   - type: prefix-based-pd-decider
@@ -661,12 +661,11 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	// Tokenizer sidecar: GPU-less vLLM render process for token-producer plugin.
 	// Runs alongside EPP to serve tokenization requests via HTTP on port 8100.
 	eppValues["sidecar"] = map[string]any{
-		"enabled":         true,
-		"name":            "tokenizer",
-		"image":           consts.TokenizerSidecarImage,
-		"imagePullPolicy": string(corev1.PullIfNotPresent),
-		"command":         []string{"python3", "-m", "vllm.entrypoints.cli.main", "launch", "render", mri.Spec.Model.Name, fmt.Sprintf("--port=%d", consts.TokenizerSidecarPort)},
-		"args":            []string{},
+		"enabled": true,
+		"name":    "tokenizer",
+		"image":   consts.TokenizerSidecarImage,
+		"command": []string{"python3", "-m", "vllm.entrypoints.cli.main", "launch", "render", mri.Spec.Model.Name, fmt.Sprintf("--port=%d", consts.TokenizerSidecarPort)},
+		"args":    []string{},
 		"env": []map[string]string{
 			{"name": "VLLM_TARGET_DEVICE", "value": "cpu"},
 			{"name": "USER", "value": "nonroot"},

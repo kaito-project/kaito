@@ -3,8 +3,9 @@ models:
   - name: base
     type: text-generation
     runtime: tfs
-    tag: 0.3.2
+    tag: 0.3.3
     # Tag history:
+    # 0.3.3 - add model download monitor
     # 0.3.2 - make Worker nodes always ready in distributed inference to unblock StatefulSet rolling upgrade. bump lmcache to 0.4.6 and use its CUDA 12.9 wheel
     # 0.3.1 - add NixlConnector kv_transfer_config for P/D disaggregation
     # 0.3.0 - bump vllm to 0.19.1, transformers to 5.6.0

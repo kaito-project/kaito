@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import time
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
@@ -26,8 +27,9 @@ from ragengine.guardrails.output_guardrails import (
     OutputGuardrails,
     OutputGuardrailsError,
 )
-from ragengine.guardrails.scanner_schemas import ParsedScannerConfig
+from ragengine.guardrails.scanner_schemas import ParsedScannerConfig, RegexConfig
 from ragengine.metrics.prometheus_metrics import (
+    guardrails_response_scanner_hits_total,
     output_guardrails_actions_total,
 )
 
@@ -84,6 +86,36 @@ class DeterministicStreamingScanner(StreamingScanner):
 
 
 @dataclass
+class RegexStreamingScanner(DeterministicStreamingScanner):
+    compiled_patterns: tuple[re.Pattern[str], ...]
+    match_type: str
+    _blocked: bool = False
+
+    def on_chunk(self, text: str) -> StreamingDecision:
+        if self.action_on_hit != "block":
+            return StreamingDecision(state=STREAMING_DECISION_BUFFER)
+
+        if self._matches(text):
+            self._blocked = True
+            return StreamingDecision(state=STREAMING_DECISION_BLOCK)
+
+        return StreamingDecision(state=STREAMING_DECISION_BUFFER)
+
+    def finalize(self, prompt: str, content: str) -> StreamingDecision:
+        if self._blocked:
+            return StreamingDecision(state=STREAMING_DECISION_BLOCK, content=content)
+
+        return super().finalize(prompt, content)
+
+    def _matches(self, text: str) -> bool:
+        if self.match_type == "fullmatch":
+            return any(pattern.fullmatch(text) for pattern in self.compiled_patterns)
+        if self.match_type == "match":
+            return any(pattern.match(text) for pattern in self.compiled_patterns)
+        return any(pattern.search(text) for pattern in self.compiled_patterns)
+
+
+@dataclass
 class ChunkAccumulator:
     response_id: str = ""
     created: int = 0
@@ -133,15 +165,29 @@ class StreamingGuardrailsProcessor:
         self._accumulator = ChunkAccumulator()
         self._scanners = self._build_streaming_scanners()
 
-    def _build_streaming_scanners(self) -> list[DeterministicStreamingScanner]:
-        scanners: list[DeterministicStreamingScanner] = []
+    def _build_streaming_scanners(self) -> list[StreamingScanner]:
+        scanners: list[StreamingScanner] = []
         for parsed, scanner in self._guardrails._build_scanners_with_configs():
+            action_on_hit = parsed.action_on_hit or self._guardrails.action_on_hit
+            if parsed.type == "regex" and isinstance(parsed.config, RegexConfig):
+                scanners.append(
+                    RegexStreamingScanner(
+                        parsed=parsed,
+                        scanner=scanner,
+                        action_on_hit=action_on_hit,
+                        compiled_patterns=tuple(
+                            re.compile(pattern) for pattern in parsed.config.patterns
+                        ),
+                        match_type=parsed.config.match_type,
+                    )
+                )
+                continue
+
             scanners.append(
                 DeterministicStreamingScanner(
                     parsed=parsed,
                     scanner=scanner,
-                    action_on_hit=parsed.action_on_hit
-                    or self._guardrails.action_on_hit,
+                    action_on_hit=action_on_hit,
                 )
             )
         return scanners
@@ -160,8 +206,20 @@ class StreamingGuardrailsProcessor:
 
                 chunk = json.loads(payload)
                 self._accumulator.add_chunk(chunk)
+                should_stop = False
                 for scanner in self._scanners:
-                    scanner.on_chunk(self._accumulator.content)
+                    decision = scanner.on_chunk(self._accumulator.content)
+                    if decision.state == STREAMING_DECISION_ERROR:
+                        raise OutputGuardrailsError(
+                            "Output guardrails failed while scanning the streamed model response."
+                        )
+                    if decision.state == STREAMING_DECISION_BLOCK:
+                        self._accumulator.finish_reason = "content_filter"
+                        should_stop = True
+                        break
+
+                if should_stop:
+                    break
 
             async for chunk in self._finalize_stream():
                 yield chunk
@@ -246,6 +304,11 @@ class StreamingGuardrailsProcessor:
                 and decision.content == sanitized_content
             ):
                 continue
+
+            guardrails_response_scanner_hits_total.labels(
+                scanner_type=scanner.parsed.type,
+                action=scanner.action_on_hit,
+            ).inc()
 
             if decision.state == STREAMING_DECISION_BLOCK:
                 return StreamingFinalizeResult(

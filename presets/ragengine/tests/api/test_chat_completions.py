@@ -1527,3 +1527,49 @@ async def test_chat_completions_stream_passthrough_buffer_finalize(async_client)
     assert 'data: {"id": "chatcmpl-stream", "object": "chat.completion.chunk"' in text
     assert '"content": "hello world"' in text
     assert text.rstrip().endswith("data: [DONE]")
+
+
+@pytest.mark.asyncio
+async def test_chat_completions_stream_regex_blocks_cross_chunk_pattern(async_client):
+    request_payload = {
+        "model": "mock-model",
+        "stream": True,
+        "messages": [{"role": "user", "content": "hello"}],
+    }
+
+    with (
+        patch(
+            "ragengine.inference.inference.Inference.chat_completions_stream_passthrough",
+            return_value=_stream_lines(
+                'data: {"id":"chatcmpl-stream","object":"chat.completion.chunk","created":1,"model":"mock-model","choices":[{"index":0,"delta":{"role":"assistant","content":"bad"},"finish_reason":null}]}',
+                'data: {"id":"chatcmpl-stream","object":"chat.completion.chunk","created":1,"model":"mock-model","choices":[{"index":0,"delta":{"content":"word"},"finish_reason":null}]}',
+                'data: {"id":"chatcmpl-stream","object":"chat.completion.chunk","created":1,"model":"mock-model","choices":[{"index":0,"delta":{"content":" tail"},"finish_reason":"stop"}]}',
+                "data: [DONE]",
+            ),
+        ),
+        patch(
+            "ragengine.main.guardrails_reloader.get_current",
+            return_value=OutputGuardrails(
+                enabled=True,
+                scanner_configs=(
+                    ParsedScannerConfig(
+                        type="regex",
+                        config=RegexConfig(patterns=["badword"]),
+                        action_on_hit="block",
+                    ),
+                ),
+            ),
+        ),
+    ):
+        async with async_client.stream(
+            "POST", "/v1/chat/completions", json=request_payload
+        ) as response:
+            assert response.status_code == 200
+            body = await response.aread()
+
+    text = body.decode()
+    assert "The model output was blocked by output guardrails." in text
+    assert "badword" not in text
+    assert "tail" not in text
+    assert '"finish_reason": "content_filter"' in text
+    assert text.rstrip().endswith("data: [DONE]")

@@ -128,6 +128,12 @@ const (
 	// inference role (prefill/decode) to the model container in P/D disaggregated serving.
 	InferenceRoleEnvName = "KAITO_INFERENCE_ROLE"
 
+	// VLLMUseFlashInferSamplerEnvName toggles vLLM's FlashInfer-based sampler.
+	// KAITO does not support FlashInfer, so it is set to "0" to keep vLLM on the
+	// Torch-native sampling path and avoid runtime JIT kernel compilation, which
+	// requires a CUDA toolchain (nvcc) that the base image does not ship.
+	VLLMUseFlashInferSamplerEnvName = "VLLM_USE_FLASHINFER_SAMPLER"
+
 	// ConditionReady is the condition type for a ready condition.
 	ConditionReady = "Ready"
 

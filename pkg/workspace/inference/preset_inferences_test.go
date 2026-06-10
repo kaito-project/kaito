@@ -46,6 +46,13 @@ import (
 
 var ValidStrength string = "0.5"
 
+// flashInferSamplerEnvVar is injected into every vLLM inference container to
+// disable vLLM's FlashInfer sampler (KAITO does not support FlashInfer).
+var flashInferSamplerEnvVar = corev1.EnvVar{
+	Name:  consts.VLLMUseFlashInferSamplerEnvName,
+	Value: "0",
+}
+
 func TestGeneratePresetInference(t *testing.T) {
 	test.RegisterTestModel()
 	baseImage := metadata.MustGet("base")
@@ -72,8 +79,9 @@ func TestGeneratePresetInference(t *testing.T) {
 			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
-			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=1 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
-			hasAdapters: false,
+			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=1 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
+			hasAdapters:     false,
+			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar},
 		},
 
 		"test-model/vllm-float16": {
@@ -86,8 +94,9 @@ func TestGeneratePresetInference(t *testing.T) {
 			},
 			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
 			// T4 GPU does not support bfloat16, so dtype=float16 is added
-			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --dtype=float16 --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=1 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
-			hasAdapters: false,
+			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --dtype=float16 --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=1 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
+			hasAdapters:     false,
+			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar},
 		},
 
 		"test-model-no-parallel/vllm": {
@@ -101,8 +110,9 @@ func TestGeneratePresetInference(t *testing.T) {
 			expectedModelImage: "test-registry/kaito-test-no-tensor-parallel-model:1.0.0",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
-			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml",
-			hasAdapters: false,
+			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml",
+			hasAdapters:     false,
+			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar},
 		},
 
 		"test-model-no-lora-support/vllm": {
@@ -116,8 +126,9 @@ func TestGeneratePresetInference(t *testing.T) {
 			expectedModelImage: "test-registry/kaito-test-no-lora-support-model:1.0.0",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
-			expectedCmd: "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml",
-			hasAdapters: false,
+			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml",
+			hasAdapters:     false,
+			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar},
 		},
 
 		"test-model-with-adapters/vllm": {
@@ -132,7 +143,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			expectedCmd:        "/bin/sh -c python3 /workspace/vllm/inference_api.py --enable-lora --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=1 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
 			hasAdapters:        true,
 			expectedVolume:     "adapter-volume",
-			expectedEnvVars: []corev1.EnvVar{{
+			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar, {
 				Name:  "Adapter-1",
 				Value: "0.5",
 			}},
@@ -180,7 +191,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
 			expectedCmd: `/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=2 --model=test-repo/test-model-a100 --code-revision=test-revision --download-dir=/workspace/weights --kaito-config-file=/mnt/config/inference_config.yaml`,
-			expectedEnvVars: []corev1.EnvVar{{
+			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar, {
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{
 					SecretKeyRef: &corev1.SecretKeySelector{
@@ -204,7 +215,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			},
 			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=6 --ray_port=6379; python3 /workspace/vllm/inference_api.py --distributed-executor-backend=ray --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --dtype=float16 --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --kaito-kv-cache-cpu-memory-utilization=0 --pipeline-parallel-size=6 --tensor-parallel-size=1; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
 
-			expectedEnvVars: []corev1.EnvVar{{
+			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar, {
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{
 					SecretKeyRef: &corev1.SecretKeySelector{
@@ -240,7 +251,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			},
 			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=6 --ray_port=6379; python3 /workspace/vllm/inference_api.py --distributed-executor-backend=ray --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --dtype=float16 --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --kaito-kv-cache-cpu-memory-utilization=0 --pipeline-parallel-size=6 --tensor-parallel-size=1; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
 
-			expectedEnvVars: []corev1.EnvVar{{
+			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar, {
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{
 					SecretKeyRef: &corev1.SecretKeySelector{

@@ -29,6 +29,13 @@ from ragengine.guardrails.output_guardrails import (
 from ragengine.guardrails.scanner_schemas import ParsedScannerConfig
 from ragengine.metrics.prometheus_metrics import (
     output_guardrails_actions_total,
+    stream_blocks_total,
+    stream_buffer_bytes,
+    stream_chunks_scanned_total,
+    stream_decision_latency_ms,
+    stream_finalize_actions_total,
+    stream_redactions_total,
+    stream_scanner_errors_total,
 )
 
 logger = logging.getLogger(__name__)
@@ -144,6 +151,81 @@ class StreamingGuardrailsProcessor:
         self._accumulator = ChunkAccumulator()
         self._scanners = scanners or self._build_streaming_scanners()
         self._blocked_during_stream = False
+        self._chunk_index = 0
+        self._error_scanner_type = "stream"
+        self._error_phase = "chunk"
+
+    def _stream_id(self) -> str:
+        request_stream_id = str(self._request.get("stream_id") or "")
+        return request_stream_id or self._accumulator.response_id or "chatcmpl-stream"
+
+    def _buffered_bytes(self) -> int:
+        return len(self._accumulator.content.encode("utf-8"))
+
+    @staticmethod
+    def _content_bytes(content: str) -> int:
+        return len(content.encode("utf-8"))
+
+    def _observe_decision_latency(
+        self, scanner_type: str, phase: str, action: str, started_at: float
+    ) -> None:
+        stream_decision_latency_ms.labels(
+            scanner_type=scanner_type,
+            phase=phase,
+            action=action,
+        ).observe((time.perf_counter() - started_at) * 1000)
+
+    def _log_chunk_scanned(self) -> None:
+        logger.info(
+            "output_guardrails_stream_chunk_scanned response_id=%s stream_id=%s chunk_index=%s buffered_bytes=%s fail_open=%s policy_hash=%s",
+            self._accumulator.response_id,
+            self._stream_id(),
+            self._chunk_index,
+            self._buffered_bytes(),
+            self._guardrails.fail_open,
+            self._guardrails.policy_hash,
+        )
+
+    def _log_partial_decision(self, scanner_type: str, partial_action: str) -> None:
+        logger.info(
+            "output_guardrails_stream_partial_decision response_id=%s stream_id=%s chunk_index=%s scanner_type=%s partial_action=%s buffered_bytes=%s emitted_bytes=%s fail_open=%s policy_hash=%s",
+            self._accumulator.response_id,
+            self._stream_id(),
+            self._chunk_index,
+            scanner_type,
+            partial_action,
+            self._buffered_bytes(),
+            0,
+            self._guardrails.fail_open,
+            self._guardrails.policy_hash,
+        )
+
+    def _log_scanner_error(self, *, scanner_type: str, phase: str) -> None:
+        logger.error(
+            "output_guardrails_stream_scanner_error response_id=%s stream_id=%s chunk_index=%s scanner_type=%s fail_open=%s policy_hash=%s phase=%s buffered_bytes=%s",
+            self._accumulator.response_id,
+            self._stream_id(),
+            self._chunk_index,
+            scanner_type,
+            self._guardrails.fail_open,
+            self._guardrails.policy_hash,
+            phase,
+            self._buffered_bytes(),
+        )
+
+    def _log_finalize(self, *, result: StreamingFinalizeResult) -> None:
+        scanner_types = ",".join(item["type"] for item in result.triggered_scanners)
+        logger.info(
+            "output_guardrails_stream_finalize response_id=%s stream_id=%s scanner_type=%s final_action=%s buffered_bytes=%s emitted_bytes=%s fail_open=%s policy_hash=%s",
+            self._accumulator.response_id,
+            self._stream_id(),
+            scanner_types,
+            result.action or "allow",
+            self._buffered_bytes(),
+            self._content_bytes(result.content),
+            self._guardrails.fail_open,
+            self._guardrails.policy_hash,
+        )
 
     def _build_streaming_scanners(self) -> list[DeterministicStreamingScanner]:
         scanners: list[DeterministicStreamingScanner] = []
@@ -174,8 +256,21 @@ class StreamingGuardrailsProcessor:
 
                 chunk = json.loads(payload)
                 self._accumulator.add_chunk(chunk)
+                self._chunk_index += 1
+                stream_chunks_scanned_total.inc()
+                stream_buffer_bytes.set(self._buffered_bytes())
+                self._log_chunk_scanned()
                 for scanner in self._scanners:
+                    self._error_scanner_type = scanner.parsed.type
+                    self._error_phase = "chunk"
+                    decision_started_at = time.perf_counter()
                     decision = scanner.on_chunk(self._accumulator.content)
+                    self._observe_decision_latency(
+                        scanner.parsed.type,
+                        "chunk",
+                        decision.state,
+                        decision_started_at,
+                    )
                     if decision.state == STREAMING_DECISION_ERROR:
                         raise OutputGuardrailsError(
                             "Output guardrails failed while scanning the streamed model response."
@@ -190,13 +285,24 @@ class StreamingGuardrailsProcessor:
                     if decision.state == STREAMING_DECISION_BLOCK:
                         self._blocked_during_stream = True
                         self._accumulator.finish_reason = "content_filter"
+                        self._log_partial_decision(scanner.parsed.type, "block")
                         async for chunk_bytes in self._finalize_stream():
                             yield chunk_bytes
                         return
 
+            self._error_phase = "finalize"
             async for chunk in self._finalize_stream():
                 yield chunk
         except Exception:
+            stream_scanner_errors_total.labels(
+                scanner_type=self._error_scanner_type,
+                phase=self._error_phase,
+                fail_open=str(self._guardrails.fail_open).lower(),
+            ).inc()
+            self._log_scanner_error(
+                scanner_type=self._error_scanner_type,
+                phase=self._error_phase,
+            )
             logger.exception(
                 "output_guardrails_streaming_failed fail_open=%s",
                 self._guardrails.fail_open,
@@ -223,13 +329,24 @@ class StreamingGuardrailsProcessor:
 
         if result.action is not None:
             output_guardrails_actions_total.labels(action=result.action).inc()
-            logger.info(
-                "output_guardrails_streaming_triggered action=%s response_id=%s scanners=%s policy_hash=%s",
-                result.action,
-                self._accumulator.response_id,
-                list(result.triggered_scanners),
-                self._guardrails.policy_hash,
-            )
+            if result.action == "block":
+                if result.triggered_scanners:
+                    for scanner_info in result.triggered_scanners:
+                        stream_blocks_total.labels(
+                            scanner_type=scanner_info["type"]
+                        ).inc()
+                else:
+                    stream_blocks_total.labels(scanner_type="stream").inc()
+            elif result.action == "redact":
+                for scanner_info in result.triggered_scanners:
+                    stream_redactions_total.labels(
+                        scanner_type=scanner_info["type"]
+                    ).inc()
+
+        stream_finalize_actions_total.labels(
+            final_action=result.action or "allow"
+        ).inc()
+        self._log_finalize(result=result)
 
         finish_reason = self._accumulator.finish_reason
         if result.action == "block":
@@ -303,7 +420,16 @@ class StreamingGuardrailsProcessor:
         final_action: str | None = None
 
         for scanner in self._scanners:
+            self._error_scanner_type = scanner.parsed.type
+            self._error_phase = "finalize"
+            decision_started_at = time.perf_counter()
             decision = scanner.finalize(prompt, sanitized_content)
+            self._observe_decision_latency(
+                scanner.parsed.type,
+                "finalize",
+                decision.state,
+                decision_started_at,
+            )
             if decision.state == STREAMING_DECISION_ERROR:
                 raise OutputGuardrailsError(
                     "Output guardrails failed while scanning the streamed model response."

@@ -30,6 +30,15 @@ from ragengine.guardrails.streaming import (
     StreamingGuardrailsProcessor,
     StreamingScanner,
 )
+from ragengine.metrics.prometheus_metrics import (
+    stream_blocks_total,
+    stream_buffer_bytes,
+    stream_chunks_scanned_total,
+    stream_decision_latency_ms,
+    stream_finalize_actions_total,
+    stream_redactions_total,
+    stream_scanner_errors_total,
+)
 
 
 class _LineStream:
@@ -151,10 +160,36 @@ async def _collect_stream(processor: StreamingGuardrailsProcessor, upstream) -> 
     return "".join(chunks)
 
 
+def _counter_value(metric, **labels) -> float:
+    return metric.labels(**labels)._value.get()
+
+
+def _histogram_count(metric, **labels) -> float:
+    for sample in metric.collect()[0].samples:
+        if sample.name.endswith("_count") and sample.labels == labels:
+            return sample.value
+    return 0.0
+
+
 @pytest.mark.asyncio
-async def test_streaming_early_block_stops_after_middle_chunk() -> None:
+async def test_streaming_early_block_stops_after_middle_chunk(caplog) -> None:
     guardrails = OutputGuardrails(
-        enabled=True, fail_open=False, block_message="blocked"
+        enabled=True,
+        fail_open=False,
+        block_message="blocked",
+        policy_hash="policy-123",
+    )
+    before_chunks = stream_chunks_scanned_total._value.get()
+    before_finalize = _counter_value(
+        stream_finalize_actions_total,
+        final_action="block",
+    )
+    before_blocks = _counter_value(stream_blocks_total, scanner_type="stream")
+    before_latency = _histogram_count(
+        stream_decision_latency_ms,
+        scanner_type="early_block",
+        phase="chunk",
+        action=STREAMING_DECISION_BLOCK,
     )
     upstream = _LineStream(
         _make_line("bad"),
@@ -168,12 +203,40 @@ async def test_streaming_early_block_stops_after_middle_chunk() -> None:
         scanners=[_EarlyBlockScanner("badword")],
     )
 
-    text = await _collect_stream(processor, upstream)
+    with caplog.at_level("INFO"):
+        text = await _collect_stream(processor, upstream)
 
     assert "blocked" in text
     assert "tail" not in text
     assert '"finish_reason": "content_filter"' in text
     assert upstream.consumed == 2
+    assert stream_chunks_scanned_total._value.get() == before_chunks + 2
+    assert (
+        _counter_value(stream_finalize_actions_total, final_action="block")
+        == before_finalize + 1
+    )
+    assert (
+        _counter_value(stream_blocks_total, scanner_type="stream") == before_blocks + 1
+    )
+    assert (
+        _histogram_count(
+            stream_decision_latency_ms,
+            scanner_type="early_block",
+            phase="chunk",
+            action=STREAMING_DECISION_BLOCK,
+        )
+        == before_latency + 1
+    )
+    assert stream_buffer_bytes._value.get() == len(b"badword")
+    assert "stream_id=chatcmpl-stream" in caplog.text
+    assert "chunk_index=2" in caplog.text
+    assert "scanner_type=early_block" in caplog.text
+    assert "partial_action=block" in caplog.text
+    assert "final_action=block" in caplog.text
+    assert "buffered_bytes=7" in caplog.text
+    assert "emitted_bytes=7" in caplog.text
+    assert "fail_open=False" in caplog.text
+    assert "policy_hash=policy-123" in caplog.text
 
 
 @pytest.mark.asyncio
@@ -203,6 +266,10 @@ async def test_streaming_finalize_violation_blocks_after_buffering() -> None:
 @pytest.mark.asyncio
 async def test_streaming_finalize_redaction_handles_cross_chunk_content() -> None:
     guardrails = OutputGuardrails(enabled=True, fail_open=False)
+    before_redactions = _counter_value(
+        stream_redactions_total,
+        scanner_type="finalize_redact",
+    )
     upstream = _LineStream(
         _make_line("bad"),
         _make_line("word"),
@@ -219,6 +286,10 @@ async def test_streaming_finalize_redaction_handles_cross_chunk_content() -> Non
 
     assert '"content": "[REDACTED] tail"' in text
     assert text.rstrip().endswith("data: [DONE]")
+    assert (
+        _counter_value(stream_redactions_total, scanner_type="finalize_redact")
+        == before_redactions + 1
+    )
 
 
 @pytest.mark.asyncio
@@ -226,6 +297,12 @@ async def test_streaming_fail_open_emits_original_content_on_scanner_exception()
     None
 ):
     guardrails = OutputGuardrails(enabled=True, fail_open=True)
+    before_errors = _counter_value(
+        stream_scanner_errors_total,
+        scanner_type="exploding",
+        phase="finalize",
+        fail_open="true",
+    )
     upstream = _LineStream(
         _make_line("hello "),
         _make_line("world", finish_reason="stop"),
@@ -242,6 +319,15 @@ async def test_streaming_fail_open_emits_original_content_on_scanner_exception()
     assert '"content": "hello world"' in text
     assert '"type": "server_error"' not in text
     assert '"finish_reason": "stop"' in text
+    assert (
+        _counter_value(
+            stream_scanner_errors_total,
+            scanner_type="exploding",
+            phase="finalize",
+            fail_open="true",
+        )
+        == before_errors + 1
+    )
 
 
 @pytest.mark.asyncio

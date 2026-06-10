@@ -96,7 +96,7 @@ extract_configmap_models() {
         found=1; 
         next 
     } 
-    found && /^[[:space:]]*[a-zA-Z]/ && !/^[[:space:]]*models:/ && !/^[[:space:]]*-/ && !/^[[:space:]]*name:/ && !/^[[:space:]]*type:/ && !/^[[:space:]]*version:/ && !/^[[:space:]]*runtime:/ && !/^[[:space:]]*downloadAtRuntime:/ && !/^[[:space:]]*downloadAuthRequired:/ && !/^[[:space:]]*deprecated:/ && !/^[[:space:]]*tag:/ && !/^[[:space:]]*resources:/ && !/^[[:space:]]*instanceType:/ && !/^[[:space:]]*labelSelector:/ && !/^[[:space:]]*preferredInstance:/ { 
+    found && /^[[:space:]]*[a-zA-Z]/ && !/^[[:space:]]*models:/ && !/^[[:space:]]*-/ && !/^[[:space:]]*name:/ && !/^[[:space:]]*type:/ && !/^[[:space:]]*version:/ && !/^[[:space:]]*runtime:/ && !/^[[:space:]]*downloadAtRuntime:/ && !/^[[:space:]]*downloadAuthRequired:/ && !/^[[:space:]]*deprecated:/ && !/^[[:space:]]*tag:/ && !/^[[:space:]]*resources:/ && !/^[[:space:]]*instanceType:/ && !/^[[:space:]]*labelSelector:/ && !/^[[:space:]]*preferredInstance:/ && !/^[[:space:]]*baseImageOverrides:/ && !/^[[:space:]]*reason:/ && !/^[[:space:]]*matchGPUModels:/ { 
         found=0 
     } 
     found { 

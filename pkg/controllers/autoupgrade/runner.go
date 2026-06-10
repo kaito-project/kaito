@@ -73,7 +73,7 @@ func (r *AutoUpgradeRunner) NeedLeaderElection() bool { return true }
 
 // reconcileAll lists all InferenceSets with autoUpgrade enabled and processes each.
 func (r *AutoUpgradeRunner) reconcileAll(ctx context.Context) {
-	klog.InfoS("AutoUpgradeRunner: reconcileAll tick", "desiredImage", inference.GetBaseImageName(), "desiredTag", inference.GetBaseImageTag())
+	klog.InfoS("AutoUpgradeRunner: reconcileAll tick")
 	inferenceSetList := &kaitov1alpha1.InferenceSetList{}
 	if err := r.Client.List(ctx, inferenceSetList); err != nil {
 		klog.ErrorS(err, "AutoUpgradeRunner: failed to list InferenceSets")
@@ -97,10 +97,6 @@ func (r *AutoUpgradeRunner) reconcileInferenceSet(ctx context.Context, inference
 		return
 	}
 
-	// Get the current controller-embedded base image tag.
-	desiredImage := inference.GetBaseImageName()
-	desiredTag := inference.GetBaseImageTag()
-
 	// List Workspaces belonging to this InferenceSet.
 	wsList, err := inferencesetutil.ListWorkspaces(ctx, inferenceSetObj, r.Client)
 	if err != nil {
@@ -112,13 +108,21 @@ func (r *AutoUpgradeRunner) reconcileInferenceSet(ctx context.Context, inference
 	})
 
 	// Categorize workspaces into drifted (needs upgrade) and upgrading (in progress).
-	toUpgrade, upgrading, err := r.categorizeWorkspaces(ctx, wsList.Items, desiredImage, desiredTag)
+	// Each workspace's desired base image is resolved individually because
+	// GPU-family-specific overrides can pin some SKUs to a different tag.
+	toUpgrade, upgrading, err := r.categorizeWorkspaces(ctx, wsList.Items)
 	if err != nil {
 		klog.ErrorS(err, "AutoUpgradeRunner: failed to categorize workspaces", "inferenceset", klog.KObj(inferenceSetObj))
 		return
 	}
+	// Build a name→desiredTag view of drifted workspaces so the log surfaces
+	// any GPU-family-pinned tags chosen during categorization.
+	desiredTags := make(map[string]string, len(toUpgrade))
+	for i := range toUpgrade {
+		desiredTags[toUpgrade[i].Workspace.Name] = toUpgrade[i].DesiredTag
+	}
 	klog.InfoS("AutoUpgradeRunner: categorized workspaces", "inferenceset", klog.KObj(inferenceSetObj),
-		"toUpgrade", len(toUpgrade), "upgrading", len(upgrading))
+		"toUpgrade", len(toUpgrade), "upgrading", len(upgrading), "desiredTags", desiredTags)
 
 	// Update status if drift count changed.
 	newDriftCount := len(toUpgrade) + len(upgrading)
@@ -151,8 +155,19 @@ func (r *AutoUpgradeRunner) reconcileInferenceSet(ctx context.Context, inference
 		return
 	}
 
-	// Tag the next drifted workspace for upgrade.
-	r.tagWorkspaceForUpgrade(ctx, inferenceSetObj, &toUpgrade[0], desiredTag)
+	// Tag the next drifted workspace for upgrade with its own per-workspace
+	// desired tag (which may be a GPU-family-pinned tag), resolved during
+	// categorization and carried alongside the workspace.
+	next := &toUpgrade[0]
+	r.tagWorkspaceForUpgrade(ctx, inferenceSetObj, &next.Workspace, next.DesiredTag)
+}
+
+// workspaceUpgrade pairs a drifted Workspace with its resolved desired base
+// image tag. The tag is computed once during categorization so it can be reused
+// when tagging the workspace for upgrade, avoiding a redundant resolution.
+type workspaceUpgrade struct {
+	Workspace  kaitov1beta1.Workspace
+	DesiredTag string
 }
 
 // categorizeWorkspaces classifies workspaces into two groups:
@@ -161,11 +176,18 @@ func (r *AutoUpgradeRunner) reconcileInferenceSet(ctx context.Context, inference
 //
 // Workspaces that are running the desired image AND are inference ready
 // are considered complete and excluded from both lists.
-func (r *AutoUpgradeRunner) categorizeWorkspaces(ctx context.Context, workspaces []kaitov1beta1.Workspace, desiredImage, desiredTag string) (toUpgrade, upgrading []kaitov1beta1.Workspace, err error) {
+func (r *AutoUpgradeRunner) categorizeWorkspaces(ctx context.Context, workspaces []kaitov1beta1.Workspace) (toUpgrade []workspaceUpgrade, upgrading []kaitov1beta1.Workspace, err error) {
 	for i := range workspaces {
 		ws := &workspaces[i]
 		if ws.DeletionTimestamp != nil {
 			continue
+		}
+
+		// Resolve this workspace's desired base image individually so that
+		// GPU-family-pinned SKUs are compared against their pinned tag.
+		desiredImage, desiredTag, err := inference.ResolveBaseImageForWorkspace(ctx, r.Client, ws)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to resolve desired base image for workspace %s: %w", ws.Name, err)
 		}
 
 		ss := &appsv1.StatefulSet{}
@@ -178,7 +200,7 @@ func (r *AutoUpgradeRunner) categorizeWorkspaces(ctx context.Context, workspaces
 		} else if ws.Labels[kaitov1alpha1.LabelUpgradeToVersion] == desiredTag {
 			upgrading = append(upgrading, workspaces[i])
 		} else {
-			toUpgrade = append(toUpgrade, workspaces[i])
+			toUpgrade = append(toUpgrade, workspaceUpgrade{Workspace: workspaces[i], DesiredTag: desiredTag})
 		}
 	}
 	return

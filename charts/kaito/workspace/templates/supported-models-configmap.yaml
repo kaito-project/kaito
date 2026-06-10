@@ -12,6 +12,10 @@ data:
         type: text-generation
         runtime: tfs
         tag: 0.4.0
+        baseImageOverrides:
+          - tag: "0.3.1"
+            reason: "NV-series (A10/M60) ship NVIDIA GRID driver 550.x (CUDA 12.4); base image 0.4.0 (CUDA 13) needs driver 580+"
+            matchGPUModels: ["A10", "M60"]
       - name: llama-3.1-8b-instruct
         type: text-generation
         version: https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct/commit/0e9e39f249a16976918f6564b8830bc894c89659

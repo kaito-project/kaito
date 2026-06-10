@@ -362,15 +362,36 @@ func buildBenchmarkStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace, 
 	}
 }
 
-func GetBaseImageName() string {
+// GetBaseImageForGPU returns the base image reference and its tag for the given
+// GPU config, honoring any GPU-family-specific base image overrides defined on
+// the "base" preset entry. A nil gpuConfig falls back to the default tag.
+func GetBaseImageForGPU(gpuConfig *sku.GPUConfig) (image, tag string) {
 	presetObj := metadata.MustGet("base")
-	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
+	tag = presetObj.Tag
+	if gpuConfig != nil {
+		tag = presetObj.ResolveBaseImageTag(gpuConfig.GPUModel)
+	}
+	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, tag), tag
 }
 
-// GetBaseImageTag returns just the tag portion of the base image reference.
-func GetBaseImageTag() string {
-	presetObj := metadata.MustGet("base")
-	return presetObj.Tag
+// ResolveBaseImageForWorkspace returns the base image name and tag that the
+// controller would assign to the given workspace, honoring GPU-family-specific
+// base image overrides. It resolves the workspace's GPU config the same way pod
+// spec generation does (from the SKU under NAP, or from ready nodes under BYO),
+// so callers outside the pod-spec path (e.g. the auto-upgrade runner) compute
+// the same per-workspace desired image.
+func ResolveBaseImageForWorkspace(ctx context.Context, kubeClient client.Client, workspaceObj *v1beta1.Workspace) (image string, tag string, err error) {
+	gctx := &generator.WorkspaceGeneratorContext{
+		Ctx:        ctx,
+		KubeClient: kubeClient,
+		Workspace:  workspaceObj,
+	}
+	gpuConfig, err := getGPUConfig(gctx)
+	if err != nil {
+		return "", "", err
+	}
+	image, tag = GetBaseImageForGPU(gpuConfig)
+	return image, tag, nil
 }
 
 func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
@@ -506,10 +527,11 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			readinessTimeout = defaultStartupProbeTimeout
 		}
 
+		baseImage, _ := GetBaseImageForGPU(gpuConfig)
 		spec.Containers = []corev1.Container{
 			{
 				Name:           ctx.Workspace.Name,
-				Image:          GetBaseImageName(),
+				Image:          baseImage,
 				Command:        commands,
 				Resources:      resourceReq,
 				Ports:          containerPorts,

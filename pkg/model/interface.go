@@ -165,10 +165,49 @@ type Metadata struct {
 	// model's HuggingFace config.json.
 	// +optional
 	QuantBits int `yaml:"quantBits,omitempty"`
+
+	// BaseImageOverrides pins specific GPU model families to an alternate base
+	// image tag instead of the default Tag. It exists because different Azure GPU
+	// SKU families ship different NVIDIA driver lines (e.g. NV-series A10 ships the
+	// GRID driver, which lags behind the CUDA driver on NC/ND-series A100/H100), so a
+	// base image built against a newer CUDA toolkit may be incompatible with the
+	// driver on a legacy SKU. The first override whose MatchGPUModels matches the
+	// node's GPU model wins.
+	// +optional
+	BaseImageOverrides []BaseImageOverride `yaml:"baseImageOverrides,omitempty"`
+}
+
+// BaseImageOverride pins a set of GPU model families to a specific base image
+// tag. It is only consulted for the "base" preset entry.
+type BaseImageOverride struct {
+	// Tag is the base image tag to use for the matching GPU families.
+	Tag string `yaml:"tag"`
+
+	// Reason documents why these GPU families need a pinned tag. It is purely
+	// informational (e.g. surfaced in logs and reviews).
+	// +optional
+	Reason string `yaml:"reason,omitempty"`
+
+	// MatchGPUModels is a list of GPU model family tokens (e.g. "A10", "M60").
+	// Matching is case-insensitive and token-based: the node's GPU model string
+	// is split on spaces, hyphens, and underscores, and a family matches only if
+	// it equals one of those whole tokens. This ensures "A10" matches
+	// "NVIDIA A10" and "NVIDIA-A10" but NOT "NVIDIA A100".
+	MatchGPUModels []string `yaml:"matchGPUModels"`
 }
 
 // Validate checks if the Metadata is valid.
 func (m *Metadata) Validate() error {
+	for i := range m.BaseImageOverrides {
+		o := &m.BaseImageOverrides[i]
+		if o.Tag == "" {
+			return fmt.Errorf("model %q baseImageOverrides[%d]: tag must not be empty", m.Name, i)
+		}
+		if len(o.MatchGPUModels) == 0 {
+			return fmt.Errorf("model %q baseImageOverrides[%d]: matchGPUModels must not be empty", m.Name, i)
+		}
+	}
+
 	// Some models requiring authentication may not have a version URL, so we allow it to be empty until
 	// we remove support for preset models requiring authentication.
 	if m.Version == "" {
@@ -177,6 +216,39 @@ func (m *Metadata) Validate() error {
 
 	_, _, err := utils.ParseHuggingFaceModelVersion(m.Version)
 	return err
+}
+
+// ResolveBaseImageTag returns the base image tag to use for the given GPU model,
+// honoring any BaseImageOverrides. If gpuModel is empty or no override matches,
+// the default Tag is returned. The first matching override wins.
+func (m *Metadata) ResolveBaseImageTag(gpuModel string) string {
+	if gpuModel != "" {
+		for i := range m.BaseImageOverrides {
+			if gpuModelMatches(gpuModel, m.BaseImageOverrides[i].MatchGPUModels) {
+				return m.BaseImageOverrides[i].Tag
+			}
+		}
+	}
+	return m.Tag
+}
+
+// gpuModelMatches reports whether the GPU model string matches any of the given
+// family tokens. The GPU model is split on spaces, hyphens, and underscores into
+// tokens, and a family matches only if it equals one of those whole tokens
+// (case-insensitive). This makes "A10" match "NVIDIA A10" / "NVIDIA-A10" but not
+// "NVIDIA A100".
+func gpuModelMatches(gpuModel string, families []string) bool {
+	tokens := strings.FieldsFunc(gpuModel, func(r rune) bool {
+		return r == ' ' || r == '-' || r == '_'
+	})
+	for _, fam := range families {
+		for _, tok := range tokens {
+			if strings.EqualFold(tok, fam) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // PresetParam defines the preset inference parameters for a model.

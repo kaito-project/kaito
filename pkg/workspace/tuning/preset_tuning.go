@@ -84,9 +84,16 @@ func defaultTolerations() []corev1.Toleration {
 	return tolerations
 }
 
-func GetTuningImageInfo() string {
+// GetTuningImageInfoForGPU returns the tuning base image reference for the given
+// GPU config, honoring any GPU-family-specific base image overrides defined on
+// the "base" preset entry. A nil gpuConfig falls back to the default tag.
+func GetTuningImageInfoForGPU(gpuConfig *sku.GPUConfig) string {
 	presetObj := metadata.MustGet("base")
-	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
+	tag := presetObj.Tag
+	if gpuConfig != nil {
+		tag = presetObj.ResolveBaseImageTag(gpuConfig.GPUModel)
+	}
+	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, tag)
 }
 
 // PrepareOutputDir ensures the output directory is within the base directory.
@@ -149,7 +156,6 @@ func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 	if err != nil {
 		return nil, err
 	}
-	skuNumGPUs := gpuConfig.GPUCount
 
 	gctx := &generator.WorkspaceGeneratorContext{
 		Ctx:        ctx,
@@ -159,7 +165,7 @@ func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 	}
 
 	podSpec, err := generator.GenerateManifest(gctx,
-		GenerateBasicTuningPodSpec(skuNumGPUs),
+		GenerateBasicTuningPodSpec(gpuConfig),
 		SetTrainingResultVolume,
 		SetTrainingInput,
 		SetTrainingOutputImagePush,
@@ -183,8 +189,9 @@ func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 	return jobObj, nil
 }
 
-func GenerateBasicTuningPodSpec(skuNumGPUs int) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
+func GenerateBasicTuningPodSpec(gpuConfig *sku.GPUConfig) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+		skuNumGPUs := gpuConfig.GPUCount
 		// additional volume
 		var volumes []corev1.Volume
 		var volumeMounts []corev1.VolumeMount
@@ -238,7 +245,7 @@ func GenerateBasicTuningPodSpec(skuNumGPUs int) func(*generator.WorkspaceGenerat
 		spec.Containers = []corev1.Container{
 			{
 				Name:         ctx.Workspace.Name,
-				Image:        GetTuningImageInfo(),
+				Image:        GetTuningImageInfoForGPU(gpuConfig),
 				Command:      commands,
 				Resources:    resourceRequirements,
 				Ports:        containerPorts,

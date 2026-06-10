@@ -67,6 +67,8 @@ class _FakeScannerBase(StreamingScanner):
 
 class _EarlyBlockScanner(_FakeScannerBase):
     supports_early_block = True
+    supports_early_emit = True
+    safe_window_chars = 6
 
     def __init__(self, needle: str) -> None:
         super().__init__(scanner_type="early_block", action_on_hit="block")
@@ -234,7 +236,7 @@ async def test_streaming_early_block_stops_after_middle_chunk(caplog) -> None:
     assert "partial_action=block" in caplog.text
     assert "final_action=block" in caplog.text
     assert "buffered_bytes=7" in caplog.text
-    assert "emitted_bytes=7" in caplog.text
+    assert "emitted_bytes=0" in caplog.text
     assert "fail_open=False" in caplog.text
     assert "policy_hash=policy-123" in caplog.text
 
@@ -285,11 +287,40 @@ async def test_streaming_finalize_redaction_handles_cross_chunk_content() -> Non
     text = await _collect_stream(processor, upstream)
 
     assert '"content": "[REDACTED] tail"' in text
+    assert text.count('"content":') == 1
     assert text.rstrip().endswith("data: [DONE]")
     assert (
         _counter_value(stream_redactions_total, scanner_type="finalize_redact")
         == before_redactions + 1
     )
+
+
+@pytest.mark.asyncio
+async def test_streaming_safe_window_emits_prefix_before_late_block() -> None:
+    guardrails = OutputGuardrails(
+        enabled=True,
+        fail_open=False,
+        block_message="blocked",
+    )
+    upstream = _LineStream(
+        _make_line("hello "),
+        _make_line("world "),
+        _make_line("bad"),
+        _make_line("word", finish_reason="stop"),
+        "data: [DONE]",
+    )
+    processor = StreamingGuardrailsProcessor(
+        guardrails,
+        {"messages": []},
+        scanners=[_EarlyBlockScanner("badword")],
+    )
+
+    text = await _collect_stream(processor, upstream)
+
+    assert '"content": "hello "' in text
+    assert "blocked" in text
+    assert "badword" not in text
+    assert '"finish_reason": "content_filter"' in text
 
 
 @pytest.mark.asyncio

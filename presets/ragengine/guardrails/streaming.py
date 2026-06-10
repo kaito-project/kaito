@@ -58,6 +58,8 @@ class StreamingScanner:
     # Streaming redact remains finalize-only until incremental redaction
     # semantics are explicitly defined.
     supports_early_block = False
+    supports_early_emit = False
+    safe_window_chars = 0
 
     def on_chunk(self, text: str) -> StreamingDecision:
         raise NotImplementedError
@@ -154,6 +156,9 @@ class StreamingGuardrailsProcessor:
         self._chunk_index = 0
         self._error_scanner_type = "stream"
         self._error_phase = "chunk"
+        self._emitted_chars = 0
+        self._emitted_bytes = 0
+        self._role_emitted = False
 
     def _stream_id(self) -> str:
         request_stream_id = str(self._request.get("stream_id") or "")
@@ -165,6 +170,20 @@ class StreamingGuardrailsProcessor:
     @staticmethod
     def _content_bytes(content: str) -> int:
         return len(content.encode("utf-8"))
+
+    def _can_emit_partially(self) -> bool:
+        return bool(self._scanners) and all(
+            getattr(scanner, "supports_early_emit", False)
+            and getattr(scanner, "action_on_hit", None) == "block"
+            for scanner in self._scanners
+        )
+
+    def _safe_window_chars(self) -> int:
+        if not self._scanners:
+            return 0
+        return max(
+            getattr(scanner, "safe_window_chars", 0) for scanner in self._scanners
+        )
 
     def _observe_decision_latency(
         self, scanner_type: str, phase: str, action: str, started_at: float
@@ -195,7 +214,7 @@ class StreamingGuardrailsProcessor:
             scanner_type,
             partial_action,
             self._buffered_bytes(),
-            0,
+            self._emitted_bytes,
             self._guardrails.fail_open,
             self._guardrails.policy_hash,
         )
@@ -222,7 +241,7 @@ class StreamingGuardrailsProcessor:
             scanner_types,
             result.action or "allow",
             self._buffered_bytes(),
-            self._content_bytes(result.content),
+            self._emitted_bytes,
             self._guardrails.fail_open,
             self._guardrails.policy_hash,
         )
@@ -289,6 +308,10 @@ class StreamingGuardrailsProcessor:
                         async for chunk_bytes in self._finalize_stream():
                             yield chunk_bytes
                         return
+
+                if self._can_emit_partially():
+                    async for chunk_bytes in self._emit_safe_prefix():
+                        yield chunk_bytes
 
             self._error_phase = "finalize"
             async for chunk in self._finalize_stream():
@@ -365,31 +388,56 @@ class StreamingGuardrailsProcessor:
         async for chunk_bytes in self._emit_terminal_stream(
             self._accumulator.content,
             finish_reason=self._accumulator.finish_reason or "stop",
+            use_emitted_offset=True,
         ):
             yield chunk_bytes
 
+    async def _emit_safe_prefix(self) -> AsyncIterator[bytes]:
+        safe_window_chars = self._safe_window_chars()
+        emit_upto = len(self._accumulator.content) - safe_window_chars
+        if emit_upto <= self._emitted_chars:
+            return
+
+        safe_content = self._accumulator.content[self._emitted_chars : emit_upto]
+        self._emitted_chars = emit_upto
+        async for chunk_bytes in self._emit_content_delta(safe_content):
+            yield chunk_bytes
+
+    async def _emit_content_delta(self, content: str) -> AsyncIterator[bytes]:
+        if not content:
+            return
+
+        delta: dict[str, Any] = {"content": content}
+        if not self._role_emitted:
+            delta["role"] = self._accumulator.role
+            self._role_emitted = True
+
+        self._emitted_bytes += self._content_bytes(content)
+        yield self._format_sse(
+            {
+                "id": self._accumulator.response_id or "chatcmpl-stream",
+                "object": "chat.completion.chunk",
+                "created": self._accumulator.created or int(time.time()),
+                "model": self._accumulator.model,
+                "choices": [
+                    {
+                        "index": 0,
+                        "delta": delta,
+                        "finish_reason": None,
+                    }
+                ],
+            }
+        )
+
     async def _emit_terminal_stream(
-        self, content: str, *, finish_reason: str
+        self, content: str, *, finish_reason: str, use_emitted_offset: bool = False
     ) -> AsyncIterator[bytes]:
-        if content:
-            yield self._format_sse(
-                {
-                    "id": self._accumulator.response_id or "chatcmpl-stream",
-                    "object": "chat.completion.chunk",
-                    "created": self._accumulator.created or int(time.time()),
-                    "model": self._accumulator.model,
-                    "choices": [
-                        {
-                            "index": 0,
-                            "delta": {
-                                "role": self._accumulator.role,
-                                "content": content,
-                            },
-                            "finish_reason": None,
-                        }
-                    ],
-                }
-            )
+        emit_content = content
+        if use_emitted_offset:
+            emit_content = content[self._emitted_chars :]
+
+        async for chunk_bytes in self._emit_content_delta(emit_content):
+            yield chunk_bytes
 
         yield self._format_sse(
             {

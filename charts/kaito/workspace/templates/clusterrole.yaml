@@ -94,3 +94,17 @@ rules:
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["get", "list", "watch"]
+  {{- if .Values.featureGates.ModelStreaming }}
+  - apiGroups: ["kaito.sh"]
+    resources: ["modelmirrors"]
+    verbs: ["get", "list", "watch", "create"]
+  - apiGroups: ["kaito.sh"]
+    resources: ["modelmirrors/status"]
+    verbs: ["get"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["csidrivers"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["serviceaccounts"]
+    verbs: ["get", "list", "watch"]
+  {{- end }}

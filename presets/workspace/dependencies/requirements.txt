@@ -33,6 +33,10 @@ psutil
 trl>=1.0.0
 nvidia-ml-py3
 
+# RunAI Model Streamer for model streaming from cloud blob storage (az://, s3://, gs://)
+runai-model-streamer==0.16.0
+runai-model-streamer-azure==0.16.0
+
 # Required by specific vLLM models
 decord==0.6.0
 fla-core==0.4.1

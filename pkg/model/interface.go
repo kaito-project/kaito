@@ -307,6 +307,12 @@ type RuntimeContextExtraArguments struct {
 	AdaptersEnabled        bool
 	AdapterStrengthEnabled bool
 	PerformanceMode        string // vLLM --performance-mode; defaults to "balanced"
+
+	// When set, streaming fields override --model and --load-format.
+	// Distributed streaming (--model-loader-extra-config) is handled automatically
+	// inside buildVLLMInferenceCommand based on the resolved tensor-parallel-size.
+	StreamingModelPath  string // e.g. "az://container/modelID"
+	StreamingLoadFormat string // e.g. "runai_streamer"
 }
 
 func (p *PresetParam) GetInferenceCommand(rc RuntimeContext) []string {
@@ -376,7 +382,13 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	if !p.VLLM.DisallowLoRA && rc.AdaptersEnabled {
 		p.VLLM.ModelRunParams["enable-lora"] = ""
 	}
-	if p.DownloadAtRuntime {
+	// Model source: streaming (az://) vs download-at-runtime (HF repo).
+	if rc.StreamingModelPath != "" {
+		p.VLLM.ModelRunParams["model"] = rc.StreamingModelPath
+		if rc.StreamingLoadFormat != "" {
+			p.VLLM.ModelRunParams["load-format"] = rc.StreamingLoadFormat
+		}
+	} else if p.DownloadAtRuntime {
 		repoId, revision, _ := utils.ParseHuggingFaceModelVersion(p.Version)
 		p.VLLM.ModelRunParams["model"] = repoId
 		if revision != "" {
@@ -403,6 +415,14 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	//  2. Tensor Parallelism (TP) – model fits on a single node (multiple GPUs)
 	//  3. Pipeline Parallelism (PP) + TP – model requires multiple nodes
 	p.configureParallelism(rc)
+
+	// Distributed streaming: only set when streaming is active AND tensor-parallel-size > 1.
+	// This must happen AFTER configureParallelism, which resolves the actual TP value.
+	if rc.StreamingModelPath != "" {
+		if tp, ok := p.VLLM.ModelRunParams["tensor-parallel-size"]; ok && tp != "" && tp != "1" {
+			p.VLLM.ModelRunParams["model-loader-extra-config"] = `'{"distributed": true}'`
+		}
+	}
 
 	// Single-node path: no Ray cluster needed.
 	if !rc.DistributedInference || rc.NumNodes == 1 {

@@ -55,7 +55,21 @@ const (
 	NodeProvisionerAzureGPU  = "azure-gpu-provisioner"
 	NodeProvisionerKarpenter = "karpenter"
 	NodeProvisionerBYO       = "byo"
+
+	// CSI driver names for model streaming (workspace controller + webhook scope).
+	CSIDriverNameAzureBlob = "blob.csi.azure.com"
 )
+
+// CSIDriverNameForCloud returns the expected CSI driver name for the given cloud provider.
+// Returns "" for unsupported providers.
+func CSIDriverNameForCloud(cloud string) string {
+	switch cloud {
+	case AzureCloudName, "":
+		return CSIDriverNameAzureBlob
+	default:
+		return ""
+	}
+}
 
 // ActiveNodeProvisioner holds the resolved provisioner type at runtime.
 // Set once during startup in main.go; read by inference scheduling code

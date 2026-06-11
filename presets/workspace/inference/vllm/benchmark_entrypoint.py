@@ -371,6 +371,9 @@ def _iter_config_dicts(config: dict):
 def _resolve_processor() -> str:
     """Resolve the --processor value for guidellm.
 
+    Case 0 — Explicit env override (streaming path): KAITO_PROCESSOR is set by
+              the workspace controller when streaming is active. Combined with
+              HF_TOKEN, the benchmark fetches the tokenizer from HuggingFace.
     Case 1 — Baked-in model: tokenizer at ``/workspace/weights`` root
               (``config.json`` present directly under weights).
     Case 2 — DAR / HF cache: use ``scan_cache_dir`` to read the repo_id from
@@ -378,6 +381,11 @@ def _resolve_processor() -> str:
     Case 3 — Nothing found: return ``""`` and let guidellm auto-detect from
               ``/v1/models`` (may fail for unknown models).
     """
+    # Case 0: explicit env override (used by streaming path)
+    env_processor = os.environ.get("KAITO_PROCESSOR", "").strip()
+    if env_processor:
+        return env_processor
+
     weights = Path("/workspace/weights")
 
     # Case 1: baked-in weights (tokenizer lives at the weights root)

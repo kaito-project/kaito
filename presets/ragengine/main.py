@@ -20,8 +20,10 @@ from urllib.parse import unquote
 
 import nest_asyncio
 from fastapi import FastAPI, HTTPException, Query, Request  # noqa: E402
+from openai.types.chat import CompletionCreateParams  # noqa: E402
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # noqa: E402
-from starlette.responses import Response  # noqa: E402
+from pydantic import ValidationError  # noqa: E402
+from starlette.responses import Response, StreamingResponse  # noqa: E402
 
 nest_asyncio.apply()  # Allow nested event loops (LlamaIndex sync internals inside FastAPI async)
 
@@ -60,6 +62,7 @@ from ragengine.guardrails import (  # noqa: E402
     GuardrailsReloader,
     OutputGuardrailsError,
 )
+from ragengine.guardrails.streaming import StreamingGuardrailsProcessor  # noqa: E402
 from ragengine.metrics.prometheus_metrics import (  # noqa: E402
     MODE_LOCAL,
     MODE_REMOTE,
@@ -352,6 +355,10 @@ async def chat_completions(request: dict):
                 detail="InferenceService not configured. This RAGEngine instance only supports document retrieve via /retrieve API. To use chat completions, configure an InferenceService in the RAGEngine spec.",
             )
 
+        if request.get("stream") is True:
+            status = STATUS_SUCCESS
+            return await _chat_completions_streaming_response(request)
+
         response = await rag_ops.chat_completion(request)
         guardrails = guardrails_reloader.get_current()
         response = guardrails.guard_response(response, request)
@@ -372,6 +379,55 @@ async def chat_completions(request: dict):
         # Record metrics once in finally block
         rag_chat_requests_total.labels(status=status).inc()
         rag_chat_latency.labels(status=status).observe(time.perf_counter() - start_time)
+
+
+def _coerce_openai_chat_request(request: dict) -> CompletionCreateParams:
+    last_error = None
+    for model_cls in CompletionCreateParams.__args__:
+        try:
+            return model_cls(**request)
+        except ValidationError as exc:
+            last_error = exc
+
+    raise HTTPException(
+        status_code=400,
+        detail=f"Invalid request format: {str(last_error)}",
+    )
+
+
+async def _chat_completions_streaming_response(request: dict) -> StreamingResponse:
+    if request.get("index_name"):
+        raise HTTPException(
+            status_code=400,
+            detail="Streaming with index_name is not supported yet.",
+        )
+
+    if request.get("tools") or request.get("functions"):
+        raise HTTPException(
+            status_code=400,
+            detail="Streaming with tools or functions is not supported yet.",
+        )
+
+    openai_request = _coerce_openai_chat_request(request)
+    upstream_stream = (
+        await rag_ops.vector_store.llm.stream_chat_completions_passthrough(
+            openai_request
+        )
+    )
+    guardrails = guardrails_reloader.get_current()
+
+    async def _passthrough_stream():
+        async for line in upstream_stream:
+            yield f"{line}\n".encode()
+
+    if not guardrails.enabled or not guardrails.scanner_configs:
+        return StreamingResponse(_passthrough_stream(), media_type="text/event-stream")
+
+    processor = StreamingGuardrailsProcessor(guardrails, request)
+    return StreamingResponse(
+        processor.wrap(upstream_stream),
+        media_type="text/event-stream",
+    )
 
 
 @app.get(

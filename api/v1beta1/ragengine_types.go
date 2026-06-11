@@ -52,10 +52,11 @@ type PersistentVolumeConfig struct {
 type VectorDBConfig struct {
 	// Engine specifies the vector database backend engine to use.
 	// Must be a LlamaIndex-supported vector store backend.
-	// Supported values: "qdrant" (client-server with native hybrid search).
+	// Supported values: "qdrant" (client-server with native hybrid search),
+	//                   "milvus" (client-server).
 	Engine string `json:"engine"`
 	// URL specifies the connection URL for the vector database.
-	// Example: "http://qdrant-svc:6333"
+	// Example: "http://qdrant-svc:6333", "http://milvus-svc:19530"
 	URL string `json:"url"`
 	// AccessSecret is the name of the Kubernetes Secret that contains the vector database
 	// access credentials. The secret must contain a key named "VECTOR_DB_ACCESS_SECRET".

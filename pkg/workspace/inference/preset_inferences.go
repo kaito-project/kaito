@@ -506,6 +506,17 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			readinessTimeout = defaultStartupProbeTimeout
 		}
 
+		// KAITO does not support FlashInfer. Disable vLLM's FlashInfer sampler so it
+		// stays on the Torch-native sampling path instead of JIT-compiling kernels at
+		// runtime (the base image ships no CUDA toolchain/nvcc).
+		var mainContainerEnv []corev1.EnvVar
+		if runtimeName == pkgmodel.RuntimeNameVLLM {
+			mainContainerEnv = append(mainContainerEnv, corev1.EnvVar{
+				Name:  consts.VLLMUseFlashInferSamplerEnvName,
+				Value: "0",
+			})
+		}
+
 		spec.Containers = []corev1.Container{
 			{
 				Name:           ctx.Workspace.Name,
@@ -517,6 +528,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 				LivenessProbe:  defaultLivenessProbe,
 				ReadinessProbe: defaultReadinessProbe,
 				VolumeMounts:   volumeMounts,
+				Env:            mainContainerEnv,
 			},
 		}
 

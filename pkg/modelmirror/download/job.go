@@ -61,7 +61,7 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 			ValueFrom: &corev1.EnvVarSource{
 				SecretKeyRef: &corev1.SecretKeySelector{
 					LocalObjectReference: corev1.LocalObjectReference{Name: cr.Spec.Source.AccessSecret.Name},
-					Key:                  "token",
+					Key:                  "HF_TOKEN",
 					Optional:             ptr.To(true),
 				},
 			},

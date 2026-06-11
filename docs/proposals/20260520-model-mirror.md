@@ -237,7 +237,8 @@ A new controller that watches `ModelMirror` CRs and manages the download lifecyc
    - CR stays in `Pending` phase (never "Failed")
 
 4. **On CR deletion** (finalizer cleanup):
-   - Remove finalizer from PVC (allows PVC deletion)
+   - Delete all download Jobs (by label) — cluster-scoped CR cannot use ownerReference GC for namespaced resources
+   - Remove finalizer from PVC and delete PVC
    - Remove CR finalizer (allows CR deletion to complete)
 
 5. **Idempotency:**
@@ -467,13 +468,12 @@ This avoids hardcoding any storage account details in the CR or controller confi
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: <cr-name>-download
-  ownerReferences:
-    - apiVersion: kaito.sh/v1alpha1
-      kind: ModelMirror
-      name: <cr-name>
+  generateName: <cr-name>-download-
+  labels:
+    kaito.sh/model-mirror-name: <cr-name>
 spec:
   backoffLimit: 3
+  ttlSecondsAfterFinished: 3600  # 1 hour
   template:
     spec:
       restartPolicy: OnFailure
@@ -515,7 +515,7 @@ spec:
 
 **Download tool:** hfdownloader (Go binary, ~20 MB image). Provides concurrent downloads with built-in per-file retry (4 retries by default). The lightweight image size keeps mirror Job startup fast (seconds, not minutes). The download command includes safetensors files only (`-F safetensors`) and excludes non-safetensor formats (`-E "original"`) since RunAI streamer only reads `*.safetensors` files. A post-download `find` removes any remaining empty directories as a safety net. **Future:** Vendor the Go source into KAITO's CI pipeline and publish to MCR (`mcr.microsoft.com/aks/kaito/hfdownloader`) for full supply-chain ownership.
 
-**Job pod Lifecycle:** Job Pod is kept forever unless manually deleted by the user.
+**Job pod lifecycle:** Failed Jobs are kept for 1 hour (TTL) for debugging, then auto-cleaned by Kubernetes. Successful Jobs are also cleaned after 1 hour. Each retry creates a new Job with a unique generated name — failed Jobs are not deleted by the controller.
 
 ### Failure Handling and Retry Strategy
 

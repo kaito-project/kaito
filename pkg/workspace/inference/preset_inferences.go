@@ -153,7 +153,8 @@ func GenerateModelWeightsCacheVolume(ctx context.Context, workspaceObj *v1beta1.
 }
 
 func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace, revisionNum string,
-	model pkgmodel.Model, kubeClient client.Client) (client.Object, error) {
+	model pkgmodel.Model, kubeClient client.Client,
+	defaultStorageClass, defaultServiceAccount string, streamingProvider CloudProvider) (client.Object, error) {
 
 	gctx := &generator.WorkspaceGeneratorContext{
 		Ctx:        ctx,
@@ -170,11 +171,36 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	// Set the target node count for the inference workload
 	numNodes := int(workspaceObj.Status.TargetNodeCount)
 
-	podOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec]{
-		GenerateInferencePodSpec(gpuConfig, numNodes),
-		SetModelDownloadInfo,
-		SetAdapterPuller,
+	// Resolve streaming configuration
+	streamingEnabled := ModelStreamingEnabled(workspaceObj)
+	var streamingModelPath, streamingLoadFormat string
+	var streamingCfg *StreamingConfig
+	var modelID string
+
+	if streamingEnabled {
+		modelID = ResolveHFModelID(workspaceObj)
+		crName := ModelMirrorCRName(modelID)
+
+		streamingCfg, err = streamingProvider.ResolveStreamingConfig(gctx, crName, workspaceObj.Namespace, modelID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve streaming config: %w", err)
+		}
+		streamingModelPath = streamingCfg.ModelPath
+		streamingLoadFormat = "runai_streamer"
 	}
+
+	podOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec]{
+		GenerateInferencePodSpec(gpuConfig, numNodes, streamingModelPath, streamingLoadFormat),
+	}
+
+	// Model source: streaming (az://) vs local download. Mutually exclusive.
+	if streamingEnabled {
+		podOpts = append(podOpts, SetStreamingConfig(streamingCfg, modelID, defaultServiceAccount))
+	} else {
+		podOpts = append(podOpts, SetModelDownloadInfo)
+	}
+
+	podOpts = append(podOpts, SetAdapterPuller)
 
 	// Use StatefulSet for all use cases to ensure consistent pod identity and storage management
 	// For multi-node distributed inference with vLLM, we need StatefulSet to ensure pods are
@@ -192,10 +218,27 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		manifests.GenerateStatefulSetManifest(revisionNum, numNodes),
 	}
 
-	if checkIfNVMeAvailable(ctx, gpuConfig, kubeClient) {
-		ssOpts = append(ssOpts, manifests.AddStatefulSetVolumeClaimTemplates(GenerateModelWeightsCacheVolume(ctx, workspaceObj, model)))
-	} else {
-		podOpts = append(podOpts, SetDefaultModelWeightsVolume)
+	// Volume handling: streaming skips weights volume (model is read from az:// directly).
+	if !streamingEnabled {
+		if checkIfNVMeAvailable(ctx, gpuConfig, kubeClient) {
+			ssOpts = append(ssOpts, manifests.AddStatefulSetVolumeClaimTemplates(GenerateModelWeightsCacheVolume(ctx, workspaceObj, model)))
+		} else {
+			podOpts = append(podOpts, SetDefaultModelWeightsVolume)
+		}
+	}
+
+	// Add provider-specific pod labels to StatefulSet template (e.g. Azure WI label)
+	if streamingEnabled && len(streamingCfg.PodLabels) > 0 {
+		podLabels := streamingCfg.PodLabels
+		ssOpts = append(ssOpts, func(ctx *generator.WorkspaceGeneratorContext, ss *appsv1.StatefulSet) error {
+			if ss.Spec.Template.Labels == nil {
+				ss.Spec.Template.Labels = make(map[string]string)
+			}
+			for k, v := range podLabels {
+				ss.Spec.Template.Labels[k] = v
+			}
+			return nil
+		})
 	}
 
 	podSpec, err := generator.GenerateManifest(gctx, podOpts...)
@@ -373,7 +416,7 @@ func GetBaseImageTag() string {
 	return presetObj.Tag
 }
 
-func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
+func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingModelPath, streamingLoadFormat string) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 		configVolume, err := resources.EnsureConfigOrCopyFromDefault(ctx.Ctx, ctx.KubeClient,
 			client.ObjectKey{
@@ -401,8 +444,10 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 		volumes = append(volumes, cmVolume)
 		volumeMounts = append(volumeMounts, cmVolumeMount)
 
-		// add model weights volume mount
-		volumeMounts = append(volumeMounts, utils.DefaultModelWeightsVolumeMount)
+		// add model weights volume mount (skip when streaming — weights come from az://)
+		if streamingModelPath == "" {
+			volumeMounts = append(volumeMounts, utils.DefaultModelWeightsVolumeMount)
+		}
 
 		// add share memory for cross process communication
 		shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
@@ -477,8 +522,10 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			DistributedInference: ctx.Model.SupportDistributedInference(),
 			MaxModelLen:          maxModelLen,
 			RuntimeContextExtraArguments: pkgmodel.RuntimeContextExtraArguments{
-				AdaptersEnabled: len(ctx.Workspace.Inference.Adapters) > 0,
-				PerformanceMode: v1beta1.GetPerformanceMode(ctx.Workspace),
+				AdaptersEnabled:     len(ctx.Workspace.Inference.Adapters) > 0,
+				PerformanceMode:     v1beta1.GetPerformanceMode(ctx.Workspace),
+				StreamingModelPath:  streamingModelPath,
+				StreamingLoadFormat: streamingLoadFormat,
 			},
 		})
 

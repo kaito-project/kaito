@@ -28,6 +28,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -81,20 +82,30 @@ type WorkspaceReconciler struct {
 	expectations    *utils.ControllerExpectations
 	Estimator       estimator.NodesEstimator
 	nodeProvisioner nodeprovision.NodeProvisioner
+
+	// Streaming configuration
+	DefaultModelMirrorStorageClass string
+	DefaultStreamingServiceAccount string
+	StreamingCloudProvider         inference.CloudProvider
 }
 
-func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, Recorder record.EventRecorder, provisioner nodeprovision.NodeProvisioner) *WorkspaceReconciler {
+func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, Recorder record.EventRecorder,
+	provisioner nodeprovision.NodeProvisioner, defaultStorageClass, defaultServiceAccount string,
+	streamingProvider inference.CloudProvider) *WorkspaceReconciler {
 	expectations := utils.NewControllerExpectations()
 
 	return &WorkspaceReconciler{
-		Client:          client,
-		Scheme:          scheme,
-		Log:             log,
-		klogger:         klog.NewKlogr().WithName("WorkspaceController"),
-		Recorder:        Recorder,
-		expectations:    expectations,
-		Estimator:       &nodesestimator.NodeEstimator{},
-		nodeProvisioner: provisioner,
+		Client:                         client,
+		Scheme:                         scheme,
+		Log:                            log,
+		klogger:                        klog.NewKlogr().WithName("WorkspaceController"),
+		Recorder:                       Recorder,
+		expectations:                   expectations,
+		Estimator:                      &nodesestimator.NodeEstimator{},
+		nodeProvisioner:                provisioner,
+		DefaultModelMirrorStorageClass: defaultStorageClass,
+		DefaultStreamingServiceAccount: defaultServiceAccount,
+		StreamingCloudProvider:         streamingProvider,
 	}
 }
 
@@ -153,6 +164,130 @@ func (c *WorkspaceReconciler) ensureFinalizer(ctx context.Context, workspaceObj 
 	return nil
 }
 
+// ensureModelMirror creates the ModelMirror CR for the workspace's model if it doesn't exist.
+// Returns nil if the CR exists (any phase) or was created successfully.
+func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaitov1beta1.Workspace, model pkgmodel.Model) error {
+	if !inference.ModelStreamingEnabled(wObj) {
+		return nil
+	}
+	if wObj.Inference == nil || wObj.Inference.Preset == nil {
+		return nil
+	}
+
+	modelID := inference.ResolveHFModelID(wObj)
+	crName := inference.ModelMirrorCRName(modelID)
+	storageClass := inference.ResolveStorageClass(wObj, c.DefaultModelMirrorStorageClass)
+
+	// Check if CR already exists
+	existing := &kaitov1alpha1.ModelMirror{}
+	err := c.Client.Get(ctx, client.ObjectKey{Name: crName}, existing)
+	if err == nil {
+		// CR exists — verify it's for the same model (collision check)
+		if existing.Spec.Source.ModelID != modelID {
+			return fmt.Errorf("ModelMirror CR name collision: %s maps to both %q and %q",
+				crName, existing.Spec.Source.ModelID, modelID)
+		}
+		return nil
+	}
+	if !apierrors.IsNotFound(err) {
+		return fmt.Errorf("failed to get ModelMirror CR %s: %w", crName, err)
+	}
+
+	// Validate StorageClass uses the correct CSI provisioner for streaming.
+	sc := &storagev1.StorageClass{}
+	if err := c.Client.Get(ctx, client.ObjectKey{Name: storageClass}, sc); err != nil {
+		return fmt.Errorf("StorageClass %q not found: %w", storageClass, err)
+	}
+	expectedCSIDriver := c.StreamingCloudProvider.CSIDriverName()
+	if sc.Provisioner != expectedCSIDriver {
+		return fmt.Errorf("StorageClass %q uses provisioner %q, but model streaming requires %q; "+
+			"create a StorageClass with the correct provisioner",
+			storageClass, sc.Provisioner, expectedCSIDriver)
+	}
+
+	// Validate ServiceAccount exists and has workload identity configured.
+	saName, saErr := inference.ResolveStreamingServiceAccount(wObj, c.DefaultStreamingServiceAccount)
+	if saErr != nil {
+		return saErr
+	}
+	sa := &corev1.ServiceAccount{}
+	if err := c.Client.Get(ctx, client.ObjectKey{Name: saName, Namespace: wObj.Namespace}, sa); err != nil {
+		return fmt.Errorf("ServiceAccount %q not found in namespace %q: %w", saName, wObj.Namespace, err)
+	}
+	if err := c.StreamingCloudProvider.ValidateServiceAccount(sa); err != nil {
+		return err
+	}
+
+	// Validate DiskStorageRequirement is available
+	modelSize := model.GetInferenceParameters().DiskStorageRequirement
+	if modelSize == "" {
+		return fmt.Errorf("model %q has no DiskStorageRequirement; cannot create ModelMirror CR", modelID)
+	}
+
+	var accessSecret *corev1.ObjectReference
+	if wObj.Inference.Preset.PresetOptions.ModelAccessSecret != "" {
+		accessSecret = &corev1.ObjectReference{
+			Name:      wObj.Inference.Preset.PresetOptions.ModelAccessSecret,
+			Namespace: wObj.Namespace,
+		}
+	}
+
+	cr := &kaitov1alpha1.ModelMirror{
+		ObjectMeta: metav1.ObjectMeta{Name: crName},
+		Spec: kaitov1alpha1.ModelMirrorSpec{
+			Source: kaitov1alpha1.ModelMirrorSource{
+				Registry:     "huggingface",
+				ModelID:      modelID,
+				AccessSecret: accessSecret,
+			},
+			Storage: kaitov1alpha1.ModelMirrorStorage{
+				Size:             modelSize,
+				StorageClassName: storageClass,
+			},
+			JobNamespace: wObj.Namespace,
+		},
+	}
+
+	if err := c.Client.Create(ctx, cr); err != nil {
+		if apierrors.IsAlreadyExists(err) {
+			return nil // Race condition
+		}
+		return fmt.Errorf("failed to create ModelMirror CR %s: %w", crName, err)
+	}
+
+	klog.InfoS("Created ModelMirror CR", "name", crName, "modelID", modelID, "workspace", klog.KObj(wObj))
+	return nil
+}
+
+// waitForModelMirror checks if the ModelMirror CR is Ready.
+// Returns (nil, nil) to proceed, or (*Result, err) to stop — same pattern as reconcileNodes.
+func (c *WorkspaceReconciler) waitForModelMirror(ctx context.Context, wObj *kaitov1beta1.Workspace) (result *reconcile.Result, err error) {
+	if !inference.ModelStreamingEnabled(wObj) {
+		return nil, nil
+	}
+	if wObj.Inference == nil || wObj.Inference.Preset == nil {
+		return nil, nil
+	}
+
+	modelID := inference.ResolveHFModelID(wObj)
+	crName := inference.ModelMirrorCRName(modelID)
+
+	cr := &kaitov1alpha1.ModelMirror{}
+	if err := c.Client.Get(ctx, client.ObjectKey{Name: crName}, cr); err != nil {
+		if apierrors.IsNotFound(err) {
+			// CR was deleted externally; ensureModelMirror will recreate on next reconcile
+			return &reconcile.Result{RequeueAfter: 10 * time.Second}, nil
+		}
+		return &reconcile.Result{}, fmt.Errorf("failed to get ModelMirror CR %s: %w", crName, err)
+	}
+
+	if cr.Status.Phase != kaitov1alpha1.ModelMirrorPhaseReady {
+		klog.InfoS("ModelMirror CR not ready, gating inference", "name", crName, "phase", cr.Status.Phase)
+		return &reconcile.Result{RequeueAfter: 10 * time.Second}, nil
+	}
+	return nil, nil
+}
+
 func (c *WorkspaceReconciler) reconcileNodes(ctx context.Context, wObj *kaitov1beta1.Workspace) (result *reconcile.Result, err error) {
 	// Provision nodes via the NodeProvisioner interface.
 	// GpuProvisioner creates NodeClaims; BYOProvisioner (BYO mode) is a no-op.
@@ -183,7 +318,24 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 		return reconcile.Result{}, nil
 	}
 
+	// Ensure ModelMirror CR exists (starts download in parallel with node provisioning).
+	if wObj.Inference != nil && wObj.Inference.Preset != nil {
+		presetName := string(wObj.Inference.Preset.Name)
+		model, err := models.GetModelByName(ctx, presetName, wObj.Inference.Preset.PresetOptions.ModelAccessSecret, wObj.Namespace, c.Client)
+		if err != nil {
+			return reconcile.Result{}, fmt.Errorf("failed to resolve model for streaming: %w", err)
+		}
+		if err := c.ensureModelMirror(ctx, wObj, model); err != nil {
+			return reconcile.Result{}, err
+		}
+	}
+
 	if result, err := c.reconcileNodes(ctx, wObj); err != nil || result != nil {
+		return *result, err
+	}
+
+	// Wait for ModelMirror CR to be Ready (gate inference pod creation).
+	if result, err := c.waitForModelMirror(ctx, wObj); err != nil || result != nil {
 		return *result, err
 	}
 
@@ -434,7 +586,8 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	}
 
 	revisionStr := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
-	workloadObj, err := inference.GeneratePresetInference(ctx, wObj, revisionStr, model, c.Client)
+	workloadObj, err := inference.GeneratePresetInference(ctx, wObj, revisionStr, model, c.Client,
+		c.DefaultModelMirrorStorageClass, c.DefaultStreamingServiceAccount, c.StreamingCloudProvider)
 	if err != nil {
 		return err
 	}
@@ -589,6 +742,34 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 		}
 
 		if wObj.Inference != nil {
+			if inference.ModelStreamingEnabled(wObj) && wObj.Inference.Preset != nil {
+
+				modelID := inference.ResolveHFModelID(wObj)
+				crName := inference.ModelMirrorCRName(modelID)
+				status.ModelMirror = &kaitov1beta1.ModelMirrorReference{Name: crName}
+
+				cr := &kaitov1alpha1.ModelMirror{}
+				if err := c.Get(ctx, client.ObjectKey{Name: crName}, cr); err != nil {
+					if !apierrors.IsNotFound(err) {
+						klog.ErrorS(err, "failed to get ModelMirror CR for status sync", "cr", crName)
+					}
+				} else {
+					if cr.Status.Phase == kaitov1alpha1.ModelMirrorPhaseReady {
+						setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
+							kaitov1beta1.WorkspaceConditionTypeModelMirrorInProgress,
+							metav1.ConditionFalse, "ModelMirrorReady", "Model download complete")
+					} else {
+						msg := "Model download in progress"
+						if cr.Status.FailureMessage != "" {
+							msg = cr.Status.FailureMessage
+						}
+						setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
+							kaitov1beta1.WorkspaceConditionTypeModelMirrorInProgress,
+							metav1.ConditionTrue, "ModelMirrorPending", msg)
+					}
+				}
+			}
+
 			applyInferenceWorkspaceStatus(ctx, status, wObj, appendReconcileErrMessage, inferenceReady, resourceConditionStatus)
 			return nil
 		}

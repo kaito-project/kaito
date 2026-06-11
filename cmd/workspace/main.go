@@ -60,6 +60,7 @@ import (
 	karpenterutils "github.com/kaito-project/kaito/pkg/utils/karpenter"
 	"github.com/kaito-project/kaito/pkg/version"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
+	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
 )
 
@@ -264,12 +265,26 @@ func main() {
 		exitWithErrorFunc()
 	}
 
+	// Resolve streaming cloud provider once at startup (nil when streaming is disabled).
+	var streamingProvider inference.CloudProvider
+	if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+		var providerErr error
+		streamingProvider, providerErr = inference.GetCloudProvider(os.Getenv("CLOUD_PROVIDER"))
+		if providerErr != nil {
+			klog.ErrorS(providerErr, "unable to resolve streaming cloud provider")
+			exitWithErrorFunc()
+		}
+	}
+
 	workspaceReconciler := controllers.NewWorkspaceReconciler(
 		kClient,
 		mgr.GetScheme(),
 		log.Log.WithName("controllers").WithName("Workspace"),
 		recorder,
 		nodeProvisioner,
+		defaultModelMirrorStorageClass,
+		defaultStreamingServiceAccount,
+		streamingProvider,
 	)
 
 	if err = workspaceReconciler.SetupWithManager(mgr); err != nil {

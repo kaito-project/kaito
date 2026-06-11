@@ -215,6 +215,13 @@ type Performance struct {
 	Metrics map[string]Metric `json:"metrics,omitempty"`
 }
 
+// ModelMirrorReference holds a reference to the cluster-scoped ModelMirror CR
+// associated with this workspace's model.
+type ModelMirrorReference struct {
+	// Name is the cluster-scoped ModelMirror CR name.
+	Name string `json:"name"`
+}
+
 // WorkspaceStatus defines the observed state of Workspace
 type WorkspaceStatus struct {
 	// WorkerNodes is the list of nodes chosen to run the workload based on the workspace resource requirement.
@@ -237,6 +244,11 @@ type WorkspaceStatus struct {
 	// Populated by default; omitted when kaito.sh/disable-benchmark is set to "true".
 	// +optional
 	Performance *Performance `json:"performance,omitempty"`
+
+	// ModelMirror holds a reference to the ModelMirror CR managing this workspace's model download.
+	// Set when ModelStreaming feature gate is enabled.
+	// +optional
+	ModelMirror *ModelMirrorReference `json:"modelMirror,omitempty"`
 }
 
 // Workspace is the Schema for the workspaces API

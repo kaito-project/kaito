@@ -17,7 +17,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
@@ -507,18 +506,15 @@ const (
 
 // defaultPDPluginsConfigTemplate is the default EPP plugins YAML template for P/D disaggregated serving.
 // Uses the llm-d EndpointPickerConfig format with schedulingProfiles for prefill and decode.
-// The %%MODEL_NAME%% placeholder is replaced with the actual model name from the MRI spec.
-// The token-producer plugin calls the vLLM render sidecar (localhost:8100) for tokenization,
-// which enables the precise-prefix-cache-scorer to compute prefix cache hit ratios.
+// approx-prefix-cache-producer is used for prefix cache awareness (no tokenizer sidecar needed).
 const defaultPDPluginsConfigTemplate = `apiVersion: inference.networking.x-k8s.io/v1alpha1
 kind: EndpointPickerConfig
 plugins:
   - type: disagg-headers-handler
-  - type: token-producer
+  - type: approx-prefix-cache-producer
     parameters:
-      modelName: "%%MODEL_NAME%%"
-      vllm:
-        http: "http://localhost:8100"
+      blockSizeTokens: 64
+      autoTune: true
   - type: prefix-based-pd-decider
     parameters:
       nonCachedTokens: 4
@@ -526,13 +522,6 @@ plugins:
     parameters:
       deciders:
         prefill: prefix-based-pd-decider
-  - type: precise-prefix-cache-scorer
-    parameters:
-      tokenProcessorConfig:
-        blockSize: 64
-      indexerConfig:
-        kvBlockIndexConfig:
-          enableMetrics: true
   - type: by-label-selector
     name: prefill-filter
     parameters:
@@ -551,24 +540,20 @@ schedulingProfiles:
   - name: prefill
     plugins:
       - pluginRef: prefill-filter
-      - pluginRef: precise-prefix-cache-scorer
-        weight: 50
       - pluginRef: load-aware-scorer
         weight: 10
       - pluginRef: max-score-picker
   - name: decode
     plugins:
       - pluginRef: decode-filter
-      - pluginRef: precise-prefix-cache-scorer
-        weight: 50
       - pluginRef: load-aware-scorer
         weight: 10
       - pluginRef: max-score-picker
 `
 
-// defaultPDPluginsConfig returns the default P/D plugins config with the model name substituted.
-func defaultPDPluginsConfig(modelName string) string {
-	return strings.ReplaceAll(defaultPDPluginsConfigTemplate, "%%MODEL_NAME%%", modelName)
+// defaultPDPluginsConfig returns the default P/D plugins config.
+func defaultPDPluginsConfig() string {
+	return defaultPDPluginsConfigTemplate
 }
 
 // inferencePoolName returns the name of the InferencePool resources for the MRI.
@@ -636,7 +621,7 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	}
 
 	// Load plugins config: either from user-provided ConfigMap or auto-generated default.
-	pluginsYAML := defaultPDPluginsConfig(mri.Spec.Model.Name)
+	pluginsYAML := defaultPDPluginsConfig()
 	if mri.Spec.EPPPluginsConfig != "" {
 		cm := &corev1.ConfigMap{}
 		if err := r.Get(ctx, client.ObjectKey{Name: mri.Spec.EPPPluginsConfig, Namespace: mri.Namespace}, cm); err != nil {
@@ -655,40 +640,8 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	// Disable EPP secure-serving (self-signed TLS) — MRI pools run plaintext
 	// behind the mesh, matching standalone InferenceSet behavior.
 	eppValues["flags"] = map[string]string{
-		"secure-serving": "false",
-	}
-	// Tokenizer sidecar: GPU-less vLLM render process for token-producer plugin.
-	// Runs alongside EPP to serve tokenization requests via HTTP on port 8100.
-	eppValues["sidecar"] = map[string]any{
-		"enabled": true,
-		"name":    "tokenizer",
-		"image":   consts.TokenizerSidecarImage,
-		"command": []string{"python3", "-m", "vllm.entrypoints.cli.main", "launch", "render", mri.Spec.Model.Name, fmt.Sprintf("--port=%d", consts.TokenizerSidecarPort)},
-		"args":    []string{},
-		"env": []map[string]string{
-			{"name": "VLLM_TARGET_DEVICE", "value": "cpu"},
-			{"name": "USER", "value": "nonroot"},
-			{"name": "TORCHINDUCTOR_CACHE_DIR", "value": "/tmp/torch-cache"},
-			{"name": "HF_HOME", "value": "/tmp/hf-home"},
-			{"name": "TRANSFORMERS_CACHE", "value": "/tmp/hf-home"},
-			{"name": "VLLM_CACHE_ROOT", "value": "/tmp/vllm-cache"},
-		},
-		"ports": []map[string]any{
-			{
-				"containerPort": consts.TokenizerSidecarPort,
-				"name":          "tokenizer",
-				"protocol":      "TCP",
-			},
-		},
-		"resources": map[string]any{
-			"requests": map[string]string{
-				"cpu":    "500m",
-				"memory": "1Gi",
-			},
-			"limits": map[string]string{
-				"memory": "2Gi",
-			},
-		},
+		"secure-serving":             "false",
+		"model-server-metrics-port":  fmt.Sprintf("%d", consts.PortDecodeVLLM),
 	}
 
 	helmValues := map[string]any{

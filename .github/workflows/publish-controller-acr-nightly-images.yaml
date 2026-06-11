@@ -16,7 +16,6 @@ permissions:
 
 env:
   GO_VERSION: '1.26.3'
-  REGISTRY: aitoolchainoperatoratcorp.azurecr.io
 
 concurrency:
   group: nightly-acr-images
@@ -79,7 +78,9 @@ jobs:
       - name: Authenticate to ACR
         run: |
           az login --identity
-          az acr login -n ${{ env.REGISTRY }}
+          az acr login -n "${REGISTRY}"
+        env:
+          REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
 
       - name: Build and push ${{ matrix.image_name }}:${{ steps.get-image-tag.outputs.img_tag }}
         run: |
@@ -88,7 +89,7 @@ jobs:
             IMG_TAG="${IMG_TAG}" \
             "${{ matrix.image_name_var }}=${{ matrix.image_name }}"
         env:
-          REGISTRY: ${{ env.REGISTRY }}
+          REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
           IMG_TAG: ${{ steps.get-image-tag.outputs.img_tag }}
 
       - name: Override chart version to match image tag
@@ -109,5 +110,5 @@ jobs:
             IMG_TAG="${IMG_TAG}" \
             "${{ matrix.image_name_var }}=${{ matrix.image_name }}"
         env:
-          REGISTRY: ${{ env.REGISTRY }}
+          REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
           IMG_TAG: ${{ steps.get-image-tag.outputs.img_tag }}

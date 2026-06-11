@@ -43,6 +43,7 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 const (
@@ -645,11 +646,16 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	}
 	// Tokenizer sidecar: GPU-less vLLM render process deployed alongside EPP.
 	// Serves tokenization on port 8100 for future token-producer plugin (v0.9.0+).
+	// Resolve short model names to full HuggingFace IDs (e.g. "phi-4-mini-instruct" → "microsoft/phi-4-mini-instruct").
+	tokenizerModelName := mri.Spec.Model.Name
+	if hfName, ok := plugin.LegacyBuiltinToCatalog[tokenizerModelName]; ok {
+		tokenizerModelName = hfName
+	}
 	eppValues["sidecar"] = map[string]any{
 		"enabled": true,
 		"name":    "tokenizer",
 		"image":   consts.TokenizerSidecarImage,
-		"command": []string{"python3", "-m", "vllm.entrypoints.cli.main", "launch", "render", mri.Spec.Model.Name, fmt.Sprintf("--port=%d", consts.TokenizerSidecarPort)},
+		"command": []string{"python3", "-m", "vllm.entrypoints.cli.main", "launch", "render", tokenizerModelName, fmt.Sprintf("--port=%d", consts.TokenizerSidecarPort)},
 		"args":    []string{},
 		"env": []map[string]string{
 			{"name": "VLLM_TARGET_DEVICE", "value": "cpu"},

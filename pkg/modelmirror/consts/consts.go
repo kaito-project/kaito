@@ -30,8 +30,9 @@ const (
 	// Labels
 	LabelModelMirrorName = "kaito.sh/model-mirror-name"
 
-	// Downloader image
-	DownloaderImage = "alpine:3.20" // TODO: Move to MCR with hfdownloader pre-installed
+	// Downloader image and tool version
+	DownloaderImage   = "alpine:3.20" // TODO: Move to MCR with hfdownloader pre-installed
+	HFDownloaderVersion = "3.1.1"
 )
 
 // DownloadExcludePatterns is the list of patterns to exclude from HF downloads.

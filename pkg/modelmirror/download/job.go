@@ -14,6 +14,7 @@
 package download
 
 import (
+	"fmt"
 	"strings"
 
 	batchv1 "k8s.io/api/batch/v1"
@@ -36,17 +37,17 @@ func BuildDownloadJob(cr *kaitov1alpha1.ModelMirror) *batchv1.Job {
 	// Azure Blob NFS creates a zero-byte object for each empty directory, and RunAI
 	// model streamer iterates all objects in the container. We remove all subdirectories
 	// as a safety net.
-	script := `set -e
+	script := fmt.Sprintf(`set -e
 apk add --no-cache curl > /dev/null 2>&1
 ARCH=$(uname -m)
 case "$ARCH" in x86_64) ARCH_SUFFIX="amd64" ;; aarch64) ARCH_SUFFIX="arm64" ;; *) echo "Unsupported arch: $ARCH"; exit 1 ;; esac
-HFD_VERSION=$(curl -sI https://github.com/bodaay/HuggingFaceModelDownloader/releases/latest | grep -i ^location: | sed 's|.*/v||;s/\r//')
+HFD_VERSION="%s"
 curl -sL -o /usr/local/bin/hfdownloader "https://github.com/bodaay/HuggingFaceModelDownloader/releases/download/v${HFD_VERSION}/hfdownloader_linux_${ARCH_SUFFIX}_v${HFD_VERSION}"
 chmod +x /usr/local/bin/hfdownloader
 HF_TOKEN_FLAG=""
 if [ -n "${HF_TOKEN:-}" ]; then HF_TOKEN_FLAG="-t $HF_TOKEN"; fi
 hfdownloader download "${MODEL_ID}" --local-dir /models -F safetensors -E "${EXCLUDE_PATTERNS}" $HF_TOKEN_FLAG
-find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true`
+find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true`, mmconsts.HFDownloaderVersion)
 
 	envVars := []corev1.EnvVar{
 		{Name: "EXCLUDE_PATTERNS", Value: excludePatterns},

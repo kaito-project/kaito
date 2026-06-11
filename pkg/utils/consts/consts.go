@@ -110,6 +110,12 @@ const (
 	EPPImageName = "llm-d-inference-scheduler"
 	EPPImageTag  = "v0.8.0"
 
+	// TokenizerSidecar runs a GPU-less vLLM render process for tokenization.
+	// It exposes /v1/completions/render and /v1/chat/completions/render on port 8100,
+	// used by the token-producer EPP plugin for prefix cache scoring.
+	TokenizerSidecarImage = "vllm/vllm-openai-cpu:v0.21.0"
+	TokenizerSidecarPort  = 8100
+
 	// Routing sidecar for P/D disaggregation on decode workspaces.
 	// The sidecar listens on port 5001 (PortRoutingSidecar) and forwards
 	// to vLLM on port 5000 (PortInferenceServer). The Service targetPort

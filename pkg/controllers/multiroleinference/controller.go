@@ -17,6 +17,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
@@ -506,10 +507,18 @@ const (
 
 // defaultPDPluginsConfigTemplate is the default EPP plugins YAML template for P/D disaggregated serving.
 // Uses the llm-d EndpointPickerConfig format with schedulingProfiles for prefill and decode.
+// The %%MODEL_NAME%% placeholder is replaced with the actual model name from the MRI spec.
+// The token-producer plugin calls the vLLM render sidecar (localhost:8100) for tokenization,
+// which enables the precise-prefix-cache-scorer to compute prefix cache hit ratios.
 const defaultPDPluginsConfigTemplate = `apiVersion: inference.networking.x-k8s.io/v1alpha1
 kind: EndpointPickerConfig
 plugins:
   - type: disagg-headers-handler
+  - type: token-producer
+    parameters:
+      modelName: %%MODEL_NAME%%
+      vllm:
+        http: "http://localhost:8100"
   - type: prefix-based-pd-decider
     parameters:
       nonCachedTokens: 4
@@ -517,6 +526,13 @@ plugins:
     parameters:
       deciders:
         prefill: prefix-based-pd-decider
+  - type: precise-prefix-cache-scorer
+    parameters:
+      tokenProcessorConfig:
+        blockSize: 64
+      indexerConfig:
+        kvBlockIndexConfig:
+          enableMetrics: true
   - type: by-label-selector
     name: prefill-filter
     parameters:
@@ -535,29 +551,29 @@ schedulingProfiles:
   - name: prefill
     plugins:
       - pluginRef: prefill-filter
+      - pluginRef: precise-prefix-cache-scorer
+        weight: 50
       - pluginRef: load-aware-scorer
         weight: 10
       - pluginRef: max-score-picker
   - name: decode
     plugins:
       - pluginRef: decode-filter
+      - pluginRef: precise-prefix-cache-scorer
+        weight: 50
       - pluginRef: load-aware-scorer
         weight: 10
       - pluginRef: max-score-picker
 `
 
-// defaultPDPluginsConfig returns the default P/D plugins config.
-// Note: precise-prefix-cache-scorer is omitted because it requires a tokenizer
-// sidecar (UDS socket) that is not yet deployed by KAITO. Once tokenizer sidecar
-// support is added, this config should be updated to include it.
-func defaultPDPluginsConfig() string {
-	return defaultPDPluginsConfigTemplate
+// defaultPDPluginsConfig returns the default P/D plugins config with the model name substituted.
+func defaultPDPluginsConfig(modelName string) string {
+	return strings.ReplaceAll(defaultPDPluginsConfigTemplate, "%%MODEL_NAME%%", modelName)
 }
 
 // inferencePoolName returns the name of the InferencePool resources for the MRI.
-// Delegates to the shared utils.InferencePoolName helper.
 func inferencePoolName(mriName string) string {
-	return utils.InferencePoolName(mriName)
+	return fmt.Sprintf("%s-inferencepool", mriName)
 }
 
 // reconcileInferencePool creates or updates the Flux OCIRepository and HelmRelease
@@ -620,7 +636,7 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	}
 
 	// Load plugins config: either from user-provided ConfigMap or auto-generated default.
-	pluginsYAML := defaultPDPluginsConfig()
+	pluginsYAML := defaultPDPluginsConfig(mri.Spec.Model.Name)
 	if mri.Spec.EPPPluginsConfig != "" {
 		cm := &corev1.ConfigMap{}
 		if err := r.Get(ctx, client.ObjectKey{Name: mri.Spec.EPPPluginsConfig, Namespace: mri.Namespace}, cm); err != nil {
@@ -640,6 +656,40 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	// behind the mesh, matching standalone InferenceSet behavior.
 	eppValues["flags"] = map[string]string{
 		"secure-serving": "false",
+	}
+	// Tokenizer sidecar: GPU-less vLLM render process for token-producer plugin.
+	// Runs alongside EPP to serve tokenization requests via HTTP on port 8100.
+	eppValues["sidecar"] = map[string]any{
+		"enabled":         true,
+		"name":            "tokenizer",
+		"image":           consts.TokenizerSidecarImage,
+		"imagePullPolicy": string(corev1.PullIfNotPresent),
+		"command":         "python3",
+		"args":            []string{"-m", "vllm.entrypoints.cli.main", "launch", "render", mri.Spec.Model.Name, fmt.Sprintf("--port=%d", consts.TokenizerSidecarPort)},
+		"env": []map[string]string{
+			{"name": "VLLM_TARGET_DEVICE", "value": "cpu"},
+			{"name": "USER", "value": "nonroot"},
+			{"name": "TORCHINDUCTOR_CACHE_DIR", "value": "/tmp/torch-cache"},
+			{"name": "HF_HOME", "value": "/tmp/hf-home"},
+			{"name": "TRANSFORMERS_CACHE", "value": "/tmp/hf-home"},
+			{"name": "VLLM_CACHE_ROOT", "value": "/tmp/vllm-cache"},
+		},
+		"ports": []map[string]any{
+			{
+				"containerPort": consts.TokenizerSidecarPort,
+				"name":          "tokenizer",
+				"protocol":      "TCP",
+			},
+		},
+		"resources": map[string]any{
+			"requests": map[string]string{
+				"cpu":    "500m",
+				"memory": "1Gi",
+			},
+			"limits": map[string]string{
+				"memory": "2Gi",
+			},
+		},
 	}
 
 	helmValues := map[string]any{
@@ -694,18 +744,14 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 }
 
 // isInferencePoolReady checks if the InferencePool HelmRelease is ready.
-// When Gateway API Inference Extension is disabled, no pool is reconciled so we return true.
 func (r *MultiRoleInferenceReconciler) isInferencePoolReady(ctx context.Context, mri *kaitov1alpha1.MultiRoleInference) bool {
-	if !r.EnableGatewayAPIInferenceExt {
-		return true
-	}
 	poolName := inferencePoolName(mri.Name)
 	hr := &helmv2.HelmRelease{}
 	if err := r.Get(ctx, client.ObjectKey{Name: poolName, Namespace: mri.Namespace}, hr); err != nil {
 		return false
 	}
 	for _, cond := range hr.Status.Conditions {
-		if cond.Type == consts.ConditionReady && cond.Status == metav1.ConditionTrue &&
+		if cond.Type == "Ready" && cond.Status == metav1.ConditionTrue &&
 			hr.Status.ObservedGeneration >= hr.Generation {
 			return true
 		}

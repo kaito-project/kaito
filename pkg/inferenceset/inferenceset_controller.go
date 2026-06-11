@@ -322,9 +322,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 		}
 	}
 
-	// Reconcile labels on existing workspaces by additively propagating InferenceSet metadata labels.
-	// Note: this only adds/updates desired labels; it does not remove stale labels to avoid
-	// conflicting with labels managed by other controllers.
+	// Reconcile labels on existing workspaces to match template labels and InferenceSet metadata labels.
 	// This ensures label changes (e.g., adding kaito.sh/inference-role) propagate
 	// to workspaces that were created before the label was set.
 	desiredLabels := make(map[string]string)

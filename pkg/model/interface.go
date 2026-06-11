@@ -387,6 +387,9 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		p.VLLM.ModelRunParams["model"] = rc.StreamingModelPath
 		if rc.StreamingLoadFormat != "" {
 			p.VLLM.ModelRunParams["load-format"] = rc.StreamingLoadFormat
+			// Some presets set load_format (underscore) in their default params.
+			// Remove it to avoid duplicate/conflicting flags.
+			delete(p.VLLM.ModelRunParams, "load_format")
 		}
 	} else if p.DownloadAtRuntime {
 		repoId, revision, _ := utils.ParseHuggingFaceModelVersion(p.Version)

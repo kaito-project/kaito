@@ -16,7 +16,6 @@ package workspace
 import (
 	"context"
 	"reflect"
-	"strings"
 
 	appsv1 "k8s.io/api/apps/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -140,19 +139,4 @@ func GetInferenceContainerImage(ss *appsv1.StatefulSet) string {
 		return ""
 	}
 	return ss.Spec.Template.Spec.Containers[0].Image
-}
-
-// GetImageTag returns the tag portion of a container image reference (the
-// substring after the last ':' within the final path segment). It returns an
-// empty string if the reference has no tag. The final-segment scoping ensures a
-// registry port (e.g. "host:5000/img:tag") is not mistaken for the tag.
-func GetImageTag(image string) string {
-	segment := image
-	if lastSlash := strings.LastIndex(image, "/"); lastSlash >= 0 {
-		segment = image[lastSlash+1:]
-	}
-	if i := strings.LastIndex(segment, ":"); i >= 0 {
-		return segment[i+1:]
-	}
-	return ""
 }

@@ -53,14 +53,12 @@ func newFakeClient(objs ...client.Object) client.Client {
 		Build()
 }
 
-// setTestRegistry configures PRESET_REGISTRY_NAME and CLOUD_PROVIDER and returns
-// the default base image that inference.GetBaseImageForGPU(nil) produces during the test.
+// setTestRegistry configures PRESET_REGISTRY_NAME and returns the base image
+// that inference.GetBaseImageName() will produce during the test.
 func setTestRegistry(t *testing.T) string {
 	t.Helper()
 	t.Setenv("PRESET_REGISTRY_NAME", "mcr.microsoft.com/aks/kaito")
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-	image, _ := inference.GetBaseImageForGPU(nil)
-	return image
+	return inference.GetBaseImageName()
 }
 
 func makeInferenceSet(name, namespace string, enabled bool, window *kaitov1alpha1.MaintenanceWindow) *kaitov1alpha1.InferenceSet {
@@ -90,11 +88,6 @@ func makeWorkspace(name, namespace, inferenceSetName string, state kaitov1beta1.
 			Name:      name,
 			Namespace: namespace,
 			Labels:    labels,
-		},
-		// Default to a non-pinned A100 SKU so per-workspace base image resolution
-		// returns the default tag. Tests that exercise pinning override this.
-		Resource: kaitov1beta1.ResourceSpec{
-			InstanceType: "Standard_NC24ads_A100_v4",
 		},
 		Status: kaitov1beta1.WorkspaceStatus{
 			State: state,
@@ -375,19 +368,10 @@ func TestCategorizeWorkspaces(t *testing.T) {
 		desiredImage = "mcr.microsoft.com/aks/kaito/kaito-base:0.4.0"
 		desiredTag   = "0.4.0"
 		oldImage     = "mcr.microsoft.com/aks/kaito/kaito-base:0.3.0"
-		pinnedImage  = "mcr.microsoft.com/aks/kaito/kaito-base:0.3.1"
-		a100SKU      = "Standard_NC24ads_A100_v4" // resolves to the default tag
-		a10SKU       = "Standard_NV36ads_A10_v5"  // pinned to 0.3.1 via baseImageOverrides
 	)
-
-	// The desired image is resolved per-workspace from the embedded
-	// supported_models.yaml, so the registry and SKU must be set.
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-	t.Setenv("PRESET_REGISTRY_NAME", "mcr.microsoft.com/aks/kaito")
 
 	tests := []struct {
 		name            string
-		instanceType    string // applied to all workspaces in the case; defaults to a100SKU
 		workspaces      []*kaitov1beta1.Workspace
 		statefulSets    []*appsv1.StatefulSet
 		expectToUpgrade int
@@ -477,30 +461,6 @@ func TestCategorizeWorkspaces(t *testing.T) {
 			expectUpgrading: 0,
 		},
 		{
-			name:         "pinned legacy SKU running its pinned image is not drifted",
-			instanceType: a10SKU,
-			workspaces: []*kaitov1beta1.Workspace{
-				makeWorkspace("ws-1", ns, isName, kaitov1beta1.WorkspaceStateReady, nil),
-			},
-			statefulSets: []*appsv1.StatefulSet{
-				makeStatefulSet("ws-1", ns, pinnedImage), // A10 is pinned to 0.3.1
-			},
-			expectToUpgrade: 0,
-			expectUpgrading: 0,
-		},
-		{
-			name:         "pinned legacy SKU running default image is drifted back to pinned",
-			instanceType: a10SKU,
-			workspaces: []*kaitov1beta1.Workspace{
-				makeWorkspace("ws-1", ns, isName, kaitov1beta1.WorkspaceStateReady, nil),
-			},
-			statefulSets: []*appsv1.StatefulSet{
-				makeStatefulSet("ws-1", ns, desiredImage), // running 0.4.0, should be 0.3.1
-			},
-			expectToUpgrade: 1,
-			expectUpgrading: 0,
-		},
-		{
 			name: "missing StatefulSet returns error",
 			workspaces: []*kaitov1beta1.Workspace{
 				makeWorkspace("ws-1", ns, isName, kaitov1beta1.WorkspaceStateReady, nil),
@@ -536,17 +496,12 @@ func TestCategorizeWorkspaces(t *testing.T) {
 			cl := fake.NewClientBuilder().WithScheme(testScheme()).WithObjects(objs...).Build()
 			r := &AutoUpgradeRunner{Client: cl}
 
-			instanceType := tt.instanceType
-			if instanceType == "" {
-				instanceType = a100SKU
-			}
 			var wsList []kaitov1beta1.Workspace
 			for _, ws := range tt.workspaces {
-				ws.Resource.InstanceType = instanceType
 				wsList = append(wsList, *ws)
 			}
 
-			toUpgrade, upgrading, err := r.categorizeWorkspaces(context.Background(), wsList)
+			toUpgrade, upgrading, err := r.categorizeWorkspaces(context.Background(), wsList, desiredImage, desiredTag)
 			if tt.expectErr {
 				assert.Error(t, err)
 				return
@@ -709,7 +664,7 @@ func TestReconcileInferenceSet_AllUpToDate(t *testing.T) {
 
 func TestReconcileInferenceSet_WaitsForUpgrading(t *testing.T) {
 	setTestRegistry(t)
-	_, desiredTag := inference.GetBaseImageForGPU(nil)
+	desiredTag := inference.GetBaseImageTag()
 	const (
 		ns     = "default"
 		isName = "test-is"
@@ -741,7 +696,7 @@ func TestReconcileInferenceSet_WaitsForUpgrading(t *testing.T) {
 
 func TestReconcileInferenceSet_MarkSuccessOnDriftTransition(t *testing.T) {
 	desiredImage := setTestRegistry(t)
-	_, desiredTag := inference.GetBaseImageForGPU(nil)
+	desiredTag := inference.GetBaseImageTag()
 	const (
 		ns     = "default"
 		isName = "test-is"

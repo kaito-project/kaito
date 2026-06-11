@@ -362,36 +362,15 @@ func buildBenchmarkStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace, 
 	}
 }
 
-// GetBaseImageForGPU returns the base image reference and its tag for the given
-// GPU config, honoring any GPU-family-specific base image overrides defined on
-// the "base" preset entry. A nil gpuConfig falls back to the default tag.
-func GetBaseImageForGPU(gpuConfig *sku.GPUConfig) (image, tag string) {
+func GetBaseImageName() string {
 	presetObj := metadata.MustGet("base")
-	tag = presetObj.Tag
-	if gpuConfig != nil {
-		tag = presetObj.ResolveBaseImageTag(gpuConfig.GPUModel)
-	}
-	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, tag), tag
+	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
 }
 
-// ResolveBaseImageForWorkspace returns the base image name and tag that the
-// controller would assign to the given workspace, honoring GPU-family-specific
-// base image overrides. It resolves the workspace's GPU config the same way pod
-// spec generation does (from the SKU under NAP, or from ready nodes under BYO),
-// so callers outside the pod-spec path (e.g. the auto-upgrade runner) compute
-// the same per-workspace desired image.
-func ResolveBaseImageForWorkspace(ctx context.Context, kubeClient client.Client, workspaceObj *v1beta1.Workspace) (image string, tag string, err error) {
-	gctx := &generator.WorkspaceGeneratorContext{
-		Ctx:        ctx,
-		KubeClient: kubeClient,
-		Workspace:  workspaceObj,
-	}
-	gpuConfig, err := getGPUConfig(gctx)
-	if err != nil {
-		return "", "", err
-	}
-	image, tag = GetBaseImageForGPU(gpuConfig)
-	return image, tag, nil
+// GetBaseImageTag returns just the tag portion of the base image reference.
+func GetBaseImageTag() string {
+	presetObj := metadata.MustGet("base")
+	return presetObj.Tag
 }
 
 func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
@@ -527,8 +506,6 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			readinessTimeout = defaultStartupProbeTimeout
 		}
 
-		baseImage, _ := GetBaseImageForGPU(gpuConfig)
-
 		// KAITO does not support FlashInfer. Disable vLLM's FlashInfer sampler so it
 		// stays on the Torch-native sampling path instead of JIT-compiling kernels at
 		// runtime (the base image ships no CUDA toolchain/nvcc).
@@ -543,7 +520,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 		spec.Containers = []corev1.Container{
 			{
 				Name:           ctx.Workspace.Name,
-				Image:          baseImage,
+				Image:          GetBaseImageName(),
 				Command:        commands,
 				Resources:      resourceReq,
 				Ports:          containerPorts,

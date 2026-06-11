@@ -517,17 +517,13 @@ func (c *WorkspaceReconciler) refreshInferenceConfig(ctx context.Context, wObj *
 }
 
 // shouldUpgradeBaseImage checks if an auto-upgrade has been requested via the upgrade label
-// and the image hasn't been updated yet. The label value must match the desired base image
-// tag for THIS workspace (which may be a GPU-family-pinned tag, not the controller's default)
-// to prevent stale labels from triggering upgrades.
+// and the image hasn't been updated yet. The label value must match the controller's
+// current desired base image tag to prevent stale labels from triggering upgrades.
 func shouldUpgradeBaseImage(wObj *kaitov1beta1.Workspace, existingObj, desiredStatefulSet *appsv1.StatefulSet) bool {
 	upgradeVersion := wObj.Labels[kaitov1alpha1.LabelUpgradeToVersion]
-	if upgradeVersion == "" {
-		return false
-	}
-	desiredImage := workspace.GetInferenceContainerImage(desiredStatefulSet)
-	return upgradeVersion == workspace.GetImageTag(desiredImage) &&
-		workspace.GetInferenceContainerImage(existingObj) != desiredImage
+	return upgradeVersion != "" &&
+		upgradeVersion == inference.GetBaseImageTag() &&
+		workspace.GetInferenceContainerImage(existingObj) != workspace.GetInferenceContainerImage(desiredStatefulSet)
 }
 
 func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types.NamespacedName, reconcileErr error) error {

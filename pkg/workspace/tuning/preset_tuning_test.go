@@ -27,7 +27,6 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
@@ -613,7 +612,7 @@ func TestGenerateBasicTuningPodSpec_NodeAffinity(t *testing.T) {
 	}
 
 	// Get the modifier function
-	modifier := GenerateBasicTuningPodSpec(&sku.GPUConfig{GPUCount: 1})
+	modifier := GenerateBasicTuningPodSpec(1)
 	err := modifier(gctx, podSpec)
 
 	// Verify no error
@@ -761,7 +760,7 @@ func TestGenerateBasicTuningPodSpec_UsesTuningParams(t *testing.T) {
 
 	podSpec := &corev1.PodSpec{}
 
-	modifier := GenerateBasicTuningPodSpec(&sku.GPUConfig{GPUCount: 1})
+	modifier := GenerateBasicTuningPodSpec(1)
 	err := modifier(gctx, podSpec)
 	assert.NoError(t, err)
 

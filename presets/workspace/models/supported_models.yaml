@@ -4,16 +4,6 @@ models:
     type: text-generation
     runtime: tfs
     tag: 0.4.0
-    # baseImageOverrides pins legacy GPU SKU families to an older base image tag.
-    # NV-series (A10, M60) ship the NVIDIA GRID driver line, which lags behind the
-    # CUDA driver on NC/ND-series (A100/H100). The 0.4.0 base image (vLLM 0.22.1 /
-    # torch 2.11 / CUDA 13) requires driver 570+, but NV-series SKUs currently ship
-    # driver 550.x (CUDA 12.4), so they are pinned to 0.3.1 (vLLM 0.19.1 / torch
-    # 2.10 / CUDA 12.4). See docs/base-image-building-process.md.
-    baseImageOverrides:
-      - tag: "0.3.1"
-        reason: "NV-series (A10/M60) ship NVIDIA GRID driver 550.x (CUDA 12.4); base image 0.4.0 (CUDA 13) needs driver 580+"
-        matchGPUModels: ["A10", "M60"]
     # Tag history:
     # 0.4.0 - bump vllm to 0.22.1, torch to 2.11.0. downgrade lmcache to 0.4.5 to due to cu12/cu13 compatibility issues
     # 0.3.3 - add model download monitor

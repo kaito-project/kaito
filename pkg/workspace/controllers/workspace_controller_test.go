@@ -1457,7 +1457,7 @@ func TestSetWorkspaceCondition(t *testing.T) {
 }
 
 func TestShouldUpgradeBaseImage(t *testing.T) {
-	_, baseTag := inference.GetBaseImageForGPU(nil)
+	baseTag := inference.GetBaseImageTag()
 	baseImage := "mcr.microsoft.com/aks/kaito/kaito-base:" + baseTag
 	tests := []struct {
 		name     string

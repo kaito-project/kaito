@@ -640,8 +640,8 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	// Disable EPP secure-serving (self-signed TLS) — MRI pools run plaintext
 	// behind the mesh, matching standalone InferenceSet behavior.
 	eppValues["flags"] = map[string]string{
-		"secure-serving":             "false",
-		"model-server-metrics-port":  fmt.Sprintf("%d", consts.PortDecodeVLLM),
+		"secure-serving":            "false",
+		"model-server-metrics-port": fmt.Sprintf("%d", consts.PortDecodeVLLM),
 	}
 
 	helmValues := map[string]any{

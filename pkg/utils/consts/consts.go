@@ -111,7 +111,6 @@ const (
 	EPPImageName = "llm-d-inference-scheduler"
 	EPPImageTag  = "v0.8.0"
 
-
 	// Routing sidecar for P/D disaggregation on decode workspaces.
 	// The sidecar listens on port 5000 (PortInferenceServer) so the Service
 	// can target port 5000 uniformly across prefill and decode pods.

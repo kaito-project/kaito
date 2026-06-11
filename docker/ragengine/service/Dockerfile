@@ -2,6 +2,13 @@ FROM python:3.12-slim AS dependencies
 
 # Install system dependencies for building Python packages
 RUN apt-get update && apt-get upgrade -y \
+    && if dpkg -s libssl3t64 >/dev/null 2>&1; then \
+        apt-get install --only-upgrade --no-install-recommends -y openssl libssl3t64 openssl-provider-legacy; \
+    elif dpkg -s libssl3 >/dev/null 2>&1; then \
+        apt-get install --only-upgrade --no-install-recommends -y openssl libssl3; \
+    else \
+        apt-get install --only-upgrade --no-install-recommends -y openssl; \
+    fi \
     && apt-get install -y --no-install-recommends  \
     build-essential \
     gcc \

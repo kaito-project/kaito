@@ -127,13 +127,7 @@ kubectl get pod -l inferencepool=phi-4-mini-inferencepool-epp -o jsonpath='{.ite
 # Expected: mcr.microsoft.com/oss/v2/llm-d/llm-d-inference-scheduler:v0.7.1
 ```
 
-### 3. Deploy DestinationRule and HTTPRoute
-
-Apply an Istio DestinationRule. Since EPP runs with `--secure-serving=true` by default using a self-signed certificate, and Istio doesn't trust self-signed certificates, this DestinationRule bypasses TLS verification as a temporary workaround:
-
-```bash
-kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/destinationrule-phi-4-mini-instruct.yaml
-```
+### 3. Deploy HTTPRoute
 
 Create the HTTPRoute that targets the InferenceSet's InferencePool (via `.spec.endpointPickerRef`) and defines the routing matchers used by the Gateway:
 
@@ -291,11 +285,10 @@ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- curl -X POS
 
 ### 4. [Optional] Deploy BBR
 
-Deploy a second KAITO InferenceSet and DestinationRule with a different model to demonstrate multi-model routing. This step uses [`mistral-7b-instruct`](https://github.com/kaito-project/kaito/blob/main/examples/inference/kaito_inferenceset_mistral_7b-instruct.yaml) as an example:
+Deploy a second KAITO InferenceSet with a different model to demonstrate multi-model routing. This step uses [`mistral-7b-instruct`](https://github.com/kaito-project/kaito/blob/main/examples/inference/kaito_inferenceset_mistral_7b-instruct.yaml) as an example:
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/inference/kaito_inferenceset_mistral_7b-instruct.yaml
-kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/destinationrule-mistral-7b-instruct.yaml
 ```
 
 Install the Body-Based Routing (BBR) Helm chart. BBR automatically extracts model names from OpenAI-style API requests and injects an `X-Gateway-Model-Name` header to the inference request, enabling model routing without modifying client code:

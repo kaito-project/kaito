@@ -21,7 +21,7 @@ from urllib.parse import unquote
 import nest_asyncio
 from fastapi import FastAPI, HTTPException, Query, Request  # noqa: E402
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # noqa: E402
-from starlette.responses import Response  # noqa: E402
+from starlette.responses import Response, StreamingResponse  # noqa: E402
 
 nest_asyncio.apply()  # Allow nested event loops (LlamaIndex sync internals inside FastAPI async)
 
@@ -59,6 +59,7 @@ from ragengine.config import (  # noqa: E402
 from ragengine.guardrails import (  # noqa: E402
     GuardrailsReloader,
     OutputGuardrailsError,
+    StreamingGuardrailsProcessor,
 )
 from ragengine.metrics.prometheus_metrics import (  # noqa: E402
     MODE_LOCAL,
@@ -352,8 +353,36 @@ async def chat_completions(request: dict):
                 detail="InferenceService not configured. This RAGEngine instance only supports document retrieve via /retrieve API. To use chat completions, configure an InferenceService in the RAGEngine spec.",
             )
 
-        response = await rag_ops.chat_completion(request)
         guardrails = guardrails_reloader.get_current()
+        if request.get("stream"):
+            if request.get("index_name") and not (
+                request.get("tools") or request.get("functions")
+            ):
+                raise HTTPException(
+                    status_code=501,
+                    detail="Streaming chat completions currently support passthrough requests only.",
+                )
+
+            upstream_lines = (
+                await vector_store_handler.llm.chat_completions_stream_passthrough(
+                    request
+                )
+            )
+            if not guardrails.enabled:
+                status = STATUS_SUCCESS
+                return StreamingResponse(
+                    upstream_lines,
+                    media_type="text/event-stream",
+                )
+
+            processor = StreamingGuardrailsProcessor(guardrails, request)
+            status = STATUS_SUCCESS
+            return StreamingResponse(
+                processor.wrap(upstream_lines),
+                media_type="text/event-stream",
+            )
+
+        response = await rag_ops.chat_completion(request)
         response = guardrails.guard_response(response, request)
         status = STATUS_SUCCESS
         return response

@@ -16,7 +16,7 @@ import asyncio
 import concurrent.futures
 import json
 import logging
-from collections.abc import Sequence
+from collections.abc import AsyncIterator, Sequence
 from typing import Any
 from urllib.parse import urljoin, urlparse
 
@@ -315,6 +315,65 @@ class Inference(CustomLLM):
             raise HTTPException(
                 status_code=500, detail=f"Error during POST request: {str(e)}"
             )
+
+    async def chat_completions_stream_passthrough(
+        self, chat_completions_request: CompletionCreateParams, **kwargs: Any
+    ) -> AsyncIterator[str]:
+        if "/chat/completions" not in LLM_INFERENCE_URL:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Chat completions not supported through endpoint {LLM_INFERENCE_URL}.",
+            )
+
+        client = await self._get_httpx_client()
+
+        async def iter_lines() -> AsyncIterator[str]:
+            try:
+                async with client.stream(
+                    "POST",
+                    LLM_INFERENCE_URL,
+                    json=chat_completions_request,
+                    headers=DEFAULT_HEADERS,
+                ) as response:
+                    response.raise_for_status()
+                    async for line in response.aiter_lines():
+                        if line is not None:
+                            yield line
+            except HTTPException as http_exc:
+                logger.error(
+                    "HTTP exception during streaming chat completions passthrough: %s",
+                    http_exc.detail,
+                )
+                raise http_exc
+            except httpx.HTTPStatusError as exc:
+                logger.error(
+                    "HTTP error %s during streaming POST request to %s: %s",
+                    exc.response.status_code,
+                    LLM_INFERENCE_URL,
+                    exc.response.text,
+                )
+                raise HTTPException(
+                    status_code=exc.response.status_code,
+                    detail=f"{str(exc.response.content)}",
+                ) from exc
+            except httpx.RequestError as exc:
+                logger.error(
+                    "Error during streaming POST request to %s: %s",
+                    LLM_INFERENCE_URL,
+                    exc,
+                )
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Error during streaming POST request: {str(exc)}",
+                ) from exc
+            except Exception as exc:
+                logger.error("Unexpected error during streaming POST request: %s", exc)
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Error during streaming POST request: {str(exc)}",
+                ) from exc
+
+        return iter_lines()
 
     async def _async_completions(
         self, prompt: str, **kwargs: Any

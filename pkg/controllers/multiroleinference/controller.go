@@ -643,6 +643,39 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 		"secure-serving":            "false",
 		"model-server-metrics-port": fmt.Sprintf("%d", consts.PortDecodeVLLM),
 	}
+	// Tokenizer sidecar: GPU-less vLLM render process deployed alongside EPP.
+	// Serves tokenization on port 8100 for future token-producer plugin (v0.9.0+).
+	eppValues["sidecar"] = map[string]any{
+		"enabled": true,
+		"name":    "tokenizer",
+		"image":   consts.TokenizerSidecarImage,
+		"command": []string{"python3", "-m", "vllm.entrypoints.cli.main", "launch", "render", mri.Spec.Model.Name, fmt.Sprintf("--port=%d", consts.TokenizerSidecarPort)},
+		"args":    []string{},
+		"env": []map[string]string{
+			{"name": "VLLM_TARGET_DEVICE", "value": "cpu"},
+			{"name": "USER", "value": "nonroot"},
+			{"name": "TORCHINDUCTOR_CACHE_DIR", "value": "/tmp/torch-cache"},
+			{"name": "HF_HOME", "value": "/tmp/hf-home"},
+			{"name": "TRANSFORMERS_CACHE", "value": "/tmp/hf-home"},
+			{"name": "VLLM_CACHE_ROOT", "value": "/tmp/vllm-cache"},
+		},
+		"ports": []map[string]any{
+			{
+				"containerPort": consts.TokenizerSidecarPort,
+				"name":          "tokenizer",
+				"protocol":      "TCP",
+			},
+		},
+		"resources": map[string]any{
+			"requests": map[string]string{
+				"cpu":    "500m",
+				"memory": "1Gi",
+			},
+			"limits": map[string]string{
+				"memory": "2Gi",
+			},
+		},
+	}
 
 	helmValues := map[string]any{
 		"inferenceExtension": eppValues,

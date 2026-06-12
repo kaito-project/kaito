@@ -54,7 +54,7 @@ before streaming support expands further.
 ### Non-Goals
 
 - Make every existing output scanner streaming-safe in the first phase.
-- Treat service-level config as a replacement for request-level `stream` behavior.
+- Use ConfigMap-backed runtime policy to replace request-level `stream` selection for individual calls.
 - Deliver true token-by-token RAG streaming in the first phase.
 - Guarantee fully general regex streaming semantics for arbitrarily complex patterns.
 

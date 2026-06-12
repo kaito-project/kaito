@@ -78,10 +78,44 @@ The runtime should continue treating `stream` as a per-request input rather than
 deployment switch.
 
 If product requirements later call for a service-level default streaming mode, it should
-be added separately with clear precedence rules:
+be added separately with clear precedence rules.
+
+In the current RAGEngine UX model, `spec.guardrails.enabled` should remain a minimal
+capability switch. Detailed streaming participation policy should live with other
+runtime policy in ConfigMap-backed configuration rather than being folded into
+`guardrails.enabled` itself.
+
+For example, an operator-facing policy document could eventually carry
+scanner-specific streaming participation settings alongside other runtime policy data:
+
+```yaml
+blockMessage: The model output was blocked by output guardrails.
+scanners:
+  - type: regex
+    action: redact
+    streaming:
+      enabled: true
+      mode: finalize_only
+    patterns:
+      - 'https?://\\S+'
+```
+
+In this example, `mode: finalize_only` means the scanner participates in the
+streaming lifecycle but only makes its effective decision at end-of-stream after
+full buffering. Future modes could include richer options such as
+`incremental_redact`, `early_block`, or other capability-specific variants once
+their runtime semantics are well-defined.
+
+This example is illustrative of placement rather than a finalized schema. The key
+point is that scanner-level streaming participation belongs in detailed
+ConfigMap-backed runtime policy, while `guardrails.enabled` remains the minimal
+CRD switch.
+
+That yields the following control model:
 
 1. explicit request value wins
-2. service-level default applies only when request value is absent
+2. scanner-level streaming policy applies only after a request has already been classified as streaming
+3. runtime fallback applies only when neither is provided
 
 ### End User, Orchestrator, and Runtime Responsibilities
 
@@ -95,6 +129,12 @@ API client. The responsibility boundary should therefore be explicit:
 - the originating caller or workflow defines the intended streaming mode
 - the orchestrator or client layer translates that intent into request bodies
 - the runtime consumes the resolved `stream` value for that specific call
+
+For operator-driven deployments, this same model applies one layer up:
+
+- the operator configures scanner-level streaming participation through ConfigMap-backed runtime policy
+- the request path still decides whether a given call is streaming
+- the runtime resolves the final value once at request entry
 
 Recommended precedence rules are:
 
@@ -158,12 +198,16 @@ value; it does not infer workflow policy on its own.
 Recommended placement is:
 
 - end-user preference and workflow defaults live in the UI, SDK, or orchestrator layer
+- operator-managed scanner streaming policy lives in ConfigMap-backed runtime configuration
 - request materialization happens in the client or orchestrator request builder
 - final `stream` resolution happens at the `/v1/chat/completions` entrypoint before transport selection
+- scanner-level streaming policy does not determine whether a request is streamed; it only determines how a scanner participates after a request has entered the streaming path
 - streaming guardrails logic runs only after the request has already been classified as streaming
 
 In the current RAGEngine structure, that means:
 
+- `guardrails.enabled` remains the minimal CRD switch for enabling guardrails capability
+- scanner-level streaming participation policy should be added to ConfigMap-backed runtime policy rather than encoded in `guardrails.enabled`
 - higher-level defaults should be resolved before constructing the downstream request body
 - the API entrypoint should consume the final `stream` value and choose between streaming and non-streaming paths
 - the streaming processor should not re-decide whether streaming was intended
@@ -173,7 +217,7 @@ In the current RAGEngine structure, that means:
 
 The streaming lifecycle is conceptually:
 
-1. receive upstream SSE chunks
+1. receive upstream SSE (Server-Sent Events) chunks
 2. accumulate assistant text
 3. invoke scanner `on_chunk(...)`
 4. invoke scanner `finalize(...)`

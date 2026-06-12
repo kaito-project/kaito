@@ -77,9 +77,6 @@ Streaming is request-driven, not service-default.
 The runtime should continue treating `stream` as a per-request input rather than a global
 deployment switch.
 
-If product requirements later call for a service-level default streaming mode, it should
-be added separately with clear precedence rules.
-
 In the current RAGEngine UX model, `spec.guardrails.enabled` should remain a minimal
 capability switch. Detailed streaming participation policy should live with other
 runtime policy in ConfigMap-backed configuration rather than being folded into
@@ -115,7 +112,6 @@ That yields the following control model:
 
 1. explicit request value wins
 2. scanner-level streaming policy applies only after a request has already been classified as streaming
-3. runtime fallback applies only when neither is provided
 
 ### End User, Orchestrator, and Runtime Responsibilities
 
@@ -134,19 +130,18 @@ For operator-driven deployments, this same model applies one layer up:
 
 - the operator configures scanner-level streaming participation through ConfigMap-backed runtime policy
 - the request path still decides whether a given call is streaming
-- the runtime resolves the final value once at request entry
+- the runtime resolves request-level streaming once at request entry
 
 Recommended precedence rules are:
 
 1. explicit request `stream` value wins
-2. orchestrator or SDK default applies only when request `stream` is absent
-3. runtime fallback applies only when neither is provided
+2. if `stream` is absent, the runtime treats the request as non-streaming
 
 Under this model:
 
 - the runtime is not responsible for inferring user preference
 - scanners are not responsible for deciding whether a request should stream
-- the orchestrator is responsible for expanding product defaults into concrete per-request values
+- the caller is responsible for setting request-level `stream` when streaming is intended
 
 This separation is especially important for agentic and multi-call workflows, where a
 single upstream action may result in many `/v1/chat/completions` calls. In those
@@ -161,13 +156,11 @@ logic:
 ```python
 if request explicitly provides stream:
   use request.stream
-elif orchestrator or SDK default is configured:
-  use that default
 else:
-  use the runtime fallback
+  use false
 ```
 
-For the first implementation, the runtime fallback should remain conservative and
+For the first implementation, omission of `stream` should remain conservative and
 default to non-streaming.
 
 Representative request shapes are:
@@ -182,18 +175,18 @@ Direct API caller:
 }
 ```
 
-Orchestrator-managed caller with a higher-level default:
+Explicit non-streaming caller:
 
 ```json
 {
   "model": "example-model",
-  "messages": [{"role": "user", "content": "hello"}]
+  "messages": [{"role": "user", "content": "hello"}],
+  "stream": false
 }
 ```
 
-In the second case, the orchestrator resolves its configured default before sending
-the downstream request. The runtime still consumes a concrete per-request `stream`
-value; it does not infer workflow policy on its own.
+In the second case, the caller explicitly keeps the request on the non-streaming
+path. The runtime does not infer streaming intent from scanner policy.
 
 Recommended placement is:
 
@@ -208,7 +201,6 @@ In the current RAGEngine structure, that means:
 
 - `guardrails.enabled` remains the minimal CRD switch for enabling guardrails capability
 - scanner-level streaming participation policy should be added to ConfigMap-backed runtime policy rather than encoded in `guardrails.enabled`
-- higher-level defaults should be resolved before constructing the downstream request body
 - the API entrypoint should consume the final `stream` value and choose between streaming and non-streaming paths
 - the streaming processor should not re-decide whether streaming was intended
 - scanners should operate only on the chosen streaming lifecycle and should not participate in request policy resolution

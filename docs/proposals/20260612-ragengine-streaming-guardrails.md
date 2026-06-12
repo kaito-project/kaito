@@ -67,61 +67,29 @@ The current codebase contains the following pieces:
 
 ## Proposed Design
 
-### Request-Level vs Service-Level Control
+### Request-Level Control
 
-Streaming is request-driven, not service-default.
+Streaming is request-driven.
 
-- service-level configuration enables or disables guardrails and points to policy data
 - request-level configuration decides whether a specific call uses streaming
-
-The runtime should continue treating `stream` as a per-request input rather than a global
-deployment switch.
+- scanner-level configuration only affects how scanners participate after a call has entered the streaming path
 
 In the current RAGEngine UX model, `spec.guardrails.enabled` should remain a minimal
 capability switch. Detailed streaming participation policy should live with other
 runtime policy in ConfigMap-backed configuration rather than being folded into
 `guardrails.enabled` itself.
 
-For example, an operator-facing policy document could eventually carry
-scanner-specific streaming participation settings alongside other runtime policy data:
-
-```yaml
-blockMessage: The model output was blocked by output guardrails.
-scanners:
-  - type: regex
-    action: redact
-    streaming:
-      enabled: true
-      mode: finalize_only
-    patterns:
-      - 'https?://\\S+'
-```
-
-In this example, `mode: finalize_only` means the scanner participates in the
-streaming lifecycle but only makes its effective decision at end-of-stream after
-full buffering. Future modes could include richer options such as
-`incremental_redact`, `early_block`, or other capability-specific variants once
-their runtime semantics are well-defined.
-
-This example is illustrative of placement rather than a finalized schema. The key
-point is that scanner-level streaming participation belongs in detailed
-ConfigMap-backed runtime policy, while `guardrails.enabled` remains the minimal
-CRD switch.
-
 That yields the following control model:
 
-1. explicit request value wins
-2. scanner-level streaming policy applies only after a request has already been classified as streaming
+1. explicit request value determines whether the call is streaming
+2. scanner-level streaming policy applies only after the call has entered the streaming path
 
 ### Control Model
 
 Request-level streaming does not require the originating actor to set `stream`
 manually on every call. In many deployments, the direct caller of
 `/v1/chat/completions` is an SDK, workflow engine, agent orchestrator, or UI
-backend rather than a human-operated API client. In operator-driven deployments,
-scanner-level streaming participation is configured through ConfigMap-backed
-runtime policy, but request-level `stream` still determines whether a given call
-enters the streaming path at all.
+backend rather than a human-operated API client.
 
 The effective `stream` value for a call should be resolved using the following
 logic:
@@ -164,7 +132,7 @@ path. The runtime does not infer streaming intent from scanner policy.
 Recommended placement is:
 
 - request materialization happens in the client, SDK, or orchestrator layer
-- operator-managed scanner streaming policy lives in ConfigMap-backed runtime configuration
+- scanner streaming policy lives in ConfigMap-backed runtime configuration
 - final `stream` resolution happens at the `/v1/chat/completions` entrypoint before transport selection
 - scanner-level streaming policy does not determine whether a request is streamed; it only determines how a scanner participates after a request has entered the streaming path
 - streaming guardrails logic runs only after the request has already been classified as streaming

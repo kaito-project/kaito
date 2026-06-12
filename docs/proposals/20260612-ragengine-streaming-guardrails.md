@@ -93,6 +93,92 @@ be added separately with clear precedence rules:
 1. explicit request value wins
 2. service-level default applies only when request value is absent
 
+### End User, Orchestrator, and Runtime Responsibilities
+
+Request-level streaming does not require the originating actor to set `stream`
+manually on every call.
+
+In many deployments, the direct caller of `/v1/chat/completions` is an SDK,
+workflow engine, agent orchestrator, or UI backend rather than a human-operated
+API client. The responsibility boundary should therefore be explicit:
+
+- the originating caller or workflow defines the intended streaming mode
+- the orchestrator or client layer translates that intent into request bodies
+- the runtime consumes the resolved `stream` value for that specific call
+
+Recommended precedence rules are:
+
+1. explicit request `stream` value wins
+2. orchestrator or SDK default applies only when request `stream` is absent
+3. runtime fallback applies only when neither is provided
+
+Under this model:
+
+- the runtime is not responsible for inferring user preference
+- scanners are not responsible for deciding whether a request should stream
+- the orchestrator is responsible for expanding product defaults into concrete per-request values
+
+This separation is especially important for agentic and multi-call workflows, where a
+single upstream action may result in many `/v1/chat/completions` calls. In those
+cases, the orchestrator should materialize the selected mode into the `stream`
+field of each downstream request.
+
+#### Resolution Rule and Recommended Placement
+
+The effective `stream` value for a given call should be resolved using the following
+logic:
+
+```python
+if request explicitly provides stream:
+  use request.stream
+elif orchestrator or SDK default is configured:
+  use that default
+else:
+  use the runtime fallback
+```
+
+For the first implementation, the runtime fallback should remain conservative and
+default to non-streaming.
+
+Representative request shapes are:
+
+Direct API caller:
+
+```json
+{
+  "model": "example-model",
+  "messages": [{"role": "user", "content": "hello"}],
+  "stream": true
+}
+```
+
+Orchestrator-managed caller with a higher-level default:
+
+```json
+{
+  "model": "example-model",
+  "messages": [{"role": "user", "content": "hello"}]
+}
+```
+
+In the second case, the orchestrator resolves its configured default before sending
+the downstream request. The runtime still consumes a concrete per-request `stream`
+value; it does not infer workflow policy on its own.
+
+Recommended placement is:
+
+- end-user preference and workflow defaults live in the UI, SDK, or orchestrator layer
+- request materialization happens in the client or orchestrator request builder
+- final `stream` resolution happens at the `/v1/chat/completions` entrypoint before transport selection
+- streaming guardrails logic runs only after the request has already been classified as streaming
+
+In the current RAGEngine structure, that means:
+
+- higher-level defaults should be resolved before constructing the downstream request body
+- the API entrypoint should consume the final `stream` value and choose between streaming and non-streaming paths
+- the streaming processor should not re-decide whether streaming was intended
+- scanners should operate only on the chosen streaming lifecycle and should not participate in request policy resolution
+
 ### Streaming Runtime Model
 
 The streaming lifecycle is conceptually:

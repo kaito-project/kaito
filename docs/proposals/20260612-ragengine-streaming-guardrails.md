@@ -16,7 +16,7 @@ see-also:
 
 This proposal defines how streaming output guardrails should work in RAGEngine.
 
-The current codebase supports non-streaming guardrails. The next step is to make streaming guardrails a first-class runtime
+The current codebase supports non-streaming guardrails. The next step is to make streaming guardrails a well-defined runtime
 feature with clear scanner contracts, explicit user-visible behavior, and phased support
 for passthrough and RAG streaming.
 

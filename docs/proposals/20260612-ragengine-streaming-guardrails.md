@@ -16,8 +16,7 @@ see-also:
 
 This proposal defines how streaming output guardrails should work in RAGEngine.
 
-The current codebase already supports non-streaming guardrails and a minimal streaming
-passthrough path. The next step is to make streaming guardrails a first-class runtime
+The current codebase supports non-streaming guardrails. The next step is to make streaming guardrails a first-class runtime
 feature with clear scanner contracts, explicit user-visible behavior, and phased support
 for passthrough and RAG streaming.
 
@@ -61,19 +60,10 @@ before streaming support expands further.
 
 ## Current State
 
-The current codebase already contains the following pieces:
+The current codebase contains the following pieces:
 
 - a non-streaming output guardrails runtime that scans full `ChatCompletionResponse` objects
 - a policy/config pipeline driven by environment variables and ConfigMap-backed YAML
-- a streaming request path in `/v1/chat/completions` that branches on request-level `stream`
-- a passthrough streaming transport to the upstream inference service
-- a minimal streaming guardrails processor skeleton
-
-It also already distinguishes two separate inputs:
-
-- service-level guardrails configuration, read from environment variables such as
-  `OUTPUT_GUARDRAILS_ENABLED` and `OUTPUT_GUARDRAILS_POLICY_PATH`
-- request-level streaming intent, read from the HTTP request body via `request.get("stream")`
 
 ## Proposed Design
 

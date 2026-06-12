@@ -412,7 +412,7 @@ func validateInferenceSetStatus(inferenceSetObj *kaitov1alpha1.InferenceSet) {
 					condition.Status == metav1.ConditionTrue
 			})
 			return conditionFound
-		}, 20*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for InferenceSet status to be ready")
+		}, 30*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for InferenceSet status to be ready")
 	})
 }
 

@@ -280,6 +280,47 @@ output_guardrails_scanner_build_total = Counter(
     labelnames=[TYPE_LABEL, STATUS_LABEL],
 )
 
+stream_chunks_scanned_total = Counter(
+    "stream_chunks_scanned_total",
+    "Count of streaming chunks scanned by output guardrails.",
+)
+
+stream_blocks_total = Counter(
+    "stream_blocks_total",
+    "Count of streaming responses blocked by output guardrails.",
+    labelnames=["scanner_type"],
+)
+
+stream_redactions_total = Counter(
+    "stream_redactions_total",
+    "Count of streaming responses redacted by output guardrails.",
+    labelnames=["scanner_type"],
+)
+
+stream_finalize_actions_total = Counter(
+    "stream_finalize_actions_total",
+    "Count of final streaming guardrails actions.",
+    labelnames=["final_action"],
+)
+
+stream_scanner_errors_total = Counter(
+    "stream_scanner_errors_total",
+    "Count of streaming scanner errors by scanner, phase, and fail-open mode.",
+    labelnames=["scanner_type", "phase", "fail_open"],
+)
+
+stream_buffer_bytes = Gauge(
+    "stream_buffer_bytes",
+    "Current buffered byte size for the active streaming response.",
+)
+
+stream_decision_latency_ms = Histogram(
+    "stream_decision_latency_ms",
+    "Streaming guardrails decision latency in milliseconds.",
+    labelnames=["scanner_type", "phase", ACTION_LABEL],
+    buckets=(0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10, 25, 50, 100, 250, 500),
+)
+
 rag_hybrid_sparse_candidates = Histogram(
     "rag_hybrid_sparse_candidates",
     "Number of sparse (BM25) candidate nodes returned before fusion",

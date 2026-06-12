@@ -43,6 +43,7 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 const (
@@ -506,10 +507,15 @@ const (
 
 // defaultPDPluginsConfigTemplate is the default EPP plugins YAML template for P/D disaggregated serving.
 // Uses the llm-d EndpointPickerConfig format with schedulingProfiles for prefill and decode.
+// approx-prefix-cache-producer is used for prefix cache awareness (no tokenizer sidecar needed).
 const defaultPDPluginsConfigTemplate = `apiVersion: inference.networking.x-k8s.io/v1alpha1
 kind: EndpointPickerConfig
 plugins:
   - type: disagg-headers-handler
+  - type: approx-prefix-cache-producer
+    parameters:
+      blockSizeTokens: 64
+      autoTune: true
   - type: prefix-based-pd-decider
     parameters:
       nonCachedTokens: 4
@@ -547,9 +553,6 @@ schedulingProfiles:
 `
 
 // defaultPDPluginsConfig returns the default P/D plugins config.
-// Note: precise-prefix-cache-scorer is omitted because it requires a tokenizer
-// sidecar (UDS socket) that is not yet deployed by KAITO. Once tokenizer sidecar
-// support is added, this config should be updated to include it.
 func defaultPDPluginsConfig() string {
 	return defaultPDPluginsConfigTemplate
 }
@@ -600,10 +603,9 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	// --- HelmRelease ---
 	// InferencePool selects ALL MRI pods (prefill + decode). EPP's internal
 	// prefill-filter / decode-filter plugins handle role-based selection.
-	// targetPort=5001 (sidecar) is only used by Envoy for user-facing traffic;
-	// EPP routes user requests exclusively to decode pods via decode-filter.
-	// Prefill communication is initiated by the decode sidecar directly to
-	// prefill pod:5000, bypassing InferencePool/Envoy entirely.
+	// targetPort=5000 (PortInferenceServer) — on decode pods the routing sidecar
+	// listens on 5000 and forwards to vLLM on 5001; on prefill pods vLLM
+	// listens directly on 5000. EPP routes user requests to decode pods.
 	matchLabels := map[string]string{
 		kaitov1alpha1.LabelMultiRoleInferenceParent: mri.Name,
 		appsv1.PodIndexLabel:                        "0", // Only leader pod (ordinal 0) serves inference traffic
@@ -639,14 +641,53 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	// Disable EPP secure-serving (self-signed TLS) — MRI pools run plaintext
 	// behind the mesh, matching standalone InferenceSet behavior.
 	eppValues["flags"] = map[string]string{
-		"secure-serving": "false",
+		"secure-serving":            "false",
+		"model-server-metrics-port": fmt.Sprintf("%d", consts.PortDecodeVLLM),
+	}
+	// Tokenizer sidecar: GPU-less vLLM render process deployed alongside EPP.
+	// Serves tokenization on port 8100 for future token-producer plugin (v0.9.0+).
+	// Resolve short model names to full HuggingFace IDs (e.g. "phi-4-mini-instruct" → "microsoft/phi-4-mini-instruct").
+	tokenizerModelName := mri.Spec.Model.Name
+	if hfName, ok := plugin.LegacyBuiltinToCatalog[tokenizerModelName]; ok {
+		tokenizerModelName = hfName
+	}
+	eppValues["sidecar"] = map[string]any{
+		"enabled": true,
+		"name":    "tokenizer",
+		"image":   consts.TokenizerSidecarImage,
+		"command": []string{"python3", "-m", "vllm.entrypoints.cli.main", "launch", "render", tokenizerModelName, fmt.Sprintf("--port=%d", consts.TokenizerSidecarPort)},
+		"args":    []string{},
+		"env": []map[string]string{
+			{"name": "VLLM_TARGET_DEVICE", "value": "cpu"},
+			{"name": "USER", "value": "nonroot"},
+			{"name": "TORCHINDUCTOR_CACHE_DIR", "value": "/tmp/torch-cache"},
+			{"name": "HF_HOME", "value": "/tmp/hf-home"},
+			{"name": "TRANSFORMERS_CACHE", "value": "/tmp/hf-home"},
+			{"name": "VLLM_CACHE_ROOT", "value": "/tmp/vllm-cache"},
+		},
+		"ports": []map[string]any{
+			{
+				"containerPort": consts.TokenizerSidecarPort,
+				"name":          "tokenizer",
+				"protocol":      "TCP",
+			},
+		},
+		"resources": map[string]any{
+			"requests": map[string]string{
+				"cpu":    "500m",
+				"memory": "1Gi",
+			},
+			"limits": map[string]string{
+				"memory": "2Gi",
+			},
+		},
 	}
 
 	helmValues := map[string]any{
 		"inferenceExtension": eppValues,
 		"inferencePool": map[string]any{
 			"targetPorts": []map[string]any{
-				{"number": consts.PortRoutingSidecar}, // routing sidecar port; GWIE CRD allows only one targetPort (maxItems: 1)
+				{"number": consts.PortInferenceServer}, // sidecar (decode) or vLLM (prefill) on port 5000
 			},
 			"modelServers": map[string]any{
 				"matchLabels": matchLabels,

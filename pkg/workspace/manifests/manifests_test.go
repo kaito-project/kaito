@@ -114,7 +114,7 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 				"inferencePool": map[string]any{
 					"targetPorts": []any{
 						map[string]any{
-							"number": float64(consts.PortRoutingSidecar),
+							"number": float64(consts.PortInferenceServer),
 						},
 					},
 					"modelServers": map[string]any{
@@ -150,7 +150,7 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 				"inferencePool": map[string]any{
 					"targetPorts": []any{
 						map[string]any{
-							"number": float64(consts.PortRoutingSidecar),
+							"number": float64(consts.PortInferenceServer),
 						},
 					},
 					"modelServers": map[string]any{

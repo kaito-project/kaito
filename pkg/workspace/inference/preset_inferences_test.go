@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -1552,12 +1553,12 @@ func TestInjectRoutingSidecar(t *testing.T) {
 				if sidecar.Image != expectedImage {
 					t.Errorf("expected image %q, got %q", expectedImage, sidecar.Image)
 				}
-				if len(sidecar.Ports) != 1 || sidecar.Ports[0].ContainerPort != consts.PortRoutingSidecar {
-					t.Errorf("expected port %d, got %v", consts.PortRoutingSidecar, sidecar.Ports)
+				if len(sidecar.Ports) != 1 || sidecar.Ports[0].ContainerPort != consts.PortInferenceServer {
+					t.Errorf("expected sidecar port %d, got %v", consts.PortInferenceServer, sidecar.Ports)
 				}
 				expectedArgs := []string{
-					fmt.Sprintf("--port=%d", consts.PortRoutingSidecar),
-					fmt.Sprintf("--vllm-port=%d", consts.PortInferenceServer),
+					fmt.Sprintf("--port=%d", consts.PortInferenceServer),
+					fmt.Sprintf("--vllm-port=%d", consts.PortDecodeVLLM),
 					"--secure-proxy=false",
 				}
 				if len(sidecar.Args) != len(expectedArgs) {
@@ -1576,27 +1577,37 @@ func TestInjectRoutingSidecar(t *testing.T) {
 					}
 				}
 
-				// With the new sidecar approach, vLLM keeps its default port (5000)
-				// and probes continue to target vLLM directly — no rewriting needed.
+				// With the new sidecar approach, vLLM is moved to port 5001
+				// and probes are rewritten to target vLLM on the new port.
 				main := spec.Containers[0]
-				hasDefaultPort := false
+				hasDecodePort := false
 				for _, p := range main.Ports {
-					if p.ContainerPort == int32(consts.PortInferenceServer) {
-						hasDefaultPort = true
+					if p.ContainerPort == consts.PortDecodeVLLM {
+						hasDecodePort = true
 					}
 				}
-				if !hasDefaultPort {
-					t.Errorf("main container should keep containerPort %d", consts.PortInferenceServer)
+				if !hasDecodePort {
+					t.Errorf("main container should have containerPort %d", consts.PortDecodeVLLM)
 				}
 				if main.ReadinessProbe != nil && main.ReadinessProbe.HTTPGet != nil {
-					if main.ReadinessProbe.HTTPGet.Port.IntValue() != int(consts.PortInferenceServer) {
-						t.Errorf("readiness probe should target port %d", consts.PortInferenceServer)
+					if main.ReadinessProbe.HTTPGet.Port.IntValue() != int(consts.PortDecodeVLLM) {
+						t.Errorf("readiness probe should target port %d", consts.PortDecodeVLLM)
 					}
 				}
 				if main.LivenessProbe != nil && main.LivenessProbe.HTTPGet != nil {
-					if main.LivenessProbe.HTTPGet.Port.IntValue() != int(consts.PortInferenceServer) {
-						t.Errorf("liveness probe should target port %d", consts.PortInferenceServer)
+					if main.LivenessProbe.HTTPGet.Port.IntValue() != int(consts.PortDecodeVLLM) {
+						t.Errorf("liveness probe should target port %d", consts.PortDecodeVLLM)
 					}
+				}
+				// Check VLLM_PORT env var is set
+				hasPortEnv := false
+				for _, env := range main.Env {
+					if env.Name == "VLLM_PORT" && env.Value == strconv.FormatInt(int64(consts.PortDecodeVLLM), 10) {
+						hasPortEnv = true
+					}
+				}
+				if !hasPortEnv {
+					t.Error("main container should have VLLM_PORT env var set to decode port")
 				}
 			}
 		})

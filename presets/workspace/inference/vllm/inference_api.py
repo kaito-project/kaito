@@ -96,7 +96,9 @@ class KAITOArgumentParser(argparse.ArgumentParser):
 
     def _reset_vllm_defaults(self):
         local_rank = int(os.environ.get("LOCAL_RANK", 0))  # Default to 0 if not set
-        port = 5000 + local_rank  # Adjust port based on local rank
+        port = int(
+            os.environ.get("VLLM_PORT", 5000 + local_rank)
+        )  # Allow override via env
 
         server_default_args = {
             "disable_frontend_multiprocessing": False,

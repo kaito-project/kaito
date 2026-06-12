@@ -113,44 +113,17 @@ That yields the following control model:
 1. explicit request value wins
 2. scanner-level streaming policy applies only after a request has already been classified as streaming
 
-### End User, Orchestrator, and Runtime Responsibilities
+### Control Model
 
 Request-level streaming does not require the originating actor to set `stream`
-manually on every call.
+manually on every call. In many deployments, the direct caller of
+`/v1/chat/completions` is an SDK, workflow engine, agent orchestrator, or UI
+backend rather than a human-operated API client. In operator-driven deployments,
+scanner-level streaming participation is configured through ConfigMap-backed
+runtime policy, but request-level `stream` still determines whether a given call
+enters the streaming path at all.
 
-In many deployments, the direct caller of `/v1/chat/completions` is an SDK,
-workflow engine, agent orchestrator, or UI backend rather than a human-operated
-API client. The responsibility boundary should therefore be explicit:
-
-- the originating caller or workflow defines the intended streaming mode
-- the orchestrator or client layer translates that intent into request bodies
-- the runtime consumes the resolved `stream` value for that specific call
-
-For operator-driven deployments, this same model applies one layer up:
-
-- the operator configures scanner-level streaming participation through ConfigMap-backed runtime policy
-- the request path still decides whether a given call is streaming
-- the runtime resolves request-level streaming once at request entry
-
-Recommended precedence rules are:
-
-1. explicit request `stream` value wins
-2. if `stream` is absent, the runtime treats the request as non-streaming
-
-Under this model:
-
-- the runtime is not responsible for inferring user preference
-- scanners are not responsible for deciding whether a request should stream
-- the caller is responsible for setting request-level `stream` when streaming is intended
-
-This separation is especially important for agentic and multi-call workflows, where a
-single upstream action may result in many `/v1/chat/completions` calls. In those
-cases, the orchestrator should materialize the selected mode into the `stream`
-field of each downstream request.
-
-#### Resolution Rule and Recommended Placement
-
-The effective `stream` value for a given call should be resolved using the following
+The effective `stream` value for a call should be resolved using the following
 logic:
 
 ```python
@@ -190,9 +163,8 @@ path. The runtime does not infer streaming intent from scanner policy.
 
 Recommended placement is:
 
-- end-user preference and workflow defaults live in the UI, SDK, or orchestrator layer
+- request materialization happens in the client, SDK, or orchestrator layer
 - operator-managed scanner streaming policy lives in ConfigMap-backed runtime configuration
-- request materialization happens in the client or orchestrator request builder
 - final `stream` resolution happens at the `/v1/chat/completions` entrypoint before transport selection
 - scanner-level streaming policy does not determine whether a request is streamed; it only determines how a scanner participates after a request has entered the streaming path
 - streaming guardrails logic runs only after the request has already been classified as streaming
@@ -200,10 +172,9 @@ Recommended placement is:
 In the current RAGEngine structure, that means:
 
 - `guardrails.enabled` remains the minimal CRD switch for enabling guardrails capability
-- scanner-level streaming participation policy should be added to ConfigMap-backed runtime policy rather than encoded in `guardrails.enabled`
-- the API entrypoint should consume the final `stream` value and choose between streaming and non-streaming paths
-- the streaming processor should not re-decide whether streaming was intended
-- scanners should operate only on the chosen streaming lifecycle and should not participate in request policy resolution
+- scanner-level streaming participation policy should live in ConfigMap-backed runtime policy rather than in `guardrails.enabled`
+- the API entrypoint chooses between streaming and non-streaming paths
+- the streaming processor and scanners operate only after that path has been selected
 
 ### Streaming Runtime Model
 

@@ -22,41 +22,47 @@ for passthrough and RAG streaming.
 
 The guiding principles are:
 
-- start with deterministic scanners only
-- keep the first implementation conservative
-- separate passthrough streaming from RAG streaming
-- prefer explicit runtime contracts over implicit behavior
+- start with deterministic scanners whose streaming behavior is predictable
+- keep the first implementation conservative and buffering-first
+- treat passthrough streaming and RAG streaming as separate workstreams
+- define explicit runtime contracts rather than relying on implicit behavior
 
 ## Motivation
 
 RAGEngine currently applies output guardrails to complete responses after generation.
-This works for non-streaming responses, but it does not yet define how scanners should
-participate in a chunked streaming lifecycle.
+This works for non-streaming responses because scanners can evaluate a full answer
+after generation has completed. It does not yet define how scanners should behave
+when the model returns output incrementally in chunks.
 
-Streaming needs explicit decisions for:
+Once streaming is introduced, the runtime must decide:
 
 - when content can be emitted safely
 - when content must remain buffered
 - what users see for redact and block
 - how scanner capabilities affect overall stream behavior
 
-These choices affect correctness, UX, and API compatibility, so they should be agreed on
-before streaming support expands further.
+These questions do not exist in the same form for full-response scanning. They are
+specific to streaming, where content may already be on its way to the client before
+the full response is available for inspection.
+
+Because these choices affect correctness, user-visible behavior, and API
+compatibility, they should be defined explicitly before streaming support expands
+further.
 
 ### Goals
 
 - Define the runtime contract for streaming scanners.
 - Support a conservative initial implementation for deterministic scanners.
+- Define a path for existing output scanners to participate safely in streaming over time, starting with deterministic scanners in the first phase.
 - Clearly separate request-level streaming behavior from service-level guardrails config.
 - Establish explicit UX rules for redact, block, and late violations.
 - Define a staged implementation plan for passthrough streaming first, then RAG streaming.
 
 ### Non-Goals
 
-- Make every existing output scanner streaming-safe in the first phase.
 - Use ConfigMap-backed runtime policy to replace request-level `stream` selection for individual calls.
 - Deliver true token-by-token RAG streaming in the first phase.
-- Guarantee fully general regex streaming semantics for arbitrarily complex patterns.
+- Guarantee that all regex patterns behave identically in streaming and full-response modes.
 
 ## Current State
 
@@ -81,8 +87,7 @@ runtime policy in ConfigMap-backed configuration rather than being folded into
 
 That yields the following control model:
 
-1. explicit request value determines whether the call is streaming
-2. scanner-level streaming policy applies only after the call has entered the streaming path
+1. request-level `stream` determines whether a call enters the streaming path, and scanner-level policy applies only after that point
 
 ### Control Model
 
@@ -267,36 +272,36 @@ Recommended order for follow-up work:
 
 ## Risks and Mitigations
 
-### Risk: Unsafe Partial Emission
+### Risk: Content Leaks Before Scanners Finish
 
-If content is emitted too early, later scanners may detect a violation after unsafe
-content has already reached the client.
+Streaming can send content to the client before scanners have enough context to make a
+safe decision.
 
 Mitigation:
 
 - default to buffering
-- allow partial emission only when every participating scanner explicitly supports it
-- use safe-window buffering for early block capable scanners
+- only allow partial emission when every participating scanner explicitly supports it
+- use safe-window buffering for early-block behavior
 
-### Risk: Scanner Semantics Drift
+### Risk: Different Scanners Need Different Rules
 
-Different scanner types may require different streaming guarantees.
-
-Mitigation:
-
-- treat scanner capability as first-class runtime metadata
-- avoid assuming a single policy works for every scanner
-
-### Risk: Conflating Product UX with Transport Mechanics
-
-Streaming transport, scanner lifecycle, and user-visible output can easily become mixed
-together in implementation.
+Not every scanner can use the same streaming strategy.
 
 Mitigation:
 
-- keep SSE transport concerns in dedicated runtime code
-- keep scanner contract decisions explicit
-- document UX behavior separately from internal transport details
+- treat scanner capability as explicit runtime metadata
+- do not assume one streaming policy fits every scanner
+
+### Risk: Transport Logic and UX Get Mixed Together
+
+It is easy to mix up SSE transport handling with scanner behavior and user-visible
+output rules.
+
+Mitigation:
+
+- keep SSE handling in dedicated runtime code
+- keep scanner contracts explicit
+- define UX behavior separately from transport mechanics
 
 ## Alternatives and Validation
 

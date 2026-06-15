@@ -655,8 +655,8 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 		"enabled": true,
 		"name":    "tokenizer",
 		"image":   consts.TokenizerSidecarImage,
-		"command": []string{"python3", "-m", "vllm.entrypoints.cli.main", "launch", "render", tokenizerModelName, fmt.Sprintf("--port=%d", consts.TokenizerSidecarPort)},
-		"args":    []string{},
+		"command": "python3",
+		"args":    []string{"-m", "vllm.entrypoints.cli.main", "launch", "render", tokenizerModelName, fmt.Sprintf("--port=%d", consts.TokenizerSidecarPort)},
 		"env": []map[string]string{
 			{"name": "VLLM_TARGET_DEVICE", "value": "cpu"},
 			{"name": "USER", "value": "nonroot"},

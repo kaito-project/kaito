@@ -143,7 +143,7 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 
 	It("should validate the workspace inference configfile", func() {
 		By("Creating a 2gpu transformers workspace without configfile", func() {
-			workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC12s_v3",
+			workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV36ads_A10_v5",
 				&metav1.LabelSelector{
 					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
 				}, nil, PresetPhi4Model, nil, nil, nil, "", "")
@@ -161,7 +161,7 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 		})
 
 		By("Creating a 2gpu workspace with correct configfile", func() {
-			workspaceObj := utils.GenerateInferenceWorkspaceManifestWithVLLM(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC12s_v3",
+			workspaceObj := utils.GenerateInferenceWorkspaceManifestWithVLLM(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV36ads_A10_v5",
 				&metav1.LabelSelector{
 					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
 				}, nil, PresetPhi4MiniModel, nil, nil, nil, "", "")

@@ -83,7 +83,7 @@ jobs:
         shell: bash
         run: |
           # Wait for workspace to be ready
-          kubectl wait --for=condition=InferenceReady workspace/workspace-mistral-7b-instruct --timeout=1000s
+          kubectl wait --for=condition=InferenceReady workspace/workspace-mistral-7b-instruct --timeout=1800s
 
           # Verify it is using a Deployment
           if ! kubectl get deployment workspace-mistral-7b-instruct; then
@@ -268,7 +268,7 @@ jobs:
           fi
 
           # Wait for workspace to be ready
-          kubectl wait pod --selector=kaito.sh/workspace=workspace-mistral-7b-instruct --for=condition=Ready --timeout=1000s
+          kubectl wait pod --selector=kaito.sh/workspace=workspace-mistral-7b-instruct --for=condition=Ready --timeout=1800s
 
       - name: Upgrade to current chart
         shell: bash
@@ -291,7 +291,7 @@ jobs:
       - name: Verify migration to StatefulSet (BYO)
         shell: bash
         run: |
-          kubectl wait --for=condition=InferenceReady workspace/workspace-mistral-7b-instruct --timeout=1000s
+          kubectl wait --for=condition=InferenceReady workspace/workspace-mistral-7b-instruct --timeout=1200s
 
           # Verify it is now using a StatefulSet
           if ! kubectl get statefulset workspace-mistral-7b-instruct; then

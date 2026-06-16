@@ -512,10 +512,10 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 				Image:          GetBaseImageName(),
 				Command:        commands,
 				Resources:      resourceReq,
-				Ports:          containerPorts,
+				Ports:          append([]corev1.ContainerPort(nil), containerPorts...),
 				StartupProbe:   buildStartupProbe(readinessTimeout),
-				LivenessProbe:  defaultLivenessProbe,
-				ReadinessProbe: defaultReadinessProbe,
+				LivenessProbe:  defaultLivenessProbe.DeepCopy(),
+				ReadinessProbe: defaultReadinessProbe.DeepCopy(),
 				VolumeMounts:   volumeMounts,
 			},
 		}

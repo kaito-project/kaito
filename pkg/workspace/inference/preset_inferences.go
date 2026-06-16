@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/samber/lo"
@@ -734,26 +735,43 @@ func injectRoutingSidecar(spec *corev1.PodSpec) {
 		}
 	}
 
-	// Append --port=<decode> to the main container's shell command so vLLM
-	// listens on PortDecodeVLLM and the routing sidecar can occupy 5000.
-	// Command is built by utils.ShellCmd as ["/bin/sh", "-c", "<full vllm cmd>"]
-	// so we mutate the last element.
+	// Rewrite the main vLLM command so vLLM listens on PortDecodeVLLM and the
+	// routing sidecar can occupy 5000. Command is built by utils.ShellCmd as
+	// ["/bin/sh", "-c", "<vllm-cmd>"], so we rewrite the last element.
+	//
+	// Two shapes are possible:
+	//   single-node : `python3 .../inference_api.py <args>`
+	//   multi-node  : `if [ "${POD_INDEX}" = "0" ]; then <leader>; <run>; else <worker>; fi`
+	// In the multi-node form a naive append of `--port=5001` to the trailing
+	// `fi` produces an invalid shell command and the worker branch (`ray start`)
+	// must not be touched. We therefore inject `--port=5001` only into the model
+	// run command (matched by inference_api.py / vllm-serve substring) and leave
+	// the rest of the script untouched.
 	if cmd := spec.Containers[0].Command; len(cmd) > 0 {
 		last := len(cmd) - 1
-		cmd[last] = fmt.Sprintf("%s --port=%d", cmd[last], consts.PortDecodeVLLM)
+		cmd[last] = injectVLLMPortFlag(cmd[last], consts.PortDecodeVLLM)
 		spec.Containers[0].Command = cmd
 	}
 
-	// Also rewrite probes to point at the new vLLM port
-	if spec.Containers[0].StartupProbe != nil && spec.Containers[0].StartupProbe.HTTPGet != nil {
-		spec.Containers[0].StartupProbe.HTTPGet.Port = intstr.FromInt32(consts.PortDecodeVLLM)
+	// Also rewrite probes to point at the new vLLM port. Two probe shapes
+	// exist: HTTPGet (single-node) and Exec running multi-node-health-check.py
+	// with `--vllm-port=<n>` (distributed inference).
+	rewriteProbePort := func(p *corev1.Probe) {
+		if p == nil {
+			return
+		}
+		if p.HTTPGet != nil {
+			p.HTTPGet.Port = intstr.FromInt32(consts.PortDecodeVLLM)
+		}
+		if p.Exec != nil {
+			for i, arg := range p.Exec.Command {
+				p.Exec.Command[i] = rewriteVLLMPortArg(arg, consts.PortDecodeVLLM)
+			}
+		}
 	}
-	if spec.Containers[0].LivenessProbe != nil && spec.Containers[0].LivenessProbe.HTTPGet != nil {
-		spec.Containers[0].LivenessProbe.HTTPGet.Port = intstr.FromInt32(consts.PortDecodeVLLM)
-	}
-	if spec.Containers[0].ReadinessProbe != nil && spec.Containers[0].ReadinessProbe.HTTPGet != nil {
-		spec.Containers[0].ReadinessProbe.HTTPGet.Port = intstr.FromInt32(consts.PortDecodeVLLM)
-	}
+	rewriteProbePort(spec.Containers[0].StartupProbe)
+	rewriteProbePort(spec.Containers[0].LivenessProbe)
+	rewriteProbePort(spec.Containers[0].ReadinessProbe)
 
 	spec.Containers = append(spec.Containers, corev1.Container{
 		Name:  "llm-d-routing-sidecar",
@@ -784,4 +802,90 @@ func needsRoutingSidecar(ws *v1beta1.Workspace) bool {
 		return false
 	}
 	return v1beta1.GetWorkspaceRuntimeName(ws) == pkgmodel.RuntimeNameVLLM
+}
+
+// injectVLLMPortFlag inserts `--port=<port>` into the vLLM model run command
+// inside a shell script. It supports both shapes produced upstream:
+//
+//	single-node : `python3 .../inference_api.py <args>`
+//	multi-node  : `if [ "${POD_INDEX}" = "0" ]; then <leader>; <run>; else <worker>; fi`
+//
+// In the multi-node form only the model run command (matched by
+// inference_api.py / vllm-serve) is modified — the worker branch
+// (`ray start ...`) is left alone, and the trailing `fi` keyword is preserved.
+func injectVLLMPortFlag(script string, port int32) string {
+	flag := fmt.Sprintf(" --port=%d", port)
+
+	// Pick a substring that uniquely identifies the vLLM model run command.
+	var marker string
+	switch {
+	case strings.Contains(script, "inference_api.py"):
+		marker = "inference_api.py"
+	case strings.Contains(script, "vllm-serve"):
+		marker = "vllm-serve"
+	default:
+		// Fallback: best-effort append, but make sure we don't append after `fi`.
+		if strings.HasSuffix(strings.TrimSpace(script), "fi") {
+			return script
+		}
+		return script + flag
+	}
+
+	// Find the run-command segment and insert --port at the end of it.
+	// A segment ends at the first `;` or `&&` or `fi` token after the marker.
+	idx := strings.Index(script, marker)
+	if idx < 0 {
+		return script + flag
+	}
+	end := len(script)
+	for _, sep := range []string{";", "&&", " fi"} {
+		if j := strings.Index(script[idx:], sep); j >= 0 && idx+j < end {
+			end = idx + j
+		}
+	}
+	return script[:end] + flag + script[end:]
+}
+
+// rewriteVLLMPortArg rewrites a `--vllm-port=<n>` (or `--vllm-port <n>`) arg
+// to point at the new decode vLLM port. Args without the flag are returned
+// unchanged. Used to fix up Exec readiness/liveness probes generated for
+// distributed (multi-node) inference, which run multi-node-health-check.py.
+func rewriteVLLMPortArg(arg string, port int32) string {
+	const flag = "--vllm-port"
+	if !strings.Contains(arg, flag) {
+		return arg
+	}
+	// `--vllm-port=NNN`
+	if strings.HasPrefix(arg, flag+"=") {
+		return fmt.Sprintf("%s=%d", flag, port)
+	}
+	// Inline form inside a shell command: `... --vllm-port=NNN ...` or
+	// `... --vllm-port NNN ...`. Replace the value following the flag.
+	return rewriteFlagInShellString(arg, flag, fmt.Sprintf("%d", port))
+}
+
+// rewriteFlagInShellString replaces the value of `<flag>=<v>` or `<flag> <v>`
+// inside a free-form shell string. Returns the original string unchanged when
+// the flag isn't present.
+func rewriteFlagInShellString(s, flag, value string) string {
+	if !strings.Contains(s, flag) {
+		return s
+	}
+	if i := strings.Index(s, flag+"="); i >= 0 {
+		end := i + len(flag) + 1
+		j := strings.IndexAny(s[end:], " \t")
+		if j < 0 {
+			return s[:i] + flag + "=" + value
+		}
+		return s[:i] + flag + "=" + value + s[end+j:]
+	}
+	if i := strings.Index(s, flag+" "); i >= 0 {
+		end := i + len(flag) + 1
+		j := strings.IndexAny(s[end:], " \t")
+		if j < 0 {
+			return s[:i] + flag + " " + value
+		}
+		return s[:i] + flag + " " + value + s[end+j:]
+	}
+	return s
 }

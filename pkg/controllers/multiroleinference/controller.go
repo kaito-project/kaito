@@ -43,7 +43,6 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 const (
@@ -646,44 +645,12 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 		"secure-serving":            "false",
 		"model-server-metrics-port": fmt.Sprintf("%d", consts.PortInferenceServer),
 	}
-	// Tokenizer sidecar: GPU-less vLLM render process deployed alongside EPP.
-	// Serves tokenization on port 8100 for future token-producer plugin (v0.9.0+).
-	// Resolve short model names to full HuggingFace IDs (e.g. "phi-4-mini-instruct" → "microsoft/phi-4-mini-instruct").
-	tokenizerModelName := mri.Spec.Model.Name
-	if hfName, ok := plugin.LegacyBuiltinToCatalog[tokenizerModelName]; ok {
-		tokenizerModelName = hfName
-	}
-	eppValues["sidecar"] = map[string]any{
-		"enabled": true,
-		"name":    "tokenizer",
-		"image":   consts.TokenizerSidecarImage,
-		"command": "python3",
-		"args":    []string{"-m", "vllm.entrypoints.cli.main", "launch", "render", tokenizerModelName, fmt.Sprintf("--port=%d", consts.TokenizerSidecarPort)},
-		"env": []map[string]string{
-			{"name": "VLLM_TARGET_DEVICE", "value": "cpu"},
-			{"name": "USER", "value": "nonroot"},
-			{"name": "TORCHINDUCTOR_CACHE_DIR", "value": "/tmp/torch-cache"},
-			{"name": "HF_HOME", "value": "/tmp/hf-home"},
-			{"name": "TRANSFORMERS_CACHE", "value": "/tmp/hf-home"},
-			{"name": "VLLM_CACHE_ROOT", "value": "/tmp/vllm-cache"},
-		},
-		"ports": []map[string]any{
-			{
-				"containerPort": consts.TokenizerSidecarPort,
-				"name":          "tokenizer",
-				"protocol":      "TCP",
-			},
-		},
-		"resources": map[string]any{
-			"requests": map[string]string{
-				"cpu":    "500m",
-				"memory": "1Gi",
-			},
-			"limits": map[string]string{
-				"memory": "2Gi",
-			},
-		},
-	}
+	// No tokenizer sidecar: the EPP plugin pipeline (approx-prefix-cache-producer
+	// + prefix-based-pd-decider) does not require a token-producer plugin, so a
+	// GPU-less vLLM render process would only add ~500m CPU / 1Gi memory per MRI
+	// without any benefit. If/when a future EPP version requires a token producer,
+	// re-introduce the sidecar guarded on plugin presence rather than enabling
+	// it unconditionally.
 
 	helmValues := map[string]any{
 		"inferenceExtension": eppValues,

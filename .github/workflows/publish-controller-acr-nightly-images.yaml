@@ -26,8 +26,7 @@ jobs:
     runs-on:
       labels:
         - self-hosted
-        - 1ES.Pool=ai-toolchain-operator-at-corp
-        - JobId=buildPublishAcrNightly-${{ strategy.job-index }}-${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}
+        - hostname:kaito-e2e-github-runner
     environment: publish-mcr
     strategy:
       fail-fast: false
@@ -77,9 +76,10 @@ jobs:
 
       - name: Authenticate to ACR
         run: |
-          az login --identity
+          az login --identity --client-id "${CLIENTID}"
           az acr login -n "${REGISTRY}"
         env:
+          CLIENTID: ${{ secrets.IDENTITY_CLIENT_ID }}
           REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
 
       - name: Build and push ${{ matrix.image_name }}:${{ steps.get-image-tag.outputs.img_tag }}
@@ -112,3 +112,104 @@ jobs:
         env:
           REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
           IMG_TAG: ${{ steps.get-image-tag.outputs.img_tag }}
+
+      - name: Publish Extension
+        if: ${{ matrix.image_name == 'workspace' }}
+        env:
+          IDENTITY_CLIENT_ID: ${{ secrets.IDENTITY_CLIENT_ID }}
+          EXTENSIONS_DP_RESOURCE: ${{ secrets.EXTENSIONS_DP_RESOURCE }}
+          EXTENSIONS_DP_ENDPOINT: ${{ secrets.EXTENSIONS_DP_ENDPOINT }}
+          EXTENSIONS_API_VERSION: ${{ secrets.EXTENSIONS_API_VERSION }}
+          KAITO_EXTENSION_SUBSCRIPTION: ${{ secrets.KAITO_EXTENSION_SUBSCRIPTION }}
+          KAITO_EXTENSION_TYPE: ${{ secrets.KAITO_EXTENSION_TYPE }}
+          KAITO_EXTENSION_VERSION: ${{ steps.get-image-tag.outputs.img_tag }}
+          KAITO_EXTENSION_REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
+        run: |
+          az login --identity --client-id "${IDENTITY_CLIENT_ID}"
+          az rest --resource "${EXTENSIONS_DP_RESOURCE}" --method 'PUT' --url "https://${EXTENSIONS_DP_ENDPOINT}/subscriptions/${KAITO_EXTENSION_SUBSCRIPTION}/extensionTypeRegistrations/${KAITO_EXTENSION_TYPE}/versions/${KAITO_EXTENSION_VERSION}?api-version=${EXTENSIONS_API_VERSION}" --body '{
+              "artifactEndpoints": [
+                  {
+                      "regions": [
+                          "eastus2euap",
+                          "centraluseuap",
+                          "westcentralus",
+                          "eastasia",
+                          "uksouth",
+                          "eastus",
+                          "australiaeast",
+                          "brazilsouth",
+                          "canadacentral",
+                          "centralindia",
+                          "eastus2",
+                          "eastus3",
+                          "francecentral",
+                          "germanywestcentral",
+                          "japaneast",
+                          "koreacentral",
+                          "malaysiasouth",
+                          "northcentralus",
+                          "northeurope",
+                          "swedencentral",
+                          "switzerlandnorth",
+                          "westus2",
+                          "australiacentral",
+                          "israelcentral",
+                          "italynorth",
+                          "jioindiawest",
+                          "mexicocentral",
+                          "norwayeast",
+                          "qatarcentral",
+                          "southafricanorth",
+                          "taiwannorth",
+                          "uaenorth",
+                          "ukwest",
+                          "centralus",
+                          "chilecentral",
+                          "japanwest",
+                          "malaysiawest",
+                          "newzealandnorth",
+                          "southcentralus",
+                          "southeastasia",
+                          "westeurope",
+                          "westus3",
+                          "westus",
+                          "australiacentral2",
+                          "australiasoutheast",
+                          "brazilsoutheast",
+                          "canadaeast",
+                          "denmarkeast",
+                          "francesouth",
+                          "germanynorth",
+                          "jioindiacentral",
+                          "koreasouth",
+                          "norwaywest",
+                          "polandcentral",
+                          "southafricawest",
+                          "southcentralus2",
+                          "southindia",
+                          "spaincentral",
+                          "swedensouth",
+                          "switzerlandwest",
+                          "taiwannorthwest",
+                          "uaecentral",
+                          "southeastus",
+                          "southwestus",
+                          "southeastus3",
+                          "southeastus5",
+                          "indonesiacentral",
+                          "austriaeast",
+                          "israelnorthwest",
+                          "belgiumcentral",
+                          "northeastus5",
+                          "indiasouthcentral"
+                      ],
+                      "releasetrains": [
+                          "dev",
+                          "preview"
+                      ],
+                      "fullPathToHelmChart": "'"${KAITO_EXTENSION_REGISTRY}"'/helm/workspace",
+                      "isCustomerHidden": false,
+                      "packageConfigName": "since-0.9.3"
+                  }
+              ]
+          }'

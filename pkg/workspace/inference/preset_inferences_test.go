@@ -1490,7 +1490,8 @@ func TestInjectRoutingSidecar(t *testing.T) {
 			spec := &corev1.PodSpec{
 				Containers: []corev1.Container{
 					{
-						Name: "vllm",
+						Name:    "vllm",
+						Command: []string{"/bin/sh", "-c", "python3 /workspace/vllm/inference_api.py"},
 						Ports: []corev1.ContainerPort{
 							{ContainerPort: int32(consts.PortInferenceServer), Name: "http", Protocol: corev1.ProtocolTCP},
 						},
@@ -1608,6 +1609,11 @@ func TestInjectRoutingSidecar(t *testing.T) {
 				}
 				if !hasPortEnv {
 					t.Error("main container should have VLLM_PORT env var set to decode port")
+				}
+				// Check that --port=<decode> is appended to the main container's command.
+				expectedFlag := fmt.Sprintf("--port=%d", consts.PortDecodeVLLM)
+				if n := len(main.Command); n == 0 || !strings.Contains(main.Command[n-1], expectedFlag) {
+					t.Errorf("main container Command should contain %q, got %v", expectedFlag, main.Command)
 				}
 			}
 		})

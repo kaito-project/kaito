@@ -741,6 +741,17 @@ func injectRoutingSidecar(spec *corev1.PodSpec) {
 		Value: strconv.FormatInt(int64(consts.PortDecodeVLLM), 10),
 	})
 
+	// Also append --port=<decode> to the main container's shell command so the
+	// flag is visible in the pod spec (env var alone is implicit and easy to
+	// miss when debugging). Command is built by utils.ShellCmd as
+	//   ["/bin/sh", "-c", "<full vllm cmd>"]
+	// so we mutate the last element.
+	if cmd := spec.Containers[0].Command; len(cmd) > 0 {
+		last := len(cmd) - 1
+		cmd[last] = fmt.Sprintf("%s --port=%d", cmd[last], consts.PortDecodeVLLM)
+		spec.Containers[0].Command = cmd
+	}
+
 	// Also rewrite probes to point at the new vLLM port
 	if spec.Containers[0].StartupProbe != nil && spec.Containers[0].StartupProbe.HTTPGet != nil {
 		spec.Containers[0].StartupProbe.HTTPGet.Port = intstr.FromInt32(consts.PortDecodeVLLM)

@@ -45,3 +45,7 @@ dependencies:
   version: "0.2.9"
   repository: oci://localcsidriver.azurecr.io/acstor/charts
   condition: localCSIDriver.useLocalCSIDriver
+- name: productionstack
+  version: "0.2.1"
+  repository: oci://mcr.microsoft.com/aks/kaito/helm
+  condition: productionstack.enabled

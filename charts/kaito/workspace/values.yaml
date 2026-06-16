@@ -176,3 +176,10 @@ local-csi-driver:
   observability:
     metrics:
       enabled: false
+# Production Stack umbrella chart (BBR, KEDA Kaito scaler, LLM gateway auth).
+# Disabled by default; flip `enabled` to true to install. Override subchart
+# values by nesting them under the subchart's name (see the chart's own
+# values.yaml for keys).
+# See https://github.com/kaito-project/production-stack for more details
+productionstack:
+  enabled: false

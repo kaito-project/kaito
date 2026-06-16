@@ -50,6 +50,5 @@ jobs:
           format: "table"
           exit-code: "1"
           ignore-unfixed: true
-          trivyignores: ".trivyignore"
           vuln-type: "os,library"
           severity: "CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN"

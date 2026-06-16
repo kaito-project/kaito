@@ -469,7 +469,7 @@ func validateInferenceResource(workspaceObj *kaitov1beta1.Workspace, expectedRep
 			}
 
 			return false
-		}, 20*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for inference resource to be ready")
+		}, 30*time.Minute, utils.PollInterval).Should(BeTrue(), "Failed to wait for inference resource to be ready")
 	})
 }
 

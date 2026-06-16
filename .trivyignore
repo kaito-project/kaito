@@ -1,0 +1,6 @@
+# Trivy vulnerability ignore file
+# Format: one CVE/vulnerability ID per line. Lines starting with '#' are comments.
+# See https://trivy.dev/latest/docs/configuration/filtering/#by-finding-ids
+
+# Affect all torch versions and no available fix as of 6/16/2026. Also low severity.
+CVE-2025-3000

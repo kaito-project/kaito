@@ -17,7 +17,6 @@ import (
 	"context"
 	"fmt"
 	"reflect"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -1600,20 +1599,16 @@ func TestInjectRoutingSidecar(t *testing.T) {
 						t.Errorf("liveness probe should target port %d", consts.PortDecodeVLLM)
 					}
 				}
-				// Check VLLM_PORT env var is set
-				hasPortEnv := false
-				for _, env := range main.Env {
-					if env.Name == "VLLM_PORT" && env.Value == strconv.FormatInt(int64(consts.PortDecodeVLLM), 10) {
-						hasPortEnv = true
-					}
-				}
-				if !hasPortEnv {
-					t.Error("main container should have VLLM_PORT env var set to decode port")
-				}
 				// Check that --port=<decode> is appended to the main container's command.
 				expectedFlag := fmt.Sprintf("--port=%d", consts.PortDecodeVLLM)
 				if n := len(main.Command); n == 0 || !strings.Contains(main.Command[n-1], expectedFlag) {
 					t.Errorf("main container Command should contain %q, got %v", expectedFlag, main.Command)
+				}
+				// VLLM_PORT env should NOT be set; --port flag is the source of truth.
+				for _, env := range main.Env {
+					if env.Name == "VLLM_PORT" {
+						t.Error("VLLM_PORT env var should not be set; --port flag overrides it")
+					}
 				}
 			}
 		})

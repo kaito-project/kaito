@@ -734,17 +734,9 @@ func injectRoutingSidecar(spec *corev1.PodSpec) {
 		}
 	}
 
-	// Override vLLM's listening port via environment variable.
-	// The inference_api.py uses 5000+LOCAL_RANK by default; we override to 5001.
-	spec.Containers[0].Env = append(spec.Containers[0].Env, corev1.EnvVar{
-		Name:  "VLLM_PORT",
-		Value: strconv.FormatInt(int64(consts.PortDecodeVLLM), 10),
-	})
-
-	// Also append --port=<decode> to the main container's shell command so the
-	// flag is visible in the pod spec (env var alone is implicit and easy to
-	// miss when debugging). Command is built by utils.ShellCmd as
-	//   ["/bin/sh", "-c", "<full vllm cmd>"]
+	// Append --port=<decode> to the main container's shell command so vLLM
+	// listens on PortDecodeVLLM and the routing sidecar can occupy 5000.
+	// Command is built by utils.ShellCmd as ["/bin/sh", "-c", "<full vllm cmd>"]
 	// so we mutate the last element.
 	if cmd := spec.Containers[0].Command; len(cmd) > 0 {
 		last := len(cmd) - 1

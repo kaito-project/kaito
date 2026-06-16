@@ -638,11 +638,13 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	eppValues["pluginsCustomConfig"] = map[string]string{
 		eppPluginsConfigKey: pluginsYAML,
 	}
-	// Disable EPP secure-serving (self-signed TLS) — MRI pools run plaintext
-	// behind the mesh, matching standalone InferenceSet behavior.
+	// EPP scrapes vLLM metrics from each pod via PortInferenceServer (5000).
+	// On prefill pods vLLM listens directly on 5000; on decode pods the routing
+	// sidecar listens on 5000 and transparently proxies /metrics (and all other
+	// paths) to vLLM on 5001. This keeps a single metrics port across roles.
 	eppValues["flags"] = map[string]string{
 		"secure-serving":            "false",
-		"model-server-metrics-port": fmt.Sprintf("%d", consts.PortDecodeVLLM),
+		"model-server-metrics-port": fmt.Sprintf("%d", consts.PortInferenceServer),
 	}
 	// Tokenizer sidecar: GPU-less vLLM render process deployed alongside EPP.
 	// Serves tokenization on port 8100 for future token-producer plugin (v0.9.0+).

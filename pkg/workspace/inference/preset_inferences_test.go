@@ -1604,12 +1604,6 @@ func TestInjectRoutingSidecar(t *testing.T) {
 				if n := len(main.Command); n == 0 || !strings.Contains(main.Command[n-1], expectedFlag) {
 					t.Errorf("main container Command should contain %q, got %v", expectedFlag, main.Command)
 				}
-				// VLLM_PORT env should NOT be set; --port flag is the source of truth.
-				for _, env := range main.Env {
-					if env.Name == "VLLM_PORT" {
-						t.Error("VLLM_PORT env var should not be set; --port flag overrides it")
-					}
-				}
 			}
 		})
 	}

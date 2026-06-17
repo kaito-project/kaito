@@ -3,8 +3,9 @@ models:
   - name: base
     type: text-generation
     runtime: tfs
-    tag: 0.4.0
+    tag: 0.4.1
     # Tag history:
+    # 0.4.1 - pass trust_remote_code=true to GuideLLM benchmark
     # 0.4.0 - bump vllm to 0.22.1, torch to 2.11.0
     # 0.3.3 - add model download monitor
     # 0.3.2 - make Worker nodes always ready in distributed inference to unblock StatefulSet rolling upgrade. bump lmcache to 0.4.6 and use its CUDA 12.9 wheel

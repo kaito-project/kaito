@@ -1,8 +1,8 @@
 # Dependencies for TFS
 
 # Core Dependencies
-vllm==0.22.1
-transformers[serving] ==5.6.0
+vllm==0.23.0
+transformers[serving] ==5.9.0
 huggingface-hub==1.11.0
 torch==2.11.0
 accelerate>=1.4.0
@@ -22,7 +22,7 @@ lmcache==0.4.6
 ray[default]==2.55.0
 
 # Utility libraries
-guidellm==0.5.4
+guidellm==0.6.0
 datasets==4.8.4
 bitsandbytes==0.46.1
 

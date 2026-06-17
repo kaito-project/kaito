@@ -41,6 +41,7 @@ ColModernVBertForRetrieval
 ColPaliForRetrieval
 ColQwen3
 ColQwen3_5
+Cosmos3ForConditionalGeneration
 CwmForCausalLM
 DFlashDraftModel
 DbrxForCausalLM
@@ -112,6 +113,7 @@ Gemma3nForConditionalGeneration
 Gemma4ForCausalLM
 Gemma4ForConditionalGeneration
 Gemma4MTPModel
+Gemma4UnifiedForConditionalGeneration
 GemmaForCausalLM
 Glm4ForCausalLM
 Glm4MoeForCausalLM
@@ -132,6 +134,7 @@ GraniteMoeForCausalLM
 GraniteMoeHybridForCausalLM
 GraniteMoeSharedForCausalLM
 GraniteSpeechForConditionalGeneration
+GraniteSpeechPlusForConditionalGeneration
 GritLM
 Grok1ForCausalLM
 Grok1ModelForCausalLM
@@ -163,7 +166,6 @@ InternS2PreviewForConditionalGeneration
 InternVLChatModel
 InternVLForConditionalGeneration
 IsaacForConditionalGeneration
-JAISLMHeadModel
 Jais2ForCausalLM
 JambaForCausalLM
 JambaForSequenceClassification
@@ -172,7 +174,6 @@ JinaForRanking
 JinaVLForRanking
 KananaVForConditionalGeneration
 KeyeForConditionalGeneration
-KeyeVL1_5ForConditionalGeneration
 KimiK25ForConditionalGeneration
 KimiLinearForCausalLM
 KimiVLForConditionalGeneration
@@ -333,6 +334,7 @@ Step3TextForCausalLM
 Step3VLForConditionalGeneration
 Step3p5ForCausalLM
 Step3p5MTP
+Step3p7ForConditionalGeneration
 StepVLForConditionalGeneration
 Tarsier2ForConditionalGeneration
 TarsierForConditionalGeneration

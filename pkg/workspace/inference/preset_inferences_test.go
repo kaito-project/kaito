@@ -414,6 +414,14 @@ func TestGeneratePresetInference(t *testing.T) {
 			expectedMaincmd := strings.Split(tc.expectedCmd, "--")[0]
 			expectedParams := toParameterMap(strings.Split(tc.expectedCmd, "--")[1:])
 
+			// For vLLM, production always disables the FlashInfer allreduce+RMSNorm
+			// fusion pass (its TRT-LLM MNNVL kernel JIT-compiles at runtime and needs
+			// nvcc, which is absent from the runtime image). Inject it into the
+			// expectation so each vLLM case doesn't need to list the flag explicitly.
+			if strings.Contains(tc.expectedCmd, "/workspace/vllm/inference_api.py") {
+				expectedParams["compilation-config.pass_config.fuse_allreduce_rms"] = "False"
+			}
+
 			if mainCmd != expectedMaincmd {
 				t.Errorf("%s main cmdline is not expected, got %s, expect %s ", k, workloadCmd, tc.expectedCmd)
 			}

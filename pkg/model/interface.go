@@ -366,6 +366,15 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	}
 	p.VLLM.ModelRunParams["gpu-memory-utilization"] = "0.84"
 
+	// Disable the allreduce + RMSNorm fusion pass. Since vLLM 0.22.1 this pass is
+	// enabled by default and routes through FlashInfer's TRT-LLM MNNVL kernel, which
+	// is JIT-compiled at runtime and requires the CUDA toolkit (nvcc). The slim
+	// runtime image does not ship nvcc, so engine initialization crashes during CUDA
+	// graph capture with "Could not find nvcc". The fusion is only a performance
+	// optimization and the MNNVL (multi-node NVLink) path is not usable on our SKUs
+	// anyway, so it is safe to turn off for all vLLM models.
+	p.VLLM.ModelRunParams["compilation-config.pass_config.fuse_allreduce_rms"] = "False"
+
 	// Dynamically determine dtype based on GPU compute capability.
 	// bfloat16 requires CUDA compute capability >= 8.0 (Ampere+).
 	// Fall back to float16 on older GPUs.

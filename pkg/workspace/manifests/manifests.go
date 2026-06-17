@@ -409,7 +409,7 @@ func GenerateInferencePoolOCIRepository(inferenceSetObj *kaitov1beta1.InferenceS
 // explicitly overridden by the kaito.sh/runtime annotation.
 func inferencePoolTargetPort(inferenceSetObj *kaitov1beta1.InferenceSet) int32 {
 	role := inferenceSetObj.Spec.Template.Labels[kaitov1beta1.LabelInferenceRole]
-	if role != "decode" {
+	if role != string(kaitov1alpha1.MultiRoleInferenceRoleDecode) {
 		return consts.PortInferenceServer
 	}
 	// Mirror GetWorkspaceRuntimeName logic: default to vLLM when feature gate is on.

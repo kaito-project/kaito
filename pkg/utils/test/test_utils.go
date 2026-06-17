@@ -605,8 +605,8 @@ var (
 			Name:      "testInferenceSet",
 			Namespace: "kaito",
 			Annotations: map[string]string{
-				"inferenceset.kaito.sh/hash":     "1171dc5d15043c92e684c8f06689eb241763a735181fdd2b59c8bd8fd6eecdd4",
-				"inferenceset.kaito.sh/revision": "1",
+				"inferenceset.kaito.io/hash":     "1171dc5d15043c92e684c8f06689eb241763a735181fdd2b59c8bd8fd6eecdd4",
+				"inferenceset.kaito.io/revision": "1",
 			},
 		},
 		Spec: v1beta1.InferenceSetSpec{
@@ -687,7 +687,7 @@ var (
 			Name:      "testInferenceSet-failedtocreateCR",
 			Namespace: "kaito",
 			Annotations: map[string]string{
-				"inferenceset.kaito.sh/revision": "1",
+				"inferenceset.kaito.io/revision": "1",
 			},
 		},
 		Spec: v1beta1.InferenceSetSpec{
@@ -761,7 +761,7 @@ var (
 			Name:      "testInferenceSet-successful",
 			Namespace: "kaito",
 			Annotations: map[string]string{
-				"inferenceset.kaito.sh/revision": "0",
+				"inferenceset.kaito.io/revision": "0",
 			},
 		},
 		Spec: v1beta1.InferenceSetSpec{
@@ -836,8 +836,8 @@ var (
 			Name:      "testInferenceSet",
 			Namespace: "kaito",
 			Annotations: map[string]string{
-				"inferenceset.kaito.sh/hash":     "05e6d3ba23ae871ac11ab7a93452f7e70fe02fb5a88827c6ff7a77f91e5d45bc",
-				"inferenceset.kaito.sh/revision": "1",
+				"inferenceset.kaito.io/hash":     "05e6d3ba23ae871ac11ab7a93452f7e70fe02fb5a88827c6ff7a77f91e5d45bc",
+				"inferenceset.kaito.io/revision": "1",
 			},
 		},
 		Spec: v1beta1.InferenceSetSpec{
@@ -913,8 +913,8 @@ var (
 			Name:      "testInferenceSet",
 			Namespace: "kaito",
 			Annotations: map[string]string{
-				"inferenceset.kaito.sh/hash":     "1171dc5d15043c92e684c8f06689eb241763a735181fdd2b59c8bd8fd6eecdd4",
-				"inferenceset.kaito.sh/revision": "1",
+				"inferenceset.kaito.io/hash":     "1171dc5d15043c92e684c8f06689eb241763a735181fdd2b59c8bd8fd6eecdd4",
+				"inferenceset.kaito.io/revision": "1",
 			},
 		},
 		Spec: v1beta1.InferenceSetSpec{
@@ -976,8 +976,8 @@ var (
 			Name:      "testInferenceSet",
 			Namespace: "kaito",
 			Annotations: map[string]string{
-				"inferenceset.kaito.sh/hash":     "1171dc5d15043c92e684c8f06689eb241763a735181fdd2b59c8bd8fd6eecdd4",
-				"inferenceset.kaito.sh/revision": "1",
+				"inferenceset.kaito.io/hash":     "1171dc5d15043c92e684c8f06689eb241763a735181fdd2b59c8bd8fd6eecdd4",
+				"inferenceset.kaito.io/revision": "1",
 			},
 		},
 		Spec: v1beta1.InferenceSetSpec{

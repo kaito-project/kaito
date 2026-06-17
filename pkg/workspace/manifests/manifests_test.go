@@ -41,7 +41,7 @@ func TestGenerateInferencePoolOCIRepository(t *testing.T) {
 	assert.Equal(t, workspace.Namespace, repo.Namespace)
 	assert.Len(t, repo.OwnerReferences, 1)
 	owner := repo.OwnerReferences[0]
-	assert.Equal(t, kaitov1alpha1.GroupVersion.String(), owner.APIVersion)
+	assert.Equal(t, kaitov1beta1.GroupVersion.String(), owner.APIVersion)
 	assert.Equal(t, "InferenceSet", owner.Kind)
 	assert.Equal(t, workspace.Name, owner.Name)
 	assert.True(t, *owner.Controller)

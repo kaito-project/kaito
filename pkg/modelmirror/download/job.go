@@ -43,7 +43,6 @@ func BuildDownloadJob(cr *kaitov1alpha1.ModelMirror) *batchv1.Job {
 	script := fmt.Sprintf(`set -e
 export HF_HUB_ENABLE_HF_TRANSFER=1
 export HF_HUB_DOWNLOAD_TIMEOUT=300
-export HF_CONCURRENCY=4
 
 pip install -q "huggingface-hub==%s" hf_transfer
 
@@ -51,7 +50,8 @@ if [ -n "${HF_TOKEN:-}" ]; then
   hf auth login --token "$HF_TOKEN"
 fi
 
-hf download "${MODEL_ID}" \%s
+hf download "${MODEL_ID}" \
+  --max-workers 4 \%s
   --local-dir "/models/${MODEL_ID}"
 
 # Remove all subdirectories — on HNS-enabled blob (NFS), directories become

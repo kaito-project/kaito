@@ -85,7 +85,8 @@ var WorkspaceResources = map[schema.GroupVersionKind]resourcesemantics.GenericCR
 }
 
 var InferenceSetResources = map[schema.GroupVersionKind]resourcesemantics.GenericCRD{
-	kaitov1beta1.GroupVersion.WithKind("InferenceSet"): &kaitov1beta1.InferenceSet{},
+	kaitov1alpha1.GroupVersion.WithKind("InferenceSet"): &kaitov1alpha1.InferenceSet{},
+	kaitov1beta1.GroupVersion.WithKind("InferenceSet"):  &kaitov1beta1.InferenceSet{},
 }
 
 var MultiRoleInferenceResources = map[schema.GroupVersionKind]resourcesemantics.GenericCRD{

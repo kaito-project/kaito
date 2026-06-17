@@ -515,6 +515,13 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 				Name:  consts.VLLMUseFlashInferSamplerEnvName,
 				Value: "0",
 			})
+			// Disable vLLM's DeepGEMM FP8 kernels. vLLM 0.22.1 enables them by default
+			// and reports DeepGEMM as available, but the native backend is absent from
+			// the base image, so the FP8 warmup hard-fails at engine init.
+			mainContainerEnv = append(mainContainerEnv, corev1.EnvVar{
+				Name:  consts.VLLMUseDeepGEMMEnvName,
+				Value: "0",
+			})
 		}
 
 		spec.Containers = []corev1.Container{

@@ -53,6 +53,13 @@ var flashInferSamplerEnvVar = corev1.EnvVar{
 	Value: "0",
 }
 
+// deepGEMMEnvVar is injected into every vLLM inference container to disable
+// vLLM's DeepGEMM FP8 kernels (the native backend is absent from the base image).
+var deepGEMMEnvVar = corev1.EnvVar{
+	Name:  consts.VLLMUseDeepGEMMEnvName,
+	Value: "0",
+}
+
 func TestGeneratePresetInference(t *testing.T) {
 	test.RegisterTestModel()
 	baseImage := metadata.MustGet("base")
@@ -386,8 +393,17 @@ func TestGeneratePresetInference(t *testing.T) {
 				t.Errorf("%s: image is not expected, got %s, expect %s", k, image, baseImageName)
 			}
 
-			if !reflect.DeepEqual(envVars, tc.expectedEnvVars) {
-				t.Errorf("%s: EnvVars are not expected, got %v, expect %v", k, envVars, tc.expectedEnvVars)
+			// For vLLM, production injects VLLM_USE_DEEP_GEMM=0 immediately after the
+			// FlashInfer sampler env. Mirror that here so the per-case expectations only
+			// need to list the FlashInfer env plus any case-specific vars.
+			expectedEnvVars := tc.expectedEnvVars
+			if len(expectedEnvVars) > 0 && expectedEnvVars[0] == flashInferSamplerEnvVar {
+				withDefaults := []corev1.EnvVar{flashInferSamplerEnvVar, deepGEMMEnvVar}
+				expectedEnvVars = append(withDefaults, expectedEnvVars[1:]...)
+			}
+
+			if !reflect.DeepEqual(envVars, expectedEnvVars) {
+				t.Errorf("%s: EnvVars are not expected, got %v, expect %v", k, envVars, expectedEnvVars)
 			}
 
 			workloadCmd := strings.Join(statefulset.Spec.Template.Spec.Containers[0].Command, " ")

@@ -134,6 +134,13 @@ const (
 	// requires a CUDA toolchain (nvcc) that the base image does not ship.
 	VLLMUseFlashInferSamplerEnvName = "VLLM_USE_FLASHINFER_SAMPLER"
 
+	// VLLMUseDeepGEMMEnvName toggles vLLM's DeepGEMM FP8 kernels. vLLM 0.22.1
+	// defaults this on and reports DeepGEMM as available (it finds the vendored
+	// wrapper module), but the native FP8 GEMM backend is not present in the base
+	// image, so the FP8 warmup hard-fails with "DeepGEMM backend is not available".
+	// Set to "0" to keep FP8 models on their non-DeepGEMM kernel path.
+	VLLMUseDeepGEMMEnvName = "VLLM_USE_DEEP_GEMM"
+
 	// ConditionReady is the condition type for a ready condition.
 	ConditionReady = "Ready"
 

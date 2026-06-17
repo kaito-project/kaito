@@ -28,6 +28,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/klog/v2"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
@@ -153,8 +154,7 @@ func GenerateModelWeightsCacheVolume(ctx context.Context, workspaceObj *v1beta1.
 }
 
 func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace, revisionNum string,
-	model pkgmodel.Model, kubeClient client.Client,
-	defaultStorageClass, defaultServiceAccount string, streamingProvider CloudProvider) (client.Object, error) {
+	model pkgmodel.Model, kubeClient client.Client) (client.Object, error) {
 
 	gctx := &generator.WorkspaceGeneratorContext{
 		Ctx:        ctx,
@@ -181,7 +181,7 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		modelID = ResolveHFModelID(workspaceObj)
 		crName := ModelMirrorCRName(modelID)
 
-		streamingCfg, err = streamingProvider.ResolveStreamingConfig(gctx, crName, workspaceObj.Namespace, modelID)
+		streamingCfg, err = StreamingDefaults.ModelStreamer.GetStreamingConfig(gctx, crName, workspaceObj.Namespace, modelID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to resolve streaming config: %w", err)
 		}
@@ -191,11 +191,12 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 
 	podOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec]{
 		GenerateInferencePodSpec(gpuConfig, numNodes, streamingModelPath, streamingLoadFormat),
+		SetHFToken,
 	}
 
 	// Model source: streaming (az://) vs local download. Mutually exclusive.
 	if streamingEnabled {
-		podOpts = append(podOpts, SetStreamingConfig(streamingCfg, modelID, defaultServiceAccount))
+		podOpts = append(podOpts, SetStreamingConfig(streamingCfg, modelID, StreamingDefaults.ServiceAccount))
 	} else {
 		podOpts = append(podOpts, SetModelDownloadInfo)
 	}
@@ -522,9 +523,9 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			DistributedInference: ctx.Model.SupportDistributedInference(),
 			MaxModelLen:          maxModelLen,
 			RuntimeContextExtraArguments: pkgmodel.RuntimeContextExtraArguments{
-				AdaptersEnabled:     len(ctx.Workspace.Inference.Adapters) > 0,
-				PerformanceMode:     v1beta1.GetPerformanceMode(ctx.Workspace),
-				StreamingModelPath:  streamingModelPath,
+				AdaptersEnabled:    len(ctx.Workspace.Inference.Adapters) > 0,
+				PerformanceMode:    v1beta1.GetPerformanceMode(ctx.Workspace),
+				StreamingModelPath: streamingModelPath,
 				StreamingLoadFormat: streamingLoadFormat,
 			},
 		})
@@ -599,28 +600,40 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 	}
 }
 
+// SetHFToken adds the HF_TOKEN env var to the main inference container if
+// a model access secret is configured. Needed for both DAR (download weights)
+// and streaming (vLLM fetches model config/tokenizer from HuggingFace).
+func SetHFToken(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+	if ctx.Workspace.Inference == nil || ctx.Workspace.Inference.Preset == nil {
+		return nil
+	}
+	accessSecret := ctx.Workspace.Inference.Preset.PresetOptions.ModelAccessSecret
+	if accessSecret == "" {
+		return nil
+	}
+	envvar := corev1.EnvVar{
+		Name: "HF_TOKEN",
+		ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{Name: accessSecret},
+				Key:                  "HF_TOKEN",
+				Optional:             ptr.To(true),
+			},
+		},
+	}
+	for i := range spec.Containers {
+		if spec.Containers[i].Name == ctx.Workspace.Name {
+			spec.Containers[i].Env = append(spec.Containers[i].Env, envvar)
+			break
+		}
+	}
+	return nil
+}
+
 func SetModelDownloadInfo(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 	if ctx.Model.GetInferenceParameters().DownloadAtRuntime {
-		if accessSecret := ctx.Workspace.Inference.Preset.PresetOptions.ModelAccessSecret; accessSecret != "" {
-			envvar := corev1.EnvVar{
-				Name: "HF_TOKEN",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{
-							Name: ctx.Workspace.Inference.Preset.PresetOptions.ModelAccessSecret,
-						},
-						Key: "HF_TOKEN",
-					},
-				},
-			}
-
-			for i := range spec.Containers {
-				// add HF_TOKEN env var to the main inference container only
-				if spec.Containers[i].Name == ctx.Workspace.Name {
-					spec.Containers[i].Env = append(spec.Containers[i].Env, envvar)
-				}
-			}
-		}
+		// HF_TOKEN is handled by SetHFToken.
+		// DAR models just need the token present. no other download setup needed.
 		return nil
 	}
 

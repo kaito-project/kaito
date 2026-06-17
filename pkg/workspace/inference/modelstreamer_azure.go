@@ -14,6 +14,7 @@
 package inference
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -21,18 +22,19 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 )
 
-// AzureBlobProvider implements CloudProvider for Azure Blob Storage.
+// AzureBlobProvider implements ModelStreamer for Azure Blob Storage.
 type AzureBlobProvider struct{}
 
 func (a *AzureBlobProvider) CSIDriverName() string {
 	return consts.CSIDriverNameAzureBlob
 }
 
-// ResolveStreamingConfig reads the PVC → PV → CSI volumeHandle to resolve
+// GetStreamingConfig reads the PVC → PV → CSI volumeHandle to resolve
 // the full az:// streaming model path and Azure-specific env vars.
 //
 // Azure Blob CSI volumeHandle format:
@@ -44,7 +46,7 @@ func (a *AzureBlobProvider) CSIDriverName() string {
 // The model path is constructed as az://containerName/modelID because the
 // ModelMirror download Job writes to /models/<modelID> inside the PVC,
 // and the PVC is backed by a blob container — so the blob path matches the modelID.
-func (a *AzureBlobProvider) ResolveStreamingConfig(ctx *generator.WorkspaceGeneratorContext, pvcName, pvcNamespace, modelID string) (*StreamingConfig, error) {
+func (a *AzureBlobProvider) GetStreamingConfig(ctx *generator.WorkspaceGeneratorContext, pvcName, pvcNamespace, modelID string) (*StreamingConfig, error) {
 	pvc := &corev1.PersistentVolumeClaim{}
 	if err := ctx.KubeClient.Get(ctx.Ctx, types.NamespacedName{
 		Name: pvcName, Namespace: pvcNamespace,
@@ -97,13 +99,24 @@ func (a *AzureBlobProvider) ResolveStreamingConfig(ctx *generator.WorkspaceGener
 	}, nil
 }
 
-// ValidateServiceAccount checks that the SA has the Azure Workload Identity
-// client-id annotation required for blob storage authentication.
-func (a *AzureBlobProvider) ValidateServiceAccount(sa *corev1.ServiceAccount) error {
+// ValidateAuth resolves the streaming SA name, verifies it exists in the
+// workspace namespace, and checks that it has the Azure Workload Identity client-id
+// annotation required for blob storage authentication.
+func (a *AzureBlobProvider) ValidateAuth(ctx context.Context, ws *v1beta1.Workspace, kubeClient client.Client, defaultSA string) error {
+	saName, err := ResolveStreamingServiceAccount(ws, defaultSA)
+	if err != nil {
+		return err
+	}
+
+	sa := &corev1.ServiceAccount{}
+	if err := kubeClient.Get(ctx, types.NamespacedName{Name: saName, Namespace: ws.Namespace}, sa); err != nil {
+		return fmt.Errorf("ServiceAccount %q not found in namespace %q: %w", saName, ws.Namespace, err)
+	}
+
 	if sa.Annotations["azure.workload.identity/client-id"] == "" {
 		return fmt.Errorf("ServiceAccount %q is missing annotation azure.workload.identity/client-id; "+
 			"workload identity must be configured for model streaming (see docs/proposals/20260520-model-mirror.md)",
-			sa.Name)
+			saName)
 	}
 	return nil
 }

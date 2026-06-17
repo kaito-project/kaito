@@ -17,10 +17,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"strings"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/utils/ptr"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
@@ -29,6 +27,14 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
+
+// StreamingDefaults holds the cluster-wide defaults for model streaming,
+// set once at startup from controller flags.
+var StreamingDefaults = struct {
+	StorageClass   string
+	ServiceAccount string
+	ModelStreamer  ModelStreamer
+}{}
 
 // ModelStreamingEnabled returns true if the ModelStreaming feature gate is on
 // AND the workspace does not have the opt-out annotation.
@@ -59,11 +65,7 @@ func ResolveHFModelID(ws *v1beta1.Workspace) string {
 	if ws.Inference == nil || ws.Inference.Preset == nil {
 		return ""
 	}
-	name := strings.ToLower(string(ws.Inference.Preset.Name))
-	if hfName, ok := plugin.LegacyBuiltinToCatalog[name]; ok {
-		return hfName
-	}
-	return string(ws.Inference.Preset.Name)
+	return plugin.ResolveHFModelID(string(ws.Inference.Preset.Name))
 }
 
 // ResolveStreamingServiceAccount resolves the ServiceAccount name for streaming.
@@ -92,26 +94,11 @@ func ResolveStorageClass(ws *v1beta1.Workspace, defaultSC string) string {
 }
 
 // buildCommonStreamingEnvVars returns env vars common to all cloud providers:
-// KAITO_PROCESSOR (for benchmark probe) and HF_TOKEN (for vLLM model config resolution).
-func buildCommonStreamingEnvVars(modelID, accessSecretName string) []corev1.EnvVar {
-	envVars := []corev1.EnvVar{
+// KAITO_PROCESSOR (for benchmark probe). HF_TOKEN is handled by SetHFToken.
+func buildCommonStreamingEnvVars(modelID string) []corev1.EnvVar {
+	return []corev1.EnvVar{
 		{Name: "KAITO_PROCESSOR", Value: modelID},
 	}
-
-	if accessSecretName != "" {
-		envVars = append(envVars, corev1.EnvVar{
-			Name: "HF_TOKEN",
-			ValueFrom: &corev1.EnvVarSource{
-				SecretKeyRef: &corev1.SecretKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{Name: accessSecretName},
-					Key:                  "HF_TOKEN",
-					Optional:             ptr.To(true),
-				},
-			},
-		})
-	}
-
-	return envVars
 }
 
 // SetStreamingConfig modifies the pod spec for streaming mode:
@@ -130,12 +117,8 @@ func SetStreamingConfig(streamingCfg *StreamingConfig, modelID, defaultSA string
 				// Add provider-specific env vars (e.g. AZURE_STORAGE_ACCOUNT_NAME)
 				spec.Containers[i].Env = append(spec.Containers[i].Env, streamingCfg.ProviderEnvVars...)
 
-				// Add common streaming env vars (KAITO_PROCESSOR, HF_TOKEN)
-				accessSecret := ""
-				if ctx.Workspace.Inference != nil && ctx.Workspace.Inference.Preset != nil {
-					accessSecret = ctx.Workspace.Inference.Preset.PresetOptions.ModelAccessSecret
-				}
-				spec.Containers[i].Env = append(spec.Containers[i].Env, buildCommonStreamingEnvVars(modelID, accessSecret)...)
+				// Add common streaming env vars
+				spec.Containers[i].Env = append(spec.Containers[i].Env, buildCommonStreamingEnvVars(modelID)...)
 				found = true
 				break
 			}

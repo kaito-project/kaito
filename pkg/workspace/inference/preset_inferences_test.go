@@ -29,6 +29,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
@@ -206,6 +207,7 @@ func TestGeneratePresetInference(t *testing.T) {
 						LocalObjectReference: corev1.LocalObjectReference{
 							Name: "test-secret",
 						},
+						Optional: ptr.To(true),
 					},
 				},
 			}},
@@ -230,6 +232,7 @@ func TestGeneratePresetInference(t *testing.T) {
 						LocalObjectReference: corev1.LocalObjectReference{
 							Name: "test-secret",
 						},
+						Optional: ptr.To(true),
 					},
 				},
 			}, {
@@ -266,6 +269,7 @@ func TestGeneratePresetInference(t *testing.T) {
 						LocalObjectReference: corev1.LocalObjectReference{
 							Name: "test-secret",
 						},
+						Optional: ptr.To(true),
 					},
 				},
 			}, {
@@ -295,6 +299,7 @@ func TestGeneratePresetInference(t *testing.T) {
 						LocalObjectReference: corev1.LocalObjectReference{
 							Name: "test-secret",
 						},
+						Optional: ptr.To(true),
 					},
 				},
 			}},
@@ -363,7 +368,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			}
 			mockClient.CreateOrUpdateObjectInMap(svc)
 
-			createdObject, _ := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, model, mockClient, "", "", nil)
+			createdObject, _ := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, model, mockClient)
 
 			statefulset := createdObject.(*appsv1.StatefulSet)
 			image := statefulset.Spec.Template.Spec.Containers[0].Image
@@ -1168,7 +1173,7 @@ func TestSetModelDownloadInfo(t *testing.T) {
 		expectError           bool
 		expectedErrorMsg      string
 	}{
-		"download at runtime - add HF_TOKEN": {
+		"download at runtime - no env vars (HF_TOKEN handled by SetHFToken)": {
 			workspace: &v1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-workspace",
@@ -1193,23 +1198,11 @@ func TestSetModelDownloadInfo(t *testing.T) {
 					},
 				},
 			},
-			expectedEnvVars: []corev1.EnvVar{
-				{
-					Name: "HF_TOKEN",
-					ValueFrom: &corev1.EnvVarSource{
-						SecretKeyRef: &corev1.SecretKeySelector{
-							LocalObjectReference: corev1.LocalObjectReference{
-								Name: "hf-secret",
-							},
-							Key: "HF_TOKEN",
-						},
-					},
-				},
-			},
+			expectedEnvVars:       []corev1.EnvVar{},
 			expectedInitContainer: 0,
 			expectError:           false,
 		},
-		"download at runtime - HF_TOKEN only on main container, not sidecar": {
+		"download at runtime with sidecar - no env vars (HF_TOKEN handled by SetHFToken)": {
 			workspace: &v1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-workspace",
@@ -1237,19 +1230,7 @@ func TestSetModelDownloadInfo(t *testing.T) {
 					},
 				},
 			},
-			expectedEnvVars: []corev1.EnvVar{
-				{
-					Name: "HF_TOKEN",
-					ValueFrom: &corev1.EnvVarSource{
-						SecretKeyRef: &corev1.SecretKeySelector{
-							LocalObjectReference: corev1.LocalObjectReference{
-								Name: "hf-secret",
-							},
-							Key: "HF_TOKEN",
-						},
-					},
-				},
-			},
+			expectedEnvVars:       []corev1.EnvVar{},
 			expectedInitContainer: 0,
 			expectError:           false,
 		},

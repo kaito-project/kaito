@@ -394,12 +394,11 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	// Model source: streaming (az://) vs download-at-runtime (HF repo).
 	if rc.StreamingModelPath != "" {
 		p.VLLM.ModelRunParams["model"] = rc.StreamingModelPath
-		if rc.StreamingLoadFormat != "" {
-			p.VLLM.ModelRunParams["load-format"] = rc.StreamingLoadFormat
-			// Some presets set load_format (underscore) in their default params.
-			// Remove it to avoid duplicate/conflicting flags.
-			delete(p.VLLM.ModelRunParams, "load_format")
-		}
+		p.VLLM.ModelRunParams["load-format"] = rc.StreamingLoadFormat
+		// Some presets set load_format (underscore) in their default params
+		// (e.g. mistral sets load_format=mistral). Remove to avoid conflict
+		// with the hyphenated --load-format=runai_streamer we set above.
+		delete(p.VLLM.ModelRunParams, "load_format")
 	} else if p.DownloadAtRuntime {
 		repoId, revision, _ := utils.ParseHuggingFaceModelVersion(p.Version)
 		p.VLLM.ModelRunParams["model"] = repoId
@@ -512,11 +511,12 @@ func (p *PresetParam) buildMultiNodeRayCommand(rc RuntimeContext) []string {
 
 	rayLeaderCommand := utils.BuildCmdStr(p.VLLM.RayLeaderBaseCommand, p.VLLM.RayLeaderParams)
 	modelRunCommand := utils.BuildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
+	workerBaseCommand := p.VLLM.RayWorkerBaseCommand
 	result := utils.BuildIfElseCmdStr(
 		`[ "${POD_INDEX}" = "0" ]`,                                      // leader if pod index is 0, otherwise worker
 		strings.Join([]string{rayLeaderCommand, modelRunCommand}, "; "), // leader: start ray head + model
 		map[string]string{},
-		p.VLLM.RayWorkerBaseCommand, // worker: join the cluster
+		workerBaseCommand, // worker: join the cluster
 		p.VLLM.RayWorkerParams,
 	)
 

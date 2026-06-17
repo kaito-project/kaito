@@ -88,14 +88,14 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 				w.Inference.validateCreate(ctx, runtime, w.Namespace).ViaField("inference"),
 				w.validateInferenceConfig(ctx),
 			)
+			if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+				errs = errs.Also(w.validateStreamingCSIDriver(ctx))
+			}
 		}
 		if w.Tuning != nil {
 			// TODO: Add validate resource based on Tuning Spec
 			errs = errs.Also(w.Resource.validateCreateWithTuning(w.Tuning).ViaField("resource"),
 				w.Tuning.validateCreate(ctx, w.Namespace).ViaField("tuning"))
-		}
-		if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
-			errs = errs.Also(w.validateStreamingCSIDriver(ctx))
 		}
 	} else {
 		klog.InfoS("Validate update", "workspace", fmt.Sprintf("%s/%s", w.Namespace, w.Name))

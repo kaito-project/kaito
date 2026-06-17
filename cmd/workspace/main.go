@@ -265,15 +265,16 @@ func main() {
 		exitWithErrorFunc()
 	}
 
-	// Resolve streaming cloud provider once at startup (nil when streaming is disabled).
-	var streamingProvider inference.CloudProvider
+	// Set streaming defaults once at startup (read by inference package via StreamingDefaults).
 	if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
-		var providerErr error
-		streamingProvider, providerErr = inference.GetCloudProvider(os.Getenv("CLOUD_PROVIDER"))
-		if providerErr != nil {
-			klog.ErrorS(providerErr, "unable to resolve streaming cloud provider")
+		streamer, streamerErr := inference.GetModelStreamer(os.Getenv("CLOUD_PROVIDER"))
+		if streamerErr != nil {
+			klog.ErrorS(streamerErr, "unable to resolve model streamer")
 			exitWithErrorFunc()
 		}
+		inference.StreamingDefaults.StorageClass = defaultModelMirrorStorageClass
+		inference.StreamingDefaults.ServiceAccount = defaultStreamingServiceAccount
+		inference.StreamingDefaults.ModelStreamer = streamer
 	}
 
 	workspaceReconciler := controllers.NewWorkspaceReconciler(
@@ -282,9 +283,6 @@ func main() {
 		log.Log.WithName("controllers").WithName("Workspace"),
 		recorder,
 		nodeProvisioner,
-		defaultModelMirrorStorageClass,
-		defaultStreamingServiceAccount,
-		streamingProvider,
 	)
 
 	if err = workspaceReconciler.SetupWithManager(mgr); err != nil {

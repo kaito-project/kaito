@@ -65,7 +65,7 @@ const (
 // Returns "" for unsupported providers.
 func CSIDriverNameForCloud(cloud string) string {
 	switch cloud {
-	case AzureCloudName, "":
+	case AzureCloudName:
 		return CSIDriverNameAzureBlob
 	default:
 		return ""

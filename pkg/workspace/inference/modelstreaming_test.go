@@ -174,25 +174,16 @@ func TestAzureBlobProvider_ResolveStreamingConfig_ModelPathAndEnvVars(t *testing
 }
 
 func TestBuildCommonStreamingEnvVars(t *testing.T) {
-	t.Run("with access secret", func(t *testing.T) {
-		envVars := buildCommonStreamingEnvVars("org/model", "hf-secret")
-		assert.Len(t, envVars, 2)
-		assert.Equal(t, "KAITO_PROCESSOR", envVars[0].Name)
-		assert.Equal(t, "org/model", envVars[0].Value)
-		assert.Equal(t, "HF_TOKEN", envVars[1].Name)
-		assert.Equal(t, "hf-secret", envVars[1].ValueFrom.SecretKeyRef.Name)
-		assert.NotNil(t, envVars[1].ValueFrom.SecretKeyRef.Optional)
-		assert.True(t, *envVars[1].ValueFrom.SecretKeyRef.Optional)
-	})
-
-	t.Run("without access secret", func(t *testing.T) {
-		envVars := buildCommonStreamingEnvVars("org/model", "")
+	t.Run("with modelID", func(t *testing.T) {
+		envVars := buildCommonStreamingEnvVars("org/model")
 		assert.Len(t, envVars, 1)
 		assert.Equal(t, "KAITO_PROCESSOR", envVars[0].Name)
+		assert.Equal(t, "org/model", envVars[0].Value)
 	})
 
 	t.Run("empty modelID", func(t *testing.T) {
-		envVars := buildCommonStreamingEnvVars("", "")
-		assert.Equal(t, "", envVars[0].Value) // KAITO_PROCESSOR is empty
+		envVars := buildCommonStreamingEnvVars("")
+		assert.Len(t, envVars, 1)
+		assert.Equal(t, "", envVars[0].Value)
 	})
 }

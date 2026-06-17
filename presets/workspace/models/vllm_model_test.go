@@ -240,7 +240,7 @@ func TestReadinessTimeoutForModelSize(t *testing.T) {
 			expected:      defaultReadinessTimeout,
 		},
 		{
-			name:          "unparseable size uses default",
+			name:          "unparsable size uses default",
 			modelFileSize: "not-a-size",
 			expected:      defaultReadinessTimeout,
 		},

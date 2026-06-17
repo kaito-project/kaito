@@ -61,3 +61,5 @@ All models were deployed as KAITO Workspace CRs on AKS and evaluated using the v
 | MiniMaxAI/MiniMax-M2.7 | vllm | 7.16 | 7.15 | 6.90 | 7.29 | 8.72 | 6.90 | 6.95 | 6.25 | 7.15 | 2026-05-13 |
 | mistralai/Mistral-Medium-3.5-128B | vllm | 8.18 | 8.05 | 8.10 | 8.15 | 9.55 | 7.40 | 8.60 | 7.60 | 8.00 | 2026-05-14 |
 | moonshotai/Kimi-K2.6 | vllm | 8.44 | 8.40 | 8.55 | 8.95 | 9.95 | 6.95 | 8.35 | 7.80 | 8.55 | 2026-05-14 |
+| google/gemma-4-12B-it | vllm | 8.47 | 8.30 | 8.30 | 8.60 | 9.60 | 8.60 | 8.25 | 8.35 | 7.80 | 2026-06-17 |
+| JetBrains/Mellum2-12B-A2.5B-Thinking | vllm | 6.87 | 6.55 | 6.80 | 7.80 | 9.35 | 5.40 | 6.25 | 5.95 | 6.85 | 2026-06-17 |

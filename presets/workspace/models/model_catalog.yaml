@@ -738,3 +738,31 @@ models:
   configFormat: mistral
   tokenizerMode: mistral
   quantMethod: fp8
+- name: google/gemma-4-12B-it
+  description: https://huggingface.co/google/gemma-4-12B-it
+  license: apache-2.0
+  pipelineTag: any-to-any
+  baseModel:
+  - google/gemma-4-12B
+  modelFileSize: 22.28Gi
+  architectures:
+  - Gemma4UnifiedForConditionalGeneration
+  modelTokenLimit: 262144
+  hiddenSize: 3840
+  numHiddenLayers: 48
+  numAttentionHeads: 16
+  numKeyValueHeads: 8
+  headDim: 256
+- name: JetBrains/Mellum2-12B-A2.5B-Thinking
+  description: https://huggingface.co/JetBrains/Mellum2-12B-A2.5B-Thinking
+  license: apache-2.0
+  pipelineTag: text-generation
+  modelFileSize: 22.63Gi
+  architectures:
+  - MellumForCausalLM
+  modelTokenLimit: 131072
+  hiddenSize: 2304
+  numHiddenLayers: 28
+  numAttentionHeads: 32
+  numKeyValueHeads: 4
+  headDim: 128

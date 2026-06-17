@@ -714,6 +714,15 @@ func applyInferenceRoleEnv(labels map[string]string, containerName string, spec 
 				Name:  consts.InferenceRoleEnvName,
 				Value: role,
 			})
+			// VLLM_NIXL_SIDE_CHANNEL_HOST is required for NIXL KV transfer
+			// in P/D disaggregation. Without it, vLLM registers "localhost"
+			// as the NIXL side channel host, causing cross-pod handshake failures.
+			spec.Containers[i].Env = append(spec.Containers[i].Env, corev1.EnvVar{
+				Name: "VLLM_NIXL_SIDE_CHANNEL_HOST",
+				ValueFrom: &corev1.EnvVarSource{
+					FieldRef: &corev1.ObjectFieldSelector{FieldPath: "status.podIP"},
+				},
+			})
 			return
 		}
 	}
@@ -787,6 +796,12 @@ func injectRoutingSidecar(spec *corev1.PodSpec) {
 		Env: []corev1.EnvVar{
 			{
 				Name: "POD_IP",
+				ValueFrom: &corev1.EnvVarSource{
+					FieldRef: &corev1.ObjectFieldSelector{FieldPath: "status.podIP"},
+				},
+			},
+			{
+				Name: "VLLM_NIXL_SIDE_CHANNEL_HOST",
 				ValueFrom: &corev1.EnvVarSource{
 					FieldRef: &corev1.ObjectFieldSelector{FieldPath: "status.podIP"},
 				},

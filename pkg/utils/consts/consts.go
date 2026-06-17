@@ -113,7 +113,7 @@ const (
 	// TokenizerSidecar runs a GPU-less vLLM render process for tokenization.
 	// It exposes /v1/completions/render and /v1/chat/completions/render on port 8100,
 	// deployed as a sidecar container in the EPP deployment.
-	TokenizerSidecarImage = "upstream.azurecr.io/oss/v2/vllm/vllm-openai-cpu:v0.21.0"
+	TokenizerSidecarImage = "mcr.microsoft.com/oss/v2/vllm/vllm-openai-cpu:v0.21.0"
 	TokenizerSidecarPort  = 8100
 
 	// Routing sidecar for P/D disaggregation on decode workspaces.

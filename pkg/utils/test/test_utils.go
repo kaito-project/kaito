@@ -23,7 +23,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
-	"github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/model"
 )
@@ -227,7 +226,7 @@ var (
 			},
 		},
 	}
-	MockInferenceSetWithPreset = &v1alpha1.InferenceSet{
+	MockInferenceSetWithPreset = &v1beta1.InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testInferenceSet",
 			Namespace: "kaito",
@@ -235,9 +234,9 @@ var (
 				v1beta1.AnnotationWorkspaceRuntime: string(model.RuntimeNameHuggingfaceTransformers),
 			},
 		},
-		Spec: v1alpha1.InferenceSetSpec{
-			Template: v1alpha1.InferenceSetTemplate{
-				Resource: v1alpha1.InferenceSetResourceSpec{
+		Spec: v1beta1.InferenceSetSpec{
+			Template: v1beta1.InferenceSetTemplate{
+				Resource: v1beta1.InferenceSetResourceSpec{
 					InstanceType: "Standard_NC24ads_A100_v4",
 				},
 				Inference: v1beta1.InferenceSpec{
@@ -272,14 +271,14 @@ var (
 			},
 		},
 	}
-	MockInferenceSetWithPresetVLLM = &v1alpha1.InferenceSet{
+	MockInferenceSetWithPresetVLLM = &v1beta1.InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testInferenceSet",
 			Namespace: "kaito",
 		},
-		Spec: v1alpha1.InferenceSetSpec{
-			Template: v1alpha1.InferenceSetTemplate{
-				Resource: v1alpha1.InferenceSetResourceSpec{
+		Spec: v1beta1.InferenceSetSpec{
+			Template: v1beta1.InferenceSetTemplate{
+				Resource: v1beta1.InferenceSetResourceSpec{
 					InstanceType: "Standard_NC24ads_A100_v4",
 				},
 				Inference: v1beta1.InferenceSpec{
@@ -601,7 +600,7 @@ var (
 		},
 	}
 
-	MockInferenceSetWithDeleteOldCR = v1alpha1.InferenceSet{
+	MockInferenceSetWithDeleteOldCR = v1beta1.InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testInferenceSet",
 			Namespace: "kaito",
@@ -610,9 +609,9 @@ var (
 				"inferenceset.kaito.sh/revision": "1",
 			},
 		},
-		Spec: v1alpha1.InferenceSetSpec{
-			Template: v1alpha1.InferenceSetTemplate{
-				Resource: v1alpha1.InferenceSetResourceSpec{
+		Spec: v1beta1.InferenceSetSpec{
+			Template: v1beta1.InferenceSetTemplate{
+				Resource: v1beta1.InferenceSetResourceSpec{
 					InstanceType: "Standard_NC4as_T4_v3",
 				},
 				Inference: v1beta1.InferenceSpec{
@@ -683,7 +682,7 @@ var (
 		},
 	}
 
-	MockInferenceSetFailToCreateCR = v1alpha1.InferenceSet{
+	MockInferenceSetFailToCreateCR = v1beta1.InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testInferenceSet-failedtocreateCR",
 			Namespace: "kaito",
@@ -691,9 +690,9 @@ var (
 				"inferenceset.kaito.sh/revision": "1",
 			},
 		},
-		Spec: v1alpha1.InferenceSetSpec{
-			Template: v1alpha1.InferenceSetTemplate{
-				Resource: v1alpha1.InferenceSetResourceSpec{
+		Spec: v1beta1.InferenceSetSpec{
+			Template: v1beta1.InferenceSetTemplate{
+				Resource: v1beta1.InferenceSetResourceSpec{
 					InstanceType: "Standard_NC4as_T4_v3",
 				},
 				Inference: v1beta1.InferenceSpec{
@@ -757,7 +756,7 @@ var (
 		},
 	}
 
-	MockInferenceSetSuccessful = v1alpha1.InferenceSet{
+	MockInferenceSetSuccessful = v1beta1.InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testInferenceSet-successful",
 			Namespace: "kaito",
@@ -765,9 +764,9 @@ var (
 				"inferenceset.kaito.sh/revision": "0",
 			},
 		},
-		Spec: v1alpha1.InferenceSetSpec{
-			Template: v1alpha1.InferenceSetTemplate{
-				Resource: v1alpha1.InferenceSetResourceSpec{
+		Spec: v1beta1.InferenceSetSpec{
+			Template: v1beta1.InferenceSetTemplate{
+				Resource: v1beta1.InferenceSetResourceSpec{
 					InstanceType: "Standard_NC4as_T4_v3",
 				},
 				Inference: v1beta1.InferenceSpec{
@@ -832,7 +831,7 @@ var (
 		},
 	}
 
-	MockInferenceSetWithComputeHash = v1alpha1.InferenceSet{
+	MockInferenceSetWithComputeHash = v1beta1.InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testInferenceSet",
 			Namespace: "kaito",
@@ -841,9 +840,9 @@ var (
 				"inferenceset.kaito.sh/revision": "1",
 			},
 		},
-		Spec: v1alpha1.InferenceSetSpec{
-			Template: v1alpha1.InferenceSetTemplate{
-				Resource: v1alpha1.InferenceSetResourceSpec{
+		Spec: v1beta1.InferenceSetSpec{
+			Template: v1beta1.InferenceSetTemplate{
+				Resource: v1beta1.InferenceSetResourceSpec{
 					InstanceType: "Standard_NC4as_T4_v3",
 				},
 				Inference: v1beta1.InferenceSpec{
@@ -909,7 +908,7 @@ var (
 		},
 	}
 
-	MockInferenceSetUpdateCR = v1alpha1.InferenceSet{
+	MockInferenceSetUpdateCR = v1beta1.InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testInferenceSet",
 			Namespace: "kaito",
@@ -918,9 +917,9 @@ var (
 				"inferenceset.kaito.sh/revision": "1",
 			},
 		},
-		Spec: v1alpha1.InferenceSetSpec{
-			Template: v1alpha1.InferenceSetTemplate{
-				Resource: v1alpha1.InferenceSetResourceSpec{
+		Spec: v1beta1.InferenceSetSpec{
+			Template: v1beta1.InferenceSetTemplate{
+				Resource: v1beta1.InferenceSetResourceSpec{
 					InstanceType: "Standard_NC4as_T4_v3",
 				},
 				Inference: v1beta1.InferenceSpec{
@@ -972,7 +971,7 @@ var (
 		},
 	}
 
-	MockInferenceSetWithUpdatedDeployment = v1alpha1.InferenceSet{
+	MockInferenceSetWithUpdatedDeployment = v1beta1.InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testInferenceSet",
 			Namespace: "kaito",
@@ -981,9 +980,9 @@ var (
 				"inferenceset.kaito.sh/revision": "1",
 			},
 		},
-		Spec: v1alpha1.InferenceSetSpec{
-			Template: v1alpha1.InferenceSetTemplate{
-				Resource: v1alpha1.InferenceSetResourceSpec{
+		Spec: v1beta1.InferenceSetSpec{
+			Template: v1beta1.InferenceSetTemplate{
+				Resource: v1beta1.InferenceSetResourceSpec{
 					InstanceType: "Standard_NC4as_T4_v3",
 				},
 				Inference: v1beta1.InferenceSpec{

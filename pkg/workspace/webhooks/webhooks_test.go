@@ -109,7 +109,7 @@ func TestInferenceSetResources(t *testing.T) {
 	assert.Equal(t, 1, len(InferenceSetResources))
 
 	// Check v1alpha1 InferenceSet
-	v1alpha1GVK := kaitov1alpha1.GroupVersion.WithKind("InferenceSet")
+	v1alpha1GVK := kaitov1beta1.GroupVersion.WithKind("InferenceSet")
 	assert.Contains(t, InferenceSetResources, v1alpha1GVK)
-	assert.IsType(t, &kaitov1alpha1.InferenceSet{}, InferenceSetResources[v1alpha1GVK])
+	assert.IsType(t, &kaitov1beta1.InferenceSet{}, InferenceSetResources[v1alpha1GVK])
 }

@@ -19,7 +19,4 @@ import (
 
 // SetDefaults for the InferenceSet
 func (w *InferenceSet) SetDefaults(_ context.Context) {
-	// No-op: the CRD schema default (+kubebuilder:default:=1) handles
-	// the case where replicas is omitted. Explicit 0 is now valid
-	// for scale-to-zero scenarios (KEDA, manual drain, etc.).
 }

@@ -7,7 +7,7 @@ reviewers:
   - "@Fei-Guo"
   - "@chewong"
 creation-date: 2026-06-09
-last-updated: 2026-06-09
+last-updated: 2026-06-18
 status: provisional
 see-also:
   - "/docs/proposals/20250609-model-as-oci-artifacts.md"
@@ -34,10 +34,11 @@ see-also:
       - [Story 4 — Mixed Providers](#story-4--mixed-providers)
       - [Story 5 — Graceful Degradation](#story-5--graceful-degradation)
     - [Architecture](#architecture)
+    - [Cache Scope](#cache-scope)
     - [API Changes](#api-changes)
-      - [CacheSpec (New Top-Level Workspace Field)](#cachespec-new-top-level-workspace-field)
-      - [Cache Provider Interface](#cache-provider-interface)
-      - [PodMutations](#podmutations)
+     - [CacheSpec (Workspace / InferenceSet Field)](#cachespec-workspace--inferenceset-field)
+     - [Cache Provider Interface](#cache-provider-interface)
+     - [PodMutations](#podmutations)
     - [Implementation Details/Notes/Constraints](#implementation-detailsnotesconstraints)
       - [Installation Model](#installation-model)
       - [Phase 1: Foundation](#phase-1-foundation)
@@ -46,6 +47,7 @@ see-also:
       - [Phase 4: ModelMirror Integration (Cache Warming)](#phase-4-modelmirror-integration-cache-warming)
       - [Phase 5: Observability](#phase-5-observability)
     - [Client Integration Patterns](#client-integration-patterns)
+    - [Runtime Integration Details](#runtime-integration-details)
     - [Risks and Mitigations](#risks-and-mitigations)
   - [Alternatives](#alternatives)
   - [Upgrade Strategy](#upgrade-strategy)
@@ -57,7 +59,7 @@ see-also:
 
 - **Cache Provider**: An implementation of KAITO's cache interface that manages a specific caching backend (e.g., a distributed NVMe cache, a FUSE-based dataset cache, or an in-cluster object store proxy).
 - **Cache Controller**: A new KAITO controller that bridges workspace semantics with cache infrastructure, managing cache lifecycle and readiness signaling.
-- **PodMutations**: The set of changes (environment variables, volumes, volume mounts, init containers) that a cache provider injects into model pods to enable cache access.
+- **PodMutations**: The set of changes (environment variables, volumes, volume mounts, init containers, labels) that a cache provider injects into model pods to enable cache access.
 - **Cache Warming**: The process of populating a cache with model weights, reducing cold-start latency. Occurs when ModelMirror downloader uses a cache-aware storage backend.
 
 ## Summary
@@ -96,7 +98,7 @@ A distributed cache layer addresses both concerns: model weight caching for fast
 - **Multi-tenant cache isolation** — Initial implementation assumes a single shared cache cluster per KAITO installation. Per-tenant cache partitioning is deferred.
 - **Cache rebalancing coordination** — Provider-specific rebalancing will be transparent to KAITO initially. Deeper integration (scale-event signaling, drain-gate awareness) is a future enhancement.
 - **Modifying KAITO model images** — Model images may need cache-specific client libraries. Image changes are tracked separately from this proposal.
-- **KV cache eviction policy tuning** — TTL, growth factors, and write modes are provider-specific configuration managed via Helm values, not per-workspace settings.
+- **KV cache eviction policy tuning** — TTL, growth factors, and write modes are provider-specific configuration. Users can supply provider-specific settings via the `Config` ConfigMap field on `KVCacheSpec`; the provider validates and merges with its defaults from Helm values.
 
 ## Proposal
 
@@ -266,9 +268,44 @@ spec:
 5. **Model pods** use injected configuration (env vars, volumes, labels, or KV connector config) to access cache infrastructure.
 
 
+### Cache Scope
+
+Cache infrastructure is inherently **model-scoped**: one set of cached weights serves all pods running the same model, regardless of how many Workspaces or InferenceSets reference it. This requires the cache configuration to be **shareable** across workloads without duplication.
+
+**Options considered:**
+
+| Option | API Location | Sharing scope | Pros | Cons |
+|--------|-------------|---------------|------|------|
+| 1. Workspace only | `Workspace.Cache` inline | Single workspace | Simple; no new CRD | Duplicated across InferenceSet replicas; no cross-workspace sharing |
+| 2. InferenceSet + Workspace | `InferenceSetTemplate.Cache` inline, propagated to child Workspaces | All replicas of one InferenceSet | Single point per set; no new CRD; Workspace also supports standalone use | Cross-InferenceSet sharing requires duplicating config |
+| 3. Cluster-scoped CRD | New cluster-scoped CRD, referenced by name | Any workload using the same model | Maximum sharing; one definition, many consumers | New CRD; reference resolution complexity |
+
+**Chosen approach: Option 2 — `CacheSpec` on InferenceSet + Workspace, with InferenceSet propagation.**
+
+`CacheSpec` is defined on both `InferenceSetTemplate` and `Workspace`. When an InferenceSet creates child Workspaces, it propagates `Cache` config to each child (the same way it propagates `Resource` and `Inference`). A standalone Workspace can also specify `Cache` directly.
+
+**Inheritance chain:**
+
+```
+InferenceSet.spec.template.cache         ← defined once per model/set
+     ↓ propagated to child Workspaces at creation time
+Workspace.cache                          ← inherited from InferenceSet, or specified directly
+```
+
+See [Phase 3: Workspace Integration](#phase-3-workspace-integration) for propagation logic and resolution rules.
+
+**Why not a cluster-scoped CRD?**
+- Option 2 covers the dominant use case (N replicas of one model sharing one cache config) without introducing a new CRD.
+- The provider's `IsReady(ctx, modelName, modelRevision)` call already scopes readiness per-model (not globally), so the Cache Controller internally tracks per-model cache state regardless of where the config lives.
+- A cluster-scoped CRD can be introduced as a **non-breaking future addition** if cross-InferenceSet sharing becomes a common requirement.
+
+**KV cache scope for disaggregated inference:** For `MultiRoleInference`, KV cache must be shared across prefill and decode roles (which are separate InferenceSets). Since the user creates the `MultiRoleInference` CR (not the InferenceSets directly), `MultiRoleInferenceSpec` will gain a `Cache *CacheSpec` field. The MultiRoleInference controller propagates the `kvCache` config to both role InferenceSets during `reconcileInferenceSet` (`pkg/controllers/multiroleinference/controller.go`), ensuring they connect to the same KV cache backend. This API addition to `MultiRoleInference` is deferred to when both the cache feature and MultiRoleInference reach beta, since MultiRoleInference is currently alpha and feature-gated.
+
 ### API Changes
 
-#### CacheSpec (New Top-Level Workspace Field)
+#### CacheSpec (Workspace / InferenceSet Field)
+
+`CacheSpec` appears on both `Workspace` and `InferenceSetTemplate`.
 
 ```go
 // CacheSpec configures distributed caching for model workloads.
@@ -299,6 +336,12 @@ type ModelCacheSpec struct {
     // +kubebuilder:validation:Enum=Required;Opportunistic;Disabled
     Mode CacheMode `json:"mode,omitempty"`
 
+    // Config is the name of a ConfigMap in the same namespace containing
+    // provider-specific model cache configuration. The provider validates
+    // and merges this with its defaults from Helm values.
+    // +optional
+    Config string `json:"config,omitempty"`
+
     // CleanupOnDelete invalidates cached model data when workspace is deleted.
     // +optional
     CleanupOnDelete bool `json:"cleanupOnDelete,omitempty"`
@@ -317,6 +360,13 @@ type KVCacheSpec struct {
     // +kubebuilder:default:="Opportunistic"
     // +kubebuilder:validation:Enum=Required;Opportunistic;Disabled
     Mode CacheMode `json:"mode,omitempty"`
+
+    // Config is the name of a ConfigMap in the same namespace containing
+    // provider-specific KV cache configuration (e.g., cache size, TTL,
+    // eviction policy). The provider validates and merges this with its
+    // defaults from Helm values.
+    // +optional
+    Config string `json:"config,omitempty"`
 }
 
 type CacheProvider string
@@ -346,6 +396,35 @@ type Workspace struct {
 }
 ```
 
+The `InferenceSetTemplate` struct also gains a `Cache` field for propagation:
+
+```go
+type InferenceSetTemplate struct {
+    metav1.ObjectMeta `json:"metadata,omitempty"`
+    Resource  InferenceSetResourceSpec   `json:"resource"`
+    Inference kaitov1beta1.InferenceSpec `json:"inference"`
+
+    // Cache configures distributed caching for all Workspaces created by this InferenceSet.
+    // Propagated to child Workspaces at creation time.
+    // +optional
+    Cache *kaitov1beta1.CacheSpec `json:"cache,omitempty"`
+}
+```
+
+The `MultiRoleInferenceSpec` struct also gains a `Cache` field (deferred to beta, see [Cache Scope](#cache-scope)):
+
+```go
+type MultiRoleInferenceSpec struct {
+    // ...existing fields (Model, Roles, LabelSelector)...
+
+    // Cache configures distributed caching for all roles in this MultiRoleInference.
+    // The controller propagates kvCache config to both prefill and decode role
+    // InferenceSets, ensuring they connect to the same KV cache backend.
+    // +optional
+    Cache *kaitov1beta1.CacheSpec `json:"cache,omitempty"`
+}
+```
+
 #### Cache Provider Interface
 
 ```go
@@ -366,9 +445,9 @@ type Provider interface {
     // and the provider can operate (e.g., CRD exists, operator running).
     IsAvailable(ctx context.Context) (bool, error)
 
-    // IsReady reports whether the cache is warmed and ready to serve.
-    // Returns (ready, reason, error).
-    IsReady(ctx context.Context) (bool, string, error)
+    // IsReady reports whether the cache is warmed and ready to serve
+    // for the specified model. Returns (ready, reason, error).
+    IsReady(ctx context.Context, modelName, modelRevision string) (bool, string, error)
 
     // PodMutations returns the pod-level changes needed for a specific cache
     // concern (ModelWeights or KVCache).
@@ -379,7 +458,12 @@ type Provider interface {
 }
 ```
 
+**Note on provider lifecycle vs pod-mutation:** The `Provider` interface above covers the **pod-facing contract** — what changes to inject into model pods. Providers also have a **lifecycle/reconciliation responsibility**: creating and managing backend-specific resources (Cache CRs, ConfigMaps, discovery Services) that the pod-level mutations depend on. This lifecycle is driven by the Cache Controller (Phase 2) and is internal to each provider implementation, not expressed in this interface. See [Phase 2: Cache Controller](#phase-2-cache-controller) for details on resource ownership.
+```
+
 #### PodMutations
+
+The Workspace controller calls `provider.PodMutations()` after resolving the effective cache config from the Workspace's `Cache` fields (see [Phase 3: Workspace Integration](#phase-3-workspace-integration) for the resolution flow). The returned `PodMutations` are merged into the model pod spec.
 
 ```go
 // PodMutations describes all pod-level changes needed to enable cache access.
@@ -398,6 +482,7 @@ type PodMutations struct {
     // InitContainers to prepend to the pod.
     InitContainers []corev1.Container
 }
+```
 ```
 
 ### Implementation Details/Notes/Constraints
@@ -426,12 +511,11 @@ Example `values.yaml` structure:
 ```yaml
 cache:
   enabled: false
-  defaultProvider: ""           # which provider workspaces use by default
   providers:
     myCacheProvider:
       enabled: false
       namespace: "cache-system"
-      # Provider-specific configuration
+      # Provider-specific infrastructure configuration
       nodeSelector:
         key: "node-type"
         value: "gpu-nvme"
@@ -474,7 +558,7 @@ Create `pkg/cache/controller.go` with the Cache Controller:
 
 - **Provider Discovery**: At startup, resolve the configured provider via the registry. If unavailable, enter degraded state (log warning, emit event) without crashing.
 - **Node Watching**: Watch eligible nodes (Ready, schedulable, matching configured label selector) to inform providers about cache topology.
-- **Provider Lifecycle**: Once `IsAvailable()` confirms the backend is installed, reconcile provider-specific resources from Helm values configuration (e.g., CRs, ConfigMaps). Providers manage their own backend-specific resources internally; the Cache Controller drives the lifecycle.
+- **Provider Lifecycle**: Once `IsAvailable()` confirms the backend is installed, reconcile provider-specific resources from Helm values configuration (e.g., Cache CRs, ConfigMaps, discovery Services). Providers manage their own backend-specific resources internally; the Cache Controller drives the lifecycle. This provisioning step is where providers create the resources that `PodMutations` later references — for example, a ConfigMap containing KV connector configuration that is then mounted into model pods via `PodMutations.Volumes`.
 - **Readiness Monitoring**: Periodically call `provider.IsReady()` and expose a `CacheReady` condition. Workspace controllers query this before injecting PodMutations in Required mode.
 - **RBAC**: Extend KAITO's ClusterRole with rules for provider-specific Cache CRs (get/list/watch/create/update), core API (nodes for topology, events for status). Provider-specific resource types are configurable per provider.
 
@@ -483,6 +567,13 @@ Register the controller in `cmd/workspace/main.go` behind the feature gate.
 #### Phase 3: Workspace Integration
 
 - Add `Cache *CacheSpec` to the `Workspace` struct in `api/v1beta1/workspace_types.go`.
+- Add `Cache *CacheSpec` to `InferenceSetTemplate` in `api/v1alpha1/inferenceset_types.go`.
+- Modify InferenceSet controller to propagate `Cache` to child Workspaces (at `inferenceset_controller.go:311+`):
+  - At Workspace creation time, copy `template.cache` into `workspaceObj.Cache`.
+  - The child Workspace carries the full cache config and is **self-contained** — it does not depend on the parent InferenceSet at runtime for cache resolution.
+- Cache resolution rules (applied by the Workspace controller):
+  1. If `workspace.Cache` has `ModelCache`/`KVCache` fields → use them.
+  2. If no `Cache` on the Workspace and no parent InferenceSet → caching disabled (no-op).
 - Modify workspace controller reconciliation to process each concern independently:
   - For `modelCache` (if configured):
     - Resolve provider via registry (`cache.Get(workspace.Cache.ModelCache.Provider)`)
@@ -583,6 +674,102 @@ KAITO only applies the label; the webhook owns the injection logic. This keeps p
 
 **Combining Patterns:** The `PodMutations` struct supports all patterns simultaneously. When both model weight and KV cache providers are configured, their mutations are merged. If the same provider serves both concerns, it deduplicates shared configuration (e.g., a single discovery endpoint env var used by both the storage interception library and the KV connector).
 
+### Runtime Integration Details
+
+This section specifies the **data-plane contracts** — what the model container actually communicates with at runtime, beyond the Kubernetes API / control-plane mechanics described above.
+
+#### Model Weight Cache: Runtime Read Path
+
+The in-pod consumer of cached model weights is the **[run:ai model streamer](https://github.com/run-ai/runai-model-streamer)** (not a HuggingFace download). When caching is enabled, the cache client layer sits between the streamer and blob storage:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  vLLM pod                                                        │
+│                                                                  │
+│  run:ai model streamer (in-process)                              │
+│       │                                                          │
+│  Cache enabled:                                                  │
+│       └──► Cache client layer                                    │
+│                ├─ HIT ──► Distributed Cache                      │
+│                └─ MISS ──► Blob Storage (transparent fallback)   │
+│                                                                  │
+│  Cache disabled (no provider / mode: Disabled):                  │
+│       └──► Blob Storage directly (existing behavior)             │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Key points:**
+- **Cache hit**: model loads in seconds (memory-speed, no network fetch from blob).
+- **Cache miss**: handled transparently by the cache client layer — falls back to blob storage and lazily warms the cache on the read path. The streamer is unaware of the miss.
+- **Cache disabled**: the streamer talks directly to blob storage, identical to today's behavior. No cache layer is involved.
+- **Blob storage is abstracted, not bypassed** — it remains the backing origin for cache misses and initial population.
+
+**Provider-injected configuration** (via `PodMutations` env vars):
+```
+RUNAI_STREAMER_CACHE_ENABLED=true
+RUNAI_STREAMER_CACHE_ENDPOINT=http://cache-discovery.<ns>.svc.cluster.local:<port>
+```
+
+The streamer's cache-backend support was added in [runai-model-streamer#139](https://github.com/run-ai/runai-model-streamer/pull/139).
+
+#### KV Cache: Runtime Integration
+
+KV caching operates at the **API level** (not storage/filesystem level). It integrates with the inference engine's KV management layer. Two integration modes are supported:
+
+**Mode 1: LMCache L2 Backend (primary, complementary to existing L1)**
+
+KAITO's existing KV optimization uses [LMCache](https://docs.lmcache.ai/) for **L1** offloading (CPU memory / local NVMe). The distributed cache acts as an **L2 backend** behind LMCache:
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  vLLM inference engine                                        │
+│       │                                                       │
+│       ├─ L1: LMCache (local CPU/NVMe offload) ← existing     │
+│       │       │                                               │
+│       │       └─ L2: Distributed KV Cache ← this proposal    │
+│       │              (e.g., FlexKV, distributed KV stores)               │
+│       │              Shared across pods/roles                  │
+│       │                                                       │
+│       └─ GPU HBM (hot KV, always present)                    │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**L1 and L2 are complementary, not exclusive.** LMCache's storage backend configuration is extended to register the distributed cache as a remote L2 store. Lookups flow: GPU HBM → L1 (local) → L2 (distributed) → recompute.
+
+**Provider-injected configuration** (via `PodMutations` volumes):
+
+The provider creates a runtime ConfigMap by merging admin defaults (from Helm values) with user-provided settings (from `KVCacheSpec.Config` ConfigMap, if specified). The result is mounted into the model pod:
+
+```yaml
+# ConfigMap: kv-cache-config (created by provider during lifecycle reconciliation)
+# Merges Helm defaults + user's Config ConfigMap
+data:
+  lmcache_config.yaml: |
+    storage_backend: "remote"
+    remote_backend: "custom"
+    custom_backend_module: "provider_lmcache_backend"
+    custom_backend_config:
+      endpoint: "cache-discovery.<ns>.svc.cluster.local:9065"
+```
+
+**Mode 2: vLLM KV Connector Replacement (advanced, provider-specific)**
+
+For prefill/decode disaggregation (`MultiRoleInference`), the distributed cache acts as the **KV transfer layer** between prefill and decode pods, replacing or extending vLLM's built-in connector:
+
+```
+VLLM_KV_TRANSFER_CONFIG={"kv_connector":"ProviderConnector","locator_nodes":"cache-discovery.<ns>.svc.cluster.local:9065","protocol":"rdma"}
+```
+
+The connector implements vLLM's KVConnector interface, handling `put` (prefill writes KV) and `get` (decode reads KV) operations transparently.
+
+**Note:** Mode 1 and Mode 2 are **mutually exclusive within a single pod** — vLLM has one KV path configured at startup. However, different InferenceSets can use different modes: for example, a single-role serving InferenceSet using Mode 1 (LMCache L2 for prefix reuse) alongside a MultiRoleInference using Mode 2 (connector replacement for P/D KV transfer). The provider's `PodMutations` for `CacheConcernKVCache` configures whichever mode is appropriate for the workload. If a provider replaces the entire vLLM KV connector (Mode 2), it should document whether LMCache's local CPU/NVMe offload (L1) remains in the data path or is bypassed, so users understand the resulting cache hierarchy.
+
+#### Provider-Specific ConfigMap
+
+Both model-weight and KV cache providers may author a **ConfigMap** containing structured runtime configuration too complex for individual env vars. The ConfigMap is delivered to pods via `PodMutations.Volumes` and `PodMutations.VolumeMounts` (as a ConfigMap-backed volume), or via `PodMutations.EnvVars` referencing individual keys. This uses the existing `PodMutations` fields — no additional mechanism is required.
+
+This allows providers to deliver connector configs, endpoint discovery, TLS certs, or protocol parameters without polluting the env-var namespace.
+
 ### Risks and Mitigations
 
 | Risk | Impact | Mitigation |
@@ -628,8 +815,8 @@ KAITO defines a provider interface; concrete providers manage their own backend-
 
 ## Upgrade Strategy
 
-- **New installations**: Enable via `cache.enabled=true` in Helm values. Feature gate `FeatureFlagDistributedCache` must also be set to `true`. Specify `cache.provider` to select the backend.
-- **Existing installations**: No breaking changes. `Cache` field on Workspace is optional; existing workspaces without it behave identically to today.
+- **New installations**: Enable via `cache.enabled=true` in Helm values. Feature gate `FeatureFlagDistributedCache` must also be set to `true`. Add `cache` config to InferenceSet or Workspace specs to enable caching for workloads.
+- **Existing installations**: No breaking changes. `Cache` field on Workspace and InferenceSetTemplate is optional; existing workspaces without it behave identically to today.
 - **Provider upgrades**: Each provider manages its own versioning. KAITO pins compatible provider versions in documentation and validates at startup.
 - **Feature gate promotion**: Once stable, promote `FeatureFlagDistributedCache` to default-on (beta), then remove the gate (GA).
 - **Provider interface stability**: The `Provider` interface is internal to KAITO initially. Once external providers are supported, version the interface with a compatibility guarantee.

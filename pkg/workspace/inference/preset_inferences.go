@@ -523,9 +523,9 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			DistributedInference: ctx.Model.SupportDistributedInference(),
 			MaxModelLen:          maxModelLen,
 			RuntimeContextExtraArguments: pkgmodel.RuntimeContextExtraArguments{
-				AdaptersEnabled:    len(ctx.Workspace.Inference.Adapters) > 0,
-				PerformanceMode:    v1beta1.GetPerformanceMode(ctx.Workspace),
-				StreamingModelPath: streamingModelPath,
+				AdaptersEnabled:     len(ctx.Workspace.Inference.Adapters) > 0,
+				PerformanceMode:     v1beta1.GetPerformanceMode(ctx.Workspace),
+				StreamingModelPath:  streamingModelPath,
 				StreamingLoadFormat: streamingLoadFormat,
 			},
 		})

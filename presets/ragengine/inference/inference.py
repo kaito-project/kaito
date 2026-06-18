@@ -45,6 +45,13 @@ from ragengine.config import (
     LLM_CONTEXT_WINDOW,
     LLM_INFERENCE_URL,
 )
+from ragengine.inference.sse import (
+    build_sse_data_chunk,
+    build_sse_done_chunk,
+    extract_delta_content,
+    is_sse_done_event,
+    parse_sse_data_line,
+)
 from ragengine.models import ChatCompletionResponse
 
 # Configure logging
@@ -340,7 +347,18 @@ class Inference(CustomLLM):
                 async for line in response.aiter_lines():
                     if not line:
                         continue
-                    yield f"{line}\n\n"
+
+                    data = parse_sse_data_line(line)
+                    if data is None:
+                        continue
+
+                    if is_sse_done_event(data):
+                        yield build_sse_done_chunk()
+                        break
+
+                    payload = json.loads(data)
+                    extract_delta_content(payload)
+                    yield build_sse_data_chunk(payload)
         except HTTPException as http_exc:
             logger.error(
                 f"HTTP exception during chat completions stream passthrough: {http_exc.detail}"

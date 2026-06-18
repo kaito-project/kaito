@@ -45,14 +45,16 @@ from ragengine.config import (
     LLM_CONTEXT_WINDOW,
     LLM_INFERENCE_URL,
 )
-from ragengine.inference.sse import (
+from ragengine.models import ChatCompletionResponse
+from ragengine.streaming.downstream import (
     build_sse_data_chunk,
     build_sse_done_chunk,
+)
+from ragengine.streaming.upstream import (
     extract_delta_content,
     is_sse_done_event,
     parse_sse_data_line,
 )
-from ragengine.models import ChatCompletionResponse
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

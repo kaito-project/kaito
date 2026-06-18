@@ -4,10 +4,12 @@
 
 import json
 
-from ragengine.inference.sse import (
+from ragengine.streaming.downstream import (
     build_block_sse_chunk,
     build_sse_data_chunk,
     build_sse_done_chunk,
+)
+from ragengine.streaming.upstream import (
     extract_delta_content,
     is_sse_done_event,
     parse_sse_data_line,

@@ -671,17 +671,6 @@ spec:
                   - type
                   type: object
                 type: array
-              modelMirror:
-                description: |-
-                  ModelMirror holds a reference to the ModelMirror CR managing this workspace's model download.
-                  Set when ModelStreaming feature gate is enabled.
-                properties:
-                  name:
-                    description: Name is the cluster-scoped ModelMirror CR name.
-                    type: string
-                required:
-                - name
-                type: object
               performance:
                 description: |-
                   Performance holds the metrics from the post-load inference benchmark.

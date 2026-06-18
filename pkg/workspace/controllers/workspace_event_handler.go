@@ -116,6 +116,11 @@ func enqueueWorkspacesForModelMirror(kubeClient client.Client) handler.EventHand
 				if ws.Inference == nil || ws.Inference.Preset == nil {
 					continue
 				}
+				// Skip workspaces that opt out of streaming (or when the gate is off):
+				// they never consume a ModelMirror CR, so a CR change is irrelevant to them.
+				if !inference.ModelStreamingEnabled(ws) {
+					continue
+				}
 				// Derive the expected CR name from the workspace's preset
 				expectedCR := inference.ModelMirrorCRName(inference.ResolveHFModelID(ws))
 				if expectedCR == crName {

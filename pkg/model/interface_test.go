@@ -279,9 +279,7 @@ func TestGetInferenceCommandVLLMServedModelName(t *testing.T) {
 			}
 			cmd := p.GetInferenceCommand(rc)
 			require.Len(t, cmd, 3)
-			if tt.expectedServed != "" {
-				assert.Contains(t, cmd[2], tt.expectedServed)
-			}
+			assert.Contains(t, cmd[2], tt.expectedServed)
 			if tt.notExpectedServed != "" {
 				assert.NotContains(t, cmd[2], tt.notExpectedServed)
 			}

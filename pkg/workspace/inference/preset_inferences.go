@@ -886,9 +886,11 @@ func rewriteFlagInShellString(s, flag, value string) string {
 	if !strings.Contains(s, flag) {
 		return s
 	}
+	// Shell delimiters that can follow a flag value.
+	const shellDelimiters = " \t;\n&|)"
 	if i := strings.Index(s, flag+"="); i >= 0 {
 		end := i + len(flag) + 1
-		j := strings.IndexAny(s[end:], " \t")
+		j := strings.IndexAny(s[end:], shellDelimiters)
 		if j < 0 {
 			return s[:i] + flag + "=" + value
 		}
@@ -896,7 +898,7 @@ func rewriteFlagInShellString(s, flag, value string) string {
 	}
 	if i := strings.Index(s, flag+" "); i >= 0 {
 		end := i + len(flag) + 1
-		j := strings.IndexAny(s[end:], " \t")
+		j := strings.IndexAny(s[end:], shellDelimiters)
 		if j < 0 {
 			return s[:i] + flag + " " + value
 		}

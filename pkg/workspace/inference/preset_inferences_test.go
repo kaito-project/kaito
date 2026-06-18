@@ -1435,11 +1435,18 @@ func TestApplyInferenceRoleEnv(t *testing.T) {
 			applyInferenceRoleEnv(tc.labels, "test-workspace", spec)
 
 			found := false
+			foundNIXL := false
 			for _, e := range spec.Containers[0].Env {
 				if e.Name == consts.InferenceRoleEnvName {
 					found = true
 					if e.Value != tc.expectedValue {
 						t.Errorf("expected value %q, got %q", tc.expectedValue, e.Value)
+					}
+				}
+				if e.Name == "VLLM_NIXL_SIDE_CHANNEL_HOST" {
+					foundNIXL = true
+					if e.ValueFrom == nil || e.ValueFrom.FieldRef == nil || e.ValueFrom.FieldRef.FieldPath != "status.podIP" {
+						t.Error("VLLM_NIXL_SIDE_CHANNEL_HOST should use fieldRef status.podIP")
 					}
 				}
 			}
@@ -1448,6 +1455,12 @@ func TestApplyInferenceRoleEnv(t *testing.T) {
 			}
 			if !tc.expectEnvSet && found {
 				t.Error("KAITO_INFERENCE_ROLE should not be set")
+			}
+			if tc.expectEnvSet && !foundNIXL {
+				t.Error("expected VLLM_NIXL_SIDE_CHANNEL_HOST to be set")
+			}
+			if !tc.expectEnvSet && foundNIXL {
+				t.Error("VLLM_NIXL_SIDE_CHANNEL_HOST should not be set")
 			}
 		})
 	}

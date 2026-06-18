@@ -705,7 +705,9 @@ func SetDefaultModelWeightsVolume(ctx *generator.WorkspaceGeneratorContext, spec
 //   - KAITO_INFERENCE_ROLE: role identification for the container
 //   - VLLM_NIXL_SIDE_CHANNEL_HOST: pod IP for NIXL KV transfer side channel
 //
-// Only the main container needs these env vars; sidecar containers do not use them.
+// These env vars are set on the main vLLM container only. The routing sidecar
+// container (if present on decode pods) does not need them — it reads its
+// backend address from its own args/config.
 func applyInferenceRoleEnv(labels map[string]string, containerName string, spec *corev1.PodSpec) {
 	role, ok := labels[v1beta1.LabelInferenceRole]
 	if !ok || (role != string(kaitov1alpha1.MultiRoleInferenceRolePrefill) && role != string(kaitov1alpha1.MultiRoleInferenceRoleDecode)) {

@@ -396,7 +396,7 @@ func GenerateInferencePoolOCIRepository(inferenceSetObj *kaitov1alpha1.Inference
 // inferencePoolTargetPort returns the target port for the InferencePool.
 // Always PortInferenceServer (5000) — on decode pods the routing sidecar
 // listens on 5000; on prefill pods vLLM listens directly on 5000.
-func inferencePoolTargetPort(inferenceSetObj *kaitov1alpha1.InferenceSet) int32 {
+func inferencePoolTargetPort() int32 {
 	return consts.PortInferenceServer
 }
 
@@ -425,7 +425,7 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1alpha1.InferenceSe
 		},
 		"inferencePool": map[string]any{
 			"targetPorts": []map[string]any{{
-				"number": inferencePoolTargetPort(inferenceSetObj),
+				"number": inferencePoolTargetPort(),
 			}},
 			"modelServers": map[string]any{
 				"matchLabels": matchLabels,

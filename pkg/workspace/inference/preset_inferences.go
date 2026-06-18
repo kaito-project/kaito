@@ -367,8 +367,9 @@ func buildStartupProbe(timeout time.Duration, port ...int32) *corev1.Probe {
 	}
 }
 
-// buildProbeWithPort returns a deep copy of the template probe with the port
-// overridden when port > 0. When port is 0 the default PortInferenceServer is used.
+// buildProbeWithPort returns a deep copy of the template probe with the HTTPGet
+// port overridden when port > 0. When port is 0 the template's original port is
+// preserved unchanged.
 func buildProbeWithPort(template *corev1.Probe, port int32) *corev1.Probe {
 	p := template.DeepCopy()
 	if port > 0 && p.HTTPGet != nil {

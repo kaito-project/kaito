@@ -469,6 +469,7 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 		periodSeconds       int32
 		timeoutSeconds      int32
 		failureThreshold    int32
+		vllmPort            int32
 		expectedProbe       *corev1.Probe
 	}{
 		"Liveness": {
@@ -520,11 +521,36 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 				FailureThreshold:    1,
 			},
 		},
+		"Readiness with custom port": {
+			probeType: probeTypeReadiness,
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "test-ns",
+				},
+			},
+			initialDelaySeconds: 0,
+			periodSeconds:       10,
+			timeoutSeconds:      1,
+			failureThreshold:    1,
+			vllmPort:            consts.PortDecodeVLLM,
+			expectedProbe: &corev1.Probe{
+				ProbeHandler: corev1.ProbeHandler{
+					Exec: &corev1.ExecAction{
+						Command: []string{"/bin/sh", "-c", "python3 /workspace/vllm/multi-node-health-check.py readiness --leader-address=test-workspace-0.test-workspace-headless.test-ns.svc.cluster.local --vllm-port=5001"},
+					},
+				},
+				InitialDelaySeconds: 0,
+				PeriodSeconds:       10,
+				TimeoutSeconds:      1,
+				FailureThreshold:    1,
+			},
+		},
 	}
 
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
-			actualProbe := getDistributedInferenceProbe(tc.probeType, tc.workspace, tc.initialDelaySeconds, tc.periodSeconds, tc.timeoutSeconds, tc.failureThreshold)
+			actualProbe := getDistributedInferenceProbe(tc.probeType, tc.workspace, tc.initialDelaySeconds, tc.periodSeconds, tc.timeoutSeconds, tc.failureThreshold, tc.vllmPort)
 			if actualProbe.Exec != nil && tc.expectedProbe.Exec != nil {
 				expected := toParameterMap(tc.expectedProbe.Exec.Command)
 				actual := toParameterMap(actualProbe.Exec.Command)

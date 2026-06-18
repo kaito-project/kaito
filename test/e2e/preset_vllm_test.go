@@ -83,7 +83,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateMultiRoleInferenceChatCompletions(mriObj)
 	})
 
-	It("should create a Gemma 3 InferenceSet with preset public mode successfully", Serial, utils.GinkgoLabelFastCheck, func() {
+	It("should create a Gemma 3 InferenceSet with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfReplicas := 1
 		inferenceSetObj := createGemma3InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
 		defer cleanupResourcesForInferenceSet(inferenceSetObj)
@@ -418,7 +418,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateMultiRoleInferenceStatus(mriObj)
 	})
 
-	It("should create a Gemma 3 InferenceSet with preset public mode successfully", Serial, utils.GinkgoLabelFastCheck, func() {
+	It("should create a Gemma 3 InferenceSet with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfReplicas := 1
 		inferenceSetObj := createGemma3InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
 		defer cleanupResourcesForInferenceSet(inferenceSetObj)

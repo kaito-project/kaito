@@ -45,7 +45,7 @@ import (
 func TestInferenceSetSyncControllerRevision(t *testing.T) {
 	testcases := map[string]struct {
 		callMocks     func(c *test.MockClient)
-		inferenceset  v1beta1.InferenceSet
+		inferenceset  v1alpha1.InferenceSet
 		expectedError error
 		verifyCalls   func(c *test.MockClient)
 	}{

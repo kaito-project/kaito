@@ -380,7 +380,7 @@ func GenerateModelPullerContainer(ctx context.Context, workspaceObj *kaitov1beta
 }
 
 // GenerateInferencePoolOCIRepository generates a Flux OCIRepository for the inference pool.
-func GenerateInferencePoolOCIRepository(inferenceSetObj *kaitov1beta1.InferenceSet) *sourcev1.OCIRepository {
+func GenerateInferencePoolOCIRepository(inferenceSetObj *kaitov1alpha1.InferenceSet) *sourcev1.OCIRepository {
 	return &sourcev1.OCIRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      utils.InferencePoolName(inferenceSetObj.Name),
@@ -407,7 +407,7 @@ func GenerateInferencePoolOCIRepository(inferenceSetObj *kaitov1beta1.InferenceS
 // Runtime detection mirrors v1beta1.GetWorkspaceRuntimeName: when the vLLM
 // feature gate is enabled (default), the runtime defaults to vLLM unless
 // explicitly overridden by the kaito.sh/runtime annotation.
-func inferencePoolTargetPort(inferenceSetObj *kaitov1beta1.InferenceSet) int32 {
+func inferencePoolTargetPort(inferenceSetObj *kaitov1alpha1.InferenceSet) int32 {
 	role := inferenceSetObj.Spec.Template.Labels[kaitov1beta1.LabelInferenceRole]
 	if role != string(kaitov1alpha1.MultiRoleInferenceRoleDecode) {
 		return consts.PortInferenceServer
@@ -424,7 +424,7 @@ func inferencePoolTargetPort(inferenceSetObj *kaitov1beta1.InferenceSet) int32 {
 }
 
 // GenerateInferencePoolHelmRelease generates a Flux HelmRelease for the inference pool.
-func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1beta1.InferenceSet) (*helmv2.HelmRelease, error) {
+func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1alpha1.InferenceSet) (*helmv2.HelmRelease, error) {
 	matchLabels := map[string]string{
 		consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name,
 	}

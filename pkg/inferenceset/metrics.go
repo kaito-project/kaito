@@ -24,6 +24,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 )
 
 var (
@@ -49,7 +50,7 @@ func monitorInferenceSets(ctx context.Context, k8sClient client.Client) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			var isList kaitov1beta1.InferenceSetList
+			var isList kaitov1alpha1.InferenceSetList
 
 			if err := k8sClient.List(ctx, &isList); err != nil {
 				klog.Errorf("failed to list all inferencesets: %v", err)
@@ -79,7 +80,7 @@ func monitorInferenceSets(ctx context.Context, k8sClient client.Client) {
 	}
 }
 
-func determineInferenceSetPhase(is *kaitov1beta1.InferenceSet) string {
+func determineInferenceSetPhase(is *kaitov1alpha1.InferenceSet) string {
 	for _, cond := range is.Status.Conditions {
 		switch kaitov1beta1.ConditionType(cond.Type) {
 		case kaitov1beta1.InferenceSetConditionTypeDeleting:

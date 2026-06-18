@@ -71,6 +71,16 @@ const (
 	WorkspaceHashAnnotation = "workspace.kaito.io/hash"
 	WorkspaceNameLabel      = "workspace.kaito.io/name"
 	revisionHashSuffix      = 5
+
+	// MaxAllowedNodeCount caps the per-replica node count produced by the node
+	// estimator for inference workspaces. vLLM's Ray executor has a known bug
+	// where pipeline_parallel_size > 3 fails to initialize the KV cache,
+	// producing a KeyError on layer lookup; see
+	// https://github.com/vllm-project/vllm/issues/30128. Until that is fixed
+	// upstream, we refuse to provision more than this many nodes per replica
+	// and ask the user to pick a larger GPU instance type (or shrink the
+	// model / context size) instead.
+	MaxAllowedNodeCount = 3
 )
 
 type WorkspaceReconciler struct {
@@ -265,6 +275,11 @@ func (c *WorkspaceReconciler) waitForModelMirror(ctx context.Context, wObj *kait
 }
 
 func (c *WorkspaceReconciler) reconcileNodes(ctx context.Context, wObj *kaitov1beta1.Workspace) (result *reconcile.Result, err error) {
+	// Refuse to provision when the persisted target node count is over the limit.
+	if err := c.guardTargetNodeCount(wObj); err != nil {
+		return &reconcile.Result{}, err
+	}
+
 	// Provision nodes via the NodeProvisioner interface.
 	// GpuProvisioner creates NodeClaims; BYOProvisioner (BYO mode) is a no-op.
 	if err := c.nodeProvisioner.ProvisionNodes(ctx, wObj); err != nil {
@@ -1127,6 +1142,22 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 	}
 
 	return nil
+}
+
+// guardTargetNodeCount blocks provisioning when the persisted target node
+// count exceeds MaxAllowedNodeCount. Only enforced for inference; tuning
+// paths set Resource.Count directly and do not go through the estimator.
+func (c *WorkspaceReconciler) guardTargetNodeCount(wObj *kaitov1beta1.Workspace) error {
+	if wObj.Inference == nil || wObj.Status.TargetNodeCount <= MaxAllowedNodeCount {
+		return nil
+	}
+	msg := fmt.Sprintf("estimated node count %d exceeds the maximum allowed %d; "+
+		"node provisioning halted. Use a larger GPU instance type or reduce model/context size.",
+		wObj.Status.TargetNodeCount, MaxAllowedNodeCount)
+	if c.Recorder != nil {
+		c.Recorder.Eventf(wObj, corev1.EventTypeWarning, "NodeCountExceedsLimit", msg)
+	}
+	return fmt.Errorf("%s", msg)
 }
 
 // SetupWithManager sets up the controller with the Manager.

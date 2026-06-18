@@ -18,19 +18,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
-	"strings"
 	"time"
-
-	"github.com/samber/lo"
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
-	storagev1 "k8s.io/api/storage/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/klog/v2"
-	"k8s.io/utils/ptr"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
@@ -45,6 +33,17 @@ import (
 	"github.com/kaito-project/kaito/pkg/workspace/estimator"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
+
+	"github.com/samber/lo"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/klog/v2"
+	"k8s.io/utils/ptr"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -307,7 +306,11 @@ func checkIfNVMeAvailable(ctx context.Context, gpuConfig *sku.GPUConfig, kubeCli
 }
 
 // getDistributedInferenceProbe returns a container probe configuration for the distributed inference workload.
-func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, initialDelaySeconds, periodSeconds, timeoutSeconds, failureThreshold int32) *corev1.Probe {
+func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, initialDelaySeconds, periodSeconds, timeoutSeconds, failureThreshold int32, vllmPort ...int32) *corev1.Probe {
+	port := consts.PortInferenceServer
+	if len(vllmPort) > 0 && vllmPort[0] > 0 {
+		port = vllmPort[0]
+	}
 	args := map[string]string{
 		"leader-address": utils.GetRayLeaderHost(wObj.ObjectMeta),
 	}
@@ -315,7 +318,7 @@ func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, 
 	case probeTypeLiveness:
 		args["ray-port"] = strconv.Itoa(pkgmodel.PortRayCluster)
 	case probeTypeReadiness:
-		args["vllm-port"] = strconv.FormatInt(int64(consts.PortInferenceServer), 10)
+		args["vllm-port"] = strconv.FormatInt(int64(port), 10)
 	}
 
 	// for distributed inference, we cannot use the default http probe since only the leader pod
@@ -343,14 +346,18 @@ func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, 
 	return probe
 }
 
-func buildStartupProbe(timeout time.Duration) *corev1.Probe {
+func buildStartupProbe(timeout time.Duration, port ...int32) *corev1.Probe {
 	const periodSeconds = 10
+	probePort := consts.PortInferenceServer
+	if len(port) > 0 && port[0] > 0 {
+		probePort = port[0]
+	}
 	// ceil(timeout / period) ensures the full timeout window is covered.
 	failureThreshold := int32(math.Ceil(timeout.Seconds() / periodSeconds))
 	return &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
-				Port: intstr.FromInt32(consts.PortInferenceServer),
+				Port: intstr.FromInt32(probePort),
 				Path: ProbePath,
 			},
 		},
@@ -360,11 +367,21 @@ func buildStartupProbe(timeout time.Duration) *corev1.Probe {
 	}
 }
 
-func buildDistributedStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace) *corev1.Probe {
+// buildProbeWithPort returns a deep copy of the template probe with the port
+// overridden when port > 0. When port is 0 the default PortInferenceServer is used.
+func buildProbeWithPort(template *corev1.Probe, port int32) *corev1.Probe {
+	p := template.DeepCopy()
+	if port > 0 && p.HTTPGet != nil {
+		p.HTTPGet.Port = intstr.FromInt32(port)
+	}
+	return p
+}
+
+func buildDistributedStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace, vllmPort ...int32) *corev1.Probe {
 	const periodSeconds = int32(10)
 	const timeoutSeconds = int32(1)
 	failureThreshold := int32(math.Ceil(timeout.Seconds() / float64(periodSeconds)))
-	return getDistributedInferenceProbe(probeTypeReadiness, wObj, 0, periodSeconds, timeoutSeconds, failureThreshold)
+	return getDistributedInferenceProbe(probeTypeReadiness, wObj, 0, periodSeconds, timeoutSeconds, failureThreshold, vllmPort...)
 }
 
 // buildBenchmarkStartupProbe returns an exec startup probe that runs
@@ -510,9 +527,13 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			}
 		}
 
-		// When the routing sidecar is needed, it will be injected after the
-		// main container is created. vLLM keeps its default port (5000).
+		// When the routing sidecar is needed, vLLM moves to PortDecodeVLLM (5001)
+		// so the sidecar can occupy PortInferenceServer (5000).
 		isSidecarNeeded := needsRoutingSidecar(ctx.Workspace)
+		var vllmPort int32
+		if isSidecarNeeded {
+			vllmPort = consts.PortDecodeVLLM
+		}
 
 		commands := inferenceParam.GetInferenceCommand(pkgmodel.RuntimeContext{
 			RuntimeName:          runtimeName,
@@ -523,6 +544,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			WorkspaceMetadata:    ctx.Workspace.ObjectMeta,
 			DistributedInference: ctx.Model.SupportDistributedInference(),
 			MaxModelLen:          maxModelLen,
+			InferencePort:        vllmPort,
 			RuntimeContextExtraArguments: pkgmodel.RuntimeContextExtraArguments{
 				AdaptersEnabled:     len(ctx.Workspace.Inference.Adapters) > 0,
 				PerformanceMode:     v1beta1.GetPerformanceMode(ctx.Workspace),
@@ -580,9 +602,9 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 				Command:        commands,
 				Resources:      resourceReq,
 				Ports:          append([]corev1.ContainerPort(nil), containerPorts...),
-				StartupProbe:   buildStartupProbe(readinessTimeout),
-				LivenessProbe:  defaultLivenessProbe.DeepCopy(),
-				ReadinessProbe: defaultReadinessProbe.DeepCopy(),
+				StartupProbe:   buildStartupProbe(readinessTimeout, vllmPort),
+				LivenessProbe:  buildProbeWithPort(defaultLivenessProbe, vllmPort),
+				ReadinessProbe: buildProbeWithPort(defaultReadinessProbe, vllmPort),
 				VolumeMounts:   volumeMounts,
 				Env:            mainContainerEnv,
 			},
@@ -749,10 +771,16 @@ func SetDistributedInferenceProbe(ctx *generator.WorkspaceGeneratorContext, spec
 		readinessTimeout = defaultStartupProbeTimeout
 	}
 
+	// Determine vLLM port: decode pods use PortDecodeVLLM, others use default.
+	var vllmPort int32
+	if needsRoutingSidecar(ctx.Workspace) {
+		vllmPort = consts.PortDecodeVLLM
+	}
+
 	// 60 seconds initial delay for liveness probe to allow workers to join the cluster
-	livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, ctx.Workspace, 60, 10, 5, 1)
-	readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, ctx.Workspace, 0, 10, 1, 1)
-	startupProbe := buildDistributedStartupProbe(readinessTimeout, ctx.Workspace)
+	livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, ctx.Workspace, 60, 10, 5, 1, vllmPort)
+	readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, ctx.Workspace, 0, 10, 1, 1, vllmPort)
+	startupProbe := buildDistributedStartupProbe(readinessTimeout, ctx.Workspace, vllmPort)
 	envVar := corev1.EnvVar{
 		Name: "POD_INDEX",
 		ValueFrom: &corev1.EnvVarSource{
@@ -814,58 +842,23 @@ func applyInferenceRoleEnv(labels map[string]string, containerName string, spec 
 
 // injectRoutingSidecar appends the llm-d routing sidecar container to the pod
 // spec. The sidecar listens on PortInferenceServer (5000) and proxies to the
-// main vLLM container which is moved to PortDecodeVLLM (5001) on decode pods.
-// The main container's port and command are rewritten accordingly.
+// main vLLM container on PortDecodeVLLM (5001).
+// The command and probes are already configured with the correct port via
+// RuntimeContext.InferencePort; this function only updates the container port
+// declaration and adds the sidecar container.
 func injectRoutingSidecar(spec *corev1.PodSpec) {
 	if len(spec.Containers) == 0 {
 		return
 	}
 
-	// Rewrite the main vLLM container port from 5000 to 5001
+	// Rewrite the main vLLM container port declaration from 5000 to 5001.
 	for i := range spec.Containers[0].Ports {
 		if spec.Containers[0].Ports[i].ContainerPort == consts.PortInferenceServer {
 			spec.Containers[0].Ports[i].ContainerPort = consts.PortDecodeVLLM
 		}
 	}
 
-	// Rewrite the main vLLM command so vLLM listens on PortDecodeVLLM and the
-	// routing sidecar can occupy 5000. Command is built by utils.ShellCmd as
-	// ["/bin/sh", "-c", "<vllm-cmd>"], so we rewrite the last element.
-	//
-	// Two shapes are possible:
-	//   single-node : `python3 .../inference_api.py <args>`
-	//   multi-node  : `if [ "${POD_INDEX}" = "0" ]; then <leader>; <run>; else <worker>; fi`
-	// In the multi-node form a naive append of `--port=5001` to the trailing
-	// `fi` produces an invalid shell command and the worker branch (`ray start`)
-	// must not be touched. We therefore inject `--port=5001` only into the model
-	// run command (matched by inference_api.py / vllm-serve substring) and leave
-	// the rest of the script untouched.
-	if cmd := spec.Containers[0].Command; len(cmd) > 0 {
-		last := len(cmd) - 1
-		cmd[last] = injectVLLMPortFlag(cmd[last], consts.PortDecodeVLLM)
-		spec.Containers[0].Command = cmd
-	}
-
-	// Also rewrite probes to point at the new vLLM port. Two probe shapes
-	// exist: HTTPGet (single-node) and Exec running multi-node-health-check.py
-	// with `--vllm-port=<n>` (distributed inference).
-	rewriteProbePort := func(p *corev1.Probe) {
-		if p == nil {
-			return
-		}
-		if p.HTTPGet != nil {
-			p.HTTPGet.Port = intstr.FromInt32(consts.PortDecodeVLLM)
-		}
-		if p.Exec != nil {
-			for i, arg := range p.Exec.Command {
-				p.Exec.Command[i] = rewriteVLLMPortArg(arg, consts.PortDecodeVLLM)
-			}
-		}
-	}
-	rewriteProbePort(spec.Containers[0].StartupProbe)
-	rewriteProbePort(spec.Containers[0].LivenessProbe)
-	rewriteProbePort(spec.Containers[0].ReadinessProbe)
-
+	// Append the routing sidecar that listens on 5000 and proxies to vLLM on 5001.
 	spec.Containers = append(spec.Containers, corev1.Container{
 		Name:  "llm-d-routing-sidecar",
 		Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
@@ -901,94 +894,4 @@ func needsRoutingSidecar(ws *v1beta1.Workspace) bool {
 		return false
 	}
 	return v1beta1.GetWorkspaceRuntimeName(ws) == pkgmodel.RuntimeNameVLLM
-}
-
-// injectVLLMPortFlag inserts `--port=<port>` into the vLLM model run command
-// inside a shell script. It supports both shapes produced upstream:
-//
-//	single-node : `python3 .../inference_api.py <args>`
-//	multi-node  : `if [ "${POD_INDEX}" = "0" ]; then <leader>; <run>; else <worker>; fi`
-//
-// In the multi-node form only the model run command (matched by
-// inference_api.py / vllm-serve) is modified — the worker branch
-// (`ray start ...`) is left alone, and the trailing `fi` keyword is preserved.
-func injectVLLMPortFlag(script string, port int32) string {
-	flag := fmt.Sprintf(" --port=%d", port)
-
-	// Pick a substring that uniquely identifies the vLLM model run command.
-	var marker string
-	switch {
-	case strings.Contains(script, "inference_api.py"):
-		marker = "inference_api.py"
-	case strings.Contains(script, "vllm-serve"):
-		marker = "vllm-serve"
-	case strings.Contains(script, "vllm serve"):
-		marker = "vllm serve"
-	default:
-		// Fallback: best-effort append, but make sure we don't append after `fi`.
-		if strings.HasSuffix(strings.TrimSpace(script), "fi") {
-			return script
-		}
-		return script + flag
-	}
-
-	// Find the run-command segment and insert --port at the end of it.
-	// A segment ends at the first `;` or `&&` or `fi` token after the marker.
-	idx := strings.Index(script, marker)
-	if idx < 0 {
-		return script + flag
-	}
-	end := len(script)
-	for _, sep := range []string{";", "&&", " fi"} {
-		if j := strings.Index(script[idx:], sep); j >= 0 && idx+j < end {
-			end = idx + j
-		}
-	}
-	return script[:end] + flag + script[end:]
-}
-
-// rewriteVLLMPortArg rewrites a `--vllm-port=<n>` (or `--vllm-port <n>`) arg
-// to point at the new decode vLLM port. Args without the flag are returned
-// unchanged. Used to fix up Exec readiness/liveness probes generated for
-// distributed (multi-node) inference, which run multi-node-health-check.py.
-func rewriteVLLMPortArg(arg string, port int32) string {
-	const flag = "--vllm-port"
-	if !strings.Contains(arg, flag) {
-		return arg
-	}
-	// `--vllm-port=NNN`
-	if strings.HasPrefix(arg, flag+"=") {
-		return fmt.Sprintf("%s=%d", flag, port)
-	}
-	// Inline form inside a shell command: `... --vllm-port=NNN ...` or
-	// `... --vllm-port NNN ...`. Replace the value following the flag.
-	return rewriteFlagInShellString(arg, flag, fmt.Sprintf("%d", port))
-}
-
-// rewriteFlagInShellString replaces the value of `<flag>=<v>` or `<flag> <v>`
-// inside a free-form shell string. Returns the original string unchanged when
-// the flag isn't present.
-func rewriteFlagInShellString(s, flag, value string) string {
-	if !strings.Contains(s, flag) {
-		return s
-	}
-	// Shell delimiters that can follow a flag value.
-	const shellDelimiters = " \t;\n&|)"
-	if i := strings.Index(s, flag+"="); i >= 0 {
-		end := i + len(flag) + 1
-		j := strings.IndexAny(s[end:], shellDelimiters)
-		if j < 0 {
-			return s[:i] + flag + "=" + value
-		}
-		return s[:i] + flag + "=" + value + s[end+j:]
-	}
-	if i := strings.Index(s, flag+" "); i >= 0 {
-		end := i + len(flag) + 1
-		j := strings.IndexAny(s[end:], shellDelimiters)
-		if j < 0 {
-			return s[:i] + flag + " " + value
-		}
-		return s[:i] + flag + " " + value + s[end+j:]
-	}
-	return s
 }

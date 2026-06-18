@@ -299,7 +299,8 @@ type RuntimeContext struct {
 	NumNodes             int
 	WorkspaceMetadata    metav1.ObjectMeta
 	DistributedInference bool
-	MaxModelLen          int // max-model-len parameter for vLLM
+	MaxModelLen          int   // max-model-len parameter for vLLM
+	InferencePort        int32 // port vLLM listens on; 0 means default (5000)
 	RuntimeContextExtraArguments
 }
 
@@ -428,6 +429,12 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	//  2. Tensor Parallelism (TP) – model fits on a single node (multiple GPUs)
 	//  3. Pipeline Parallelism (PP) + TP – model requires multiple nodes
 	p.configureParallelism(rc)
+
+	// Set explicit port if specified (e.g., decode pods use 5001 to make room
+	// for the routing sidecar on 5000).
+	if rc.InferencePort > 0 {
+		p.VLLM.ModelRunParams["port"] = strconv.Itoa(int(rc.InferencePort))
+	}
 
 	// Distributed streaming: only set when streaming is active AND tensor-parallel-size > 1.
 	// This must happen AFTER configureParallelism, which resolves the actual TP value.

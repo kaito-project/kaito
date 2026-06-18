@@ -16,8 +16,8 @@ import asyncio
 import concurrent.futures
 import json
 import logging
-from collections.abc import Sequence
-from typing import Any, AsyncIterator
+from collections.abc import AsyncIterator, Sequence
+from typing import Any
 from urllib.parse import urljoin, urlparse
 
 import httpx

@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import re
 import textwrap
 import time
@@ -186,6 +187,48 @@ async def test_chat_completions_without_index_name(mock_get, async_client):
     )
     # Should have source_nodes field but it should be None for passthrough requests
     assert response_data["source_nodes"] is None
+
+
+@pytest.mark.asyncio
+@respx.mock
+@patch("requests.get")
+async def test_chat_completions_stream_passthrough(mock_get, async_client):
+    """Test stream=true passthrough returns SSE and forwards stream upstream."""
+    mock_get.return_value.status_code = 200
+    mock_get.return_value.json.return_value = {
+        "data": [{"id": "mock-model", "max_model_len": 2048}]
+    }
+
+    sse_payload = (
+        'data: {"choices":[{"delta":{"content":"Hello"}}]}\n\n'
+        'data: {"choices":[{"delta":{"content":" world"}}]}\n\n'
+        "data: [DONE]\n\n"
+    )
+    route = respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(
+            200,
+            text=sse_payload,
+            headers={"content-type": "text/event-stream"},
+        )
+    )
+
+    chat_request = {
+        "model": "mock-model",
+        "messages": [{"role": "user", "content": "Hello, how are you?"}],
+        "stream": True,
+    }
+
+    async with async_client.stream(
+        "POST", "/v1/chat/completions", json=chat_request
+    ) as response:
+        assert response.status_code == 200
+        assert response.headers["content-type"].startswith("text/event-stream")
+        response_body = "".join([chunk async for chunk in response.aiter_text()])
+
+    assert response_body == sse_payload
+    assert len(route.calls) == 1
+    upstream_body = json.loads(route.calls[0].request.content.decode())
+    assert upstream_body["stream"] is True
 
 
 @pytest.mark.asyncio

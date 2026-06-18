@@ -17,7 +17,7 @@ import concurrent.futures
 import json
 import logging
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, AsyncIterator
 from urllib.parse import urljoin, urlparse
 
 import httpx
@@ -312,6 +312,56 @@ class Inference(CustomLLM):
             )
         except Exception as e:
             logger.error(f"Unexpected error during POST request: {e}")
+            raise HTTPException(
+                status_code=500, detail=f"Error during POST request: {str(e)}"
+            )
+
+    async def chat_completions_stream_passthrough(
+        self, chat_completions_request: dict, **kwargs: Any
+    ) -> AsyncIterator[str]:
+        if "/chat/completions" not in LLM_INFERENCE_URL:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Chat completions not supported through endpoint {LLM_INFERENCE_URL}.",
+            )
+
+        request_data = dict(chat_completions_request)
+        request_data["stream"] = True
+
+        client = await self._get_httpx_client()
+        try:
+            async with client.stream(
+                "POST",
+                LLM_INFERENCE_URL,
+                json=request_data,
+                headers=DEFAULT_HEADERS,
+            ) as response:
+                response.raise_for_status()
+                async for line in response.aiter_lines():
+                    if not line:
+                        continue
+                    yield f"{line}\n\n"
+        except HTTPException as http_exc:
+            logger.error(
+                f"HTTP exception during chat completions stream passthrough: {http_exc.detail}"
+            )
+            raise http_exc
+        except httpx.HTTPStatusError as e:
+            logger.error(
+                f"HTTP error {e.response.status_code} during streaming POST request to {LLM_INFERENCE_URL}: {e.response.text}"
+            )
+            raise HTTPException(
+                status_code=e.response.status_code, detail=f"{str(e.response.content)}"
+            )
+        except httpx.RequestError as e:
+            logger.error(
+                f"Error during streaming POST request to {LLM_INFERENCE_URL}: {e}"
+            )
+            raise HTTPException(
+                status_code=500, detail=f"Error during POST request: {str(e)}"
+            )
+        except Exception as e:
+            logger.error(f"Unexpected error during streaming POST request: {e}")
             raise HTTPException(
                 status_code=500, detail=f"Error during POST request: {str(e)}"
             )

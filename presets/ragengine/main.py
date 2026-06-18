@@ -21,7 +21,7 @@ from urllib.parse import unquote
 import nest_asyncio
 from fastapi import FastAPI, HTTPException, Query, Request  # noqa: E402
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # noqa: E402
-from starlette.responses import Response  # noqa: E402
+from starlette.responses import Response, StreamingResponse  # noqa: E402
 
 nest_asyncio.apply()  # Allow nested event loops (LlamaIndex sync internals inside FastAPI async)
 
@@ -350,6 +350,17 @@ async def chat_completions(request: dict):
             raise HTTPException(
                 status_code=503,
                 detail="InferenceService not configured. This RAGEngine instance only supports document retrieve via /retrieve API. To use chat completions, configure an InferenceService in the RAGEngine spec.",
+            )
+
+        if request.get("stream") is True:
+            status = STATUS_SUCCESS
+            return StreamingResponse(
+                rag_ops.vector_store.llm.chat_completions_stream_passthrough(request),
+                media_type="text/event-stream",
+                headers={
+                    "Cache-Control": "no-cache",
+                    "X-Accel-Buffering": "no",
+                },
             )
 
         response = await rag_ops.chat_completion(request)

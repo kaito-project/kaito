@@ -14,7 +14,7 @@
 package download
 
 import (
-	"strings"
+	"fmt"
 
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -28,28 +28,41 @@ import (
 
 // BuildDownloadJob constructs the Job that downloads model files to the PVC.
 func BuildDownloadJob(cr *kaitov1alpha1.ModelMirror) *batchv1.Job {
-	excludePatterns := strings.Join(mmconsts.DownloadExcludePatterns, ",")
 	modelID := cr.Spec.Source.ModelID
 
-	// Post-download cleanup: hfdownloader pre-creates subdirectories (e.g. original/)
-	// before downloading, so even excluded directories leave empty folders on the PVC.
-	// Azure Blob NFS creates a zero-byte object for each empty directory, and RunAI
-	// model streamer iterates all objects in the container. We remove all subdirectories
-	// as a safety net.
-	script := `set -e
-apk add --no-cache curl > /dev/null 2>&1
-ARCH=$(uname -m)
-case "$ARCH" in x86_64) ARCH_SUFFIX="amd64" ;; aarch64) ARCH_SUFFIX="arm64" ;; *) echo "Unsupported arch: $ARCH"; exit 1 ;; esac
-HFD_VERSION=$(curl -sI https://github.com/bodaay/HuggingFaceModelDownloader/releases/latest | grep -i ^location: | sed 's|.*/v||;s/\r//')
-curl -sL -o /usr/local/bin/hfdownloader "https://github.com/bodaay/HuggingFaceModelDownloader/releases/download/v${HFD_VERSION}/hfdownloader_linux_${ARCH_SUFFIX}_v${HFD_VERSION}"
-chmod +x /usr/local/bin/hfdownloader
-HF_TOKEN_FLAG=""
-if [ -n "${HF_TOKEN:-}" ]; then HF_TOKEN_FLAG="-t $HF_TOKEN"; fi
-hfdownloader download "${MODEL_ID}" --local-dir /models -F safetensors -E "${EXCLUDE_PATTERNS}" $HF_TOKEN_FLAG
-find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true`
+	// Build --exclude flags from DownloadExcludePatterns
+	excludeFlags := ""
+	for _, pattern := range mmconsts.DownloadExcludePatterns {
+		excludeFlags += fmt.Sprintf("\n  --exclude %q \\", pattern)
+	}
+
+	// Post-download cleanup: empty directories left on the PVC become zero-byte
+	// blob objects on Azure Blob NFS. RunAI model streamer iterates all objects in
+	// the container and crashes on directories (IsADirectoryError). We remove all
+	// subdirectories as a safety net.
+	script := fmt.Sprintf(`set -e
+export HF_HUB_ENABLE_HF_TRANSFER=1
+export HF_HUB_DOWNLOAD_TIMEOUT=300
+
+pip install -q "huggingface-hub==%s" hf_transfer
+
+if [ -n "${HF_TOKEN:-}" ]; then
+  hf auth login --token "$HF_TOKEN"
+fi
+
+hf download "${MODEL_ID}" \
+  --max-workers 4 \%s
+  --local-dir "/models/${MODEL_ID}"
+
+# Remove all subdirectories — on HNS-enabled blob (NFS), directories become
+# zero-byte objects that cause RunAI model streamer to fail with FileExistsError.
+rm -rf "/models/${MODEL_ID}/.cache" 2>/dev/null || true
+find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true`,
+		mmconsts.HuggingFaceHubVersion,
+		excludeFlags,
+	)
 
 	envVars := []corev1.EnvVar{
-		{Name: "EXCLUDE_PATTERNS", Value: excludePatterns},
 		{Name: "MODEL_ID", Value: modelID},
 	}
 
@@ -61,7 +74,7 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 			ValueFrom: &corev1.EnvVarSource{
 				SecretKeyRef: &corev1.SecretKeySelector{
 					LocalObjectReference: corev1.LocalObjectReference{Name: cr.Spec.Source.AccessSecret.Name},
-					Key:                  "token",
+					Key:                  "HF_TOKEN",
 					Optional:             ptr.To(true),
 				},
 			},
@@ -76,12 +89,12 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 		Env:     envVars,
 		Resources: corev1.ResourceRequirements{
 			Requests: corev1.ResourceList{
-				corev1.ResourceCPU:    resource.MustParse("500m"),
-				corev1.ResourceMemory: resource.MustParse("512Mi"),
+				corev1.ResourceCPU:    resource.MustParse("3"),
+				corev1.ResourceMemory: resource.MustParse("8Gi"),
 			},
 			Limits: corev1.ResourceList{
-				corev1.ResourceCPU:    resource.MustParse("2"),
-				corev1.ResourceMemory: resource.MustParse("2Gi"),
+				corev1.ResourceCPU:    resource.MustParse("3"),
+				corev1.ResourceMemory: resource.MustParse("8Gi"),
 			},
 		},
 		VolumeMounts: []corev1.VolumeMount{
@@ -102,7 +115,7 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 			TTLSecondsAfterFinished: ptr.To(int32(3600)), // 1 hour — keeps failed pods for debugging
 			Template: corev1.PodTemplateSpec{
 				Spec: corev1.PodSpec{
-					RestartPolicy: corev1.RestartPolicyOnFailure,
+					RestartPolicy: corev1.RestartPolicyNever,
 					Containers:    []corev1.Container{container},
 					Volumes: []corev1.Volume{
 						{

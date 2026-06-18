@@ -58,4 +58,7 @@ const (
 	// True means the benchmark completed and results are stored in status.benchmarkResult.
 	// Set by default; omitted when kaito.sh/disable-benchmark is "true".
 	WorkspaceConditionTypeBenchmarkCompleted = ConditionType("BenchmarkCompleted")
+
+	// WorkspaceConditionTypeModelMirrorReady indicates the ModelMirror download is complete and model is ready for streaming.
+	WorkspaceConditionTypeModelMirrorReady = ConditionType("ModelMirrorReady")
 )

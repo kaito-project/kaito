@@ -307,6 +307,12 @@ type RuntimeContextExtraArguments struct {
 	AdaptersEnabled        bool
 	AdapterStrengthEnabled bool
 	PerformanceMode        string // vLLM --performance-mode; defaults to "balanced"
+
+	// When set, streaming fields override --model and --load-format.
+	// Distributed streaming (--model-loader-extra-config) is handled automatically
+	// inside buildVLLMInferenceCommand based on the resolved tensor-parallel-size.
+	StreamingModelPath  string // e.g. "az://container/modelID"
+	StreamingLoadFormat string // e.g. "runai_streamer"
 }
 
 func (p *PresetParam) GetInferenceCommand(rc RuntimeContext) []string {
@@ -368,6 +374,15 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	}
 	p.VLLM.ModelRunParams["gpu-memory-utilization"] = "0.84"
 
+	// Disable the allreduce + RMSNorm fusion pass. Since vLLM 0.22.1 this pass is
+	// enabled by default and routes through FlashInfer's TRT-LLM MNNVL kernel, which
+	// is JIT-compiled at runtime and requires the CUDA toolkit (nvcc). The slim
+	// runtime image does not ship nvcc, so engine initialization crashes during CUDA
+	// graph capture with "Could not find nvcc". The fusion is only a performance
+	// optimization and the MNNVL (multi-node NVLink) path is not usable on our SKUs
+	// anyway, so it is safe to turn off for all vLLM models.
+	p.VLLM.ModelRunParams["compilation-config.pass_config.fuse_allreduce_rms"] = "False"
+
 	// Dynamically determine dtype based on GPU compute capability.
 	// bfloat16 requires CUDA compute capability >= 8.0 (Ampere+).
 	// Fall back to float16 on older GPUs.
@@ -378,7 +393,15 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	if !p.VLLM.DisallowLoRA && rc.AdaptersEnabled {
 		p.VLLM.ModelRunParams["enable-lora"] = ""
 	}
-	if p.DownloadAtRuntime {
+	// Model source: streaming (az://) vs download-at-runtime (HF repo).
+	if rc.StreamingModelPath != "" {
+		p.VLLM.ModelRunParams["model"] = rc.StreamingModelPath
+		p.VLLM.ModelRunParams["load-format"] = rc.StreamingLoadFormat
+		// Some presets set load_format (underscore) in their default params
+		// (e.g. mistral sets load_format=mistral). Remove to avoid conflict
+		// with the hyphenated --load-format=runai_streamer we set above.
+		delete(p.VLLM.ModelRunParams, "load_format")
+	} else if p.DownloadAtRuntime {
 		repoId, revision, _ := utils.ParseHuggingFaceModelVersion(p.Version)
 		p.VLLM.ModelRunParams["model"] = repoId
 		if revision != "" {
@@ -405,6 +428,14 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	//  2. Tensor Parallelism (TP) – model fits on a single node (multiple GPUs)
 	//  3. Pipeline Parallelism (PP) + TP – model requires multiple nodes
 	p.configureParallelism(rc)
+
+	// Distributed streaming: only set when streaming is active AND tensor-parallel-size > 1.
+	// This must happen AFTER configureParallelism, which resolves the actual TP value.
+	if rc.StreamingModelPath != "" {
+		if tp, ok := p.VLLM.ModelRunParams["tensor-parallel-size"]; ok && tp != "" && tp != "1" {
+			p.VLLM.ModelRunParams["model-loader-extra-config"] = `'{"distributed": true}'`
+		}
+	}
 
 	// Single-node path: no Ray cluster needed.
 	if !rc.DistributedInference || rc.NumNodes == 1 {

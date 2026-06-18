@@ -198,6 +198,61 @@ func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
 	}
 }
 
+func TestReadinessTimeoutForModelSize(t *testing.T) {
+	tests := []struct {
+		name          string
+		modelFileSize string
+		expected      time.Duration
+	}{
+		{
+			name:          "large model above threshold uses 60m",
+			modelFileSize: "554.32Gi", // Kimi-K2.5
+			expected:      largeModelReadinessTimeout,
+		},
+		{
+			name:          "very large model above threshold uses 60m",
+			modelFileSize: "641.30Gi", // DeepSeek-R1-0528
+			expected:      largeModelReadinessTimeout,
+		},
+		{
+			name:          "model just above threshold uses 60m",
+			modelFileSize: "300.01Gi",
+			expected:      largeModelReadinessTimeout,
+		},
+		{
+			name:          "model at threshold uses default",
+			modelFileSize: "300Gi",
+			expected:      defaultReadinessTimeout,
+		},
+		{
+			name:          "model below threshold uses default",
+			modelFileSize: "131.42Gi", // Llama-3.3-70B
+			expected:      defaultReadinessTimeout,
+		},
+		{
+			name:          "small model uses default",
+			modelFileSize: "7.15Gi",
+			expected:      defaultReadinessTimeout,
+		},
+		{
+			name:          "empty size uses default",
+			modelFileSize: "",
+			expected:      defaultReadinessTimeout,
+		},
+		{
+			name:          "unparsable size uses default",
+			modelFileSize: "not-a-size",
+			expected:      defaultReadinessTimeout,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, readinessTimeoutForModelSize(tt.modelFileSize))
+		})
+	}
+}
+
 func TestVLLMCompatibleModel_GetInferenceParameters_TransformerLookup(t *testing.T) {
 	tests := []struct {
 		name                       string

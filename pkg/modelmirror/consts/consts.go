@@ -31,8 +31,11 @@ const (
 	LabelModelMirrorName = "kaito.sh/model-mirror-name"
 
 	// Downloader image
-	DownloaderImage = "alpine:3.20" // TODO: Move to MCR with hfdownloader pre-installed
+	DownloaderImage = "mcr.microsoft.com/mirror/docker/library/python:3.11-slim"
+
+	// huggingface-hub version
+	HuggingFaceHubVersion = "1.18.0"
 )
 
-// DownloadExcludePatterns is the list of patterns to exclude from HF downloads.
-var DownloadExcludePatterns = []string{"original"}
+// DownloadExcludePatterns is the list of glob patterns to exclude from HF downloads.
+var DownloadExcludePatterns = []string{"original/*"}

@@ -194,6 +194,16 @@ func PrintPodLogsOnFailure(namespace, labelSelector string) {
 	}
 
 	for _, pod := range pods.Items {
+		// Print init container logs
+		for _, container := range pod.Spec.InitContainers {
+			logs, err := GetPodLogs(coreClient, namespace, pod.Name, container.Name)
+			if err != nil {
+				log.Printf("Failed to get logs from pod %s, init container %s: %v", pod.Name, container.Name, err)
+			} else {
+				fmt.Printf("Logs from pod %s, init container %s:\n%s\n", pod.Name, container.Name, string(logs))
+			}
+		}
+		// Print main container logs
 		for _, container := range pod.Spec.Containers {
 			logs, err := GetPodLogs(coreClient, namespace, pod.Name, container.Name)
 			if err != nil {

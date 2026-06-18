@@ -24,6 +24,7 @@ import (
 	"github.com/distribution/reference"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	corev1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
@@ -87,6 +88,9 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 				w.Inference.validateCreate(ctx, runtime, w.Namespace).ViaField("inference"),
 				w.validateInferenceConfig(ctx),
 			)
+			if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+				errs = errs.Also(w.validateStreamingCSIDriver(ctx))
+			}
 		}
 		if w.Tuning != nil {
 			// TODO: Add validate resource based on Tuning Spec
@@ -724,6 +728,38 @@ func (w *Workspace) validateModelStreamingAnnotationImmutable(old *Workspace) *a
 		return apis.ErrGeneric(
 			fmt.Sprintf("annotation %s is immutable after creation", mmconsts.AnnotationModelStreaming),
 			fmt.Sprintf("metadata.annotations[%s]", mmconsts.AnnotationModelStreaming),
+		)
+	}
+	return nil
+}
+
+// validateStreamingCSIDriver validates that the required CSI driver for model streaming
+// is installed on the cluster. The CSI driver name is resolved from CLOUD_PROVIDER env
+// via consts.CSIDriverNameForCloud. To add a new cloud provider: add a constant and case
+// in pkg/utils/consts.
+func (w *Workspace) validateStreamingCSIDriver(ctx context.Context) *apis.FieldError {
+	if w.Inference == nil || w.Inference.Preset == nil {
+		return nil
+	}
+	if w.GetAnnotations()[mmconsts.AnnotationModelStreaming] == "disabled" {
+		return nil
+	}
+
+	expectedDriver := consts.CSIDriverNameForCloud(os.Getenv("CLOUD_PROVIDER"))
+	if expectedDriver == "" {
+		return apis.ErrGeneric(
+			fmt.Sprintf("unsupported cloud provider %q for model streaming", os.Getenv("CLOUD_PROVIDER")),
+			"metadata.annotations",
+		)
+	}
+
+	csiDriver := &storagev1.CSIDriver{}
+	if err := k8sclient.GetGlobalClient().Get(ctx, client.ObjectKey{Name: expectedDriver}, csiDriver); err != nil {
+		return apis.ErrGeneric(
+			fmt.Sprintf("CSI driver %s not found; required for model streaming. "+
+				"Ensure the CSI driver is enabled on your cluster",
+				expectedDriver),
+			"metadata.annotations",
 		)
 	}
 	return nil

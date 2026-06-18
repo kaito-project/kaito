@@ -56,7 +56,21 @@ const (
 	NodeProvisionerAzureGPU  = "azure-gpu-provisioner"
 	NodeProvisionerKarpenter = "karpenter"
 	NodeProvisionerBYO       = "byo"
+
+	// CSI driver names for model streaming (workspace controller + webhook scope).
+	CSIDriverNameAzureBlob = "blob.csi.azure.com"
 )
+
+// CSIDriverNameForCloud returns the expected CSI driver name for the given cloud provider.
+// Returns "" for unsupported providers.
+func CSIDriverNameForCloud(cloud string) string {
+	switch cloud {
+	case AzureCloudName:
+		return CSIDriverNameAzureBlob
+	default:
+		return ""
+	}
+}
 
 // ActiveNodeProvisioner holds the resolved provisioner type at runtime.
 // Set once during startup in main.go; read by inference scheduling code
@@ -134,6 +148,19 @@ const (
 	// InferenceRoleEnvName is the environment variable name used to pass the
 	// inference role (prefill/decode) to the model container in P/D disaggregated serving.
 	InferenceRoleEnvName = "KAITO_INFERENCE_ROLE"
+
+	// VLLMUseFlashInferSamplerEnvName toggles vLLM's FlashInfer-based sampler.
+	// KAITO does not support FlashInfer, so it is set to "0" to keep vLLM on the
+	// Torch-native sampling path and avoid runtime JIT kernel compilation, which
+	// requires a CUDA toolchain (nvcc) that the base image does not ship.
+	VLLMUseFlashInferSamplerEnvName = "VLLM_USE_FLASHINFER_SAMPLER"
+
+	// VLLMUseDeepGEMMEnvName toggles vLLM's DeepGEMM FP8 kernels. vLLM 0.22.1
+	// defaults this on and reports DeepGEMM as available (it finds the vendored
+	// wrapper module), but the native FP8 GEMM backend is not present in the base
+	// image, so the FP8 warmup hard-fails with "DeepGEMM backend is not available".
+	// Set to "0" to keep FP8 models on their non-DeepGEMM kernel path.
+	VLLMUseDeepGEMMEnvName = "VLLM_USE_DEEP_GEMM"
 
 	// ConditionReady is the condition type for a ready condition.
 	ConditionReady = "Ready"

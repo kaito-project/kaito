@@ -29,6 +29,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/klog/v2"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
@@ -171,11 +172,37 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	// Set the target node count for the inference workload
 	numNodes := int(workspaceObj.Status.TargetNodeCount)
 
-	podOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec]{
-		GenerateInferencePodSpec(gpuConfig, numNodes),
-		SetModelDownloadInfo,
-		SetAdapterPuller,
+	// Resolve streaming configuration
+	streamingEnabled := ModelStreamingEnabled(workspaceObj)
+	var streamingModelPath, streamingLoadFormat string
+	var streamingCfg *StreamingConfig
+	var modelID string
+
+	if streamingEnabled {
+		modelID = ResolveHFModelID(workspaceObj)
+		crName := ModelMirrorCRName(modelID)
+
+		streamingCfg, err = StreamingDefaults.ModelStreamer.GetStreamingConfig(gctx, crName, workspaceObj.Namespace, modelID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve streaming config: %w", err)
+		}
+		streamingModelPath = streamingCfg.ModelPath
+		streamingLoadFormat = "runai_streamer"
 	}
+
+	podOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec]{
+		GenerateInferencePodSpec(gpuConfig, numNodes, streamingModelPath, streamingLoadFormat),
+		SetHFToken,
+	}
+
+	// Model source: streaming (az://) vs local download. Mutually exclusive.
+	if streamingEnabled {
+		podOpts = append(podOpts, SetStreamingConfig(streamingCfg, modelID, StreamingDefaults.ServiceAccount))
+	} else {
+		podOpts = append(podOpts, SetModelDownloadInfo)
+	}
+
+	podOpts = append(podOpts, SetAdapterPuller)
 
 	// Use StatefulSet for all use cases to ensure consistent pod identity and storage management
 	// For multi-node distributed inference with vLLM, we need StatefulSet to ensure pods are
@@ -193,10 +220,27 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		manifests.GenerateStatefulSetManifest(revisionNum, numNodes),
 	}
 
-	if checkIfNVMeAvailable(ctx, gpuConfig, kubeClient) {
-		ssOpts = append(ssOpts, manifests.AddStatefulSetVolumeClaimTemplates(GenerateModelWeightsCacheVolume(ctx, workspaceObj, model)))
-	} else {
-		podOpts = append(podOpts, SetDefaultModelWeightsVolume)
+	// Volume handling: streaming skips weights volume (model is read from az:// directly).
+	if !streamingEnabled {
+		if checkIfNVMeAvailable(ctx, gpuConfig, kubeClient) {
+			ssOpts = append(ssOpts, manifests.AddStatefulSetVolumeClaimTemplates(GenerateModelWeightsCacheVolume(ctx, workspaceObj, model)))
+		} else {
+			podOpts = append(podOpts, SetDefaultModelWeightsVolume)
+		}
+	}
+
+	// Add provider-specific pod labels to StatefulSet template (e.g. Azure WI label)
+	if streamingEnabled && len(streamingCfg.PodLabels) > 0 {
+		podLabels := streamingCfg.PodLabels
+		ssOpts = append(ssOpts, func(ctx *generator.WorkspaceGeneratorContext, ss *appsv1.StatefulSet) error {
+			if ss.Spec.Template.Labels == nil {
+				ss.Spec.Template.Labels = make(map[string]string)
+			}
+			for k, v := range podLabels {
+				ss.Spec.Template.Labels[k] = v
+			}
+			return nil
+		})
 	}
 
 	podSpec, err := generator.GenerateManifest(gctx, podOpts...)
@@ -374,7 +418,7 @@ func GetBaseImageTag() string {
 	return presetObj.Tag
 }
 
-func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
+func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingModelPath, streamingLoadFormat string) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 		configVolume, err := resources.EnsureConfigOrCopyFromDefault(ctx.Ctx, ctx.KubeClient,
 			client.ObjectKey{
@@ -402,8 +446,10 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 		volumes = append(volumes, cmVolume)
 		volumeMounts = append(volumeMounts, cmVolumeMount)
 
-		// add model weights volume mount
-		volumeMounts = append(volumeMounts, utils.DefaultModelWeightsVolumeMount)
+		// add model weights volume mount (skip when streaming — weights come from az://)
+		if streamingModelPath == "" {
+			volumeMounts = append(volumeMounts, utils.DefaultModelWeightsVolumeMount)
+		}
 
 		// add share memory for cross process communication
 		shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
@@ -478,8 +524,10 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			DistributedInference: ctx.Model.SupportDistributedInference(),
 			MaxModelLen:          maxModelLen,
 			RuntimeContextExtraArguments: pkgmodel.RuntimeContextExtraArguments{
-				AdaptersEnabled: len(ctx.Workspace.Inference.Adapters) > 0,
-				PerformanceMode: v1beta1.GetPerformanceMode(ctx.Workspace),
+				AdaptersEnabled:     len(ctx.Workspace.Inference.Adapters) > 0,
+				PerformanceMode:     v1beta1.GetPerformanceMode(ctx.Workspace),
+				StreamingModelPath:  streamingModelPath,
+				StreamingLoadFormat: streamingLoadFormat,
 			},
 		})
 
@@ -507,6 +555,24 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			readinessTimeout = defaultStartupProbeTimeout
 		}
 
+		// KAITO does not support FlashInfer. Disable vLLM's FlashInfer sampler so it
+		// stays on the Torch-native sampling path instead of JIT-compiling kernels at
+		// runtime (the base image ships no CUDA toolchain/nvcc).
+		var mainContainerEnv []corev1.EnvVar
+		if runtimeName == pkgmodel.RuntimeNameVLLM {
+			mainContainerEnv = append(mainContainerEnv, corev1.EnvVar{
+				Name:  consts.VLLMUseFlashInferSamplerEnvName,
+				Value: "0",
+			})
+			// Disable vLLM's DeepGEMM FP8 kernels. vLLM 0.22.1 enables them by default
+			// and reports DeepGEMM as available, but the native backend is absent from
+			// the base image, so the FP8 warmup hard-fails at engine init.
+			mainContainerEnv = append(mainContainerEnv, corev1.EnvVar{
+				Name:  consts.VLLMUseDeepGEMMEnvName,
+				Value: "0",
+			})
+		}
+
 		spec.Containers = []corev1.Container{
 			{
 				Name:           ctx.Workspace.Name,
@@ -518,6 +584,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 				LivenessProbe:  defaultLivenessProbe.DeepCopy(),
 				ReadinessProbe: defaultReadinessProbe.DeepCopy(),
 				VolumeMounts:   volumeMounts,
+				Env:            mainContainerEnv,
 			},
 		}
 
@@ -534,28 +601,40 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 	}
 }
 
+// SetHFToken adds the HF_TOKEN env var to the main inference container if
+// a model access secret is configured. Needed for both DAR (download weights)
+// and streaming (vLLM fetches model config/tokenizer from HuggingFace).
+func SetHFToken(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+	if ctx.Workspace.Inference == nil || ctx.Workspace.Inference.Preset == nil {
+		return nil
+	}
+	accessSecret := ctx.Workspace.Inference.Preset.PresetOptions.ModelAccessSecret
+	if accessSecret == "" {
+		return nil
+	}
+	envvar := corev1.EnvVar{
+		Name: "HF_TOKEN",
+		ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{Name: accessSecret},
+				Key:                  "HF_TOKEN",
+				Optional:             ptr.To(true),
+			},
+		},
+	}
+	for i := range spec.Containers {
+		if spec.Containers[i].Name == ctx.Workspace.Name {
+			spec.Containers[i].Env = append(spec.Containers[i].Env, envvar)
+			break
+		}
+	}
+	return nil
+}
+
 func SetModelDownloadInfo(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 	if ctx.Model.GetInferenceParameters().DownloadAtRuntime {
-		if accessSecret := ctx.Workspace.Inference.Preset.PresetOptions.ModelAccessSecret; accessSecret != "" {
-			envvar := corev1.EnvVar{
-				Name: "HF_TOKEN",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{
-							Name: ctx.Workspace.Inference.Preset.PresetOptions.ModelAccessSecret,
-						},
-						Key: "HF_TOKEN",
-					},
-				},
-			}
-
-			for i := range spec.Containers {
-				// add HF_TOKEN env var to the main inference container only
-				if spec.Containers[i].Name == ctx.Workspace.Name {
-					spec.Containers[i].Env = append(spec.Containers[i].Env, envvar)
-				}
-			}
-		}
+		// HF_TOKEN is handled by SetHFToken.
+		// DAR models just need the token present. no other download setup needed.
 		return nil
 	}
 

@@ -149,6 +149,30 @@ In the current RAGEngine structure, that means:
 - the API entrypoint chooses between streaming and non-streaming paths
 - the streaming processor and scanners operate only after that path has been selected
 
+### Endpoint Branching
+
+At the `/v1/chat/completions` entrypoint, the first phase should branch directly on
+the effective request-level `stream` value.
+
+```python
+if request.get("stream") is True:
+  return StreamingResponse(
+    guarded_stream_generator,
+    media_type="text/event-stream",
+    headers={
+      "Cache-Control": "no-cache",
+      "X-Accel-Buffering": "no",
+    },
+  )
+
+response = await rag_ops.chat_completion(request)
+response = guardrails.guard_response(response, request)
+return response
+```
+
+This keeps the existing non-streaming guardrails path unchanged while making the
+streaming path explicit at the transport boundary.
+
 ### Streaming Runtime Model
 
 The streaming lifecycle is conceptually:
@@ -165,6 +189,53 @@ This proposal keeps that lifecycle, but makes the contract explicit:
 - `finalize(...)` is the end-of-stream decision point
 - the processor is responsible for SSE parsing and re-emission
 - scanner results must be conservative by default
+
+The first implementation should explicitly forward `stream: true` to the upstream
+LLM backend and consume OpenAI-compatible SSE events such as:
+
+```text
+data: {"choices":[{"delta":{"content":"Hello"}}]}
+
+data: {"choices":[{"delta":{"content":" world"}}]}
+
+data: [DONE]
+```
+
+The downstream stream should also remain OpenAI-compatible SSE so existing SDKs
+and clients continue to work without transport-specific adaptation.
+
+### Buffering and Holdback
+
+The first phase should use a buffering-first strategy rather than forwarding every
+upstream chunk immediately.
+
+Conceptually:
+
+```text
+pending_buffer += new_delta
+scan bounded recent window
+emit only known-safe prefix
+retain holdback suffix
+```
+
+This allows deterministic scanners to detect patterns that span chunk boundaries.
+For example, if one chunk ends with `u` and the next chunk begins with `rl`, a
+`ban_substrings` scanner must be able to see `url` before any unsafe suffix is
+emitted.
+
+Recommended initial defaults:
+
+```text
+min_scan_chars   = 128
+scan_interval_ms = 50
+holdback_chars   = 256
+max_window_chars = 2048
+max_emit_chars   = 512
+```
+
+These values are not API surface. They are runtime defaults intended to keep
+latency bounded while preserving a conservative safe window for early-block
+behavior.
 
 ### Scanner Contract
 
@@ -211,6 +282,24 @@ full-response context, and how safe their streaming behavior would be. Streaming
 capability should therefore be modeled per scanner type, while final stream behavior
 should be resolved using the most conservative aggregate policy.
 
+### Strict Fallback Policy
+
+The default product behavior should be strict.
+
+That means:
+
+```text
+if all configured scanners are streaming-compatible:
+  use true streaming guardrails
+
+if any configured scanner requires full-output blocking or redact semantics:
+  fall back to non-streaming guarded execution
+```
+
+This preserves safety semantics. Once content has been emitted to the client, it
+cannot be recalled, so finalize-only blocking scanners cannot provide equivalent
+guarantees in true streaming mode.
+
 ### User Experience and Output Contract
 
 The first streaming UX contract should be conservative.
@@ -235,6 +324,15 @@ The first streaming UX contract should be conservative.
 If content has already been partially emitted and a later chunk triggers block, the first
 phase should use a conservative safe-window strategy: emit only a known-safe prefix,
 stop normal output on block, and return the block message.
+
+Representative block output should remain OpenAI-compatible SSE and end with a
+terminal marker:
+
+```text
+data: {"choices":[{"delta":{"content":"Response blocked by output guardrails."},"finish_reason":"content_filter"}]}
+
+data: [DONE]
+```
 
 ### Passthrough Streaming vs RAG Streaming
 
@@ -269,6 +367,41 @@ Recommended order for follow-up work:
 8. Add RAG pseudo-streaming.
 9. Add true RAG streaming.
 10. Document supported behavior and limitations.
+
+### PR Slicing
+
+To keep implementation reviewable, the first phase should be split into small,
+behavior-scoped PRs.
+
+1. Streaming passthrough: add `stream=true` endpoint branching, forward `stream=true` upstream, consume SSE, and return `StreamingResponse` without guardrail mutation.
+2. SSE utilities: add helpers for parsing `data:` frames, detecting `[DONE]`, extracting `delta.content`, and emitting downstream OpenAI-compatible events.
+3. Buffer and holdback: add `pending_buffer`, bounded scan windows, holdback retention, and finalize flush behavior with a no-op scanner.
+4. Fast block path: add deterministic scanner execution for `ban_substrings` and bounded `regex`, including cross-chunk block tests.
+5. Redact, fallback, and observability: add strict fallback policy, redact behavior, metrics, and mixed-policy coverage.
+
+## Metrics and Observability
+
+The streaming path should introduce dedicated metrics rather than overloading the
+existing non-streaming counters.
+
+Recommended metrics:
+
+- `stream_guardrails_requests_total`
+- `stream_guardrails_fallback_total{reason}`
+- `stream_guardrails_scans_total`
+- `stream_guardrails_scan_latency_seconds`
+- `stream_guardrails_block_total`
+- `stream_guardrails_redact_total`
+- `stream_guardrails_pending_buffer_chars`
+- `stream_guardrails_time_to_first_safe_chunk_seconds`
+- `stream_guardrails_finalize_latency_seconds`
+
+Recommended fallback reasons:
+
+- `finalize_only_scanner`
+- `scanner_error`
+- `buffer_overflow`
+- `unsupported_policy`
 
 ## Risks and Mitigations
 

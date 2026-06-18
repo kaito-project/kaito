@@ -1,511 +1,234 @@
 ---
-title: RAGEngine Streaming Output Guardrails Design
+title: RAGEngine Guardrails UX and API
 authors:
   - "@xiaoqi-7"
 reviewers:
   - "@Fei-Guo"
 creation-date: 2026-04-16
-last-updated: 2026-06-18
+last-updated: 2026-05-19
 status: provisional
 see-also:
-  - "/docs/proposals/20260612-ragengine-streaming-guardrails.md"
   - "/docs/proposals/20250715-inference-aware-routing-layer.md"
 ---
 
 ## Summary
 
-This design adds streaming support for RAGEngine chat completions and introduces a
-streaming output guardrail path.
+This proposal defines the intended user-facing model for RAGEngine output guardrails.
+The goal is to keep the CRD surface minimal while allowing guardrail policy to evolve as
+we add more scanners and runtime capabilities.
 
-When a client sends `stream: true`, RAGEngine will request the upstream LLM backend
-with `stream: true`, consume upstream OpenAI-compatible SSE chunks, apply
-streaming-compatible output guardrails, and emit safe SSE chunks to the client.
+The proposed user model is:
 
-The existing non-streaming guardrail path remains unchanged.
+```yaml
+spec:
+  guardrails:
+    enabled: true
+```
+
+Detailed guardrail behavior is stored in a ConfigMap as YAML rather than modeled as
+scanner-specific fields in the `RAGEngine` CRD.
 
 ## Goals
 
-- Support OpenAI-compatible streaming for `/v1/chat/completions`.
-- Forward `stream: true` from RAGEngine to the upstream LLM backend.
-- Add a server-side streaming guardrail processor between upstream LLM chunks and
-  downstream client chunks.
-- Support low-latency streaming for scanners that can operate on partial output.
-- Avoid scanning the full accumulated response on every chunk.
-- Keep each implementation PR small, around 200 core lines where possible.
+- Define a small, stable UX entry point for enabling RAGEngine guardrails.
+- Keep detailed guardrail policy outside the CRD in a ConfigMap-backed YAML document.
+- Allow scanner additions and policy evolution without repeated CRD changes.
 
 ## Non-Goals
 
-- Do not change upstream LLM token generation behavior.
-- Do not guarantee full-response-equivalent safety for all scanner types in true
-  streaming mode.
-- Do not run expensive or full-output scanners on every streaming chunk.
-- Do not introduce full semantic or LLM-based streaming scanners in the first
-  version.
-- Do not refactor the entire RAG pipeline in the first PR.
+- Implement the full runtime behavior in this PR.
+- Expose scanner-specific configuration in the CRD.
+- Finalize streaming, auditing, or error-handling semantics in this document.
 
-## Current Behavior
+## Proposed UX and API Shape
 
-Today, RAGEngine handles `/v1/chat/completions` as a non-streaming request.
+### Minimal CRD Entry Point
 
-The high-level flow is:
+The intended user-facing switch is a minimal `guardrails.enabled` field in the
+`RAGEngine` spec.
 
-```text
-client request
-  ↓
-RAGEngine /v1/chat/completions
-  ↓
-rag_ops.chat_completion(request)
-  ↓
-wait for full upstream response
-  ↓
-guardrails.guard_response(response, request)
-  ↓
-return full JSON response
+```yaml
+apiVersion: kaito.sh/v1beta1
+kind: RAGEngine
+metadata:
+  name: ragengine-with-guardrails
+spec:
+  guardrails:
+    enabled: true
 ```
 
-This works for non-streaming guardrails, but it cannot provide token-level
-streaming because RAGEngine currently waits for the complete response before
-applying guardrails.
+At this stage, the proposal does not add scanner-specific CRD fields such as `action`,
+`scanners`, `patterns`, or `blockMessage`.
 
-## Proposed Behavior
+### ConfigMap-Based YAML Policy
 
-When the request contains:
+Detailed policy is defined in YAML and delivered through a ConfigMap.
 
-```json
-{
-  "stream": true
-}
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ragengine-guardrails-policy
+data:
+  guardrails.yaml: |
+    blockMessage: The model output was blocked by output guardrails.
+    scanners:
+      - type: regex
+        action: redact
+        patterns:
+          - 'https?://\\S+'
+      - type: ban_substrings
+        action: block
+        substrings:
+          - secret
 ```
 
-RAGEngine enters the streaming path:
+The exact YAML schema can evolve, but the design principle is fixed: detailed policy lives
+in ConfigMap YAML, not in the CRD.
 
-```text
-Client
-  ↓ POST /v1/chat/completions stream=true
-RAGEngine
-  ↓ call upstream LLM with stream=true
-Upstream LLM
-  ↓ returns OpenAI-compatible SSE chunks
-RAGEngine streaming guardrail processor
-  ↓ buffer / scan / redact / block
-RAGEngine
-  ↓ emits safe SSE chunks
-Client
+### Default ConfigMap Support
+
+If `spec.guardrails.enabled` is `true` and `configMapRef` is not set, the
+controller copies the default guardrails policy ConfigMap
+(`ragengine-guardrails-policy-template`) into the RAGEngine namespace and mounts
+it into the Pod.
+
+- Auto-copied ConfigMaps are namespace-scoped shared resources and do not carry
+  an `OwnerReference` to any individual RAGEngine. This avoids deleting a
+  shared ConfigMap during cleanup of one RAGEngine while other RAGEngines in the
+  same namespace still depend on it.
+- User-provided ConfigMaps are not modified or owned by the controller.
+- Hot reload is not part of this PR.
+
+The default template provides a conservative deterministic baseline for
+credential and lightweight PII leakage:
+
+- a regex scanner for a few high-signal token formats
+- a `secrets` scanner backed by `detect-secrets`
+- a lightweight `sensitive` scanner for common PII patterns
+
+The regex scanner covers obvious credential leakage, including:
+
+- PEM private key headers
+- AWS access key IDs (`AKIA...`)
+- Google API keys (`AIza...`)
+- GitHub tokens (`ghp_`, `gho_`, `ghu_`, `ghs_`, `ghr_`)
+- `sk-...` style API keys
+- `Bearer ...` authorization tokens
+
+The `sensitive` scanner covers:
+
+- email addresses
+- phone numbers
+- credit card-like numbers (Luhn-validated)
+- IPv4 addresses
+
+This is baseline protection, not a complete content-safety policy. Additional
+scanners can still be added via a custom ConfigMap.
+
+### Runtime Failure Semantics
+
+Output guardrails wrap an external ML pipeline (`llm_guard`) whose scanners may fail at
+runtime (e.g. GPU OOM, model download failure, tokenizer errors, library bugs). The
+runtime is currently hard-coded to fail closed when this happens.
+
+| Env Var                          | Default | Description                                                                                  |
+| -------------------------------- | ------- | -------------------------------------------------------------------------------------------- |
+| `OUTPUT_GUARDRAILS_ENABLED`      | `false` | Master switch. When `false`, guardrails are bypassed entirely. |
+| `OUTPUT_GUARDRAILS_POLICY_PATH`  | `""`    | Path to the policy ConfigMap YAML. When unset, the runtime falls back to the default ConfigMap shipped with the system. |
+
+Behavior:
+
+- **Fail-closed** (current behavior): If a scanner raises during `guard_response`, the
+  runtime raises `OutputGuardrailsError`, which the `/v1/chat/completions` handler maps
+  to `HTTP 500` with a fixed detail message
+  (`"Output guardrails failed while scanning the model response."`). The original
+  exception is preserved via `__cause__` for logs, but is not exposed in the HTTP body.
+  Users who encounter a problematic scanner can work around it by disabling that scanner
+  in the guardrails ConfigMap.
+
+Operator guidance: fail-closed should be paired with model pre-warming, dedicated GPU
+quota for guardrails, and Prometheus alerts on `output_guardrails_failed` log volume to
+avoid converting transient ML failures into request errors.
+
+Example deployment (fail-closed for a regulated workload):
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ragengine-guardrails-failclosed
+spec:
+  containers:
+    - name: ragengine
+      image: kaito/ragengine:latest
+      env:
+        - name: OUTPUT_GUARDRAILS_ENABLED
+          value: "true"
+        - name: OUTPUT_GUARDRAILS_POLICY_PATH
+          value: /etc/ragengine/guardrails.yaml
+      volumeMounts:
+        - name: guardrails-policy
+          mountPath: /etc/ragengine
+  volumes:
+    - name: guardrails-policy
+      configMap:
+        name: ragengine-guardrails-policy
 ```
 
-When `stream` is absent or false, RAGEngine continues using the existing
-non-streaming path.
+Sample HTTP response when a scanner fails under fail-closed:
 
-## Architecture
+```http
+HTTP/1.1 500 Internal Server Error
+Content-Type: application/json
 
-### 1. Endpoint Layer
-
-The `/v1/chat/completions` endpoint should branch on `stream`.
-
-```python
-if request.get("stream") is True:
-    return StreamingResponse(
-        guarded_stream_generator,
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no",
-        },
-    )
-
-response = await rag_ops.chat_completion(request)
-guardrails = guardrails_reloader.get_current()
-response = guardrails.guard_response(response, request)
-return response
+{"detail": "Output guardrails failed while scanning the model response."}
 ```
 
-### 2. Upstream Streaming Client
+Future work may introduce per-scanner fail modes inside the policy YAML; the env-level
+switch or CRD/API control can be added later if we need operator-configurable failure
+handling.
 
-RAGEngine should call the upstream LLM backend with:
+## Deferred Scope
 
-```json
-{
-  "stream": true
-}
-```
+This proposal defines the UX shape only. The following items are deferred to follow-up
+implementation PRs:
 
-The upstream response is expected to be OpenAI-compatible SSE:
+- additional scanners beyond the current baseline set
+- audit event model
+- streaming scanning behavior
+- per-scanner fail modes inside the policy YAML
+- configurable failure handling beyond the current fail-closed behavior
 
-```text
-data: {"choices":[{"delta":{"content":"Hello"}}]}
+## Follow-Up Implementation Plan
 
-data: {"choices":[{"delta":{"content":" world"}}]}
+This proposal is intended to support the following implementation sequence:
 
-data: [DONE]
-```
+1. Land the initial non-streaming output guardrails hook. (done)
+2. Define explicit error-handling semantics. (done)
+3. Introduce a runtime YAML policy loader. (done)
+4. Add default ConfigMap support. (done)
+5. Add hot-reload of the guardrails policy ConfigMap. (done)
+6. Refactor scanner construction into a registry/factory structure. (done)
+7. Add more scanners in small batches. (partial)
+8. Add audit foundations. (not done)
+9. Add minimal streaming scanning support. (not done)
+10. Polish graceful UX and operational behavior. (partial)
 
-RAGEngine consumes these upstream SSE events asynchronously.
+### Hot-reload runtime behavior (implemented)
 
-### 3. Streaming Guardrail Processor
+The runtime watches the guardrails policy file and swaps the active
+`OutputGuardrails` instance when the policy changes. For ConfigMap-mounted files,
+it watches the parent directory so Kubernetes symlink updates are detected.
 
-The guardrail processor sits between the upstream LLM stream and the downstream
-client stream.
+Reload semantics:
 
-```text
-upstream SSE event
-  ↓
-parse event
-  ↓
-extract choices[].delta.content
-  ↓
-append to pending buffer
-  ↓
-scan recent window
-  ↓
-emit safe prefix
-  ↓
-keep holdback suffix
-```
+- If a new policy fails to load, the previous policy stays active.
+- Reloads use a 1-second debounce window.
+- Hot reload can be disabled with `OUTPUT_GUARDRAILS_HOT_RELOAD_ENABLED=false`,
+  in which case the policy is loaded once at startup.
 
-RAGEngine should not directly forward every upstream chunk. It should only emit
-content after it has been checked by streaming-compatible scanners.
+Observability:
 
-## Buffering Strategy
-
-Use an un-emitted `pending_buffer`.
-
-```text
-pending_buffer += new_delta
-```
-
-The processor should keep a holdback suffix so that patterns split across chunks
-can still be detected.
-
-Example:
-
-```text
-chunk 1: "u"
-chunk 2: "rl"
-```
-
-If the policy blocks `"url"`, RAGEngine should not emit `"u"` immediately. It
-keeps `"u"` in the holdback buffer. When `"rl"` arrives, the scanner sees
-`"url"` before unsafe content is sent to the client.
-
-Recommended defaults:
-
-```text
-min_scan_chars   = 128
-scan_interval_ms = 50
-holdback_chars   = 256
-max_window_chars = 2048
-max_emit_chars   = 512
-```
-
-Parameter meanings:
-
-```text
-min_scan_chars:
-  Coalesce small chunks before scanning.
-
-scan_interval_ms:
-  Avoid waiting too long when model output is slow.
-
-holdback_chars:
-  Keep the last N characters un-emitted to detect patterns split across chunks.
-
-max_window_chars:
-  Scan only a bounded recent window instead of the full accumulated response.
-
-max_emit_chars:
-  Control downstream SSE chunk size.
-```
-
-At stream end, the holdback buffer must not be dropped. RAGEngine performs a
-final scan and then flushes, redacts, or blocks the remaining content.
-
-## Scanner Capability Model
-
-Streaming guardrails should classify scanners into two groups.
-
-### Streaming-Compatible Scanners
-
-These scanners can make local decisions over partial text and are suitable for
-the streaming path:
-
-```text
-ban_substrings
-regex
-secrets
-sensitive
-invisible_text
-token_limit
-```
-
-### Finalize-Only Scanners
-
-These scanners require complete output and should not run on every streaming
-chunk:
-
-```text
-json
-reading_time
-full-structure checks
-semantic scanners
-LLM-based scanners
-```
-
-## Mixed Scanner Policy
-
-If a policy contains both streaming-compatible scanners and finalize-only
-scanners, RAGEngine must use clear product semantics.
-
-Recommended default: **strict mode**.
-
-```text
-If all scanners are streaming-compatible:
-  use true streaming guardrails
-
-If policy contains finalize-only scanners with block/redact action:
-  fall back to non-streaming guarded execution
-
-If future policy supports audit/log-only finalize scanners:
-  allow best-effort streaming and run finalize scanners at the end
-```
-
-Reason:
-
-```text
-Once content is emitted to the client, it cannot be recalled.
-Therefore, finalize-only blocking scanners cannot provide full blocking guarantees in true streaming mode.
-```
-
-This means a mixed policy with blocking JSON validation will not get true
-streaming in strict mode. This is intentional to preserve safety semantics.
-
-## Guardrail Actions
-
-### Pass
-
-No scanner hit. RAGEngine emits safe content as OpenAI-compatible SSE chunks.
-
-```text
-data: {"choices":[{"delta":{"content":"safe text"}}]}
-```
-
-### Redact
-
-Sensitive spans are replaced before content is emitted.
-
-Example:
-
-```text
-original: my email is user@example.com
-redacted: my email is [REDACTED]
-```
-
-### Block
-
-RAGEngine stops forwarding upstream content and emits a guarded block chunk,
-followed by `[DONE]`.
-
-```text
-data: {"choices":[{"delta":{"content":"Response blocked by output guardrails."},"finish_reason":"content_filter"}]}
-
-data: [DONE]
-```
-
-## Performance Strategy
-
-Do not scan every upstream chunk with every scanner.
-
-Instead:
-
-```text
-coalesce small chunks
-  ↓
-run only streaming-compatible fast scanners
-  ↓
-scan only a bounded recent window
-  ↓
-emit safe prefixes continuously
-  ↓
-flush only the holdback buffer at the end
-```
-
-This keeps scanning pipelined with LLM generation.
-
-The goal is not necessarily to reduce total CPU compared with non-streaming
-scanning. The goal is to reduce time-to-first-safe-output while keeping total
-overhead bounded.
-
-## Safety Limitations
-
-Streaming guardrails are not equivalent to full-response non-streaming
-guardrails for all scanner types.
-
-Limitations:
-
-```text
-Already-emitted content cannot be recalled.
-Holdback only protects bounded local patterns.
-Global scanners still require full output.
-Complex semantic scanners are not suitable for per-chunk execution.
-```
-
-Therefore:
-
-```text
-Fast local scanners can support true streaming.
-Full-output blocking scanners should fall back to non-streaming in strict mode.
-```
-
-## Failure Behavior
-
-Recommended behavior:
-
-```text
-scanner error:
-  fail closed
-
-unsupported streaming scanner in strict mode:
-  fall back to non-streaming guarded execution
-
-upstream stream error:
-  terminate downstream stream safely
-
-client disconnect:
-  stop consuming upstream stream
-
-buffer overflow:
-  fail closed or block stream
-```
-
-## Metrics
-
-Add streaming guardrail metrics:
-
-```text
-stream_guardrails_requests_total
-stream_guardrails_fallback_total{reason}
-stream_guardrails_scans_total
-stream_guardrails_scan_latency_seconds
-stream_guardrails_block_total
-stream_guardrails_redact_total
-stream_guardrails_pending_buffer_chars
-stream_guardrails_time_to_first_safe_chunk_seconds
-stream_guardrails_finalize_latency_seconds
-```
-
-Useful fallback reasons:
-
-```text
-finalize_only_scanner
-scanner_error
-buffer_overflow
-unsupported_policy
-```
-
-## Testing Plan
-
-Add tests for:
-
-```text
-stream=true calls upstream with stream=true
-stream=true returns text/event-stream
-safe chunks are emitted downstream
-blocked substring split across chunks is detected
-holdback is not emitted early
-holdback is flushed at [DONE]
-block emits block message and [DONE]
-redact emits redacted content
-finalize-only scanner triggers strict fallback
-guardrails disabled preserves streaming passthrough
-non-stream path remains unchanged
-```
-
-## PR Plan
-
-To keep PRs small, split implementation into small reviewable changes.
-
-### PR 1: Streaming Passthrough
-
-Scope:
-
-```text
-Add stream=true branch in /v1/chat/completions
-Call upstream LLM with stream=true
-Consume upstream SSE events
-Return StreamingResponse to client
-No guardrail processing yet
-```
-
-Expected core code size: around 150–220 lines.
-
-### PR 2: SSE Utilities
-
-Scope:
-
-```text
-Add SSE parsing helpers
-Detect data: [DONE]
-Extract delta.content
-Build downstream OpenAI-compatible SSE chunks
-Build block SSE chunk
-```
-
-Expected core code size: around 120–180 lines.
-
-### PR 3: Buffer and Holdback
-
-Scope:
-
-```text
-Add pending buffer
-Add holdback suffix
-Add min_scan_chars / max_window_chars / max_emit_chars
-Add final flush behavior
-Use no-op scanner initially
-```
-
-Expected core code size: around 150–220 lines.
-
-### PR 4: Fast Scanner Block Path
-
-Scope:
-
-```text
-Run streaming-compatible scanners on scan window
-Start with ban_substrings and/or regex
-Support block action
-Emit block message and [DONE]
-Add split-chunk block tests
-```
-
-Expected core code size: around 180–250 lines.
-
-### PR 5: Redact, Fallback, and Metrics
-
-Scope:
-
-```text
-Support redact action
-Add scanner capability classification
-Add strict fallback for finalize-only scanners
-Add streaming guardrail metrics
-Add mixed-policy tests
-```
-
-Expected core code size: around 180–250 lines.
-
-## Recommendation
-
-Implement strict mode by default.
-
-This gives clear semantics:
-
-```text
-Policies with only streaming-compatible scanners:
-  true streaming guardrails
-
-Policies with finalize-only blocking scanners:
-  fallback to non-streaming guarded execution
-```
-
-This avoids claiming that streaming guardrails provide the same guarantees as
-full-response non-stream scanning for all scanner types.
+- `guardrails_policy_reload_total{result="success|failure|noop"}`
+- `guardrails_policy_loaded_timestamp_seconds`

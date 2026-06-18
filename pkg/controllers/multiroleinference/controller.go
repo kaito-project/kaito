@@ -639,10 +639,9 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	}
 	// EPP scrapes vLLM metrics from each pod via PortInferenceServer (5000).
 	// On prefill pods vLLM listens directly on 5000; on decode pods the routing
-	// sidecar listens on 5000 and transparently proxies /metrics (and all other
-	// paths) to vLLM on 5001. This keeps a single metrics port across roles.
+	// sidecar listens on 5000 and transparently proxies /metrics to vLLM on 5001.
+	// This keeps a single metrics port across roles, avoiding per-role EPP config.
 	eppValues["flags"] = map[string]string{
-		"secure-serving":            "false",
 		"model-server-metrics-port": fmt.Sprintf("%d", consts.PortInferenceServer),
 	}
 	// No tokenizer sidecar: the EPP plugin pipeline (approx-prefix-cache-producer

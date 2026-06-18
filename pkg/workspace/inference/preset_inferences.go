@@ -699,10 +699,13 @@ func SetDefaultModelWeightsVolume(ctx *generator.WorkspaceGeneratorContext, spec
 	return nil
 }
 
-// applyInferenceRoleEnv sets KAITO_INFERENCE_ROLE env var on the main inference
+// applyInferenceRoleEnv sets inference-related env vars on the main inference
 // container (identified by containerName) when the workspace has a valid
-// inference-role label (prefill or decode). Only the main container needs this
-// env var; sidecar containers do not use it.
+// inference-role label (prefill or decode). It injects:
+//   - KAITO_INFERENCE_ROLE: role identification for the container
+//   - VLLM_NIXL_SIDE_CHANNEL_HOST: pod IP for NIXL KV transfer side channel
+//
+// Only the main container needs these env vars; sidecar containers do not use them.
 func applyInferenceRoleEnv(labels map[string]string, containerName string, spec *corev1.PodSpec) {
 	role, ok := labels[v1beta1.LabelInferenceRole]
 	if !ok || (role != string(kaitov1alpha1.MultiRoleInferenceRolePrefill) && role != string(kaitov1alpha1.MultiRoleInferenceRoleDecode)) {
@@ -838,6 +841,8 @@ func injectVLLMPortFlag(script string, port int32) string {
 		marker = "inference_api.py"
 	case strings.Contains(script, "vllm-serve"):
 		marker = "vllm-serve"
+	case strings.Contains(script, "vllm serve"):
+		marker = "vllm serve"
 	default:
 		// Fallback: best-effort append, but make sure we don't append after `fi`.
 		if strings.HasSuffix(strings.TrimSpace(script), "fi") {

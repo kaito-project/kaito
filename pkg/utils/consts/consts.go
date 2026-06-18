@@ -112,7 +112,9 @@ const (
 
 	// TokenizerSidecar runs a GPU-less vLLM render process for tokenization.
 	// It exposes /v1/completions/render and /v1/chat/completions/render on port 8100.
-	// Used by the EPP (Endpoint Picker Plugin) tokenizer container for prefix-cache-aware routing.
+	// Used by the EPP token-producer plugin for prefix-cache-aware routing when enabled.
+	// Currently disabled by default; only needed if the EPP plugin pipeline requires
+	// a token producer (e.g., precise-prefix-cache-scorer instead of approx-prefix-cache-producer).
 	TokenizerSidecarImage = "mcr.microsoft.com/oss/v2/vllm/vllm-openai-cpu:v0.21.0"
 	TokenizerSidecarPort  = 8100
 

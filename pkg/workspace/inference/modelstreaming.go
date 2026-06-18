@@ -103,7 +103,7 @@ func buildCommonStreamingEnvVars(modelID string) []corev1.EnvVar {
 
 // SetStreamingConfig modifies the pod spec for streaming mode:
 // - Adds provider-specific env vars (e.g. AZURE_STORAGE_ACCOUNT_NAME)
-// - Adds common env vars (KAITO_PROCESSOR, HF_TOKEN)
+// - Adds common env vars (e.g. KAITO_PROCESSOR)
 // - Sets serviceAccountName
 //
 // Note: weights volume mount removal and init container skipping are handled upstream —

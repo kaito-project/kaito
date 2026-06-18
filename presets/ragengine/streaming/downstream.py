@@ -8,6 +8,11 @@ def build_sse_data_chunk(payload: dict[str, Any]) -> str:
     return f"{SSE_DATA_PREFIX} {json.dumps(payload, separators=(',', ':'))}\n\n"
 
 
+def build_content_sse_chunk(content: str) -> str:
+    payload = {"choices": [{"delta": {"content": content}}]}
+    return build_sse_data_chunk(payload)
+
+
 def build_sse_done_chunk() -> str:
     return f"{SSE_DATA_PREFIX} {SSE_DONE_MARKER}\n\n"
 

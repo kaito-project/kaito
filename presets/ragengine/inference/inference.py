@@ -46,7 +46,9 @@ from ragengine.config import (
     LLM_INFERENCE_URL,
 )
 from ragengine.models import ChatCompletionResponse
+from ragengine.streaming.buffering import NoOpStreamScanner, StreamBuffer
 from ragengine.streaming.downstream import (
+    build_content_sse_chunk,
     build_sse_data_chunk,
     build_sse_done_chunk,
 )
@@ -338,6 +340,7 @@ class Inference(CustomLLM):
         request_data["stream"] = True
 
         client = await self._get_httpx_client()
+        stream_buffer = StreamBuffer(scanner=NoOpStreamScanner())
         try:
             async with client.stream(
                 "POST",
@@ -355,12 +358,21 @@ class Inference(CustomLLM):
                         continue
 
                     if is_sse_done_event(data):
+                        for buffered_text in stream_buffer.flush():
+                            yield build_content_sse_chunk(buffered_text)
                         yield build_sse_done_chunk()
                         break
 
                     payload = json.loads(data)
-                    extract_delta_content(payload)
-                    yield build_sse_data_chunk(payload)
+                    delta_content = extract_delta_content(payload)
+                    if delta_content is None:
+                        for buffered_text in stream_buffer.flush():
+                            yield build_content_sse_chunk(buffered_text)
+                        yield build_sse_data_chunk(payload)
+                        continue
+
+                    for buffered_text in stream_buffer.push_text(delta_content):
+                        yield build_content_sse_chunk(buffered_text)
         except HTTPException as http_exc:
             logger.error(
                 f"HTTP exception during chat completions stream passthrough: {http_exc.detail}"

@@ -2,10 +2,14 @@
 # Image URL to use all building/pushing image targets
 REGISTRY ?= YOUR_REGISTRY
 IMG_NAME ?= workspace
-VERSION ?= v0.9.3
+VERSION ?= v0.9.4
 GPU_PROVISIONER_VERSION ?= 0.4.1
 RAGENGINE_IMG_NAME ?= ragengine
 IMG_TAG ?= $(subst v,,$(VERSION))
+
+# sed in-place editing differs between GNU sed (Linux) and BSD sed (macOS).
+# GNU sed uses `sed -i`, while BSD sed requires an explicit backup suffix `sed -i ''`.
+SED_INPLACE := $(shell sed --version >/dev/null 2>&1 && echo "sed -i" || echo "sed -i ''")
 
 # injection variables
 INJECTION_ROOT := github.com/kaito-project/kaito/pkg/version
@@ -626,16 +630,16 @@ fmt: ## Run go fmt against code.
 .PHONY: release-manifest
 release-manifest: ## Update manifest and Helm charts for release.
 	$(eval RELEASE_BRANCH := release-$(shell echo ${VERSION} | sed -E 's/^v([0-9]+\.[0-9]+).*/\1/'))
-	@sed -i '' -e 's/^VERSION ?= .*/VERSION ?= ${VERSION}/' ./Makefile
-	@sed -i '' -e "1,20s/version: .*/version: ${IMG_TAG}/" ./charts/kaito/workspace/Chart.yaml
-	@sed -i '' -e "s/appVersion: .*/appVersion: ${IMG_TAG}/" ./charts/kaito/workspace/Chart.yaml
-	@sed -i '' -e "1,30s/  tag: .*/  tag: ${IMG_TAG}/" ./charts/kaito/workspace/values.yaml
-	@sed -i '' -e 's/IMG_TAG=.*/IMG_TAG=${IMG_TAG}/' ./charts/kaito/workspace/README.md
-	@sed -i '' -e "s/version: .*/version: ${IMG_TAG}/" ./charts/kaito/ragengine/Chart.yaml
-	@sed -i '' -e "s/appVersion: .*/appVersion: ${IMG_TAG}/" ./charts/kaito/ragengine/Chart.yaml
-	@sed -i '' -e "s/tag: .*/tag: ${IMG_TAG}/" ./charts/kaito/ragengine/values.yaml
-	@sed -i '' -e "s/presetRagImageTag: .*/presetRagImageTag: ${IMG_TAG}/" ./charts/kaito/ragengine/values.yaml
-	@sed -i '' -e 's/IMG_TAG=.*/IMG_TAG=${IMG_TAG}/' ./charts/kaito/ragengine/README.md
+	@$(SED_INPLACE) -e 's/^VERSION ?= .*/VERSION ?= ${VERSION}/' ./Makefile
+	@$(SED_INPLACE) -e "1,20s/version: .*/version: ${IMG_TAG}/" ./charts/kaito/workspace/Chart.yaml
+	@$(SED_INPLACE) -e "s/appVersion: .*/appVersion: ${IMG_TAG}/" ./charts/kaito/workspace/Chart.yaml
+	@$(SED_INPLACE) -e "1,30s/  tag: .*/  tag: ${IMG_TAG}/" ./charts/kaito/workspace/values.yaml
+	@$(SED_INPLACE) -e 's/IMG_TAG=.*/IMG_TAG=${IMG_TAG}/' ./charts/kaito/workspace/README.md
+	@$(SED_INPLACE) -e "s/version: .*/version: ${IMG_TAG}/" ./charts/kaito/ragengine/Chart.yaml
+	@$(SED_INPLACE) -e "s/appVersion: .*/appVersion: ${IMG_TAG}/" ./charts/kaito/ragengine/Chart.yaml
+	@$(SED_INPLACE) -e "s/tag: .*/tag: ${IMG_TAG}/" ./charts/kaito/ragengine/values.yaml
+	@$(SED_INPLACE) -e "s/presetRagImageTag: .*/presetRagImageTag: ${IMG_TAG}/" ./charts/kaito/ragengine/values.yaml
+	@$(SED_INPLACE) -e 's/IMG_TAG=.*/IMG_TAG=${IMG_TAG}/' ./charts/kaito/ragengine/README.md
 
 	git checkout -b $(RELEASE_BRANCH)
 	git add ./Makefile ./charts/kaito/workspace/Chart.yaml ./charts/kaito/workspace/values.yaml ./charts/kaito/workspace/README.md ./charts/kaito/ragengine/Chart.yaml ./charts/kaito/ragengine/values.yaml ./charts/kaito/ragengine/README.md
@@ -650,8 +654,8 @@ release-manifest: ## Update manifest and Helm charts for release.
 
 .PHONY: post-release-doc-update
 post-release-doc-update:
-	@sed -i '' -e 's/export KAITO_WORKSPACE_VERSION=.*/export KAITO_WORKSPACE_VERSION=${IMG_TAG}/' ./website/docs/installation.md
-	@sed -i '' -e 's/$(shell grep 'default' ./terraform/variables.tf | sort | uniq -c | sort -nr | head -n1 | sed -E 's/^[ ]*[0-9]+[ ]+//')/default     = \"${IMG_TAG}\"/' ./terraform/variables.tf
+	@$(SED_INPLACE) -e 's/export KAITO_WORKSPACE_VERSION=.*/export KAITO_WORKSPACE_VERSION=${IMG_TAG}/' ./website/docs/installation.md
+	@$(SED_INPLACE) -e 's/$(shell grep 'default' ./terraform/variables.tf | sort | uniq -c | sort -nr | head -n1 | sed -E 's/^[ ]*[0-9]+[ ]+//')/default     = \"${IMG_TAG}\"/' ./terraform/variables.tf
 
 
 ## --------------------------------------

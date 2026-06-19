@@ -61,6 +61,19 @@ var deepGEMMEnvVar = corev1.EnvVar{
 	Value: "0",
 }
 
+// flashInferMoeEnvVars are injected into every vLLM inference container to
+// disable vLLM's FlashInfer MoE backends across all precisions so MoE models
+// fall back to the Triton kernel (FlashInfer needs an nvcc JIT absent from the
+// base image). Order must match production wiring in GenerateInferencePodSpec.
+var flashInferMoeEnvVars = []corev1.EnvVar{
+	{Name: consts.VLLMUseFlashInferMoeFP16EnvName, Value: "0"},
+	{Name: consts.VLLMUseFlashInferMoeFP8EnvName, Value: "0"},
+	{Name: consts.VLLMUseFlashInferMoeFP4EnvName, Value: "0"},
+	{Name: consts.VLLMUseFlashInferMoeMXFP4BF16EnvName, Value: "0"},
+	{Name: consts.VLLMUseFlashInferMoeMXFP4MXFP8EnvName, Value: "0"},
+	{Name: consts.VLLMUseFlashInferMoeMXFP4MXFP8CutlassEnvName, Value: "0"},
+}
+
 func TestGeneratePresetInference(t *testing.T) {
 	test.RegisterTestModel()
 	baseImage := metadata.MustGet("base")
@@ -404,6 +417,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			expectedEnvVars := tc.expectedEnvVars
 			if len(expectedEnvVars) > 0 && expectedEnvVars[0] == flashInferSamplerEnvVar {
 				withDefaults := []corev1.EnvVar{flashInferSamplerEnvVar, deepGEMMEnvVar}
+				withDefaults = append(withDefaults, flashInferMoeEnvVars...)
 				expectedEnvVars = append(withDefaults, expectedEnvVars[1:]...)
 			}
 

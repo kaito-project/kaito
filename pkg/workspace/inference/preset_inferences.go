@@ -570,6 +570,24 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 				Name:  consts.VLLMUseDeepGEMMEnvName,
 				Value: "0",
 			})
+			// Disable vLLM's FlashInfer MoE backends across all precisions. For MoE
+			// models vLLM auto-selects a FlashInfer (TRTLLM/CUTLASS) expert kernel,
+			// which JIT-compiles at runtime via nvcc (absent from the base image) and
+			// crashes the engine at startup. Setting each per-precision toggle to "0"
+			// forces the Triton MoE fallback, which needs no nvcc JIT.
+			for _, name := range []string{
+				consts.VLLMUseFlashInferMoeFP16EnvName,
+				consts.VLLMUseFlashInferMoeFP8EnvName,
+				consts.VLLMUseFlashInferMoeFP4EnvName,
+				consts.VLLMUseFlashInferMoeMXFP4BF16EnvName,
+				consts.VLLMUseFlashInferMoeMXFP4MXFP8EnvName,
+				consts.VLLMUseFlashInferMoeMXFP4MXFP8CutlassEnvName,
+			} {
+				mainContainerEnv = append(mainContainerEnv, corev1.EnvVar{
+					Name:  name,
+					Value: "0",
+				})
+			}
 		}
 
 		spec.Containers = []corev1.Container{

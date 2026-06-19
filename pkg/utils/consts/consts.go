@@ -155,6 +155,21 @@ const (
 	// Set to "0" to keep FP8 models on their non-DeepGEMM kernel path.
 	VLLMUseDeepGEMMEnvName = "VLLM_USE_DEEP_GEMM"
 
+	// The VLLMUseFlashInferMoe*EnvName variables toggle vLLM's per-precision
+	// FlashInfer MoE backends. For MoE models vLLM auto-selects a FlashInfer
+	// (TRTLLM/CUTLASS) expert kernel, which JIT-compiles at runtime via nvcc — a
+	// CUDA toolchain the base image does not ship — crashing the engine at startup.
+	// Setting each explicitly to "0" removes the FlashInfer backends from the
+	// candidate list so vLLM falls back to the Triton MoE kernel, which needs no
+	// nvcc JIT (KAITO does not support FlashInfer). One variable exists per MoE
+	// weight/activation precision, so all must be disabled to cover every model.
+	VLLMUseFlashInferMoeFP16EnvName              = "VLLM_USE_FLASHINFER_MOE_FP16"
+	VLLMUseFlashInferMoeFP8EnvName               = "VLLM_USE_FLASHINFER_MOE_FP8"
+	VLLMUseFlashInferMoeFP4EnvName               = "VLLM_USE_FLASHINFER_MOE_FP4"
+	VLLMUseFlashInferMoeMXFP4BF16EnvName         = "VLLM_USE_FLASHINFER_MOE_MXFP4_BF16"
+	VLLMUseFlashInferMoeMXFP4MXFP8EnvName        = "VLLM_USE_FLASHINFER_MOE_MXFP4_MXFP8"
+	VLLMUseFlashInferMoeMXFP4MXFP8CutlassEnvName = "VLLM_USE_FLASHINFER_MOE_MXFP4_MXFP8_CUTLASS"
+
 	// ConditionReady is the condition type for a ready condition.
 	ConditionReady = "Ready"
 

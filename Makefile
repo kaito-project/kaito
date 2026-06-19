@@ -175,7 +175,9 @@ inference-api-e2e: ## Run inference API e2e tests with pytest.
 # Ginkgo configurations
 GINKGO_FOCUS ?=
 GINKGO_SKIP ?=
-GINKGO_LABEL ?= !A100Required && !AzureLinux
+# TEMP(streaming-e2e): force CI to run ONLY the 4 Label("Streaming") cases. Remove before merge.
+# Force-assigned (:=) so it overrides the GINKGO_LABEL env value CI sets.
+GINKGO_LABEL := Streaming
 GINKGO_NODES ?= 2
 GINKGO_NO_COLOR ?= false
 GINKGO_TIMEOUT ?= 120m

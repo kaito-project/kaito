@@ -92,15 +92,18 @@ jobs:
           REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
           IMG_TAG: ${{ steps.get-image-tag.outputs.img_tag }}
 
-      - name: Override chart version to match image tag
+      - name: Pin chart version and image to nightly tag
         run: |
-          # helm package derives the tgz file name from Chart.yaml's version field, and the
-          # Makefile target expects <name>-<IMG_TAG>.tgz, so pin both fields to IMG_TAG.
-          sed -i.bak -E "s/^version:.*/version: ${IMG_TAG}/" "${CHART_PATH}/Chart.yaml"
-          sed -i.bak -E "s/^appVersion:.*/appVersion: ${IMG_TAG}/" "${CHART_PATH}/Chart.yaml"
-          rm -f "${CHART_PATH}/Chart.yaml.bak"
+          # Chart.yaml: align version/appVersion with IMG_TAG so helm package emits
+          # <name>-<IMG_TAG>.tgz, which is what the Makefile target expects.
+          yq -i ".version = \"${IMG_TAG}\" | .appVersion = \"${IMG_TAG}\"" "${CHART_PATH}/Chart.yaml"
+          # values.yaml: point the controller image at the nightly ACR registry+tag
+          # so installs of the nightly chart pull the matching nightly image.
+          yq -i ".image.repository = \"${REGISTRY}/${IMAGE_NAME}\" | .image.tag = \"${IMG_TAG}\"" "${CHART_PATH}/values.yaml"
         env:
           CHART_PATH: ${{ matrix.chart_path }}
+          IMAGE_NAME: ${{ matrix.image_name }}
+          REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
           IMG_TAG: ${{ steps.get-image-tag.outputs.img_tag }}
 
       - name: Package and push chart ${{ matrix.image_name }}:${{ steps.get-image-tag.outputs.img_tag }}

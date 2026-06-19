@@ -296,7 +296,6 @@ See [Phase 3: Workspace Integration](#phase-3-workspace-integration) for propaga
 
 **Why not a cluster-scoped CRD?**
 - Option 2 covers the dominant use case (N replicas of one model sharing one cache config) without introducing a new CRD.
-- The provider's `IsReady(ctx, modelName, modelRevision)` call already scopes readiness per-model (not globally), so the Cache Controller internally tracks per-model cache state regardless of where the config lives.
 - A cluster-scoped CRD can be introduced as a **non-breaking future addition** if cross-InferenceSet sharing becomes a common requirement.
 
 **KV cache scope for disaggregated inference:** For `MultiRoleInference`, KV cache must be shared across prefill and decode roles (which are separate InferenceSets). Since the user creates the `MultiRoleInference` CR (not the InferenceSets directly), `MultiRoleInferenceSpec` will gain a `Cache *CacheSpec` field. The MultiRoleInference controller propagates the `kvCache` config to both role InferenceSets during `reconcileInferenceSet` (`pkg/controllers/multiroleinference/controller.go`), ensuring they connect to the same KV cache backend. This API addition to `MultiRoleInference` is deferred to when both the cache feature and MultiRoleInference reach beta, since MultiRoleInference is currently alpha and feature-gated.
@@ -445,9 +444,9 @@ type Provider interface {
     // and the provider can operate (e.g., CRD exists, operator running).
     IsAvailable(ctx context.Context) (bool, error)
 
-    // IsReady reports whether the cache is warmed and ready to serve
-    // for the specified model. Returns (ready, reason, error).
-    IsReady(ctx context.Context, modelName, modelRevision string) (bool, string, error)
+    // IsReady reports whether the cache is warmed and ready to serve.
+    // Returns (ready, reason, error).
+    IsReady(ctx context.Context) (bool, string, error)
 
     // PodMutations returns the pod-level changes needed for a specific cache
     // concern (ModelWeights or KVCache).

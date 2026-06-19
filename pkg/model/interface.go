@@ -414,10 +414,12 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		p.VLLM.ModelRunParams["performance-mode"] = rc.PerformanceMode
 	}
 
-	// Hybrid Mamba/Attention models (e.g., NemotronH) require the hybrid KV cache
-	// manager in vLLM, which is incompatible with LMCache KV cache CPU offloading.
-	// Disable offloading for these architectures to prevent startup crashes.
-	if p.isVLLMHybridKVCacheManagerRequired() {
+	// Disable LMCache KV cache CPU offloading for models where it is known to be
+	// problematic, either because:
+	//   - the model needs vLLM's hybrid KV cache manager (incompatible with the
+	//     LMCache connector), or
+	//   - LMCache is disabled for this model (see isLMCacheDisabled).
+	if p.isVLLMHybridKVCacheManagerRequired() || p.isLMCacheDisabled() {
 		p.VLLM.ModelRunParams["kaito-kv-cache-cpu-memory-utilization"] = "0"
 	}
 
@@ -548,7 +550,22 @@ func (p *PresetParam) isVLLMHybridKVCacheManagerRequired() bool {
 		switch arch {
 		case "NemotronHForCausalLM", "NemotronH_Nano_VL_V2", "NemotronHMTPModel", "NemotronHPuzzleForCausalLM",
 			"Gemma4ForCausalLM", "Gemma4ForConditionalGeneration",
-			"Qwen3_5ForConditionalGeneration":
+			"Qwen3_5ForConditionalGeneration", "Qwen3_5MoeForConditionalGeneration":
+			return true
+		}
+	}
+	return false
+}
+
+// isLMCacheDisabled returns true for architectures where LMCache needs to be disabled.
+// There is a known bug in LMCache that causes vLLM crashes on request abortion:
+// https://github.com/LMCache/LMCache/issues/3688
+// This bug will crash the vLLM engine during the TPM phase for certain models in KAITO.
+// TODO: remove this once the issue is resolved.
+func (p *PresetParam) isLMCacheDisabled() bool {
+	for _, arch := range p.Architectures {
+		switch arch {
+		case "GptOssForCausalLM":
 			return true
 		}
 	}

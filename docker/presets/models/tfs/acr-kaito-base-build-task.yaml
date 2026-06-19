@@ -1,0 +1,24 @@
+version: v1.1.0
+# ACR multi-step task that builds the kaito-base image with BuildKit enabled.
+# BuildKit is required for the `RUN --mount=type=cache` step in the Dockerfile,
+# which the default `az acr build` (classic builder) does not support.
+#
+# Usage:
+#   az acr run \
+#     --registry <registry> \
+#     --file docker/presets/models/tfs/acr-task.yaml \
+#     --set IMAGE_TAG=0.3.3 \
+#     --set MODEL_TYPE=text-generation \
+#     .
+steps:
+  - build: >-
+      -t $Registry/kaito-base:{{.Values.IMAGE_TAG}}
+      -f docker/presets/models/tfs/Dockerfile
+      --build-arg VERSION={{.Values.IMAGE_TAG}}
+      --build-arg MODEL_TYPE={{.Values.MODEL_TYPE}}
+      --platform linux/amd64
+      .
+    env:
+      - DOCKER_BUILDKIT=1
+  - push:
+      - $Registry/kaito-base:{{.Values.IMAGE_TAG}}

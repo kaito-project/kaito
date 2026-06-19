@@ -19,20 +19,19 @@ import (
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
 func TestDetermineInferenceSetPhase(t *testing.T) {
 	tests := []struct {
 		name     string
-		is       *kaitov1alpha1.InferenceSet
+		is       *kaitov1beta1.InferenceSet
 		expected string
 	}{
 		{
 			name: "inferenceset is deleting",
-			is: &kaitov1alpha1.InferenceSet{
-				Status: kaitov1alpha1.InferenceSetStatus{
+			is: &kaitov1beta1.InferenceSet{
+				Status: kaitov1beta1.InferenceSetStatus{
 					Conditions: []metav1.Condition{
 						{
 							Type:   string(kaitov1beta1.InferenceSetConditionTypeDeleting),
@@ -45,8 +44,8 @@ func TestDetermineInferenceSetPhase(t *testing.T) {
 		},
 		{
 			name: "inferenceset ready",
-			is: &kaitov1alpha1.InferenceSet{
-				Status: kaitov1alpha1.InferenceSetStatus{
+			is: &kaitov1beta1.InferenceSet{
+				Status: kaitov1beta1.InferenceSetStatus{
 					Conditions: []metav1.Condition{
 						{
 							Type:   string(kaitov1beta1.InferenceSetConditionTypeReady),
@@ -59,8 +58,8 @@ func TestDetermineInferenceSetPhase(t *testing.T) {
 		},
 		{
 			name: "inferenceset error",
-			is: &kaitov1alpha1.InferenceSet{
-				Status: kaitov1alpha1.InferenceSetStatus{
+			is: &kaitov1beta1.InferenceSet{
+				Status: kaitov1beta1.InferenceSetStatus{
 					Conditions: []metav1.Condition{
 						{
 							Type:   string(kaitov1beta1.InferenceSetConditionTypeReady),
@@ -73,8 +72,8 @@ func TestDetermineInferenceSetPhase(t *testing.T) {
 		},
 		{
 			name: "inferenceset pending with no conditions",
-			is: &kaitov1alpha1.InferenceSet{
-				Status: kaitov1alpha1.InferenceSetStatus{
+			is: &kaitov1beta1.InferenceSet{
+				Status: kaitov1beta1.InferenceSetStatus{
 					Conditions: []metav1.Condition{},
 				},
 			},
@@ -82,8 +81,8 @@ func TestDetermineInferenceSetPhase(t *testing.T) {
 		},
 		{
 			name: "inferenceset pending with unknown condition",
-			is: &kaitov1alpha1.InferenceSet{
-				Status: kaitov1alpha1.InferenceSetStatus{
+			is: &kaitov1beta1.InferenceSet{
+				Status: kaitov1beta1.InferenceSetStatus{
 					Conditions: []metav1.Condition{
 						{
 							Type:   "UnknownCondition",
@@ -96,8 +95,8 @@ func TestDetermineInferenceSetPhase(t *testing.T) {
 		},
 		{
 			name: "deleting takes precedence over ready",
-			is: &kaitov1alpha1.InferenceSet{
-				Status: kaitov1alpha1.InferenceSetStatus{
+			is: &kaitov1beta1.InferenceSet{
+				Status: kaitov1beta1.InferenceSetStatus{
 					Conditions: []metav1.Condition{
 						{
 							Type:   string(kaitov1beta1.InferenceSetConditionTypeDeleting),

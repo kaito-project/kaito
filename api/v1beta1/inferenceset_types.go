@@ -144,6 +144,7 @@ type InferenceSetStatus struct {
 // +kubebuilder:subresource:status
 // +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=.status.selector
 // +kubebuilder:resource:path=inferencesets,scope=Namespaced,categories=inferenceset,shortName={is,isets}
+// +kubebuilder:storageversion
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description=""
 // +kubebuilder:printcolumn:name="ReadyReplicas",type="integer",JSONPath=".status.readyReplicas",description=""
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description=""

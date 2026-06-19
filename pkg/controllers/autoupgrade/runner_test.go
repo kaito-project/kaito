@@ -49,7 +49,7 @@ func newFakeClient(objs ...client.Object) client.Client {
 	return fake.NewClientBuilder().
 		WithScheme(testScheme()).
 		WithObjects(objs...).
-		WithStatusSubresource(&kaitov1alpha1.InferenceSet{}).
+		WithStatusSubresource(&kaitov1beta1.InferenceSet{}).
 		Build()
 }
 
@@ -292,30 +292,30 @@ func TestStatusNeedsUpdate(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		isObj         *kaitov1alpha1.InferenceSet
+		isObj         *kaitov1beta1.InferenceSet
 		newDriftCount int
 		expect        bool
 	}{
 		{
 			name: "nil AutoUpgrade status and non-zero drift",
-			isObj: &kaitov1alpha1.InferenceSet{
-				Status: kaitov1alpha1.InferenceSetStatus{},
+			isObj: &kaitov1beta1.InferenceSet{
+				Status: kaitov1beta1.InferenceSetStatus{},
 			},
 			newDriftCount: 2,
 			expect:        true,
 		},
 		{
 			name: "nil AutoUpgrade status and zero drift",
-			isObj: &kaitov1alpha1.InferenceSet{
-				Status: kaitov1alpha1.InferenceSetStatus{},
+			isObj: &kaitov1beta1.InferenceSet{
+				Status: kaitov1beta1.InferenceSetStatus{},
 			},
 			newDriftCount: 0,
 			expect:        true,
 		},
 		{
 			name: "nil NumDriftedWorkspaces and non-zero drift",
-			isObj: &kaitov1alpha1.InferenceSet{
-				Status: kaitov1alpha1.InferenceSetStatus{
+			isObj: &kaitov1beta1.InferenceSet{
+				Status: kaitov1beta1.InferenceSetStatus{
 					AutoUpgrade: &kaitov1alpha1.AutoUpgradeStatus{},
 				},
 			},
@@ -324,8 +324,8 @@ func TestStatusNeedsUpdate(t *testing.T) {
 		},
 		{
 			name: "same drift count - no update needed",
-			isObj: &kaitov1alpha1.InferenceSet{
-				Status: kaitov1alpha1.InferenceSetStatus{
+			isObj: &kaitov1beta1.InferenceSet{
+				Status: kaitov1beta1.InferenceSetStatus{
 					AutoUpgrade: &kaitov1alpha1.AutoUpgradeStatus{
 						NumDriftedWorkspaces: &driftCount,
 					},
@@ -336,8 +336,8 @@ func TestStatusNeedsUpdate(t *testing.T) {
 		},
 		{
 			name: "different drift count - update needed",
-			isObj: &kaitov1alpha1.InferenceSet{
-				Status: kaitov1alpha1.InferenceSetStatus{
+			isObj: &kaitov1beta1.InferenceSet{
+				Status: kaitov1beta1.InferenceSetStatus{
 					AutoUpgrade: &kaitov1alpha1.AutoUpgradeStatus{
 						NumDriftedWorkspaces: &driftCount,
 					},

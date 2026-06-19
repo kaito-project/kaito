@@ -59,7 +59,7 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		workspace *kaitov1alpha1.InferenceSet
+		workspace *kaitov1beta1.InferenceSet
 		expected  map[string]any
 	}{
 
@@ -93,7 +93,7 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 
 		{
 			name: "decode role with vLLM uses routing sidecar port",
-			workspace: func() *kaitov1alpha1.InferenceSet {
+			workspace: func() *kaitov1beta1.InferenceSet {
 				ws := base.DeepCopy()
 				if ws.Spec.Template.Labels == nil {
 					ws.Spec.Template.Labels = map[string]string{}
@@ -129,7 +129,7 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 
 		{
 			name: "decode role with default runtime (no annotation) uses routing sidecar port",
-			workspace: func() *kaitov1alpha1.InferenceSet {
+			workspace: func() *kaitov1beta1.InferenceSet {
 				ws := base.DeepCopy()
 				if ws.Spec.Template.Labels == nil {
 					ws.Spec.Template.Labels = map[string]string{}

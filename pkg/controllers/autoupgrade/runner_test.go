@@ -316,7 +316,7 @@ func TestStatusNeedsUpdate(t *testing.T) {
 			name: "nil NumDriftedWorkspaces and non-zero drift",
 			isObj: &kaitov1beta1.InferenceSet{
 				Status: kaitov1beta1.InferenceSetStatus{
-					AutoUpgrade: &kaitov1alpha1.AutoUpgradeStatus{},
+					AutoUpgrade: &kaitov1beta1.AutoUpgradeStatus{},
 				},
 			},
 			newDriftCount: 1,
@@ -326,7 +326,7 @@ func TestStatusNeedsUpdate(t *testing.T) {
 			name: "same drift count - no update needed",
 			isObj: &kaitov1beta1.InferenceSet{
 				Status: kaitov1beta1.InferenceSetStatus{
-					AutoUpgrade: &kaitov1alpha1.AutoUpgradeStatus{
+					AutoUpgrade: &kaitov1beta1.AutoUpgradeStatus{
 						NumDriftedWorkspaces: &driftCount,
 					},
 				},
@@ -338,7 +338,7 @@ func TestStatusNeedsUpdate(t *testing.T) {
 			name: "different drift count - update needed",
 			isObj: &kaitov1beta1.InferenceSet{
 				Status: kaitov1beta1.InferenceSetStatus{
-					AutoUpgrade: &kaitov1alpha1.AutoUpgradeStatus{
+					AutoUpgrade: &kaitov1beta1.AutoUpgradeStatus{
 						NumDriftedWorkspaces: &driftCount,
 					},
 				},
@@ -704,7 +704,7 @@ func TestReconcileInferenceSet_MarkSuccessOnDriftTransition(t *testing.T) {
 
 	prevDrift := 1
 	is := makeInferenceSet(isName, ns, true, nil)
-	is.Status.AutoUpgrade = &kaitov1alpha1.AutoUpgradeStatus{
+	is.Status.AutoUpgrade = &kaitov1beta1.AutoUpgradeStatus{
 		NumDriftedWorkspaces: &prevDrift,
 	}
 	// All workspaces now at desired state.

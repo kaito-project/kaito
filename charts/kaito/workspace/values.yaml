@@ -40,7 +40,7 @@ featureGates:
   vLLM: true
   disableNodeAutoProvisioning: false
   gatewayAPIInferenceExtension: false
-  enableInferenceSetController: false
+  enableInferenceSetController: true
   enableMultiRoleInferenceController: false
   ModelMirror: false
   ModelStreaming: false

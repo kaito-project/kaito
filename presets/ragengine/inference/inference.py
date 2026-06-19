@@ -16,7 +16,7 @@ import asyncio
 import concurrent.futures
 import json
 import logging
-from collections.abc import Sequence
+from collections.abc import AsyncIterator, Sequence
 from typing import Any
 from urllib.parse import urljoin, urlparse
 
@@ -310,11 +310,70 @@ class Inference(CustomLLM):
             raise HTTPException(
                 status_code=500, detail=f"Error during POST request: {str(e)}"
             )
+
+    async def chat_completions_stream_passthrough(
+        self, chatCompletionsRequest: CompletionCreateParams, **kwargs: Any
+    ) -> AsyncIterator[str]:
+        if "/chat/completions" not in LLM_INFERENCE_URL:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Chat completions not supported through endpoint {LLM_INFERENCE_URL}.",
+            )
+
+        client = await self._get_httpx_client()
+        upstream_request = client.build_request(
+            "POST",
+            LLM_INFERENCE_URL,
+            json=chatCompletionsRequest,
+            headers=DEFAULT_HEADERS,
+        )
+        try:
+            response = await client.send(upstream_request, stream=True)
+            response.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            await e.response.aread()
+            logger.error(
+                f"HTTP error {e.response.status_code} during streaming POST request to {LLM_INFERENCE_URL}: {e.response.text}"
+            )
+            await e.response.aclose()
+            raise HTTPException(
+                status_code=e.response.status_code, detail=f"{str(e.response.content)}"
+            )
+        except httpx.RequestError as e:
+            logger.error(
+                f"Error during streaming POST request to {LLM_INFERENCE_URL}: {e}"
+            )
+            raise HTTPException(
+                status_code=500, detail=f"Error during streaming POST request: {str(e)}"
+            )
         except Exception as e:
             logger.error(f"Unexpected error during POST request: {e}")
             raise HTTPException(
                 status_code=500, detail=f"Error during POST request: {str(e)}"
             )
+
+        async def stream_response() -> AsyncIterator[str]:
+            try:
+                async for chunk in response.aiter_text():
+                    if chunk:
+                        yield chunk
+            except httpx.RequestError as e:
+                logger.error(
+                    f"Error during streaming POST request to {LLM_INFERENCE_URL}: {e}"
+                )
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Error during streaming POST request: {str(e)}",
+                )
+            except Exception as e:
+                logger.error(f"Unexpected error during POST request: {e}")
+                raise HTTPException(
+                    status_code=500, detail=f"Error during POST request: {str(e)}"
+                )
+            finally:
+                await response.aclose()
+
+        return stream_response()
 
     async def _async_completions(
         self, prompt: str, **kwargs: Any

@@ -111,6 +111,8 @@ var _ = BeforeSuite(func() {
 	})
 	Expect(err).NotTo(HaveOccurred())
 
+	setupStreamingIdentity(namespaceName)
+
 	loadTestEnvVars()
 
 	err = copySecretToNamespace(aiModelsRegistrySecret, namespaceName)
@@ -132,6 +134,8 @@ var _ = ReportAfterSuite("Print pod logs on failure", func(report Report) {
 })
 
 var _ = AfterSuite(func() {
+	teardownStreamingIdentity(namespaceName)
+
 	// delete testing namespace
 	Eventually(func() error {
 		return utils.TestingCluster.KubeClient.Delete(ctx, &corev1.Namespace{

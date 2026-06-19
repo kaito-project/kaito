@@ -74,6 +74,7 @@ func createPhi4WorkspaceWithVLLMOnAzureLinux(numOfNode int) *kaitov1beta1.Worksp
 			workspaceObj.Annotations = make(map[string]string)
 		}
 		workspaceObj.Annotations[kaitov1beta1.AnnotationNodeImageFamily] = "AzureLinux"
+		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj

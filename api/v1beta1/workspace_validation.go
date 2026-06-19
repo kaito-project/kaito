@@ -745,6 +745,10 @@ func (w *Workspace) validateStreamingCSIDriver(ctx context.Context) *apis.FieldE
 		return nil
 	}
 
+	if GetWorkspaceRuntimeName(w) != model.RuntimeNameVLLM {
+		return nil
+	}
+
 	expectedDriver := consts.CSIDriverNameForCloud(os.Getenv("CLOUD_PROVIDER"))
 	if expectedDriver == "" {
 		return apis.ErrGeneric(

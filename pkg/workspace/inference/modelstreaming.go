@@ -22,6 +22,7 @@ import (
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
@@ -43,6 +44,9 @@ func ModelStreamingEnabled(ws *v1beta1.Workspace) bool {
 		return false
 	}
 	if ann := ws.Annotations[mmconsts.AnnotationModelStreaming]; ann == "disabled" {
+		return false
+	}
+	if v1beta1.GetWorkspaceRuntimeName(ws) != pkgmodel.RuntimeNameVLLM {
 		return false
 	}
 	return true

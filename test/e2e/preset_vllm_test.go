@@ -95,7 +95,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 		// Streaming assertions: the InferenceSet's child workspace streams from az://.
 		validateModelMirrorResources("google/gemma-3-4b-it", inferenceSetObj.Namespace)
-		validateModelMirrorCRReady("google/gemma-3-4b-it")
+		validateModelMirrorCRReady("google/gemma-3-4b-it", inferenceSetObj.Namespace)
 		validateStreamingChildWorkspace(inferenceSetObj, "google/gemma-3-4b-it")
 
 		validateInferenceSetBenchmarkCompleted(inferenceSetObj)

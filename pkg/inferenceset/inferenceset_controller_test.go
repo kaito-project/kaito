@@ -487,7 +487,7 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 			}
 
 			// Verify benchmark condition gate — annotation controls whether the condition is set.
-			benchmarkEnabled := tc.inferenceset.Annotations[v1beta1.AnnotationDisableBenchmark] != "true"
+			benchmarkEnabled := v1beta1.IsInferenceSetBenchmarkEnabled(&tc.inferenceset)
 			if !tc.expectBenchmarkCond {
 				assert.False(t, benchmarkEnabled)
 				return

@@ -88,7 +88,7 @@ func determineInferenceSetPhase(is *kaitov1beta1.InferenceSet) string {
 			}
 		case kaitov1beta1.InferenceSetConditionTypeReady:
 			if cond.Status == metav1.ConditionTrue {
-				return "ready"
+				return "succeeded"
 			}
 			if cond.Status == metav1.ConditionFalse {
 				return "error"

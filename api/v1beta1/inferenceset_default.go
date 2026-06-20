@@ -18,5 +18,5 @@ import (
 )
 
 // SetDefaults for the InferenceSet
-func (w *InferenceSet) SetDefaults(_ context.Context) {
+func (i *InferenceSet) SetDefaults(_ context.Context) {
 }

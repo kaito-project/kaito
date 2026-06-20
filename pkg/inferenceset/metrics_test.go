@@ -54,7 +54,7 @@ func TestDetermineInferenceSetPhase(t *testing.T) {
 					},
 				},
 			},
-			expected: "ready",
+			expected: "succeeded",
 		},
 		{
 			name: "inferenceset error",

@@ -369,6 +369,12 @@ spec:
                       description: Metric holds an aggregated benchmark measurement
                         across workspace replicas.
                       properties:
+                        config:
+                          additionalProperties:
+                            type: string
+                          description: Config holds the benchmark parameters used
+                            to produce this metric as free-form key/value pairs.
+                          type: object
                         description:
                           description: Description describes the benchmark type and
                             load pattern, e.g. "stress/high-concurrency".
@@ -763,6 +769,12 @@ spec:
                       description: Metric holds an aggregated benchmark measurement
                         across workspace replicas.
                       properties:
+                        config:
+                          additionalProperties:
+                            type: string
+                          description: Config holds the benchmark parameters used
+                            to produce this metric as free-form key/value pairs.
+                          type: object
                         description:
                           description: Description describes the benchmark type and
                             load pattern, e.g. "stress/high-concurrency".

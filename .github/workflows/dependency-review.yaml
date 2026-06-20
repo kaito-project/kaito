@@ -28,6 +28,21 @@ jobs:
       - name: 'Dependency Review'
         uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
         with:
+          # The following vllm@0.23.0 advisories are moderate severity with no fixed
+          # version available as of 6/17/2026:
+          # GHSA-7h4p-rffg-7823: temperature=NaN/Infinity bypass validation and propagate to GPU kernels.
+          # GHSA-8jr5-v98p-w75m: image EXIF rotation & PNG tRNS transparency not normalized.
+          # GHSA-5jv2-g5wq-cmr4: GGUF dequantize kernel int truncation exposes uninitialized GPU memory.
+          # GHSA-hgg8-fqqc-vfmw: incomplete CVE-2026-22778 fix leaks PIL repr addresses via Anthropic router.
+          # GHSA-6pr9-rp53-2pmc: OOM denial of service via audio decompression bomb.
+
           # GHSA-rrmf-rvhw-rf47 (CVE-2025-3000): torch.jit.script memory corruption.
           # Affects all torch versions with no available fix as of 6/16/2026. Low severity.
-          allow-ghsas: GHSA-rrmf-rvhw-rf47
+          allow-ghsas: >-
+            GHSA-7h4p-rffg-7823,
+            GHSA-8jr5-v98p-w75m,
+            GHSA-5jv2-g5wq-cmr4,
+            GHSA-hgg8-fqqc-vfmw,
+            GHSA-6pr9-rp53-2pmc,
+            GHSA-rrmf-rvhw-rf47
+

@@ -467,7 +467,7 @@ def _run_guidellm(processor: str, max_concurrency: int):
         return None
 
     args = BenchmarkGenerativeTextArgs(
-        target=VLLM_BASE_URL,
+        backend_kwargs={"target": VLLM_BASE_URL},
         data=[
             f"prompt_tokens={BENCHMARK_INPUT_LEN},output_tokens={BENCHMARK_OUTPUT_LEN}"
         ],

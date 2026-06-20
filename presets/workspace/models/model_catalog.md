@@ -66,7 +66,9 @@ Each model entry in `model_catalog.yaml` contains the following fields:
 
 5. **(Optional) Add an E2E test for the new model** to `test/e2e/preset_vllm_test.go`. This ensures the model can be deployed and serve inference requests in CI.
 
-6. **Submit a pull request** with the updated `model_catalog.yaml`, `model_catalog_mtbench_scores.md` and other necessary changes.
+6. **Update the `Curated Models` list in website/docs/presets.md.**
+
+7. **Submit a pull request** with the updated `model_catalog.yaml`, `model_catalog_mtbench_scores.md`, `presets.md` and other necessary changes.
 
 ## Refreshing All Existing Entries
 

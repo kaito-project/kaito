@@ -14,10 +14,12 @@ The following HuggingFace models are curated by the KAITO team with first-class 
 | deepseek-ai/DeepSeek-V3-0324 | https://huggingface.co/deepseek-ai/DeepSeek-V3-0324 | MIT |
 | google/gemma-3-4b-it | https://huggingface.co/google/gemma-3-4b-it | Gemma |
 | google/gemma-3-27b-it | https://huggingface.co/google/gemma-3-27b-it | Gemma |
+| google/gemma-4-12B-it | https://huggingface.co/google/gemma-4-12B-it | Apache-2.0 |
 | google/gemma-4-26B-A4B-it | https://huggingface.co/google/gemma-4-26B-A4B-it | Apache-2.0 |
 | google/gemma-4-31B-it | https://huggingface.co/google/gemma-4-31B-it | Apache-2.0 |
 | google/gemma-4-E2B-it | https://huggingface.co/google/gemma-4-E2B-it | Apache-2.0 |
 | google/gemma-4-E4B-it | https://huggingface.co/google/gemma-4-E4B-it | Apache-2.0 |
+| JetBrains/Mellum2-12B-A2.5B-Thinking | https://huggingface.co/JetBrains/Mellum2-12B-A2.5B-Thinking | Apache-2.0 |
 | meta-llama/Llama-3.1-8B-Instruct | https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct | Llama 3.1 |
 | meta-llama/Llama-3.3-70B-Instruct | https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct | Llama 3.3 |
 | microsoft/Phi-3-medium-4k-instruct | https://huggingface.co/microsoft/Phi-3-medium-4k-instruct | MIT |

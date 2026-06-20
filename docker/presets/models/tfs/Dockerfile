@@ -49,6 +49,15 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     uv pip install --system -q --reinstall-package nixl-cu12 nixl-cu12 && \
     pip3 uninstall -y uv
 
+# Patch vLLM's MistralCommonImageProcessor to add fetch_images(), which
+# transformers >=5.10 prepare_inputs_layout() calls unconditionally during
+# multimodal startup (Mistral3/Pixtral, e.g. Ministral-3-*-Instruct-2512).
+# Without it the vLLM server crash-loops with AttributeError: 'MistralCommonImageProcessor' 
+# object has no attribute 'fetch_images' (https://github.com/vllm-project/vllm/issues/44911)
+# TODO: Remove this once the upstream issue is fixed.
+COPY docker/presets/models/tfs/patches/fix_mistral_common_fetch_images.py /tmp/fix_mistral_common_fetch_images.py
+RUN python3 /tmp/fix_mistral_common_fetch_images.py && rm -f /tmp/fix_mistral_common_fetch_images.py
+
 # 1. Huggingface transformers
 COPY presets/workspace/inference/${MODEL_TYPE}/inference_api.py \
     presets/workspace/tuning/${MODEL_TYPE}/cli.py \

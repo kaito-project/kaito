@@ -1094,6 +1094,27 @@ func TestSyncWorkspaceStatus(t *testing.T) {
 			verifySucceededCondition: true,
 			expectedSucceededStatus:  v1.ConditionTrue,
 		},
+		"legacy preset workspace without benchmark probe stays ready": {
+			// Benchmark is enabled (no disable-benchmark annotation), but the ready
+			// StatefulSet has no benchmark startup probe — i.e. a workspace created
+			// before the benchmark feature.
+			workspace: func() *v1beta1.Workspace {
+				ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+				ws.Status.State = v1beta1.WorkspaceStatePending
+				return ws
+			}(),
+			statefulSet: &appsv1.StatefulSet{
+				ObjectMeta: v1.ObjectMeta{Name: test.MockWorkspaceWithPresetVLLM.Name, Namespace: test.MockWorkspaceWithPresetVLLM.Namespace},
+				Spec: appsv1.StatefulSetSpec{
+					Replicas: lo.ToPtr(int32(1)),
+					// No benchmark startup probe → hasBenchmarkProbe=false → benchmarkApplicable=false.
+				},
+				Status: appsv1.StatefulSetStatus{ReadyReplicas: 1},
+			},
+			expectedState:            v1beta1.WorkspaceStateReady,
+			verifySucceededCondition: true,
+			expectedSucceededStatus:  v1.ConditionTrue,
+		},
 		"inference pending during initialization": {
 			workspace:           test.MockWorkspaceDistributedModel.DeepCopy(),
 			statefulSetNotFound: true,
@@ -1244,7 +1265,7 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 	t.Run("ready when inference and resource are ready", func(t *testing.T) {
 		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStatePending}
 		wObj := &v1beta1.Workspace{ObjectMeta: v1.ObjectMeta{Annotations: map[string]string{v1beta1.AnnotationDisableBenchmark: "true"}}}
-		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue)
+		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue, false)
 
 		assert.Equal(t, v1beta1.WorkspaceStateReady, status.State)
 		inferenceCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
@@ -1258,7 +1279,7 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 
 	t.Run("not ready after established", func(t *testing.T) {
 		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStateReady}
-		applyInferenceWorkspaceStatus(context.Background(), status, &v1beta1.Workspace{}, buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue)
+		applyInferenceWorkspaceStatus(context.Background(), status, &v1beta1.Workspace{}, buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue, false)
 
 		assert.Equal(t, v1beta1.WorkspaceStateNotReady, status.State)
 		inferenceCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
@@ -1266,7 +1287,7 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 		assert.Equal(t, v1.ConditionFalse, inferenceCondition.Status)
 	})
 
-	t.Run("not-ready path clears benchmark condition and result (benchmark on by default)", func(t *testing.T) {
+	t.Run("not-ready path preserves benchmark condition and result (write-once)", func(t *testing.T) {
 		wObj := &v1beta1.Workspace{
 			ObjectMeta: v1.ObjectMeta{},
 			Inference: &v1beta1.InferenceSpec{
@@ -1292,12 +1313,72 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 			},
 		}
 
-		// kubeClient is nil — applyBenchmarkStatus must not be called on the not-ready path.
-		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue)
+		// inferenceReady=false drives the not-ready path. benchmarkApplicable=true.
+		// Write-once: the recorded result and condition must be preserved (no clear).
+		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue, true)
 
-		assert.Nil(t, status.Performance, "Performance should be cleared on not-ready")
+		assert.NotNil(t, status.Performance, "Performance must be preserved on not-ready (write-once)")
+		if status.Performance != nil {
+			m, ok := status.Performance.Metrics[BenchmarkMetricPeakTPM]
+			assert.True(t, ok)
+			assert.Equal(t, "12345", m.Value)
+		}
 		benchmarkCond := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted))
-		assert.Nil(t, benchmarkCond, "BenchmarkCompleted condition should be removed on not-ready")
+		if assert.NotNil(t, benchmarkCond, "BenchmarkCompleted must be preserved on not-ready (write-once)") {
+			assert.Equal(t, v1.ConditionTrue, benchmarkCond.Status)
+		}
+	})
+
+	t.Run("write-once: recovery after flap does not re-read logs", func(t *testing.T) {
+		wObj := &v1beta1.Workspace{
+			ObjectMeta: v1.ObjectMeta{Name: "ws", Namespace: "default"},
+			Inference: &v1beta1.InferenceSpec{
+				Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-model"}},
+			},
+		}
+		status := &v1beta1.WorkspaceStatus{
+			State: v1beta1.WorkspaceStateNotReady,
+			Performance: &v1beta1.Performance{
+				Metrics: map[string]v1beta1.Metric{BenchmarkMetricPeakTPM: {Value: "12345"}},
+			},
+			Conditions: []v1.Condition{{
+				Type:   string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted),
+				Status: v1.ConditionTrue,
+				Reason: "BenchmarkCompleted",
+			}},
+		}
+
+		// Empty fake client: if the skip guard did NOT fire, applyBenchmarkStatus would
+		// try to read logs and fail. We assert it stays Ready with the result intact.
+		k8sclient.SetGlobalClientGoClient(kubefake.NewClientset())
+		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue, true)
+
+		assert.Equal(t, v1beta1.WorkspaceStateReady, status.State)
+		m, ok := status.Performance.Metrics[BenchmarkMetricPeakTPM]
+		assert.True(t, ok)
+		assert.Equal(t, "12345", m.Value)
+	})
+
+	t.Run("legacy workspace: benchmark skipped, stays ready", func(t *testing.T) {
+		wObj := &v1beta1.Workspace{
+			ObjectMeta: v1.ObjectMeta{Name: "legacy", Namespace: "default"},
+			Inference: &v1beta1.InferenceSpec{
+				Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-model"}},
+			},
+		}
+		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStatePending}
+
+		// benchmarkApplicable=false (no probe). Empty fake client would fail a log read;
+		// asserting Ready proves applyBenchmarkStatus was not invoked.
+		k8sclient.SetGlobalClientGoClient(kubefake.NewClientset())
+		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue, false)
+
+		assert.Equal(t, v1beta1.WorkspaceStateReady, status.State)
+		succeeded := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeSucceeded))
+		if assert.NotNil(t, succeeded) {
+			assert.Equal(t, v1.ConditionTrue, succeeded.Status)
+		}
+		assert.Nil(t, meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted)))
 	})
 
 	t.Run("benchmark guard skips StreamLogs when BenchmarkCompleted is already True", func(t *testing.T) {
@@ -1333,6 +1414,47 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 		benchmarkCond := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted))
 		assert.Equal(t, v1.ConditionTrue, benchmarkCond.Status)
 	})
+}
+
+func Test_hasBenchmarkStartupProbe(t *testing.T) {
+	containerName := "ws"
+	mkSS := func(probe *corev1.Probe) *appsv1.StatefulSet {
+		return &appsv1.StatefulSet{
+			Spec: appsv1.StatefulSetSpec{
+				Template: corev1.PodTemplateSpec{
+					Spec: corev1.PodSpec{
+						Containers: []corev1.Container{
+							{Name: containerName, StartupProbe: probe},
+						},
+					},
+				},
+			},
+		}
+	}
+	execProbe := func(cmd ...string) *corev1.Probe {
+		return &corev1.Probe{ProbeHandler: corev1.ProbeHandler{Exec: &corev1.ExecAction{Command: cmd}}}
+	}
+
+	cases := map[string]struct {
+		ss   *appsv1.StatefulSet
+		want bool
+	}{
+		"benchmark non-distributed": {mkSS(execProbe("python3", "/workspace/vllm/benchmark_entrypoint.py")), true},
+		"benchmark distributed shell": {mkSS(execProbe("/bin/sh", "-c",
+			`if [ "$POD_INDEX" = "0" ]; then python3 /workspace/vllm/benchmark_entrypoint.py; else true; fi`)), true},
+		"distributed health check": {mkSS(execProbe("/bin/sh", "-c",
+			"python3 /workspace/vllm/multi-node-health-check.py readiness")), false},
+		"legacy http probe": {mkSS(&corev1.Probe{ProbeHandler: corev1.ProbeHandler{
+			HTTPGet: &corev1.HTTPGetAction{Path: "/health"}}}), false},
+		"no startup probe": {mkSS(nil), false},
+		"empty command":    {mkSS(execProbe()), false},
+		"no containers":    {&appsv1.StatefulSet{}, false},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.want, hasBenchmarkStartupProbe(tc.ss))
+		})
+	}
 }
 
 func TestApplyTuningWorkspaceStatus(t *testing.T) {

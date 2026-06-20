@@ -39,10 +39,10 @@ func (is *InferenceSet) Validate(ctx context.Context) (errs *apis.FieldError) {
 	}
 	base := apis.GetBaseline(ctx)
 	if base == nil {
-		klog.InfoS("Validate creation", "inferenceset", fmt.Sprintf("%s/%s", is.Namespace, is.Name))
+		klog.V(2).InfoS("Validate creation", "inferenceset", fmt.Sprintf("%s/%s", is.Namespace, is.Name))
 		errs = errs.Also(is.validateCreate().ViaField("spec"))
 	} else {
-		klog.InfoS("Validate update", "inferenceset", fmt.Sprintf("%s/%s", is.Namespace, is.Name))
+		klog.V(2).InfoS("Validate update", "inferenceset", fmt.Sprintf("%s/%s", is.Namespace, is.Name))
 		old := base.(*InferenceSet)
 		errs = errs.Also(
 			is.validateUpdate(old).ViaField("spec"),

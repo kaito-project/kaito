@@ -408,7 +408,7 @@ func GenerateInferencePoolOCIRepository(inferenceSetObj *kaitov1beta1.InferenceS
 // explicitly overridden by the kaito.sh/runtime annotation.
 func inferencePoolTargetPort(inferenceSetObj *kaitov1beta1.InferenceSet) int32 {
 	role := inferenceSetObj.Spec.Template.Labels[kaitov1beta1.LabelInferenceRole]
-	if role != "decode" {
+	if role != kaitov1beta1.InferenceRoleDecode {
 		return consts.PortInferenceServer
 	}
 	if kaitov1beta1.GetInferenceSetRuntimeName(inferenceSetObj) == pkgmodel.RuntimeNameVLLM {

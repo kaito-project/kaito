@@ -89,14 +89,25 @@ MultiRoleInference (MRI) enables **prefill/decode (P/D) disaggregation** for lar
 When you create a MultiRoleInference resource, KAITO will:
 
 1) Provision separate pod groups for each role (prefill and decode) via child InferenceSets, each with their own instance types optimized for their workload characteristics.
-2) Create a single InferencePool with an EPP (Endpoint Picker) deployment that uses llm-d plugins to handle P/D-aware routing. The pool selects all MRI pods (both prefill and decode), and the EPP internally uses label-based filters to route requests to the correct role.
-3) The EPP uses scheduling profiles (`prefill` and `decode`) with a `prefix-based-pd-decider` plugin to decide which role handles each request. Decode pods communicate directly with prefill pods for KV cache transfer, bypassing the gateway.
+2) **Inject a routing sidecar** into decode pods — the [`llm-d-routing-sidecar`](https://github.com/llm-d/llm-d-router) container is automatically injected. The sidecar listens on port 5000 and proxies to vLLM on port 5001, enabling the EPP to route decode traffic through the sidecar.
+3) **Set `VLLM_NIXL_SIDE_CHANNEL_HOST`** to the Pod IP on both prefill and decode pods, enabling cross-pod KV cache transfer via vLLM's NIXL connector.
+4) Create a single InferencePool with an EPP (Endpoint Picker) deployment that uses llm-d plugins to handle P/D-aware routing. The EPP includes a tokenizer sidecar for prefix-cache-aware scheduling decisions.
+5) The EPP uses scheduling profiles (`prefill` and `decode`) with a `prefix-based-pd-decider` plugin to decide which role handles each request. Decode pods communicate directly with prefill pods for KV cache transfer via NIXL, bypassing the gateway.
+
+#### Port Architecture
+
+| Component | Prefill Pod | Decode Pod |
+|-----------|-------------|------------|
+| vLLM | port 5000 (default) | port 5001 (moved) |
+| Routing sidecar | — | port 5000 |
+| InferencePool targetPort | 5000 (vLLM directly) | 5000 (via sidecar → vLLM:5001) |
 
 This separation allows:
 
 - **Independent scaling** — scale prefill and decode replicas separately based on workload patterns
 - **GPU optimization** — use compute-optimized instances for prefill and memory-bandwidth-optimized instances for decode
 - **Improved throughput** — prefill pods can process new prompts while decode pods generate tokens for previous requests
+- **Transparent KV cache transfer** — NIXL handles direct pod-to-pod KV cache movement without gateway involvement
 
 MRI is ideal for models where the compute profiles of prefill and decode differ significantly.
 
@@ -384,6 +395,8 @@ phi-4-mini-decode-25x54-0       2/2     Running   0          10h
 phi-4-mini-prefill-qkrzk-0      1/1     Running   0          10h
 ```
 
+> **Note:** Decode pods show `2/2` because they have both the vLLM container and the automatically injected `llm-d-routing-sidecar` container. Prefill pods show `1/1` with only the vLLM container.
+
 Verify the InferencePool is created (a single pool covers both prefill and decode roles):
 
 ```bash
@@ -413,10 +426,11 @@ Follow the same test steps as [Option A, Step 4](#4-test-inference) to send a re
 With P/D disaggregation active, the request flow is:
 
 1. The Gateway routes the request to the llm-d EPP scheduler
-2. The EPP's `prefill` scheduling profile routes the request to a **prefill pod**, which processes all input tokens in parallel and builds the KV cache
-3. The **decode pod** communicates directly with the prefill pod to transfer the KV cache (bypassing the gateway)
-4. The decode pod performs autoregressive token generation using the transferred KV cache
-5. The response streams back through the Gateway to the client
+2. The EPP's `prefix-based-pd-decider` plugin determines whether to route to prefill or decode based on the request's prefix cache status
+3. For a new prompt: the request goes to a **prefill pod** (port 5000, vLLM directly), which processes all input tokens in parallel and builds the KV cache
+4. The **decode pod's routing sidecar** (port 5000) receives the decode request and forwards it to vLLM (port 5001). The decode pod uses NIXL (`VLLM_NIXL_SIDE_CHANNEL_HOST`) to transfer the KV cache directly from the prefill pod
+5. The decode pod performs autoregressive token generation using the transferred KV cache
+6. The response streams back through the Gateway to the client
 
 This separation means prefill pods are always available for new requests while decode pods focus on generating tokens — improving overall throughput for large models.
 

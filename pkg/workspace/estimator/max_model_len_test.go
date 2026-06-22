@@ -106,7 +106,11 @@ func TestComputeMaxModelLen(t *testing.T) {
 				GPUCount:             1,
 				NumRequiredNodes:     3,
 			},
-			expected:    19456, // base 2.3Gi + 0.05*per-GPU weight overhead
+			// Multi-node: pipeline parallelism splits the 80 layers across the 3
+			// nodes, so per-GPU KV is bytes/token / (gpuCount * nodes). With the
+			// layers split, KV room is ample and the candidate clamps to the model
+			// token limit.
+			expected:    131072,
 			description: "llama-3.3-70b-instruct with vLLM on 3 nodes x Standard_NC24ads_A100_v4",
 		},
 		{
@@ -125,6 +129,23 @@ func TestComputeMaxModelLen(t *testing.T) {
 			// mis-computed as >1M and clamped to ModelTokenLimit without the MLA flag).
 			expected:    761600,
 			description: "mistral-small-4-119b (MLA) with vLLM on Standard_NC80adis_H100_v5",
+		},
+		{
+			name: "minimax-m2.7 multi-node TP2xPP2 on Standard_NC80adis_H100_v5",
+			input: MaxModelLenInput{
+				ModelTokenLimit:      204800,
+				BytesPerToken:        253952, // GQA: 2 * 8 kv-heads * 128 headDim * 62 layers
+				TotalModelWeightSize: "214.34Gi",
+				GPUMemoryBytes:       gib("188Gi"),
+				GPUCount:             2,
+				NumRequiredNodes:     2,
+			},
+			// TP=2 (shard KV heads) x PP=2 (split 62 layers across nodes) => per-GPU
+			// bytes/token = 253952 / (2*2) = 63488, matching vLLM's measured ~63503.
+			// KV room then exceeds the model token limit, so it clamps to 204800.
+			// (Before the PP fix, KAITO computed 81408 and lost ~60% of context.)
+			expected:    204800,
+			description: "minimax-m2.7 (GQA) with vLLM on 2 nodes x Standard_NC80adis_H100_v5 (TP2xPP2)",
 		},
 	}
 

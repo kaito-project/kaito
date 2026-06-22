@@ -165,16 +165,26 @@ func calculateMemoryParameters(in MaxModelLenInput, weightGiB float64) (float64,
 	availableMemoryGiB := usableMemoryPerGPU - modelWeightOverhead - staticOverhead
 	availableMemoryBytes := availableMemoryGiB * (1 << 30)
 
+	// Per-GPU per-token KV footprint. The KV cache is distributed across GPUs by
+	// the parallelism strategy, mirroring how the model weights are sharded above
+	// (weights are divided by nodes*gpuCount):
+	//   - Tensor parallelism shards the KV heads across the gpuCount GPUs within a
+	//     pipeline stage. MLA is the exception: its compressed latent KV is
+	//     replicated on every TP rank, so it is NOT divided by gpuCount.
+	//   - Pipeline parallelism (multi-node) splits the model's layers across the
+	//     `nodes` stages, so each GPU holds only 1/nodes of the layers' KV.
 	var adjustedBytesPerToken float64
 	if in.DisableTensorParallelism {
+		// Falcon-style models replicate the full model on each GPU (no TP/PP
+		// sharding), so the per-GPU KV footprint is the full per-token size.
 		adjustedBytesPerToken = bytesPerToken
 	} else if in.MLAReplicatedKVCache {
-		// MLA stores a single compressed latent KV per token that is replicated on
-		// every tensor-parallel rank rather than sharded across them, so the per-GPU
-		// footprint is not divided by gpuCount.
-		adjustedBytesPerToken = bytesPerToken * nodes
+		// MLA: latent KV replicated across TP ranks (no /gpuCount), but pipeline
+		// parallelism still splits layers across nodes (/nodes).
+		adjustedBytesPerToken = bytesPerToken / nodes
 	} else {
-		adjustedBytesPerToken = bytesPerToken / gpuCount * nodes
+		// Standard attention: sharded by TP (/gpuCount) and split by PP (/nodes).
+		adjustedBytesPerToken = bytesPerToken / gpuCount / nodes
 	}
 
 	return availableMemoryBytes, adjustedBytesPerToken

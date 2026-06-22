@@ -32,72 +32,45 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
 
 // validateModelMirrorCRReady asserts the cluster-scoped ModelMirror CR for modelID reaches
-// Ready (with StorageReady) and exposes the expected modelPath + lastDownloadTime. On a hard
-// download failure (status.failureMessage set) it stops early instead of waiting out the timeout,
-// and on any failure it dumps the CR state plus the download Job pods for the given namespace so
-// the root cause (e.g. a stuck/failed download) is visible in CI output.
-func validateModelMirrorCRReady(modelID, namespace string) {
+// Ready (with StorageReady) and exposes the expected modelPath + lastDownloadTime.
+func validateModelMirrorCRReady(modelID string) {
 	crName := inference.ModelMirrorCRName(modelID)
 	By(fmt.Sprintf("Checking ModelMirror CR %s is Ready", crName), func() {
-		Eventually(func(g Gomega) {
+		Eventually(func() bool {
 			mm := &kaitov1alpha1.ModelMirror{}
-			g.Expect(utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{Name: crName}, mm)).To(Succeed())
-			// A populated failureMessage means the download Job hard-failed; don't wait out the
-			// full timeout — surface it immediately.
-			if mm.Status.FailureMessage != "" {
-				dumpModelMirrorDiagnostics(crName, namespace)
-				StopTrying(fmt.Sprintf("ModelMirror %s reported failureMessage: %s", crName, mm.Status.FailureMessage)).Now()
+			if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{Name: crName}, mm); err != nil {
+				return false
 			}
-			g.Expect(string(mm.Status.Phase)).To(Equal("Ready"), "phase not Ready")
-			g.Expect(mm.Status.ModelPath).To(Equal("/models/"+modelID), "unexpected modelPath")
-			g.Expect(mm.Status.LastDownloadTime).NotTo(BeNil(), "lastDownloadTime not set")
+			if string(mm.Status.Phase) != "Ready" {
+				return false
+			}
+			if mm.Status.ModelPath != "/models/"+modelID {
+				return false
+			}
+			if mm.Status.LastDownloadTime == nil {
+				return false
+			}
 			_, ready := lo.Find(mm.Status.Conditions, func(c metav1.Condition) bool {
 				return c.Type == "Ready" && c.Status == metav1.ConditionTrue
 			})
-			g.Expect(ready).To(BeTrue(), "Ready condition not True")
 			_, storageReady := lo.Find(mm.Status.Conditions, func(c metav1.Condition) bool {
 				return c.Type == "StorageReady" && c.Status == metav1.ConditionTrue
 			})
-			g.Expect(storageReady).To(BeTrue(), "StorageReady condition not True")
-		}, 15*time.Minute, utils.PollInterval).Should(Succeed(), func() string {
-			// Failure message builder: runs once on timeout and dumps diagnostics.
-			dumpModelMirrorDiagnostics(crName, namespace)
-			return "ModelMirror CR did not reach Ready+StorageReady (see diagnostics above)"
-		})
+			return ready && storageReady
+		}, 15*time.Minute, utils.PollInterval).Should(BeTrue(), "ModelMirror CR did not reach Ready+StorageReady")
 	})
-}
-
-// dumpModelMirrorDiagnostics prints the ModelMirror CR status and the download Job pod logs/status
-// to aid debugging when a streaming download stalls or fails in CI.
-func dumpModelMirrorDiagnostics(crName, namespace string) {
-	mm := &kaitov1alpha1.ModelMirror{}
-	if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{Name: crName}, mm); err != nil {
-		GinkgoWriter.Printf("ModelMirror %s: failed to fetch for diagnostics: %v\n", crName, err)
-	} else {
-		GinkgoWriter.Printf("ModelMirror %s diagnostics: phase=%q failureMessage=%q modelPath=%q\n",
-			crName, mm.Status.Phase, mm.Status.FailureMessage, mm.Status.ModelPath)
-		for _, c := range mm.Status.Conditions {
-			GinkgoWriter.Printf("  condition %s=%s reason=%s message=%s\n", c.Type, c.Status, c.Reason, c.Message)
-		}
-	}
-	// Dump the download Job pods (logs + status) for this CR. The download Job pods carry the
-	// kaito.sh/model-mirror-name label; an empty selector would also work but this is targeted.
-	if namespace != "" {
-		utils.PrintPodLogsOnFailure(namespace, fmt.Sprintf("%s=%s", mmconsts.LabelModelMirrorName, crName))
-	}
 }
 
 // validateModelMirrorReady asserts the ModelMirror CR is Ready AND the workspace surfaces
 // ModelMirrorReady=True. Use this for plain-Workspace streaming tests; for the InferenceSet
 // case (no *Workspace handle) call validateModelMirrorCRReady directly.
 func validateModelMirrorReady(workspaceObj *kaitov1beta1.Workspace, modelID string) {
-	validateModelMirrorCRReady(modelID, workspaceObj.Namespace)
+	validateModelMirrorCRReady(modelID)
 	By(fmt.Sprintf("Checking workspace %s has ModelMirrorReady=True", workspaceObj.Name), func() {
 		Eventually(func() bool {
 			ws := &kaitov1beta1.Workspace{}

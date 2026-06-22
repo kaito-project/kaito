@@ -138,16 +138,7 @@ var _ = ReportAfterSuite("Print pod logs on failure", func(report Report) {
 	if report.SuiteSucceeded {
 		return
 	}
-	// Dump pods for every parallel process's namespace, not just this process's. With Ginkgo
-	// parallelism each process runs in its own namespace (<base>-<procIndex>), so a failure in
-	// another process's namespace (e.g. a stuck ModelMirror download Job) would otherwise be
-	// invisible. An empty label selector lists all pods in the namespace, which includes the
-	// preset pods and the ModelMirror download Job pods.
-	cfg, _ := GinkgoConfiguration()
-	for i := 1; i <= cfg.ParallelTotal; i++ {
-		ns := streamingNamespaceFor(namespaceBase, i)
-		utils.PrintPodLogsOnFailure(ns, "") // Preset pods + ModelMirror download Job pods
-	}
+	utils.PrintPodLogsOnFailure(namespaceName, "")                                     // The Preset Pod
 	utils.PrintPodLogsOnFailure("kaito-workspace", "app.kubernetes.io/name=workspace") // The KAITO Workspace Pod
 	if !*skipGPUProvisionerCheck {
 		utils.PrintPodLogsOnFailure("gpu-provisioner", "") // The gpu-provisioner Pod

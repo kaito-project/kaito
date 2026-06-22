@@ -85,7 +85,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 	It("should create a Gemma 3 InferenceSet with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfReplicas := 1
-		inferenceSetObj := createGemma3InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas, false)
+		inferenceSetObj := createGemma3InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
 		defer cleanupResourcesForInferenceSet(inferenceSetObj)
 		time.Sleep(120 * time.Second)
 
@@ -365,8 +365,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	// TEMP: Label("Streaming") added to run only the streaming cases in isolation on CI. Remove before merge.
-	It("should create a qwen3-8b-awq workspace with AWQ quantization successfully", utils.GinkgoLabelFastCheck, Label("Streaming"), func() {
+	It("should create a qwen3-8b-awq workspace with AWQ quantization successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
 		workspaceObj := createQwen3_8BAWQWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
@@ -425,7 +424,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 	It("should create a Gemma 3 InferenceSet with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfReplicas := 1
-		inferenceSetObj := createGemma3InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas, false)
+		inferenceSetObj := createGemma3InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
 		defer cleanupResourcesForInferenceSet(inferenceSetObj)
 		time.Sleep(120 * time.Second)
 
@@ -480,7 +479,7 @@ func createPhi4WorkspaceWithAdapterAndVLLM(numOfNode int, validAdapters []kaitov
 	return workspaceObj
 }
 
-func createGemma3InferenceSetWithPresetPublicModeAndVLLM(replicas int, streaming bool) *kaitov1beta1.InferenceSet {
+func createGemma3InferenceSetWithPresetPublicModeAndVLLM(replicas int) *kaitov1beta1.InferenceSet {
 	modelSecret := createAndValidateModelSecret()
 	inferenceSetObj := &kaitov1beta1.InferenceSet{}
 	By("Creating an InferenceSet CR with Gemma 3 preset public mode and vLLM", func() {
@@ -489,11 +488,7 @@ func createGemma3InferenceSetWithPresetPublicModeAndVLLM(replicas int, streaming
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-is-e2e-test-gemma-vllm"},
 			}, PresetGemma3_4BInstructModel, nil, nil, modelSecret.Name)
-		if !streaming {
-			// DAR: stamp the opt-out on the template so every child workspace inherits it.
-			inferenceSetObj.Spec.Template.Annotations = utils.DisableModelStreaming(inferenceSetObj.Spec.Template.Annotations)
-		}
-		// When streaming, the template annotation is intentionally left unset (gate-on default = streaming).
+		inferenceSetObj.Spec.Template.Annotations = utils.DisableModelStreaming(inferenceSetObj.Spec.Template.Annotations)
 		createAndValidateInferenceSet(inferenceSetObj)
 	})
 	return inferenceSetObj

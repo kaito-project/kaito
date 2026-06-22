@@ -130,11 +130,7 @@ func GetK8sClientset() (*kubernetes.Clientset, error) {
 }
 
 func GetPodLogs(coreClient *kubernetes.Clientset, namespace, podName, containerName string) (string, error) {
-	return getPodLogs(coreClient, namespace, podName, containerName, false)
-}
-
-func getPodLogs(coreClient *kubernetes.Clientset, namespace, podName, containerName string, previous bool) (string, error) {
-	options := &corev1.PodLogOptions{Previous: previous}
+	options := &corev1.PodLogOptions{}
 	if containerName != "" {
 		options.Container = containerName
 	}
@@ -198,55 +194,25 @@ func PrintPodLogsOnFailure(namespace, labelSelector string) {
 	}
 
 	for _, pod := range pods.Items {
-		// Print a one-line pod status summary first, so a pod that produced no logs
-		// (e.g. stuck Pending, ImagePullBackOff, or a terminated downloader) is still diagnosable.
-		fmt.Printf("Pod %s/%s status: phase=%s\n%s", namespace, pod.Name, pod.Status.Phase, containerStatusSummary(pod))
 		// Print init container logs
 		for _, container := range pod.Spec.InitContainers {
-			printContainerLogs(coreClient, namespace, pod.Name, container.Name, "init container")
+			logs, err := GetPodLogs(coreClient, namespace, pod.Name, container.Name)
+			if err != nil {
+				log.Printf("Failed to get logs from pod %s, init container %s: %v", pod.Name, container.Name, err)
+			} else {
+				fmt.Printf("Logs from pod %s, init container %s:\n%s\n", pod.Name, container.Name, string(logs))
+			}
 		}
 		// Print main container logs
 		for _, container := range pod.Spec.Containers {
-			printContainerLogs(coreClient, namespace, pod.Name, container.Name, "container")
+			logs, err := GetPodLogs(coreClient, namespace, pod.Name, container.Name)
+			if err != nil {
+				log.Printf("Failed to get logs from pod %s, container %s: %v", pod.Name, container.Name, err)
+			} else {
+				fmt.Printf("Logs from pod %s, container %s:\n%s\n", pod.Name, container.Name, string(logs))
+			}
 		}
 	}
-}
-
-// printContainerLogs prints the current container logs; if they are empty (a common case for a
-// container that already terminated, e.g. a failed download Job pod), it falls back to the
-// previous instance's logs so the failure cause is not lost.
-func printContainerLogs(coreClient *kubernetes.Clientset, namespace, podName, containerName, kind string) {
-	logs, err := GetPodLogs(coreClient, namespace, podName, containerName)
-	if err != nil {
-		log.Printf("Failed to get logs from pod %s, %s %s: %v", podName, kind, containerName, err)
-		return
-	}
-	if strings.TrimSpace(logs) == "" {
-		if prev, perr := getPodLogs(coreClient, namespace, podName, containerName, true); perr == nil && strings.TrimSpace(prev) != "" {
-			fmt.Printf("Logs from pod %s, %s %s (previous instance):\n%s\n", podName, kind, containerName, prev)
-			return
-		}
-	}
-	fmt.Printf("Logs from pod %s, %s %s:\n%s\n", podName, kind, containerName, logs)
-}
-
-// containerStatusSummary returns a short per-container status line (ready + waiting/terminated
-// reason + exit code) for a pod, used to diagnose pods that emit no logs.
-func containerStatusSummary(pod corev1.Pod) string {
-	var b strings.Builder
-	statuses := append([]corev1.ContainerStatus{}, pod.Status.InitContainerStatuses...)
-	statuses = append(statuses, pod.Status.ContainerStatuses...)
-	for _, cs := range statuses {
-		state := "running"
-		switch {
-		case cs.State.Waiting != nil:
-			state = fmt.Sprintf("waiting(%s): %s", cs.State.Waiting.Reason, cs.State.Waiting.Message)
-		case cs.State.Terminated != nil:
-			state = fmt.Sprintf("terminated(%s) exitCode=%d", cs.State.Terminated.Reason, cs.State.Terminated.ExitCode)
-		}
-		fmt.Fprintf(&b, "  container %s: ready=%t restarts=%d state=%s\n", cs.Name, cs.Ready, cs.RestartCount, state)
-	}
-	return b.String()
 }
 
 func CopySecret(original *corev1.Secret, targetNamespace string) *corev1.Secret {

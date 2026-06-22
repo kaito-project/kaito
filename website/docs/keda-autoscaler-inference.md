@@ -14,7 +14,7 @@ To enable intelligent autoscaling for KAITO inference workloads using service mo
 
 - **[KEDA KAITO Scaler](https://github.com/kaito-project/keda-kaito-scaler)**: A dedicated KEDA external scaler, eliminating the need for external dependencies such as Prometheus.
 
-- **KAITO `InferenceSet` CustomResourceDefinition (CRD) and controller**: A new CRD and controller built on top of the KAITO workspace for intelligent autoscaling, introduced as an alpha feature in KAITO v0.8.0 and promoted to beta in v0.11.0 (enabled by default).
+- **KAITO `InferenceSet` CustomResourceDefinition (CRD) and controller**: A new CRD and controller were built on top of the KAITO workspace for intelligent autoscaling, introduced as an alpha feature in KAITO v0.8.0 and promoted to beta in v0.11.0 (enabled by default).
 
 ### Architecture
 

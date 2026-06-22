@@ -85,8 +85,7 @@ jobs:
           helm install kaito-workspace kaito/workspace \
             --version ${{ env.OLD_CHART_VERSION }} \
             --namespace kaito-workspace \
-            --create-namespace \
-            --set featureGates.enableInferenceSetController=true
+            --create-namespace
 
           kubectl wait --for=condition=available deploy "kaito-workspace" -n kaito-workspace --timeout=300s
 
@@ -177,7 +176,6 @@ jobs:
           helm upgrade kaito-workspace ./charts/kaito/workspace \
             --namespace kaito-workspace \
             --set featureGates.enableBaseImageAutoUpgrade=true \
-            --set featureGates.enableInferenceSetController=true \
             --take-ownership
 
           kubectl rollout status deploy/kaito-workspace -n kaito-workspace --timeout=300s

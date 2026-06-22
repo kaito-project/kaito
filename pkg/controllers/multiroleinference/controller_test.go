@@ -25,11 +25,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
 func TestReconcileInferenceSetPropagatesAnnotations(t *testing.T) {
 	scheme := runtime.NewScheme()
 	require.NoError(t, kaitov1alpha1.AddToScheme(scheme))
+	require.NoError(t, kaitov1beta1.AddToScheme(scheme))
 
 	mri := &kaitov1alpha1.MultiRoleInference{
 		ObjectMeta: metav1.ObjectMeta{
@@ -55,7 +57,7 @@ func TestReconcileInferenceSetPropagatesAnnotations(t *testing.T) {
 
 	require.NoError(t, r.reconcileInferenceSet(context.Background(), mri, role))
 
-	got := &kaitov1alpha1.InferenceSet{}
+	got := &kaitov1beta1.InferenceSet{}
 	require.NoError(t, cl.Get(context.Background(),
 		client.ObjectKey{Name: "mri-test-prefill", Namespace: "default"}, got))
 

@@ -33,7 +33,6 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
@@ -257,24 +256,6 @@ func envVal(env []corev1.EnvVar, name string) string {
 	return ""
 }
 
-// validateStreamingChildWorkspace finds an InferenceSet's child workspace and asserts streaming shape.
-func validateStreamingChildWorkspace(is *kaitov1beta1.InferenceSet, modelID string) {
-	By(fmt.Sprintf("Checking InferenceSet %s child workspace streams", is.Name), func() {
-		Eventually(func() error {
-			wsList := &kaitov1beta1.WorkspaceList{}
-			if err := utils.TestingCluster.KubeClient.List(ctx, wsList,
-				client.InNamespace(is.Namespace),
-				client.MatchingLabels{consts.WorkspaceCreatedByInferenceSetLabel: is.Name}); err != nil {
-				return err
-			}
-			if len(wsList.Items) == 0 {
-				return fmt.Errorf("no child workspaces for InferenceSet %s yet", is.Name)
-			}
-			return assertStreamingPod(is.Namespace, wsList.Items[0].Name, modelID, false)
-		}, 5*time.Minute, utils.PollInterval).Should(Succeed())
-	})
-}
-
 // deleteStreamingModelMirrorCR deletes the cluster-scoped ModelMirror CR for modelID and waits
 // for it to be gone. The CR is not owned by any workspace/InferenceSet (it is shared and
 // cluster-scoped), so it must be cleaned up explicitly to avoid a leftover Ready CR false-passing
@@ -295,18 +276,6 @@ func deleteStreamingModelMirrorCR(modelID string) {
 // cleanupStreamingResources deletes the workspace, then (on success) the cluster-scoped MM CR.
 func cleanupStreamingResources(workspaceObj *kaitov1beta1.Workspace, modelID string) {
 	cleanupResources(workspaceObj)
-	if CurrentSpecReport().Failed() {
-		return
-	}
-	deleteStreamingModelMirrorCR(modelID)
-}
-
-// cleanupStreamingInferenceSet deletes the InferenceSet (cascading to its child workspaces), then
-// (on success) the cluster-scoped MM CR shared by the children. Mirrors cleanupStreamingResources
-// for the InferenceSet streaming case, since cleanupResourcesForInferenceSet does not touch the
-// cluster-scoped (unowned) ModelMirror CR.
-func cleanupStreamingInferenceSet(inferenceSetObj *kaitov1beta1.InferenceSet, modelID string) {
-	cleanupResourcesForInferenceSet(inferenceSetObj)
 	if CurrentSpecReport().Failed() {
 		return
 	}

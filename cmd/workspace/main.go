@@ -53,6 +53,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/inferenceset"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
+	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	mmcontrollers "github.com/kaito-project/kaito/pkg/modelmirror/controllers"
 	nodeprovisionmanager "github.com/kaito-project/kaito/pkg/nodeprovision/manager"
 	"github.com/kaito-project/kaito/pkg/sku"
@@ -112,6 +113,8 @@ func main() {
 	var printVersionAndExit bool
 	var defaultModelMirrorStorageClass string
 	var defaultStreamingServiceAccount string
+	var modelMirrorDownloadCPU string
+	var modelMirrorDownloadMemory string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.IntVar(&kubeClientQPS, "kube-client-qps", kubeClientQPS, "the rate of qps to kube-apiserver.")
@@ -131,6 +134,8 @@ func main() {
 	flag.BoolVar(&printVersionAndExit, "version", false, "Print version and exit.")
 	flag.StringVar(&defaultModelMirrorStorageClass, "default-model-mirror-storage-class", "", "StorageClass for ModelMirror PVCs (required when ModelStreaming=true).")
 	flag.StringVar(&defaultStreamingServiceAccount, "default-streaming-service-account", "", "Default ServiceAccount for streaming inference pods.")
+	flag.StringVar(&modelMirrorDownloadCPU, "model-mirror-download-cpu", "", "CPU request==limit for the ModelMirror download Job container. Empty uses the built-in default (3).")
+	flag.StringVar(&modelMirrorDownloadMemory, "model-mirror-download-memory", "", "Memory request==limit for the ModelMirror download Job container. Empty uses the built-in default (8Gi).")
 	opts := zap.Options{
 		Development: true,
 	}
@@ -345,6 +350,13 @@ func main() {
 
 	// ModelMirror controller — requires ModelMirror feature gate.
 	if featuregates.FeatureGates[consts.FeatureFlagModelMirror] {
+		// Override download Job resources from flags when provided (empty keeps the built-in defaults).
+		if modelMirrorDownloadCPU != "" {
+			mmconsts.DownloadJobResources.CPU = modelMirrorDownloadCPU
+		}
+		if modelMirrorDownloadMemory != "" {
+			mmconsts.DownloadJobResources.Memory = modelMirrorDownloadMemory
+		}
 		mmReconciler := mmcontrollers.NewModelMirrorReconciler(
 			kClient,
 			log.Log.WithName("controllers").WithName("ModelMirror"),

@@ -89,12 +89,12 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 		Env:     envVars,
 		Resources: corev1.ResourceRequirements{
 			Requests: corev1.ResourceList{
-				corev1.ResourceCPU:    resource.MustParse("3"),
-				corev1.ResourceMemory: resource.MustParse("8Gi"),
+				corev1.ResourceCPU:    resource.MustParse(mmconsts.DownloadJobResources.CPU),
+				corev1.ResourceMemory: resource.MustParse(mmconsts.DownloadJobResources.Memory),
 			},
 			Limits: corev1.ResourceList{
-				corev1.ResourceCPU:    resource.MustParse("3"),
-				corev1.ResourceMemory: resource.MustParse("8Gi"),
+				corev1.ResourceCPU:    resource.MustParse(mmconsts.DownloadJobResources.CPU),
+				corev1.ResourceMemory: resource.MustParse(mmconsts.DownloadJobResources.Memory),
 			},
 		},
 		VolumeMounts: []corev1.VolumeMount{

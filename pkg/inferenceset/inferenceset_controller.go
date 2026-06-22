@@ -84,7 +84,7 @@ func NewInferenceSetReconciler(client client.Client, scheme *runtime.Scheme, log
 }
 
 func (c *InferenceSetReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
-	iObj := &kaitov1alpha1.InferenceSet{}
+	iObj := &kaitov1beta1.InferenceSet{}
 	if err := c.Client.Get(ctx, req.NamespacedName, iObj); err != nil {
 		if apierrors.IsNotFound(err) {
 			c.expectations.DeleteExpectations(c.klogger, req.String())
@@ -112,7 +112,7 @@ func (c *InferenceSetReconciler) Reconcile(ctx context.Context, req reconcile.Re
 	return c.addOrUpdateInferenceSet(ctx, iObj)
 }
 
-func (c *InferenceSetReconciler) ensureFinalizer(ctx context.Context, iObj *kaitov1alpha1.InferenceSet) error {
+func (c *InferenceSetReconciler) ensureFinalizer(ctx context.Context, iObj *kaitov1beta1.InferenceSet) error {
 	if !controllerutil.ContainsFinalizer(iObj, consts.InferenceSetFinalizer) {
 		patch := client.MergeFrom(iObj.DeepCopy())
 		controllerutil.AddFinalizer(iObj, consts.InferenceSetFinalizer)
@@ -124,9 +124,9 @@ func (c *InferenceSetReconciler) ensureFinalizer(ctx context.Context, iObj *kait
 	return nil
 }
 
-func (c *InferenceSetReconciler) deleteInferenceSet(ctx context.Context, iObj *kaitov1alpha1.InferenceSet) (reconcile.Result, error) {
+func (c *InferenceSetReconciler) deleteInferenceSet(ctx context.Context, iObj *kaitov1beta1.InferenceSet) (reconcile.Result, error) {
 	klog.InfoS("deleteInferenceSet", "inferenceset", klog.KObj(iObj))
-	err := inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1alpha1.InferenceSetConditionTypeDeleting, metav1.ConditionTrue, "inferencesetDeleted", "inferenceset is being deleted")
+	err := inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1beta1.InferenceSetConditionTypeDeleting, metav1.ConditionTrue, "inferencesetDeleted", "inferenceset is being deleted")
 	if err != nil {
 		klog.ErrorS(err, "failed to update inferenceset status", "inferenceset", klog.KObj(iObj))
 		return reconcile.Result{}, err
@@ -136,7 +136,7 @@ func (c *InferenceSetReconciler) deleteInferenceSet(ctx context.Context, iObj *k
 }
 
 // garbageCollectInferenceSet remove finalizer associated with inferenceset object.
-func (c *InferenceSetReconciler) garbageCollectInferenceSet(ctx context.Context, iObj *kaitov1alpha1.InferenceSet) (ctrl.Result, error) {
+func (c *InferenceSetReconciler) garbageCollectInferenceSet(ctx context.Context, iObj *kaitov1beta1.InferenceSet) (ctrl.Result, error) {
 	klog.InfoS("garbageCollectInferenceSet", "inferenceset", klog.KObj(iObj))
 	// Check if there are any workspaces associated with this inferenceset.
 	wsList, err := inferenceset.ListWorkspaces(ctx, iObj, c.Client)
@@ -154,7 +154,7 @@ func (c *InferenceSetReconciler) garbageCollectInferenceSet(ctx context.Context,
 		}
 	}
 
-	updateErr := inferenceset.UpdateInferenceSetWithRetry(ctx, c.Client, iObj, func(ws *kaitov1alpha1.InferenceSet) error {
+	updateErr := inferenceset.UpdateInferenceSetWithRetry(ctx, c.Client, iObj, func(ws *kaitov1beta1.InferenceSet) error {
 		controllerutil.RemoveFinalizer(ws, consts.InferenceSetFinalizer)
 		return nil
 	})
@@ -193,7 +193,7 @@ func aggregateBenchmarkResults(workspaces []kaitov1beta1.Workspace) (totalTPM fl
 	return
 }
 
-func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iObj *kaitov1alpha1.InferenceSet) (reconcile.Result, error) {
+func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iObj *kaitov1beta1.InferenceSet) (reconcile.Result, error) {
 	if iObj == nil {
 		return reconcile.Result{}, nil
 	}
@@ -285,8 +285,8 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 			}
 			// Also propagate select labels from the InferenceSet's own metadata,
 			// in case template.metadata.labels was pruned by the API server.
-			if role, ok := iObj.Labels[kaitov1alpha1.LabelInferenceRole]; ok {
-				workspaceLabels[kaitov1alpha1.LabelInferenceRole] = role
+			if role, ok := iObj.Labels[kaitov1beta1.LabelInferenceRole]; ok {
+				workspaceLabels[kaitov1beta1.LabelInferenceRole] = role
 			}
 			if mriParent, ok := iObj.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent]; ok {
 				workspaceLabels[kaitov1alpha1.LabelMultiRoleInferenceParent] = mriParent
@@ -298,7 +298,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 			workspaceAnnotations := maps.Clone(iObj.Spec.Template.Annotations)
 			// Propagate the disable-benchmark opt-out so each child workspace inherits it.
 			// Benchmark is on by default; only propagate when explicitly disabled.
-			if !kaitov1alpha1.IsRunBenchmarkEnabled(iObj) {
+			if !kaitov1beta1.IsInferenceSetBenchmarkEnabled(iObj) {
 				if workspaceAnnotations == nil {
 					workspaceAnnotations = make(map[string]string)
 				}
@@ -306,7 +306,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 			}
 			workspaceObj.Annotations = workspaceAnnotations
 			workspaceObj.OwnerReferences = []metav1.OwnerReference{
-				*metav1.NewControllerRef(iObj, kaitov1alpha1.GroupVersion.WithKind("InferenceSet")),
+				*metav1.NewControllerRef(iObj, kaitov1beta1.GroupVersion.WithKind("InferenceSet")),
 			}
 			workspaceObj.Resource = kaitov1beta1.ResourceSpec{
 				InstanceType:  iObj.Spec.Template.Resource.InstanceType,
@@ -332,8 +332,8 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 		desiredLabels[k] = v
 	}
 	// Propagate inference-role from InferenceSet metadata (reliable even if template labels are pruned).
-	if role, ok := iObj.Labels[kaitov1alpha1.LabelInferenceRole]; ok {
-		desiredLabels[kaitov1alpha1.LabelInferenceRole] = role
+	if role, ok := iObj.Labels[kaitov1beta1.LabelInferenceRole]; ok {
+		desiredLabels[kaitov1beta1.LabelInferenceRole] = role
 	}
 	if mriParent, ok := iObj.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent]; ok {
 		desiredLabels[kaitov1alpha1.LabelMultiRoleInferenceParent] = mriParent
@@ -365,20 +365,20 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	totalTPM, readyReplicas, benchmarkedReplicas, hasBenchmarkTPMResult := aggregateBenchmarkResults(wsList.Items)
 
 	// update the replicas in the status
-	if err = inferenceset.UpdateInferenceSetStatus(ctx, c.Client, &client.ObjectKey{Name: iObj.Name, Namespace: iObj.Namespace}, func(status *kaitov1alpha1.InferenceSetStatus) error {
+	if err = inferenceset.UpdateInferenceSetStatus(ctx, c.Client, &client.ObjectKey{Name: iObj.Name, Namespace: iObj.Namespace}, func(status *kaitov1beta1.InferenceSetStatus) error {
 		status.Replicas = int(desiredReplicas)
 		status.ReadyReplicas = readyReplicas
 		// set selector for HPA/VPA
 		status.Selector = fmt.Sprintf("%s=%s", consts.WorkspaceCreatedByInferenceSetLabel, iObj.Name)
-		if kaitov1alpha1.ShouldRunBenchmark(iObj) {
+		if kaitov1beta1.ShouldRunInferenceSetBenchmark(iObj) {
 			if hasBenchmarkTPMResult {
 				if status.Performance == nil {
-					status.Performance = &kaitov1alpha1.Performance{}
+					status.Performance = &kaitov1beta1.Performance{}
 				}
 				if status.Performance.Metrics == nil {
-					status.Performance.Metrics = make(map[string]kaitov1alpha1.Metric)
+					status.Performance.Metrics = make(map[string]kaitov1beta1.Metric)
 				}
-				status.Performance.Metrics[controllers.BenchmarkMetricAggregatedPeakTPM] = kaitov1alpha1.Metric{
+				status.Performance.Metrics[controllers.BenchmarkMetricAggregatedPeakTPM] = kaitov1beta1.Metric{
 					Description: controllers.BenchmarkDesc,
 					Value:       strconv.FormatFloat(totalTPM, 'f', 2, 64),
 					Unit:        controllers.BenchmarkMetricUnit,
@@ -411,13 +411,13 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	}
 
 	if readyReplicas == int(desiredReplicas) {
-		if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1alpha1.InferenceSetConditionTypeReady, metav1.ConditionTrue,
+		if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1beta1.InferenceSetConditionTypeReady, metav1.ConditionTrue,
 			"inferencesetReady", "inferenceset is ready"); err != nil {
 			klog.ErrorS(err, "failed to update inferenceset status", "inferenceset", klog.KObj(iObj))
 			return reconcile.Result{}, err
 		}
 	} else {
-		if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1alpha1.InferenceSetConditionTypeReady, metav1.ConditionFalse,
+		if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1beta1.InferenceSetConditionTypeReady, metav1.ConditionFalse,
 			"inferencesetNotReady", fmt.Sprintf("inferenceset is not ready, %d/%d replicas are ready", readyReplicas, desiredReplicas)); err != nil {
 			klog.ErrorS(err, "failed to update inferenceset status", "inferenceset", klog.KObj(iObj))
 			return reconcile.Result{}, err
@@ -425,15 +425,15 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	}
 
 	// Surface benchmark progress when the annotation is set.
-	if kaitov1alpha1.ShouldRunBenchmark(iObj) {
+	if kaitov1beta1.ShouldRunInferenceSetBenchmark(iObj) {
 		if benchmarkedReplicas == int(desiredReplicas) && desiredReplicas > 0 {
-			if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1alpha1.InferenceSetConditionTypeBenchmarkCompleted, metav1.ConditionTrue,
+			if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1beta1.InferenceSetConditionTypeBenchmarkCompleted, metav1.ConditionTrue,
 				"BenchmarkCompleted", fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, desiredReplicas)); err != nil {
 				klog.ErrorS(err, "failed to update inferenceset benchmark status", "inferenceset", klog.KObj(iObj))
 				return reconcile.Result{}, err
 			}
 		} else {
-			if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1alpha1.InferenceSetConditionTypeBenchmarkCompleted, metav1.ConditionFalse,
+			if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1beta1.InferenceSetConditionTypeBenchmarkCompleted, metav1.ConditionFalse,
 				"BenchmarkPending", fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, desiredReplicas)); err != nil {
 				klog.ErrorS(err, "failed to update inferenceset benchmark status", "inferenceset", klog.KObj(iObj))
 				return reconcile.Result{}, err
@@ -442,7 +442,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	}
 
 	if err = c.ensureGatewayAPIInferenceExtension(ctx, iObj); err != nil {
-		if updateErr := inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1alpha1.InferenceSetConditionTypeReady, metav1.ConditionFalse,
+		if updateErr := inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1beta1.InferenceSetConditionTypeReady, metav1.ConditionFalse,
 			"inferencesetFailed", err.Error()); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to update inferenceset status", "inferenceset", klog.KObj(iObj))
 			return reconcile.Result{}, updateErr
@@ -462,7 +462,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 // 5) Aggregates and returns any errors.
 //
 // Idempotent and safe to call on every reconcile; no-op if preconditions are not met.
-func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.Context, iObj *kaitov1alpha1.InferenceSet) error {
+func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.Context, iObj *kaitov1beta1.InferenceSet) error {
 	if iObj == nil {
 		return fmt.Errorf("InferenceSet object is nil")
 	}
@@ -479,7 +479,7 @@ func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.
 		}
 	}
 
-	runtimeName := kaitov1alpha1.GetInferenceSetRuntimeName(iObj)
+	runtimeName := kaitov1beta1.GetInferenceSetRuntimeName(iObj)
 	isPresetInference := iObj.Spec.Template.Inference.Preset != nil
 
 	// Gateway API Inference Extension is specifically designed to work with vLLM and preset-based inference workloads.
@@ -558,7 +558,7 @@ func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.
 	return nil
 }
 
-func (c *InferenceSetReconciler) syncControllerRevision(ctx context.Context, iObj *kaitov1alpha1.InferenceSet) error {
+func (c *InferenceSetReconciler) syncControllerRevision(ctx context.Context, iObj *kaitov1beta1.InferenceSet) error {
 	currentHash := inferenceset.ComputeInferenceSetHash(iObj)
 	annotations := iObj.GetAnnotations()
 	if annotations == nil {
@@ -597,7 +597,7 @@ func (c *InferenceSetReconciler) syncControllerRevision(ctx context.Context, iOb
 				InferenceSetNameLabel: iObj.Name,
 			},
 			OwnerReferences: []metav1.OwnerReference{
-				*metav1.NewControllerRef(iObj, kaitov1alpha1.GroupVersion.WithKind("InferenceSet")),
+				*metav1.NewControllerRef(iObj, kaitov1beta1.GroupVersion.WithKind("InferenceSet")),
 			},
 		},
 		Revision: revisionNum,
@@ -615,7 +615,7 @@ func (c *InferenceSetReconciler) syncControllerRevision(ctx context.Context, iOb
 			if err := c.Create(ctx, newRevision); err != nil {
 				return fmt.Errorf("failed to create new ControllerRevision: %w", err)
 			} else {
-				annotations[kaitov1alpha1.InferenceSetRevisionAnnotation] = strconv.FormatInt(revisionNum, 10)
+				annotations[kaitov1beta1.InferenceSetRevisionAnnotation] = strconv.FormatInt(revisionNum, 10)
 			}
 
 			if len(revisions.Items) > consts.MaxRevisionHistoryLimit {
@@ -630,11 +630,11 @@ func (c *InferenceSetReconciler) syncControllerRevision(ctx context.Context, iOb
 		if controllerRevision.Annotations[InferenceSetHashAnnotation] != newRevision.Annotations[InferenceSetHashAnnotation] {
 			return fmt.Errorf("revision name conflicts, the hash values are different, old hash: %s, new hash: %s", controllerRevision.Annotations[InferenceSetHashAnnotation], newRevision.Annotations[InferenceSetHashAnnotation])
 		}
-		annotations[kaitov1alpha1.InferenceSetRevisionAnnotation] = strconv.FormatInt(controllerRevision.Revision, 10)
+		annotations[kaitov1beta1.InferenceSetRevisionAnnotation] = strconv.FormatInt(controllerRevision.Revision, 10)
 	}
 	annotations[InferenceSetHashAnnotation] = currentHash
 
-	err = inferenceset.UpdateInferenceSetWithRetry(ctx, c.Client, iObj, func(ws *kaitov1alpha1.InferenceSet) error {
+	err = inferenceset.UpdateInferenceSetWithRetry(ctx, c.Client, iObj, func(ws *kaitov1beta1.InferenceSet) error {
 		ws.SetAnnotations(annotations)
 		return nil
 	})
@@ -649,7 +649,7 @@ func (c *InferenceSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	c.Recorder = mgr.GetEventRecorderFor("InferenceSet")
 
 	builder := ctrl.NewControllerManagedBy(mgr).
-		For(&kaitov1alpha1.InferenceSet{}).
+		For(&kaitov1beta1.InferenceSet{}).
 		Owns(&appsv1.ControllerRevision{}).
 		Watches(&kaitov1beta1.Workspace{},
 			&workspaceEventHandler{

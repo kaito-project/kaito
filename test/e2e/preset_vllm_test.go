@@ -474,9 +474,9 @@ func createPhi4WorkspaceWithAdapterAndVLLM(numOfNode int, validAdapters []kaitov
 	return workspaceObj
 }
 
-func createGemma3InferenceSetWithPresetPublicModeAndVLLM(replicas int) *kaitov1alpha1.InferenceSet {
+func createGemma3InferenceSetWithPresetPublicModeAndVLLM(replicas int) *kaitov1beta1.InferenceSet {
 	modelSecret := createAndValidateModelSecret()
-	inferenceSetObj := &kaitov1alpha1.InferenceSet{}
+	inferenceSetObj := &kaitov1beta1.InferenceSet{}
 	By("Creating an InferenceSet CR with Gemma 3 preset public mode and vLLM", func() {
 		uniqueID := fmt.Sprint("preset-gemma3-is-", rand.Intn(1000))
 		inferenceSetObj = utils.GenerateInferenceSetManifestWithVLLM(uniqueID, namespaceName, "", replicas, "Standard_NV36ads_A10_v5",
@@ -551,7 +551,7 @@ func cleanupResourcesForMultiRoleInference(mriObj *kaitov1alpha1.MultiRoleInfere
 func validateMultiRoleInferenceChildInferenceSets(mriObj *kaitov1alpha1.MultiRoleInference) {
 	By("Validating child InferenceSets are created for each role", func() {
 		Eventually(func() bool {
-			isList := &kaitov1alpha1.InferenceSetList{}
+			isList := &kaitov1beta1.InferenceSetList{}
 			err := utils.TestingCluster.KubeClient.List(ctx, isList,
 				client.InNamespace(mriObj.Namespace),
 				client.MatchingLabels{kaitov1alpha1.LabelMultiRoleInferenceParent: mriObj.Name})
@@ -613,10 +613,10 @@ func validateMultiRoleInferenceStatus(mriObj *kaitov1alpha1.MultiRoleInference) 
 }
 
 // getMultiRoleInferenceChildInferenceSets returns the child InferenceSets for an MRI.
-func getMultiRoleInferenceChildInferenceSets(mriObj *kaitov1alpha1.MultiRoleInference) []kaitov1alpha1.InferenceSet {
-	var children []kaitov1alpha1.InferenceSet
+func getMultiRoleInferenceChildInferenceSets(mriObj *kaitov1alpha1.MultiRoleInference) []kaitov1beta1.InferenceSet {
+	var children []kaitov1beta1.InferenceSet
 	Eventually(func() bool {
-		isList := &kaitov1alpha1.InferenceSetList{}
+		isList := &kaitov1beta1.InferenceSetList{}
 		err := utils.TestingCluster.KubeClient.List(ctx, isList,
 			client.InNamespace(mriObj.Namespace),
 			client.MatchingLabels{kaitov1alpha1.LabelMultiRoleInferenceParent: mriObj.Name})
@@ -894,7 +894,7 @@ func createQwen3_5_2BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov
 	return workspaceObj
 }
 
-func validateInferenceSetNodePools(inferenceSetObj *kaitov1alpha1.InferenceSet, numOfReplicas int) {
+func validateInferenceSetNodePools(inferenceSetObj *kaitov1beta1.InferenceSet, numOfReplicas int) {
 	// List child workspaces by InferenceSet label
 	workspaceList := &kaitov1beta1.WorkspaceList{}
 	err := utils.TestingCluster.KubeClient.List(ctx, workspaceList,
@@ -919,7 +919,7 @@ func validateInferenceSetNodePools(inferenceSetObj *kaitov1alpha1.InferenceSet, 
 	utils.ValidateNodePoolIsolation(ctx, workspaces)
 }
 
-func validateGatewayAPIInferenceExtensionResources(iObj *kaitov1alpha1.InferenceSet) {
+func validateGatewayAPIInferenceExtensionResources(iObj *kaitov1beta1.InferenceSet) {
 	// Only validate if the Inference Preset is set
 	if iObj.Spec.Template.Inference.Preset == nil {
 		return
@@ -1058,7 +1058,7 @@ func logBenchmarkPhaseElapsed(coreClient *kubernetes.Clientset, wsName, wsNamesp
 // validateInferenceSetBenchmarkCompleted asserts that:
 // - status.performance.metrics["aggregatedPeakTokensPerMinute"] is set with a positive value
 // - all child workspaces have BenchmarkCompleted=True and their own performance set
-func validateInferenceSetBenchmarkCompleted(inferenceSetObj *kaitov1alpha1.InferenceSet) {
+func validateInferenceSetBenchmarkCompleted(inferenceSetObj *kaitov1beta1.InferenceSet) {
 	By("Validating inferenceset aggregated performance is set", func() {
 		Eventually(func() bool {
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{

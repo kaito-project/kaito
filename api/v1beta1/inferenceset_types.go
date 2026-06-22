@@ -11,13 +11,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1alpha1
+package v1beta1
 
 import (
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
 type InferenceSetResourceSpec struct {
@@ -35,8 +33,8 @@ type InferenceSetTemplate struct {
 	// +kubebuilder:pruning:PreserveUnknownFields
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	// +optional
-	Resource  InferenceSetResourceSpec   `json:"resource"`
-	Inference kaitov1beta1.InferenceSpec `json:"inference"`
+	Resource  InferenceSetResourceSpec `json:"resource"`
+	Inference InferenceSpec            `json:"inference"`
 }
 
 // AutoUpgradePolicy configures automatic base image upgrade behavior.
@@ -119,24 +117,7 @@ type InferenceSetSpec struct {
 	AutoUpgrade *AutoUpgradePolicy `json:"autoUpgrade,omitempty"`
 }
 
-// Metric holds an aggregated benchmark measurement across workspace replicas.
-type Metric struct {
-	// Description describes the benchmark type and load pattern, e.g. "stress/high-concurrency".
-	Description string `json:"description"`
-	// Value is the aggregated metric value, formatted as a string.
-	Value string `json:"value"`
-	// Unit is the unit of the metric value (e.g. "tokens/min").
-	// +optional
-	Unit string `json:"unit,omitempty"`
-}
-
-// Performance holds aggregated performance characteristics across all workspace replicas,
-// keyed by metric name (e.g. "aggregatedPeakTokensPerMinute").
-type Performance struct {
-	// Metrics is a map of metric name to Metric.
-	// +optional
-	Metrics map[string]Metric `json:"metrics,omitempty"`
-}
+// Metric and Performance types are defined in workspace_types.go and shared.
 
 // InferenceSetStatus defines the observed state of InferenceSet
 type InferenceSetStatus struct {
@@ -163,6 +144,7 @@ type InferenceSetStatus struct {
 // +kubebuilder:subresource:status
 // +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=.status.selector
 // +kubebuilder:resource:path=inferencesets,scope=Namespaced,categories=inferenceset,shortName={is,isets}
+// +kubebuilder:storageversion
 // +kubebuilder:printcolumn:name="Replicas",type="integer",JSONPath=".spec.replicas",description=""
 // +kubebuilder:printcolumn:name="ReadyReplicas",type="integer",JSONPath=".status.readyReplicas",description=""
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp",description=""

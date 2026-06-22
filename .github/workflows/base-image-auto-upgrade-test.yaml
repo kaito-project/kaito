@@ -22,7 +22,7 @@ permissions:
 
 env:
   OLD_CHART_VERSION: ${{ github.event.inputs.old_chart_version || '0.10.0' }}
-  GO_VERSION: "1.26.3"
+  GO_VERSION: "1.26.4"
 
 jobs:
   auto-upgrade-test:

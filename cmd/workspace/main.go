@@ -60,6 +60,7 @@ import (
 	karpenterutils "github.com/kaito-project/kaito/pkg/utils/karpenter"
 	"github.com/kaito-project/kaito/pkg/version"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
+	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
 )
 
@@ -262,6 +263,18 @@ func main() {
 	if err := nodeProvisioner.Start(ctx); err != nil {
 		klog.ErrorS(err, "failed to start node provisioner")
 		exitWithErrorFunc()
+	}
+
+	// Set streaming defaults once at startup (read by inference package via StreamingDefaults).
+	if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+		streamer, streamerErr := inference.GetModelStreamer(os.Getenv("CLOUD_PROVIDER"))
+		if streamerErr != nil {
+			klog.ErrorS(streamerErr, "unable to resolve model streamer")
+			exitWithErrorFunc()
+		}
+		inference.StreamingDefaults.StorageClass = defaultModelMirrorStorageClass
+		inference.StreamingDefaults.ServiceAccount = defaultStreamingServiceAccount
+		inference.StreamingDefaults.ModelStreamer = streamer
 	}
 
 	workspaceReconciler := controllers.NewWorkspaceReconciler(

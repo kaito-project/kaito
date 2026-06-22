@@ -33,7 +33,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -96,7 +95,7 @@ func hasDriftedNodeClaimsInGroup(nodeClaims []*karpenterv1.NodeClaim) bool {
 //  4. For each NodePool, check drift budget and apply state machine
 func (r *DriftReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	// 1. Get InferenceSet.
-	inferenceSet := &kaitov1alpha1.InferenceSet{}
+	inferenceSet := &kaitov1beta1.InferenceSet{}
 	if err := r.Get(ctx, req.NamespacedName, inferenceSet); err != nil {
 		if errors.IsNotFound(err) {
 			return ctrl.Result{}, nil
@@ -311,7 +310,7 @@ var enqueueInferenceSetForWorkspace = handler.EnqueueRequestsFromMapFunc(mapWork
 func (r *DriftReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		Named("drift").
-		For(&kaitov1alpha1.InferenceSet{}).
+		For(&kaitov1beta1.InferenceSet{}).
 		Watches(&karpenterv1.NodeClaim{},
 			enqueueInferenceSetForNodeClaim,
 			builder.WithPredicates(inferenceSetNodeClaimPredicate()),

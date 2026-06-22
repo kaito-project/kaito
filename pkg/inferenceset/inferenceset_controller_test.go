@@ -33,7 +33,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
@@ -46,7 +45,7 @@ import (
 func TestInferenceSetSyncControllerRevision(t *testing.T) {
 	testcases := map[string]struct {
 		callMocks     func(c *test.MockClient)
-		inferenceset  v1alpha1.InferenceSet
+		inferenceset  v1beta1.InferenceSet
 		expectedError error
 		verifyCalls   func(c *test.MockClient)
 	}{
@@ -68,13 +67,13 @@ func TestInferenceSetSyncControllerRevision(t *testing.T) {
 					}).
 					Return(nil)
 				// Add mock for inferenceset retrieval in updateInferenceSetWithRetry
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha1.InferenceSet{}), mock.Anything).
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).
 					Run(func(args mock.Arguments) {
-						ws := args.Get(2).(*v1alpha1.InferenceSet)
+						ws := args.Get(2).(*v1beta1.InferenceSet)
 						*ws = test.MockInferenceSetWithComputeHash
 					}).
 					Return(nil)
-				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.InferenceSet{}), mock.Anything).
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).
 					Return(nil)
 			},
 			inferenceset:  test.MockInferenceSetWithComputeHash,
@@ -113,13 +112,13 @@ func TestInferenceSetSyncControllerRevision(t *testing.T) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
 					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), test.MockInferenceSetFailToCreateCR.Name))
 				// Add mock for inferenceset retrieval in updateInferenceSetWithRetry
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha1.InferenceSet{}), mock.Anything).
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).
 					Run(func(args mock.Arguments) {
-						ws := args.Get(2).(*v1alpha1.InferenceSet)
+						ws := args.Get(2).(*v1beta1.InferenceSet)
 						*ws = test.MockInferenceSetSuccessful
 					}).
 					Return(nil)
-				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.InferenceSet{}), mock.Anything).
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).
 					Return(nil)
 			},
 			inferenceset:  test.MockInferenceSetSuccessful,
@@ -161,13 +160,13 @@ func TestInferenceSetSyncControllerRevision(t *testing.T) {
 					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), test.MockInferenceSetFailToCreateCR.Name))
 				c.On("Delete", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(nil)
 				// Add mock for inferenceset retrieval in updateInferenceSetWithRetry
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha1.InferenceSet{}), mock.Anything).
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).
 					Run(func(args mock.Arguments) {
-						ws := args.Get(2).(*v1alpha1.InferenceSet)
+						ws := args.Get(2).(*v1beta1.InferenceSet)
 						*ws = test.MockInferenceSetWithDeleteOldCR
 					}).
 					Return(nil)
-				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.InferenceSet{}), mock.Anything).
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).
 					Return(nil)
 			},
 			inferenceset:  test.MockInferenceSetWithDeleteOldCR,
@@ -209,13 +208,13 @@ func TestInferenceSetSyncControllerRevision(t *testing.T) {
 					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), test.MockInferenceSetFailToCreateCR.Name))
 				c.On("Delete", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(nil)
 				// Add mock for inferenceset retrieval in updateInferenceSetWithRetry
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha1.InferenceSet{}), mock.Anything).
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).
 					Run(func(args mock.Arguments) {
-						ws := args.Get(2).(*v1alpha1.InferenceSet)
+						ws := args.Get(2).(*v1beta1.InferenceSet)
 						*ws = test.MockInferenceSetUpdateCR
 					}).
 					Return(nil)
-				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.InferenceSet{}), mock.Anything).
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).
 					Return(fmt.Errorf("failed to update InferenceSet annotations"))
 			},
 			inferenceset:  test.MockInferenceSetUpdateCR,
@@ -389,14 +388,14 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 		return ws
 	}
 
-	makeInferenceSet := func(replicas int, benchmarkOff bool) *v1alpha1.InferenceSet {
-		iObj := &v1alpha1.InferenceSet{
+	makeInferenceSet := func(replicas int, benchmarkOff bool) *v1beta1.InferenceSet {
+		iObj := &v1beta1.InferenceSet{
 			ObjectMeta: v1.ObjectMeta{Name: "phi-4-mini", Namespace: "default"},
-			Spec:       v1alpha1.InferenceSetSpec{Replicas: lo.ToPtr(int32(replicas))},
+			Spec:       v1beta1.InferenceSetSpec{Replicas: lo.ToPtr(int32(replicas))},
 		}
 		if benchmarkOff {
 			iObj.Annotations = map[string]string{
-				v1alpha1.AnnotationDisableBenchmark: "true",
+				v1beta1.AnnotationDisableBenchmark: "true",
 			}
 		}
 		return iObj
@@ -404,7 +403,7 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 
 	tests := map[string]struct {
 		workspaces            []v1beta1.Workspace
-		inferenceset          *v1alpha1.InferenceSet
+		inferenceset          *v1beta1.InferenceSet
 		expectedTPM           string
 		expectBenchmarkCond   bool
 		expectBenchmarkStatus v1.ConditionStatus
@@ -488,12 +487,13 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 			}
 
 			// Verify benchmark condition gate — annotation controls whether the condition is set.
+			benchmarkEnabled := v1beta1.IsInferenceSetBenchmarkEnabled(tc.inferenceset)
 			if !tc.expectBenchmarkCond {
-				assert.False(t, v1alpha1.IsRunBenchmarkEnabled(tc.inferenceset))
+				assert.False(t, benchmarkEnabled)
 				return
 			}
 
-			assert.True(t, v1alpha1.IsRunBenchmarkEnabled(tc.inferenceset))
+			assert.True(t, benchmarkEnabled)
 
 			allBenchmarked := tc.inferenceset.Spec.Replicas != nil && benchmarkedReplicas == int(*tc.inferenceset.Spec.Replicas) && *tc.inferenceset.Spec.Replicas > 0
 			if tc.expectBenchmarkStatus == v1.ConditionTrue {

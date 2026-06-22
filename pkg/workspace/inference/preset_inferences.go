@@ -28,6 +28,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/klog/v2"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
@@ -170,11 +171,37 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	// Set the target node count for the inference workload
 	numNodes := int(workspaceObj.Status.TargetNodeCount)
 
-	podOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec]{
-		GenerateInferencePodSpec(gpuConfig, numNodes),
-		SetModelDownloadInfo,
-		SetAdapterPuller,
+	// Resolve streaming configuration
+	streamingEnabled := ModelStreamingEnabled(workspaceObj)
+	var streamingModelPath, streamingLoadFormat string
+	var streamingCfg *StreamingConfig
+	var modelID string
+
+	if streamingEnabled {
+		modelID = ResolveHFModelID(workspaceObj)
+		crName := ModelMirrorCRName(modelID)
+
+		streamingCfg, err = StreamingDefaults.ModelStreamer.GetStreamingConfig(gctx, crName, workspaceObj.Namespace, modelID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve streaming config: %w", err)
+		}
+		streamingModelPath = streamingCfg.ModelPath
+		streamingLoadFormat = "runai_streamer"
 	}
+
+	podOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec]{
+		GenerateInferencePodSpec(gpuConfig, numNodes, streamingModelPath, streamingLoadFormat),
+		SetHFToken,
+	}
+
+	// Model source: streaming (az://) vs local download. Mutually exclusive.
+	if streamingEnabled {
+		podOpts = append(podOpts, SetStreamingConfig(streamingCfg, modelID, StreamingDefaults.ServiceAccount))
+	} else {
+		podOpts = append(podOpts, SetModelDownloadInfo)
+	}
+
+	podOpts = append(podOpts, SetAdapterPuller)
 
 	// Use StatefulSet for all use cases to ensure consistent pod identity and storage management
 	// For multi-node distributed inference with vLLM, we need StatefulSet to ensure pods are
@@ -192,10 +219,27 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		manifests.GenerateStatefulSetManifest(revisionNum, numNodes),
 	}
 
-	if checkIfNVMeAvailable(ctx, gpuConfig, kubeClient) {
-		ssOpts = append(ssOpts, manifests.AddStatefulSetVolumeClaimTemplates(GenerateModelWeightsCacheVolume(ctx, workspaceObj, model)))
-	} else {
-		podOpts = append(podOpts, SetDefaultModelWeightsVolume)
+	// Volume handling: streaming skips weights volume (model is read from az:// directly).
+	if !streamingEnabled {
+		if checkIfNVMeAvailable(ctx, gpuConfig, kubeClient) {
+			ssOpts = append(ssOpts, manifests.AddStatefulSetVolumeClaimTemplates(GenerateModelWeightsCacheVolume(ctx, workspaceObj, model)))
+		} else {
+			podOpts = append(podOpts, SetDefaultModelWeightsVolume)
+		}
+	}
+
+	// Add provider-specific pod labels to StatefulSet template (e.g. Azure WI label)
+	if streamingEnabled && len(streamingCfg.PodLabels) > 0 {
+		podLabels := streamingCfg.PodLabels
+		ssOpts = append(ssOpts, func(ctx *generator.WorkspaceGeneratorContext, ss *appsv1.StatefulSet) error {
+			if ss.Spec.Template.Labels == nil {
+				ss.Spec.Template.Labels = make(map[string]string)
+			}
+			for k, v := range podLabels {
+				ss.Spec.Template.Labels[k] = v
+			}
+			return nil
+		})
 	}
 
 	podSpec, err := generator.GenerateManifest(gctx, podOpts...)
@@ -262,7 +306,11 @@ func checkIfNVMeAvailable(ctx context.Context, gpuConfig *sku.GPUConfig, kubeCli
 }
 
 // getDistributedInferenceProbe returns a container probe configuration for the distributed inference workload.
-func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, initialDelaySeconds, periodSeconds, timeoutSeconds, failureThreshold int32) *corev1.Probe {
+func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, initialDelaySeconds, periodSeconds, timeoutSeconds, failureThreshold int32, vllmPort ...int32) *corev1.Probe {
+	port := consts.PortInferenceServer
+	if len(vllmPort) > 0 && vllmPort[0] > 0 {
+		port = vllmPort[0]
+	}
 	args := map[string]string{
 		"leader-address": utils.GetRayLeaderHost(wObj.ObjectMeta),
 	}
@@ -270,7 +318,7 @@ func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, 
 	case probeTypeLiveness:
 		args["ray-port"] = strconv.Itoa(pkgmodel.PortRayCluster)
 	case probeTypeReadiness:
-		args["vllm-port"] = strconv.FormatInt(int64(consts.PortInferenceServer), 10)
+		args["vllm-port"] = strconv.FormatInt(int64(port), 10)
 	}
 
 	// for distributed inference, we cannot use the default http probe since only the leader pod
@@ -298,14 +346,18 @@ func getDistributedInferenceProbe(probeType probeType, wObj *v1beta1.Workspace, 
 	return probe
 }
 
-func buildStartupProbe(timeout time.Duration) *corev1.Probe {
+func buildStartupProbe(timeout time.Duration, port ...int32) *corev1.Probe {
 	const periodSeconds = 10
+	probePort := consts.PortInferenceServer
+	if len(port) > 0 && port[0] > 0 {
+		probePort = port[0]
+	}
 	// ceil(timeout / period) ensures the full timeout window is covered.
 	failureThreshold := int32(math.Ceil(timeout.Seconds() / periodSeconds))
 	return &corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
-				Port: intstr.FromInt32(consts.PortInferenceServer),
+				Port: intstr.FromInt32(probePort),
 				Path: ProbePath,
 			},
 		},
@@ -315,11 +367,22 @@ func buildStartupProbe(timeout time.Duration) *corev1.Probe {
 	}
 }
 
-func buildDistributedStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace) *corev1.Probe {
+// buildProbeWithPort returns a deep copy of the template probe with the HTTPGet
+// port overridden when port > 0. When port is 0 the template's original port is
+// preserved unchanged.
+func buildProbeWithPort(template *corev1.Probe, port int32) *corev1.Probe {
+	p := template.DeepCopy()
+	if port > 0 && p.HTTPGet != nil {
+		p.HTTPGet.Port = intstr.FromInt32(port)
+	}
+	return p
+}
+
+func buildDistributedStartupProbe(timeout time.Duration, wObj *v1beta1.Workspace, vllmPort ...int32) *corev1.Probe {
 	const periodSeconds = int32(10)
 	const timeoutSeconds = int32(1)
 	failureThreshold := int32(math.Ceil(timeout.Seconds() / float64(periodSeconds)))
-	return getDistributedInferenceProbe(probeTypeReadiness, wObj, 0, periodSeconds, timeoutSeconds, failureThreshold)
+	return getDistributedInferenceProbe(probeTypeReadiness, wObj, 0, periodSeconds, timeoutSeconds, failureThreshold, vllmPort...)
 }
 
 // buildBenchmarkStartupProbe returns an exec startup probe that runs
@@ -373,7 +436,7 @@ func GetBaseImageTag() string {
 	return presetObj.Tag
 }
 
-func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
+func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingModelPath, streamingLoadFormat string) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 		configVolume, err := resources.EnsureConfigOrCopyFromDefault(ctx.Ctx, ctx.KubeClient,
 			client.ObjectKey{
@@ -401,8 +464,10 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 		volumes = append(volumes, cmVolume)
 		volumeMounts = append(volumeMounts, cmVolumeMount)
 
-		// add model weights volume mount
-		volumeMounts = append(volumeMounts, utils.DefaultModelWeightsVolumeMount)
+		// add model weights volume mount (skip when streaming — weights come from az://)
+		if streamingModelPath == "" {
+			volumeMounts = append(volumeMounts, utils.DefaultModelWeightsVolumeMount)
+		}
 
 		// add share memory for cross process communication
 		shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
@@ -463,9 +528,13 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			}
 		}
 
-		// When the routing sidecar is needed, it will be injected after the
-		// main container is created. vLLM keeps its default port (5000).
+		// When the routing sidecar is needed, vLLM moves to PortDecodeVLLM (5001)
+		// so the sidecar can occupy PortInferenceServer (5000).
 		isSidecarNeeded := needsRoutingSidecar(ctx.Workspace)
+		var vllmPort int32
+		if isSidecarNeeded {
+			vllmPort = consts.PortDecodeVLLM
+		}
 
 		commands := inferenceParam.GetInferenceCommand(pkgmodel.RuntimeContext{
 			RuntimeName:          runtimeName,
@@ -476,9 +545,12 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			WorkspaceMetadata:    ctx.Workspace.ObjectMeta,
 			DistributedInference: ctx.Model.SupportDistributedInference(),
 			MaxModelLen:          maxModelLen,
+			InferencePort:        vllmPort,
 			RuntimeContextExtraArguments: pkgmodel.RuntimeContextExtraArguments{
-				AdaptersEnabled: len(ctx.Workspace.Inference.Adapters) > 0,
-				PerformanceMode: v1beta1.GetPerformanceMode(ctx.Workspace),
+				AdaptersEnabled:     len(ctx.Workspace.Inference.Adapters) > 0,
+				PerformanceMode:     v1beta1.GetPerformanceMode(ctx.Workspace),
+				StreamingModelPath:  streamingModelPath,
+				StreamingLoadFormat: streamingLoadFormat,
 			},
 		})
 
@@ -506,17 +578,54 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 			readinessTimeout = defaultStartupProbeTimeout
 		}
 
+		// KAITO does not support FlashInfer. Disable vLLM's FlashInfer sampler so it
+		// stays on the Torch-native sampling path instead of JIT-compiling kernels at
+		// runtime (the base image ships no CUDA toolchain/nvcc).
+		var mainContainerEnv []corev1.EnvVar
+		if runtimeName == pkgmodel.RuntimeNameVLLM {
+			mainContainerEnv = append(mainContainerEnv, corev1.EnvVar{
+				Name:  consts.VLLMUseFlashInferSamplerEnvName,
+				Value: "0",
+			})
+			// Disable vLLM's DeepGEMM FP8 kernels. vLLM 0.22.1 enables them by default
+			// and reports DeepGEMM as available, but the native backend is absent from
+			// the base image, so the FP8 warmup hard-fails at engine init.
+			mainContainerEnv = append(mainContainerEnv, corev1.EnvVar{
+				Name:  consts.VLLMUseDeepGEMMEnvName,
+				Value: "0",
+			})
+			// Disable vLLM's FlashInfer MoE backends across all precisions. For MoE
+			// models vLLM auto-selects a FlashInfer (TRTLLM/CUTLASS) expert kernel,
+			// which JIT-compiles at runtime via nvcc (absent from the base image) and
+			// crashes the engine at startup. Setting each per-precision toggle to "0"
+			// forces the Triton MoE fallback, which needs no nvcc JIT.
+			for _, name := range []string{
+				consts.VLLMUseFlashInferMoeFP16EnvName,
+				consts.VLLMUseFlashInferMoeFP8EnvName,
+				consts.VLLMUseFlashInferMoeFP4EnvName,
+				consts.VLLMUseFlashInferMoeMXFP4BF16EnvName,
+				consts.VLLMUseFlashInferMoeMXFP4MXFP8EnvName,
+				consts.VLLMUseFlashInferMoeMXFP4MXFP8CutlassEnvName,
+			} {
+				mainContainerEnv = append(mainContainerEnv, corev1.EnvVar{
+					Name:  name,
+					Value: "0",
+				})
+			}
+		}
+
 		spec.Containers = []corev1.Container{
 			{
 				Name:           ctx.Workspace.Name,
 				Image:          GetBaseImageName(),
 				Command:        commands,
 				Resources:      resourceReq,
-				Ports:          containerPorts,
-				StartupProbe:   buildStartupProbe(readinessTimeout),
-				LivenessProbe:  defaultLivenessProbe,
-				ReadinessProbe: defaultReadinessProbe,
+				Ports:          append([]corev1.ContainerPort(nil), containerPorts...),
+				StartupProbe:   buildStartupProbe(readinessTimeout, vllmPort),
+				LivenessProbe:  buildProbeWithPort(defaultLivenessProbe, vllmPort),
+				ReadinessProbe: buildProbeWithPort(defaultReadinessProbe, vllmPort),
 				VolumeMounts:   volumeMounts,
+				Env:            mainContainerEnv,
 			},
 		}
 
@@ -533,28 +642,40 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int) func(*gene
 	}
 }
 
+// SetHFToken adds the HF_TOKEN env var to the main inference container if
+// a model access secret is configured. Needed for both DAR (download weights)
+// and streaming (vLLM fetches model config/tokenizer from HuggingFace).
+func SetHFToken(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+	if ctx.Workspace.Inference == nil || ctx.Workspace.Inference.Preset == nil {
+		return nil
+	}
+	accessSecret := ctx.Workspace.Inference.Preset.PresetOptions.ModelAccessSecret
+	if accessSecret == "" {
+		return nil
+	}
+	envvar := corev1.EnvVar{
+		Name: "HF_TOKEN",
+		ValueFrom: &corev1.EnvVarSource{
+			SecretKeyRef: &corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{Name: accessSecret},
+				Key:                  "HF_TOKEN",
+				Optional:             ptr.To(true),
+			},
+		},
+	}
+	for i := range spec.Containers {
+		if spec.Containers[i].Name == ctx.Workspace.Name {
+			spec.Containers[i].Env = append(spec.Containers[i].Env, envvar)
+			break
+		}
+	}
+	return nil
+}
+
 func SetModelDownloadInfo(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 	if ctx.Model.GetInferenceParameters().DownloadAtRuntime {
-		if accessSecret := ctx.Workspace.Inference.Preset.PresetOptions.ModelAccessSecret; accessSecret != "" {
-			envvar := corev1.EnvVar{
-				Name: "HF_TOKEN",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{
-							Name: ctx.Workspace.Inference.Preset.PresetOptions.ModelAccessSecret,
-						},
-						Key: "HF_TOKEN",
-					},
-				},
-			}
-
-			for i := range spec.Containers {
-				// add HF_TOKEN env var to the main inference container only
-				if spec.Containers[i].Name == ctx.Workspace.Name {
-					spec.Containers[i].Env = append(spec.Containers[i].Env, envvar)
-				}
-			}
-		}
+		// HF_TOKEN is handled by SetHFToken.
+		// DAR models just need the token present. no other download setup needed.
 		return nil
 	}
 
@@ -669,10 +790,16 @@ func SetDistributedInferenceProbe(ctx *generator.WorkspaceGeneratorContext, spec
 		readinessTimeout = defaultStartupProbeTimeout
 	}
 
+	// Determine vLLM port: decode pods use PortDecodeVLLM, others use default.
+	var vllmPort int32
+	if needsRoutingSidecar(ctx.Workspace) {
+		vllmPort = consts.PortDecodeVLLM
+	}
+
 	// 60 seconds initial delay for liveness probe to allow workers to join the cluster
-	livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, ctx.Workspace, 60, 10, 5, 1)
-	readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, ctx.Workspace, 0, 10, 1, 1)
-	startupProbe := buildDistributedStartupProbe(readinessTimeout, ctx.Workspace)
+	livenessProbe := getDistributedInferenceProbe(probeTypeLiveness, ctx.Workspace, 60, 10, 5, 1, vllmPort)
+	readinessProbe := getDistributedInferenceProbe(probeTypeReadiness, ctx.Workspace, 0, 10, 1, 1, vllmPort)
+	startupProbe := buildDistributedStartupProbe(readinessTimeout, ctx.Workspace, vllmPort)
 	envVar := corev1.EnvVar{
 		Name: "POD_INDEX",
 		ValueFrom: &corev1.EnvVarSource{
@@ -698,10 +825,17 @@ func SetDefaultModelWeightsVolume(ctx *generator.WorkspaceGeneratorContext, spec
 	return nil
 }
 
-// applyInferenceRoleEnv sets KAITO_INFERENCE_ROLE env var on the main inference
+// applyInferenceRoleEnv sets inference-related env vars on the main inference
 // container (identified by containerName) when the workspace has a valid
-// inference-role label (prefill or decode). Only the main container needs this
-// env var; sidecar containers do not use it.
+// inference-role label (prefill or decode). It injects:
+//   - KAITO_INFERENCE_ROLE: role identification for the container
+//   - VLLM_NIXL_SIDE_CHANNEL_HOST: pod IP for NIXL KV transfer side channel
+//
+// These env vars are set on the main inference container when the workspace has
+// a prefill or decode role label. In practice, only vLLM workspaces created by
+// MultiRoleInference carry this label.
+// Note: the routing sidecar (injected by injectRoutingSidecar) independently
+// sets VLLM_NIXL_SIDE_CHANNEL_HOST in its own container spec as well.
 func applyInferenceRoleEnv(labels map[string]string, containerName string, spec *corev1.PodSpec) {
 	role, ok := labels[v1beta1.LabelInferenceRole]
 	if !ok || (role != string(kaitov1alpha1.MultiRoleInferenceRolePrefill) && role != string(kaitov1alpha1.MultiRoleInferenceRoleDecode)) {
@@ -713,34 +847,59 @@ func applyInferenceRoleEnv(labels map[string]string, containerName string, spec 
 				Name:  consts.InferenceRoleEnvName,
 				Value: role,
 			})
+			// VLLM_NIXL_SIDE_CHANNEL_HOST is required for NIXL KV transfer
+			// in P/D disaggregation. Without it, vLLM registers "localhost"
+			// as the NIXL side channel host, causing cross-pod handshake failures.
+			spec.Containers[i].Env = append(spec.Containers[i].Env, corev1.EnvVar{
+				Name: "VLLM_NIXL_SIDE_CHANNEL_HOST",
+				ValueFrom: &corev1.EnvVarSource{
+					FieldRef: &corev1.ObjectFieldSelector{FieldPath: "status.podIP"},
+				},
+			})
 			return
 		}
 	}
 }
 
 // injectRoutingSidecar appends the llm-d routing sidecar container to the pod
-// spec. The sidecar listens on PortRoutingSidecar (5001) and proxies to the
-// main vLLM container which keeps its default PortInferenceServer (5000).
-// No port or probe rewriting is needed on the main container.
+// spec. The sidecar listens on PortInferenceServer (5000) and proxies to the
+// main vLLM container on PortDecodeVLLM (5001).
+// The command and probes are already configured with the correct port via
+// RuntimeContext.InferencePort; this function only updates the container port
+// declaration and adds the sidecar container.
 func injectRoutingSidecar(spec *corev1.PodSpec) {
 	if len(spec.Containers) == 0 {
 		return
 	}
 
+	// Rewrite the main vLLM container port declaration from 5000 to 5001.
+	for i := range spec.Containers[0].Ports {
+		if spec.Containers[0].Ports[i].ContainerPort == consts.PortInferenceServer {
+			spec.Containers[0].Ports[i].ContainerPort = consts.PortDecodeVLLM
+		}
+	}
+
+	// Append the routing sidecar that listens on 5000 and proxies to vLLM on 5001.
 	spec.Containers = append(spec.Containers, corev1.Container{
 		Name:  "llm-d-routing-sidecar",
 		Image: fmt.Sprintf("%s:%s", consts.RoutingSidecarImage, consts.RoutingSidecarTag),
 		Args: []string{
-			fmt.Sprintf("--port=%d", consts.PortRoutingSidecar),
-			fmt.Sprintf("--vllm-port=%d", consts.PortInferenceServer),
+			fmt.Sprintf("--port=%d", consts.PortInferenceServer),
+			fmt.Sprintf("--vllm-port=%d", consts.PortDecodeVLLM),
 			"--secure-proxy=false",
 		},
 		Ports: []corev1.ContainerPort{
-			{ContainerPort: consts.PortRoutingSidecar, Name: "sidecar", Protocol: corev1.ProtocolTCP},
+			{ContainerPort: consts.PortInferenceServer, Name: "sidecar", Protocol: corev1.ProtocolTCP},
 		},
 		Env: []corev1.EnvVar{
 			{
 				Name: "POD_IP",
+				ValueFrom: &corev1.EnvVarSource{
+					FieldRef: &corev1.ObjectFieldSelector{FieldPath: "status.podIP"},
+				},
+			},
+			{
+				Name: "VLLM_NIXL_SIDE_CHANNEL_HOST",
 				ValueFrom: &corev1.EnvVarSource{
 					FieldRef: &corev1.ObjectFieldSelector{FieldPath: "status.podIP"},
 				},

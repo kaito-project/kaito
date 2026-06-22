@@ -19,6 +19,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -28,6 +29,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -69,6 +71,16 @@ const (
 	WorkspaceHashAnnotation = "workspace.kaito.io/hash"
 	WorkspaceNameLabel      = "workspace.kaito.io/name"
 	revisionHashSuffix      = 5
+
+	// MaxAllowedNodeCount caps the per-replica node count produced by the node
+	// estimator for inference workspaces. vLLM's Ray executor has a known bug
+	// where pipeline_parallel_size > 3 fails to initialize the KV cache,
+	// producing a KeyError on layer lookup; see
+	// https://github.com/vllm-project/vllm/issues/30128. Until that is fixed
+	// upstream, we refuse to provision more than this many nodes per replica
+	// and ask the user to pick a larger GPU instance type (or shrink the
+	// model / context size) instead.
+	MaxAllowedNodeCount = 3
 )
 
 type WorkspaceReconciler struct {
@@ -83,7 +95,8 @@ type WorkspaceReconciler struct {
 	nodeProvisioner nodeprovision.NodeProvisioner
 }
 
-func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, Recorder record.EventRecorder, provisioner nodeprovision.NodeProvisioner) *WorkspaceReconciler {
+func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, Recorder record.EventRecorder,
+	provisioner nodeprovision.NodeProvisioner) *WorkspaceReconciler {
 	expectations := utils.NewControllerExpectations()
 
 	return &WorkspaceReconciler{
@@ -153,7 +166,120 @@ func (c *WorkspaceReconciler) ensureFinalizer(ctx context.Context, workspaceObj 
 	return nil
 }
 
+// ensureModelMirror creates the ModelMirror CR for the workspace's model if it doesn't exist.
+// Returns nil if the CR exists (any phase) or was created successfully.
+func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
+	modelID := inference.ResolveHFModelID(wObj)
+	crName := inference.ModelMirrorCRName(modelID)
+	storageClass := inference.ResolveStorageClass(wObj, inference.StreamingDefaults.StorageClass)
+
+	// Check if CR already exists
+	existing := &kaitov1alpha1.ModelMirror{}
+	err := c.Client.Get(ctx, client.ObjectKey{Name: crName}, existing)
+	if err == nil {
+		// CR exists — verify it's for the same model (collision check)
+		if existing.Spec.Source.ModelID != modelID {
+			return fmt.Errorf("ModelMirror CR name collision: %s maps to both %q and %q",
+				crName, existing.Spec.Source.ModelID, modelID)
+		}
+		return nil
+	}
+	if !apierrors.IsNotFound(err) {
+		return fmt.Errorf("failed to get ModelMirror CR %s: %w", crName, err)
+	}
+
+	// Validate StorageClass uses the correct CSI provisioner for streaming.
+	sc := &storagev1.StorageClass{}
+	if err := c.Client.Get(ctx, client.ObjectKey{Name: storageClass}, sc); err != nil {
+		return fmt.Errorf("StorageClass %q not found: %w", storageClass, err)
+	}
+	expectedCSIDriver := consts.CSIDriverNameForCloud(os.Getenv("CLOUD_PROVIDER"))
+	if sc.Provisioner != expectedCSIDriver {
+		return fmt.Errorf("StorageClass %q uses provisioner %q, but model streaming requires %q; "+
+			"create a StorageClass with the correct provisioner",
+			storageClass, sc.Provisioner, expectedCSIDriver)
+	}
+
+	// Validate ServiceAccount exists and has provider-specific identity configured.
+	if err := inference.StreamingDefaults.ModelStreamer.ValidateAuth(ctx, wObj, c.Client, inference.StreamingDefaults.ServiceAccount); err != nil {
+		return err
+	}
+
+	// Resolve model metadata for DiskStorageRequirement
+	presetName := string(wObj.Inference.Preset.Name)
+	model, err := models.GetModelByName(ctx, presetName, wObj.Inference.Preset.PresetOptions.ModelAccessSecret, wObj.Namespace, c.Client)
+	if err != nil {
+		return fmt.Errorf("failed to resolve model for streaming: %w", err)
+	}
+
+	modelSize := model.GetInferenceParameters().DiskStorageRequirement
+	if modelSize == "" {
+		return fmt.Errorf("model %q has no DiskStorageRequirement; cannot create ModelMirror CR", modelID)
+	}
+
+	var accessSecret *corev1.ObjectReference
+	if wObj.Inference.Preset.PresetOptions.ModelAccessSecret != "" {
+		accessSecret = &corev1.ObjectReference{
+			Name:      wObj.Inference.Preset.PresetOptions.ModelAccessSecret,
+			Namespace: wObj.Namespace,
+		}
+	}
+
+	cr := &kaitov1alpha1.ModelMirror{
+		ObjectMeta: metav1.ObjectMeta{Name: crName},
+		Spec: kaitov1alpha1.ModelMirrorSpec{
+			Source: kaitov1alpha1.ModelMirrorSource{
+				Registry:     "huggingface",
+				ModelID:      modelID,
+				AccessSecret: accessSecret,
+			},
+			Storage: kaitov1alpha1.ModelMirrorStorage{
+				Size:             modelSize,
+				StorageClassName: storageClass,
+			},
+			JobNamespace: wObj.Namespace,
+		},
+	}
+
+	if err := c.Client.Create(ctx, cr); err != nil {
+		if apierrors.IsAlreadyExists(err) {
+			return nil // Race condition
+		}
+		return fmt.Errorf("failed to create ModelMirror CR %s: %w", crName, err)
+	}
+
+	klog.InfoS("Created ModelMirror CR", "name", crName, "modelID", modelID, "workspace", klog.KObj(wObj))
+	return nil
+}
+
+// waitForModelMirror checks if the ModelMirror CR is Ready.
+// Returns (nil, nil) to proceed, or (*Result, err) to stop — same pattern as reconcileNodes.
+func (c *WorkspaceReconciler) waitForModelMirror(ctx context.Context, wObj *kaitov1beta1.Workspace) (result *reconcile.Result, err error) {
+	modelID := inference.ResolveHFModelID(wObj)
+	crName := inference.ModelMirrorCRName(modelID)
+
+	cr := &kaitov1alpha1.ModelMirror{}
+	if err := c.Client.Get(ctx, client.ObjectKey{Name: crName}, cr); err != nil {
+		if apierrors.IsNotFound(err) {
+			// CR was deleted externally; ensureModelMirror will recreate on next reconcile
+			return &reconcile.Result{}, nil
+		}
+		return &reconcile.Result{}, fmt.Errorf("failed to get ModelMirror CR %s: %w", crName, err)
+	}
+
+	if cr.Status.Phase != kaitov1alpha1.ModelMirrorPhaseReady {
+		klog.InfoS("ModelMirror CR not ready, gating inference", "name", crName, "phase", cr.Status.Phase)
+		return &reconcile.Result{}, nil
+	}
+	return nil, nil
+}
+
 func (c *WorkspaceReconciler) reconcileNodes(ctx context.Context, wObj *kaitov1beta1.Workspace) (result *reconcile.Result, err error) {
+	// Refuse to provision when the persisted target node count is over the limit.
+	if err := c.guardTargetNodeCount(wObj); err != nil {
+		return &reconcile.Result{}, err
+	}
+
 	// Provision nodes via the NodeProvisioner interface.
 	// GpuProvisioner creates NodeClaims; BYOProvisioner (BYO mode) is a no-op.
 	if err := c.nodeProvisioner.ProvisionNodes(ctx, wObj); err != nil {
@@ -183,8 +309,22 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 		return reconcile.Result{}, nil
 	}
 
+	// Ensure ModelMirror CR exists (starts download in parallel with node provisioning).
+	if inference.ModelStreamingEnabled(wObj) && wObj.Inference != nil && wObj.Inference.Preset != nil {
+		if err := c.ensureModelMirror(ctx, wObj); err != nil {
+			return reconcile.Result{}, err
+		}
+	}
+
 	if result, err := c.reconcileNodes(ctx, wObj); err != nil || result != nil {
 		return *result, err
+	}
+
+	// Wait for ModelMirror CR to be Ready (gate inference pod creation).
+	if inference.ModelStreamingEnabled(wObj) && wObj.Inference != nil && wObj.Inference.Preset != nil {
+		if result, err := c.waitForModelMirror(ctx, wObj); err != nil || result != nil {
+			return *result, err
+		}
 	}
 
 	if wObj.Tuning != nil {
@@ -540,7 +680,7 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 		return err
 	}
 
-	inferenceReady, err := c.collectInferenceReadyStatus(ctx, wObj)
+	inferenceReady, hasBenchmarkProbe, err := c.collectInferenceReadyStatus(ctx, wObj)
 	if err != nil {
 		return err
 	}
@@ -549,6 +689,12 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 	if err != nil {
 		return err
 	}
+
+	// benchmarkApplicable gates the benchmark on the *running* pod: it requires both
+	// that the workspace should benchmark and that the StatefulSet actually
+	// carries the benchmark startup probe. Legacy workspaces created before the
+	// benchmark feature have no probe (backward compatibility).
+	benchmarkApplicable := kaitov1beta1.ShouldRunBenchmark(wObj) && hasBenchmarkProbe
 
 	appendReconcileErrMessage := buildReconcileErrMessageAppender(reconcileErr)
 
@@ -589,7 +735,44 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 		}
 
 		if wObj.Inference != nil {
-			applyInferenceWorkspaceStatus(ctx, status, wObj, appendReconcileErrMessage, inferenceReady, resourceConditionStatus)
+			if inference.ModelStreamingEnabled(wObj) && wObj.Inference.Preset != nil {
+
+				modelID := inference.ResolveHFModelID(wObj)
+				crName := inference.ModelMirrorCRName(modelID)
+
+				cr := &kaitov1alpha1.ModelMirror{}
+				if err := c.Get(ctx, client.ObjectKey{Name: crName}, cr); err != nil {
+					if !apierrors.IsNotFound(err) {
+						klog.ErrorS(err, "failed to get ModelMirror CR for status sync", "cr", crName)
+					}
+					// CR not found or error — model weights not ready, override ResourceReady
+					resourceConditionStatus = metav1.ConditionFalse
+					setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
+						kaitov1beta1.ConditionTypeResourceStatus,
+						metav1.ConditionFalse, "ModelMirrorNotReady", "Model download has not started")
+				} else {
+					if cr.Status.Phase == kaitov1alpha1.ModelMirrorPhaseReady {
+						setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
+							kaitov1beta1.WorkspaceConditionTypeModelMirrorReady,
+							metav1.ConditionTrue, "ModelMirrorReady", "Model download complete")
+					} else {
+						msg := "Model download in progress"
+						if cr.Status.FailureMessage != "" {
+							msg = cr.Status.FailureMessage
+						}
+						setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
+							kaitov1beta1.WorkspaceConditionTypeModelMirrorReady,
+							metav1.ConditionFalse, "ModelMirrorPending", msg)
+						// Model weights not ready — override ResourceReady
+						resourceConditionStatus = metav1.ConditionFalse
+						setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
+							kaitov1beta1.ConditionTypeResourceStatus,
+							metav1.ConditionFalse, "ModelMirrorNotReady", msg)
+					}
+				}
+			}
+
+			applyInferenceWorkspaceStatus(ctx, status, wObj, appendReconcileErrMessage, inferenceReady, resourceConditionStatus, benchmarkApplicable)
 			return nil
 		}
 
@@ -636,17 +819,20 @@ func (c *WorkspaceReconciler) collectNodeStatusSnapshot(ctx context.Context, wOb
 	return snapshot, nil
 }
 
-func (c *WorkspaceReconciler) collectInferenceReadyStatus(ctx context.Context, wObj *kaitov1beta1.Workspace) (bool, error) {
+// collectInferenceReadyStatus reports whether the inference workload is ready and
+// whether its StatefulSet carries the benchmark startup probe (false for legacy,
+// pre-benchmark-feature workspaces).
+func (c *WorkspaceReconciler) collectInferenceReadyStatus(ctx context.Context, wObj *kaitov1beta1.Workspace) (inferenceReady bool, hasBenchmarkProbe bool, err error) {
 	if wObj.Inference == nil {
-		return false, nil
+		return false, false, nil
 	}
 
 	ss := &appsv1.StatefulSet{}
 	if err := c.Get(ctx, types.NamespacedName{Name: wObj.Name, Namespace: wObj.Namespace}, ss); err != nil {
 		if apierrors.IsNotFound(err) {
-			return false, nil
+			return false, false, nil
 		}
-		return false, err
+		return false, false, err
 	}
 
 	replicas := int32(1)
@@ -654,7 +840,31 @@ func (c *WorkspaceReconciler) collectInferenceReadyStatus(ctx context.Context, w
 		replicas = *ss.Spec.Replicas
 	}
 
-	return ss.Status.ReadyReplicas == replicas, nil
+	return ss.Status.ReadyReplicas == replicas, hasBenchmarkStartupProbe(ss), nil
+}
+
+// benchmarkEntrypointMarker is the script basename that uniquely identifies the
+// benchmark startup probe. Kept in sync with buildBenchmarkStartupProbe in
+// pkg/workspace/inference/preset_inferences.go.
+const benchmarkEntrypointMarker = "benchmark_entrypoint.py"
+
+// hasBenchmarkStartupProbe reports whether the StatefulSet's pod template has the
+// benchmark startup probe on any container. This is used to determine if it is
+// a legacy workspace without the probe (backward compatibility)
+func hasBenchmarkStartupProbe(ss *appsv1.StatefulSet) bool {
+	if ss == nil {
+		return false
+	}
+	for i := range ss.Spec.Template.Spec.Containers {
+		p := ss.Spec.Template.Spec.Containers[i].StartupProbe
+		if p == nil || p.Exec == nil || len(p.Exec.Command) == 0 {
+			continue
+		}
+		if strings.Contains(strings.Join(p.Exec.Command, " "), benchmarkEntrypointMarker) {
+			return true
+		}
+	}
+	return false
 }
 
 type tuningStatusSnapshot struct {
@@ -744,7 +954,7 @@ func applyTuningWorkspaceStatus(status *kaitov1beta1.WorkspaceStatus, generation
 }
 
 func applyInferenceWorkspaceStatus(ctx context.Context, status *kaitov1beta1.WorkspaceStatus, wObj *kaitov1beta1.Workspace, appendMessage func(string) string,
-	inferenceReady bool, resourceConditionStatus metav1.ConditionStatus) {
+	inferenceReady bool, resourceConditionStatus metav1.ConditionStatus, benchmarkApplicable bool) {
 	generation := wObj.GetGeneration()
 	resourceReady := resourceConditionStatus == metav1.ConditionTrue
 	isInferenceEstablished := status.State == kaitov1beta1.WorkspaceStateReady || status.State == kaitov1beta1.WorkspaceStateNotReady
@@ -753,7 +963,7 @@ func applyInferenceWorkspaceStatus(ctx context.Context, status *kaitov1beta1.Wor
 		setWorkspaceCondition(status, generation, appendMessage,
 			kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionTrue, "WorkspaceInferenceStatusSuccess", "Inference has been deployed successfully")
 
-		if kaitov1beta1.ShouldRunBenchmark(wObj) {
+		if benchmarkApplicable {
 			if err := applyBenchmarkStatus(ctx, status, wObj, generation, appendMessage); err != nil {
 				setWorkspaceCondition(status, generation, appendMessage,
 					kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse, "BenchmarkFailed", err.Error())
@@ -772,12 +982,7 @@ func applyInferenceWorkspaceStatus(ctx context.Context, status *kaitov1beta1.Wor
 		kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionFalse, "WorkspaceInferenceStatusPending", "Inference workload is not ready")
 	setWorkspaceCondition(status, generation, appendMessage,
 		kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse, "workspacePending", "workspace is waiting for inference workload readiness")
-	// Clear benchmark state so applyBenchmarkStatus re-runs once inference recovers.
-	// This ensures a pod restart or rolling update doesn't leave stale results.
-	if kaitov1beta1.ShouldRunBenchmark(wObj) {
-		meta.RemoveStatusCondition(&status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted))
-		status.Performance = nil
-	}
+
 	if isInferenceEstablished {
 		status.State = kaitov1beta1.WorkspaceStateNotReady
 	} else {
@@ -788,11 +993,11 @@ func applyInferenceWorkspaceStatus(ctx context.Context, status *kaitov1beta1.Wor
 // applyBenchmarkStatus reads and parses the benchmark result from pod logs,
 // then sets the BenchmarkCompleted condition on the workspace status.
 // Returns nil on success (or when already recorded), non-nil on terminal failure.
-// Skips the log read when BenchmarkCompleted is already True — the not-ready path
-// clears the condition on any pod restart or rolling update.
+// The result is write-once: the skip guard below returns early once
+// BenchmarkCompleted is True, so a recorded result is never re-read or overwritten.
 func applyBenchmarkStatus(ctx context.Context, status *kaitov1beta1.WorkspaceStatus, wObj *kaitov1beta1.Workspace, generation int64, appendMessage func(string) string) error {
-	// Skip once the benchmark is done. Safe because the not-ready path clears BenchmarkCompleted
-	// whenever inference goes down, so we won't get into a stale state.
+	// Skip once the benchmark is done (write-once). Nothing clears BenchmarkCompleted on a
+	// readiness transition, so a recorded result survives transient flaps and pod restarts.
 	if c := meta.FindStatusCondition(status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted)); c != nil && c.Status == metav1.ConditionTrue {
 		return nil
 	}
@@ -967,6 +1172,22 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 	return nil
 }
 
+// guardTargetNodeCount blocks provisioning when the persisted target node
+// count exceeds MaxAllowedNodeCount. Only enforced for inference; tuning
+// paths set Resource.Count directly and do not go through the estimator.
+func (c *WorkspaceReconciler) guardTargetNodeCount(wObj *kaitov1beta1.Workspace) error {
+	if wObj.Inference == nil || wObj.Status.TargetNodeCount <= MaxAllowedNodeCount {
+		return nil
+	}
+	msg := fmt.Sprintf("estimated node count %d exceeds the maximum allowed %d; "+
+		"node provisioning halted. Use a larger GPU instance type or reduce model/context size.",
+		wObj.Status.TargetNodeCount, MaxAllowedNodeCount)
+	if c.Recorder != nil {
+		c.Recorder.Eventf(wObj, corev1.EventTypeWarning, "NodeCountExceedsLimit", msg)
+	}
+	return fmt.Errorf("%s", msg)
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	c.Recorder = mgr.GetEventRecorderFor("Workspace")
@@ -988,6 +1209,13 @@ func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 				enqueueHandler: enqueueWorkspaceForNodeClaim,
 			},
 			builder.WithPredicates(nodeclaim.NodeClaimPredicate),
+		)
+	}
+
+	// Watch ModelMirror CRs to immediately reconcile workspaces when downloads complete.
+	if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+		bldr = bldr.Watches(&kaitov1alpha1.ModelMirror{},
+			enqueueWorkspacesForModelMirror(c.Client),
 		)
 	}
 

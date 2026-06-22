@@ -210,8 +210,8 @@ func assertStreamingPod(namespace, workspaceName, modelID string, distributed bo
 	if !strings.Contains(cmd, "az://") {
 		return fmt.Errorf("pod %s command missing az:// model path: %s", podName, cmd)
 	}
-	if !strings.Contains(cmd, "--load-format runai_streamer") {
-		return fmt.Errorf("pod %s command missing '--load-format runai_streamer': %s", podName, cmd)
+	if !strings.Contains(cmd, "--load-format=runai_streamer") {
+		return fmt.Errorf("pod %s command missing '--load-format=runai_streamer': %s", podName, cmd)
 	}
 	if !hasEnv(c.Env, "AZURE_STORAGE_ACCOUNT_NAME") {
 		return fmt.Errorf("pod %s missing AZURE_STORAGE_ACCOUNT_NAME env", podName)

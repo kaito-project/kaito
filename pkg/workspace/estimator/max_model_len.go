@@ -20,6 +20,33 @@ import (
 	"k8s.io/klog/v2"
 )
 
+const (
+	// gpuMemoryUtilization mirrors the --gpu-memory-utilization value vLLM is
+	// launched with (see buildVLLMInferenceCommand in pkg/model/interface.go).
+	// vLLM treats it as the hard cap on the fraction of total GPU memory used for
+	// weights + activations + CUDA graphs + KV cache, so the estimator must use
+	// the same value to predict the KV-cache budget vLLM will actually have.
+	gpuMemoryUtilization = 0.84
+
+	// weightExpansionFactor accounts for the ~2% expansion of model weights once
+	// loaded by vLLM relative to the on-disk safetensor size.
+	weightExpansionFactor = 1.02
+
+	// baseOverheadGiB is the model-independent part of vLLM's fixed per-GPU
+	// overhead: non-torch allocations such as the CUDA context and NCCL buffers
+	// (~0.6 GiB) plus a baseline for small-model activations and CUDA graphs
+	// (~1.7 GiB). Larger models add to this via overheadWeightFactor below.
+	baseOverheadGiB = 2.3
+
+	// overheadWeightFactor scales the runtime overhead with the per-GPU model
+	// weight share (modelWeightOverhead). Peak activation memory and CUDA graph
+	// capture both grow with hidden size / layer count and are sharded across TP
+	// ranks the same way weights are, so the per-GPU weight share is a good proxy
+	// for them. vLLM measures these empirically in determine_available_memory() and
+	// profile_cudagraph_memory(). We approximate at best effort here.
+	overheadWeightFactor = 0.05
+)
+
 // MaxModelLenInput contains the inputs required to compute the optimal
 // max model length for GPU memory efficiency. The struct is intentionally
 // self-contained so that external callers do not have to depend on any
@@ -36,6 +63,13 @@ type MaxModelLenInput struct {
 	// DisableTensorParallelism indicates the model does not shard weights
 	// or KV cache across GPUs/nodes (e.g. Falcon-style models).
 	DisableTensorParallelism bool
+	// MLAReplicatedKVCache indicates the model uses Multi-head Latent Attention
+	// (MLA), whose compressed latent KV cache is replicated on every tensor-parallel
+	// rank rather than sharded across them. When true, the per-GPU KV footprint per
+	// token is NOT divided by GPUCount. Mis-modeling this as sharded under-counts the
+	// per-token KV by a factor of GPUCount and inflates the computed max-model-len
+	// past what vLLM can honor (deterministic startup ValueError / crash-loop).
+	MLAReplicatedKVCache bool
 	// GPUMemoryBytes is the memory of a single GPU, in bytes.
 	GPUMemoryBytes int64
 	// GPUCount is the number of GPUs per node.
@@ -109,23 +143,24 @@ func calculateMemoryParameters(in MaxModelLenInput, weightGiB float64) (float64,
 	nodes := float64(in.NumRequiredNodes)
 	bytesPerToken := float64(in.BytesPerToken)
 
-	// availableMemoryGiB = (gpuMemGB * 0.84) / gpuCount - (weightGiB * 1.02) / (nodes * gpuCount) - 2.3
+	// Available GPU memory per GPU. vLLM caps total usage at gpuMemoryUtilization;
+	// within that budget the weights, KV cache, and the fixed runtime overhead
+	// (staticOverheadGiB) must all fit.
+	usableMemoryPerGPU := (gpuMemGB * gpuMemoryUtilization) / gpuCount
 
-	// Available GPU memory per GPU with 84% utilization factor.
-	usableMemoryPerGPU := (gpuMemGB * 0.84) / gpuCount
-
-	// Model weight overhead per GPU with 2% safety margin.
+	// Model weight overhead per GPU with the weight expansion factor.
 	var modelWeightOverhead float64
 	if in.DisableTensorParallelism {
 		// Falcon-style models: don't distribute weight across nodes/GPUs.
-		modelWeightOverhead = weightGiB * 1.02
+		modelWeightOverhead = weightGiB * weightExpansionFactor
 	} else {
-		modelWeightOverhead = (weightGiB * 1.02) / (nodes * gpuCount)
+		modelWeightOverhead = (weightGiB * weightExpansionFactor) / (nodes * gpuCount)
 	}
 
-	// Static overhead for activations and non-torch components
-	// (max activations 1.7 GiB + max non-torch overhead 0.6 GiB).
-	staticOverhead := 2.3
+	// Fixed runtime overhead per GPU: a model-independent base plus a term that
+	// scales with the per-GPU model weight share, approximating the activation and
+	// CUDA-graph memory that grow with model size (see constant docs).
+	staticOverhead := baseOverheadGiB + overheadWeightFactor*modelWeightOverhead
 
 	availableMemoryGiB := usableMemoryPerGPU - modelWeightOverhead - staticOverhead
 	availableMemoryBytes := availableMemoryGiB * (1 << 30)
@@ -133,6 +168,11 @@ func calculateMemoryParameters(in MaxModelLenInput, weightGiB float64) (float64,
 	var adjustedBytesPerToken float64
 	if in.DisableTensorParallelism {
 		adjustedBytesPerToken = bytesPerToken
+	} else if in.MLAReplicatedKVCache {
+		// MLA stores a single compressed latent KV per token that is replicated on
+		// every tensor-parallel rank rather than sharded across them, so the per-GPU
+		// footprint is not divided by gpuCount.
+		adjustedBytesPerToken = bytesPerToken * nodes
 	} else {
 		adjustedBytesPerToken = bytesPerToken / gpuCount * nodes
 	}

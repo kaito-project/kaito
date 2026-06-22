@@ -22,7 +22,27 @@ Before enabling this feature in KAITO, ensure the following are installed in you
 
 ## Enable this feature
 
-This feature is supported from KAITO v0.8.0, to enable this feature in KAITO helm chart install, you need to enable both InferenceSet Controller and `gatewayAPIInferenceExtension`.
+This feature is supported from KAITO v0.8.0. Starting from **KAITO v0.11.0**, the InferenceSet feature has been promoted to **beta** and the `enableInferenceSetController` feature gate is enabled by default — you only need to enable the `gatewayAPIInferenceExtension` feature gate.
+
+### KAITO v0.11.0+
+
+```bash
+export CLUSTER_NAME=kaito
+
+helm repo add kaito https://kaito-project.github.io/kaito/charts/kaito
+helm repo update
+helm upgrade --install kaito-workspace kaito/workspace \
+  --namespace kaito-workspace \
+  --create-namespace \
+  --set clusterName="$CLUSTER_NAME" \
+  --set featureGates.gatewayAPIInferenceExtension=true \
+  --wait \
+  --take-ownership
+```
+
+### KAITO v0.8.0 – v0.10.x
+
+For older versions, you need to explicitly enable both feature gates:
 
 ```bash
 export CLUSTER_NAME=kaito

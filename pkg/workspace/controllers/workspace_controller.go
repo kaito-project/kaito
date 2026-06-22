@@ -680,7 +680,7 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 		return err
 	}
 
-	inferenceReady, err := c.collectInferenceReadyStatus(ctx, wObj)
+	inferenceReady, hasBenchmarkProbe, err := c.collectInferenceReadyStatus(ctx, wObj)
 	if err != nil {
 		return err
 	}
@@ -689,6 +689,12 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 	if err != nil {
 		return err
 	}
+
+	// benchmarkApplicable gates the benchmark on the *running* pod: it requires both
+	// that the workspace should benchmark and that the StatefulSet actually
+	// carries the benchmark startup probe. Legacy workspaces created before the
+	// benchmark feature have no probe (backward compatibility).
+	benchmarkApplicable := kaitov1beta1.ShouldRunBenchmark(wObj) && hasBenchmarkProbe
 
 	appendReconcileErrMessage := buildReconcileErrMessageAppender(reconcileErr)
 
@@ -766,7 +772,7 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 				}
 			}
 
-			applyInferenceWorkspaceStatus(ctx, status, wObj, appendReconcileErrMessage, inferenceReady, resourceConditionStatus)
+			applyInferenceWorkspaceStatus(ctx, status, wObj, appendReconcileErrMessage, inferenceReady, resourceConditionStatus, benchmarkApplicable)
 			return nil
 		}
 
@@ -813,17 +819,20 @@ func (c *WorkspaceReconciler) collectNodeStatusSnapshot(ctx context.Context, wOb
 	return snapshot, nil
 }
 
-func (c *WorkspaceReconciler) collectInferenceReadyStatus(ctx context.Context, wObj *kaitov1beta1.Workspace) (bool, error) {
+// collectInferenceReadyStatus reports whether the inference workload is ready and
+// whether its StatefulSet carries the benchmark startup probe (false for legacy,
+// pre-benchmark-feature workspaces).
+func (c *WorkspaceReconciler) collectInferenceReadyStatus(ctx context.Context, wObj *kaitov1beta1.Workspace) (inferenceReady bool, hasBenchmarkProbe bool, err error) {
 	if wObj.Inference == nil {
-		return false, nil
+		return false, false, nil
 	}
 
 	ss := &appsv1.StatefulSet{}
 	if err := c.Get(ctx, types.NamespacedName{Name: wObj.Name, Namespace: wObj.Namespace}, ss); err != nil {
 		if apierrors.IsNotFound(err) {
-			return false, nil
+			return false, false, nil
 		}
-		return false, err
+		return false, false, err
 	}
 
 	replicas := int32(1)
@@ -831,7 +840,31 @@ func (c *WorkspaceReconciler) collectInferenceReadyStatus(ctx context.Context, w
 		replicas = *ss.Spec.Replicas
 	}
 
-	return ss.Status.ReadyReplicas == replicas, nil
+	return ss.Status.ReadyReplicas == replicas, hasBenchmarkStartupProbe(ss), nil
+}
+
+// benchmarkEntrypointMarker is the script basename that uniquely identifies the
+// benchmark startup probe. Kept in sync with buildBenchmarkStartupProbe in
+// pkg/workspace/inference/preset_inferences.go.
+const benchmarkEntrypointMarker = "benchmark_entrypoint.py"
+
+// hasBenchmarkStartupProbe reports whether the StatefulSet's pod template has the
+// benchmark startup probe on any container. This is used to determine if it is
+// a legacy workspace without the probe (backward compatibility)
+func hasBenchmarkStartupProbe(ss *appsv1.StatefulSet) bool {
+	if ss == nil {
+		return false
+	}
+	for i := range ss.Spec.Template.Spec.Containers {
+		p := ss.Spec.Template.Spec.Containers[i].StartupProbe
+		if p == nil || p.Exec == nil || len(p.Exec.Command) == 0 {
+			continue
+		}
+		if strings.Contains(strings.Join(p.Exec.Command, " "), benchmarkEntrypointMarker) {
+			return true
+		}
+	}
+	return false
 }
 
 type tuningStatusSnapshot struct {
@@ -921,7 +954,7 @@ func applyTuningWorkspaceStatus(status *kaitov1beta1.WorkspaceStatus, generation
 }
 
 func applyInferenceWorkspaceStatus(ctx context.Context, status *kaitov1beta1.WorkspaceStatus, wObj *kaitov1beta1.Workspace, appendMessage func(string) string,
-	inferenceReady bool, resourceConditionStatus metav1.ConditionStatus) {
+	inferenceReady bool, resourceConditionStatus metav1.ConditionStatus, benchmarkApplicable bool) {
 	generation := wObj.GetGeneration()
 	resourceReady := resourceConditionStatus == metav1.ConditionTrue
 	isInferenceEstablished := status.State == kaitov1beta1.WorkspaceStateReady || status.State == kaitov1beta1.WorkspaceStateNotReady
@@ -930,7 +963,7 @@ func applyInferenceWorkspaceStatus(ctx context.Context, status *kaitov1beta1.Wor
 		setWorkspaceCondition(status, generation, appendMessage,
 			kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionTrue, "WorkspaceInferenceStatusSuccess", "Inference has been deployed successfully")
 
-		if kaitov1beta1.ShouldRunBenchmark(wObj) {
+		if benchmarkApplicable {
 			if err := applyBenchmarkStatus(ctx, status, wObj, generation, appendMessage); err != nil {
 				setWorkspaceCondition(status, generation, appendMessage,
 					kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse, "BenchmarkFailed", err.Error())
@@ -949,12 +982,7 @@ func applyInferenceWorkspaceStatus(ctx context.Context, status *kaitov1beta1.Wor
 		kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionFalse, "WorkspaceInferenceStatusPending", "Inference workload is not ready")
 	setWorkspaceCondition(status, generation, appendMessage,
 		kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse, "workspacePending", "workspace is waiting for inference workload readiness")
-	// Clear benchmark state so applyBenchmarkStatus re-runs once inference recovers.
-	// This ensures a pod restart or rolling update doesn't leave stale results.
-	if kaitov1beta1.ShouldRunBenchmark(wObj) {
-		meta.RemoveStatusCondition(&status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted))
-		status.Performance = nil
-	}
+
 	if isInferenceEstablished {
 		status.State = kaitov1beta1.WorkspaceStateNotReady
 	} else {
@@ -965,11 +993,11 @@ func applyInferenceWorkspaceStatus(ctx context.Context, status *kaitov1beta1.Wor
 // applyBenchmarkStatus reads and parses the benchmark result from pod logs,
 // then sets the BenchmarkCompleted condition on the workspace status.
 // Returns nil on success (or when already recorded), non-nil on terminal failure.
-// Skips the log read when BenchmarkCompleted is already True — the not-ready path
-// clears the condition on any pod restart or rolling update.
+// The result is write-once: the skip guard below returns early once
+// BenchmarkCompleted is True, so a recorded result is never re-read or overwritten.
 func applyBenchmarkStatus(ctx context.Context, status *kaitov1beta1.WorkspaceStatus, wObj *kaitov1beta1.Workspace, generation int64, appendMessage func(string) string) error {
-	// Skip once the benchmark is done. Safe because the not-ready path clears BenchmarkCompleted
-	// whenever inference goes down, so we won't get into a stale state.
+	// Skip once the benchmark is done (write-once). Nothing clears BenchmarkCompleted on a
+	// readiness transition, so a recorded result survives transient flaps and pod restarts.
 	if c := meta.FindStatusCondition(status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted)); c != nil && c.Status == metav1.ConditionTrue {
 		return nil
 	}

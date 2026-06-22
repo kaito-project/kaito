@@ -84,7 +84,7 @@ type MultiRoleInferenceSpec struct {
 	// EPPPluginsConfig references a ConfigMap containing custom EPP plugins configuration.
 	// If not set, the controller auto-generates a standard P/D disaggregation plugin config
 	// with prefill-filter, decode-filter, and load-aware-scorer.
-	// To enable precise-prefix-cache-scorer (which requires a tokenizer sidecar),
+	// To customize EPP plugins (e.g., enable precise-prefix-cache-scorer when available),
 	// provide a custom EPP plugins config via this field.
 	// +optional
 	EPPPluginsConfig string `json:"eppPluginsConfig,omitempty"`

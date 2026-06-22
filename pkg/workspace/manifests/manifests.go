@@ -36,6 +36,7 @@ import (
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/workspace/image"
 )
@@ -411,10 +412,15 @@ func inferencePoolTargetPort(inferenceSetObj *kaitov1beta1.InferenceSet) int32 {
 	if role != kaitov1beta1.InferenceRoleDecode {
 		return consts.PortInferenceServer
 	}
-	if kaitov1beta1.GetInferenceSetRuntimeName(inferenceSetObj) == pkgmodel.RuntimeNameVLLM {
-		return consts.PortRoutingSidecar
+	// Mirror GetWorkspaceRuntimeName logic: default to vLLM when feature gate is on.
+	if !featuregates.FeatureGates[consts.FeatureFlagVLLM] {
+		return consts.PortInferenceServer
 	}
-	return consts.PortInferenceServer
+	runtime := inferenceSetObj.Annotations[kaitov1beta1.AnnotationWorkspaceRuntime]
+	if runtime == string(pkgmodel.RuntimeNameHuggingfaceTransformers) {
+		return consts.PortInferenceServer
+	}
+	return consts.PortRoutingSidecar
 }
 
 // GenerateInferencePoolHelmRelease generates a Flux HelmRelease for the inference pool.

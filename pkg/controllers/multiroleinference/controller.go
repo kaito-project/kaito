@@ -642,7 +642,7 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	// sidecar listens on 5000 and transparently proxies /metrics to vLLM on 5001.
 	// This keeps a single metrics port across roles, avoiding per-role EPP config.
 	// Disable secure-serving so the Gateway can reach EPP over plaintext gRPC
-	// without requiring TLS DestinationRules or certificate bootstrapping.
+	// with a simple DestinationRule (mode: DISABLE) instead of requiring TLS cert management.
 	eppValues["flags"] = map[string]string{
 		"secure-serving":            "false",
 		"model-server-metrics-port": fmt.Sprintf("%d", consts.PortInferenceServer),

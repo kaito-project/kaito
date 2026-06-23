@@ -135,11 +135,11 @@ local-csi-driver:
   image:
     driver:
       repository: mcr.microsoft.com/acstor/local-csi-driver
-      tag: v0.2.9
+      tag: v0.2.18
       pullPolicy: Always
     manager:
       repository: mcr.microsoft.com/acstor/local-csi-manager
-      tag: v0.2.9
+      tag: v0.2.18
       pullPolicy: Always
     csiProvisioner:
       pullPolicy: Always

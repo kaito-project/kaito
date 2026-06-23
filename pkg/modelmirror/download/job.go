@@ -46,10 +46,6 @@ export HF_HUB_DOWNLOAD_TIMEOUT=300
 
 pip install -q "huggingface-hub==%s" hf_transfer
 
-if [ -n "${HF_TOKEN:-}" ]; then
-  hf auth login --token "$HF_TOKEN"
-fi
-
 hf download "${MODEL_ID}" \
   --max-workers 4 \%s
   --local-dir "/models/${MODEL_ID}"

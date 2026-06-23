@@ -37,7 +37,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/remotecommand"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/model"
 )
@@ -322,7 +321,7 @@ func GenerateInferenceWorkspaceManifestWithVLLM(name, namespace, imageName strin
 
 func GenerateInferenceSetManifestWithVLLM(name, namespace, imageName string, replicas int, instanceType string,
 	labelSelector *metav1.LabelSelector, presetName kaitov1beta1.ModelName, imagePullSecret []string,
-	adapters []kaitov1beta1.AdapterSpec, modelAccessSecret string) *kaitov1alpha1.InferenceSet {
+	adapters []kaitov1beta1.AdapterSpec, modelAccessSecret string) *kaitov1beta1.InferenceSet {
 
 	inferenceSet := GenerateInferenceSetManifest(name, namespace, imageName, replicas, instanceType,
 		labelSelector, presetName, imagePullSecret, adapters, modelAccessSecret)
@@ -336,18 +335,18 @@ func GenerateInferenceSetManifestWithVLLM(name, namespace, imageName string, rep
 
 func GenerateInferenceSetManifest(name, namespace, imageName string, replicas int, instanceType string,
 	labelSelector *metav1.LabelSelector, presetName kaitov1beta1.ModelName, imagePullSecret []string,
-	adapters []kaitov1beta1.AdapterSpec, modelAccessSecret string) *kaitov1alpha1.InferenceSet {
+	adapters []kaitov1beta1.AdapterSpec, modelAccessSecret string) *kaitov1beta1.InferenceSet {
 
-	inferenceSet := &kaitov1alpha1.InferenceSet{
+	inferenceSet := &kaitov1beta1.InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
-		Spec: kaitov1alpha1.InferenceSetSpec{
+		Spec: kaitov1beta1.InferenceSetSpec{
 			Replicas: lo.ToPtr(int32(replicas)),
 			Selector: labelSelector,
-			Template: kaitov1alpha1.InferenceSetTemplate{
-				Resource: kaitov1alpha1.InferenceSetResourceSpec{
+			Template: kaitov1beta1.InferenceSetTemplate{
+				Resource: kaitov1beta1.InferenceSetResourceSpec{
 					InstanceType: instanceType,
 				},
 				Inference: kaitov1beta1.InferenceSpec{

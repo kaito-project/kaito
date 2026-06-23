@@ -49,7 +49,7 @@ func newFakeClient(objs ...client.Object) client.Client {
 	return fake.NewClientBuilder().
 		WithScheme(testScheme()).
 		WithObjects(objs...).
-		WithStatusSubresource(&kaitov1alpha1.InferenceSet{}).
+		WithStatusSubresource(&kaitov1beta1.InferenceSet{}).
 		Build()
 }
 
@@ -61,16 +61,16 @@ func setTestRegistry(t *testing.T) string {
 	return inference.GetBaseImageName()
 }
 
-func makeInferenceSet(name, namespace string, enabled bool, window *kaitov1alpha1.MaintenanceWindow) *kaitov1alpha1.InferenceSet {
-	is := &kaitov1alpha1.InferenceSet{
+func makeInferenceSet(name, namespace string, enabled bool, window *kaitov1beta1.MaintenanceWindow) *kaitov1beta1.InferenceSet {
+	is := &kaitov1beta1.InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
-		Spec: kaitov1alpha1.InferenceSetSpec{},
+		Spec: kaitov1beta1.InferenceSetSpec{},
 	}
 	if enabled {
-		is.Spec.AutoUpgrade = &kaitov1alpha1.AutoUpgradePolicy{
+		is.Spec.AutoUpgrade = &kaitov1beta1.AutoUpgradePolicy{
 			Enabled:           true,
 			MaintenanceWindow: window,
 		}
@@ -292,31 +292,31 @@ func TestStatusNeedsUpdate(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		isObj         *kaitov1alpha1.InferenceSet
+		isObj         *kaitov1beta1.InferenceSet
 		newDriftCount int
 		expect        bool
 	}{
 		{
 			name: "nil AutoUpgrade status and non-zero drift",
-			isObj: &kaitov1alpha1.InferenceSet{
-				Status: kaitov1alpha1.InferenceSetStatus{},
+			isObj: &kaitov1beta1.InferenceSet{
+				Status: kaitov1beta1.InferenceSetStatus{},
 			},
 			newDriftCount: 2,
 			expect:        true,
 		},
 		{
 			name: "nil AutoUpgrade status and zero drift",
-			isObj: &kaitov1alpha1.InferenceSet{
-				Status: kaitov1alpha1.InferenceSetStatus{},
+			isObj: &kaitov1beta1.InferenceSet{
+				Status: kaitov1beta1.InferenceSetStatus{},
 			},
 			newDriftCount: 0,
 			expect:        true,
 		},
 		{
 			name: "nil NumDriftedWorkspaces and non-zero drift",
-			isObj: &kaitov1alpha1.InferenceSet{
-				Status: kaitov1alpha1.InferenceSetStatus{
-					AutoUpgrade: &kaitov1alpha1.AutoUpgradeStatus{},
+			isObj: &kaitov1beta1.InferenceSet{
+				Status: kaitov1beta1.InferenceSetStatus{
+					AutoUpgrade: &kaitov1beta1.AutoUpgradeStatus{},
 				},
 			},
 			newDriftCount: 1,
@@ -324,9 +324,9 @@ func TestStatusNeedsUpdate(t *testing.T) {
 		},
 		{
 			name: "same drift count - no update needed",
-			isObj: &kaitov1alpha1.InferenceSet{
-				Status: kaitov1alpha1.InferenceSetStatus{
-					AutoUpgrade: &kaitov1alpha1.AutoUpgradeStatus{
+			isObj: &kaitov1beta1.InferenceSet{
+				Status: kaitov1beta1.InferenceSetStatus{
+					AutoUpgrade: &kaitov1beta1.AutoUpgradeStatus{
 						NumDriftedWorkspaces: &driftCount,
 					},
 				},
@@ -336,9 +336,9 @@ func TestStatusNeedsUpdate(t *testing.T) {
 		},
 		{
 			name: "different drift count - update needed",
-			isObj: &kaitov1alpha1.InferenceSet{
-				Status: kaitov1alpha1.InferenceSetStatus{
-					AutoUpgrade: &kaitov1alpha1.AutoUpgradeStatus{
+			isObj: &kaitov1beta1.InferenceSet{
+				Status: kaitov1beta1.InferenceSetStatus{
+					AutoUpgrade: &kaitov1beta1.AutoUpgradeStatus{
 						NumDriftedWorkspaces: &driftCount,
 					},
 				},
@@ -554,7 +554,7 @@ func TestUpdateStatus(t *testing.T) {
 		err := r.updateStatus(context.Background(), is, 3, false)
 		require.NoError(t, err)
 
-		updated := &kaitov1alpha1.InferenceSet{}
+		updated := &kaitov1beta1.InferenceSet{}
 		err = cl.Get(context.Background(), client.ObjectKeyFromObject(is), updated)
 		require.NoError(t, err)
 		require.NotNil(t, updated.Status.AutoUpgrade)
@@ -571,7 +571,7 @@ func TestUpdateStatus(t *testing.T) {
 		err := r.updateStatus(context.Background(), is, 0, true)
 		require.NoError(t, err)
 
-		updated := &kaitov1alpha1.InferenceSet{}
+		updated := &kaitov1beta1.InferenceSet{}
 		err = cl.Get(context.Background(), client.ObjectKeyFromObject(is), updated)
 		require.NoError(t, err)
 		require.NotNil(t, updated.Status.AutoUpgrade)
@@ -587,7 +587,7 @@ func TestUpdateStatus(t *testing.T) {
 		err := r.updateStatus(context.Background(), is, 2, false)
 		require.NoError(t, err)
 
-		updated := &kaitov1alpha1.InferenceSet{}
+		updated := &kaitov1beta1.InferenceSet{}
 		err = cl.Get(context.Background(), client.ObjectKeyFromObject(is), updated)
 		require.NoError(t, err)
 		assert.Nil(t, updated.Status.AutoUpgrade.LastSuccessfulUpgradeTime)
@@ -603,14 +603,14 @@ func TestIsWithinMaintenanceWindow(t *testing.T) {
 	})
 
 	t.Run("autoUpgrade nil - returns true", func(t *testing.T) {
-		is := &kaitov1alpha1.InferenceSet{
-			Spec: kaitov1alpha1.InferenceSetSpec{},
+		is := &kaitov1beta1.InferenceSet{
+			Spec: kaitov1beta1.InferenceSetSpec{},
 		}
 		assert.True(t, r.isWithinMaintenanceWindow(is))
 	})
 
 	t.Run("invalid cron schedule - returns false", func(t *testing.T) {
-		is := makeInferenceSet("test", "default", true, &kaitov1alpha1.MaintenanceWindow{
+		is := makeInferenceSet("test", "default", true, &kaitov1beta1.MaintenanceWindow{
 			Schedule: "invalid cron",
 		})
 		assert.False(t, r.isWithinMaintenanceWindow(is))
@@ -655,7 +655,7 @@ func TestReconcileInferenceSet_AllUpToDate(t *testing.T) {
 	r.reconcileInferenceSet(context.Background(), is)
 
 	// NumDriftedWorkspaces should always be reported, even when 0.
-	updated := &kaitov1alpha1.InferenceSet{}
+	updated := &kaitov1beta1.InferenceSet{}
 	_ = cl.Get(context.Background(), client.ObjectKeyFromObject(is), updated)
 	require.NotNil(t, updated.Status.AutoUpgrade)
 	require.NotNil(t, updated.Status.AutoUpgrade.NumDriftedWorkspaces)
@@ -704,7 +704,7 @@ func TestReconcileInferenceSet_MarkSuccessOnDriftTransition(t *testing.T) {
 
 	prevDrift := 1
 	is := makeInferenceSet(isName, ns, true, nil)
-	is.Status.AutoUpgrade = &kaitov1alpha1.AutoUpgradeStatus{
+	is.Status.AutoUpgrade = &kaitov1beta1.AutoUpgradeStatus{
 		NumDriftedWorkspaces: &prevDrift,
 	}
 	// All workspaces now at desired state.
@@ -718,7 +718,7 @@ func TestReconcileInferenceSet_MarkSuccessOnDriftTransition(t *testing.T) {
 	r.reconcileInferenceSet(context.Background(), is)
 
 	// Should set lastSuccessfulUpgradeTime.
-	updated := &kaitov1alpha1.InferenceSet{}
+	updated := &kaitov1beta1.InferenceSet{}
 	_ = cl.Get(context.Background(), client.ObjectKeyFromObject(is), updated)
 	require.NotNil(t, updated.Status.AutoUpgrade)
 	assert.Equal(t, 0, *updated.Status.AutoUpgrade.NumDriftedWorkspaces)
@@ -743,7 +743,7 @@ func TestReconcileInferenceSet_NoSuccessWhenPreviousDriftWasZero(t *testing.T) {
 
 	// NumDriftedWorkspaces is reported as 0, but no lastSuccessfulUpgradeTime
 	// since there was no drift transition (previous was nil/0).
-	updated := &kaitov1alpha1.InferenceSet{}
+	updated := &kaitov1beta1.InferenceSet{}
 	_ = cl.Get(context.Background(), client.ObjectKeyFromObject(is), updated)
 	require.NotNil(t, updated.Status.AutoUpgrade)
 	assert.Equal(t, 0, *updated.Status.AutoUpgrade.NumDriftedWorkspaces)

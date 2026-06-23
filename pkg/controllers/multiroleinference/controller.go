@@ -145,7 +145,7 @@ func (r *MultiRoleInferenceReconciler) deleteMultiRoleInference(ctx context.Cont
 // the finalizer. OCIRepository and HelmRelease are GC'd via ownerReferences.
 func (r *MultiRoleInferenceReconciler) garbageCollectMultiRoleInference(ctx context.Context, log logr.Logger, mri *kaitov1alpha1.MultiRoleInference) (ctrl.Result, error) {
 	// List all child InferenceSets owned by this MRI.
-	isList := &kaitov1alpha1.InferenceSetList{}
+	isList := &kaitov1beta1.InferenceSetList{}
 	if err := r.List(ctx, isList, client.InNamespace(mri.Namespace), client.MatchingLabels{
 		kaitov1alpha1.LabelMultiRoleInferenceParent: mri.Name,
 	}); err != nil {
@@ -254,7 +254,7 @@ func (r *MultiRoleInferenceReconciler) addOrUpdateMultiRoleInference(ctx context
 // aggregateStatus reads child InferenceSet conditions and updates MRI status accordingly.
 func (r *MultiRoleInferenceReconciler) aggregateStatus(ctx context.Context, log logr.Logger, mri *kaitov1alpha1.MultiRoleInference) error {
 	// List all child InferenceSets.
-	isList := &kaitov1alpha1.InferenceSetList{}
+	isList := &kaitov1beta1.InferenceSetList{}
 	if err := r.List(ctx, isList, client.InNamespace(mri.Namespace), client.MatchingLabels{
 		kaitov1alpha1.LabelMultiRoleInferenceParent: mri.Name,
 	}); err != nil {
@@ -262,7 +262,7 @@ func (r *MultiRoleInferenceReconciler) aggregateStatus(ctx context.Context, log 
 	}
 
 	// Build a map from role → InferenceSet.
-	roleISMap := make(map[string]*kaitov1alpha1.InferenceSet)
+	roleISMap := make(map[string]*kaitov1beta1.InferenceSet)
 	for i := range isList.Items {
 		is := &isList.Items[i]
 		if roleLabel, ok := is.Labels[kaitov1alpha1.LabelInferenceRole]; ok {
@@ -360,12 +360,12 @@ func (r *MultiRoleInferenceReconciler) aggregateStatus(ctx context.Context, log 
 }
 
 // isInferenceSetReady checks if an InferenceSet has the InferenceSetReady condition set to True.
-func (r *MultiRoleInferenceReconciler) isInferenceSetReady(is *kaitov1alpha1.InferenceSet) bool {
+func (r *MultiRoleInferenceReconciler) isInferenceSetReady(is *kaitov1beta1.InferenceSet) bool {
 	if is == nil {
 		return false
 	}
 	for _, cond := range is.Status.Conditions {
-		if cond.Type == string(kaitov1alpha1.InferenceSetConditionTypeReady) && cond.Status == metav1.ConditionTrue {
+		if cond.Type == string(kaitov1beta1.InferenceSetConditionTypeReady) && cond.Status == metav1.ConditionTrue {
 			return true
 		}
 	}
@@ -381,7 +381,7 @@ func (r *MultiRoleInferenceReconciler) cleanupStaleInferenceSets(ctx context.Con
 	}
 
 	// List all child InferenceSets.
-	isList := &kaitov1alpha1.InferenceSetList{}
+	isList := &kaitov1beta1.InferenceSetList{}
 	if err := r.List(ctx, isList, client.InNamespace(mri.Namespace), client.MatchingLabels{
 		kaitov1alpha1.LabelMultiRoleInferenceParent: mri.Name,
 	}); err != nil {
@@ -410,7 +410,7 @@ func (r *MultiRoleInferenceReconciler) reconcileInferenceSet(
 	roleStr := string(role.Type)
 
 	// Build the desired InferenceSet.
-	desired := &kaitov1alpha1.InferenceSet{
+	desired := &kaitov1beta1.InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      isName,
 			Namespace: mri.Namespace,
@@ -461,7 +461,7 @@ func (r *MultiRoleInferenceReconciler) reconcileInferenceSet(
 		desired.Spec.Template.Labels = templateLabels
 
 		// Resource.
-		desired.Spec.Template.Resource = kaitov1alpha1.InferenceSetResourceSpec{
+		desired.Spec.Template.Resource = kaitov1beta1.InferenceSetResourceSpec{
 			InstanceType: role.InstanceType,
 		}
 
@@ -729,7 +729,7 @@ func (r *MultiRoleInferenceReconciler) isInferencePoolReady(ctx context.Context,
 func (r *MultiRoleInferenceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	builder := ctrl.NewControllerManagedBy(mgr).
 		For(&kaitov1alpha1.MultiRoleInference{}).
-		Owns(&kaitov1alpha1.InferenceSet{})
+		Owns(&kaitov1beta1.InferenceSet{})
 
 	// Only watch Flux resources when Gateway API Inference Extension is enabled,
 	// because the Flux CRDs are only installed under that feature gate.

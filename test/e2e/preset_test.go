@@ -35,7 +35,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/uuid"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/test/e2e/utils"
@@ -267,7 +266,7 @@ func createAndValidateWorkspace(workspaceObj *kaitov1beta1.Workspace) {
 	})
 }
 
-func createAndValidateInferenceSet(inferenceSetObj *kaitov1alpha1.InferenceSet) {
+func createAndValidateInferenceSet(inferenceSetObj *kaitov1beta1.InferenceSet) {
 	By("Creating InferenceSet", func() {
 		Eventually(func() error {
 			return utils.TestingCluster.KubeClient.Create(ctx, inferenceSetObj, &client.CreateOptions{})
@@ -395,7 +394,7 @@ func validateResourceStatus(workspaceObj *kaitov1beta1.Workspace) {
 	})
 }
 
-func validateInferenceSetStatus(inferenceSetObj *kaitov1alpha1.InferenceSet) {
+func validateInferenceSetStatus(inferenceSetObj *kaitov1beta1.InferenceSet) {
 	By("Checking the InferenceSet status", func() {
 		Eventually(func() bool {
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
@@ -408,7 +407,7 @@ func validateInferenceSetStatus(inferenceSetObj *kaitov1alpha1.InferenceSet) {
 			}
 
 			_, conditionFound := lo.Find(inferenceSetObj.Status.Conditions, func(condition metav1.Condition) bool {
-				return condition.Type == string(kaitov1alpha1.InferenceSetConditionTypeReady) &&
+				return condition.Type == string(kaitov1beta1.InferenceSetConditionTypeReady) &&
 					condition.Status == metav1.ConditionTrue
 			})
 			return conditionFound
@@ -485,7 +484,7 @@ func validateInferenceResource(workspaceObj *kaitov1beta1.Workspace, expectedRep
 	})
 }
 
-func validateInferenceSetReplicas(inferenceSetObj *kaitov1alpha1.InferenceSet, expectedReplicas int32) {
+func validateInferenceSetReplicas(inferenceSetObj *kaitov1beta1.InferenceSet, expectedReplicas int32) {
 	By("Checking the InferenceSet replicas", func() {
 		// Only log when the replica summary changes to avoid repeating the same
 		// lines on every poll.
@@ -1034,7 +1033,7 @@ func deleteWorkspace(workspaceObj *kaitov1beta1.Workspace) error {
 	return nil
 }
 
-func cleanupResourcesForInferenceSet(inferenceSetObj *kaitov1alpha1.InferenceSet) {
+func cleanupResourcesForInferenceSet(inferenceSetObj *kaitov1beta1.InferenceSet) {
 	By("Cleaning up InferenceSet resources", func() {
 		if !CurrentSpecReport().Failed() {
 			// List child workspaces before deletion (for NodePool deletion validation)
@@ -1064,7 +1063,7 @@ func cleanupResourcesForInferenceSet(inferenceSetObj *kaitov1alpha1.InferenceSet
 	})
 }
 
-func deleteInferenceSet(inferenceSetObj *kaitov1alpha1.InferenceSet) error {
+func deleteInferenceSet(inferenceSetObj *kaitov1beta1.InferenceSet) error {
 	By("Deleting InferenceSet", func() {
 		Eventually(func() error {
 			// Check if the InferenceSet exists

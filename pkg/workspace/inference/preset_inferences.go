@@ -181,7 +181,12 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		modelID = ResolveHFModelID(workspaceObj)
 		crName := ModelMirrorCRName(modelID)
 
-		streamingCfg, err = StreamingDefaults.ModelStreamer.GetStreamingConfig(gctx, crName, workspaceObj.Namespace, modelID)
+		mmCR := &kaitov1alpha1.ModelMirror{}
+		if err := gctx.KubeClient.Get(gctx.Ctx, client.ObjectKey{Name: crName}, mmCR); err != nil {
+			return nil, fmt.Errorf("failed to get ModelMirror CR %s for streaming config: %w", crName, err)
+		}
+
+		streamingCfg, err = StreamingDefaults.ModelStreamer.GetStreamingConfig(gctx, crName, mmCR.Spec.JobNamespace, modelID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to resolve streaming config: %w", err)
 		}

@@ -369,6 +369,412 @@ spec:
                       description: Metric holds an aggregated benchmark measurement
                         across workspace replicas.
                       properties:
+                        config:
+                          additionalProperties:
+                            type: string
+                          description: Config holds the benchmark parameters used
+                            to produce this metric as free-form key/value pairs.
+                          type: object
+                        description:
+                          description: Description describes the benchmark type and
+                            load pattern, e.g. "stress/high-concurrency".
+                          type: string
+                        unit:
+                          description: Unit is the unit of the metric value (e.g.
+                            "tokens/min").
+                          type: string
+                        value:
+                          description: Value is the aggregated metric value, formatted
+                            as a string.
+                          type: string
+                      required:
+                      - description
+                      - value
+                      type: object
+                    description: Metrics is a map of metric name to Metric.
+                    type: object
+                type: object
+              readyReplicas:
+                description: ReadyReplicas is the number of workspaces that are in
+                  ready state.
+                type: integer
+              replicas:
+                description: Replicas is the total number of workspaces created by
+                  the InferenceSet.
+                type: integer
+              selector:
+                description: |-
+                  Selector is used to select the pods that provide metrics for making scaling action decisions.
+                  This field must be set when HPA and VPA is used for scaling.
+                type: string
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: false
+    subresources:
+      scale:
+        labelSelectorPath: .status.selector
+        specReplicasPath: .spec.replicas
+        statusReplicasPath: .status.replicas
+      status: {}
+  - additionalPrinterColumns:
+    - jsonPath: .spec.replicas
+      name: Replicas
+      type: integer
+    - jsonPath: .status.readyReplicas
+      name: ReadyReplicas
+      type: integer
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1beta1
+    schema:
+      openAPIV3Schema:
+        description: InferenceSet is the Schema for the InferenceSet API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: Spec defines the desired state of InferenceSet
+            properties:
+              autoUpgrade:
+                description: |-
+                  AutoUpgrade configures automatic base image upgrade behavior.
+                  When enabled, the controller detects base image version mismatches
+                  after a controller upgrade and performs in-place rolling updates of
+                  Workspace StatefulSets.
+                properties:
+                  enabled:
+                    default: false
+                    description: |-
+                      Enabled controls whether the controller automatically upgrades
+                      Workspace replicas when a newer base image version is detected
+                      after a controller upgrade.
+                    type: boolean
+                  maintenanceWindow:
+                    description: |-
+                      MaintenanceWindow restricts when upgrades may be applied.
+                      If not specified, upgrades may be applied at any time.
+                    properties:
+                      duration:
+                        default: 4h
+                        description: |-
+                          Duration specifies how long the maintenance window stays open after
+                          each cron tick. If a rollout is still in progress when the window
+                          closes, the in-progress Workspace upgrade is allowed to complete
+                          (the controller will not start upgrading the next Workspace until the
+                          next window opens).
+                          Defaults to 4h.
+                        type: string
+                      schedule:
+                        description: |-
+                          Schedule is a cron expression (5-field, UTC) defining when upgrades
+                          are permitted to start. The window opens at each cron tick and stays
+                          open for Duration.
+                          Example: "0 2 * * 6" = every Saturday at 02:00 UTC.
+                        type: string
+                    required:
+                    - schedule
+                    type: object
+                type: object
+              labelSelector:
+                description: workspace created by InferenceSet controller would use
+                  this label in resource.labelSelector
+                properties:
+                  matchExpressions:
+                    description: matchExpressions is a list of label selector requirements.
+                      The requirements are ANDed.
+                    items:
+                      description: |-
+                        A label selector requirement is a selector that contains values, a key, and an operator that
+                        relates the key and values.
+                      properties:
+                        key:
+                          description: key is the label key that the selector applies
+                            to.
+                          type: string
+                        operator:
+                          description: |-
+                            operator represents a key's relationship to a set of values.
+                            Valid operators are In, NotIn, Exists and DoesNotExist.
+                          type: string
+                        values:
+                          description: |-
+                            values is an array of string values. If the operator is In or NotIn,
+                            the values array must be non-empty. If the operator is Exists or DoesNotExist,
+                            the values array must be empty. This array is replaced during a strategic
+                            merge patch.
+                          items:
+                            type: string
+                          type: array
+                          x-kubernetes-list-type: atomic
+                      required:
+                      - key
+                      - operator
+                      type: object
+                    type: array
+                    x-kubernetes-list-type: atomic
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: |-
+                      matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels
+                      map is equivalent to an element of matchExpressions, whose key field is "key", the
+                      operator is "In", and the values array contains only "value". The requirements are ANDed.
+                    type: object
+                type: object
+                x-kubernetes-map-type: atomic
+              nodeCountLimit:
+                description: |-
+                  NodeCountLimit is the maximum number of GPU nodes that can be created for the InferenceSet.
+                  If not specified, there is no limit on the number of GPU nodes that can be created.
+                type: integer
+              replicas:
+                default: 1
+                description: Replicas is the desired number of workspaces to be created.
+                format: int32
+                minimum: 0
+                type: integer
+              template:
+                description: Template is the template used to create the InferenceSet.
+                properties:
+                  inference:
+                    properties:
+                      adapters:
+                        description: |-
+                          Adapters are integrated into the base model for inference.
+                          Users can specify multiple adapters for the model and the respective weight of using each of them.
+                        items:
+                          properties:
+                            source:
+                              description: Source describes where to obtain the adapter
+                                data.
+                              properties:
+                                image:
+                                  description: |-
+                                    The name of the image that contains the source data. The assumption is that the source data locates in the
+                                    `data` directory in the image.
+                                  type: string
+                                imagePullSecrets:
+                                  description: ImagePullSecrets is a list of secret
+                                    names in the same namespace used for pulling the
+                                    data image.
+                                  items:
+                                    type: string
+                                  type: array
+                                name:
+                                  description: |-
+                                    The name of the dataset. The same name will be used as a container name.
+                                    It must be a valid DNS subdomain value,
+                                  type: string
+                                urls:
+                                  description: URLs specifies the links to the public
+                                    data sources. E.g., files in a public github repository.
+                                  items:
+                                    type: string
+                                  type: array
+                                volumeSource:
+                                  description: The mounted volume that contains the
+                                    data.
+                                  x-kubernetes-preserve-unknown-fields: true
+                              type: object
+                            strength:
+                              description: |-
+                                Strength specifies the default multiplier for applying the adapter weights to the raw model weights.
+                                It is usually a float number between 0 and 1. It is defined as a string type to be language agnostic.
+                              type: string
+                          type: object
+                        type: array
+                      config:
+                        description: |-
+                          Config specifies the name of a custom ConfigMap that contains inference arguments.
+                          If specified, the ConfigMap must be in the same namespace as the Workspace custom resource.
+                        type: string
+                      preset:
+                        description: Preset describes the base model that will be
+                          deployed with preset configurations.
+                        properties:
+                          accessMode:
+                            default: public
+                            description: |-
+                              Deprecated: This field is deprecated in v1beta1 and will be removed in a future version.
+                              AccessMode specifies whether the containerized model image is accessible via public registry
+                              or private registry. This field defaults to "public" if not specified.
+                              If this field is "private", user needs to provide the private image information in PresetOptions.
+                            enum:
+                            - public
+                            - private
+                            type: string
+                          name:
+                            description: Name of the supported models with preset
+                              configurations.
+                            type: string
+                          presetOptions:
+                            properties:
+                              image:
+                                description: |-
+                                  Deprecated: This field is deprecated in v1beta1 and will be removed in a future version.
+                                  Image is the name of the containerized model image.
+                                type: string
+                              imagePullSecrets:
+                                description: |-
+                                  Deprecated: This field is deprecated in v1beta1 and will be removed in a future version.
+                                  ImagePullSecrets is a list of secret names in the same namespace used for pulling the model image.
+                                items:
+                                  type: string
+                                type: array
+                              modelAccessSecret:
+                                description: ModelAccessSecret is the name of the
+                                  secret that contains the huggingface access token.
+                                type: string
+                            type: object
+                        required:
+                        - name
+                        type: object
+                      template:
+                        description: |-
+                          Template specifies the Pod template used to run the inference service. Users can specify custom Pod settings
+                          if the preset configurations cannot meet the requirements. Note that if Preset is specified, Template should not
+                          be specified and vice versa.
+                        x-kubernetes-preserve-unknown-fields: true
+                    type: object
+                  metadata:
+                    description: |-
+                      Standard object's metadata.
+                      More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+                    x-kubernetes-preserve-unknown-fields: true
+                  resource:
+                    properties:
+                      instanceType:
+                        description: InstanceType specifies the GPU node SKU.
+                        type: string
+                    required:
+                    - instanceType
+                    type: object
+                required:
+                - inference
+                type: object
+              updateStrategy:
+                default:
+                  rollingUpdate:
+                    maxUnavailable: 1
+                  type: RollingUpdate
+                description: UpdateStrategy indicates the strategy to use to replace
+                  existing workspaces with new ones.
+                x-kubernetes-preserve-unknown-fields: true
+            required:
+            - labelSelector
+            - template
+            type: object
+          status:
+            description: Status defines the observed state of InferenceSet
+            properties:
+              autoUpgrade:
+                description: AutoUpgrade reports the observed state of automatic base
+                  image upgrades.
+                properties:
+                  lastSuccessfulUpgradeTime:
+                    description: |-
+                      LastSuccessfulUpgradeTime is the timestamp of the last Workspace that
+                      successfully completed an auto-upgrade.
+                    format: date-time
+                    type: string
+                  numDriftedWorkspaces:
+                    description: |-
+                      NumDriftedWorkspaces is the number of Workspaces whose base image version
+                      differs from the controller's embedded version. Nil when autoUpgrade is
+                      disabled; 0 means all Workspaces are up-to-date.
+                    type: integer
+                type: object
+              conditions:
+                description: Conditions report the current conditions of the InferenceSet.
+                items:
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+              performance:
+                description: Performance holds aggregated performance characteristics
+                  across all workspace replicas.
+                properties:
+                  metrics:
+                    additionalProperties:
+                      description: Metric holds an aggregated benchmark measurement
+                        across workspace replicas.
+                      properties:
+                        config:
+                          additionalProperties:
+                            type: string
+                          description: Config holds the benchmark parameters used
+                            to produce this metric as free-form key/value pairs.
+                          type: object
                         description:
                           description: Description describes the benchmark type and
                             load pattern, e.g. "stress/high-concurrency".

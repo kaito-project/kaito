@@ -31,7 +31,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
@@ -41,13 +40,13 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 	t.Run("Should skip update when condition matches current values", func(t *testing.T) {
 		mockClient := test.NewClient()
 
-		inferenceset := &kaitov1alpha1.InferenceSet{
+		inferenceset := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:       "test-inferenceset",
 				Namespace:  "default",
 				Generation: 1,
 			},
-			Status: kaitov1alpha1.InferenceSetStatus{
+			Status: kaitov1beta1.InferenceSetStatus{
 				Conditions: []metav1.Condition{
 					{
 						Type:    string(kaitov1beta1.ConditionTypeResourceStatus),
@@ -61,7 +60,7 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 
 		ctx := context.Background()
 		err := UpdateStatusConditionIfNotMatch(ctx, mockClient, inferenceset,
-			kaitov1alpha1.ConditionTypeResourceStatus, metav1.ConditionTrue, "ResourcesReady", "All resources are ready")
+			kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionTrue, "ResourcesReady", "All resources are ready")
 
 		assert.NoError(t, err)
 		// No client calls should be made since condition matches
@@ -71,13 +70,13 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 	t.Run("Should update when condition status differs", func(t *testing.T) {
 		mockClient := test.NewClient()
 
-		inferenceset := &kaitov1alpha1.InferenceSet{
+		inferenceset := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:       "test-inferenceset",
 				Namespace:  "default",
 				Generation: 1,
 			},
-			Status: kaitov1alpha1.InferenceSetStatus{
+			Status: kaitov1beta1.InferenceSetStatus{
 				Conditions: []metav1.Condition{
 					{
 						Type:    string(kaitov1beta1.ConditionTypeResourceStatus),
@@ -92,15 +91,15 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 		// Mock the Get call for UpdateInferenceSetStatus
 		mockClient.On("Get", mock.IsType(context.Background()),
 			client.ObjectKey{Name: "test-inferenceset", Namespace: "default"},
-			mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
-			ws := args.Get(2).(*kaitov1alpha1.InferenceSet)
+			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
+			ws := args.Get(2).(*kaitov1beta1.InferenceSet)
 			*ws = *inferenceset
 		}).Return(nil)
 
 		// Mock the Status().Update call
 		mockClient.StatusMock.On("Update", mock.IsType(context.Background()),
-			mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
-			ws := args.Get(1).(*kaitov1alpha1.InferenceSet)
+			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
+			ws := args.Get(1).(*kaitov1beta1.InferenceSet)
 			// Verify the condition was updated
 			condition := meta.FindStatusCondition(ws.Status.Conditions, string(kaitov1beta1.ConditionTypeResourceStatus))
 			assert.NotNil(t, condition)
@@ -111,7 +110,7 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 
 		ctx := context.Background()
 		err := UpdateStatusConditionIfNotMatch(ctx, mockClient, inferenceset,
-			kaitov1alpha1.ConditionTypeResourceStatus, metav1.ConditionTrue, "ResourcesReady", "All resources are ready")
+			kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionTrue, "ResourcesReady", "All resources are ready")
 
 		assert.NoError(t, err)
 		mockClient.AssertExpectations(t)
@@ -121,13 +120,13 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 	t.Run("Should update when condition reason differs", func(t *testing.T) {
 		mockClient := test.NewClient()
 
-		inferenceset := &kaitov1alpha1.InferenceSet{
+		inferenceset := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:       "test-inferenceset",
 				Namespace:  "default",
 				Generation: 1,
 			},
-			Status: kaitov1alpha1.InferenceSetStatus{
+			Status: kaitov1beta1.InferenceSetStatus{
 				Conditions: []metav1.Condition{
 					{
 						Type:    string(kaitov1beta1.ConditionTypeResourceStatus),
@@ -142,18 +141,18 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 		// Mock the Get call for UpdateInferenceSetStatus
 		mockClient.On("Get", mock.IsType(context.Background()),
 			client.ObjectKey{Name: "test-inferenceset", Namespace: "default"},
-			mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
-			ws := args.Get(2).(*kaitov1alpha1.InferenceSet)
+			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
+			ws := args.Get(2).(*kaitov1beta1.InferenceSet)
 			*ws = *inferenceset
 		}).Return(nil)
 
 		// Mock the Status().Update call
 		mockClient.StatusMock.On("Update", mock.IsType(context.Background()),
-			mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(nil)
+			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Return(nil)
 
 		ctx := context.Background()
 		err := UpdateStatusConditionIfNotMatch(ctx, mockClient, inferenceset,
-			kaitov1alpha1.ConditionTypeResourceStatus, metav1.ConditionTrue, "NewReason", "All resources are ready")
+			kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionTrue, "NewReason", "All resources are ready")
 
 		assert.NoError(t, err)
 		mockClient.AssertExpectations(t)
@@ -163,13 +162,13 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 	t.Run("Should update when condition message differs", func(t *testing.T) {
 		mockClient := test.NewClient()
 
-		inferenceset := &kaitov1alpha1.InferenceSet{
+		inferenceset := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:       "test-inferenceset",
 				Namespace:  "default",
 				Generation: 1,
 			},
-			Status: kaitov1alpha1.InferenceSetStatus{
+			Status: kaitov1beta1.InferenceSetStatus{
 				Conditions: []metav1.Condition{
 					{
 						Type:    string(kaitov1beta1.ConditionTypeResourceStatus),
@@ -184,18 +183,18 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 		// Mock the Get call for UpdateInferenceSetStatus
 		mockClient.On("Get", mock.IsType(context.Background()),
 			client.ObjectKey{Name: "test-inferenceset", Namespace: "default"},
-			mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
-			ws := args.Get(2).(*kaitov1alpha1.InferenceSet)
+			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
+			ws := args.Get(2).(*kaitov1beta1.InferenceSet)
 			*ws = *inferenceset
 		}).Return(nil)
 
 		// Mock the Status().Update call
 		mockClient.StatusMock.On("Update", mock.IsType(context.Background()),
-			mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(nil)
+			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Return(nil)
 
 		ctx := context.Background()
 		err := UpdateStatusConditionIfNotMatch(ctx, mockClient, inferenceset,
-			kaitov1alpha1.ConditionTypeResourceStatus, metav1.ConditionTrue, "ResourcesReady", "New message")
+			kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionTrue, "ResourcesReady", "New message")
 
 		assert.NoError(t, err)
 		mockClient.AssertExpectations(t)
@@ -205,13 +204,13 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 	t.Run("Should add new condition when condition type doesn't exist", func(t *testing.T) {
 		mockClient := test.NewClient()
 
-		inferenceset := &kaitov1alpha1.InferenceSet{
+		inferenceset := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:       "test-inferenceset",
 				Namespace:  "default",
 				Generation: 1,
 			},
-			Status: kaitov1alpha1.InferenceSetStatus{
+			Status: kaitov1beta1.InferenceSetStatus{
 				Conditions: []metav1.Condition{}, // Empty conditions
 			},
 		}
@@ -219,15 +218,15 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 		// Mock the Get call for UpdateInferenceSetStatus
 		mockClient.On("Get", mock.IsType(context.Background()),
 			client.ObjectKey{Name: "test-inferenceset", Namespace: "default"},
-			mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
-			ws := args.Get(2).(*kaitov1alpha1.InferenceSet)
+			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
+			ws := args.Get(2).(*kaitov1beta1.InferenceSet)
 			*ws = *inferenceset
 		}).Return(nil)
 
 		// Mock the Status().Update call
 		mockClient.StatusMock.On("Update", mock.IsType(context.Background()),
-			mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
-			ws := args.Get(1).(*kaitov1alpha1.InferenceSet)
+			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
+			ws := args.Get(1).(*kaitov1beta1.InferenceSet)
 			// Verify the condition was added
 			condition := meta.FindStatusCondition(ws.Status.Conditions, string(kaitov1beta1.ConditionTypeResourceStatus))
 			assert.NotNil(t, condition)
@@ -238,7 +237,7 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 
 		ctx := context.Background()
 		err := UpdateStatusConditionIfNotMatch(ctx, mockClient, inferenceset,
-			kaitov1alpha1.ConditionTypeResourceStatus, metav1.ConditionTrue, "ResourcesReady", "All resources are ready")
+			kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionTrue, "ResourcesReady", "All resources are ready")
 
 		assert.NoError(t, err)
 		mockClient.AssertExpectations(t)
@@ -248,13 +247,13 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 	t.Run("Should propagate error from UpdateInferenceSetStatus", func(t *testing.T) {
 		mockClient := test.NewClient()
 
-		inferenceset := &kaitov1alpha1.InferenceSet{
+		inferenceset := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:       "test-inferenceset",
 				Namespace:  "default",
 				Generation: 1,
 			},
-			Status: kaitov1alpha1.InferenceSetStatus{
+			Status: kaitov1beta1.InferenceSetStatus{
 				Conditions: []metav1.Condition{
 					{
 						Type:    string(kaitov1beta1.ConditionTypeResourceStatus),
@@ -269,11 +268,11 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 		// Mock the Get call to return an error
 		mockClient.On("Get", mock.IsType(context.Background()),
 			client.ObjectKey{Name: "test-inferenceset", Namespace: "default"},
-			mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(fmt.Errorf("get error"))
+			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Return(fmt.Errorf("get error"))
 
 		ctx := context.Background()
 		err := UpdateStatusConditionIfNotMatch(ctx, mockClient, inferenceset,
-			kaitov1alpha1.ConditionTypeResourceStatus, metav1.ConditionTrue, "NewReason", "New message")
+			kaitov1beta1.ConditionTypeResourceStatus, metav1.ConditionTrue, "NewReason", "New message")
 
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "get error")
@@ -285,13 +284,13 @@ func TestUpdateInferenceSetStatus(t *testing.T) {
 	t.Run("Should successfully update inferenceset status", func(t *testing.T) {
 		mockClient := test.NewClient()
 
-		inferenceset := &kaitov1alpha1.InferenceSet{
+		inferenceset := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:       "test-inferenceset",
 				Namespace:  "default",
 				Generation: 1,
 			},
-			Status: kaitov1alpha1.InferenceSetStatus{
+			Status: kaitov1beta1.InferenceSetStatus{
 				Conditions: []metav1.Condition{},
 			},
 		}
@@ -307,15 +306,15 @@ func TestUpdateInferenceSetStatus(t *testing.T) {
 		// Mock the Get call
 		mockClient.On("Get", mock.IsType(context.Background()),
 			client.ObjectKey{Name: "test-inferenceset", Namespace: "default"},
-			mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
-			ws := args.Get(2).(*kaitov1alpha1.InferenceSet)
+			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
+			ws := args.Get(2).(*kaitov1beta1.InferenceSet)
 			*ws = *inferenceset
 		}).Return(nil)
 
 		// Mock the Status().Update call
 		mockClient.StatusMock.On("Update", mock.IsType(context.Background()),
-			mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
-			ws := args.Get(1).(*kaitov1alpha1.InferenceSet)
+			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
+			ws := args.Get(1).(*kaitov1beta1.InferenceSet)
 			// Verify the condition was set
 			foundCondition := meta.FindStatusCondition(ws.Status.Conditions, string(kaitov1beta1.ConditionTypeResourceStatus))
 			assert.NotNil(t, foundCondition)
@@ -327,7 +326,7 @@ func TestUpdateInferenceSetStatus(t *testing.T) {
 
 		ctx := context.Background()
 		key := &client.ObjectKey{Name: "test-inferenceset", Namespace: "default"}
-		err := UpdateInferenceSetStatus(ctx, mockClient, key, func(status *kaitov1alpha1.InferenceSetStatus) error {
+		err := UpdateInferenceSetStatus(ctx, mockClient, key, func(status *kaitov1beta1.InferenceSetStatus) error {
 			meta.SetStatusCondition(&status.Conditions, *condition)
 			return nil
 		})
@@ -350,12 +349,12 @@ func TestUpdateInferenceSetStatus(t *testing.T) {
 		// Mock the Get call to return NotFound error
 		mockClient.On("Get", mock.IsType(context.Background()),
 			client.ObjectKey{Name: "test-inferenceset", Namespace: "default"},
-			mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(
+			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Return(
 			apierrors.NewNotFound(schema.GroupResource{Group: "kaito.sh", Resource: "inferencesets"}, "test-inferenceset"))
 
 		ctx := context.Background()
 		key := &client.ObjectKey{Name: "test-inferenceset", Namespace: "default"}
-		err := UpdateInferenceSetStatus(ctx, mockClient, key, func(status *kaitov1alpha1.InferenceSetStatus) error {
+		err := UpdateInferenceSetStatus(ctx, mockClient, key, func(status *kaitov1beta1.InferenceSetStatus) error {
 			meta.SetStatusCondition(&status.Conditions, *condition)
 			return nil
 		})
@@ -377,11 +376,11 @@ func TestUpdateInferenceSetStatus(t *testing.T) {
 		// Mock the Get call to return a generic error
 		mockClient.On("Get", mock.IsType(context.Background()),
 			client.ObjectKey{Name: "test-inferenceset", Namespace: "default"},
-			mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(fmt.Errorf("network error"))
+			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Return(fmt.Errorf("network error"))
 
 		ctx := context.Background()
 		key := &client.ObjectKey{Name: "test-inferenceset", Namespace: "default"}
-		err := UpdateInferenceSetStatus(ctx, mockClient, key, func(status *kaitov1alpha1.InferenceSetStatus) error {
+		err := UpdateInferenceSetStatus(ctx, mockClient, key, func(status *kaitov1beta1.InferenceSetStatus) error {
 			meta.SetStatusCondition(&status.Conditions, *condition)
 			return nil
 		})
@@ -394,12 +393,12 @@ func TestUpdateInferenceSetStatus(t *testing.T) {
 	t.Run("Should handle nil condition", func(t *testing.T) {
 		mockClient := test.NewClient()
 
-		inferenceset := &kaitov1alpha1.InferenceSet{
+		inferenceset := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "test-inferenceset",
 				Namespace: "default",
 			},
-			Status: kaitov1alpha1.InferenceSetStatus{
+			Status: kaitov1beta1.InferenceSetStatus{
 				Conditions: []metav1.Condition{},
 			},
 		}
@@ -407,14 +406,14 @@ func TestUpdateInferenceSetStatus(t *testing.T) {
 		// Mock the Get call
 		mockClient.On("Get", mock.IsType(context.Background()),
 			client.ObjectKey{Name: "test-inferenceset", Namespace: "default"},
-			mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
-			ws := args.Get(2).(*kaitov1alpha1.InferenceSet)
+			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
+			ws := args.Get(2).(*kaitov1beta1.InferenceSet)
 			*ws = *inferenceset
 		}).Return(nil)
 
 		// Mock the Status().Update call
 		mockClient.StatusMock.On("Update", mock.IsType(context.Background()),
-			mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(nil)
+			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Return(nil)
 
 		ctx := context.Background()
 		key := &client.ObjectKey{Name: "test-inferenceset", Namespace: "default"}
@@ -428,12 +427,12 @@ func TestUpdateInferenceSetStatus(t *testing.T) {
 	t.Run("Should retry on retryable errors", func(t *testing.T) {
 		mockClient := test.NewClient()
 
-		inferenceset := &kaitov1alpha1.InferenceSet{
+		inferenceset := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "test-inferenceset",
 				Namespace: "default",
 			},
-			Status: kaitov1alpha1.InferenceSetStatus{
+			Status: kaitov1beta1.InferenceSetStatus{
 				Conditions: []metav1.Condition{},
 			},
 		}
@@ -448,22 +447,22 @@ func TestUpdateInferenceSetStatus(t *testing.T) {
 		// Mock the Get call (multiple times due to retry)
 		mockClient.On("Get", mock.IsType(context.Background()),
 			client.ObjectKey{Name: "test-inferenceset", Namespace: "default"},
-			mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
-			ws := args.Get(2).(*kaitov1alpha1.InferenceSet)
+			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
+			ws := args.Get(2).(*kaitov1beta1.InferenceSet)
 			*ws = *inferenceset
 		}).Return(nil)
 
 		// Mock the Status().Update call to fail first with a retryable error, then succeed
 		mockClient.StatusMock.On("Update", mock.IsType(context.Background()),
-			mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(
+			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Return(
 			apierrors.NewConflict(schema.GroupResource{Group: "kaito.sh", Resource: "inferencesets"}, "test-inferenceset", fmt.Errorf("conflict"))).Once()
 
 		mockClient.StatusMock.On("Update", mock.IsType(context.Background()),
-			mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(nil).Once()
+			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Return(nil).Once()
 
 		ctx := context.Background()
 		key := &client.ObjectKey{Name: "test-inferenceset", Namespace: "default"}
-		err := UpdateInferenceSetStatus(ctx, mockClient, key, func(status *kaitov1alpha1.InferenceSetStatus) error {
+		err := UpdateInferenceSetStatus(ctx, mockClient, key, func(status *kaitov1beta1.InferenceSetStatus) error {
 			meta.SetStatusCondition(&status.Conditions, *condition)
 			return nil
 		})
@@ -476,12 +475,12 @@ func TestUpdateInferenceSetStatus(t *testing.T) {
 	t.Run("Should return error for non-retryable status update failures", func(t *testing.T) {
 		mockClient := test.NewClient()
 
-		inferenceset := &kaitov1alpha1.InferenceSet{
+		inferenceset := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "test-inferenceset",
 				Namespace: "default",
 			},
-			Status: kaitov1alpha1.InferenceSetStatus{
+			Status: kaitov1beta1.InferenceSetStatus{
 				Conditions: []metav1.Condition{},
 			},
 		}
@@ -496,18 +495,18 @@ func TestUpdateInferenceSetStatus(t *testing.T) {
 		// Mock the Get call
 		mockClient.On("Get", mock.IsType(context.Background()),
 			client.ObjectKey{Name: "test-inferenceset", Namespace: "default"},
-			mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
-			ws := args.Get(2).(*kaitov1alpha1.InferenceSet)
+			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
+			ws := args.Get(2).(*kaitov1beta1.InferenceSet)
 			*ws = *inferenceset
 		}).Return(nil)
 
 		// Mock the Status().Update call to fail with a non-retryable error
 		mockClient.StatusMock.On("Update", mock.IsType(context.Background()),
-			mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(fmt.Errorf("permanent error"))
+			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Return(fmt.Errorf("permanent error"))
 
 		ctx := context.Background()
 		key := &client.ObjectKey{Name: "test-inferenceset", Namespace: "default"}
-		err := UpdateInferenceSetStatus(ctx, mockClient, key, func(status *kaitov1alpha1.InferenceSetStatus) error {
+		err := UpdateInferenceSetStatus(ctx, mockClient, key, func(status *kaitov1beta1.InferenceSetStatus) error {
 			meta.SetStatusCondition(&status.Conditions, *condition)
 			return nil
 		})
@@ -521,7 +520,7 @@ func TestUpdateInferenceSetStatus(t *testing.T) {
 
 func TestComputeInferenceSetHash(t *testing.T) {
 	t.Run("Should generate consistent hash for same InferenceSet", func(t *testing.T) {
-		inferenceset := &kaitov1alpha1.InferenceSet{
+		inferenceset := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "test-inferenceset",
 				Namespace: "default",
@@ -529,7 +528,7 @@ func TestComputeInferenceSetHash(t *testing.T) {
 					"app": "test",
 				},
 			},
-			Spec: kaitov1alpha1.InferenceSetSpec{
+			Spec: kaitov1beta1.InferenceSetSpec{
 				Replicas: lo.ToPtr(int32(3)),
 			},
 		}
@@ -544,22 +543,22 @@ func TestComputeInferenceSetHash(t *testing.T) {
 	})
 
 	t.Run("Should generate same hashes for different ObjectMeta", func(t *testing.T) {
-		inferenceset1 := &kaitov1alpha1.InferenceSet{
+		inferenceset1 := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "test-inferenceset-1",
 				Namespace: "default",
 			},
-			Spec: kaitov1alpha1.InferenceSetSpec{
+			Spec: kaitov1beta1.InferenceSetSpec{
 				Replicas: lo.ToPtr(int32(3)),
 			},
 		}
 
-		inferenceset2 := &kaitov1alpha1.InferenceSet{
+		inferenceset2 := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "test-inferenceset-2",
 				Namespace: "default",
 			},
-			Spec: kaitov1alpha1.InferenceSetSpec{
+			Spec: kaitov1beta1.InferenceSetSpec{
 				Replicas: lo.ToPtr(int32(3)),
 			},
 		}
@@ -571,22 +570,22 @@ func TestComputeInferenceSetHash(t *testing.T) {
 	})
 
 	t.Run("Should generate different hashes for different Spec", func(t *testing.T) {
-		inferenceset1 := &kaitov1alpha1.InferenceSet{
+		inferenceset1 := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "test-inferenceset",
 				Namespace: "default",
 			},
-			Spec: kaitov1alpha1.InferenceSetSpec{
+			Spec: kaitov1beta1.InferenceSetSpec{
 				Replicas: lo.ToPtr(int32(3)),
 			},
 		}
 
-		inferenceset2 := &kaitov1alpha1.InferenceSet{
+		inferenceset2 := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "test-inferenceset",
 				Namespace: "default",
 			},
-			Spec: kaitov1alpha1.InferenceSetSpec{
+			Spec: kaitov1beta1.InferenceSetSpec{
 				Replicas: lo.ToPtr(int32(5)),
 			},
 		}
@@ -598,28 +597,28 @@ func TestComputeInferenceSetHash(t *testing.T) {
 	})
 
 	t.Run("Should ignore Status field changes", func(t *testing.T) {
-		inferenceset1 := &kaitov1alpha1.InferenceSet{
+		inferenceset1 := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "test-inferenceset",
 				Namespace: "default",
 			},
-			Spec: kaitov1alpha1.InferenceSetSpec{
+			Spec: kaitov1beta1.InferenceSetSpec{
 				Replicas: lo.ToPtr(int32(3)),
 			},
-			Status: kaitov1alpha1.InferenceSetStatus{
+			Status: kaitov1beta1.InferenceSetStatus{
 				Conditions: []metav1.Condition{},
 			},
 		}
 
-		inferenceset2 := &kaitov1alpha1.InferenceSet{
+		inferenceset2 := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "test-inferenceset",
 				Namespace: "default",
 			},
-			Spec: kaitov1alpha1.InferenceSetSpec{
+			Spec: kaitov1beta1.InferenceSetSpec{
 				Replicas: lo.ToPtr(int32(3)),
 			},
-			Status: kaitov1alpha1.InferenceSetStatus{
+			Status: kaitov1beta1.InferenceSetStatus{
 				Conditions: []metav1.Condition{
 					{
 						Type:    string(kaitov1beta1.ConditionTypeResourceStatus),
@@ -640,14 +639,14 @@ func TestComputeInferenceSetHash(t *testing.T) {
 	t.Run("Should handle nil InferenceSet gracefully", func(t *testing.T) {
 		// This test verifies that the function doesn't panic with nil input
 		assert.NotPanics(t, func() {
-			var inferenceset *kaitov1alpha1.InferenceSet
+			var inferenceset *kaitov1beta1.InferenceSet
 			hash := ComputeInferenceSetHash(inferenceset)
 			assert.Empty(t, hash)
 		})
 	})
 
 	t.Run("Should generate same hashes for different label values", func(t *testing.T) {
-		inferenceset1 := &kaitov1alpha1.InferenceSet{
+		inferenceset1 := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "test-inferenceset",
 				Namespace: "default",
@@ -655,12 +654,12 @@ func TestComputeInferenceSetHash(t *testing.T) {
 					"version": "v1",
 				},
 			},
-			Spec: kaitov1alpha1.InferenceSetSpec{
+			Spec: kaitov1beta1.InferenceSetSpec{
 				Replicas: lo.ToPtr(int32(3)),
 			},
 		}
 
-		inferenceset2 := &kaitov1alpha1.InferenceSet{
+		inferenceset2 := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "test-inferenceset",
 				Namespace: "default",
@@ -668,7 +667,7 @@ func TestComputeInferenceSetHash(t *testing.T) {
 					"version": "v2",
 				},
 			},
-			Spec: kaitov1alpha1.InferenceSetSpec{
+			Spec: kaitov1beta1.InferenceSetSpec{
 				Replicas: lo.ToPtr(int32(3)),
 			},
 		}
@@ -680,7 +679,7 @@ func TestComputeInferenceSetHash(t *testing.T) {
 	})
 
 	t.Run("Should handle empty InferenceSet", func(t *testing.T) {
-		inferenceset := &kaitov1alpha1.InferenceSet{}
+		inferenceset := &kaitov1beta1.InferenceSet{}
 
 		hash := ComputeInferenceSetHash(inferenceset)
 
@@ -690,8 +689,8 @@ func TestComputeInferenceSetHash(t *testing.T) {
 }
 func TestMarshalInferenceSetFields(t *testing.T) {
 	t.Run("Should marshal InferenceSet fields successfully", func(t *testing.T) {
-		inferenceset := &kaitov1alpha1.InferenceSet{
-			Spec: kaitov1alpha1.InferenceSetSpec{
+		inferenceset := &kaitov1beta1.InferenceSet{
+			Spec: kaitov1beta1.InferenceSetSpec{
 				Replicas: lo.ToPtr(int32(3)),
 			},
 		}
@@ -721,7 +720,7 @@ func TestMarshalInferenceSetFields(t *testing.T) {
 	})
 
 	t.Run("Should marshal empty InferenceSet", func(t *testing.T) {
-		inferenceset := &kaitov1alpha1.InferenceSet{}
+		inferenceset := &kaitov1beta1.InferenceSet{}
 
 		jsonData, err := MarshalInferenceSetFields(inferenceset)
 
@@ -739,11 +738,11 @@ func TestMarshalInferenceSetFields(t *testing.T) {
 	})
 
 	t.Run("Should exclude Status field", func(t *testing.T) {
-		inferenceset := &kaitov1alpha1.InferenceSet{
-			Spec: kaitov1alpha1.InferenceSetSpec{
+		inferenceset := &kaitov1beta1.InferenceSet{
+			Spec: kaitov1beta1.InferenceSetSpec{
 				Replicas: lo.ToPtr(int32(3)),
 			},
-			Status: kaitov1alpha1.InferenceSetStatus{
+			Status: kaitov1beta1.InferenceSetStatus{
 				Conditions: []metav1.Condition{
 					{
 						Type:    string(kaitov1beta1.ConditionTypeResourceStatus),
@@ -771,7 +770,7 @@ func TestMarshalInferenceSetFields(t *testing.T) {
 	})
 
 	t.Run("Should marshal complex InferenceSet correctly", func(t *testing.T) {
-		inferenceset := &kaitov1alpha1.InferenceSet{
+		inferenceset := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "complex-inferenceset",
 				Namespace: "production",
@@ -785,7 +784,7 @@ func TestMarshalInferenceSetFields(t *testing.T) {
 					"owner":       "team-a",
 				},
 			},
-			Spec: kaitov1alpha1.InferenceSetSpec{
+			Spec: kaitov1beta1.InferenceSetSpec{
 				Replicas: lo.ToPtr(int32(5)),
 			},
 		}
@@ -802,12 +801,12 @@ func TestMarshalInferenceSetFields(t *testing.T) {
 	})
 
 	t.Run("Should produce valid JSON output", func(t *testing.T) {
-		inferenceset := &kaitov1alpha1.InferenceSet{
+		inferenceset := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "test-inferenceset",
 				Namespace: "default",
 			},
-			Spec: kaitov1alpha1.InferenceSetSpec{
+			Spec: kaitov1beta1.InferenceSetSpec{
 				Replicas: lo.ToPtr(int32(3)),
 			},
 		}
@@ -842,7 +841,7 @@ func TestListWorkspaces(t *testing.T) {
 
 	tests := []struct {
 		name            string
-		inferenceSet    *kaitov1alpha1.InferenceSet
+		inferenceSet    *kaitov1beta1.InferenceSet
 		existingObjects []client.Object
 		// listInterceptor, when non-nil, replaces the fake client's List
 		// implementation. Used to simulate a List error from the API server.
@@ -862,14 +861,14 @@ func TestListWorkspaces(t *testing.T) {
 		},
 		{
 			name: "Should return empty list when no Workspaces exist",
-			inferenceSet: &kaitov1alpha1.InferenceSet{
+			inferenceSet: &kaitov1beta1.InferenceSet{
 				ObjectMeta: metav1.ObjectMeta{Name: "no-match-infset", Namespace: "empty-ns"},
 			},
 			expectedNames: []string{},
 		},
 		{
 			name: "Should list Workspaces associated with InferenceSet in same namespace",
-			inferenceSet: &kaitov1alpha1.InferenceSet{
+			inferenceSet: &kaitov1beta1.InferenceSet{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-inferenceset", Namespace: "default"},
 			},
 			existingObjects: []client.Object{
@@ -880,7 +879,7 @@ func TestListWorkspaces(t *testing.T) {
 		},
 		{
 			name: "Should only return Workspaces matching namespace and label out of many",
-			inferenceSet: &kaitov1alpha1.InferenceSet{
+			inferenceSet: &kaitov1beta1.InferenceSet{
 				ObjectMeta: metav1.ObjectMeta{Name: "target-infset", Namespace: "tenant-a"},
 			},
 			existingObjects: []client.Object{
@@ -899,7 +898,7 @@ func TestListWorkspaces(t *testing.T) {
 		},
 		{
 			name: "Should propagate List error from client",
-			inferenceSet: &kaitov1alpha1.InferenceSet{
+			inferenceSet: &kaitov1beta1.InferenceSet{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-inferenceset", Namespace: "default"},
 			},
 			listInterceptor: func(ctx context.Context, c client.WithWatch, list client.ObjectList, opts ...client.ListOption) error {

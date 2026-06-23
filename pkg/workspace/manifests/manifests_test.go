@@ -41,7 +41,7 @@ func TestGenerateInferencePoolOCIRepository(t *testing.T) {
 	assert.Equal(t, workspace.Namespace, repo.Namespace)
 	assert.Len(t, repo.OwnerReferences, 1)
 	owner := repo.OwnerReferences[0]
-	assert.Equal(t, kaitov1alpha1.GroupVersion.String(), owner.APIVersion)
+	assert.Equal(t, kaitov1beta1.GroupVersion.String(), owner.APIVersion)
 	assert.Equal(t, "InferenceSet", owner.Kind)
 	assert.Equal(t, workspace.Name, owner.Name)
 	assert.True(t, *owner.Controller)
@@ -59,7 +59,7 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		workspace *kaitov1alpha1.InferenceSet
+		workspace *kaitov1beta1.InferenceSet
 		expected  map[string]any
 	}{
 
@@ -93,7 +93,7 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 
 		{
 			name: "decode role with vLLM uses routing sidecar port",
-			workspace: func() *kaitov1alpha1.InferenceSet {
+			workspace: func() *kaitov1beta1.InferenceSet {
 				ws := base.DeepCopy()
 				if ws.Spec.Template.Labels == nil {
 					ws.Spec.Template.Labels = map[string]string{}
@@ -129,7 +129,7 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 
 		{
 			name: "decode role with default runtime (no annotation) uses routing sidecar port",
-			workspace: func() *kaitov1alpha1.InferenceSet {
+			workspace: func() *kaitov1beta1.InferenceSet {
 				ws := base.DeepCopy()
 				if ws.Spec.Template.Labels == nil {
 					ws.Spec.Template.Labels = map[string]string{}

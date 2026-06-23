@@ -656,7 +656,7 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 
 	helmValues := map[string]any{
 		"router": map[string]any{
-			"epp":          eppValues,
+			"epp": eppValues,
 			"modelServers": map[string]any{
 				"matchLabels": matchLabels,
 				"targetPorts": []map[string]any{

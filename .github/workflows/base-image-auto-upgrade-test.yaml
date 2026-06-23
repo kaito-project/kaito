@@ -85,7 +85,8 @@ jobs:
           helm install kaito-workspace kaito/workspace \
             --version ${{ env.OLD_CHART_VERSION }} \
             --namespace kaito-workspace \
-            --create-namespace
+            --create-namespace \
+            --set featureGates.enableInferenceSetController=true
 
           kubectl wait --for=condition=available deploy "kaito-workspace" -n kaito-workspace --timeout=300s
 

@@ -41,11 +41,14 @@ helm upgrade --install kaito-workspace kaito/workspace \
   --take-ownership
 ```
 
+> **Note:** To also enable **MultiRoleInference (MRI)** for P/D disaggregation (alpha), add:
+> ```bash
+> --set featureGates.enableMultiRoleInferenceController=true
+> ```
+
 ### KAITO v0.8.0 – v0.10.x
 
 For older versions, you need to explicitly enable both feature gates:
-
-> **Note:** MultiRoleInference (MRI) also requires the same feature gates. No additional flags are needed beyond what is shown below.
 
 ```bash
 export CLUSTER_NAME=kaito
@@ -80,6 +83,11 @@ When you create an InferenceSet, the KAITO InferenceSet controller will:
 You can inspect these resources with kubectl in the InferenceSet namespace. Updates to the InferenceSet will reconcile these resources.
 
 ### MultiRoleInference (MRI)
+
+> **Availability:** MultiRoleInference is supported starting from **KAITO v0.11.0** as an **alpha** feature. To enable it, you must set the `enableMultiRoleInferenceController` feature gate during helm install:
+> ```bash
+> --set featureGates.enableMultiRoleInferenceController=true
+> ```
 
 MultiRoleInference (MRI) enables **prefill/decode (P/D) disaggregation** for large models where separating the two inference phases improves throughput and latency. Instead of a single set of pods handling both phases, MRI creates separate workloads for each role:
 

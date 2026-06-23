@@ -67,21 +67,21 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 			name:      "statefulset inference pool helm values",
 			workspace: base.DeepCopy(),
 			expected: map[string]any{
-				"inferenceExtension": map[string]any{
-					"image": map[string]any{
-						"hub":        consts.EPPImageHub,
-						"name":       consts.EPPImageName,
-						"tag":        consts.EPPImageTag,
-						"pullPolicy": string(corev1.PullIfNotPresent),
-					},
-				},
-				"inferencePool": map[string]any{
-					"targetPorts": []any{
-						map[string]any{
-							"number": float64(consts.PortInferenceServer),
+				"router": map[string]any{
+					"epp": map[string]any{
+						"image": map[string]any{
+							"registry":   consts.EPPImageRegistry,
+							"repository": consts.EPPImageRepository,
+							"tag":        consts.EPPImageTag,
+							"pullPolicy": string(corev1.PullIfNotPresent),
 						},
 					},
 					"modelServers": map[string]any{
+						"targetPorts": []any{
+							map[string]any{
+								"number": float64(consts.PortInferenceServer),
+							},
+						},
 						"matchLabels": map[string]any{
 							consts.WorkspaceCreatedByInferenceSetLabel: base.Name,
 							appsv1.PodIndexLabel:                       "0",
@@ -103,21 +103,21 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 				return ws
 			}(),
 			expected: map[string]any{
-				"inferenceExtension": map[string]any{
-					"image": map[string]any{
-						"hub":        consts.EPPImageHub,
-						"name":       consts.EPPImageName,
-						"tag":        consts.EPPImageTag,
-						"pullPolicy": string(corev1.PullIfNotPresent),
-					},
-				},
-				"inferencePool": map[string]any{
-					"targetPorts": []any{
-						map[string]any{
-							"number": float64(consts.PortInferenceServer),
+				"router": map[string]any{
+					"epp": map[string]any{
+						"image": map[string]any{
+							"registry":   consts.EPPImageRegistry,
+							"repository": consts.EPPImageRepository,
+							"tag":        consts.EPPImageTag,
+							"pullPolicy": string(corev1.PullIfNotPresent),
 						},
 					},
 					"modelServers": map[string]any{
+						"targetPorts": []any{
+							map[string]any{
+								"number": float64(consts.PortInferenceServer),
+							},
+						},
 						"matchLabels": map[string]any{
 							consts.WorkspaceCreatedByInferenceSetLabel: base.Name,
 							appsv1.PodIndexLabel:                       "0",
@@ -139,21 +139,21 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 				return ws
 			}(),
 			expected: map[string]any{
-				"inferenceExtension": map[string]any{
-					"image": map[string]any{
-						"hub":        consts.EPPImageHub,
-						"name":       consts.EPPImageName,
-						"tag":        consts.EPPImageTag,
-						"pullPolicy": string(corev1.PullIfNotPresent),
-					},
-				},
-				"inferencePool": map[string]any{
-					"targetPorts": []any{
-						map[string]any{
-							"number": float64(consts.PortInferenceServer),
+				"router": map[string]any{
+					"epp": map[string]any{
+						"image": map[string]any{
+							"registry":   consts.EPPImageRegistry,
+							"repository": consts.EPPImageRepository,
+							"tag":        consts.EPPImageTag,
+							"pullPolicy": string(corev1.PullIfNotPresent),
 						},
 					},
 					"modelServers": map[string]any{
+						"targetPorts": []any{
+							map[string]any{
+								"number": float64(consts.PortInferenceServer),
+							},
+						},
 						"matchLabels": map[string]any{
 							consts.WorkspaceCreatedByInferenceSetLabel: base.Name,
 							appsv1.PodIndexLabel:                       "0",

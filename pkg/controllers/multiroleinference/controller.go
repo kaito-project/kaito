@@ -613,8 +613,8 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	// Build EPP extension values with llm-d image and P/D plugins config.
 	eppValues := map[string]any{
 		"image": map[string]string{
-			"hub":        consts.EPPImageHub,
-			"name":       consts.EPPImageName,
+			"registry":   consts.EPPImageRegistry,
+			"repository": consts.EPPImageRepository,
 			"tag":        consts.EPPImageTag,
 			"pullPolicy": string(corev1.PullIfNotPresent),
 		},
@@ -655,13 +655,13 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	// it unconditionally.
 
 	helmValues := map[string]any{
-		"inferenceExtension": eppValues,
-		"inferencePool": map[string]any{
-			"targetPorts": []map[string]any{
-				{"number": consts.PortInferenceServer}, // sidecar (decode) or vLLM (prefill) on port 5000
-			},
+		"router": map[string]any{
+			"epp":          eppValues,
 			"modelServers": map[string]any{
 				"matchLabels": matchLabels,
+				"targetPorts": []map[string]any{
+					{"number": consts.PortInferenceServer}, // sidecar (decode) or vLLM (prefill) on port 5000
+				},
 			},
 		},
 	}

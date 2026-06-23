@@ -383,7 +383,7 @@ func GenerateInferencePoolOCIRepository(inferenceSetObj *kaitov1beta1.InferenceS
 			},
 		},
 		Spec: sourcev1.OCIRepositorySpec{
-			// Chart source for Gateway API Inference Extension inference pool;
+			// Chart source for llm-d router gateway;
 			// keep in sync with consts.InferencePoolChartVersion when upgrading.
 			URL: consts.InferencePoolChartURL,
 			Reference: &sourcev1.OCIRepositoryRef{
@@ -406,29 +406,29 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1beta1.InferenceSet
 		consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name,
 	}
 
-	// The Endpoint Picker (EPP) from Gateway API Inference Extension picks an endpoint that can serve traffic.
-	// KAITO overrides the default GWIE EPP image with the llm-d inference scheduler, which provides
-	// advanced scheduling plugins (KV cache-aware routing, P/D disaggregation, pluggable filters/scorers).
+	// The Endpoint Picker (EPP) from llm-d router picks an endpoint that can serve traffic.
+	// It provides advanced scheduling plugins (KV cache-aware routing, P/D disaggregation,
+	// pluggable filters/scorers).
 	// In a multi-node inference environment, this means we need to select the leader pod (with pod index 0)
 	// since only the leader pod is capable of serving traffic.
 	matchLabels[appsv1.PodIndexLabel] = "0"
 
-	// Based on https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v1.3.1/config/charts/inferencepool/values.yaml
+	// Based on https://github.com/llm-d/llm-d-router/blob/v0.9.1/config/charts/routerlib/values.yaml
 	helmValues := map[string]any{
-		"inferenceExtension": map[string]any{
-			"image": map[string]string{
-				"hub":        consts.EPPImageHub,
-				"name":       consts.EPPImageName,
-				"tag":        consts.EPPImageTag,
-				"pullPolicy": string(corev1.PullIfNotPresent),
+		"router": map[string]any{
+			"epp": map[string]any{
+				"image": map[string]string{
+					"registry":   consts.EPPImageRegistry,
+					"repository": consts.EPPImageRepository,
+					"tag":        consts.EPPImageTag,
+					"pullPolicy": string(corev1.PullIfNotPresent),
+				},
 			},
-		},
-		"inferencePool": map[string]any{
-			"targetPorts": []map[string]any{{
-				"number": inferencePoolTargetPort(),
-			}},
 			"modelServers": map[string]any{
 				"matchLabels": matchLabels,
+				"targetPorts": []map[string]any{{
+					"number": inferencePoolTargetPort(),
+				}},
 			},
 		},
 	}

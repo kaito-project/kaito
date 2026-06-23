@@ -293,7 +293,7 @@ async def test_chat_completions_stream_with_index_name_is_rejected(async_client)
 
 
 @pytest.mark.asyncio
-async def test_chat_completions_stream_with_unsupported_guardrails_action_is_rejected(
+async def test_chat_completions_stream_with_unknown_guardrails_action_is_rejected(
     async_client, monkeypatch
 ):
     import ragengine.main
@@ -303,10 +303,11 @@ async def test_chat_completions_stream_with_unsupported_guardrails_action_is_rej
         "_current",
         OutputGuardrails(
             enabled=True,
-            action_on_hit="redact",
+            action_on_hit="mask",
             scanner_configs=(
                 ParsedScannerConfig(
                     type="regex",
+                    action_on_hit="mask",
                     config=RegexConfig(patterns=[r"https?://\S+"]),
                 ),
             ),
@@ -325,7 +326,7 @@ async def test_chat_completions_stream_with_unsupported_guardrails_action_is_rej
     assert response.status_code == 400
     assert (
         response.json()["detail"]
-        == "stream=true with output guardrails only supports action=block. Unsupported action: redact."
+        == "stream=true with output guardrails only supports action=block or action=redact. Unsupported action: mask."
     )
 
 
@@ -340,11 +341,11 @@ async def test_chat_completions_stream_with_unsupported_guardrails_scanner_is_re
         "_current",
         OutputGuardrails(
             enabled=True,
-            action_on_hit="block",
+            action_on_hit="redact",
             scanner_configs=(
                 ParsedScannerConfig(
                     type="json",
-                    action_on_hit="block",
+                    action_on_hit="redact",
                     config=JSONConfig(),
                 ),
             ),
@@ -363,7 +364,8 @@ async def test_chat_completions_stream_with_unsupported_guardrails_scanner_is_re
     assert response.status_code == 400
     assert response.json()["detail"] == (
         "stream=true with output guardrails only supports ban_substrings and regex "
-        "scanners. Unsupported scanner: json."
+        "scanners. Policies requiring full-output scanning are rejected for streaming. "
+        "Unsupported scanner: json."
     )
 
 

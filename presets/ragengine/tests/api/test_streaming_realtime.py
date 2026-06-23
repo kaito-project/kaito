@@ -66,12 +66,15 @@ def _block_guardrails(
     scanner_config: ParsedScannerConfig,
     *,
     block_message: str = "blocked-by-policy",
+    action_on_hit: str = "block",
+    policy_hash: str = "",
 ) -> OutputGuardrails:
     return OutputGuardrails(
         enabled=True,
         fail_open=True,
-        action_on_hit="block",
+        action_on_hit=action_on_hit,
         block_message=block_message,
+        policy_hash=policy_hash,
         scanner_configs=(scanner_config,),
     )
 
@@ -82,6 +85,12 @@ async def _read_sse_lines(response: httpx.Response) -> list[str]:
         if line:
             lines.append(line)
     return lines
+
+
+async def _get_metrics(client: httpx.AsyncClient, ragengine_port: int) -> str:
+    response = await client.get(f"http://127.0.0.1:{ragengine_port}/metrics")
+    assert response.status_code == 200
+    return response.text
 
 
 @pytest.mark.asyncio
@@ -283,6 +292,155 @@ async def test_streaming_guardrails_blocked_stream_emits_block_message(
         'data: {"choices":[{"index":0,"delta":{},"finish_reason":"content_filter"}]}',
         "data: [DONE]",
     ]
+
+
+@pytest.mark.asyncio
+async def test_streaming_guardrails_redacts_supported_scanner_output(
+    monkeypatch, unused_tcp_port_factory
+):
+    upstream_port = unused_tcp_port_factory()
+    ragengine_port = unused_tcp_port_factory()
+
+    upstream_app = FastAPI()
+
+    @upstream_app.post("/v1/chat/completions")
+    async def chat_completions(request: Request):
+        await request.json()
+
+        async def events():
+            yield 'data: {"choices":[{"delta":{"content":"safe "}}]}\n\n'
+            yield 'data: {"choices":[{"delta":{"content":"bad text"}}]}\n\n'
+            yield "data: [DONE]\n\n"
+
+        return StreamingResponse(events(), media_type="text/event-stream")
+
+    import ragengine.inference.inference
+    import ragengine.main
+
+    monkeypatch.setattr(
+        ragengine.inference.inference,
+        "LLM_INFERENCE_URL",
+        f"http://127.0.0.1:{upstream_port}/v1/chat/completions",
+    )
+    monkeypatch.setattr(
+        ragengine.main.guardrails_reloader,
+        "_current",
+        _block_guardrails(
+            ParsedScannerConfig(
+                type="ban_substrings",
+                action_on_hit="redact",
+                config=BanSubstringsConfig(
+                    substrings=["bad"],
+                    match_type="str",
+                ),
+            ),
+            action_on_hit="redact",
+            policy_hash="policy-redact",
+        ),
+    )
+
+    async with (
+        run_uvicorn_app(upstream_app, upstream_port),
+        run_uvicorn_app(ragengine_app, ragengine_port),
+        httpx.AsyncClient(timeout=5) as client,
+        client.stream(
+            "POST",
+            f"http://127.0.0.1:{ragengine_port}/v1/chat/completions",
+            json={
+                "model": "mock-model",
+                "messages": [{"role": "user", "content": "Hello"}],
+                "stream": True,
+            },
+        ) as response,
+    ):
+        assert response.status_code == 200
+        lines = await _read_sse_lines(response)
+        metrics = await _get_metrics(client, ragengine_port)
+
+    assert lines == [
+        'data: {"choices":[{"index":0,"delta":{"content":"safe [REDACTED] text"},"finish_reason":null}]}',
+        "data: [DONE]",
+    ]
+    assert (
+        'ragengine_guardrails_stream_scanner_hits_total{action="redact",policy_hash="policy-redact",scanner_type="ban_substrings"}'
+        in metrics
+    )
+    assert (
+        'ragengine_guardrails_stream_actions_total{final_action="redact",policy_hash="policy-redact"}'
+        in metrics
+    )
+    assert (
+        'ragengine_guardrails_stream_parse_events_total{parse_status="parsed",policy_hash="policy-redact"}'
+        in metrics
+    )
+
+
+@pytest.mark.asyncio
+async def test_streaming_guardrails_records_parse_error_metrics(
+    monkeypatch, unused_tcp_port_factory
+):
+    upstream_port = unused_tcp_port_factory()
+    ragengine_port = unused_tcp_port_factory()
+
+    upstream_app = FastAPI()
+
+    @upstream_app.post("/v1/chat/completions")
+    async def chat_completions(request: Request):
+        await request.json()
+
+        async def events():
+            yield "data: {not-json}\n\n"
+            yield "data: [DONE]\n\n"
+
+        return StreamingResponse(events(), media_type="text/event-stream")
+
+    import ragengine.inference.inference
+    import ragengine.main
+
+    monkeypatch.setattr(
+        ragengine.inference.inference,
+        "LLM_INFERENCE_URL",
+        f"http://127.0.0.1:{upstream_port}/v1/chat/completions",
+    )
+    monkeypatch.setattr(
+        ragengine.main.guardrails_reloader,
+        "_current",
+        _block_guardrails(
+            ParsedScannerConfig(
+                type="regex",
+                action_on_hit="block",
+                config=RegexConfig(patterns=[r"blocked"]),
+            ),
+            policy_hash="policy-parse-error",
+        ),
+    )
+
+    async with (
+        run_uvicorn_app(upstream_app, upstream_port),
+        run_uvicorn_app(ragengine_app, ragengine_port),
+        httpx.AsyncClient(timeout=5) as client,
+        client.stream(
+            "POST",
+            f"http://127.0.0.1:{ragengine_port}/v1/chat/completions",
+            json={
+                "model": "mock-model",
+                "messages": [{"role": "user", "content": "Hello"}],
+                "stream": True,
+            },
+        ) as response,
+    ):
+        assert response.status_code == 200
+        lines = await _read_sse_lines(response)
+        metrics = await _get_metrics(client, ragengine_port)
+
+    assert lines == [
+        "data: {not-json}",
+        "data: [DONE]",
+    ]
+    assert (
+        'ragengine_guardrails_stream_parse_events_total{parse_status="malformed_json",policy_hash="policy-parse-error"}'
+        in metrics
+    )
 
 
 @pytest.mark.asyncio

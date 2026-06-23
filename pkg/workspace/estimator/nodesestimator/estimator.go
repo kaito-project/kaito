@@ -105,26 +105,38 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 		gpuMemPerGPU := float64(gpuConfig.GPUMem.Value() / int64(gpuConfig.GPUCount))
 		availGPUMem := gpuMemPerGPU * 0.84 // utilization is set to default 0.84
 
-		// Overhead: fixed base (2.3GB) + KV cache for context length
+		// Overhead: a fixed base plus the KV cache for the
+		// context length, plus a term that scales with the per-GPU model weight
+		// share (estimator.OverheadWeightFactor). For the tensor-parallel (sharded)
+		// case the weight-scaled term folds into the (1 + OverheadWeightFactor)
+		// divisor below, keeping the solve non-circular.
+		baseOverhead := estimator.BaseOverheadGiB * float64(consts.GiBToBytes)
 		kvCache := float64(maxModelLen*inferParams.BytesPerToken) / float64(gpuConfig.GPUCount)
-		overhead := 2.3*consts.GiBToBytes + kvCache
+		fixedReserve := baseOverhead + kvCache
 
-		if inferParams.DisableTensorParallelism && modelSize+overhead > availGPUMem {
-			return 0, fmt.Errorf("GPU memory %.0f bytes is too small for model, needs %.0f bytes (model: %.0f + overhead: %.0f)",
-				gpuMemPerGPU, modelSize+overhead, modelSize, overhead)
+		// Tensor-parallelism-disabled models place the full model on each GPU, so
+		// the weight-scaled overhead uses the full model size.
+		if inferParams.DisableTensorParallelism {
+			overhead := fixedReserve + estimator.OverheadWeightFactor*modelSize
+			if modelSize+overhead > availGPUMem {
+				return 0, fmt.Errorf("GPU memory %.0f bytes is too small for model, needs %.0f bytes (model: %.0f + overhead: %.0f)",
+					gpuMemPerGPU, modelSize+overhead, modelSize, overhead)
+			}
 		}
 
-		if availGPUMem <= overhead {
-			return 0, fmt.Errorf("GPU memory %.0f bytes is too small, needs at least %.1f GB overhead (base: 2.3GB + KV Cache: %.1f GB)",
-				gpuMemPerGPU, overhead/float64(consts.GiBToBytes), kvCache/float64(consts.GiBToBytes))
+		if availGPUMem <= fixedReserve {
+			return 0, fmt.Errorf("GPU memory %.0f bytes is too small, needs at least %.1f GB overhead (base: %.1fGB + KV Cache: %.1f GB)",
+				gpuMemPerGPU, fixedReserve/float64(consts.GiBToBytes), estimator.BaseOverheadGiB, kvCache/float64(consts.GiBToBytes))
 		}
 
-		availMemPerGPU := availGPUMem - overhead
+		// Per-GPU memory available for model weights. The weight-scaled overhead
+		// (OverheadWeightFactor x per-GPU weight) folds into the (1 + factor) divisor.
+		availMemPerGPU := (availGPUMem - fixedReserve) / (1 + estimator.OverheadWeightFactor)
 		minGPUs := int(modelSize/availMemPerGPU) + 1
 		nodeCountPerReplica = (minGPUs + gpuConfig.GPUCount - 1) / gpuConfig.GPUCount
 
-		klog.Infof("modelSize(%.0f), gpuMemPerGPU(%.0f), availGPUMem(%.0f), overhead(%.0f), availMemPerGPU(%.0f), minGPUs(%d) => nodeCountPerReplica(%d) for workspace %s",
-			modelSize, gpuMemPerGPU, availGPUMem, overhead, availMemPerGPU, minGPUs, nodeCountPerReplica, req.WorkspaceName)
+		klog.Infof("modelSize(%.0f), gpuMemPerGPU(%.0f), availGPUMem(%.0f), fixedReserve(%.0f), availMemPerGPU(%.0f), minGPUs(%d) => nodeCountPerReplica(%d) for workspace %s",
+			modelSize, gpuMemPerGPU, availGPUMem, fixedReserve, availMemPerGPU, minGPUs, nodeCountPerReplica, req.WorkspaceName)
 
 		if nodeCountPerReplica > 1 && inferParams.DisableTensorParallelism {
 			return 0, fmt.Errorf("models with disabled tensor parallelism cannot be distributed across more than 1 GPU node, calculated nodes: %d", nodeCountPerReplica)

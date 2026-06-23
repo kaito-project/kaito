@@ -32,19 +32,19 @@ const (
 	// loaded by vLLM relative to the on-disk safetensor size.
 	weightExpansionFactor = 1.02
 
-	// baseOverheadGiB is the model-independent part of vLLM's fixed per-GPU
+	// BaseOverheadGiB is the model-independent part of vLLM's fixed per-GPU
 	// overhead: non-torch allocations such as the CUDA context and NCCL buffers
 	// (~0.6 GiB) plus a baseline for small-model activations and CUDA graphs
-	// (~1.7 GiB). Larger models add to this via overheadWeightFactor below.
-	baseOverheadGiB = 2.3
+	// (~1.7 GiB). Larger models add to this via OverheadWeightFactor below.
+	BaseOverheadGiB = 2.3
 
-	// overheadWeightFactor scales the runtime overhead with the per-GPU model
-	// weight share (modelWeightOverhead). Peak activation memory and CUDA graph
-	// capture both grow with hidden size / layer count and are sharded across TP
-	// ranks the same way weights are, so the per-GPU weight share is a good proxy
-	// for them. vLLM measures these empirically in determine_available_memory() and
+	// OverheadWeightFactor scales the runtime overhead with the per-GPU model
+	// weight share. Peak activation memory and CUDA graph capture both grow with
+	// hidden size / layer count and are sharded across TP ranks the same way
+	// weights are, so the per-GPU weight share is a good proxy for them. vLLM
+	// measures these empirically in determine_available_memory() and
 	// profile_cudagraph_memory(). We approximate at best effort here.
-	overheadWeightFactor = 0.05
+	OverheadWeightFactor = 0.05
 )
 
 // MaxModelLenInput contains the inputs required to compute the optimal
@@ -160,7 +160,7 @@ func calculateMemoryParameters(in MaxModelLenInput, weightGiB float64) (float64,
 	// Fixed runtime overhead per GPU: a model-independent base plus a term that
 	// scales with the per-GPU model weight share, approximating the activation and
 	// CUDA-graph memory that grow with model size (see constant docs).
-	staticOverhead := baseOverheadGiB + overheadWeightFactor*modelWeightOverhead
+	staticOverhead := BaseOverheadGiB + OverheadWeightFactor*modelWeightOverhead
 
 	availableMemoryGiB := usableMemoryPerGPU - modelWeightOverhead - staticOverhead
 	availableMemoryBytes := availableMemoryGiB * (1 << 30)

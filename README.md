@@ -60,6 +60,7 @@ The details of the service APIs can be found in this [document](https://kaito-pr
 - **CPU models**: Please check this [doc](https://kaito-project.github.io/kaito/docs/aikit) for running CPU models using [aikit](https://github.com/kaito-project/aikit/).
 - **RAGEngine**: Please check the installation guidance and usage documents [here](https://kaito-project.github.io/kaito/docs/rag).
 - **RAGEngine Output Guardrails**: Please check the current behavior, configuration, and limitations [here](https://kaito-project.github.io/kaito/docs/rag-output-guardrails).
+- **Prefill/Decode Disaggregation**: Please check this [doc](https://kaito-project.github.io/kaito/docs/prefill-decode-disaggregation) for deploying models with P/D disaggregation using MultiRoleInference and Gateway API Inference Extension.
 
 
 ## Contributing

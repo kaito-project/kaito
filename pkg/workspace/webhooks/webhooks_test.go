@@ -105,11 +105,16 @@ func TestWorkspaceResources(t *testing.T) {
 }
 
 func TestInferenceSetResources(t *testing.T) {
-	// Verify that InferenceSetResources contains the expected GVK
-	assert.Equal(t, 1, len(InferenceSetResources))
+	// Verify that InferenceSetResources contains the expected GVKs
+	assert.Equal(t, 2, len(InferenceSetResources))
 
-	// Check v1alpha1 InferenceSet
+	// Check v1alpha1 InferenceSet (registered for backward compatibility during transition)
 	v1alpha1GVK := kaitov1alpha1.GroupVersion.WithKind("InferenceSet")
 	assert.Contains(t, InferenceSetResources, v1alpha1GVK)
 	assert.IsType(t, &kaitov1alpha1.InferenceSet{}, InferenceSetResources[v1alpha1GVK])
+
+	// Check v1beta1 InferenceSet
+	v1beta1GVK := kaitov1beta1.GroupVersion.WithKind("InferenceSet")
+	assert.Contains(t, InferenceSetResources, v1beta1GVK)
+	assert.IsType(t, &kaitov1beta1.InferenceSet{}, InferenceSetResources[v1beta1GVK])
 }

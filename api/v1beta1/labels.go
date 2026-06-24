@@ -68,10 +68,16 @@ const (
 	// disable it; when absent or any other value, the benchmark runs.
 	AnnotationDisableBenchmark = KAITOPrefix + "disable-benchmark"
 
+	// InferenceSetRevisionAnnotation is the Annotations for revision number
+	InferenceSetRevisionAnnotation = "inferenceset.kaito.io/revision"
+
 	// LabelInferenceRole indicates the inference role of a workspace in P/D disaggregated serving.
 	// Propagated from InferenceSet.Spec.Template.Metadata.Labels onto child workspaces by the InferenceSet controller.
 	// Valid values: "prefill", "decode".
 	LabelInferenceRole = KAITOPrefix + "inference-role"
+
+	// InferenceRoleDecode is the decode role value for token generation in P/D disaggregated serving.
+	InferenceRoleDecode = "decode"
 
 	// AnnotationPerformanceMode selects the vLLM performance preset.
 	// Valid values are "balanced" (default), "interactivity", and "throughput".
@@ -189,4 +195,39 @@ func SanitizedMatchLabels(selector *metav1.LabelSelector) map[string]string {
 		return nil
 	}
 	return out
+}
+
+// GetInferenceSetRuntimeName returns the runtime name for an InferenceSet.
+func GetInferenceSetRuntimeName(iObj *InferenceSet) model.RuntimeName {
+	if iObj == nil {
+		panic("inferenceset is nil")
+	}
+
+	if !featuregates.FeatureGates[consts.FeatureFlagVLLM] {
+		return model.RuntimeNameHuggingfaceTransformers
+	}
+
+	runtime := model.RuntimeNameVLLM
+	name := iObj.Annotations[AnnotationWorkspaceRuntime]
+	switch name {
+	case string(model.RuntimeNameHuggingfaceTransformers):
+		runtime = model.RuntimeNameHuggingfaceTransformers
+	case string(model.RuntimeNameVLLM):
+		runtime = model.RuntimeNameVLLM
+	}
+
+	return runtime
+}
+
+// IsInferenceSetBenchmarkEnabled reports whether the InferenceSet benchmark is enabled.
+func IsInferenceSetBenchmarkEnabled(iObj *InferenceSet) bool {
+	return iObj.Annotations[AnnotationDisableBenchmark] != "true"
+}
+
+// ShouldRunInferenceSetBenchmark reports whether the InferenceSet's child workspaces should
+// run the post-load benchmark.
+func ShouldRunInferenceSetBenchmark(iObj *InferenceSet) bool {
+	return IsInferenceSetBenchmarkEnabled(iObj) &&
+		GetInferenceSetRuntimeName(iObj) == model.RuntimeNameVLLM &&
+		iObj.Spec.Template.Inference.Preset != nil
 }

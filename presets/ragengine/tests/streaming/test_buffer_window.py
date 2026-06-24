@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 from ragengine.streaming.buffer_window import (
     StreamingBufferWindow,
     WindowScanResult,
-)
+)  # noqa: E402
 
 
 class AllowScanner:

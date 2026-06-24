@@ -27,13 +27,16 @@ With P/D disaggregation via **MultiRoleInference (MRI)**, KAITO creates separate
 - **Gateway API CRDs** v1.4.1+
 - A GPU node pool with sufficient capacity for both prefill and decode pods
 
-### Enable the Feature Gate
+### Enable the Feature Gates
 
 ```bash
+helm repo add kaito https://kaito-project.github.io/kaito/charts
+helm repo update
 helm upgrade --install kaito-workspace kaito/workspace \
   --namespace kaito-workspace \
   --create-namespace \
-  --set featureGates.enableMultiRoleInferenceController=true
+  --set featureGates.enableMultiRoleInferenceController=true \
+  --set featureGates.gatewayAPIInferenceExtension=true
 ```
 
 ## Architecture

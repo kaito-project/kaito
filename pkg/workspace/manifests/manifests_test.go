@@ -75,6 +75,15 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 							"tag":        consts.EPPImageTag,
 							"pullPolicy": string(corev1.PullIfNotPresent),
 						},
+						"resources": map[string]any{
+							"requests": map[string]any{
+								"cpu":    "1",
+								"memory": "2Gi",
+							},
+							"limits": map[string]any{
+								"memory": "16Gi",
+							},
+						},
 					},
 					"modelServers": map[string]any{
 						"targetPorts": []any{
@@ -111,6 +120,15 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 							"tag":        consts.EPPImageTag,
 							"pullPolicy": string(corev1.PullIfNotPresent),
 						},
+						"resources": map[string]any{
+							"requests": map[string]any{
+								"cpu":    "1",
+								"memory": "2Gi",
+							},
+							"limits": map[string]any{
+								"memory": "16Gi",
+							},
+						},
 					},
 					"modelServers": map[string]any{
 						"targetPorts": []any{
@@ -146,6 +164,15 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 							"repository": consts.EPPImageRepository,
 							"tag":        consts.EPPImageTag,
 							"pullPolicy": string(corev1.PullIfNotPresent),
+						},
+						"resources": map[string]any{
+							"requests": map[string]any{
+								"cpu":    "1",
+								"memory": "2Gi",
+							},
+							"limits": map[string]any{
+								"memory": "16Gi",
+							},
 						},
 					},
 					"modelServers": map[string]any{

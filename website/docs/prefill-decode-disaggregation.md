@@ -30,7 +30,7 @@ With P/D disaggregation via **MultiRoleInference (MRI)**, KAITO creates separate
 ### Enable the Feature Gates
 
 ```bash
-helm repo add kaito https://kaito-project.github.io/kaito/charts
+helm repo add kaito https://kaito-project.github.io/kaito/charts/kaito
 helm repo update
 helm upgrade --install kaito-workspace kaito/workspace \
   --namespace kaito-workspace \
@@ -61,12 +61,14 @@ When you create a MultiRoleInference resource, KAITO will:
 
 ### Request Flow
 
-1. The Gateway routes the request to the llm-d EPP scheduler
-2. The EPP's `prefix-based-pd-decider` plugin determines whether to route to prefill or decode based on the request's prefix cache status
-3. For a new prompt: the request goes to a **prefill pod** (port 5000, vLLM directly), which processes all input tokens in parallel and builds the KV cache
-4. The **decode pod's routing sidecar** (port 5000) receives the decode request and forwards it to vLLM (port 5001). The decode pod uses NIXL (`VLLM_NIXL_SIDE_CHANNEL_HOST`) to transfer the KV cache directly from the prefill pod
+1. The Gateway routes the incoming user request to the llm-d EPP scheduler
+2. The EPP routes user requests to a **decode pod** — the routing sidecar on port 5000 receives the request
+3. The routing sidecar forwards the request to the local vLLM instance (port 5001), which coordinates with the EPP's scheduling plugins to determine if a prefill is needed
+4. If the KV cache is not already available, the decode pod triggers a **prefill pod** to process the input tokens in parallel and build the KV cache. The prefill pod transfers the KV cache directly to the decode pod via NIXL (`VLLM_NIXL_SIDE_CHANNEL_HOST`)
 5. The decode pod performs autoregressive token generation using the transferred KV cache
 6. The response streams back through the Gateway to the client
+
+> **Note:** The InferencePool targets port 5000 on all pods (prefill + decode). The EPP's internal `prefill-filter` / `decode-filter` plugins handle role-based selection, routing user traffic to decode pods while prefill pods are coordinated internally.
 
 ## Quickstart
 

@@ -2,8 +2,6 @@
 title: Prefill/Decode Disaggregation
 ---
 
-# Prefill/Decode (P/D) Disaggregation
-
 Prefill/Decode disaggregation separates the two phases of LLM inference into independently scalable pod groups, improving throughput and GPU utilization for large models.
 
 ## Overview

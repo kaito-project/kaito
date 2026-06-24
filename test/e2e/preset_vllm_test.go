@@ -1513,4 +1513,3 @@ func validateMultiRoleInferencePDDisaggregation(mriObj *kaitov1alpha1.MultiRoleI
 			"Decode pod should show Num successful transfers >= 1")
 	})
 }
-

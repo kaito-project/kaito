@@ -32,6 +32,7 @@ With P/D disaggregation via **MultiRoleInference (MRI)**, KAITO creates separate
 ```bash
 helm upgrade --install kaito-workspace kaito/workspace \
   --namespace kaito-workspace \
+  --create-namespace \
   --set featureGates.enableMultiRoleInferenceController=true
 ```
 
@@ -42,7 +43,7 @@ helm upgrade --install kaito-workspace kaito/workspace \
 When you create a MultiRoleInference resource, KAITO will:
 
 1. Provision separate pod groups for each role (prefill and decode) via child InferenceSets
-2. **Inject a routing sidecar** into decode pods — the [`llm-d-routing-sidecar`](https://github.com/llm-d/llm-d-router) container is automatically injected, listening on port 5000 and proxying to vLLM on port 5001
+2. **Inject a routing sidecar** into decode pods — the [`llm-d-routing-sidecar`](https://github.com/llm-d/llm-d-routing-sidecar) container is automatically injected, listening on port 5000 and proxying to vLLM on port 5001
 3. **Set `VLLM_NIXL_SIDE_CHANNEL_HOST`** to the Pod IP on both prefill and decode pods, enabling cross-pod KV cache transfer via vLLM's NIXL connector
 4. Create a single InferencePool with an EPP (Endpoint Picker) deployment that uses llm-d scheduling plugins for P/D-aware routing
 5. The EPP uses scheduling profiles (`prefill` and `decode`) with a `prefix-based-pd-decider` plugin to decide which role handles each request
@@ -66,22 +67,31 @@ When you create a MultiRoleInference resource, KAITO will:
 
 ## Quickstart
 
+> **Note:** This quickstart deploys all resources in the `kaito-workspace` namespace. Adjust the namespace if your setup differs.
+
 ### 1. Install Istio and Deploy Gateway
 
-Install Istio with Gateway API Inference Extension support:
+Add the Istio Helm repo and install Istio with Gateway API Inference Extension support:
 
 ```bash
-helm install istio-base istio/base -n istio-system --create-namespace --wait
-helm install istiod istio/istiod -n istio-system --wait \
-  --set pilot.env.ENABLE_GATEWAY_API_INFERENCE_EXTENSION_DATAPLANE_SUPPORT=true \
-  --set pilot.env.PILOT_ENABLE_GATEWAY_API_INFERENCE_EXTENSION=true
+helm repo add istio https://istio-release.storage.googleapis.com/charts
+helm repo update
+helm upgrade -i istio-base istio/base \
+  --version 1.28.3 \
+  --namespace istio-system \
+  --create-namespace
+helm upgrade -i istiod istio/istiod \
+  --version 1.28.3 \
+  --namespace istio-system \
+  --set pilot.env.ENABLE_GATEWAY_API_INFERENCE_EXTENSION="true" \
+  --wait
 ```
 
 Install Gateway API CRDs and deploy the Gateway:
 
 ```bash
 kubectl apply -k "github.com/kubernetes-sigs/gateway-api/config/crd?ref=v1.4.1"
-kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/gateway.yaml
+kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/gateway.yaml -n kaito-workspace
 ```
 
 ### 2. Deploy MultiRoleInference
@@ -141,13 +151,13 @@ kubectl get pods -l inferencepool=phi-4-mini-inferencepool-epp -n kaito-workspac
 Since EPP runs with `--secure-serving=true` using a self-signed certificate, apply a DestinationRule to bypass TLS verification:
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/destinationrule-phi-4-mini.yaml
+kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/destinationrule-phi-4-mini-instruct.yaml -n kaito-workspace
 ```
 
 Create the HTTPRoute that targets the InferencePool:
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/httproute.yaml
+kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/httproute.yaml -n kaito-workspace
 ```
 
 ### 5. Test Inference
@@ -155,13 +165,13 @@ kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/head
 Get the Gateway IP:
 
 ```bash
-export GATEWAY_IP=$(kubectl get gateway inference-gateway -o jsonpath='{.status.addresses[0].value}')
+export GATEWAY_IP=$(kubectl get gateway inference-gateway -n kaito-workspace -o jsonpath='{.status.addresses[0].value}')
 ```
 
-Send a request:
+Send a request (the Gateway listens on port 80):
 
 ```bash
-curl -s "http://${GATEWAY_IP}:8080/v1/chat/completions" \
+curl -s "http://${GATEWAY_IP}/v1/chat/completions" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "phi-4-mini-instruct",
@@ -190,7 +200,7 @@ kubectl logs phi-4-mini-prefill-<id>-0 -n kaito-workspace | grep "Avg prompt thr
 Check decode pod logs for KV cache transfer metrics:
 
 ```bash
-kubectl logs phi-4-mini-decode-<id>-0 -c <container> -n kaito-workspace | grep "Num successful transfers"
+kubectl logs phi-4-mini-decode-<id>-0 -n kaito-workspace | grep "Num successful transfers"
 ```
 
 ## Scaling Recommendations
@@ -214,4 +224,4 @@ kubectl logs phi-4-mini-decode-<id>-0 -c <container> -n kaito-workspace | grep "
 - [Gateway API Inference Extension](./gateway-api-inference-extension.md) — Full GWIE documentation including InferenceSet
 - [llm-d inference scheduler](https://github.com/llm-d/llm-d-inference-scheduler) — The EPP scheduling plugins used for P/D routing
 - [NIXL](https://github.com/ai-dynamo/nixl) — The KV cache transfer library
-- [llm-d routing sidecar](https://github.com/llm-d/llm-d-router) — The sidecar injected into decode pods
+- [llm-d routing sidecar](https://github.com/llm-d/llm-d-routing-sidecar) — The sidecar injected into decode pods

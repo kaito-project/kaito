@@ -30,6 +30,8 @@ With P/D disaggregation via **MultiRoleInference (MRI)**, KAITO creates separate
 ```bash
 helm repo add kaito https://kaito-project.github.io/kaito/charts/kaito
 helm repo update
+
+export CLUSTER_NAME="<your-aks-cluster-name>"
 helm upgrade --install kaito-workspace kaito/workspace \
   --namespace kaito-workspace \
   --create-namespace \

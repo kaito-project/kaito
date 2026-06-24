@@ -51,42 +51,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 	// MRI and InferenceSet tests run first so they are not interrupted by
 	// slow/flaky GPU-provisioning timeouts in the preset workspace tests below.
-	It("should create a MultiRoleInference with prefill and decode roles successfully", Serial, utils.GinkgoLabelFastCheck, func() {
-		mriObj := createGemma3MultiRoleInference()
-		defer cleanupResourcesForMultiRoleInference(mriObj)
-
-		validateMultiRoleInferenceChildInferenceSets(mriObj)
-
-		// Validate each child InferenceSet's status, replicas, benchmark, and GWIE resources
-		childInferenceSets := getMultiRoleInferenceChildInferenceSets(mriObj)
-		// Build a map of role name -> expected replicas for accurate validation
-		roleReplicas := map[string]int32{}
-		for _, role := range mriObj.Spec.Roles {
-			if role.Replicas != nil {
-				roleReplicas[string(role.Type)] = *role.Replicas
-			}
-		}
-		for i := range childInferenceSets {
-			is := &childInferenceSets[i]
-			validateInferenceSetStatus(is)
-			// Match replicas by role label instead of assuming all roles have the same count
-			roleName := is.Labels[kaitov1alpha1.LabelInferenceRole]
-			Expect(roleName).NotTo(BeEmpty(), "InferenceSet %s missing required %s label", is.Name, kaitov1alpha1.LabelInferenceRole)
-			expectedReplicas, ok := roleReplicas[roleName]
-			Expect(ok).To(BeTrue(), "InferenceSet %s has unexpected role label %q", is.Name, roleName)
-			validateInferenceSetReplicas(is, expectedReplicas)
-			validateInferenceSetBenchmarkCompleted(is)
-		}
-
-		// Validate MRI-owned InferencePool and GWIE resources (shared across all roles)
-		validateMultiRoleInferenceGWIEResources(mriObj)
-		validateMultiRoleInferenceStatus(mriObj)
-
-		// Validate chat completions endpoint via a decode pod
-		validateMultiRoleInferenceChatCompletions(mriObj)
-	})
-
-	It("should perform P/D disaggregated inference with KV cache transfer successfully", Serial, utils.GinkgoLabelA100Required, func() {
+	It("should perform P/D disaggregated inference with KV cache transfer successfully", Serial, utils.GinkgoLabelFastCheck, func() {
 		// This test requires Istio gateway + HTTPRoute already configured
 		// Uses the same MRI creation as existing test but adds P/D validation
 		mriObj := createGemma3MultiRoleInference()
@@ -446,14 +411,6 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
-	})
-
-	It("should create a MultiRoleInference with prefill and decode roles successfully", Serial, utils.GinkgoLabelFastCheck, func() {
-		mriObj := createGemma3MultiRoleInference()
-		defer cleanupResourcesForMultiRoleInference(mriObj)
-
-		validateMultiRoleInferenceChildInferenceSets(mriObj)
-		validateMultiRoleInferenceStatus(mriObj)
 	})
 
 	It("should create a Gemma 3 InferenceSet with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {

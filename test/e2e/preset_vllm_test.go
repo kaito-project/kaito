@@ -1218,7 +1218,6 @@ func validateMultiRoleInferenceEPPReady(mriObj *kaitov1alpha1.MultiRoleInference
 			tailLines := int64(100)
 			req := coreClient.CoreV1().Pods(mriObj.Namespace).GetLogs(eppPod.Name, &corev1.PodLogOptions{
 				TailLines: &tailLines,
-				Container: eppDeploymentName,
 			})
 			stream, err := req.Stream(ctx)
 			if err != nil {
@@ -1342,7 +1341,7 @@ func validateMultiRoleInferencePDDisaggregation(mriObj *kaitov1alpha1.MultiRoleI
 			execOption := corev1.PodExecOptions{
 				Command: []string{"sh", "-c", fmt.Sprintf(
 					`command -v curl > /dev/null 2>&1 || (apt-get update -qq > /dev/null 2>&1 && apt-get install -y -qq curl > /dev/null 2>&1); `+
-						`curl -s --max-time 120 -X POST -H "Content-Type: application/json" `+
+						`curl -sf --max-time 120 -X POST -H "Content-Type: application/json" `+
 						`-d '{"model":"%s","messages":[{"role":"user","content":"%s"}],"max_tokens":50,"temperature":0}' `+
 						`%s`,
 					modelName, longPrompt, svcEndpoint)},

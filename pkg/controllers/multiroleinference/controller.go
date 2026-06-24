@@ -644,6 +644,15 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	eppValues["flags"] = map[string]string{
 		"model-server-metrics-port": fmt.Sprintf("%d", consts.PortInferenceServer),
 	}
+	eppValues["resources"] = map[string]any{
+		"requests": map[string]string{
+			"cpu":    "1",
+			"memory": "2Gi",
+		},
+		"limits": map[string]string{
+			"memory": "16Gi",
+		},
+	}
 	// No tokenizer sidecar: the EPP plugin pipeline (approx-prefix-cache-producer
 	// + prefix-based-pd-decider) does not require a token-producer plugin, so a
 	// GPU-less vLLM render process would only add ~500m CPU / 1Gi memory per MRI

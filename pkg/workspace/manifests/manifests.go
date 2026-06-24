@@ -423,6 +423,15 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1beta1.InferenceSet
 					"tag":        consts.EPPImageTag,
 					"pullPolicy": string(corev1.PullIfNotPresent),
 				},
+				"resources": map[string]any{
+					"requests": map[string]string{
+						"cpu":    "1",
+						"memory": "2Gi",
+					},
+					"limits": map[string]string{
+						"memory": "16Gi",
+					},
+				},
 			},
 			"modelServers": map[string]any{
 				"matchLabels": matchLabels,

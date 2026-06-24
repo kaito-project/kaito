@@ -51,15 +51,16 @@ rules:
   - apiGroups: ["karpenter.sh"]
     resources: ["nodepools", "nodepools/status"]
     verbs: ["get","list","watch","create", "delete", "update", "patch"]
-  {{- if eq .Values.cloudProviderName "azure" }}
-  - apiGroups: [ "karpenter.azure.com" ]
-    resources: [ "aksnodeclasses"]
-    verbs: [ "get","list","watch","create", "delete", "update", "patch" ]
-  {{- else if eq .Values.cloudProviderName "aws" }}
-  - apiGroups: [ "karpenter.k8s.aws" ]
-    resources: [ "ec2nodeclasses"]
-    verbs: [ "get","list","watch","create", "delete", "update", "patch" ]
+  {{- $provider := index .Values.karpenterProviders .Values.karpenterProvider }}
+  {{- if not $provider }}
+  {{- fail (printf "karpenterProviders.%s is not defined in values.yaml" .Values.karpenterProvider) }}
   {{- end }}
+  {{- if or (not $provider.group) (not $provider.resourceName) }}
+  {{- fail (printf "karpenterProviders.%s must define both 'group' and 'resourceName'" .Values.karpenterProvider) }}
+  {{- end }}
+  - apiGroups: [ "{{ $provider.group }}" ]
+    resources: [ "{{ $provider.resourceName }}" ]
+    verbs: [ "get","list","watch","create", "delete", "update", "patch" ]
   {{- end }}
   - apiGroups: ["admissionregistration.k8s.io"]
     resources: ["validatingwebhookconfigurations"]

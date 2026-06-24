@@ -230,6 +230,5 @@ kubectl logs phi-4-mini-decode-<id>-0 -n kaito-workspace | grep "Num successful 
 ## Related Resources
 
 - [Gateway API Inference Extension](./gateway-api-inference-extension.md) — Full GWIE documentation including InferenceSet
-- [llm-d inference scheduler](https://github.com/llm-d/llm-d-inference-scheduler) — The EPP scheduling plugins used for P/D routing
-- [NIXL](https://github.com/ai-dynamo/nixl) — The KV cache transfer library
+- [llm-d router](https://github.com/llm-d/llm-d-router) — The EPP scheduling plugins used for P/D routing
 - [llm-d routing sidecar](https://github.com/llm-d/llm-d-routing-sidecar) — The sidecar injected into decode pods

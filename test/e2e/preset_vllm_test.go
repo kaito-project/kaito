@@ -1207,7 +1207,7 @@ func validateMultiRoleInferenceDestinationRule(mriObj *kaitov1alpha1.MultiRoleIn
 		dr := &unstructured.Unstructured{}
 		dr.SetGroupVersionKind(schema.GroupVersionKind{
 			Group:   "networking.istio.io",
-			Version: "v1",
+			Version: "v1beta1",
 			Kind:    "DestinationRule",
 		})
 		dr.SetName(eppServiceName)
@@ -1235,7 +1235,7 @@ func validateMultiRoleInferenceDestinationRule(mriObj *kaitov1alpha1.MultiRoleIn
 			dr := &unstructured.Unstructured{}
 			dr.SetGroupVersionKind(schema.GroupVersionKind{
 				Group:   "networking.istio.io",
-				Version: "v1",
+				Version: "v1beta1",
 				Kind:    "DestinationRule",
 			})
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{

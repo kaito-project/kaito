@@ -65,10 +65,10 @@ When you create a MultiRoleInference resource, KAITO will:
 ### Request Flow
 
 1. The Gateway routes the incoming user request to the llm-d EPP scheduler
-2. The EPP routes user requests to a **decode pod** — the routing sidecar on port 5000 receives the request
-3. The routing sidecar forwards the request to the local vLLM instance (port 5001), which coordinates with the EPP's scheduling plugins to determine if a prefill is needed
-4. If the KV cache is not already available, the decode pod triggers a **prefill pod** to process the input tokens in parallel and build the KV cache. The prefill pod transfers the KV cache directly to the decode pod via NIXL (`VLLM_NIXL_SIDE_CHANNEL_HOST`)
-5. The decode pod performs autoregressive token generation using the transferred KV cache
+2. The EPP's `disagg-profile-handler` and `prefix-based-pd-decider` plugins determine whether the request needs prefill (based on prefix cache status) and communicate the decision via headers (set by `disagg-headers-handler`)
+3. The EPP routes the request to a **decode pod** — the routing sidecar on port 5000 receives the request along with headers indicating the selected prefill pod
+4. The routing sidecar orchestrates the prefill call: it contacts the designated **prefill pod** to process the input tokens and build the KV cache, then the prefill pod transfers the KV cache directly to the decode pod via NIXL (`VLLM_NIXL_SIDE_CHANNEL_HOST`)
+5. Once the KV cache is available, the routing sidecar forwards the request to the local vLLM instance (port 5001) for autoregressive token generation
 6. The response streams back through the Gateway to the client
 
 > **Note:** The InferencePool targets port 5000 on all pods (prefill + decode). The EPP's internal `prefill-filter` / `decode-filter` plugins handle role-based selection, routing user traffic to decode pods while prefill pods are coordinated internally.
@@ -157,6 +157,8 @@ kubectl get pods -l inferencepool=phi-4-mini-inferencepool-epp -n kaito-workspac
 ### 4. Deploy DestinationRule and HTTPRoute
 
 Since EPP runs with `--secure-serving=true` using a self-signed certificate, apply a DestinationRule to bypass TLS verification:
+
+> ⚠️ **Security warning:** This DestinationRule uses `insecureSkipVerify: true`, which disables server identity verification. This is acceptable for **development and testing only**. For production, configure a trusted CA certificate or use cert-manager to provision proper TLS certificates for the EPP service.
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/destinationrule-phi-4-mini-instruct.yaml -n kaito-workspace

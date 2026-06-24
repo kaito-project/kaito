@@ -1208,7 +1208,7 @@ func validateMultiRoleInferenceEPPReady(mriObj *kaitov1alpha1.MultiRoleInference
 		// Validate EPP pod logs contain disagg-profile-handler scheduling profile
 		Eventually(func() bool {
 			pods, err := coreClient.CoreV1().Pods(mriObj.Namespace).List(ctx, metav1.ListOptions{
-				LabelSelector: fmt.Sprintf("app=%s", eppDeploymentName),
+				LabelSelector: fmt.Sprintf("inferencepool=%s", eppDeploymentName),
 			})
 			if err != nil || len(pods.Items) == 0 {
 				GinkgoWriter.Printf("Failed to list EPP pods: %v\n", err)

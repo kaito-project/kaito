@@ -29,6 +29,7 @@ import (
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -1223,9 +1224,26 @@ func validateMultiRoleInferenceDestinationRule(mriObj *kaitov1alpha1.MultiRoleIn
 		}
 
 		Eventually(func() error {
-			return utils.TestingCluster.KubeClient.Create(ctx, dr)
+			err := utils.TestingCluster.KubeClient.Create(ctx, dr)
+			if err != nil && apierrors.IsAlreadyExists(err) {
+				return nil
+			}
+			return err
 		}, 2*time.Minute, utils.PollInterval).Should(Succeed(),
 			"Failed to create DestinationRule for EPP service %s", eppServiceName)
+
+		// Ensure cleanup after test
+		DeferCleanup(func() {
+			cleanupDR := &unstructured.Unstructured{}
+			cleanupDR.SetGroupVersionKind(schema.GroupVersionKind{
+				Group:   "networking.istio.io",
+				Version: "v1beta1",
+				Kind:    "DestinationRule",
+			})
+			cleanupDR.SetName(eppServiceName)
+			cleanupDR.SetNamespace(mriObj.Namespace)
+			_ = utils.TestingCluster.KubeClient.Delete(ctx, cleanupDR)
+		})
 
 		GinkgoWriter.Printf("Created DestinationRule for EPP service %s\n", eppServiceName)
 	})
@@ -1358,7 +1376,6 @@ func validateMultiRoleInferencePDDisaggregation(mriObj *kaitov1alpha1.MultiRoleI
 				return false
 			}
 			logs := buf.String()
-			GinkgoWriter.Printf("Prefill pod logs (last 50 lines):\n%s\n", logs)
 
 			// Check for "Avg prompt throughput" > 0
 			for _, line := range strings.Split(logs, "\n") {
@@ -1416,7 +1433,6 @@ func validateMultiRoleInferencePDDisaggregation(mriObj *kaitov1alpha1.MultiRoleI
 				return false
 			}
 			logs := buf.String()
-			GinkgoWriter.Printf("Decode pod logs (last 50 lines):\n%s\n", logs)
 
 			// Check for "Avg generation throughput" > 0
 			for _, line := range strings.Split(logs, "\n") {

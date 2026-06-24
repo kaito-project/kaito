@@ -104,7 +104,9 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		for i := range childInferenceSets {
 			is := &childInferenceSets[i]
 			validateInferenceSetStatus(is)
-			roleName := is.Labels[kaitov1alpha1.LabelInferenceRole]
+			roleName, ok := is.Labels[kaitov1alpha1.LabelInferenceRole]
+			Expect(ok).To(BeTrue(), "InferenceSet %s should have role label %s", is.Name, kaitov1alpha1.LabelInferenceRole)
+			Expect(roleReplicas).To(HaveKey(roleName), "InferenceSet %s has unexpected role %s", is.Name, roleName)
 			expectedReplicas := roleReplicas[roleName]
 			validateInferenceSetReplicas(is, expectedReplicas)
 		}
@@ -1216,6 +1218,7 @@ func validateMultiRoleInferenceEPPReady(mriObj *kaitov1alpha1.MultiRoleInference
 			tailLines := int64(100)
 			req := coreClient.CoreV1().Pods(mriObj.Namespace).GetLogs(eppPod.Name, &corev1.PodLogOptions{
 				TailLines: &tailLines,
+				Container: eppDeploymentName,
 			})
 			stream, err := req.Stream(ctx)
 			if err != nil {
@@ -1248,13 +1251,13 @@ func validateMultiRoleInferenceDestinationRule(mriObj *kaitov1alpha1.MultiRoleIn
 		dr := &unstructured.Unstructured{}
 		dr.SetGroupVersionKind(schema.GroupVersionKind{
 			Group:   "networking.istio.io",
-			Version: "v1beta1",
+			Version: "v1",
 			Kind:    "DestinationRule",
 		})
 		dr.SetName(eppServiceName)
 		dr.SetNamespace(mriObj.Namespace)
 		dr.Object["spec"] = map[string]interface{}{
-			"host": fmt.Sprintf("%s.%s.svc.cluster.local", eppServiceName, mriObj.Namespace),
+			"host": eppServiceName,
 			"trafficPolicy": map[string]interface{}{
 				"tls": map[string]interface{}{
 					"mode":               "SIMPLE",
@@ -1276,7 +1279,7 @@ func validateMultiRoleInferenceDestinationRule(mriObj *kaitov1alpha1.MultiRoleIn
 			dr := &unstructured.Unstructured{}
 			dr.SetGroupVersionKind(schema.GroupVersionKind{
 				Group:   "networking.istio.io",
-				Version: "v1beta1",
+				Version: "v1",
 				Kind:    "DestinationRule",
 			})
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
@@ -1293,8 +1296,8 @@ func validateMultiRoleInferenceDestinationRule(mriObj *kaitov1alpha1.MultiRoleIn
 	})
 }
 
-// validateMultiRoleInferencePDDisaggregation sends multiple requests through the
-// gateway and verifies that P/D disaggregation is working by checking pod logs:
+// validateMultiRoleInferencePDDisaggregation sends multiple requests to the decode
+// service and verifies that P/D disaggregation is working by checking pod logs:
 // - Prefill pod shows "Avg prompt throughput" > 0 and "Avg generation throughput" ~0
 // - Decode pod shows "Avg generation throughput" > 0
 // - Decode pod shows "KV Transfer metrics: Num successful transfers" > 0
@@ -1333,6 +1336,7 @@ func validateMultiRoleInferencePDDisaggregation(mriObj *kaitov1alpha1.MultiRoleI
 			"they influenced modern systems. Include technical details about consistency models, " +
 			"CAP theorem, consensus algorithms like Paxos and Raft, and their practical implications."
 
+		successCount := 0
 		for i := 0; i < 5; i++ {
 			GinkgoWriter.Printf("Sending P/D disaggregation request %d/5\n", i+1)
 			execOption := corev1.PodExecOptions{
@@ -1354,10 +1358,13 @@ func validateMultiRoleInferencePDDisaggregation(mriObj *kaitov1alpha1.MultiRoleI
 				GinkgoWriter.Printf("Request %d failed: %v, stdout: %s\n", i+1, execErr, stdout)
 			} else {
 				GinkgoWriter.Printf("Request %d succeeded\n", i+1)
+				successCount++
 			}
 			// Brief pause between requests
 			time.Sleep(5 * time.Second)
 		}
+		Expect(successCount).To(BeNumerically(">=", 1),
+			"At least one P/D disaggregation request should succeed")
 	})
 
 	By("Validating prefill pod shows prompt throughput > 0", func() {

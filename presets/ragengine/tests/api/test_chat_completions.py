@@ -22,7 +22,11 @@ import pytest
 import respx
 
 from ragengine.guardrails import OutputGuardrails
-from ragengine.guardrails.scanner_schemas import ParsedScannerConfig, RegexConfig
+from ragengine.guardrails.scanner_schemas import (
+    JSONConfig,
+    ParsedScannerConfig,
+    RegexConfig,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -289,7 +293,7 @@ async def test_chat_completions_stream_with_index_name_is_rejected(async_client)
 
 
 @pytest.mark.asyncio
-async def test_chat_completions_stream_with_output_guardrails_is_rejected(
+async def test_chat_completions_stream_with_unknown_guardrails_action_is_rejected(
     async_client, monkeypatch
 ):
     import ragengine.main
@@ -297,7 +301,17 @@ async def test_chat_completions_stream_with_output_guardrails_is_rejected(
     monkeypatch.setattr(
         ragengine.main.guardrails_reloader,
         "_current",
-        OutputGuardrails(enabled=True),
+        OutputGuardrails(
+            enabled=True,
+            action_on_hit="mask",
+            scanner_configs=(
+                ParsedScannerConfig(
+                    type="regex",
+                    action_on_hit="mask",
+                    config=RegexConfig(patterns=[r"https?://\S+"]),
+                ),
+            ),
+        ),
     )
 
     response = await async_client.post(
@@ -312,7 +326,46 @@ async def test_chat_completions_stream_with_output_guardrails_is_rejected(
     assert response.status_code == 400
     assert (
         response.json()["detail"]
-        == "stream=true is not supported when output guardrails are enabled."
+        == "stream=true with output guardrails only supports action=block or action=redact. Unsupported action: mask."
+    )
+
+
+@pytest.mark.asyncio
+async def test_chat_completions_stream_with_unsupported_guardrails_scanner_is_rejected(
+    async_client, monkeypatch
+):
+    import ragengine.main
+
+    monkeypatch.setattr(
+        ragengine.main.guardrails_reloader,
+        "_current",
+        OutputGuardrails(
+            enabled=True,
+            action_on_hit="redact",
+            scanner_configs=(
+                ParsedScannerConfig(
+                    type="json",
+                    action_on_hit="redact",
+                    config=JSONConfig(),
+                ),
+            ),
+        ),
+    )
+
+    response = await async_client.post(
+        "/v1/chat/completions",
+        json={
+            "model": "mock-model",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "stream": True,
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == (
+        "stream=true with output guardrails only supports ban_substrings and regex "
+        "scanners. Policies requiring full-output scanning are rejected for streaming. "
+        "Unsupported scanner: json."
     )
 
 

@@ -311,6 +311,8 @@ RELOAD_RESULT_FAILURE = "failure"
 RELOAD_RESULT_NOOP = "noop"
 GUARDRAILS_SCANNER_TYPE_LABEL = "scanner_type"
 GUARDRAILS_FINAL_ACTION_LABEL = "final_action"
+GUARDRAILS_POLICY_HASH_LABEL = "policy_hash"
+GUARDRAILS_PARSE_STATUS_LABEL = "parse_status"
 
 guardrails_policy_reload_total = Counter(
     "guardrails_policy_reload_total",
@@ -326,6 +328,25 @@ guardrails_response_actions_total = Counter(
     "ragengine_guardrails_response_actions_total",
     "Count of final output guardrails actions while scanning responses.",
     labelnames=[GUARDRAILS_FINAL_ACTION_LABEL],
+)
+guardrails_stream_scanner_hits_total = Counter(
+    "ragengine_guardrails_stream_scanner_hits_total",
+    "Count of output guardrails scanner hits while scanning streaming responses.",
+    labelnames=[
+        GUARDRAILS_SCANNER_TYPE_LABEL,
+        ACTION_LABEL,
+        GUARDRAILS_POLICY_HASH_LABEL,
+    ],
+)
+guardrails_stream_actions_total = Counter(
+    "ragengine_guardrails_stream_actions_total",
+    "Count of final output guardrails actions while scanning streaming responses.",
+    labelnames=[GUARDRAILS_FINAL_ACTION_LABEL, GUARDRAILS_POLICY_HASH_LABEL],
+)
+guardrails_stream_parse_events_total = Counter(
+    "ragengine_guardrails_stream_parse_events_total",
+    "Count of OpenAI SSE parse statuses while scanning streaming responses.",
+    labelnames=[GUARDRAILS_PARSE_STATUS_LABEL, GUARDRAILS_POLICY_HASH_LABEL],
 )
 guardrails_policy_loaded_timestamp = Gauge(
     "guardrails_policy_loaded_timestamp_seconds",

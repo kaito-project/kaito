@@ -41,7 +41,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
-	"github.com/kaito-project/kaito/pkg/workspace/estimator"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
@@ -504,46 +503,15 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		inferenceParam := ctx.Model.GetInferenceParameters().DeepCopy()
 		runtimeName := v1beta1.GetWorkspaceRuntimeName(ctx.Workspace)
 
-		// Calculate max-model-len for runtime context
-		maxModelLen := 2048 // Default value
-		if ctx.Workspace.Inference != nil {
-			if runtimeName == pkgmodel.RuntimeNameVLLM {
-				presetParams := ctx.Model.GetInferenceParameters()
-				if presetParams != nil {
-					if raw, ok := configVolume.Data["inference_config.yaml"]; ok && raw != "" {
-						// First check if user provided explicit value in ConfigMap
-						//if v, ok2 := utils.ParseExplicitMaxModelLen(raw); ok2 {
-						//maxModelLen = v
-						//klog.Infof("[RuntimeContext] workspace=%s using user explicit max-model-len=%d", ctx.Workspace.Name, maxModelLen)
-						//} else {
-						// If no user value, compute planned value
-						computedMaxModelLen := estimator.ComputeMaxModelLen(estimator.MaxModelLenInput{
-							ModelTokenLimit:          presetParams.ModelTokenLimit,
-							BytesPerToken:            presetParams.BytesPerToken,
-							TotalModelWeightSize:     presetParams.TotalSafeTensorFileSize,
-							DisableTensorParallelism: presetParams.DisableTensorParallelism,
-							MLAReplicatedKVCache:     presetParams.AttnType == "MLA",
-							GPUMemoryBytes:           gpuConfig.GPUMem.Value(),
-							GPUCount:                 gpuConfig.GPUCount,
-							NumRequiredNodes:         numNodes,
-						})
-						// A zero result with valid sizing inputs means the model
-						// weights plus runtime overhead leave no room for the KV
-						// cache. Fail fast with an actionable error instead of
-						// omitting --max-model-len, which would let vLLM fall back to
-						// the model's full context and crash-loop at startup.
-						if computedMaxModelLen <= 0 && presetParams.BytesPerToken > 0 && gpuConfig.GPUMem.Value() > 0 {
-							return fmt.Errorf("unable to fit model %q on the requested resources: weights (%s) plus runtime overhead exceed the available GPU memory (gpuConfig=%s, nodes=%d). Use a larger GPU SKU, add nodes, or set an explicit max-model-len in the inference config",
-								presetParams.Name, presetParams.TotalSafeTensorFileSize, gpuConfig.String(), numNodes)
-						}
-						if computedMaxModelLen > 0 {
-							maxModelLen = computedMaxModelLen
-						}
-						klog.Infof("[RuntimeContext] workspace=%s using computed max-model-len=%d (gpuConfig=%s, numNodes=%d)", ctx.Workspace.Name, maxModelLen, gpuConfig.String(), numNodes)
-						//}
-					}
-				}
-			}
+		// Context-length sizing is delegated to vLLM's native auto-fit logic by
+		// passing --max-model-len=auto (https://docs.vllm.ai/en/latest/configuration/engine_args/#-max-model-len).
+		// vLLM measures the real KV-cache budget at startup and selects the largest
+		// context that fits. An explicit max-model-len in the user's inference
+		// config still takes precedence: it is appended after this flag on the
+		// vLLM command line (see inference_api.py).
+		maxModelLen := 2048 // Default for non-vLLM runtimes.
+		if runtimeName == pkgmodel.RuntimeNameVLLM {
+			maxModelLen = pkgmodel.MaxModelLenAuto
 		}
 
 		// When the routing sidecar is needed, vLLM moves to PortDecodeVLLM (5001)

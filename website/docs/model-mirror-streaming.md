@@ -179,7 +179,7 @@ kind: Workspace
 metadata:
   name: workspace-phi-4-mini
 resource:
-  instanceType: "Standard_NC6s_v3" # Specifies the node type that will be auto-provisioned.
+  instanceType: "Standard_NC48ads_A100_v4" # Specifies the node type that will be auto-provisioned.
   labelSelector:
     matchLabels:
       apps: phi-4-mini
@@ -220,7 +220,7 @@ metadata:
   annotations:
     kaito.sh/model-streaming: "disabled"
 resource:
-  instanceType: "Standard_NC6s_v3"
+  instanceType: "Standard_NC48ads_A100_v4"
   labelSelector:
     matchLabels:
       apps: no-streaming

@@ -297,6 +297,15 @@ runs:
         TEST_SUITE: ${{ inputs.node_provisioner }}
         HELM_INSTALL_EXTRA_ARGS: "--set featureGates.gatewayAPIInferenceExtension=true --set featureGates.enableInferenceSetController=true --set featureGates.enableMultiRoleInferenceController=true --set featureGates.enableBaseImageAutoUpgrade=true --set nodeProvisioner=${{ inputs.node_provisioner == 'gpuprovisioner' && 'azure-gpu-provisioner' || 'karpenter' }}"
 
+    - name: Install Istio CRDs
+      shell: bash
+      run: |
+        echo "Installing Istio CRDs for E2E testing..."
+        helm repo add istio https://istio-release.storage.googleapis.com/charts
+        helm repo update
+        helm install istio-base istio/base --namespace istio-system --create-namespace --wait
+        echo "Istio CRDs installed successfully."
+
     - name: Set up E2E ACR Credentials and Secret
       shell: bash
       run: |

@@ -512,15 +512,28 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 						//klog.Infof("[RuntimeContext] workspace=%s using user explicit max-model-len=%d", ctx.Workspace.Name, maxModelLen)
 						//} else {
 						// If no user value, compute planned value
-						maxModelLen = estimator.ComputeMaxModelLen(estimator.MaxModelLenInput{
+						computedMaxModelLen := estimator.ComputeMaxModelLen(estimator.MaxModelLenInput{
 							ModelTokenLimit:          presetParams.ModelTokenLimit,
 							BytesPerToken:            presetParams.BytesPerToken,
 							TotalModelWeightSize:     presetParams.TotalSafeTensorFileSize,
 							DisableTensorParallelism: presetParams.DisableTensorParallelism,
+							MLAReplicatedKVCache:     presetParams.AttnType == "MLA",
 							GPUMemoryBytes:           gpuConfig.GPUMem.Value(),
 							GPUCount:                 gpuConfig.GPUCount,
 							NumRequiredNodes:         numNodes,
 						})
+						// A zero result with valid sizing inputs means the model
+						// weights plus runtime overhead leave no room for the KV
+						// cache. Fail fast with an actionable error instead of
+						// omitting --max-model-len, which would let vLLM fall back to
+						// the model's full context and crash-loop at startup.
+						if computedMaxModelLen <= 0 && presetParams.BytesPerToken > 0 && gpuConfig.GPUMem.Value() > 0 {
+							return fmt.Errorf("unable to fit model %q on the requested resources: weights (%s) plus runtime overhead exceed the available GPU memory (gpuConfig=%s, nodes=%d). Use a larger GPU SKU, add nodes, or set an explicit max-model-len in the inference config",
+								presetParams.Name, presetParams.TotalSafeTensorFileSize, gpuConfig.String(), numNodes)
+						}
+						if computedMaxModelLen > 0 {
+							maxModelLen = computedMaxModelLen
+						}
 						klog.Infof("[RuntimeContext] workspace=%s using computed max-model-len=%d (gpuConfig=%s, numNodes=%d)", ctx.Workspace.Name, maxModelLen, gpuConfig.String(), numNodes)
 						//}
 					}

@@ -122,6 +122,20 @@ func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
 			},
 		},
 		{
+			name: "MLA model surfaces AttnType at the PresetParam level",
+			model: model.Metadata{
+				Name:          "mla-model",
+				Version:       "https://huggingface.co/test/model",
+				ModelFileSize: "2Gi",
+				AttnType:      "MLA",
+			},
+			expectedName:  "mla-model",
+			expectedDType: "bfloat16",
+			checkParams: func(t *testing.T, params *model.PresetParam) {
+				assert.Equal(t, "MLA", params.AttnType)
+			},
+		},
+		{
 			name: "model with reasoning parser",
 			model: model.Metadata{
 				Name:            "reasoning-model",

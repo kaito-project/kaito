@@ -705,7 +705,7 @@ func (g *Generator) FinalizeParams() {
 
 	bpt, attnType := g.calculateKVCacheTokenSize()
 	g.Param.Metadata.BytesPerToken = bpt
-	g.Param.AttnType = attnType
+	g.Param.Metadata.AttnType = attnType
 }
 
 // loadFromCatalog checks whether the model repo exists in the embedded catalog.

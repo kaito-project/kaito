@@ -173,6 +173,7 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		Architectures:        m.model.Architectures,
 		QuantMethod:          m.model.QuantMethod,
 		QuantBits:            m.model.QuantBits,
+		AttnType:             m.model.AttnType,
 	}
 
 	runParamsVLLM := make(map[string]string)

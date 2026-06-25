@@ -42,6 +42,7 @@ const sidebars = {
             items: [
                 'inference',
                 'multi-node-inference',
+                'model-mirror-streaming',
                 'memory-estimator',
                 'keda-autoscaler-inference',
                 'tuning',

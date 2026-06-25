@@ -129,6 +129,11 @@ type Metadata struct {
 	// +optional
 	BytesPerToken int `yaml:"bytesPerToken,omitempty"`
 
+	// AttnType specifies the attention implementation (e.g., MHA, GQA, MQA, MLA),
+	// computed by the preset generator from the model config.
+	// +optional
+	AttnType string `yaml:"attnType,omitempty"`
+
 	// ModelTokenLimit is the maximum number of tokens (context window) supported by the model.
 	// This field is only for best effort supported vLLM models.
 	// +optional
@@ -199,10 +204,6 @@ type PresetParam struct {
 	// To determine TotalSafeTensorFileSize and BytesPerToken values for a new model,
 	// run the presets/workspace/generator/preset_generator.py script
 	// with the model's Hugging Face repository ID as an argument.
-
-	// AttnType specifies the attention implementation (e.g., MHA, GQA, MLA).
-	// Calculated by the preset generator based on model config.
-	AttnType string `yaml:"attn_type,omitempty"`
 
 	RuntimeParam
 

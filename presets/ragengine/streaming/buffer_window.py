@@ -64,10 +64,6 @@ class StreamingBufferWindow:
         self._blocked = False
 
     @property
-    def pending_buffer(self) -> str:
-        return self._pending_buffer
-
-    @property
     def blocked(self) -> bool:
         return self._blocked
 
@@ -99,6 +95,7 @@ class StreamingBufferWindow:
         scan_result = self._scanner.scan(scan_text)
         if scan_result.blocked:
             self._blocked = True
+            self._pending_buffer = ""
             return WindowEmitResult(chunks=(), blocked=True)
 
         safe_prefix_chars = max(0, min(scan_result.safe_prefix_chars, len(scan_text)))

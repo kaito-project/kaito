@@ -14,6 +14,8 @@
 import os
 import sys
 
+import pytest
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
 from ragengine.streaming.buffer_window import (
@@ -45,10 +47,24 @@ def test_safe_prefix_emits_in_max_emit_chars_chunks():
     )
 
     result = window.feed("abcdefgh")
+    flush_result = window.flush()
 
     assert result.chunks == ("abc", "def", "gh")
     assert result.blocked is False
-    assert window.pending_buffer == ""
+    assert flush_result.chunks == ()
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "message"),
+    (
+        ({"holdback_chars": -1, "min_scan_chars": 1, "max_emit_chars": 1}, "holdback"),
+        ({"holdback_chars": 0, "min_scan_chars": -1, "max_emit_chars": 1}, "min_scan"),
+        ({"holdback_chars": 0, "min_scan_chars": 1, "max_emit_chars": 0}, "max_emit"),
+    ),
+)
+def test_constructor_rejects_invalid_window_settings(kwargs, message):
+    with pytest.raises(ValueError, match=message):
+        StreamingBufferWindow(AllowScanner(), **kwargs)
 
 
 def test_holdback_tail_is_retained_and_not_emitted():
@@ -58,10 +74,11 @@ def test_holdback_tail_is_retained_and_not_emitted():
     )
 
     result = window.feed("abcdef")
+    flush_result = window.flush()
 
     assert result.chunks == ("abc",)
-    assert window.pending_buffer == "def"
-    assert scanner.scanned_texts == ["abc"]
+    assert flush_result.chunks == ("def",)
+    assert scanner.scanned_texts == ["abc", "def"]
 
 
 def test_split_bad_substring_is_detected_before_tail_emits():
@@ -76,7 +93,6 @@ def test_split_bad_substring_is_detected_before_tail_emits():
     assert window.blocked is True
     assert second_result.blocked is True
     assert second_result.chunks == ()
-    assert "bad" in window.pending_buffer
 
 
 def test_final_flush_scans_and_emits_remaining_text():
@@ -91,7 +107,7 @@ def test_final_flush_scans_and_emits_remaining_text():
     assert result.chunks == ()
     assert scanner.scanned_texts == ["tail"]
     assert flush_result.chunks == ("tail",)
-    assert window.pending_buffer == ""
+    assert window.flush().chunks == ()
 
 
 def test_blocked_decision_stops_downstream_emission():
@@ -109,3 +125,15 @@ def test_blocked_decision_stops_downstream_emission():
     assert later_result.chunks == ()
     assert flush_result.blocked is True
     assert flush_result.chunks == ()
+
+
+def test_blocked_decision_clears_pending_buffer():
+    window = StreamingBufferWindow(
+        BadSubstringScanner(), holdback_chars=2, min_scan_chars=1, max_emit_chars=10
+    )
+
+    result = window.feed("safe bad content")
+
+    assert result.blocked is True
+    assert result.chunks == ()
+    assert window._pending_buffer == ""

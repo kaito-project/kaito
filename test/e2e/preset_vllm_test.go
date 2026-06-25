@@ -1247,7 +1247,8 @@ func validateMultiRoleInferenceDestinationRule(mriObj *kaitov1alpha1.MultiRoleIn
 		Eventually(func() error {
 			err := utils.TestingCluster.KubeClient.Create(ctx, dr)
 			if err != nil && apierrors.IsAlreadyExists(err) {
-				return nil
+				// Update existing DestinationRule to ensure expected spec
+				return utils.TestingCluster.KubeClient.Update(ctx, dr)
 			}
 			return err
 		}, 2*time.Minute, utils.PollInterval).Should(Succeed(),

@@ -59,17 +59,15 @@ func TestBuildDownloadJobResources(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Save and restore the package-level resources to avoid cross-test pollution.
-			orig := mmconsts.DownloadJobResources
-			defer func() { mmconsts.DownloadJobResources = orig }()
+			resources := mmconsts.DefaultDownloadJobResources()
 			if tc.cpu != "" {
-				mmconsts.DownloadJobResources.CPU = tc.cpu
+				resources.CPU = tc.cpu
 			}
 			if tc.memory != "" {
-				mmconsts.DownloadJobResources.Memory = tc.memory
+				resources.Memory = tc.memory
 			}
 
-			job := BuildDownloadJob(newTestModelMirror())
+			job := BuildDownloadJob(newTestModelMirror(), resources)
 			containers := job.Spec.Template.Spec.Containers
 			assert.Len(t, containers, 1)
 			res := containers[0].Resources

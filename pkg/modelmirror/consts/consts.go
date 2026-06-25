@@ -47,10 +47,14 @@ var DownloadExcludePatterns = []string{"original/*"}
 
 // DownloadJobResources holds the CPU/memory applied to the download Job container as both
 // request and limit.
-var DownloadJobResources = struct {
+type DownloadJobResources struct {
 	CPU    string
 	Memory string
-}{
-	CPU:    DefaultDownloadJobCPU,
-	Memory: DefaultDownloadJobMemory,
+}
+
+func DefaultDownloadJobResources() DownloadJobResources {
+	return DownloadJobResources{
+		CPU:    DefaultDownloadJobCPU,
+		Memory: DefaultDownloadJobMemory,
+	}
 }

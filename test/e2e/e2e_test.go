@@ -35,25 +35,15 @@ var skipGPUProvisionerCheck = flag.Bool("skip-gpu-provisioner-check", false, "Sk
 
 var (
 	ctx                 = context.Background()
-	namespaceBase       = ""
-	namespaceName       = ""
+	namespaceName       = fmt.Sprint(utils.E2eNamespace, rand.Intn(100))
 	nodeProvisionerName = os.Getenv("TEST_SUITE")
 )
 
-var _ = SynchronizedBeforeSuite(func() []byte {
-	// Primary process only.
-	cfg, _ := GinkgoConfiguration()
-	base := fmt.Sprint(utils.E2eNamespace, rand.Intn(1000000))
-	// Create FICs for every parallel process's namespace, in sequence.
-	setupAllStreamingIdentities(base, cfg.ParallelTotal)
-	return []byte(base)
-}, func(data []byte) {
-	// Every process.
-	namespaceBase = string(data)
-	namespaceName = streamingNamespaceFor(namespaceBase, GinkgoParallelProcess())
-	GinkgoWriter.Printf("Namespace %q for e2e tests\n", namespaceName)
-
+var _ = BeforeSuite(func() {
 	utils.GetClusterClient(utils.TestingCluster)
+
+	namespaceName = fmt.Sprintf("%s-%d", namespaceName, GinkgoParallelProcess())
+	GinkgoWriter.Printf("Namespace %q for e2e tests\n", namespaceName)
 
 	kaitoNamespace := os.Getenv("KAITO_NAMESPACE")
 
@@ -121,8 +111,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	})
 	Expect(err).NotTo(HaveOccurred())
 
-	// Create the streaming SA in this process's namespace (the FIC for it was already created by
-	// the primary process above). SA creation is namespaced and safe to do per-process.
+	// Create the streaming SA in this process's namespace.
 	createStreamingServiceAccount(namespaceName)
 
 	loadTestEnvVars()
@@ -145,10 +134,8 @@ var _ = ReportAfterSuite("Print pod logs on failure", func(report Report) {
 	}
 })
 
-// SynchronizedAfterSuite: first function runs on every process (delete its own namespace); second
-// function runs on the primary process only (delete all per-process FICs sequentially).
-var _ = SynchronizedAfterSuite(func() {
-	// Every process: delete its own testing namespace.
+var _ = AfterSuite(func() {
+	// delete testing namespace
 	Eventually(func() error {
 		return utils.TestingCluster.KubeClient.Delete(ctx, &corev1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
@@ -156,10 +143,6 @@ var _ = SynchronizedAfterSuite(func() {
 			},
 		}, &client.DeleteOptions{})
 	}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to delete namespace for e2e")
-}, func() {
-	// Primary process only: delete all streaming FICs.
-	cfg, _ := GinkgoConfiguration()
-	teardownAllStreamingIdentities(namespaceBase, cfg.ParallelTotal)
 })
 
 func RunE2ETests(t *testing.T) {

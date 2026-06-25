@@ -43,13 +43,16 @@ const (
 type ModelMirrorReconciler struct {
 	client.Client
 	Log logr.Logger
+	// DownloadResources sets the CPU/memory request==limit on the download Job container.
+	DownloadResources mmconsts.DownloadJobResources
 }
 
 // NewModelMirrorReconciler creates a new reconciler instance.
-func NewModelMirrorReconciler(c client.Client, log logr.Logger) *ModelMirrorReconciler {
+func NewModelMirrorReconciler(c client.Client, log logr.Logger, downloadResources mmconsts.DownloadJobResources) *ModelMirrorReconciler {
 	return &ModelMirrorReconciler{
-		Client: c,
-		Log:    log,
+		Client:            c,
+		Log:               log,
+		DownloadResources: downloadResources,
 	}
 }
 
@@ -204,7 +207,7 @@ func (r *ModelMirrorReconciler) ensureDownloadJob(ctx context.Context, cr *kaito
 		return nil
 	}
 
-	job := download.BuildDownloadJob(cr)
+	job := download.BuildDownloadJob(cr, r.DownloadResources)
 	log.Info("Creating download Job", "namespace", cr.Spec.JobNamespace)
 	return r.Create(ctx, job)
 }

@@ -367,6 +367,11 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 	It("should create a qwen3-8b-awq workspace with AWQ quantization successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
+
+		// Create the federated identity credential for this process's namespace.
+		createStreamingFIC(namespaceName)
+		defer deleteStreamingFIC(namespaceName)
+
 		workspaceObj := createQwen3_8BAWQWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
 		defer cleanupStreamingResources(workspaceObj, "Qwen/Qwen3-8B-AWQ")

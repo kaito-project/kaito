@@ -45,7 +45,7 @@ func TestReconcile_AlreadyReady(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(cr).Build()
-	r := NewModelMirrorReconciler(client, zap.New(zap.UseDevMode(true)))
+	r := NewModelMirrorReconciler(client, zap.New(zap.UseDevMode(true)), mmconsts.DefaultDownloadJobResources())
 
 	result, err := r.Reconcile(context.Background(), ctrl.Request{
 		NamespacedName: types.NamespacedName{Name: "abc123"},
@@ -76,7 +76,7 @@ func TestReconcile_AddsFinalizer(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(cr).Build()
-	r := NewModelMirrorReconciler(client, zap.New(zap.UseDevMode(true)))
+	r := NewModelMirrorReconciler(client, zap.New(zap.UseDevMode(true)), mmconsts.DefaultDownloadJobResources())
 
 	result, err := r.Reconcile(context.Background(), ctrl.Request{
 		NamespacedName: types.NamespacedName{Name: "abc123"},

@@ -350,16 +350,18 @@ func main() {
 
 	// ModelMirror controller — requires ModelMirror feature gate.
 	if featuregates.FeatureGates[consts.FeatureFlagModelMirror] {
-		// Override download Job resources from flags when provided (empty keeps the built-in defaults).
+		// Start from the built-in defaults and override per-field from flags when provided.
+		downloadResources := mmconsts.DefaultDownloadJobResources()
 		if modelMirrorDownloadCPU != "" {
-			mmconsts.DownloadJobResources.CPU = modelMirrorDownloadCPU
+			downloadResources.CPU = modelMirrorDownloadCPU
 		}
 		if modelMirrorDownloadMemory != "" {
-			mmconsts.DownloadJobResources.Memory = modelMirrorDownloadMemory
+			downloadResources.Memory = modelMirrorDownloadMemory
 		}
 		mmReconciler := mmcontrollers.NewModelMirrorReconciler(
 			kClient,
 			log.Log.WithName("controllers").WithName("ModelMirror"),
+			downloadResources,
 		)
 		if err = mmReconciler.SetupWithManager(mgr); err != nil {
 			klog.ErrorS(err, "unable to create controller", "controller", "ModelMirror")

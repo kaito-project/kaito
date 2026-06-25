@@ -26,6 +26,7 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -33,8 +34,43 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
+	models "github.com/kaito-project/kaito/presets/workspace/models"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
+
+// Download-completion timeouts scale with model weight size.
+const (
+	defaultModelMirrorDownloadTimeout = 15 * time.Minute
+	// largeModelMirrorDownloadTimeout covers large models added later.
+	largeModelMirrorDownloadTimeout = 40 * time.Minute
+	// largeModelMirrorSizeThreshold is the weight size above which the large timeout applies.
+	largeModelMirrorSizeThreshold = "50Gi"
+)
+
+func modelMirrorModelFileSize(modelID string) string {
+	m, err := models.GetModelByNameWithToken(ctx, modelID, "")
+	if err != nil || m == nil {
+		return ""
+	}
+	return m.GetInferenceParameters().TotalSafeTensorFileSize
+}
+
+// modelMirrorDownloadTimeout returns the Eventually ceiling for a model's download to complete,
+// bucketed by weight size.
+func modelMirrorDownloadTimeout(modelID string) time.Duration {
+	sizeStr := modelMirrorModelFileSize(modelID)
+	if sizeStr == "" {
+		return defaultModelMirrorDownloadTimeout
+	}
+	size, err := resource.ParseQuantity(sizeStr)
+	if err != nil {
+		return defaultModelMirrorDownloadTimeout
+	}
+	if size.Cmp(resource.MustParse(largeModelMirrorSizeThreshold)) > 0 {
+		return largeModelMirrorDownloadTimeout
+	}
+	return defaultModelMirrorDownloadTimeout
+}
 
 // validateModelMirrorCRReady asserts the cluster-scoped ModelMirror CR for modelID reaches
 // Ready (with StorageReady) and exposes the expected modelPath + lastDownloadTime.
@@ -62,7 +98,7 @@ func validateModelMirrorCRReady(modelID string) {
 				return c.Type == "StorageReady" && c.Status == metav1.ConditionTrue
 			})
 			return ready && storageReady
-		}, 15*time.Minute, utils.PollInterval).Should(BeTrue(), "ModelMirror CR did not reach Ready+StorageReady")
+		}, modelMirrorDownloadTimeout(modelID), utils.PollInterval).Should(BeTrue(), "ModelMirror CR did not reach Ready+StorageReady")
 	})
 }
 
@@ -83,7 +119,7 @@ func validateModelMirrorReady(workspaceObj *kaitov1beta1.Workspace, modelID stri
 					c.Status == metav1.ConditionTrue
 			})
 			return found
-		}, 15*time.Minute, utils.PollInterval).Should(BeTrue(), "workspace ModelMirrorReady condition not True")
+		}, modelMirrorDownloadTimeout(modelID), utils.PollInterval).Should(BeTrue(), "workspace ModelMirrorReady condition not True")
 	})
 }
 

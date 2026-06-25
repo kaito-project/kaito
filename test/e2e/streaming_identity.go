@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -34,15 +36,14 @@ func streamingEnabled() bool {
 	return os.Getenv("STREAMING_ENABLED") == "true"
 }
 
-// streamingNamespaceFor returns the per-process test namespace for the given 1-based parallel
-// process index, derived from a shared random base.
-func streamingNamespaceFor(base string, processIndex int) string {
-	return fmt.Sprintf("%s-%d", base, processIndex)
+// streamingFICName returns the federated identity credential name for a namespace.
+func streamingFICName(namespace string) string {
+	return fmt.Sprintf("streaming-e2e-%s", namespace)
 }
 
-// setupAllStreamingIdentities creates a federated identity credential for every parallel process's
-// namespace sequentially.
-func setupAllStreamingIdentities(base string, parallelTotal int) {
+// createStreamingFIC creates a federated identity credential whose subject targets the streaming
+// ServiceAccount in the given namespace.
+func createStreamingFIC(namespace string) {
 	if !streamingEnabled() {
 		return
 	}
@@ -53,12 +54,10 @@ func setupAllStreamingIdentities(base string, parallelTotal int) {
 	Expect(identityRG).NotTo(BeEmpty(), "STREAMING_KUBELET_IDENTITY_RG must be set")
 	Expect(oidcIssuer).NotTo(BeEmpty(), "STREAMING_OIDC_ISSUER must be set")
 
-	for i := 1; i <= parallelTotal; i++ {
-		namespace := streamingNamespaceFor(base, i)
-		By(fmt.Sprintf("Creating streaming federated identity credential for namespace %s", namespace), func() {
-			ficName := fmt.Sprintf("streaming-e2e-%s", namespace)
-			subject := fmt.Sprintf("system:serviceaccount:%s:%s", namespace, streamingServiceAccountName)
-			// #nosec G204 -- inputs are CI-controlled env vars, not user input.
+	ficName := streamingFICName(namespace)
+	subject := fmt.Sprintf("system:serviceaccount:%s:%s", namespace, streamingServiceAccountName)
+	By(fmt.Sprintf("Creating streaming federated identity credential for namespace %s", namespace), func() {
+		Eventually(func() error {
 			cmd := exec.Command("az", "identity", "federated-credential", "create",
 				"--name", ficName,
 				"--identity-name", identityName,
@@ -68,9 +67,16 @@ func setupAllStreamingIdentities(base string, parallelTotal int) {
 				"--audiences", "api://AzureADTokenExchange",
 				"-o", "none")
 			out, err := cmd.CombinedOutput()
-			Expect(err).NotTo(HaveOccurred(), "az federated-credential create for %s failed: %s", namespace, string(out))
-		})
-	}
+			if err == nil {
+				return nil
+			}
+			// A FIC left over from a previous attempt (same name+subject) is fine — treat as success.
+			if strings.Contains(string(out), "already exists") {
+				return nil
+			}
+			return fmt.Errorf("az federated-credential create for %s failed: %s", namespace, string(out))
+		}, 2*time.Minute, 10*time.Second).Should(Succeed())
+	})
 }
 
 // createStreamingServiceAccount creates the model-streamer SA (annotated for workload identity) in
@@ -96,17 +102,16 @@ func createStreamingServiceAccount(namespace string) {
 	})
 }
 
-// teardownAllStreamingIdentities deletes the federated credentials created for every parallel
-// process's namespace.
-func teardownAllStreamingIdentities(base string, parallelTotal int) {
+// deleteStreamingFIC best-effort deletes the federated credential created for the given namespace.
+// Deletes are also writes to the managed identity, so we retry on the concurrent-write error.
+func deleteStreamingFIC(namespace string) {
 	if !streamingEnabled() {
 		return
 	}
 	identityName := os.Getenv("STREAMING_KUBELET_IDENTITY_NAME")
 	identityRG := os.Getenv("STREAMING_KUBELET_IDENTITY_RG")
-	for i := 1; i <= parallelTotal; i++ {
-		namespace := streamingNamespaceFor(base, i)
-		ficName := fmt.Sprintf("streaming-e2e-%s", namespace)
+	ficName := streamingFICName(namespace)
+	Eventually(func() error {
 		// #nosec G204 -- inputs are CI-controlled env vars, not user input.
 		cmd := exec.Command("az", "identity", "federated-credential", "delete",
 			"--name", ficName,
@@ -114,8 +119,13 @@ func teardownAllStreamingIdentities(base string, parallelTotal int) {
 			"--resource-group", identityRG,
 			"--yes", "-o", "none")
 		out, err := cmd.CombinedOutput()
-		if err != nil {
-			GinkgoWriter.Printf("warning: failed to delete FIC %s: %s\n", ficName, string(out))
+		if err == nil {
+			return nil
 		}
-	}
+		if strings.Contains(string(out), "not found") || strings.Contains(string(out), "does not exist") {
+			return nil
+		}
+		GinkgoWriter.Printf("warning: failed to delete FIC %s: %s\n", ficName, string(out))
+		return fmt.Errorf("delete FIC %s: %s", ficName, string(out))
+	}, 2*time.Minute, 10*time.Second).Should(Succeed())
 }

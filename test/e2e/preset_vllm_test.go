@@ -80,11 +80,15 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateMultiRoleInferenceGWIEResources(mriObj)
 		validateMultiRoleInferenceStatus(mriObj)
 
-		// P/D-specific validations
+		// P/D-specific validations (require Istio)
 		validateMultiRoleInferenceEPPReady(mriObj)
-		validateMultiRoleInferenceDestinationRule(mriObj)
-		validateMultiRoleInferenceChatCompletions(mriObj)
-		validateMultiRoleInferencePDDisaggregation(mriObj)
+		if isIstioCRDAvailable() {
+			validateMultiRoleInferenceDestinationRule(mriObj)
+			validateMultiRoleInferenceChatCompletions(mriObj)
+			validateMultiRoleInferencePDDisaggregation(mriObj)
+		} else {
+			GinkgoWriter.Printf("Istio CRDs not available, skipping DestinationRule and P/D traffic validation\n")
+		}
 	})
 
 	It("should create a Gemma 3 InferenceSet with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
@@ -1197,6 +1201,23 @@ func validateMultiRoleInferenceEPPReady(mriObj *kaitov1alpha1.MultiRoleInference
 		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(),
 			"EPP pod should have disagg-profile-handler in logs")
 	})
+}
+
+// isIstioCRDAvailable checks if Istio DestinationRule CRD is registered in the cluster.
+func isIstioCRDAvailable() bool {
+	dr := &unstructured.Unstructured{}
+	dr.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "networking.istio.io",
+		Version: "v1beta1",
+		Kind:    "DestinationRule",
+	})
+	err := utils.TestingCluster.KubeClient.List(ctx, &unstructured.UnstructuredList{
+		Object: map[string]interface{}{
+			"apiVersion": "networking.istio.io/v1beta1",
+			"kind":       "DestinationRuleList",
+		},
+	})
+	return err == nil
 }
 
 // validateMultiRoleInferenceDestinationRule creates and validates a DestinationRule

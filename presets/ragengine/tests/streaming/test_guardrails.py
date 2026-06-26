@@ -1,0 +1,88 @@
+# Copyright (c) KAITO authors.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import os
+import sys
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
+
+from ragengine.guardrails import OutputGuardrails  # noqa: E402
+from ragengine.guardrails.scanner_schemas import (  # noqa: E402
+    JSONConfig,
+    ParsedScannerConfig,
+    RegexConfig,
+)
+from ragengine.streaming.guardrails import validate_streaming_guardrails  # noqa: E402
+
+
+def test_validate_streaming_guardrails_accepts_block_regex_policy():
+    support = validate_streaming_guardrails(
+        OutputGuardrails(
+            enabled=True,
+            action_on_hit="block",
+            scanner_configs=(
+                ParsedScannerConfig(
+                    type="regex",
+                    action_on_hit="block",
+                    config=RegexConfig(patterns=[r"https?://\S+"]),
+                ),
+            ),
+        )
+    )
+
+    assert support.supported is True
+    assert support.detail is None
+
+
+def test_validate_streaming_guardrails_rejects_scanner_action_override():
+    support = validate_streaming_guardrails(
+        OutputGuardrails(
+            enabled=True,
+            action_on_hit="block",
+            scanner_configs=(
+                ParsedScannerConfig(
+                    type="regex",
+                    action_on_hit="redact",
+                    config=RegexConfig(patterns=[r"https?://\S+"]),
+                ),
+            ),
+        )
+    )
+
+    assert support.supported is False
+    assert support.detail == (
+        "stream=true with output guardrails only supports action=block. "
+        "Unsupported action: redact."
+    )
+
+
+def test_validate_streaming_guardrails_rejects_streaming_unsafe_scanner():
+    support = validate_streaming_guardrails(
+        OutputGuardrails(
+            enabled=True,
+            action_on_hit="block",
+            scanner_configs=(
+                ParsedScannerConfig(
+                    type="json",
+                    action_on_hit="block",
+                    config=JSONConfig(),
+                ),
+            ),
+        )
+    )
+
+    assert support.supported is False
+    assert support.detail == (
+        "stream=true with output guardrails only supports ban_substrings and regex "
+        "scanners. Unsupported scanner: json."
+    )

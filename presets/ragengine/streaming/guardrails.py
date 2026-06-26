@@ -32,7 +32,7 @@ from ragengine.streaming.sse import iter_sse_events
 STREAMING_GUARDRAILS_HOLDBACK_CHARS = 256
 STREAMING_GUARDRAILS_MIN_SCAN_CHARS = 1
 STREAMING_GUARDRAILS_MAX_EMIT_CHARS = 4096
-STREAMING_GUARDRAILS_SUPPORTED_SCANNERS = frozenset({"ban_substrings", "regex"})
+STREAMING_GUARDRAILS_SUPPORTED_SCANNERS = frozenset({"ban_substrings"})
 
 
 @dataclass(frozen=True)
@@ -60,7 +60,7 @@ def validate_streaming_guardrails(
                 supported=False,
                 detail=(
                     "stream=true with output guardrails only supports "
-                    "ban_substrings and regex scanners. Unsupported scanner: "
+                    "ban_substrings scanners. Unsupported scanner: "
                     f"{scanner_config.type}."
                 ),
             )

@@ -22,7 +22,11 @@ import pytest
 import respx
 
 from ragengine.guardrails import OutputGuardrails
-from ragengine.guardrails.scanner_schemas import ParsedScannerConfig, RegexConfig
+from ragengine.guardrails.scanner_schemas import (
+    JSONConfig,
+    ParsedScannerConfig,
+    RegexConfig,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -289,7 +293,7 @@ async def test_chat_completions_stream_with_index_name_is_rejected(async_client)
 
 
 @pytest.mark.asyncio
-async def test_chat_completions_stream_with_output_guardrails_is_rejected(
+async def test_chat_completions_stream_with_unsupported_output_guardrails_is_rejected(
     async_client, monkeypatch
 ):
     import ragengine.main
@@ -297,7 +301,17 @@ async def test_chat_completions_stream_with_output_guardrails_is_rejected(
     monkeypatch.setattr(
         ragengine.main.guardrails_reloader,
         "_current",
-        OutputGuardrails(enabled=True),
+        OutputGuardrails(
+            enabled=True,
+            action_on_hit="block",
+            scanner_configs=(
+                ParsedScannerConfig(
+                    type="json",
+                    action_on_hit="block",
+                    config=JSONConfig(),
+                ),
+            ),
+        ),
     )
 
     response = await async_client.post(
@@ -312,53 +326,37 @@ async def test_chat_completions_stream_with_output_guardrails_is_rejected(
     assert response.status_code == 400
     assert (
         response.json()["detail"]
-        == "stream=true is not supported when output guardrails are enabled."
+        == "stream=true with output guardrails only supports ban_substrings scanners. "
+        "Unsupported scanner: json."
     )
+
+
+@pytest.mark.asyncio
+async def test_chat_completions_rejects_multi_choice(async_client):
+    response = await async_client.post(
+        "/v1/chat/completions",
+        json={
+            "model": "mock-model",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "n": 2,
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "n > 1 is not supported."
 
 
 @pytest.mark.asyncio
 @respx.mock
 @patch("requests.get")
 async def test_chat_completions_with_tools(mock_get, async_client):
-    """Test chat completion with tools (should passthrough to LLM)."""
+    """Test chat completion with tools is rejected."""
     # Mock the response for the default model fetch
     mock_get.return_value.status_code = 200
     mock_get.return_value.json.return_value = {
         "data": [{"id": "mock-model", "max_model_len": 2048}]
     }
 
-    # Mock HTTPX response for passthrough LLM call
-    mock_response = {
-        "id": "chatcmpl-tools123",
-        "object": "chat.completion",
-        "created": int(time.time()),
-        "model": "mock-model",
-        "choices": [
-            {
-                "index": 0,
-                "message": {
-                    "role": "assistant",
-                    "content": None,
-                    "tool_calls": [
-                        {
-                            "id": "call123",
-                            "type": "function",
-                            "function": {
-                                "name": "test_tool",
-                                "arguments": '{"param1": "value1"}',
-                            },
-                        }
-                    ],
-                },
-                "finish_reason": "tool_calls",
-            }
-        ],
-    }
-    respx.post("http://localhost:5000/v1/chat/completions").mock(
-        return_value=httpx.Response(200, json=mock_response)
-    )
-
-    # Test request with tools (should trigger passthrough)
     chat_request = {
         "model": "mock-model",
         "messages": [{"role": "user", "content": "Use a tool to help me"}],
@@ -383,11 +381,8 @@ async def test_chat_completions_with_tools(mock_get, async_client):
     }
 
     response = await async_client.post("/v1/chat/completions", json=chat_request)
-    assert response.status_code == 200
-
-    response_data = response.json()
-    assert response_data["choices"][0]["finish_reason"] == "tool_calls"
-    assert "tool_calls" in response_data["choices"][0]["message"]
+    assert response.status_code == 400
+    assert response.json()["detail"] == "tools and functions are not supported."
 
 
 @pytest.mark.asyncio
@@ -1225,35 +1220,13 @@ async def test_chat_completions_empty_messages_list(mock_get, async_client):
 @respx.mock
 @patch("requests.get")
 async def test_chat_completions_with_functions(mock_get, async_client):
-    """Test chat completion with functions parameter (should passthrough)."""
+    """Test chat completion with functions parameter is rejected."""
     # Mock the response for the default model fetch
     mock_get.return_value.status_code = 200
     mock_get.return_value.json.return_value = {
         "data": [{"id": "mock-model", "max_model_len": 2048}]
     }
 
-    # Mock HTTPX response for passthrough LLM call
-    mock_response = {
-        "id": "chatcmpl-functions",
-        "object": "chat.completion",
-        "created": int(time.time()),
-        "model": "mock-model",
-        "choices": [
-            {
-                "index": 0,
-                "message": {
-                    "role": "assistant",
-                    "content": "Function-enabled response",
-                },
-                "finish_reason": "stop",
-            }
-        ],
-    }
-    respx.post("http://localhost:5000/v1/chat/completions").mock(
-        return_value=httpx.Response(200, json=mock_response)
-    )
-
-    # Test request with functions (should trigger passthrough)
     chat_request = {
         "model": "mock-model",
         "messages": [{"role": "user", "content": "Use a function to help me"}],
@@ -1261,14 +1234,8 @@ async def test_chat_completions_with_functions(mock_get, async_client):
     }
 
     response = await async_client.post("/v1/chat/completions", json=chat_request)
-    assert response.status_code == 200
-
-    response_data = response.json()
-    assert (
-        response_data["choices"][0]["message"]["content"] == "Function-enabled response"
-    )
-    # Should have source_nodes field but it should be None for passthrough requests
-    assert response_data["source_nodes"] is None
+    assert response.status_code == 400
+    assert response.json()["detail"] == "tools and functions are not supported."
 
 
 @pytest.mark.asyncio

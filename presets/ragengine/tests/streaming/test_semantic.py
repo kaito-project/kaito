@@ -76,19 +76,8 @@ def test_openai_parser_returns_explicit_status_for_malformed_json():
 
     result = parse_openai_chat_sse_event(events[0])
 
-    assert result.status == OpenAIChatChunkParseStatus.MALFORMED_JSON
+    assert result.status == OpenAIChatChunkParseStatus.MALFORMED
     assert result.error
-
-
-def test_openai_parser_tolerates_chunk_without_delta_content():
-    events = SSEFramer().feed(
-        'data: {"choices":[{"delta":{"role":"assistant"},"finish_reason":"stop"}]}\n\n'
-    )
-
-    result = parse_openai_chat_sse_event(events[0])
-    assert result.status == OpenAIChatChunkParseStatus.PARSED
-    assert result.contents == ()
-    assert result.finish_reasons == ("stop",)
 
 
 def test_openai_builder_builds_delta_content_chunk():

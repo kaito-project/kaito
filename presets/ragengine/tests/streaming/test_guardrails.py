@@ -21,7 +21,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 from ragengine.guardrails import OutputGuardrails  # noqa: E402
 from ragengine.guardrails.scanner_schemas import (  # noqa: E402
     BanSubstringsConfig,
-    JSONConfig,
     ParsedScannerConfig,
     RegexConfig,
 )
@@ -31,16 +30,18 @@ from ragengine.streaming.guardrails import (  # noqa: E402
 )
 
 
-def test_validate_streaming_guardrails_accepts_block_regex_policy():
+def test_validate_streaming_guardrails_accepts_block_ban_substrings_policy():
     support = validate_streaming_guardrails(
         OutputGuardrails(
             enabled=True,
             action_on_hit="block",
             scanner_configs=(
                 ParsedScannerConfig(
-                    type="regex",
+                    type="ban_substrings",
                     action_on_hit="block",
-                    config=RegexConfig(patterns=[r"https?://\S+"]),
+                    config=BanSubstringsConfig(
+                        substrings=["blocked"], match_type="str"
+                    ),
                 ),
             ),
         )
@@ -57,9 +58,11 @@ def test_validate_streaming_guardrails_rejects_scanner_action_override():
             action_on_hit="block",
             scanner_configs=(
                 ParsedScannerConfig(
-                    type="regex",
+                    type="ban_substrings",
                     action_on_hit="redact",
-                    config=RegexConfig(patterns=[r"https?://\S+"]),
+                    config=BanSubstringsConfig(
+                        substrings=["blocked"], match_type="str"
+                    ),
                 ),
             ),
         )
@@ -79,9 +82,9 @@ def test_validate_streaming_guardrails_rejects_streaming_unsafe_scanner():
             action_on_hit="block",
             scanner_configs=(
                 ParsedScannerConfig(
-                    type="json",
+                    type="regex",
                     action_on_hit="block",
-                    config=JSONConfig(),
+                    config=RegexConfig(patterns=[r"https?://\S+"]),
                 ),
             ),
         )
@@ -89,8 +92,8 @@ def test_validate_streaming_guardrails_rejects_streaming_unsafe_scanner():
 
     assert support.supported is False
     assert support.detail == (
-        "stream=true with output guardrails only supports ban_substrings and regex "
-        "scanners. Unsupported scanner: json."
+        "stream=true with output guardrails only supports ban_substrings scanners. "
+        "Unsupported scanner: regex."
     )
 
 
@@ -126,3 +129,42 @@ async def test_apply_streaming_guardrails_blocks_malformed_sse_event():
         'data: {"choices":[{"index":0,"delta":{},"finish_reason":"content_filter"}]}\n\n',
         "data: [DONE]\n\n",
     ]
+
+
+@pytest.mark.asyncio
+async def test_apply_streaming_guardrails_closes_upstream_when_consumer_stops():
+    class ClosableChunks:
+        def __init__(self) -> None:
+            self.closed = False
+
+        def __aiter__(self):
+            return self
+
+        async def __anext__(self):
+            return 'data: {"choices":[{"delta":{"content":"safe text"}}]}\n\n'
+
+        async def aclose(self) -> None:
+            self.closed = True
+
+    upstream_chunks = ClosableChunks()
+    guardrails = OutputGuardrails(
+        enabled=True,
+        fail_open=False,
+        action_on_hit="block",
+        scanner_configs=(
+            ParsedScannerConfig(
+                type="ban_substrings",
+                action_on_hit="block",
+                config=BanSubstringsConfig(substrings=["unsafe"], match_type="str"),
+            ),
+        ),
+    )
+
+    guarded_chunks = apply_streaming_guardrails(
+        upstream_chunks, guardrails, {"messages": []}
+    )
+
+    assert await anext(guarded_chunks)
+    await guarded_chunks.aclose()
+
+    assert upstream_chunks.closed is True

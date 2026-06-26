@@ -22,6 +22,10 @@ from fastapi import FastAPI, Request
 from starlette.responses import StreamingResponse
 
 from ragengine.guardrails import OutputGuardrails
+from ragengine.guardrails.scanner_schemas import (
+    BanSubstringsConfig,
+    ParsedScannerConfig,
+)
 from ragengine.main import app as ragengine_app
 
 
@@ -124,3 +128,220 @@ async def test_streaming_passthrough_flushes_first_chunk_before_upstream_finishe
     assert second_line == 'data: {"choices":[{"delta":{"content":"second"}}]}'
     assert done_line == "data: [DONE]"
     assert upstream_requests[0]["stream"] is True
+
+
+@pytest.mark.asyncio
+async def test_streaming_guardrails_safe_stream_passes(
+    monkeypatch, unused_tcp_port_factory
+):
+    upstream_port = unused_tcp_port_factory()
+    ragengine_port = unused_tcp_port_factory()
+
+    upstream_app = FastAPI()
+
+    @upstream_app.post("/v1/chat/completions")
+    async def chat_completions(request: Request):
+        await request.json()
+
+        async def events():
+            yield 'data: {"choices":[{"delta":{"content":"safe "}}]}\n\n'
+            yield 'data: {"choices":[{"delta":{"content":"text"}}]}\n\n'
+            yield "data: [DONE]\n\n"
+
+        return StreamingResponse(events(), media_type="text/event-stream")
+
+    import ragengine.inference.inference
+    import ragengine.main
+
+    monkeypatch.setattr(
+        ragengine.inference.inference,
+        "LLM_INFERENCE_URL",
+        f"http://127.0.0.1:{upstream_port}/v1/chat/completions",
+    )
+    monkeypatch.setattr(
+        ragengine.main.guardrails_reloader,
+        "_current",
+        _block_guardrails(
+            ParsedScannerConfig(
+                type="ban_substrings",
+                action_on_hit="block",
+                config=BanSubstringsConfig(
+                    substrings=["blocked"],
+                    match_type="str",
+                ),
+            )
+        ),
+    )
+
+    async with (
+        run_uvicorn_app(upstream_app, upstream_port),
+        run_uvicorn_app(ragengine_app, ragengine_port),
+        httpx.AsyncClient(timeout=5) as client,
+        client.stream(
+            "POST",
+            f"http://127.0.0.1:{ragengine_port}/v1/chat/completions",
+            json={
+                "model": "mock-model",
+                "messages": [{"role": "user", "content": "Hello"}],
+                "stream": True,
+            },
+        ) as response,
+    ):
+        assert response.status_code == 200
+        lines = await _read_sse_lines(response)
+
+    assert lines == [
+        'data: {"choices":[{"index":0,"delta":{"content":"safe text"},"finish_reason":null}]}',
+        "data: [DONE]",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_streaming_guardrails_blocked_stream_emits_block_message(
+    monkeypatch, unused_tcp_port_factory
+):
+    upstream_port = unused_tcp_port_factory()
+    ragengine_port = unused_tcp_port_factory()
+
+    upstream_app = FastAPI()
+
+    @upstream_app.post("/v1/chat/completions")
+    async def chat_completions(request: Request):
+        await request.json()
+
+        async def events():
+            yield 'data: {"choices":[{"delta":{"content":"safe "}}]}\n\n'
+            yield 'data: {"choices":[{"delta":{"content":"http://evil.example"}}]}\n\n'
+            yield 'data: {"choices":[{"delta":{"content":" after"}}]}\n\n'
+            yield "data: [DONE]\n\n"
+
+        return StreamingResponse(events(), media_type="text/event-stream")
+
+    import ragengine.inference.inference
+    import ragengine.main
+
+    monkeypatch.setattr(
+        ragengine.inference.inference,
+        "LLM_INFERENCE_URL",
+        f"http://127.0.0.1:{upstream_port}/v1/chat/completions",
+    )
+    monkeypatch.setattr(
+        ragengine.main.guardrails_reloader,
+        "_current",
+        _block_guardrails(
+            ParsedScannerConfig(
+                type="ban_substrings",
+                action_on_hit="block",
+                config=BanSubstringsConfig(
+                    substrings=["http://evil.example"], match_type="str"
+                ),
+            ),
+            block_message="blocked-by-policy",
+        ),
+    )
+
+    async with (
+        run_uvicorn_app(upstream_app, upstream_port),
+        run_uvicorn_app(ragengine_app, ragengine_port),
+        httpx.AsyncClient(timeout=5) as client,
+        client.stream(
+            "POST",
+            f"http://127.0.0.1:{ragengine_port}/v1/chat/completions",
+            json={
+                "model": "mock-model",
+                "messages": [{"role": "user", "content": "Share a link"}],
+                "stream": True,
+            },
+        ) as response,
+    ):
+        assert response.status_code == 200
+        lines = await _read_sse_lines(response)
+
+    assert lines == [
+        'data: {"choices":[{"index":0,"delta":{"content":"blocked-by-policy"},"finish_reason":null}]}',
+        'data: {"choices":[{"index":0,"delta":{},"finish_reason":"content_filter"}]}',
+        "data: [DONE]",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_streaming_guardrails_blocks_split_violation_across_chunks(
+    monkeypatch, unused_tcp_port_factory
+):
+    upstream_port = unused_tcp_port_factory()
+    ragengine_port = unused_tcp_port_factory()
+
+    upstream_app = FastAPI()
+
+    @upstream_app.post("/v1/chat/completions")
+    async def chat_completions(request: Request):
+        await request.json()
+
+        async def events():
+            yield 'data: {"choices":[{"delta":{"content":"safe ba"}}]}\n\n'
+            yield 'data: {"choices":[{"delta":{"content":"d text"}}]}\n\n'
+            yield "data: [DONE]\n\n"
+
+        return StreamingResponse(events(), media_type="text/event-stream")
+
+    import ragengine.inference.inference
+    import ragengine.main
+
+    monkeypatch.setattr(
+        ragengine.inference.inference,
+        "LLM_INFERENCE_URL",
+        f"http://127.0.0.1:{upstream_port}/v1/chat/completions",
+    )
+    monkeypatch.setattr(
+        ragengine.main.guardrails_reloader,
+        "_current",
+        _block_guardrails(
+            ParsedScannerConfig(
+                type="ban_substrings",
+                action_on_hit="block",
+                config=BanSubstringsConfig(
+                    substrings=["bad"],
+                    match_type="str",
+                ),
+            )
+        ),
+    )
+
+    async with (
+        run_uvicorn_app(upstream_app, upstream_port),
+        run_uvicorn_app(ragengine_app, ragengine_port),
+        httpx.AsyncClient(timeout=5) as client,
+        client.stream(
+            "POST",
+            f"http://127.0.0.1:{ragengine_port}/v1/chat/completions",
+            json={
+                "model": "mock-model",
+                "messages": [{"role": "user", "content": "Hello"}],
+                "stream": True,
+            },
+        ) as response,
+    ):
+        assert response.status_code == 200
+        lines = await _read_sse_lines(response)
+
+    assert lines == [
+        'data: {"choices":[{"index":0,"delta":{"content":"blocked-by-policy"},"finish_reason":null}]}',
+        'data: {"choices":[{"index":0,"delta":{},"finish_reason":"content_filter"}]}',
+        "data: [DONE]",
+    ]
+
+
+async def _read_sse_lines(response: httpx.Response) -> list[str]:
+    return [line async for line in response.aiter_lines() if line]
+
+
+def _block_guardrails(
+    *scanner_configs: ParsedScannerConfig,
+    block_message: str = "blocked-by-policy",
+) -> OutputGuardrails:
+    return OutputGuardrails(
+        enabled=True,
+        action_on_hit="block",
+        block_message=block_message,
+        scanner_configs=scanner_configs,
+    )

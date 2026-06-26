@@ -7,10 +7,10 @@ description: How KAITO estimates GPU memory to determine node count and context 
 
 When you deploy an LLM through KAITO, the system must answer two questions before it can start serving:
 
-1. **How many GPU nodes are needed?** — fewer nodes means less inter-node communication and better inference performance.
-2. **What is the largest context window the vLLM server can support?** — a longer context window lets the model handle longer conversations and documents, but requires more GPU memory.
+1. **How many GPU nodes are needed?** — fewer nodes means less inter-node communication and better inference performance. KAITO's memory estimator computes this up front.
+2. **What is the largest context window the vLLM server can support?** — a longer context window lets the model handle longer conversations and documents, but requires more GPU memory. KAITO delegates this to vLLM's runtime auto-fit (`--max-model-len=auto`).
 
-Both answers come from the same underlying principle: **GPU memory is a finite budget that must be shared between model weights, the KV cache, and runtime overhead.** KAITO's memory estimator does the math automatically so you don't have to.
+Both answers come from the same underlying principle: **GPU memory is a finite budget that must be shared between model weights, the KV cache, and runtime overhead.** KAITO estimates this budget to size the cluster, and vLLM measures it precisely at startup to size the context window.
 
 ## The GPU Memory Budget
 
@@ -120,26 +120,32 @@ The logic, in plain terms:
 4. **Minimum GPUs needed** = model weight size ÷ per-GPU memory left for weights (rounded up)
 5. **Minimum nodes** = minimum GPUs ÷ GPUs per node (rounded up)
 
-## How KAITO Determines the Context Size
+## How the Context Size Is Determined
 
-Once the node count is known, a second calculation runs in the opposite direction: instead of asking _"how many nodes for this context length?"_, it asks _"given this many nodes, what is the **longest context window** the vLLM server can support?"_
+KAITO does **not** pin a fixed `--max-model-len` for the server. Instead it launches vLLM with **`--max-model-len=auto`** and lets vLLM's native [auto-fit](https://docs.vllm.ai/en/latest/configuration/engine_args/#-max-model-len) logic choose the context window.
 
-It takes the leftover GPU memory *after* model weights and the runtime overhead, then divides by the per-token KV cache cost:
+The reason is accuracy. vLLM measures the **real** KV-cache budget on the GPU at startup — after the weights are actually loaded and the runtime overhead (activations, CUDA graphs, allocator fragmentation) is measured empirically — and then selects the largest context window that fits. Estimating these quantities ahead of time is inherently approximate; an over-estimate would launch the server with a context window that does not fit and crash-loop at startup. Delegating to auto-fit removes that risk.
+
+Conceptually, vLLM solves the same equation the estimator uses for node count, but in the opposite direction and with **measured** rather than predicted values:
 
 ```
-Max Context Length = (Usable Memory − Model Weights per GPU − Runtime Overhead) / Adjusted Bytes per Token
+Max Context Length = (Measured Free Memory after weights + overhead) / Adjusted Bytes per Token
 ```
 
-The result is then:
+The result is then **clamped** to the model's architectural limit (`max_position_embeddings`) — the context length can never exceed what the model was designed for — and reduced further if needed so the KV cache fits the measured budget.
 
-1. **Clamped** to the model's architectural limit (`max_position_embeddings`) — the context length can never exceed what the model was designed for.
-2. **Aligned down** to a 256-token boundary for vLLM memory allocation efficiency.
+You can see vLLM's chosen value in the server logs, for example:
 
-This final value is passed as `--max-model-len` when launching the vLLM server.
+```
+Auto-fit max_model_len: reduced from 262144 to 117264 to fit in available GPU memory
+```
 
 ### User Override
 
-If you set `max-model-len` explicitly in your inference ConfigMap, that value takes precedence in **node count estimation** — the estimator uses your specified context size to compute nodes, and the exact value is forwarded to vLLM. This is useful when you know the context length your workload requires and want KAITO to provision accordingly.
+If you set `max-model-len` explicitly in your inference ConfigMap, that value is used in two places:
+
+- **Node count estimation:** the estimator uses your specified context size (instead of the conservative 2048-token default) to reserve KV-cache memory when computing how many nodes are needed.
+- **vLLM launch:** your explicit value is appended after `--max-model-len=auto` on the vLLM command line, so it takes precedence over auto-fit. This is useful when you know the exact context length your workload requires and want KAITO to provision accordingly.
 
 ### The Relationship Between Node Count and Context Size
 
@@ -148,7 +154,7 @@ Node count and context size are two faces of the same memory budget:
 - **More nodes** → model weights are distributed across more GPUs → more memory left per GPU for KV cache → **longer context possible**.
 - **Longer context** → more KV cache per GPU → less room for model weights → **more nodes needed**.
 
-KAITO resolves this tension by first determining the minimum node count (using a conservative context size), then maximizing the context window within the resulting memory envelope.
+KAITO resolves this tension by determining the minimum node count using a conservative context size, then delegating context-window maximization to vLLM's auto-fit, which fills the resulting memory envelope at runtime.
 
 ## Worked Example
 
@@ -210,7 +216,7 @@ Using the default context size (2,048 tokens) for initial estimation:
 
 ### Step 2: Determine Context Size
 
-Now compute the longest context window on that 1 GPU:
+KAITO launches vLLM with `--max-model-len=auto`, so the context window is chosen by vLLM's auto-fit at runtime rather than computed by KAITO. The calculation below mirrors what auto-fit does — using measured memory instead of these estimates — to show why the model gets its full context on this GPU:
 
 1. `modelWeightPerGPU = 7.29 GiB` (single GPU, no distribution)
 2. `availablePerGPU = 67.2 GiB`
@@ -219,9 +225,8 @@ Now compute the longest context window on that 1 GPU:
 5. `adjustedBytesPerToken = 128 KB` (single GPU, GQA)
 6. `rawCandidate = 57.25 GiB × 8,192 tokens/GiB ≈ 469,000 tokens`
 7. Clamp to model limit: `min(469000, 131072) = 131,072`
-8. Align to 256: `131,072` (already aligned)
 
-**Result: vLLM launches with `--max-model-len 131072`** — the full 128K context the model architecture supports.
+**Result: vLLM's auto-fit selects `131072`** — the full 128K context the model architecture supports, since there is far more KV-cache room than the model can use.
 
 ### What If We Used a Smaller GPU?
 
@@ -233,8 +238,7 @@ On a `Standard_NV36ads_A10_v5` node (1× A10 24 GiB GPU):
 4. `remainingPerGPU = 20.16 − 7.29 − 2.66 = 10.21 GiB`
 5. `rawCandidate = 10.21 GiB × 8,192 tokens/GiB ≈ 83,640 tokens`
 6. Clamp to model limit: `min(83640, 131072) = 83,640`
-7. Align to 256: `83,456`
 
-The model still fits on 1 node, but the context window drops to ~83K tokens — well below the model's 128K architectural limit. To get the full context, you'd need a GPU with more memory.
+The model still fits on 1 node, but vLLM's auto-fit selects a context window of only ~83K tokens — well below the model's 128K architectural limit — because the smaller GPU leaves less room for the KV cache. To get the full context, you'd need a GPU with more memory.
 
 </details>

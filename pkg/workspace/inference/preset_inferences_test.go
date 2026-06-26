@@ -29,6 +29,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
@@ -58,6 +59,19 @@ var flashInferSamplerEnvVar = corev1.EnvVar{
 var deepGEMMEnvVar = corev1.EnvVar{
 	Name:  consts.VLLMUseDeepGEMMEnvName,
 	Value: "0",
+}
+
+// flashInferMoeEnvVars are injected into every vLLM inference container to
+// disable vLLM's FlashInfer MoE backends across all precisions so MoE models
+// fall back to the Triton kernel (FlashInfer needs an nvcc JIT absent from the
+// base image). Order must match production wiring in GenerateInferencePodSpec.
+var flashInferMoeEnvVars = []corev1.EnvVar{
+	{Name: consts.VLLMUseFlashInferMoeFP16EnvName, Value: "0"},
+	{Name: consts.VLLMUseFlashInferMoeFP8EnvName, Value: "0"},
+	{Name: consts.VLLMUseFlashInferMoeFP4EnvName, Value: "0"},
+	{Name: consts.VLLMUseFlashInferMoeMXFP4BF16EnvName, Value: "0"},
+	{Name: consts.VLLMUseFlashInferMoeMXFP4MXFP8EnvName, Value: "0"},
+	{Name: consts.VLLMUseFlashInferMoeMXFP4MXFP8CutlassEnvName, Value: "0"},
 }
 
 func TestGeneratePresetInference(t *testing.T) {
@@ -206,6 +220,7 @@ func TestGeneratePresetInference(t *testing.T) {
 						LocalObjectReference: corev1.LocalObjectReference{
 							Name: "test-secret",
 						},
+						Optional: ptr.To(true),
 					},
 				},
 			}},
@@ -220,7 +235,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=6 --ray_port=6379; python3 /workspace/vllm/inference_api.py --distributed-executor-backend=ray --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --dtype=float16 --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --kaito-kv-cache-cpu-memory-utilization=0 --pipeline-parallel-size=6 --tensor-parallel-size=1; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
+			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=7 --ray_port=6379; python3 /workspace/vllm/inference_api.py --distributed-executor-backend=ray --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --dtype=float16 --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --kaito-kv-cache-cpu-memory-utilization=0 --pipeline-parallel-size=7 --tensor-parallel-size=1; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
 
 			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar, {
 				Name: "HF_TOKEN",
@@ -230,6 +245,7 @@ func TestGeneratePresetInference(t *testing.T) {
 						LocalObjectReference: corev1.LocalObjectReference{
 							Name: "test-secret",
 						},
+						Optional: ptr.To(true),
 					},
 				},
 			}, {
@@ -244,9 +260,9 @@ func TestGeneratePresetInference(t *testing.T) {
 
 		"test-model-download-distributed/vllm (more nodes than required)": {
 			// Using Standard_NC4as_T4_v3, which has 16GB GPU memory per node.
-			// The preset requires 64GB GPU memory for the model; estimator computes 6 nodes needed.
+			// The preset requires 64GB GPU memory for the model; estimator computes 7 nodes needed.
 			workspace: test.MockWorkspaceWithPresetDownloadVLLM,
-			nodeCount: 8, // 8 nodes requested; model requires 6, so 6 pipeline stages are used
+			nodeCount: 8, // 8 nodes requested; model requires 7, so 7 pipeline stages are used
 			modelName: "test-model-download",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
@@ -256,7 +272,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				// Mock node list for BYO node discovery
 				c.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 			},
-			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=6 --ray_port=6379; python3 /workspace/vllm/inference_api.py --distributed-executor-backend=ray --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --dtype=float16 --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --kaito-kv-cache-cpu-memory-utilization=0 --pipeline-parallel-size=6 --tensor-parallel-size=1; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
+			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=7 --ray_port=6379; python3 /workspace/vllm/inference_api.py --distributed-executor-backend=ray --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --dtype=float16 --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --kaito-kv-cache-cpu-memory-utilization=0 --pipeline-parallel-size=7 --tensor-parallel-size=1; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
 
 			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar, {
 				Name: "HF_TOKEN",
@@ -266,6 +282,7 @@ func TestGeneratePresetInference(t *testing.T) {
 						LocalObjectReference: corev1.LocalObjectReference{
 							Name: "test-secret",
 						},
+						Optional: ptr.To(true),
 					},
 				},
 			}, {
@@ -295,6 +312,7 @@ func TestGeneratePresetInference(t *testing.T) {
 						LocalObjectReference: corev1.LocalObjectReference{
 							Name: "test-secret",
 						},
+						Optional: ptr.To(true),
 					},
 				},
 			}},
@@ -399,6 +417,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			expectedEnvVars := tc.expectedEnvVars
 			if len(expectedEnvVars) > 0 && expectedEnvVars[0] == flashInferSamplerEnvVar {
 				withDefaults := []corev1.EnvVar{flashInferSamplerEnvVar, deepGEMMEnvVar}
+				withDefaults = append(withDefaults, flashInferMoeEnvVars...)
 				expectedEnvVars = append(withDefaults, expectedEnvVars[1:]...)
 			}
 
@@ -464,6 +483,7 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 		periodSeconds       int32
 		timeoutSeconds      int32
 		failureThreshold    int32
+		vllmPort            int32
 		expectedProbe       *corev1.Probe
 	}{
 		"Liveness": {
@@ -515,11 +535,36 @@ func TestGetDistributedInferenceProbe(t *testing.T) {
 				FailureThreshold:    1,
 			},
 		},
+		"Readiness with custom port": {
+			probeType: probeTypeReadiness,
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-workspace",
+					Namespace: "test-ns",
+				},
+			},
+			initialDelaySeconds: 0,
+			periodSeconds:       10,
+			timeoutSeconds:      1,
+			failureThreshold:    1,
+			vllmPort:            consts.PortDecodeVLLM,
+			expectedProbe: &corev1.Probe{
+				ProbeHandler: corev1.ProbeHandler{
+					Exec: &corev1.ExecAction{
+						Command: []string{"/bin/sh", "-c", "python3 /workspace/vllm/multi-node-health-check.py readiness --leader-address=test-workspace-0.test-workspace-headless.test-ns.svc.cluster.local --vllm-port=5001"},
+					},
+				},
+				InitialDelaySeconds: 0,
+				PeriodSeconds:       10,
+				TimeoutSeconds:      1,
+				FailureThreshold:    1,
+			},
+		},
 	}
 
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
-			actualProbe := getDistributedInferenceProbe(tc.probeType, tc.workspace, tc.initialDelaySeconds, tc.periodSeconds, tc.timeoutSeconds, tc.failureThreshold)
+			actualProbe := getDistributedInferenceProbe(tc.probeType, tc.workspace, tc.initialDelaySeconds, tc.periodSeconds, tc.timeoutSeconds, tc.failureThreshold, tc.vllmPort)
 			if actualProbe.Exec != nil && tc.expectedProbe.Exec != nil {
 				expected := toParameterMap(tc.expectedProbe.Exec.Command)
 				actual := toParameterMap(actualProbe.Exec.Command)
@@ -1168,7 +1213,7 @@ func TestSetModelDownloadInfo(t *testing.T) {
 		expectError           bool
 		expectedErrorMsg      string
 	}{
-		"download at runtime - add HF_TOKEN": {
+		"download at runtime - no env vars (HF_TOKEN handled by SetHFToken)": {
 			workspace: &v1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-workspace",
@@ -1193,23 +1238,11 @@ func TestSetModelDownloadInfo(t *testing.T) {
 					},
 				},
 			},
-			expectedEnvVars: []corev1.EnvVar{
-				{
-					Name: "HF_TOKEN",
-					ValueFrom: &corev1.EnvVarSource{
-						SecretKeyRef: &corev1.SecretKeySelector{
-							LocalObjectReference: corev1.LocalObjectReference{
-								Name: "hf-secret",
-							},
-							Key: "HF_TOKEN",
-						},
-					},
-				},
-			},
+			expectedEnvVars:       []corev1.EnvVar{},
 			expectedInitContainer: 0,
 			expectError:           false,
 		},
-		"download at runtime - HF_TOKEN only on main container, not sidecar": {
+		"download at runtime with sidecar - no env vars (HF_TOKEN handled by SetHFToken)": {
 			workspace: &v1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-workspace",
@@ -1237,19 +1270,7 @@ func TestSetModelDownloadInfo(t *testing.T) {
 					},
 				},
 			},
-			expectedEnvVars: []corev1.EnvVar{
-				{
-					Name: "HF_TOKEN",
-					ValueFrom: &corev1.EnvVarSource{
-						SecretKeyRef: &corev1.SecretKeySelector{
-							LocalObjectReference: corev1.LocalObjectReference{
-								Name: "hf-secret",
-							},
-							Key: "HF_TOKEN",
-						},
-					},
-				},
-			},
+			expectedEnvVars:       []corev1.EnvVar{},
 			expectedInitContainer: 0,
 			expectError:           false,
 		},
@@ -1470,11 +1491,18 @@ func TestApplyInferenceRoleEnv(t *testing.T) {
 			applyInferenceRoleEnv(tc.labels, "test-workspace", spec)
 
 			found := false
+			foundNIXL := false
 			for _, e := range spec.Containers[0].Env {
 				if e.Name == consts.InferenceRoleEnvName {
 					found = true
 					if e.Value != tc.expectedValue {
 						t.Errorf("expected value %q, got %q", tc.expectedValue, e.Value)
+					}
+				}
+				if e.Name == "VLLM_NIXL_SIDE_CHANNEL_HOST" {
+					foundNIXL = true
+					if e.ValueFrom == nil || e.ValueFrom.FieldRef == nil || e.ValueFrom.FieldRef.FieldPath != "status.podIP" {
+						t.Error("VLLM_NIXL_SIDE_CHANNEL_HOST should use fieldRef status.podIP")
 					}
 				}
 			}
@@ -1483,6 +1511,12 @@ func TestApplyInferenceRoleEnv(t *testing.T) {
 			}
 			if !tc.expectEnvSet && found {
 				t.Error("KAITO_INFERENCE_ROLE should not be set")
+			}
+			if tc.expectEnvSet && !foundNIXL {
+				t.Error("expected VLLM_NIXL_SIDE_CHANNEL_HOST to be set")
+			}
+			if !tc.expectEnvSet && foundNIXL {
+				t.Error("VLLM_NIXL_SIDE_CHANNEL_HOST should not be set")
 			}
 		})
 	}
@@ -1524,7 +1558,8 @@ func TestInjectRoutingSidecar(t *testing.T) {
 			spec := &corev1.PodSpec{
 				Containers: []corev1.Container{
 					{
-						Name: "vllm",
+						Name:    "vllm",
+						Command: []string{"/bin/sh", "-c", "python3 /workspace/vllm/inference_api.py"},
 						Ports: []corev1.ContainerPort{
 							{ContainerPort: int32(consts.PortInferenceServer), Name: "http", Protocol: corev1.ProtocolTCP},
 						},
@@ -1587,12 +1622,12 @@ func TestInjectRoutingSidecar(t *testing.T) {
 				if sidecar.Image != expectedImage {
 					t.Errorf("expected image %q, got %q", expectedImage, sidecar.Image)
 				}
-				if len(sidecar.Ports) != 1 || sidecar.Ports[0].ContainerPort != consts.PortRoutingSidecar {
-					t.Errorf("expected port %d, got %v", consts.PortRoutingSidecar, sidecar.Ports)
+				if len(sidecar.Ports) != 1 || sidecar.Ports[0].ContainerPort != consts.PortInferenceServer {
+					t.Errorf("expected sidecar port %d, got %v", consts.PortInferenceServer, sidecar.Ports)
 				}
 				expectedArgs := []string{
-					fmt.Sprintf("--port=%d", consts.PortRoutingSidecar),
-					fmt.Sprintf("--vllm-port=%d", consts.PortInferenceServer),
+					fmt.Sprintf("--port=%d", consts.PortInferenceServer),
+					fmt.Sprintf("--vllm-port=%d", consts.PortDecodeVLLM),
 					"--secure-proxy=false",
 				}
 				if len(sidecar.Args) != len(expectedArgs) {
@@ -1611,27 +1646,18 @@ func TestInjectRoutingSidecar(t *testing.T) {
 					}
 				}
 
-				// With the new sidecar approach, vLLM keeps its default port (5000)
-				// and probes continue to target vLLM directly — no rewriting needed.
+				// injectRoutingSidecar now only changes the port declaration and adds
+				// the sidecar. Command --port and probe ports are set upstream via
+				// RuntimeContext.InferencePort.
 				main := spec.Containers[0]
-				hasDefaultPort := false
+				hasDecodePort := false
 				for _, p := range main.Ports {
-					if p.ContainerPort == int32(consts.PortInferenceServer) {
-						hasDefaultPort = true
+					if p.ContainerPort == consts.PortDecodeVLLM {
+						hasDecodePort = true
 					}
 				}
-				if !hasDefaultPort {
-					t.Errorf("main container should keep containerPort %d", consts.PortInferenceServer)
-				}
-				if main.ReadinessProbe != nil && main.ReadinessProbe.HTTPGet != nil {
-					if main.ReadinessProbe.HTTPGet.Port.IntValue() != int(consts.PortInferenceServer) {
-						t.Errorf("readiness probe should target port %d", consts.PortInferenceServer)
-					}
-				}
-				if main.LivenessProbe != nil && main.LivenessProbe.HTTPGet != nil {
-					if main.LivenessProbe.HTTPGet.Port.IntValue() != int(consts.PortInferenceServer) {
-						t.Errorf("liveness probe should target port %d", consts.PortInferenceServer)
-					}
+				if !hasDecodePort {
+					t.Errorf("main container should have containerPort %d", consts.PortDecodeVLLM)
 				}
 			}
 		})

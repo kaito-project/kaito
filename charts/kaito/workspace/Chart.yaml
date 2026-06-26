@@ -42,7 +42,7 @@ dependencies:
   repository: https://nvidia.github.io/k8s-device-plugin
   condition: featureGates.disableNodeAutoProvisioning # Only install GFD when NAP is disabled.
 - name: local-csi-driver
-  version: "0.2.9"
+  version: "0.2.18"
   repository: oci://localcsidriver.azurecr.io/acstor/charts
   condition: localCSIDriver.useLocalCSIDriver
 - name: productionstack

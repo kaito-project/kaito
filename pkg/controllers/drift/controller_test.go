@@ -30,7 +30,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
@@ -93,8 +92,8 @@ func newNodePoolWithDriftBudget(name, nodes, wsName, wsNamespace, infSetName, in
 	}
 }
 
-func newInferenceSet(ns, name string) *kaitov1alpha1.InferenceSet {
-	return &kaitov1alpha1.InferenceSet{
+func newInferenceSet(ns, name string) *kaitov1beta1.InferenceSet {
+	return &kaitov1beta1.InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns,
@@ -286,12 +285,12 @@ func TestInferenceSetWorkspacePredicate_WithoutLabel(t *testing.T) {
 
 func TestReconcile_InferenceSetNotFound(t *testing.T) {
 	mockClient := test.NewClient()
-	mockClient.CreateMapWithType(&kaitov1alpha1.InferenceSetList{})
+	mockClient.CreateMapWithType(&kaitov1beta1.InferenceSetList{})
 
 	notFoundErr := k8serrors.NewNotFound(
 		schema.GroupResource{Group: "kaito.sh", Resource: "inferencesets"}, "missing")
 	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
-		mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(notFoundErr)
+		mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Return(notFoundErr)
 
 	r := NewDriftReconciler(mockClient, nil, record.NewFakeRecorder(10), &mockProvisioner{})
 	result, err := r.Reconcile(context.Background(), ctrl.Request{
@@ -305,12 +304,12 @@ func TestReconcile_NoNodePools(t *testing.T) {
 	mockClient := test.NewClient()
 
 	infSet := newInferenceSet("default", "my-infset")
-	mockClient.CreateMapWithType(&kaitov1alpha1.InferenceSetList{})
+	mockClient.CreateMapWithType(&kaitov1beta1.InferenceSetList{})
 	mockClient.CreateOrUpdateObjectInMap(infSet)
 	mockClient.CreateMapWithType(&karpenterv1.NodePoolList{}) // empty
 
 	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
-		mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(nil)
+		mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
 		mock.IsType(&karpenterv1.NodePoolList{}), mock.Anything).Return(nil)
 
@@ -336,7 +335,7 @@ func TestReconcile_NoDriftedNodeClaims(t *testing.T) {
 	ncMap[client.ObjectKeyFromObject(nc)] = nc
 
 	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
-		mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(nil)
+		mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
 		mock.IsType(&karpenterv1.NodePoolList{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
@@ -364,7 +363,7 @@ func TestReconcile_OneDrifted_EnablesDrift(t *testing.T) {
 	ncMap[client.ObjectKeyFromObject(nc)] = nc
 
 	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
-		mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(nil)
+		mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
 		mock.IsType(&karpenterv1.NodePoolList{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
@@ -398,7 +397,7 @@ func TestReconcile_UpgradingStillDrifted_Requeues(t *testing.T) {
 	ncMap[client.ObjectKeyFromObject(nc)] = nc
 
 	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
-		mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(nil)
+		mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
 		mock.IsType(&karpenterv1.NodePoolList{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
@@ -436,7 +435,7 @@ func TestReconcile_UpgradingNoLongerDrifted_DisablesDrift(t *testing.T) {
 	ncMap[client.ObjectKeyFromObject(nc)] = nc
 
 	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
-		mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(nil)
+		mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
 		mock.IsType(&karpenterv1.NodePoolList{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
@@ -476,7 +475,7 @@ func TestReconcile_UpgradingNoLongerDrifted_WorkloadNotReady_Requeues(t *testing
 	ncMap[client.ObjectKeyFromObject(nc)] = nc
 
 	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
-		mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(nil)
+		mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
 		mock.IsType(&karpenterv1.NodePoolList{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
@@ -515,7 +514,7 @@ func TestReconcile_MultipleDrifted_OnlyOneEnabled(t *testing.T) {
 	ncMap[client.ObjectKeyFromObject(nc1)] = nc1
 
 	mockClient.On("Get", mock.IsType(context.Background()), mock.Anything,
-		mock.IsType(&kaitov1alpha1.InferenceSet{}), mock.Anything).Return(nil)
+		mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),
 		mock.IsType(&karpenterv1.NodePoolList{}), mock.Anything).Return(nil)
 	mockClient.On("List", mock.IsType(context.Background()),

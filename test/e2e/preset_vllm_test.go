@@ -83,7 +83,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateMultiRoleInferenceChatCompletions(mriObj)
 	})
 
-	It("should create a Gemma 3 InferenceSet with preset public mode successfully", Serial, utils.GinkgoLabelFastCheck, func() {
+	It("should create a Gemma 3 InferenceSet with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfReplicas := 1
 		inferenceSetObj := createGemma3InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
 		defer cleanupResourcesForInferenceSet(inferenceSetObj)
@@ -91,6 +91,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 		validateInferenceSetStatus(inferenceSetObj)
 		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
+
 		validateInferenceSetBenchmarkCompleted(inferenceSetObj)
 		validateGatewayAPIInferenceExtensionResources(inferenceSetObj)
 	})
@@ -366,12 +367,19 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 	It("should create a qwen3-8b-awq workspace with AWQ quantization successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
+
+		// Create the federated identity credential for this process's namespace.
+		createStreamingFIC(namespaceName)
+		defer deleteStreamingFIC(namespaceName)
+
 		workspaceObj := createQwen3_8BAWQWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
-		defer cleanupResources(workspaceObj)
+		defer cleanupStreamingResources(workspaceObj, "Qwen/Qwen3-8B-AWQ")
 		time.Sleep(30 * time.Second)
 
 		validateCreateNode(workspaceObj, numOfNode)
+		validateModelMirrorResources("Qwen/Qwen3-8B-AWQ", workspaceObj.Namespace)
+		validateModelMirrorReady(workspaceObj, "Qwen/Qwen3-8B-AWQ")
 		validateResourceStatus(workspaceObj)
 
 		time.Sleep(30 * time.Second)
@@ -381,6 +389,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
+		validateStreamingPodShape(workspaceObj, "Qwen/Qwen3-8B-AWQ", false)
 		validateWorkspaceReadiness(workspaceObj)
 		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
@@ -418,7 +427,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateMultiRoleInferenceStatus(mriObj)
 	})
 
-	It("should create a Gemma 3 InferenceSet with preset public mode successfully", Serial, utils.GinkgoLabelFastCheck, func() {
+	It("should create a Gemma 3 InferenceSet with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfReplicas := 1
 		inferenceSetObj := createGemma3InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
 		defer cleanupResourcesForInferenceSet(inferenceSetObj)
@@ -469,20 +478,22 @@ func createPhi4WorkspaceWithAdapterAndVLLM(numOfNode int, validAdapters []kaitov
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi4-adapter-vllm"},
 			}, nil, PresetPhi4MiniModel, nil, nil, validAdapters, "", "")
 
+		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
 }
 
-func createGemma3InferenceSetWithPresetPublicModeAndVLLM(replicas int) *kaitov1alpha1.InferenceSet {
+func createGemma3InferenceSetWithPresetPublicModeAndVLLM(replicas int) *kaitov1beta1.InferenceSet {
 	modelSecret := createAndValidateModelSecret()
-	inferenceSetObj := &kaitov1alpha1.InferenceSet{}
+	inferenceSetObj := &kaitov1beta1.InferenceSet{}
 	By("Creating an InferenceSet CR with Gemma 3 preset public mode and vLLM", func() {
 		uniqueID := fmt.Sprint("preset-gemma3-is-", rand.Intn(1000))
 		inferenceSetObj = utils.GenerateInferenceSetManifestWithVLLM(uniqueID, namespaceName, "", replicas, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-is-e2e-test-gemma-vllm"},
 			}, PresetGemma3_4BInstructModel, nil, nil, modelSecret.Name)
+		inferenceSetObj.Spec.Template.Annotations = utils.DisableModelStreaming(inferenceSetObj.Spec.Template.Annotations)
 		createAndValidateInferenceSet(inferenceSetObj)
 	})
 	return inferenceSetObj
@@ -521,6 +532,7 @@ func createGemma3MultiRoleInference() *kaitov1alpha1.MultiRoleInference {
 				},
 			},
 		}
+		mriObj.Annotations = utils.DisableModelStreaming(mriObj.Annotations)
 
 		By("Creating MultiRoleInference", func() {
 			Eventually(func() error {
@@ -551,7 +563,7 @@ func cleanupResourcesForMultiRoleInference(mriObj *kaitov1alpha1.MultiRoleInfere
 func validateMultiRoleInferenceChildInferenceSets(mriObj *kaitov1alpha1.MultiRoleInference) {
 	By("Validating child InferenceSets are created for each role", func() {
 		Eventually(func() bool {
-			isList := &kaitov1alpha1.InferenceSetList{}
+			isList := &kaitov1beta1.InferenceSetList{}
 			err := utils.TestingCluster.KubeClient.List(ctx, isList,
 				client.InNamespace(mriObj.Namespace),
 				client.MatchingLabels{kaitov1alpha1.LabelMultiRoleInferenceParent: mriObj.Name})
@@ -613,10 +625,10 @@ func validateMultiRoleInferenceStatus(mriObj *kaitov1alpha1.MultiRoleInference) 
 }
 
 // getMultiRoleInferenceChildInferenceSets returns the child InferenceSets for an MRI.
-func getMultiRoleInferenceChildInferenceSets(mriObj *kaitov1alpha1.MultiRoleInference) []kaitov1alpha1.InferenceSet {
-	var children []kaitov1alpha1.InferenceSet
+func getMultiRoleInferenceChildInferenceSets(mriObj *kaitov1alpha1.MultiRoleInference) []kaitov1beta1.InferenceSet {
+	var children []kaitov1beta1.InferenceSet
 	Eventually(func() bool {
-		isList := &kaitov1alpha1.InferenceSetList{}
+		isList := &kaitov1beta1.InferenceSetList{}
 		err := utils.TestingCluster.KubeClient.List(ctx, isList,
 			client.InNamespace(mriObj.Namespace),
 			client.MatchingLabels{kaitov1alpha1.LabelMultiRoleInferenceParent: mriObj.Name})
@@ -746,6 +758,7 @@ func createLlama3_1_8BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": uniqueID},
 			}, nil, PresetLlama3_1_8BInstruct, nil, nil, nil, modelSecret.Name, "") // Llama 3.1-8B Instruct model requires a model access secret
+		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
@@ -760,6 +773,7 @@ func createLlama3_3_70BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode in
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-llama3-3-70b-vllm"},
 			}, nil, PresetLlama3_3_70BInstruct, nil, nil, nil, modelSecret.Name, "") // Llama 3.3-70B Instruct model requires a model access secret
+		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
@@ -775,6 +789,7 @@ func createGemma4_E2BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int)
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gemma-4-e2b-vllm"},
 			}, nil, PresetGemma4_E2BInstructModel, nil, nil, nil, "", "")
 
+		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
 		createAndValidateWorkspace(workspaceObj)
 	})
 
@@ -791,6 +806,7 @@ func createGemma4_26BA4BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode i
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gemma-4-26b-a4b-vllm"},
 			}, nil, PresetGemma4_26BA4BInstructModel, nil, nil, nil, "", "")
 
+		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
 		createAndValidateWorkspace(workspaceObj)
 	})
 
@@ -807,6 +823,7 @@ func createGPTOss20BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gpt-oss-20b-vllm"},
 			}, nil, PresetGPT_OSS_20BModel, nil, nil, nil, "", "")
 
+		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
 		createAndValidateWorkspace(workspaceObj)
 	})
 
@@ -822,6 +839,7 @@ func createGPTOss120BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gpt-oss-120b-vllm"},
 			}, nil, PresetGPT_OSS_120BModel, nil, nil, nil, "", "")
 
+		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
@@ -847,6 +865,7 @@ func createQWen3Coder30BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kai
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-qwen3-coder-30b-vllm"},
 			}, nil, PresetQwen3_Coder30BModel, nil, nil, nil, "", configMap.Name)
 
+		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
@@ -861,6 +880,7 @@ func createMinistral3_3BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode i
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-ministral-3-3b-instruct-vllm"},
 			}, nil, PresetMinistral33BInstructModel, nil, nil, nil, "", "")
 
+		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
@@ -875,6 +895,8 @@ func createQwen3_8BAWQWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaito
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-qwen3-8b-awq-vllm"},
 			}, nil, PresetQwen3_8BAWQModel, nil, nil, nil, "", "")
 
+		// STREAMING TEST: intentionally NOT setting kaito.sh/model-streaming=disabled.
+		// With the gate on, this workspace streams from blob (az://).
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
@@ -889,12 +911,13 @@ func createQwen3_5_2BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-qwen3-5-2b-vllm"},
 			}, nil, PresetQwen3_5_2BModel, nil, nil, nil, "", "")
 
+		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
 }
 
-func validateInferenceSetNodePools(inferenceSetObj *kaitov1alpha1.InferenceSet, numOfReplicas int) {
+func validateInferenceSetNodePools(inferenceSetObj *kaitov1beta1.InferenceSet, numOfReplicas int) {
 	// List child workspaces by InferenceSet label
 	workspaceList := &kaitov1beta1.WorkspaceList{}
 	err := utils.TestingCluster.KubeClient.List(ctx, workspaceList,
@@ -919,7 +942,7 @@ func validateInferenceSetNodePools(inferenceSetObj *kaitov1alpha1.InferenceSet, 
 	utils.ValidateNodePoolIsolation(ctx, workspaces)
 }
 
-func validateGatewayAPIInferenceExtensionResources(iObj *kaitov1alpha1.InferenceSet) {
+func validateGatewayAPIInferenceExtensionResources(iObj *kaitov1beta1.InferenceSet) {
 	// Only validate if the Inference Preset is set
 	if iObj.Spec.Template.Inference.Preset == nil {
 		return
@@ -1058,7 +1081,7 @@ func logBenchmarkPhaseElapsed(coreClient *kubernetes.Clientset, wsName, wsNamesp
 // validateInferenceSetBenchmarkCompleted asserts that:
 // - status.performance.metrics["aggregatedPeakTokensPerMinute"] is set with a positive value
 // - all child workspaces have BenchmarkCompleted=True and their own performance set
-func validateInferenceSetBenchmarkCompleted(inferenceSetObj *kaitov1alpha1.InferenceSet) {
+func validateInferenceSetBenchmarkCompleted(inferenceSetObj *kaitov1beta1.InferenceSet) {
 	By("Validating inferenceset aggregated performance is set", func() {
 		Eventually(func() bool {
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{

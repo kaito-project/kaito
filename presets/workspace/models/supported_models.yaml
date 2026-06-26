@@ -3,8 +3,9 @@ models:
   - name: base
     type: text-generation
     runtime: tfs
-    tag: 0.4.1
+    tag: 0.4.2
     # Tag history:
+    # 0.4.2 - add runai-model-streamer for model streaming from cloud blob storage, add KAITO_PROCESSOR benchmark support
     # 0.4.1 - pass trust_remote_code=true to GuideLLM benchmark
     # 0.4.0 - bump vllm to 0.22.1, torch to 2.11.0
     # 0.3.3 - add model download monitor

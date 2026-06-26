@@ -352,19 +352,24 @@ async def chat_completions(request: dict):
                 detail="InferenceService not configured. This RAGEngine instance only supports document retrieve via /retrieve API. To use chat completions, configure an InferenceService in the RAGEngine spec.",
             )
 
+        guardrails = guardrails_reloader.get_current()
         if request.get("stream") is True:
+            if guardrails.enabled:
+                raise HTTPException(
+                    status_code=400,
+                    detail="stream=true is not supported when output guardrails are enabled.",
+                )
+            response = await rag_ops.chat_completion(request)
             status = STATUS_SUCCESS
             return StreamingResponse(
-                rag_ops.vector_store.llm.chat_completions_stream_passthrough(request),
+                response,
                 media_type="text/event-stream",
                 headers={
                     "Cache-Control": "no-cache",
                     "X-Accel-Buffering": "no",
                 },
             )
-
         response = await rag_ops.chat_completion(request)
-        guardrails = guardrails_reloader.get_current()
         response = guardrails.guard_response(response, request)
         status = STATUS_SUCCESS
         return response

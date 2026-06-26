@@ -220,7 +220,7 @@ create-aks-cluster: ## Create an AKS cluster with MSI, OIDC, and workload identi
 	az aks create  --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) \
 	--location $(AZURE_LOCATION) --attach-acr $(AZURE_ACR_NAME) \
 	--kubernetes-version $(AKS_K8S_VERSION) --generate-ssh-keys  \
-	--enable-managed-identity --enable-workload-identity --enable-oidc-issuer --node-vm-size Standard_D2d_v4 -o none
+	--enable-managed-identity --enable-workload-identity --enable-oidc-issuer --node-vm-size Standard_D4d_v4 -o none
 	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --overwrite-existing
 
 .PHONY: create-aks-cluster-with-kaito
@@ -234,7 +234,7 @@ create-aks-cluster-with-kaito: ## Create an AKS cluster with MSI, OIDC, and KAIT
 .PHONY: create-aks-cluster-for-karpenter
 create-aks-cluster-for-karpenter: ## Create an AKS cluster with MSI, Cillium, OIDC, and workload identity enabled.
 	az aks create --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) \
-    --location $(AZURE_LOCATION) --attach-acr $(AZURE_ACR_NAME) --node-vm-size "Standard_D2d_v4" \
+    --location $(AZURE_LOCATION) --attach-acr $(AZURE_ACR_NAME) --node-vm-size "Standard_D4d_v4" \
     --kubernetes-version $(AKS_K8S_VERSION) --generate-ssh-keys \
     --network-plugin azure --network-plugin-mode overlay --network-dataplane cilium \
     --enable-managed-identity --enable-oidc-issuer --enable-workload-identity -o none

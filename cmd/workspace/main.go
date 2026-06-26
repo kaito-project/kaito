@@ -53,6 +53,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/inferenceset"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
+	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	mmcontrollers "github.com/kaito-project/kaito/pkg/modelmirror/controllers"
 	nodeprovisionmanager "github.com/kaito-project/kaito/pkg/nodeprovision/manager"
 	"github.com/kaito-project/kaito/pkg/sku"
@@ -60,6 +61,7 @@ import (
 	karpenterutils "github.com/kaito-project/kaito/pkg/utils/karpenter"
 	"github.com/kaito-project/kaito/pkg/version"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
+	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
 )
 
@@ -111,6 +113,8 @@ func main() {
 	var printVersionAndExit bool
 	var defaultModelMirrorStorageClass string
 	var defaultStreamingServiceAccount string
+	var modelMirrorDownloadCPU string
+	var modelMirrorDownloadMemory string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.IntVar(&kubeClientQPS, "kube-client-qps", kubeClientQPS, "the rate of qps to kube-apiserver.")
@@ -130,6 +134,8 @@ func main() {
 	flag.BoolVar(&printVersionAndExit, "version", false, "Print version and exit.")
 	flag.StringVar(&defaultModelMirrorStorageClass, "default-model-mirror-storage-class", "", "StorageClass for ModelMirror PVCs (required when ModelStreaming=true).")
 	flag.StringVar(&defaultStreamingServiceAccount, "default-streaming-service-account", "", "Default ServiceAccount for streaming inference pods.")
+	flag.StringVar(&modelMirrorDownloadCPU, "model-mirror-download-cpu", "", "CPU request==limit for the ModelMirror download Job container. Empty uses the built-in default (3).")
+	flag.StringVar(&modelMirrorDownloadMemory, "model-mirror-download-memory", "", "Memory request==limit for the ModelMirror download Job container. Empty uses the built-in default (8Gi).")
 	opts := zap.Options{
 		Development: true,
 	}
@@ -264,6 +270,18 @@ func main() {
 		exitWithErrorFunc()
 	}
 
+	// Set streaming defaults once at startup (read by inference package via StreamingDefaults).
+	if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+		streamer, streamerErr := inference.GetModelStreamer(os.Getenv("CLOUD_PROVIDER"))
+		if streamerErr != nil {
+			klog.ErrorS(streamerErr, "unable to resolve model streamer")
+			exitWithErrorFunc()
+		}
+		inference.StreamingDefaults.StorageClass = defaultModelMirrorStorageClass
+		inference.StreamingDefaults.ServiceAccount = defaultStreamingServiceAccount
+		inference.StreamingDefaults.ModelStreamer = streamer
+	}
+
 	workspaceReconciler := controllers.NewWorkspaceReconciler(
 		kClient,
 		mgr.GetScheme(),
@@ -332,9 +350,18 @@ func main() {
 
 	// ModelMirror controller — requires ModelMirror feature gate.
 	if featuregates.FeatureGates[consts.FeatureFlagModelMirror] {
+		// Start from the built-in defaults and override per-field from flags when provided.
+		downloadResources := mmconsts.DefaultDownloadJobResources()
+		if modelMirrorDownloadCPU != "" {
+			downloadResources.CPU = modelMirrorDownloadCPU
+		}
+		if modelMirrorDownloadMemory != "" {
+			downloadResources.Memory = modelMirrorDownloadMemory
+		}
 		mmReconciler := mmcontrollers.NewModelMirrorReconciler(
 			kClient,
 			log.Log.WithName("controllers").WithName("ModelMirror"),
+			downloadResources,
 		)
 		if err = mmReconciler.SetupWithManager(mgr); err != nil {
 			klog.ErrorS(err, "unable to create controller", "controller", "ModelMirror")

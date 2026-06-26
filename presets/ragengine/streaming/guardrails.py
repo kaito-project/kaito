@@ -19,7 +19,6 @@ from fastapi import HTTPException
 from llm_guard import scan_output
 
 from ragengine.guardrails import OutputGuardrails
-from ragengine.guardrails.scanner_schemas import BanSubstringsConfig
 from ragengine.streaming.buffer_window import StreamingBufferWindow, WindowScanResult
 from ragengine.streaming.openai import (
     OpenAIChatChunkParseStatus,
@@ -33,7 +32,7 @@ from ragengine.streaming.sse import iter_sse_events
 STREAMING_GUARDRAILS_HOLDBACK_CHARS = 256
 STREAMING_GUARDRAILS_MIN_SCAN_CHARS = 1
 STREAMING_GUARDRAILS_MAX_EMIT_CHARS = 4096
-STREAMING_GUARDRAILS_SUPPORTED_SCANNERS = frozenset({"ban_substrings"})
+STREAMING_GUARDRAILS_SUPPORTED_SCANNERS = frozenset({"ban_substrings", "regex"})
 
 
 @dataclass(frozen=True)
@@ -61,7 +60,7 @@ def validate_streaming_guardrails(
                 supported=False,
                 detail=(
                     "stream=true with output guardrails only supports "
-                    "ban_substrings scanners. Unsupported scanner: "
+                    "ban_substrings and regex scanners. Unsupported scanner: "
                     f"{scanner_config.type}."
                 ),
             )
@@ -74,68 +73,58 @@ async def apply_streaming_guardrails(
     guardrails: OutputGuardrails,
     request: dict[str, Any],
 ) -> AsyncIterator[str]:
-    try:
-        built_scanners = guardrails._build_scanners_with_configs()
-        if not built_scanners:
-            async for chunk in upstream_chunks:
+    built_scanners = guardrails._build_scanners_with_configs()
+    if not built_scanners:
+        async for chunk in upstream_chunks:
+            yield chunk
+        return
+
+    prompt = guardrails._extract_prompt(request)
+    scanner = _LLMGuardWindowScanner(prompt=prompt, built_scanners=built_scanners)
+    window = StreamingBufferWindow(
+        scanner,
+        holdback_chars=STREAMING_GUARDRAILS_HOLDBACK_CHARS,
+        min_scan_chars=STREAMING_GUARDRAILS_MIN_SCAN_CHARS,
+        max_emit_chars=STREAMING_GUARDRAILS_MAX_EMIT_CHARS,
+    )
+
+    async for event in iter_sse_events(upstream_chunks):
+        parse_result = parse_openai_chat_sse_event(event)
+        if parse_result.status == OpenAIChatChunkParseStatus.DONE:
+            async for chunk in _flush_window_or_block(
+                window, guardrails, upstream_chunks
+            ):
+                yield chunk
+            if window.blocked:
+                return
+            yield build_sse_done_chunk()
+            return
+
+        if parse_result.status != OpenAIChatChunkParseStatus.PARSED:
+            async for chunk in _emit_block_and_close(guardrails, upstream_chunks):
                 yield chunk
             return
 
-        prompt = guardrails._extract_prompt(request)
-        scanner = _LLMGuardWindowScanner(prompt=prompt, built_scanners=built_scanners)
-        window = StreamingBufferWindow(
-            scanner,
-            holdback_chars=_streaming_guardrails_holdback_chars(guardrails),
-            min_scan_chars=STREAMING_GUARDRAILS_MIN_SCAN_CHARS,
-            max_emit_chars=STREAMING_GUARDRAILS_MAX_EMIT_CHARS,
-        )
-
-        async for event in iter_sse_events(upstream_chunks):
-            parse_result = parse_openai_chat_sse_event(event)
-            if parse_result.status == OpenAIChatChunkParseStatus.DONE:
-                async for chunk in _flush_window_or_block(window, guardrails):
-                    yield chunk
-                if window.blocked:
-                    return
-                yield build_sse_done_chunk()
-                return
-
-            if parse_result.status != OpenAIChatChunkParseStatus.PARSED:
-                async for chunk in _emit_block(guardrails):
+        for content in parse_result.contents:
+            emit_result = window.feed(content)
+            if emit_result.blocked:
+                async for chunk in _emit_block_and_close(guardrails, upstream_chunks):
                     yield chunk
                 return
+            for safe_chunk in emit_result.chunks:
+                yield build_openai_chat_delta_sse_chunk(safe_chunk)
 
-            for content in parse_result.contents:
-                emit_result = window.feed(content)
-                if emit_result.blocked:
-                    async for chunk in _emit_block(guardrails):
-                        yield chunk
-                    return
-                for safe_chunk in emit_result.chunks:
-                    yield build_openai_chat_delta_sse_chunk(safe_chunk)
+        if parse_result.finish_reasons:
+            async for chunk in _flush_window_or_block(
+                window, guardrails, upstream_chunks
+            ):
+                yield chunk
+            if window.blocked:
+                return
+            yield _raw_sse_chunk(event.raw)
 
-            if parse_result.finish_reasons:
-                async for chunk in _flush_window_or_block(window, guardrails):
-                    yield chunk
-                if window.blocked:
-                    return
-                yield _raw_sse_chunk(event.raw)
-
-        async for chunk in _flush_window_or_block(window, guardrails):
-            yield chunk
-    finally:
-        await _aclose(upstream_chunks)
-
-
-def _streaming_guardrails_holdback_chars(guardrails: OutputGuardrails) -> int:
-    holdback_chars = STREAMING_GUARDRAILS_HOLDBACK_CHARS
-    for scanner_config in guardrails.scanner_configs:
-        if isinstance(scanner_config.config, BanSubstringsConfig):
-            holdback_chars = max(
-                holdback_chars,
-                *(len(substring) for substring in scanner_config.config.substrings),
-            )
-    return holdback_chars
+    async for chunk in _flush_window_or_block(window, guardrails, upstream_chunks):
+        yield chunk
 
 
 class _LLMGuardWindowScanner:
@@ -156,10 +145,11 @@ class _LLMGuardWindowScanner:
 async def _flush_window_or_block(
     window: StreamingBufferWindow,
     guardrails: OutputGuardrails,
+    upstream_chunks: AsyncIterator[str],
 ) -> AsyncIterator[str]:
     flush_result = window.flush()
     if flush_result.blocked:
-        async for chunk in _emit_block(guardrails):
+        async for chunk in _emit_block_and_close(guardrails, upstream_chunks):
             yield chunk
         return
 
@@ -167,11 +157,15 @@ async def _flush_window_or_block(
         yield build_openai_chat_delta_sse_chunk(safe_chunk)
 
 
-async def _emit_block(guardrails: OutputGuardrails) -> AsyncIterator[str]:
+async def _emit_block_and_close(
+    guardrails: OutputGuardrails,
+    upstream_chunks: AsyncIterator[str],
+) -> AsyncIterator[str]:
     guardrails._record_response_action("block")
     yield build_openai_chat_delta_sse_chunk(guardrails.block_message)
     yield build_openai_chat_finish_sse_chunk(finish_reason="content_filter")
     yield build_sse_done_chunk()
+    await _aclose(upstream_chunks)
 
 
 async def _aclose(upstream_chunks: AsyncIterator[str]) -> None:
@@ -188,18 +182,3 @@ def raise_if_streaming_guardrails_unsupported(guardrails: OutputGuardrails) -> N
     support = validate_streaming_guardrails(guardrails)
     if not support.supported:
         raise HTTPException(status_code=400, detail=support.detail)
-
-
-def raise_if_streaming_request_unsupported(request: dict[str, Any]) -> None:
-    if request.get("tools") or request.get("functions"):
-        raise HTTPException(
-            status_code=400,
-            detail="stream=true with output guardrails does not support tools or functions.",
-        )
-
-    n = request.get("n", 1)
-    if isinstance(n, int) and n > 1:
-        raise HTTPException(
-            status_code=400,
-            detail="stream=true with output guardrails only supports n=1.",
-        )

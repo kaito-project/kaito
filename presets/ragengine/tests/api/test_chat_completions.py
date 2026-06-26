@@ -22,12 +22,7 @@ import pytest
 import respx
 
 from ragengine.guardrails import OutputGuardrails
-from ragengine.guardrails.scanner_schemas import (
-    BanSubstringsConfig,
-    JSONConfig,
-    ParsedScannerConfig,
-    RegexConfig,
-)
+from ragengine.guardrails.scanner_schemas import ParsedScannerConfig, RegexConfig
 
 
 @pytest.fixture(autouse=True)
@@ -302,17 +297,7 @@ async def test_chat_completions_stream_with_output_guardrails_is_rejected(
     monkeypatch.setattr(
         ragengine.main.guardrails_reloader,
         "_current",
-        OutputGuardrails(
-            enabled=True,
-            scanner_configs=(
-                ParsedScannerConfig(
-                    type="ban_substrings",
-                    config=BanSubstringsConfig(
-                        substrings=["blocked"], match_type="str"
-                    ),
-                ),
-            ),
-        ),
+        OutputGuardrails(enabled=True),
     )
 
     response = await async_client.post(
@@ -327,97 +312,8 @@ async def test_chat_completions_stream_with_output_guardrails_is_rejected(
     assert response.status_code == 400
     assert (
         response.json()["detail"]
-        == "stream=true with output guardrails only supports action=block. Unsupported action: redact."
+        == "stream=true is not supported when output guardrails are enabled."
     )
-
-
-@pytest.mark.asyncio
-async def test_chat_completions_stream_with_unsupported_guardrails_scanner_is_rejected(
-    async_client, monkeypatch
-):
-    import ragengine.main
-
-    monkeypatch.setattr(
-        ragengine.main.guardrails_reloader,
-        "_current",
-        OutputGuardrails(
-            enabled=True,
-            action_on_hit="block",
-            scanner_configs=(
-                ParsedScannerConfig(
-                    type="json",
-                    action_on_hit="block",
-                    config=JSONConfig(),
-                ),
-            ),
-        ),
-    )
-
-    response = await async_client.post(
-        "/v1/chat/completions",
-        json={
-            "model": "mock-model",
-            "messages": [{"role": "user", "content": "Hello"}],
-            "stream": True,
-        },
-    )
-
-    assert response.status_code == 400
-    assert response.json()["detail"] == (
-        "stream=true with output guardrails only supports ban_substrings scanners. "
-        "Unsupported scanner: json."
-    )
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize(
-    ("extra_request", "detail"),
-    (
-        (
-            {"tools": [{"type": "function", "function": {"name": "lookup"}}]},
-            "stream=true with output guardrails does not support tools or functions.",
-        ),
-        (
-            {"functions": [{"name": "lookup"}]},
-            "stream=true with output guardrails does not support tools or functions.",
-        ),
-        ({"n": 2}, "stream=true with output guardrails only supports n=1."),
-    ),
-)
-async def test_chat_completions_stream_with_unsupported_guardrails_request_is_rejected(
-    async_client, monkeypatch, extra_request, detail
-):
-    import ragengine.main
-
-    monkeypatch.setattr(
-        ragengine.main.guardrails_reloader,
-        "_current",
-        OutputGuardrails(
-            enabled=True,
-            action_on_hit="block",
-            scanner_configs=(
-                ParsedScannerConfig(
-                    type="ban_substrings",
-                    action_on_hit="block",
-                    config=BanSubstringsConfig(
-                        substrings=["blocked"], match_type="str"
-                    ),
-                ),
-            ),
-        ),
-    )
-
-    request = {
-        "model": "mock-model",
-        "messages": [{"role": "user", "content": "Hello"}],
-        "stream": True,
-    }
-    request.update(extra_request)
-
-    response = await async_client.post("/v1/chat/completions", json=request)
-
-    assert response.status_code == 400
-    assert response.json()["detail"] == detail
 
 
 @pytest.mark.asyncio

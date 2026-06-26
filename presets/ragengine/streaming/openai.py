@@ -22,7 +22,8 @@ from ragengine.streaming.sse import SSEEvent
 class OpenAIChatChunkParseStatus(StrEnum):
     PARSED = "parsed"
     DONE = "done"
-    MALFORMED = "malformed"
+    MALFORMED_JSON = "malformed_json"
+    NO_DATA = "no_data"
 
 
 @dataclass(frozen=True)
@@ -37,8 +38,7 @@ class OpenAIChatChunkParseResult:
 def parse_openai_chat_sse_event(event: SSEEvent) -> OpenAIChatChunkParseResult:
     if event.data is None:
         return OpenAIChatChunkParseResult(
-            status=OpenAIChatChunkParseStatus.MALFORMED,
-            error="SSE event does not contain data.",
+            status=OpenAIChatChunkParseStatus.NO_DATA,
         )
 
     data = event.data.strip()
@@ -51,13 +51,13 @@ def parse_openai_chat_sse_event(event: SSEEvent) -> OpenAIChatChunkParseResult:
         payload = json.loads(data)
     except json.JSONDecodeError as json_error:
         return OpenAIChatChunkParseResult(
-            status=OpenAIChatChunkParseStatus.MALFORMED,
+            status=OpenAIChatChunkParseStatus.MALFORMED_JSON,
             error=str(json_error),
         )
 
     if not isinstance(payload, dict):
         return OpenAIChatChunkParseResult(
-            status=OpenAIChatChunkParseStatus.MALFORMED,
+            status=OpenAIChatChunkParseStatus.MALFORMED_JSON,
             error="OpenAI chat stream data must be a JSON object.",
         )
 

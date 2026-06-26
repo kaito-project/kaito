@@ -17,6 +17,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
 from ragengine.streaming.openai import (
+    OpenAIChatChoiceDelta,
     OpenAIChatChunkParseStatus,
     build_openai_chat_delta_sse_chunk,
     build_openai_chat_finish_sse_chunk,
@@ -89,6 +90,33 @@ def test_openai_parser_tolerates_chunk_without_delta_content():
     assert result.status == OpenAIChatChunkParseStatus.PARSED
     assert result.contents == ()
     assert result.finish_reasons == ("stop",)
+
+
+def test_openai_parser_classifies_tool_call_delta_as_passthrough():
+    events = SSEFramer().feed(
+        'data: {"choices":[{"index":2,"delta":{"tool_calls":[{"id":"call-1"}]},"finish_reason":null}]}\n\n'
+    )
+
+    result = parse_openai_chat_sse_event(events[0])
+
+    assert result.status == OpenAIChatChunkParseStatus.PARSED
+    assert result.choice_deltas == (
+        OpenAIChatChoiceDelta(choice_index=2, passthrough=True),
+    )
+
+
+def test_openai_parser_preserves_multi_choice_content_indexes():
+    events = SSEFramer().feed(
+        'data: {"choices":[{"index":0,"delta":{"content":"zero"},"finish_reason":null},'
+        '{"index":1,"delta":{"content":"one"},"finish_reason":null}]}\n\n'
+    )
+
+    result = parse_openai_chat_sse_event(events[0])
+
+    assert result.choice_deltas == (
+        OpenAIChatChoiceDelta(choice_index=0, content="zero"),
+        OpenAIChatChoiceDelta(choice_index=1, content="one"),
+    )
 
 
 def test_openai_builder_builds_delta_content_chunk():

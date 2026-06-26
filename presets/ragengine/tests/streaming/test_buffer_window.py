@@ -78,7 +78,31 @@ def test_holdback_tail_is_retained_and_not_emitted():
 
     assert result.chunks == ("abc",)
     assert flush_result.chunks == ("def",)
-    assert scanner.scanned_texts == ["abc", "def"]
+    assert scanner.scanned_texts == ["abcdef", "def"]
+
+
+def test_blocked_substring_crossing_holdback_boundary_is_detected():
+    window = StreamingBufferWindow(
+        BadSubstringScanner(), holdback_chars=1, min_scan_chars=1, max_emit_chars=10
+    )
+
+    result = window.feed("safe bad")
+
+    assert result.blocked is True
+    assert result.chunks == ()
+    assert window.blocked is True
+
+
+def test_unbounded_holdback_buffers_until_flush():
+    window = StreamingBufferWindow(
+        AllowScanner(), holdback_chars=None, min_scan_chars=1, max_emit_chars=10
+    )
+
+    result = window.feed("abcdef")
+    flush_result = window.flush()
+
+    assert result.chunks == ()
+    assert flush_result.chunks == ("abcdef",)
 
 
 def test_split_bad_substring_is_detected_before_tail_emits():

@@ -16,6 +16,7 @@
 Safety contract:
 - The unscanned tail is retained in ``pending_buffer`` and must not be emitted.
 - Only scanner-confirmed safe prefixes may be emitted downstream.
+- Feed scans include the holdback tail before emitting any prefix.
 - Final flush scans the remaining buffer before emitting any remaining text.
 """
 
@@ -45,11 +46,11 @@ class StreamingBufferWindow:
         self,
         scanner: WindowScanner,
         *,
-        holdback_chars: int,
+        holdback_chars: int | None,
         min_scan_chars: int,
         max_emit_chars: int,
     ) -> None:
-        if holdback_chars < 0:
+        if holdback_chars is not None and holdback_chars < 0:
             raise ValueError("holdback_chars must be non-negative.")
         if min_scan_chars < 0:
             raise ValueError("min_scan_chars must be non-negative.")
@@ -72,11 +73,14 @@ class StreamingBufferWindow:
             return WindowEmitResult(chunks=(), blocked=True)
 
         self._pending_buffer += text
-        scan_text = self._scan_window()
-        if len(scan_text) < self._min_scan_chars:
+        safe_emit_limit = self._safe_emit_limit()
+        if safe_emit_limit < self._min_scan_chars:
             return WindowEmitResult(chunks=())
 
-        return self._scan_and_emit(scan_text)
+        return self._scan_and_emit(
+            self._pending_buffer,
+            safe_emit_limit=safe_emit_limit,
+        )
 
     def flush(self) -> WindowEmitResult:
         if self._blocked:
@@ -84,21 +88,34 @@ class StreamingBufferWindow:
         if not self._pending_buffer:
             return WindowEmitResult(chunks=())
 
-        return self._scan_and_emit(self._pending_buffer)
+        return self._scan_and_emit(
+            self._pending_buffer,
+            safe_emit_limit=len(self._pending_buffer),
+        )
 
-    def _scan_window(self) -> str:
+    def _safe_emit_limit(self) -> int:
+        if self._holdback_chars is None:
+            return 0
         if self._holdback_chars == 0:
-            return self._pending_buffer
-        return self._pending_buffer[: -self._holdback_chars]
+            return len(self._pending_buffer)
+        return max(0, len(self._pending_buffer) - self._holdback_chars)
 
-    def _scan_and_emit(self, scan_text: str) -> WindowEmitResult:
+    def _scan_and_emit(
+        self,
+        scan_text: str,
+        *,
+        safe_emit_limit: int,
+    ) -> WindowEmitResult:
         scan_result = self._scanner.scan(scan_text)
         if scan_result.blocked:
             self._blocked = True
             self._pending_buffer = ""
             return WindowEmitResult(chunks=(), blocked=True)
 
-        safe_prefix_chars = max(0, min(scan_result.safe_prefix_chars, len(scan_text)))
+        safe_prefix_chars = max(
+            0,
+            min(scan_result.safe_prefix_chars, safe_emit_limit),
+        )
         if safe_prefix_chars == 0:
             return WindowEmitResult(chunks=())
 

@@ -14,15 +14,21 @@
 import os
 import sys
 
+import pytest
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
 from ragengine.guardrails import OutputGuardrails  # noqa: E402
 from ragengine.guardrails.scanner_schemas import (  # noqa: E402
+    BanSubstringsConfig,
     JSONConfig,
     ParsedScannerConfig,
     RegexConfig,
 )
-from ragengine.streaming.guardrails import validate_streaming_guardrails  # noqa: E402
+from ragengine.streaming.guardrails import (  # noqa: E402
+    apply_streaming_guardrails,
+    validate_streaming_guardrails,
+)
 
 
 def test_validate_streaming_guardrails_accepts_block_regex_policy():
@@ -86,3 +92,37 @@ def test_validate_streaming_guardrails_rejects_streaming_unsafe_scanner():
         "stream=true with output guardrails only supports ban_substrings and regex "
         "scanners. Unsupported scanner: json."
     )
+
+
+@pytest.mark.asyncio
+async def test_apply_streaming_guardrails_blocks_malformed_sse_event():
+    async def upstream_chunks():
+        yield 'data: {"choices": [}\n\n'
+        yield 'data: {"choices":[{"delta":{"content":"unsafe after"}}]}\n\n'
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        fail_open=False,
+        action_on_hit="block",
+        block_message="blocked-by-policy",
+        scanner_configs=(
+            ParsedScannerConfig(
+                type="ban_substrings",
+                action_on_hit="block",
+                config=BanSubstringsConfig(substrings=["unsafe"], match_type="str"),
+            ),
+        ),
+    )
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream_chunks(), guardrails, {"messages": []}
+        )
+    ]
+
+    assert chunks == [
+        'data: {"choices":[{"index":0,"delta":{"content":"blocked-by-policy"},"finish_reason":null}]}\n\n',
+        'data: {"choices":[{"index":0,"delta":{},"finish_reason":"content_filter"}]}\n\n',
+        "data: [DONE]\n\n",
+    ]

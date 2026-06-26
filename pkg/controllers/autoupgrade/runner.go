@@ -74,7 +74,7 @@ func (r *AutoUpgradeRunner) NeedLeaderElection() bool { return true }
 // reconcileAll lists all InferenceSets with autoUpgrade enabled and processes each.
 func (r *AutoUpgradeRunner) reconcileAll(ctx context.Context) {
 	klog.InfoS("AutoUpgradeRunner: reconcileAll tick", "desiredImage", inference.GetBaseImageName(), "desiredTag", inference.GetBaseImageTag())
-	inferenceSetList := &kaitov1alpha1.InferenceSetList{}
+	inferenceSetList := &kaitov1beta1.InferenceSetList{}
 	if err := r.Client.List(ctx, inferenceSetList); err != nil {
 		klog.ErrorS(err, "AutoUpgradeRunner: failed to list InferenceSets")
 		return
@@ -90,7 +90,7 @@ func (r *AutoUpgradeRunner) reconcileAll(ctx context.Context) {
 }
 
 // reconcileInferenceSet handles a single InferenceSet's auto-upgrade lifecycle.
-func (r *AutoUpgradeRunner) reconcileInferenceSet(ctx context.Context, inferenceSetObj *kaitov1alpha1.InferenceSet) {
+func (r *AutoUpgradeRunner) reconcileInferenceSet(ctx context.Context, inferenceSetObj *kaitov1beta1.InferenceSet) {
 	enabled := inferenceSetObj.Spec.AutoUpgrade != nil && inferenceSetObj.Spec.AutoUpgrade.Enabled
 	if !enabled {
 		klog.V(4).InfoS("AutoUpgradeRunner: auto-upgrade disabled, skipping", "inferenceset", klog.KObj(inferenceSetObj))
@@ -185,7 +185,7 @@ func (r *AutoUpgradeRunner) categorizeWorkspaces(ctx context.Context, workspaces
 }
 
 // previousDriftCount returns the last recorded NumDriftedWorkspaces, or 0 if unset.
-func (r *AutoUpgradeRunner) previousDriftCount(isObj *kaitov1alpha1.InferenceSet) int {
+func (r *AutoUpgradeRunner) previousDriftCount(isObj *kaitov1beta1.InferenceSet) int {
 	if isObj.Status.AutoUpgrade == nil || isObj.Status.AutoUpgrade.NumDriftedWorkspaces == nil {
 		return 0
 	}
@@ -194,7 +194,7 @@ func (r *AutoUpgradeRunner) previousDriftCount(isObj *kaitov1alpha1.InferenceSet
 
 // statusNeedsUpdate returns true if the InferenceSet's current NumDriftedWorkspaces
 // differs from the new drift count.
-func (r *AutoUpgradeRunner) statusNeedsUpdate(isObj *kaitov1alpha1.InferenceSet, newDriftCount int) bool {
+func (r *AutoUpgradeRunner) statusNeedsUpdate(isObj *kaitov1beta1.InferenceSet, newDriftCount int) bool {
 	if isObj.Status.AutoUpgrade == nil || isObj.Status.AutoUpgrade.NumDriftedWorkspaces == nil {
 		return true
 	}
@@ -202,12 +202,12 @@ func (r *AutoUpgradeRunner) statusNeedsUpdate(isObj *kaitov1alpha1.InferenceSet,
 }
 
 // updateStatus updates the InferenceSet status with drift count and optionally records upgrade success.
-func (r *AutoUpgradeRunner) updateStatus(ctx context.Context, isObj *kaitov1alpha1.InferenceSet, driftCount int, markSuccess bool) error {
+func (r *AutoUpgradeRunner) updateStatus(ctx context.Context, isObj *kaitov1beta1.InferenceSet, driftCount int, markSuccess bool) error {
 	key := &client.ObjectKey{Name: isObj.Name, Namespace: isObj.Namespace}
 	now := metav1.Now()
-	err := inferencesetutil.UpdateInferenceSetStatus(ctx, r.Client, key, func(status *kaitov1alpha1.InferenceSetStatus) error {
+	err := inferencesetutil.UpdateInferenceSetStatus(ctx, r.Client, key, func(status *kaitov1beta1.InferenceSetStatus) error {
 		if status.AutoUpgrade == nil {
-			status.AutoUpgrade = &kaitov1alpha1.AutoUpgradeStatus{}
+			status.AutoUpgrade = &kaitov1beta1.AutoUpgradeStatus{}
 		}
 		status.AutoUpgrade.NumDriftedWorkspaces = &driftCount
 		if markSuccess {
@@ -223,7 +223,7 @@ func (r *AutoUpgradeRunner) updateStatus(ctx context.Context, isObj *kaitov1alph
 
 // isWithinMaintenanceWindow checks if the current time is within the configured maintenance window.
 // Returns true if no window is configured (upgrades any time).
-func (r *AutoUpgradeRunner) isWithinMaintenanceWindow(inferenceSetObj *kaitov1alpha1.InferenceSet) bool {
+func (r *AutoUpgradeRunner) isWithinMaintenanceWindow(inferenceSetObj *kaitov1beta1.InferenceSet) bool {
 	if inferenceSetObj.Spec.AutoUpgrade == nil || inferenceSetObj.Spec.AutoUpgrade.MaintenanceWindow == nil {
 		return true
 	}
@@ -265,7 +265,7 @@ func isWithinWindow(schedule cron.Schedule, duration time.Duration, now time.Tim
 }
 
 // tagWorkspaceForUpgrade adds the upgrade-to-version label and start-time annotation to a Workspace.
-func (r *AutoUpgradeRunner) tagWorkspaceForUpgrade(ctx context.Context, isObj *kaitov1alpha1.InferenceSet, ws *kaitov1beta1.Workspace, desiredTag string) {
+func (r *AutoUpgradeRunner) tagWorkspaceForUpgrade(ctx context.Context, isObj *kaitov1beta1.InferenceSet, ws *kaitov1beta1.Workspace, desiredTag string) {
 	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
 		// Re-read the latest version to avoid conflicts.
 		latestWs := &kaitov1beta1.Workspace{}

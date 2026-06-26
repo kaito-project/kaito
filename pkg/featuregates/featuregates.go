@@ -28,7 +28,7 @@ var (
 		consts.FeatureFlagVLLM:                               true,
 		consts.FeatureFlagDisableNodeAutoProvisioning:        false,
 		consts.FeatureFlagGatewayAPIInferenceExtension:       false,
-		consts.FeatureFlagEnableInferenceSetController:       false,
+		consts.FeatureFlagEnableInferenceSetController:       true,
 		consts.FeatureFlagEnableMultiRoleInferenceController: false,
 		consts.FeatureFlagModelMirror:                        false,
 		consts.FeatureFlagModelStreaming:                     false,

@@ -575,7 +575,7 @@ func TestNodeEstimator_EstimateNodeCount_Qwen25Coder32B(t *testing.T) {
 		errorContains string
 	}{
 		{
-			name: "Should optimize qwen2.5-coder-32b with A100 GPU - single node sufficient",
+			name: "Should optimize qwen2.5-coder-32b with A100 GPU - two nodes sufficient",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-qwen25-coder-32b-workspace",
@@ -593,7 +593,7 @@ func TestNodeEstimator_EstimateNodeCount_Qwen25Coder32B(t *testing.T) {
 					},
 				},
 			},
-			expectedCount: 1, // Should optimize to 1 node (62.5Gi fits in 80GB A100 GPU with 0.84 utilization)
+			expectedCount: 2, // Should optimize to 2 nodes
 			expectedError: false,
 		},
 	}

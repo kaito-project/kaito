@@ -145,7 +145,7 @@ func (r *MultiRoleInferenceReconciler) deleteMultiRoleInference(ctx context.Cont
 // the finalizer. OCIRepository and HelmRelease are GC'd via ownerReferences.
 func (r *MultiRoleInferenceReconciler) garbageCollectMultiRoleInference(ctx context.Context, log logr.Logger, mri *kaitov1alpha1.MultiRoleInference) (ctrl.Result, error) {
 	// List all child InferenceSets owned by this MRI.
-	isList := &kaitov1alpha1.InferenceSetList{}
+	isList := &kaitov1beta1.InferenceSetList{}
 	if err := r.List(ctx, isList, client.InNamespace(mri.Namespace), client.MatchingLabels{
 		kaitov1alpha1.LabelMultiRoleInferenceParent: mri.Name,
 	}); err != nil {
@@ -254,7 +254,7 @@ func (r *MultiRoleInferenceReconciler) addOrUpdateMultiRoleInference(ctx context
 // aggregateStatus reads child InferenceSet conditions and updates MRI status accordingly.
 func (r *MultiRoleInferenceReconciler) aggregateStatus(ctx context.Context, log logr.Logger, mri *kaitov1alpha1.MultiRoleInference) error {
 	// List all child InferenceSets.
-	isList := &kaitov1alpha1.InferenceSetList{}
+	isList := &kaitov1beta1.InferenceSetList{}
 	if err := r.List(ctx, isList, client.InNamespace(mri.Namespace), client.MatchingLabels{
 		kaitov1alpha1.LabelMultiRoleInferenceParent: mri.Name,
 	}); err != nil {
@@ -262,7 +262,7 @@ func (r *MultiRoleInferenceReconciler) aggregateStatus(ctx context.Context, log 
 	}
 
 	// Build a map from role → InferenceSet.
-	roleISMap := make(map[string]*kaitov1alpha1.InferenceSet)
+	roleISMap := make(map[string]*kaitov1beta1.InferenceSet)
 	for i := range isList.Items {
 		is := &isList.Items[i]
 		if roleLabel, ok := is.Labels[kaitov1alpha1.LabelInferenceRole]; ok {
@@ -360,12 +360,12 @@ func (r *MultiRoleInferenceReconciler) aggregateStatus(ctx context.Context, log 
 }
 
 // isInferenceSetReady checks if an InferenceSet has the InferenceSetReady condition set to True.
-func (r *MultiRoleInferenceReconciler) isInferenceSetReady(is *kaitov1alpha1.InferenceSet) bool {
+func (r *MultiRoleInferenceReconciler) isInferenceSetReady(is *kaitov1beta1.InferenceSet) bool {
 	if is == nil {
 		return false
 	}
 	for _, cond := range is.Status.Conditions {
-		if cond.Type == string(kaitov1alpha1.InferenceSetConditionTypeReady) && cond.Status == metav1.ConditionTrue {
+		if cond.Type == string(kaitov1beta1.InferenceSetConditionTypeReady) && cond.Status == metav1.ConditionTrue {
 			return true
 		}
 	}
@@ -381,7 +381,7 @@ func (r *MultiRoleInferenceReconciler) cleanupStaleInferenceSets(ctx context.Con
 	}
 
 	// List all child InferenceSets.
-	isList := &kaitov1alpha1.InferenceSetList{}
+	isList := &kaitov1beta1.InferenceSetList{}
 	if err := r.List(ctx, isList, client.InNamespace(mri.Namespace), client.MatchingLabels{
 		kaitov1alpha1.LabelMultiRoleInferenceParent: mri.Name,
 	}); err != nil {
@@ -410,7 +410,7 @@ func (r *MultiRoleInferenceReconciler) reconcileInferenceSet(
 	roleStr := string(role.Type)
 
 	// Build the desired InferenceSet.
-	desired := &kaitov1alpha1.InferenceSet{
+	desired := &kaitov1beta1.InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      isName,
 			Namespace: mri.Namespace,
@@ -461,7 +461,7 @@ func (r *MultiRoleInferenceReconciler) reconcileInferenceSet(
 		desired.Spec.Template.Labels = templateLabels
 
 		// Resource.
-		desired.Spec.Template.Resource = kaitov1alpha1.InferenceSetResourceSpec{
+		desired.Spec.Template.Resource = kaitov1beta1.InferenceSetResourceSpec{
 			InstanceType: role.InstanceType,
 		}
 
@@ -506,10 +506,15 @@ const (
 
 // defaultPDPluginsConfigTemplate is the default EPP plugins YAML template for P/D disaggregated serving.
 // Uses the llm-d EndpointPickerConfig format with schedulingProfiles for prefill and decode.
+// approx-prefix-cache-producer is used for prefix cache awareness (no tokenizer sidecar needed).
 const defaultPDPluginsConfigTemplate = `apiVersion: inference.networking.x-k8s.io/v1alpha1
 kind: EndpointPickerConfig
 plugins:
   - type: disagg-headers-handler
+  - type: approx-prefix-cache-producer
+    parameters:
+      blockSizeTokens: 64
+      autoTune: true
   - type: prefix-based-pd-decider
     parameters:
       nonCachedTokens: 4
@@ -547,9 +552,6 @@ schedulingProfiles:
 `
 
 // defaultPDPluginsConfig returns the default P/D plugins config.
-// Note: precise-prefix-cache-scorer is omitted because it requires a tokenizer
-// sidecar (UDS socket) that is not yet deployed by KAITO. Once tokenizer sidecar
-// support is added, this config should be updated to include it.
 func defaultPDPluginsConfig() string {
 	return defaultPDPluginsConfigTemplate
 }
@@ -600,10 +602,9 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	// --- HelmRelease ---
 	// InferencePool selects ALL MRI pods (prefill + decode). EPP's internal
 	// prefill-filter / decode-filter plugins handle role-based selection.
-	// targetPort=5001 (sidecar) is only used by Envoy for user-facing traffic;
-	// EPP routes user requests exclusively to decode pods via decode-filter.
-	// Prefill communication is initiated by the decode sidecar directly to
-	// prefill pod:5000, bypassing InferencePool/Envoy entirely.
+	// targetPort=5000 (PortInferenceServer) — on decode pods the routing sidecar
+	// listens on 5000 and forwards to vLLM on 5001; on prefill pods vLLM
+	// listens directly on 5000. EPP routes user requests to decode pods.
 	matchLabels := map[string]string{
 		kaitov1alpha1.LabelMultiRoleInferenceParent: mri.Name,
 		appsv1.PodIndexLabel:                        "0", // Only leader pod (ordinal 0) serves inference traffic
@@ -636,17 +637,28 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	eppValues["pluginsCustomConfig"] = map[string]string{
 		eppPluginsConfigKey: pluginsYAML,
 	}
-	// Disable EPP secure-serving (self-signed TLS) — MRI pools run plaintext
-	// behind the mesh, matching standalone InferenceSet behavior.
+	// EPP scrapes vLLM metrics from each pod via PortInferenceServer (5000).
+	// On prefill pods vLLM listens directly on 5000; on decode pods the routing
+	// sidecar listens on 5000 and transparently proxies /metrics to vLLM on 5001.
+	// This keeps a single metrics port across roles, avoiding per-role EPP config.
+	// Disable secure-serving so the Gateway can reach EPP over plaintext gRPC
+	// without requiring TLS DestinationRules or certificate bootstrapping.
 	eppValues["flags"] = map[string]string{
-		"secure-serving": "false",
+		"secure-serving":            "false",
+		"model-server-metrics-port": fmt.Sprintf("%d", consts.PortInferenceServer),
 	}
+	// No tokenizer sidecar: the EPP plugin pipeline (approx-prefix-cache-producer
+	// + prefix-based-pd-decider) does not require a token-producer plugin, so a
+	// GPU-less vLLM render process would only add ~500m CPU / 1Gi memory per MRI
+	// without any benefit. If/when a future EPP version requires a token producer,
+	// re-introduce the sidecar guarded on plugin presence rather than enabling
+	// it unconditionally.
 
 	helmValues := map[string]any{
 		"inferenceExtension": eppValues,
 		"inferencePool": map[string]any{
 			"targetPorts": []map[string]any{
-				{"number": consts.PortRoutingSidecar}, // routing sidecar port; GWIE CRD allows only one targetPort (maxItems: 1)
+				{"number": consts.PortInferenceServer}, // sidecar (decode) or vLLM (prefill) on port 5000
 			},
 			"modelServers": map[string]any{
 				"matchLabels": matchLabels,
@@ -717,7 +729,7 @@ func (r *MultiRoleInferenceReconciler) isInferencePoolReady(ctx context.Context,
 func (r *MultiRoleInferenceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	builder := ctrl.NewControllerManagedBy(mgr).
 		For(&kaitov1alpha1.MultiRoleInference{}).
-		Owns(&kaitov1alpha1.InferenceSet{})
+		Owns(&kaitov1beta1.InferenceSet{})
 
 	// Only watch Flux resources when Gateway API Inference Extension is enabled,
 	// because the Flux CRDs are only installed under that feature gate.

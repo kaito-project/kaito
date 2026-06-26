@@ -39,7 +39,7 @@ Nightly builds are **not recommended for production use**. They are built from t
 Each nightly image is tagged with:
 
 - **`nightly-latest`** — always points to the most recent successful nightly build
-- **`nightly-<sha>`** — pinned to a specific commit (12-character short SHA)
+- **`<base_version>-<YYYYMMDD>`** — pinned to a specific build, e.g. `0.10.0-20260609`. The base version comes from the `main` branch's `Makefile` (`VERSION`) and the date is the UTC build date.
 
 To install the workspace controller using the latest nightly image:
 

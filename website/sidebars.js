@@ -72,6 +72,7 @@ const sidebars = {
             items: [
                 'aikit',
                 'gateway-api-inference-extension',
+                'prefill-decode-disaggregation',
             ],
         },
         {

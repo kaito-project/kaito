@@ -70,11 +70,25 @@ The total KV cache scales linearly with both context length and concurrency:
 Total KV Cache = BytesPerToken × Context Length × Concurrent Requests
 ```
 
-When tensor parallelism splits the model across N GPUs, each GPU only holds 1/N of the KV cache — the attention heads are partitioned, and each GPU stores the cache for its assigned heads only.
+When the model is distributed across multiple GPUs, each GPU holds only a fraction of the KV cache. How the cache is partitioned depends on the parallelism strategy and the attention type:
+
+- **Tensor parallelism (within a node):** the attention heads are partitioned across the GPUs, so each of the `N` GPUs stores the KV cache for only its assigned heads — `1/N` of the per-token cost.
+- **Pipeline parallelism (across nodes):** the transformer *layers* are split across the pipeline stages (one per node), so each GPU holds the KV cache for only its share of the layers — an additional `1/nodes` factor.
+- **Multi-head Latent Attention (MLA):** models such as DeepSeek and Kimi compress the KV cache into a single shared latent vector per token. This latent cache is **replicated on every tensor-parallel rank** rather than partitioned, so it is *not* divided by the tensor-parallel size (pipeline parallelism still splits it by layer across nodes).
+
+KAITO folds these into a single **adjusted bytes per token** that mirrors how the model weights are distributed.
 
 ### Runtime Overhead
 
-Activation memory — the intermediate results from each transformer layer during the forward pass — and other runtime allocations (CUDA context, memory allocator fragmentation) also consume VRAM. A common rule of thumb estimates activation memory at around 25% of model weight memory. During inference, however, the activation footprint is much smaller than during training because only one token is processed at a time rather than entire batches. KAITO reserves a small fixed overhead for these costs.
+Activation memory — the intermediate results from each transformer layer during the forward pass — together with CUDA graph capture buffers and other runtime allocations (CUDA context, memory allocator fragmentation) also consume VRAM. vLLM measures these empirically at startup; KAITO has to estimate them ahead of time.
+
+Because activation and CUDA graph memory grow with model size (more layers and a wider hidden dimension produce larger intermediate tensors), KAITO does not use a single flat number. Instead it reserves a **base overhead plus a term that scales with the per-GPU model weight share**:
+
+```
+Runtime Overhead per GPU = baseOverhead + scaleFactor × (model weight share per GPU)
+```
+
+The base covers model-independent costs (CUDA context, NCCL buffers, and a small-model activation/CUDA-graph baseline); the weight-scaled term approximates the larger activation and CUDA graph footprints of bigger models. Because activations and CUDA graphs are sharded across tensor-parallel ranks the same way weights are, the per-GPU weight share is a good proxy.
 
 Beyond this, not all of a GPU's physical VRAM is available to the application. The GPU driver, CUDA runtime, and memory allocator fragmentation all claim a portion. KAITO accounts for this by applying a **GPU utilization factor** — treating only a fraction of the advertised VRAM as usable.
 
@@ -101,8 +115,8 @@ The estimator runs at Workspace creation time, before any GPU nodes are provisio
 The logic, in plain terms:
 
 1. **Per-GPU usable memory** = physical VRAM × utilization factor
-2. **Per-GPU overhead** = fixed runtime overhead + KV cache per GPU (= `contextLength × BytesPerToken / totalGPUs`)
-3. **Per-GPU memory left for weights** = usable memory − overhead
+2. **Fixed per-GPU reserve** = base runtime overhead + KV cache per GPU (= `contextLength × BytesPerToken / totalGPUs`)
+3. **Per-GPU memory left for weights** = (usable memory − fixed reserve) ÷ (1 + weightOverheadFactor). The weight-scaled part of the runtime overhead (activations, CUDA graphs) is proportional to the weight that lands on each GPU, so it folds into a `(1 + factor)` divisor rather than a fixed subtraction — this keeps the solve non-circular when the GPU count is still unknown.
 4. **Minimum GPUs needed** = model weight size ÷ per-GPU memory left for weights (rounded up)
 5. **Minimum nodes** = minimum GPUs ÷ GPUs per node (rounded up)
 
@@ -187,9 +201,9 @@ Using the default context size (2,048 tokens) for initial estimation:
 1. `modelSize = 7.15 × 1.02 = 7.29 GiB`
 2. `availablePerGPU = 80 × 0.84 = 67.2 GiB`
 3. `kvCachePerGPU = 2048 × 128 KB / 1 = 0.25 GiB`
-4. `overhead = fixedOverhead + 0.25 GiB`
-5. `memForWeightsPerGPU = 67.2 − overhead ≈ 64.7 GiB`
-6. `minGPUs = ⌊7.29 / 64.7⌋ + 1 = 1`
+4. `fixedReserve = 2.3 (base) + 0.25 (KV) = 2.55 GiB`
+5. `memForWeightsPerGPU = (67.2 − 2.55) / (1 + 0.05) = 64.65 / 1.05 = 61.57 GiB` — the `(1 + 0.05)` divisor accounts for the weight-scaled runtime overhead (activations + CUDA graphs)
+6. `minGPUs = ⌈7.29 / 61.57⌉ = 1`
 7. `minNodes = ⌈1 / 1⌉ = 1`
 
 **Result: 1 node** (1 GPU) is sufficient — the model is small enough to fit easily.
@@ -200,11 +214,12 @@ Now compute the longest context window on that 1 GPU:
 
 1. `modelWeightPerGPU = 7.29 GiB` (single GPU, no distribution)
 2. `availablePerGPU = 67.2 GiB`
-3. `remainingPerGPU = 67.2 − 7.29 − fixedOverhead ≈ 57.61 GiB`
-4. `adjustedBytesPerToken = 128 KB` (single GPU)
-5. `rawCandidate = 57.61 GiB / 128 KB ≈ 471941 tokens`
-6. Clamp to model limit: `min(471941, 131072) = 131,072`
-7. Align to 256: `131,072` (already aligned)
+3. `overhead = 2.3 + 0.05 × 7.29 = 2.66 GiB`
+4. `remainingPerGPU = 67.2 − 7.29 − 2.66 = 57.25 GiB`
+5. `adjustedBytesPerToken = 128 KB` (single GPU, GQA)
+6. `rawCandidate = 57.25 GiB × 8,192 tokens/GiB ≈ 469,000 tokens`
+7. Clamp to model limit: `min(469000, 131072) = 131,072`
+8. Align to 256: `131,072` (already aligned)
 
 **Result: vLLM launches with `--max-model-len 131072`** — the full 128K context the model architecture supports.
 
@@ -214,11 +229,12 @@ On a `Standard_NV36ads_A10_v5` node (1× A10 24 GiB GPU):
 
 1. `availablePerGPU = 24 × 0.84 ≈ 20.16 GiB`
 2. `modelSize = 7.29 GiB` (actual SafeTensor size × 1.02)
-3. `remainingPerGPU = 20.16 − 7.29 − fixedOverhead ≈ 10.57 GiB`
-4. `rawCandidate = 10.57 GiB / 128 KB ≈ 86,589 tokens`
-5. Clamp to model limit: `min(86589, 131072) = 86,589`
-6. Align to 256: `86,528`
+3. `overhead = 2.3 + 0.05 × 7.29 = 2.66 GiB` (base + weight-scaled term)
+4. `remainingPerGPU = 20.16 − 7.29 − 2.66 = 10.21 GiB`
+5. `rawCandidate = 10.21 GiB × 8,192 tokens/GiB ≈ 83,640 tokens`
+6. Clamp to model limit: `min(83640, 131072) = 83,640`
+7. Align to 256: `83,456`
 
-The model still fits on 1 node, but the context window drops to ~77K tokens — well below the model's 128K architectural limit. To get the full context, you'd need a GPU with more memory.
+The model still fits on 1 node, but the context window drops to ~83K tokens — well below the model's 128K architectural limit. To get the full context, you'd need a GPU with more memory.
 
 </details>

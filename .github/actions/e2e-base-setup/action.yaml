@@ -226,20 +226,90 @@ runs:
       env:
         ARCH: amd64
 
-    - name: create cluster
+    - name: create cluster (karpenter)
+      if: ${{ inputs.node_provisioner == 'azkarpenter' }}
       shell: bash
       run: |
-        if [ "${{ inputs.node_provisioner }}" == "gpuprovisioner" ]; then
-          make create-aks-cluster
-        else
-          make create-aks-cluster-for-karpenter
-        fi
+        make create-aks-cluster-for-karpenter
       env:
         AZURE_ACR_NAME: ${{ env.CLUSTER_NAME }}
         AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
         AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
         AZURE_LOCATION: ${{ inputs.region }}
         AKS_K8S_VERSION: ${{ inputs.k8s_version }}
+
+    - name: create cluster (gpu-provisioner)
+      if: ${{ inputs.node_provisioner == 'gpuprovisioner' }}
+      shell: bash
+      run: |
+        make create-aks-cluster
+      env:
+        AZURE_ACR_NAME: ${{ env.CLUSTER_NAME }}
+        AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
+        AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+        AZURE_LOCATION: ${{ inputs.region }}
+        AKS_K8S_VERSION: ${{ inputs.k8s_version }}
+
+    - name: Provision model-streaming infra (blob CSI + StorageClass + role)
+      shell: bash
+      run: |
+        set -euo pipefail
+        AKS="${CLUSTER_NAME}"
+        RG="${CLUSTER_NAME}"
+        echo "Enabling blob CSI driver..."
+        az aks update --enable-blob-driver -n "$AKS" -g "$RG" --yes --only-show-errors -o none
+
+        echo "Creating blob-fuse StorageClass..."
+        cat <<'EOF' | kubectl apply -f -
+        apiVersion: storage.k8s.io/v1
+        kind: StorageClass
+        metadata:
+          name: blob-fuse
+        provisioner: blob.csi.azure.com
+        allowVolumeExpansion: true
+        parameters:
+          protocol: fuse2
+          skuName: Premium_LRS
+        reclaimPolicy: Retain
+        mountOptions:
+          - -o allow_other
+          - -o attr_timeout=120
+          - -o entry_timeout=120
+          - -o negative_timeout=120
+          - --cancel-list-on-mount-seconds=10
+          - --use-attr-cache=true
+          - --block-cache
+          - --block-cache-block-size=16
+          - --block-cache-pool-size=8192
+          - --block-cache-prefetch=11
+        EOF
+
+        echo "Resolving kubelet identity + OIDC issuer..."
+        KUBELET_RESOURCE_ID=$(az aks show -n "$AKS" -g "$RG" --query "identityProfile.kubeletidentity.resourceId" -o tsv)
+        KUBELET_CLIENT_ID=$(az aks show -n "$AKS" -g "$RG" --query "identityProfile.kubeletidentity.clientId" -o tsv)
+        KUBELET_PRINCIPAL_ID=$(az identity show --ids "$KUBELET_RESOURCE_ID" --query principalId -o tsv)
+        KUBELET_IDENTITY_NAME=$(echo "$KUBELET_RESOURCE_ID" | awk -F'/' '{print $NF}')
+        KUBELET_IDENTITY_RG=$(echo "$KUBELET_RESOURCE_ID" | awk -F'/resourcegroups/' '{print $2}' | awk -F'/' '{print $1}')
+        if [ -z "$KUBELET_IDENTITY_RG" ]; then
+          KUBELET_IDENTITY_RG=$(echo "$KUBELET_RESOURCE_ID" | awk -F'/resourceGroups/' '{print $2}' | awk -F'/' '{print $1}')
+        fi
+        OIDC_ISSUER=$(az aks show -n "$AKS" -g "$RG" --query "oidcIssuerProfile.issuerUrl" -o tsv)
+
+        echo "Assigning Storage Blob Data Reader on the node resource group (up-front)..."
+        MC_RG=$(az aks show -n "$AKS" -g "$RG" --query nodeResourceGroup -o tsv)
+        SUB_ID=$(az account show --query id -o tsv)
+        az role assignment create \
+          --role "Storage Blob Data Reader" \
+          --assignee-object-id "$KUBELET_PRINCIPAL_ID" \
+          --assignee-principal-type ServicePrincipal \
+          --scope "/subscriptions/${SUB_ID}/resourceGroups/${MC_RG}" -o none || true
+
+        # Export for later steps (the e2e suite creates the per-namespace SA + FIC).
+        echo "STREAMING_ENABLED=true" >> "$GITHUB_ENV"
+        echo "STREAMING_KUBELET_CLIENT_ID=$KUBELET_CLIENT_ID" >> "$GITHUB_ENV"
+        echo "STREAMING_KUBELET_IDENTITY_NAME=$KUBELET_IDENTITY_NAME" >> "$GITHUB_ENV"
+        echo "STREAMING_KUBELET_IDENTITY_RG=$KUBELET_IDENTITY_RG" >> "$GITHUB_ENV"
+        echo "STREAMING_OIDC_ISSUER=$OIDC_ISSUER" >> "$GITHUB_ENV"
 
     - name: Create Identities and Permissions for ${{ inputs.node_provisioner }}
       shell: bash
@@ -250,6 +320,19 @@ runs:
         AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
         AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
         TEST_SUITE: ${{ inputs.node_provisioner }}
+
+    - name: Install karpenter helm chart
+      if: ${{ inputs.node_provisioner == 'azkarpenter' }}
+      shell: bash
+      run: |
+        # Ensure yq v4.30+ is available for envsubst(nu) support required by configure-values.sh
+        sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64
+        sudo chmod +x /usr/local/bin/yq
+        AZURE_SUBSCRIPTION_ID=$E2E_SUBSCRIPTION_ID \
+        make azure-karpenter-helm
+      env:
+        AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
+        AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
 
     - name: Install gpu-provisioner helm chart
       if: ${{ inputs.node_provisioner == 'gpuprovisioner' }}
@@ -273,7 +356,7 @@ runs:
         REGISTRY: ${{ env.REGISTRY }}
         VERSION: ${{ env.VERSION }}
         TEST_SUITE: ${{ inputs.node_provisioner }}
-        HELM_INSTALL_EXTRA_ARGS: "--set featureGates.gatewayAPIInferenceExtension=true --set featureGates.enableInferenceSetController=true"
+        HELM_INSTALL_EXTRA_ARGS: "--set featureGates.gatewayAPIInferenceExtension=true --set featureGates.enableInferenceSetController=true --set featureGates.enableMultiRoleInferenceController=true --set featureGates.enableBaseImageAutoUpgrade=true --set featureGates.ModelMirror=true --set featureGates.ModelStreaming=true --set defaultModelMirrorStorageClass=blob-fuse --set defaultStreamingServiceAccount=kaito-model-streamer --set modelMirrorDownloadCPU=2 --set modelMirrorDownloadMemory=4Gi --set nodeProvisioner=${{ inputs.node_provisioner == 'gpuprovisioner' && 'azure-gpu-provisioner' || 'karpenter' }}"
 
     - name: Set up E2E ACR Credentials and Secret
       shell: bash

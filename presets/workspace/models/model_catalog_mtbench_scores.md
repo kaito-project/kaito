@@ -16,7 +16,7 @@ All models were deployed as KAITO Workspace CRs on AKS and evaluated using the v
 | microsoft/Phi-3-medium-128k-instruct | vllm | 6.58 | 7.15 | 6.45 | 6.35 | 7.20 | 5.55 | 7.55 | 6.20 | 6.15 | 2026-04-20 |
 | microsoft/Phi-3.5-mini-instruct | vllm | 6.24 | 7.25 | 6.15 | 5.65 | 6.45 | 5.20 | 6.45 | 6.25 | 6.55 | 2026-04-20 |
 | meta-llama/Llama-3.1-8B-Instruct | vllm | 6.03 | 7.10 | 6.00 | 3.80 | 7.05 | 5.30 | 6.85 | 5.55 | 6.60 | 2026-04-20 |
-| deepseek-ai/DeepSeek-R1-Distill-Llama-8B | vllm | 4.60 | 5.30 | 4.45 | 5.30 | 5.40 | 2.05 | 6.50 | 3.95 | 3.85 | 2026-04-20 |
+| deepseek-ai/DeepSeek-R1-Distill-Llama-8B | vllm | 5.28 | 6.35 | 4.90 | 5.20 | 6.50 | 3.15 | 6.75 | 4.80 | 4.55 | 2026-05-14 |
 | deepseek-ai/DeepSeek-R1-Distill-Qwen-14B | vllm | 5.36 | 5.95 | 5.55 | 7.20 | 4.85 | 3.80 | 6.80 | 4.85 | 3.90 | 2026-04-20 |
 | Qwen/Qwen2.5-Coder-7B-Instruct | vllm | 4.81 | 5.70 | 3.50 | 2.80 | 6.45 | 5.40 | 5.60 | 5.00 | 4.00 | 2026-04-20 |
 | Qwen/Qwen2.5-Coder-32B-Instruct | vllm | 5.85 | 5.60 | 5.75 | 5.30 | 5.80 | 7.30 | 5.40 | 6.15 | 5.50 | 2026-04-20 |
@@ -32,7 +32,7 @@ All models were deployed as KAITO Workspace CRs on AKS and evaluated using the v
 | mistralai/Ministral-3-8B-Instruct-2512 | vllm | 7.29 | 7.95 | 7.30 | 6.75 | 9.15 | 6.25 | 7.95 | 6.60 | 6.35 | 2026-04-20 |
 | mistralai/Ministral-3-14B-Instruct-2512 | vllm | 7.34 | 8.15 | 7.35 | 6.05 | 9.70 | 6.15 | 8.15 | 6.45 | 6.70 | 2026-04-20 |
 | mistralai/Mistral-7B-v0.3 | vllm | 2.01 | 2.55 | 1.50 | 1.50 | 1.65 | 1.70 | 2.30 | 3.00 | 1.85 | 2026-04-20 |
-| deepseek-ai/DeepSeek-R1-0528 | vllm | 5.06 | 7.90 | 7.30 | 3.85 | 2.65 | 1.65 | 5.55 | 5.55 | 6.05 | 2026-04-17 |
+| deepseek-ai/DeepSeek-R1-0528 | vllm | 6.61 | 8.25 | 7.20 | 6.25 | 8.45 | 5.30 | 5.95 | 6.05 | 5.45 | 2026-05-18 |
 | deepseek-ai/DeepSeek-V3-0324 | vllm | 8.07 | 8.20 | 7.95 | 7.35 | 9.50 | 8.20 | 8.30 | 7.00 | 8.05 | 2026-04-17 |
 | mistralai/Mistral-Large-3-675B-Instruct-2512 | vllm | 7.86 | 8.05 | 7.65 | 7.75 | 9.05 | 7.90 | 8.50 | 7.25 | 6.70 | 2026-04-17 |
 | nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16 | vllm | 6.37 | 6.35 | 5.65 | 6.65 | 9.10 | 5.85 | 7.05 | 6.10 | 4.20 | 2026-04-29 |
@@ -57,3 +57,7 @@ All models were deployed as KAITO Workspace CRs on AKS and evaluated using the v
 | Qwen/Qwen3.6-35B-A3B | vllm | 8.17 | 7.85 | 8.05 | 8.55 | 9.90 | 8.00 | 8.40 | 7.30 | 7.30 | 2026-05-07 |
 | Qwen/Qwen3.6-27B | vllm | 8.12 | 8.35 | 8.05 | 8.80 | 9.85 | 7.70 | 8.00 | 7.10 | 7.15 | 2026-05-07 |
 | Qwen/Qwen3.5-397B-A17B-GPTQ-Int4 | vllm | 8.53 | 8.25 | 8.35 | 8.80 | 9.95 | 8.75 | 8.55 | 8.00 | 7.60 | 2026-05-07 |
+| moonshotai/Kimi-K2.5 | vllm | 7.64 | 6.45 | 7.75 | 8.35 | 9.40 | 6.05 | 7.85 | 7.65 | 7.65 | 2026-05-12 |
+| MiniMaxAI/MiniMax-M2.7 | vllm | 7.16 | 7.15 | 6.90 | 7.29 | 8.72 | 6.90 | 6.95 | 6.25 | 7.15 | 2026-05-13 |
+| mistralai/Mistral-Medium-3.5-128B | vllm | 8.18 | 8.05 | 8.10 | 8.15 | 9.55 | 7.40 | 8.60 | 7.60 | 8.00 | 2026-05-14 |
+| moonshotai/Kimi-K2.6 | vllm | 8.44 | 8.40 | 8.55 | 8.95 | 9.95 | 6.95 | 8.35 | 7.80 | 8.55 | 2026-05-14 |

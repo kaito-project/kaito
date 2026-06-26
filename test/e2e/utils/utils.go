@@ -37,9 +37,9 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/remotecommand"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/model"
+	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 )
 
 var (
@@ -194,6 +194,16 @@ func PrintPodLogsOnFailure(namespace, labelSelector string) {
 	}
 
 	for _, pod := range pods.Items {
+		// Print init container logs
+		for _, container := range pod.Spec.InitContainers {
+			logs, err := GetPodLogs(coreClient, namespace, pod.Name, container.Name)
+			if err != nil {
+				log.Printf("Failed to get logs from pod %s, init container %s: %v", pod.Name, container.Name, err)
+			} else {
+				fmt.Printf("Logs from pod %s, init container %s:\n%s\n", pod.Name, container.Name, string(logs))
+			}
+		}
+		// Print main container logs
 		for _, container := range pod.Spec.Containers {
 			logs, err := GetPodLogs(coreClient, namespace, pod.Name, container.Name)
 			if err != nil {
@@ -312,7 +322,7 @@ func GenerateInferenceWorkspaceManifestWithVLLM(name, namespace, imageName strin
 
 func GenerateInferenceSetManifestWithVLLM(name, namespace, imageName string, replicas int, instanceType string,
 	labelSelector *metav1.LabelSelector, presetName kaitov1beta1.ModelName, imagePullSecret []string,
-	adapters []kaitov1beta1.AdapterSpec, modelAccessSecret string) *kaitov1alpha1.InferenceSet {
+	adapters []kaitov1beta1.AdapterSpec, modelAccessSecret string) *kaitov1beta1.InferenceSet {
 
 	inferenceSet := GenerateInferenceSetManifest(name, namespace, imageName, replicas, instanceType,
 		labelSelector, presetName, imagePullSecret, adapters, modelAccessSecret)
@@ -324,20 +334,30 @@ func GenerateInferenceSetManifestWithVLLM(name, namespace, imageName string, rep
 	return inferenceSet
 }
 
+// DisableModelStreaming sets the opt-out annotation on a Workspace's annotations map so
+// the workspace uses the download-at-runtime path even when the ModelStreaming gate is on.
+func DisableModelStreaming(annotations map[string]string) map[string]string {
+	if annotations == nil {
+		annotations = map[string]string{}
+	}
+	annotations[mmconsts.AnnotationModelStreaming] = "disabled"
+	return annotations
+}
+
 func GenerateInferenceSetManifest(name, namespace, imageName string, replicas int, instanceType string,
 	labelSelector *metav1.LabelSelector, presetName kaitov1beta1.ModelName, imagePullSecret []string,
-	adapters []kaitov1beta1.AdapterSpec, modelAccessSecret string) *kaitov1alpha1.InferenceSet {
+	adapters []kaitov1beta1.AdapterSpec, modelAccessSecret string) *kaitov1beta1.InferenceSet {
 
-	inferenceSet := &kaitov1alpha1.InferenceSet{
+	inferenceSet := &kaitov1beta1.InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
-		Spec: kaitov1alpha1.InferenceSetSpec{
-			Replicas: replicas,
+		Spec: kaitov1beta1.InferenceSetSpec{
+			Replicas: lo.ToPtr(int32(replicas)),
 			Selector: labelSelector,
-			Template: kaitov1alpha1.InferenceSetTemplate{
-				Resource: kaitov1alpha1.InferenceSetResourceSpec{
+			Template: kaitov1beta1.InferenceSetTemplate{
+				Resource: kaitov1beta1.InferenceSetResourceSpec{
 					InstanceType: instanceType,
 				},
 				Inference: kaitov1beta1.InferenceSpec{

@@ -23,6 +23,7 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	appsv1 "k8s.io/api/apps/v1"
@@ -32,7 +33,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
@@ -45,7 +45,7 @@ import (
 func TestInferenceSetSyncControllerRevision(t *testing.T) {
 	testcases := map[string]struct {
 		callMocks     func(c *test.MockClient)
-		inferenceset  v1alpha1.InferenceSet
+		inferenceset  v1beta1.InferenceSet
 		expectedError error
 		verifyCalls   func(c *test.MockClient)
 	}{
@@ -67,13 +67,13 @@ func TestInferenceSetSyncControllerRevision(t *testing.T) {
 					}).
 					Return(nil)
 				// Add mock for inferenceset retrieval in updateInferenceSetWithRetry
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha1.InferenceSet{}), mock.Anything).
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).
 					Run(func(args mock.Arguments) {
-						ws := args.Get(2).(*v1alpha1.InferenceSet)
+						ws := args.Get(2).(*v1beta1.InferenceSet)
 						*ws = test.MockInferenceSetWithComputeHash
 					}).
 					Return(nil)
-				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.InferenceSet{}), mock.Anything).
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).
 					Return(nil)
 			},
 			inferenceset:  test.MockInferenceSetWithComputeHash,
@@ -112,13 +112,13 @@ func TestInferenceSetSyncControllerRevision(t *testing.T) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
 					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), test.MockInferenceSetFailToCreateCR.Name))
 				// Add mock for inferenceset retrieval in updateInferenceSetWithRetry
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha1.InferenceSet{}), mock.Anything).
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).
 					Run(func(args mock.Arguments) {
-						ws := args.Get(2).(*v1alpha1.InferenceSet)
+						ws := args.Get(2).(*v1beta1.InferenceSet)
 						*ws = test.MockInferenceSetSuccessful
 					}).
 					Return(nil)
-				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.InferenceSet{}), mock.Anything).
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).
 					Return(nil)
 			},
 			inferenceset:  test.MockInferenceSetSuccessful,
@@ -160,13 +160,13 @@ func TestInferenceSetSyncControllerRevision(t *testing.T) {
 					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), test.MockInferenceSetFailToCreateCR.Name))
 				c.On("Delete", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(nil)
 				// Add mock for inferenceset retrieval in updateInferenceSetWithRetry
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha1.InferenceSet{}), mock.Anything).
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).
 					Run(func(args mock.Arguments) {
-						ws := args.Get(2).(*v1alpha1.InferenceSet)
+						ws := args.Get(2).(*v1beta1.InferenceSet)
 						*ws = test.MockInferenceSetWithDeleteOldCR
 					}).
 					Return(nil)
-				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.InferenceSet{}), mock.Anything).
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).
 					Return(nil)
 			},
 			inferenceset:  test.MockInferenceSetWithDeleteOldCR,
@@ -208,13 +208,13 @@ func TestInferenceSetSyncControllerRevision(t *testing.T) {
 					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), test.MockInferenceSetFailToCreateCR.Name))
 				c.On("Delete", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(nil)
 				// Add mock for inferenceset retrieval in updateInferenceSetWithRetry
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha1.InferenceSet{}), mock.Anything).
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).
 					Run(func(args mock.Arguments) {
-						ws := args.Get(2).(*v1alpha1.InferenceSet)
+						ws := args.Get(2).(*v1beta1.InferenceSet)
 						*ws = test.MockInferenceSetUpdateCR
 					}).
 					Return(nil)
-				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.InferenceSet{}), mock.Anything).
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).
 					Return(fmt.Errorf("failed to update InferenceSet annotations"))
 			},
 			inferenceset:  test.MockInferenceSetUpdateCR,
@@ -388,14 +388,14 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 		return ws
 	}
 
-	makeInferenceSet := func(replicas int, benchmarkOff bool) *v1alpha1.InferenceSet {
-		iObj := &v1alpha1.InferenceSet{
+	makeInferenceSet := func(replicas int, benchmarkOff bool) *v1beta1.InferenceSet {
+		iObj := &v1beta1.InferenceSet{
 			ObjectMeta: v1.ObjectMeta{Name: "phi-4-mini", Namespace: "default"},
-			Spec:       v1alpha1.InferenceSetSpec{Replicas: replicas},
+			Spec:       v1beta1.InferenceSetSpec{Replicas: lo.ToPtr(int32(replicas))},
 		}
 		if benchmarkOff {
 			iObj.Annotations = map[string]string{
-				v1alpha1.AnnotationDisableBenchmark: "true",
+				v1beta1.AnnotationDisableBenchmark: "true",
 			}
 		}
 		return iObj
@@ -403,7 +403,7 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 
 	tests := map[string]struct {
 		workspaces            []v1beta1.Workspace
-		inferenceset          *v1alpha1.InferenceSet
+		inferenceset          *v1beta1.InferenceSet
 		expectedTPM           string
 		expectBenchmarkCond   bool
 		expectBenchmarkStatus v1.ConditionStatus
@@ -464,6 +464,14 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 			expectBenchmarkStatus: v1.ConditionFalse,
 			expectBenchmarkMsg:    "2/3 replicas benchmarked",
 		},
+		"zero replicas (scale-to-zero) — benchmark not applicable": {
+			workspaces:            []v1beta1.Workspace{},
+			inferenceset:          makeInferenceSet(0, false),
+			expectedTPM:           "",
+			expectBenchmarkCond:   true,
+			expectBenchmarkStatus: v1.ConditionFalse,
+			expectBenchmarkMsg:    "0/0 replicas benchmarked",
+		},
 	}
 
 	for name, tc := range tests {
@@ -479,21 +487,22 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 			}
 
 			// Verify benchmark condition gate — annotation controls whether the condition is set.
+			benchmarkEnabled := v1beta1.IsInferenceSetBenchmarkEnabled(tc.inferenceset)
 			if !tc.expectBenchmarkCond {
-				assert.False(t, v1alpha1.IsRunBenchmarkEnabled(tc.inferenceset))
+				assert.False(t, benchmarkEnabled)
 				return
 			}
 
-			assert.True(t, v1alpha1.IsRunBenchmarkEnabled(tc.inferenceset))
+			assert.True(t, benchmarkEnabled)
 
-			allBenchmarked := benchmarkedReplicas == tc.inferenceset.Spec.Replicas && tc.inferenceset.Spec.Replicas > 0
+			allBenchmarked := tc.inferenceset.Spec.Replicas != nil && benchmarkedReplicas == int(*tc.inferenceset.Spec.Replicas) && *tc.inferenceset.Spec.Replicas > 0
 			if tc.expectBenchmarkStatus == v1.ConditionTrue {
 				assert.True(t, allBenchmarked)
 			} else {
 				assert.False(t, allBenchmarked)
 			}
 			assert.Equal(t, tc.expectBenchmarkMsg,
-				fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, tc.inferenceset.Spec.Replicas))
+				fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, *tc.inferenceset.Spec.Replicas))
 		})
 	}
 }

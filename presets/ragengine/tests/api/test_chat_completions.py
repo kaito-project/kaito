@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import re
 import textwrap
 import time
@@ -191,6 +192,133 @@ async def test_chat_completions_without_index_name(mock_get, async_client):
 @pytest.mark.asyncio
 @respx.mock
 @patch("requests.get")
+async def test_chat_completions_stream_passthrough(mock_get, async_client):
+    """Test stream=true passthrough returns upstream SSE frames."""
+    mock_get.return_value.status_code = 200
+    mock_get.return_value.json.return_value = {
+        "data": [{"id": "mock-model", "max_model_len": 2048}]
+    }
+
+    route = respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(
+            200,
+            content=(
+                'data: {"choices":[{"delta":{"content":"First"}}]}\n\n'
+                'data: {"choices":[{"delta":{"content":"Second"}}]}\n\n'
+                "data: [DONE]\n\n"
+            ),
+            headers={"content-type": "text/event-stream"},
+        )
+    )
+
+    chat_request = {
+        "model": "mock-model",
+        "messages": [{"role": "user", "content": "Hello"}],
+        "stream": True,
+    }
+
+    async with async_client.stream(
+        "POST", "/v1/chat/completions", json=chat_request
+    ) as response:
+        body = await response.aread()
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/event-stream")
+    response_text = body.decode()
+    assert 'data: {"choices":[{"delta":{"content":"First"}}]}' in response_text
+    assert 'data: {"choices":[{"delta":{"content":"Second"}}]}' in response_text
+    assert "data: [DONE]" in response_text
+    assert json.loads(route.calls.last.request.content)["stream"] is True
+
+
+@pytest.mark.asyncio
+@respx.mock
+@patch("requests.get")
+async def test_chat_completions_stream_passthrough_upstream_http_error(
+    mock_get, async_client
+):
+    """Test streaming passthrough raises upstream status before response streaming starts."""
+    mock_get.return_value.status_code = 200
+    mock_get.return_value.json.return_value = {
+        "data": [{"id": "mock-model", "max_model_len": 2048}]
+    }
+
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(401, json={"error": "unauthorized"})
+    )
+
+    response = await async_client.post(
+        "/v1/chat/completions",
+        json={
+            "model": "mock-model",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "stream": True,
+        },
+    )
+
+    assert response.status_code == 401
+    assert "unauthorized" in response.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_chat_completions_stream_with_index_name_is_rejected(async_client):
+    index_request = {
+        "index_name": "test_index",
+        "documents": [
+            {"text": "This is a test document about streaming support."},
+        ],
+    }
+    response = await async_client.post("/index", json=index_request)
+    assert response.status_code == 200
+
+    response = await async_client.post(
+        "/v1/chat/completions",
+        json={
+            "index_name": "test_index",
+            "model": "mock-model",
+            "messages": [{"role": "user", "content": "Summarize this"}],
+            "stream": True,
+        },
+    )
+
+    assert response.status_code == 400
+    assert (
+        response.json()["detail"]
+        == "stream=true is only supported for passthrough chat completions."
+    )
+
+
+@pytest.mark.asyncio
+async def test_chat_completions_stream_with_output_guardrails_is_rejected(
+    async_client, monkeypatch
+):
+    import ragengine.main
+
+    monkeypatch.setattr(
+        ragengine.main.guardrails_reloader,
+        "_current",
+        OutputGuardrails(enabled=True),
+    )
+
+    response = await async_client.post(
+        "/v1/chat/completions",
+        json={
+            "model": "mock-model",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "stream": True,
+        },
+    )
+
+    assert response.status_code == 400
+    assert (
+        response.json()["detail"]
+        == "stream=true is not supported when output guardrails are enabled."
+    )
+
+
+@pytest.mark.asyncio
+@respx.mock
+@patch("requests.get")
 async def test_chat_completions_with_tools(mock_get, async_client):
     """Test chat completion with tools (should passthrough to LLM)."""
     # Mock the response for the default model fetch
@@ -296,18 +424,18 @@ async def test_chat_completions_output_guardrails_redact(
     import ragengine.main
 
     monkeypatch.setattr(
-        ragengine.main,
-        "output_guardrails",
+        ragengine.main.guardrails_reloader,
+        "_current",
         OutputGuardrails(
             enabled=True,
             fail_open=True,
             action_on_hit="redact",
-            scanner_configs=[
+            scanner_configs=(
                 ParsedScannerConfig(
                     type="regex",
                     config=RegexConfig(patterns=[r"https?://\S+"]),
                 ),
-            ],
+            ),
         ),
     )
 
@@ -357,19 +485,19 @@ async def test_chat_completions_output_guardrails_block(
     import ragengine.main
 
     monkeypatch.setattr(
-        ragengine.main,
-        "output_guardrails",
+        ragengine.main.guardrails_reloader,
+        "_current",
         OutputGuardrails(
             enabled=True,
             fail_open=True,
             action_on_hit="block",
             block_message="blocked-by-policy",
-            scanner_configs=[
+            scanner_configs=(
                 ParsedScannerConfig(
                     type="regex",
                     config=RegexConfig(patterns=[r"https?://\S+"]),
                 ),
-            ],
+            ),
         ),
     )
 
@@ -439,8 +567,8 @@ async def test_chat_completions_output_guardrails_policy_file(
         ragengine.config, "OUTPUT_GUARDRAILS_POLICY_PATH", str(policy_path)
     )
     monkeypatch.setattr(
-        ragengine.main,
-        "output_guardrails",
+        ragengine.main.guardrails_reloader,
+        "_current",
         OutputGuardrails.from_config(),
     )
 
@@ -493,22 +621,22 @@ async def test_chat_completions_output_guardrails_fail_closed(
         enabled=True,
         fail_open=False,
         action_on_hit="redact",
-        scanner_configs=[
+        scanner_configs=(
             ParsedScannerConfig(
                 type="regex",
                 config=RegexConfig(patterns=[r"https?://\S+"]),
             ),
-        ],
+        ),
     )
     monkeypatch.setattr(
-        ragengine.main,
-        "output_guardrails",
+        ragengine.main.guardrails_reloader,
+        "_current",
         guardrails,
     )
     monkeypatch.setattr(
-        guardrails,
-        "_build_scanners",
-        lambda: (_ for _ in ()).throw(RuntimeError("scanner init failed")),
+        OutputGuardrails,
+        "_build_scanners_with_configs",
+        lambda self: (_ for _ in ()).throw(RuntimeError("scanner init failed")),
     )
 
     response = await async_client.post(

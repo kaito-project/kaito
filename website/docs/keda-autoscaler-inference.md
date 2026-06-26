@@ -14,7 +14,7 @@ To enable intelligent autoscaling for KAITO inference workloads using service mo
 
 - **[KEDA KAITO Scaler](https://github.com/kaito-project/keda-kaito-scaler)**: A dedicated KEDA external scaler, eliminating the need for external dependencies such as Prometheus.
 
-- **KAITO `InferenceSet` CustomResourceDefinition (CRD) and controller**: A new CRD and controller were built on top of the KAITO workspace for intelligent autoscaling, introduced as an alpha feature in KAITO version `v0.8.0`.
+- **KAITO `InferenceSet` CustomResourceDefinition (CRD) and controller**: A new CRD and controller were built on top of the KAITO workspace for intelligent autoscaling, introduced as an alpha feature in KAITO v0.8.0 and promoted to beta in v0.11.0 (enabled by default).
 
 ### Architecture
 
@@ -35,7 +35,26 @@ helm install keda kedacore/keda --namespace $KEDA_NAMESPACE --create-namespace
 
 ### Enable InferenceSet controller during KAITO install
 
-This feature is available starting from KAITO v0.8.0, and the InferenceSet Controller must be enabled during the KAITO installation.
+This feature is available starting from KAITO v0.8.0. Starting from **KAITO v0.11.0**, the InferenceSet feature has been promoted to **beta** and `enableInferenceSetController` is enabled by default — no additional feature gate is needed.
+
+#### KAITO v0.11.0+
+
+```bash
+export CLUSTER_NAME=kaito
+
+helm repo add kaito https://kaito-project.github.io/kaito/charts/kaito
+helm repo update
+helm upgrade --install kaito-workspace kaito/workspace \
+  --namespace kaito-workspace \
+  --create-namespace \
+  --set clusterName="$CLUSTER_NAME" \
+  --wait \
+  --take-ownership
+```
+
+#### KAITO v0.8.0 – v0.10.x
+
+For older versions, you need to explicitly enable the InferenceSet Controller:
 
 ```bash
 export CLUSTER_NAME=kaito

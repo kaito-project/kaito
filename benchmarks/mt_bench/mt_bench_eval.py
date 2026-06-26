@@ -31,7 +31,10 @@ Environment Variables:
   AZURE_OPENAI_API_VERSION API version (required when JUDGE_SOURCE=MICROSOFT_AI_FOUNDRY)
   PARALLEL                Concurrent judge API calls (default: 2)
   MAX_TOKENS              Max tokens for model responses (default: 1024)
-  TEMPERATURE             Model temperature (default: 0.0)
+  TEMPERATURE             Model temperature (default: 1.0)
+  ENABLE_THINKING         Enable thinking mode for model (default: false)
+  VERBOSE                 Log response content, reasoning, and judge explanations (default: false)
+  CATEGORIES              Comma-separated list of categories to run (default: all)
   DRY_RUN                 If "true", skip judging stage (default: false)
   RESULTS_DIR             Directory for detailed output files (default: /results)
 
@@ -73,6 +76,14 @@ DATA_DIR = Path(os.environ.get("DATA_DIR", "/app/data"))
 
 # ── Judge prompt templates ────────
 
+TOKENIZATION_PENALTY = (
+    "IMPORTANT: If the response contains garbled text caused by tokenization "
+    "issues, such as the characters \u0120 (used in place of spaces), "
+    "\u010a (used in place of newlines), or similar byte-level BPE artifacts "
+    "that make the text unreadable, you MUST give a score of 1 regardless "
+    "of other qualities."
+)
+
 JUDGE_PROMPTS: dict[str, dict] = {
     "single-v1": {
         "name": "single-v1",
@@ -88,6 +99,8 @@ JUDGE_PROMPTS: dict[str, dict] = {
             "objective as possible. After providing your explanation, you must rate "
             "the response on a scale of 1 to 10 by strictly following this format: "
             '"[[rating]]", for example: "Rating: [[5]]".\n'
+            "\n"
+            f"{TOKENIZATION_PENALTY}\n"
             "\n"
             "[Question]\n"
             "{question}\n"
@@ -113,6 +126,8 @@ JUDGE_PROMPTS: dict[str, dict] = {
             "After providing your explanation, you must rate the response on a scale "
             'of 1 to 10 by strictly following this format: "[[rating]]", for '
             'example: "Rating: [[5]]".\n'
+            "\n"
+            f"{TOKENIZATION_PENALTY}\n"
             "\n"
             "[Question]\n"
             "{question}\n"
@@ -141,6 +156,7 @@ JUDGE_PROMPTS: dict[str, dict] = {
             "explanation, you must rate the response on a scale of 1 to 10 by "
             'strictly following this format: "[[rating]]", for example: '
             '"Rating: [[5]]".\n\n'
+            f"{TOKENIZATION_PENALTY}\n\n"
         ),
         "prompt_template": (
             "<|The Start of Assistant A's Conversation with User|>\n"
@@ -175,6 +191,7 @@ JUDGE_PROMPTS: dict[str, dict] = {
             "After providing your explanation, you must rate the response on a scale "
             'of 1 to 10 by strictly following this format: "[[rating]]", for '
             'example: "Rating: [[5]]".\n\n'
+            f"{TOKENIZATION_PENALTY}\n\n"
         ),
         "prompt_template": (
             "<|The Start of Reference Answer|>\n"
@@ -246,7 +263,10 @@ def load_config() -> dict:
         "judge_api_key": _env("JUDGE_API_KEY", required=True),
         "parallel": int(_env("PARALLEL", "2")),
         "max_tokens": int(_env("MAX_TOKENS", "1024")),
-        "temperature": float(_env("TEMPERATURE", "0.0")),
+        "temperature": float(_env("TEMPERATURE", "1.0")),
+        "enable_thinking": _env("ENABLE_THINKING", "false").lower() == "true",
+        "verbose": _env("VERBOSE", "false").lower() == "true",
+        "categories": _env("CATEGORIES", ""),
         "dry_run": _env("DRY_RUN", "false").lower() == "true",
         "results_dir": Path(_env("RESULTS_DIR", "/results")),
     }
@@ -300,6 +320,8 @@ def generate_answers(
     model_name: str,
     max_tokens: int,
     temperature: float,
+    enable_thinking: bool = False,
+    verbose: bool = False,
 ) -> list[dict]:
     """Call the Kaito workspace for each MT-Bench question (2 turns each)."""
     client = OpenAI(
@@ -318,14 +340,48 @@ def generate_answers(
         for turn_idx, turn_text in enumerate(turns):
             messages.append({"role": "user", "content": turn_text})
             try:
+                # Mistral tokenizer mode does not support chat_template_kwargs
+                extra = {}
+                if not model_name.lower().startswith("mistral"):
+                    extra["chat_template_kwargs"] = {
+                        "enable_thinking": enable_thinking,
+                        "thinking": enable_thinking,
+                    }
                 resp = client.chat.completions.create(
                     model=model_name,
                     messages=messages,
                     max_completion_tokens=max_tokens,
                     temperature=temperature,
-                    extra_body={"chat_template_kwargs": {"enable_thinking": False}},
+                    extra_body=extra,
                 )
-                answer_text = resp.choices[0].message.content or ""
+                msg = resp.choices[0].message
+                answer_text = msg.content or ""
+                reasoning = (
+                    getattr(msg, "reasoning_content", None)
+                    or getattr(msg, "reasoning", None)
+                    or ""
+                )
+                finish = resp.choices[0].finish_reason or "unknown"
+                # Due to the limit on max_completion_tokens, the model may use all tokens for reasoning and return an empty answer.
+                # In that case, we send the reasoning part to the judge as a workaround.
+                if not answer_text and reasoning:
+                    log.info(
+                        "q%d turn %d content empty, using reasoning (%d chars) as answer",
+                        qid,
+                        turn_idx + 1,
+                        len(reasoning),
+                    )
+                    answer_text = reasoning
+                if verbose and not answer_text:
+                    log.warning(
+                        "q%d turn %d EMPTY content. finish_reason=%s, "
+                        "reasoning_len=%d, raw_message=%s",
+                        qid,
+                        turn_idx + 1,
+                        finish,
+                        len(reasoning),
+                        str(msg),
+                    )
             except Exception as e:
                 log.warning(
                     "Failed to get answer for q%d turn %d: %s", qid, turn_idx + 1, e
@@ -334,6 +390,14 @@ def generate_answers(
 
             model_answers.append(answer_text)
             messages.append({"role": "assistant", "content": answer_text})
+            if verbose:
+                log.info(
+                    "q%d turn %d response (len=%d): %s",
+                    qid,
+                    turn_idx + 1,
+                    len(answer_text),
+                    answer_text,
+                )
 
         record = {
             "question_id": qid,
@@ -466,6 +530,7 @@ def judge_answers(
     azure_deployment: str,
     azure_api_version: str,
     parallel: int,
+    verbose: bool = False,
 ) -> list[dict]:
     """Judge all answers using a strong model."""
     if judge_source == "MICROSOFT_AI_FOUNDRY":
@@ -506,12 +571,14 @@ def judge_answers(
         for future in concurrent.futures.as_completed(futures):
             result = future.result()
             judgments.append(result)
-            log.info(
-                "Judged q%d turn %d: score=%d",
-                result["question_id"],
-                result["turn"],
-                result["score"],
-            )
+            if verbose:
+                log.info(
+                    "Judged q%d turn %d: score=%d | %s",
+                    result["question_id"],
+                    result["turn"],
+                    result["score"],
+                    result["judgment"],
+                )
 
     judgments.sort(key=lambda j: (j["question_id"], j["turn"]))
     return judgments
@@ -664,6 +731,15 @@ def main() -> None:
     judge_prompts = JUDGE_PROMPTS
     log.info("Using %d hardcoded judge prompt templates", len(judge_prompts))
 
+    # ── Filter categories if specified ───────────────────────────────
+    cat_filter = None
+    if cfg["categories"]:
+        cat_filter = {c.strip() for c in cfg["categories"].split(",")}
+        questions = [q for q in questions if q["category"] in cat_filter]
+        log.info(
+            "Filtered to %d questions in categories: %s", len(questions), cat_filter
+        )
+
     # ── Stage 1: Generate answers ────────────────────────────────────────
     log.info(
         "Stage 1: Generating answers from %s (model=%s)",
@@ -677,6 +753,8 @@ def main() -> None:
         cfg["model_name"],
         cfg["max_tokens"],
         cfg["temperature"],
+        cfg["enable_thinking"],
+        cfg["verbose"],
     )
     t1 = time.time()
     log.info("Stage 1 complete: %d answers in %.1fs", len(answers), t1 - t0)
@@ -714,6 +792,7 @@ def main() -> None:
             cfg["azure_deployment"],
             cfg["azure_api_version"],
             cfg["parallel"],
+            cfg["verbose"],
         )
         t3 = time.time()
         log.info("Stage 2 complete: %d judgments in %.1fs", len(judgments), t3 - t2)

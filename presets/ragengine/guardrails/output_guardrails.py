@@ -14,6 +14,7 @@
 import logging
 import re
 from dataclasses import dataclass, field
+from hashlib import sha256
 from typing import Any
 
 import yaml
@@ -23,6 +24,14 @@ from ragengine import config
 from ragengine.guardrails.scanner_schemas import (
     SCANNER_REGISTRY,
     ParsedScannerConfig,
+)
+from ragengine.metrics.prometheus_metrics import (
+    STATUS_FAILURE,
+    STATUS_SUCCESS,
+    guardrails_response_actions_total,
+    guardrails_response_scanner_hits_total,
+    output_guardrails_policy_load_total,
+    output_guardrails_scanner_build_total,
 )
 from ragengine.models import ChatCompletionResponse, get_message_content
 
@@ -36,13 +45,18 @@ class OutputGuardrailsError(RuntimeError):
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class OutputGuardrails:
     enabled: bool
     fail_open: bool = True
     action_on_hit: str = DEFAULT_ACTION_ON_HIT
     block_message: str = DEFAULT_BLOCK_MESSAGE
-    scanner_configs: list[ParsedScannerConfig] = field(default_factory=list)
+    scanner_configs: tuple[ParsedScannerConfig, ...] = field(default_factory=tuple)
+    policy_hash: str = ""
+    policy_path: str = ""
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "scanner_configs", tuple(self.scanner_configs))
 
     @classmethod
     def from_config(cls) -> "OutputGuardrails":
@@ -58,42 +72,55 @@ class OutputGuardrails:
 
     def _apply_policy_file(self, policy_path: str) -> "OutputGuardrails":
         if not policy_path:
-            # No policy configured: returns self with empty scanner_configs.
-            # Combined with enabled=True this is effectively fail-open.
-            # TODO(next-PR): ship a default policy or refuse to start.
+            # Managed deployments should provide a default policy path; otherwise skip loading.
             return self
 
         try:
-            with open(policy_path, encoding="utf-8") as policy_file:
-                policy = yaml.safe_load(policy_file) or {}
+            with open(policy_path, "rb") as policy_file:
+                policy_bytes = policy_file.read()
+            policy_hash = sha256(policy_bytes).hexdigest()
+            policy = yaml.safe_load(policy_bytes.decode("utf-8")) or {}
         except FileNotFoundError:
+            output_guardrails_policy_load_total.labels(policy_status="missing").inc()
             logger.warning("output_guardrails_policy_missing path=%s", policy_path)
             return self
         except Exception:
+            output_guardrails_policy_load_total.labels(
+                policy_status="load_failed"
+            ).inc()
             logger.exception(
                 "output_guardrails_policy_load_failed path=%s", policy_path
             )
             return self
 
         if not isinstance(policy, dict):
+            output_guardrails_policy_load_total.labels(policy_status="invalid").inc()
             logger.warning("output_guardrails_policy_invalid path=%s", policy_path)
             return self
 
-        scanner_configs = list(self.scanner_configs)
+        output_guardrails_policy_load_total.labels(policy_status="success").inc()
+        default_action_on_hit = _normalize_action(
+            policy.get("action"), self.action_on_hit
+        )
+
+        scanner_configs = self.scanner_configs
         if "scanners" in policy:
             scanner_configs = _parse_policy_scanner_configs(
                 policy.get("scanners"),
                 policy_path,
+                default_action_on_hit,
             )
 
         return OutputGuardrails(
             enabled=self.enabled,
             fail_open=self.fail_open,
-            action_on_hit=_normalize_action(policy.get("action"), self.action_on_hit),
+            action_on_hit=default_action_on_hit,
             block_message=_coerce_string(
                 policy.get("blockMessage"), self.block_message
             ),
             scanner_configs=scanner_configs,
+            policy_hash=policy_hash,
+            policy_path=policy_path,
         )
 
     def guard_response(
@@ -105,8 +132,8 @@ class OutputGuardrails:
             return response
 
         try:
-            scanners = self._build_scanners()
-            if not scanners:
+            built_scanners = self._build_scanners_with_configs()
+            if not built_scanners:
                 return response
 
             prompt = self._extract_prompt(request)
@@ -118,31 +145,57 @@ class OutputGuardrails:
                 if message.get("role") != "assistant" or not isinstance(content, str):
                     continue
 
-                sanitized_output, results_valid, results_score = scan_output(
-                    scanners, prompt, content, fail_fast=False
-                )
-                triggered_scanners = {
-                    scanner_name: results_score.get(scanner_name)
-                    for scanner_name, is_valid in results_valid.items()
-                    if not is_valid
-                }
+                sanitized_output = content
+                final_action = "allow"
+                triggered_scanners: list[dict[str, Any]] = []
+                for parsed, scanner in built_scanners:
+                    scanner_action_on_hit = parsed.action_on_hit or self.action_on_hit
+                    sanitized_output, results_valid, results_score = scan_output(
+                        [scanner], prompt, sanitized_output, fail_fast=False
+                    )
+                    if all(results_valid.values()):
+                        continue
+
+                    guardrails_response_scanner_hits_total.labels(
+                        scanner_type=parsed.type,
+                        action=scanner_action_on_hit,
+                    ).inc()
+
+                    triggered_scanners.append(
+                        {
+                            "type": parsed.type,
+                            "action": scanner_action_on_hit,
+                            "scores": results_score,
+                        }
+                    )
+                    if scanner_action_on_hit == "block":
+                        final_action = "block"
+                        break
+
+                    final_action = "redact"
+
                 if not triggered_scanners:
+                    self._record_response_action("allow")
                     continue
 
-                if self.action_on_hit == "block":
+                if final_action == "block":
                     message["content"] = self.block_message
                 else:
                     message["content"] = sanitized_output
 
+                self._record_response_action(final_action)
                 logger.info(
-                    "output_guardrails_triggered action=%s response_id=%s scanners=%s",
-                    self.action_on_hit,
+                    "output_guardrails_triggered action=%s response_id=%s scanners=%s policy_hash=%s",
+                    final_action,
                     response.id,
                     triggered_scanners,
+                    self.policy_hash,
                 )
 
             return ChatCompletionResponse(**response_data)
         except Exception as exc:
+            if not self.fail_open:
+                self._record_response_action("fail_closed")
             logger.exception(
                 "output_guardrails_failed fail_open=%s response_id=%s",
                 self.fail_open,
@@ -155,14 +208,31 @@ class OutputGuardrails:
             ) from exc
 
     def _build_scanners(self) -> list[Any]:
-        scanners: list[Any] = []
+        return [scanner for _, scanner in self._build_scanners_with_configs()]
+
+    def _record_response_action(self, final_action: str) -> None:
+        guardrails_response_actions_total.labels(
+            final_action=final_action,
+        ).inc()
+
+    def _build_scanners_with_configs(self) -> list[tuple[ParsedScannerConfig, Any]]:
+        scanners: list[tuple[ParsedScannerConfig, Any]] = []
         for parsed in self.scanner_configs:
             try:
-                scanners.append(parsed.config.build(self.action_on_hit))
+                scanner_action_on_hit = parsed.action_on_hit or self.action_on_hit
+                scanners.append((parsed, parsed.config.build(scanner_action_on_hit)))
+                output_guardrails_scanner_build_total.labels(
+                    type=parsed.type, status=STATUS_SUCCESS
+                ).inc()
             except Exception:
+                output_guardrails_scanner_build_total.labels(
+                    type=parsed.type, status=STATUS_FAILURE
+                ).inc()
                 logger.exception(
-                    "output_guardrails_policy_scanner_build_failed type=%s",
+                    "output_guardrails_policy_scanner_build_failed type=%s policy_hash=%s path=%s",
                     parsed.type,
+                    self.policy_hash,
+                    self.policy_path,
                 )
         return scanners
 
@@ -183,13 +253,20 @@ class OutputGuardrails:
 
 
 def _parse_policy_scanner_configs(
-    value: Any, policy_path: str
-) -> list[ParsedScannerConfig]:
+    value: Any,
+    policy_path: str,
+    default_action_on_hit: str = DEFAULT_ACTION_ON_HIT,
+    *,
+    action_on_hit: str | None = None,
+) -> tuple[ParsedScannerConfig, ...]:
+    if action_on_hit is not None:
+        default_action_on_hit = action_on_hit
+
     if value is None:
-        return []
+        return ()
     if not isinstance(value, list):
         logger.warning("output_guardrails_policy_invalid_scanners path=%s", policy_path)
-        return []
+        return ()
 
     parsed_configs: list[ParsedScannerConfig] = []
     for raw in value:
@@ -207,10 +284,23 @@ def _parse_policy_scanner_configs(
             )
             continue
 
+        scanner_action_on_hit = _normalize_action(
+            raw.get("action"), default_action_on_hit
+        )
+        if scanner_action_on_hit == "redact" and not getattr(
+            schema_cls, "supports_redact", True
+        ):
+            logger.warning(
+                "output_guardrails_policy_incompatible_scanner_action type=%s action=%s",
+                scanner_type,
+                scanner_action_on_hit,
+            )
+            continue
+
         normalized_raw = {
             _normalize_scanner_key(str(key)): item
             for key, item in raw.items()
-            if key != "type"
+            if key not in {"type", "action"}
         }
         try:
             cfg = schema_cls.from_dict(normalized_raw)
@@ -222,9 +312,15 @@ def _parse_policy_scanner_configs(
             )
             continue
 
-        parsed_configs.append(ParsedScannerConfig(type=scanner_type, config=cfg))
+        parsed_configs.append(
+            ParsedScannerConfig(
+                type=scanner_type,
+                config=cfg,
+                action_on_hit=scanner_action_on_hit,
+            )
+        )
 
-    return parsed_configs
+    return tuple(parsed_configs)
 
 
 def _normalize_scanner_key(value: str) -> str:

@@ -210,6 +210,46 @@ func TestGetInferenceCommandVLLMSingleNode(t *testing.T) {
 	assert.Contains(t, cmd[2], "tensor-parallel-size=2")
 }
 
+func TestGetInferenceCommandVLLMInferencePort(t *testing.T) {
+	p := &PresetParam{
+		RuntimeParam: RuntimeParam{
+			VLLM: VLLMParam{
+				BaseCommand:    "vllm serve",
+				ModelRunParams: map[string]string{},
+			},
+		},
+	}
+	rc := RuntimeContext{
+		RuntimeName:          RuntimeNameVLLM,
+		SKUNumGPUs:           1,
+		NumNodes:             1,
+		DistributedInference: false,
+		InferencePort:        5001,
+	}
+	cmd := p.GetInferenceCommand(rc)
+	require.Len(t, cmd, 3)
+	assert.Contains(t, cmd[2], "--port=5001")
+
+	// Without InferencePort, no --port flag should be present
+	p2 := &PresetParam{
+		RuntimeParam: RuntimeParam{
+			VLLM: VLLMParam{
+				BaseCommand:    "vllm serve",
+				ModelRunParams: map[string]string{},
+			},
+		},
+	}
+	rc2 := RuntimeContext{
+		RuntimeName:          RuntimeNameVLLM,
+		SKUNumGPUs:           1,
+		NumNodes:             1,
+		DistributedInference: false,
+	}
+	cmd2 := p2.GetInferenceCommand(rc2)
+	require.Len(t, cmd2, 3)
+	assert.NotContains(t, cmd2[2], "--port=")
+}
+
 func TestGetInferenceCommandVLLMServedModelName(t *testing.T) {
 	tests := []struct {
 		name              string
@@ -238,6 +278,16 @@ func TestGetInferenceCommandVLLMServedModelName(t *testing.T) {
 				consts.WorkspaceCreatedByInferenceSetLabel: "my-inferenceset",
 			},
 			expectedServed: "served-model-name=my-inferenceset",
+		},
+		{
+			name:          "MRI workspace uses model name over InferenceSet name",
+			vllmModelName: "phi-4-mini-instruct",
+			workspaceLabels: map[string]string{
+				consts.WorkspaceCreatedByInferenceSetLabel: "phi-4-decode",
+				"multiroleinference.kaito.sh/created-by":   "phi-4",
+			},
+			expectedServed:    "served-model-name=phi-4-mini-instruct",
+			notExpectedServed: "served-model-name=phi-4-decode",
 		},
 		{
 			name:          "InferenceSet label with empty value falls back to VLLM.ModelName",

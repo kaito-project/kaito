@@ -71,6 +71,11 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 	podNameForIndex0 := fmt.Sprintf("%s-0", workspaceObj.Name)
 	selector["statefulset.kubernetes.io/pod-name"] = podNameForIndex0
 
+	// Traffic always targets PortInferenceServer (5000). On decode pods the routing
+	// sidecar listens on 5000 and forwards to vLLM on 5001; on prefill pods vLLM
+	// listens directly on 5000.
+	httpTargetPort := consts.PortInferenceServer
+
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      workspaceObj.Name,
@@ -87,7 +92,7 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 					Name:       "http",
 					Protocol:   corev1.ProtocolTCP,
 					Port:       80,
-					TargetPort: intstr.FromInt32(consts.PortInferenceServer),
+					TargetPort: intstr.FromInt32(httpTargetPort),
 				},
 				{
 					Name:       "ray",
@@ -120,6 +125,13 @@ func GenerateStatefulSetManifest(revisionNum string, replicas int) func(*generat
 			if createdBy, exists := ctx.Workspace.Labels[consts.WorkspaceCreatedByInferenceSetLabel]; exists {
 				klog.Infof("Adding label %s=%s to statefulset selector", consts.WorkspaceCreatedByInferenceSetLabel, createdBy)
 				selector[consts.WorkspaceCreatedByInferenceSetLabel] = createdBy
+			}
+			// Propagate MRI parent and inference-role labels to pod templates for InferencePool endpoint selection.
+			if parent, exists := ctx.Workspace.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent]; exists {
+				selector[kaitov1alpha1.LabelMultiRoleInferenceParent] = parent
+			}
+			if role, exists := ctx.Workspace.Labels[kaitov1alpha1.LabelInferenceRole]; exists {
+				selector[kaitov1alpha1.LabelInferenceRole] = role
 			}
 		}
 		labelselector := &metav1.LabelSelector{
@@ -275,6 +287,15 @@ func GenerateManifestWithPodTemplate(workspaceObj *kaitov1beta1.Workspace, toler
 			templateCopy.ObjectMeta.Labels[consts.WorkspaceCreatedByInferenceSetLabel] = createdBy
 			labelselector.MatchLabels[consts.WorkspaceCreatedByInferenceSetLabel] = createdBy
 		}
+		// Propagate MRI parent and inference-role labels to pod templates for InferencePool endpoint selection.
+		if parent, exists := workspaceObj.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent]; exists {
+			templateCopy.ObjectMeta.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent] = parent
+			labelselector.MatchLabels[kaitov1alpha1.LabelMultiRoleInferenceParent] = parent
+		}
+		if role, exists := workspaceObj.Labels[kaitov1alpha1.LabelInferenceRole]; exists {
+			templateCopy.ObjectMeta.Labels[kaitov1alpha1.LabelInferenceRole] = role
+			labelselector.MatchLabels[kaitov1alpha1.LabelInferenceRole] = role
+		}
 	}
 
 	// Overwrite affinity. Only set node affinity when there are user-defined
@@ -352,13 +373,13 @@ func GenerateModelPullerContainer(ctx context.Context, workspaceObj *kaitov1beta
 }
 
 // GenerateInferencePoolOCIRepository generates a Flux OCIRepository for the inference pool.
-func GenerateInferencePoolOCIRepository(inferenceSetObj *kaitov1alpha1.InferenceSet) *sourcev1.OCIRepository {
+func GenerateInferencePoolOCIRepository(inferenceSetObj *kaitov1beta1.InferenceSet) *sourcev1.OCIRepository {
 	return &sourcev1.OCIRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      utils.InferencePoolName(inferenceSetObj.Name),
 			Namespace: inferenceSetObj.Namespace,
 			OwnerReferences: []metav1.OwnerReference{
-				*metav1.NewControllerRef(inferenceSetObj, kaitov1alpha1.GroupVersion.WithKind("InferenceSet")),
+				*metav1.NewControllerRef(inferenceSetObj, kaitov1beta1.GroupVersion.WithKind("InferenceSet")),
 			},
 		},
 		Spec: sourcev1.OCIRepositorySpec{
@@ -372,8 +393,15 @@ func GenerateInferencePoolOCIRepository(inferenceSetObj *kaitov1alpha1.Inference
 	}
 }
 
+// inferencePoolTargetPort returns the target port for the InferencePool.
+// Always PortInferenceServer (5000) — on decode pods the routing sidecar
+// listens on 5000; on prefill pods vLLM listens directly on 5000.
+func inferencePoolTargetPort() int32 {
+	return consts.PortInferenceServer
+}
+
 // GenerateInferencePoolHelmRelease generates a Flux HelmRelease for the inference pool.
-func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1alpha1.InferenceSet) (*helmv2.HelmRelease, error) {
+func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1beta1.InferenceSet) (*helmv2.HelmRelease, error) {
 	matchLabels := map[string]string{
 		consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name,
 	}
@@ -397,7 +425,7 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1alpha1.InferenceSe
 		},
 		"inferencePool": map[string]any{
 			"targetPorts": []map[string]any{{
-				"number": consts.PortInferenceServer,
+				"number": inferencePoolTargetPort(),
 			}},
 			"modelServers": map[string]any{
 				"matchLabels": matchLabels,
@@ -414,7 +442,7 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1alpha1.InferenceSe
 			Name:      utils.InferencePoolName(inferenceSetObj.Name),
 			Namespace: inferenceSetObj.Namespace,
 			OwnerReferences: []metav1.OwnerReference{
-				*metav1.NewControllerRef(inferenceSetObj, kaitov1alpha1.GroupVersion.WithKind("InferenceSet")),
+				*metav1.NewControllerRef(inferenceSetObj, kaitov1beta1.GroupVersion.WithKind("InferenceSet")),
 			},
 		},
 		Spec: helmv2.HelmReleaseSpec{

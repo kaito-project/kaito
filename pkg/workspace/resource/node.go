@@ -23,8 +23,8 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/resources"
+	"github.com/kaito-project/kaito/pkg/sku"
+	nodeutil "github.com/kaito-project/kaito/pkg/utils/nodes"
 )
 
 type NodeManager struct {
@@ -40,7 +40,7 @@ func NewNodeManager(c client.Client) *NodeManager {
 // CheckIfNodePluginsReady is used for ensuring node label(accelerator:nvidia) and GPU capacity on all auto-provisioned nodes for the workspace.
 func (c *NodeManager) CheckIfNodePluginsReady(ctx context.Context, wObj *kaitov1beta1.Workspace, existingNodeClaims []*karpenterv1.NodeClaim) (bool, error) {
 	// ensure Nvidia device plugins are ready for the workspace when instance type is known.
-	knownGPUConfig, _ := utils.GetGPUConfigBySKU(wObj.Resource.InstanceType)
+	knownGPUConfig, _ := sku.GetGPUConfigBySKU(wObj.Resource.InstanceType)
 	if knownGPUConfig != nil {
 		if areReady, err := c.checkNodePlugin(ctx, wObj, existingNodeClaims); err != nil {
 			return false, err
@@ -64,18 +64,18 @@ func (c *NodeManager) checkNodePlugin(ctx context.Context, wObj *kaitov1beta1.Wo
 
 	// Check each node for NVIDIA accelerator label and GPU capacity
 	for _, node := range nodes {
-		if accelerator, exists := node.Labels[resources.LabelKeyNvidia]; !exists || accelerator != resources.LabelValueNvidia {
+		if accelerator, exists := node.Labels[nodeutil.LabelKeyNvidia]; !exists || accelerator != nodeutil.LabelValueNvidia {
 			if node.Labels == nil {
 				node.Labels = make(map[string]string)
 			}
-			node.Labels[resources.LabelKeyNvidia] = resources.LabelValueNvidia
+			node.Labels[nodeutil.LabelKeyNvidia] = nodeutil.LabelValueNvidia
 
 			if err := c.Client.Update(ctx, node); err != nil {
 				return false, fmt.Errorf("failed to update node %s with accelerator label: %w", node.Name, err)
 			}
 		}
 
-		gpuCapacity := node.Status.Capacity[resources.CapacityNvidiaGPU]
+		gpuCapacity := node.Status.Capacity[nodeutil.CapacityNvidiaGPU]
 		if gpuCapacity.IsZero() {
 			klog.Infof("node plugins not ready, %s does not have GPU capacity for workspace %s/%s", node.Name, wObj.Namespace, wObj.Name)
 			return false, nil
@@ -103,13 +103,13 @@ func (c *NodeManager) getReadyNodesFromNodeClaims(ctx context.Context, wObj *kai
 			return nodes, nil
 		}
 
-		node, err := resources.GetNode(ctx, nodeClaim.Status.NodeName, c.Client)
+		node, err := nodeutil.GetNode(ctx, nodeClaim.Status.NodeName, c.Client)
 		if err != nil {
 			klog.Errorf("Failed to get node %s for nodeClaim %s: %v", nodeClaim.Status.NodeName, nodeClaim.Name, err)
 			return nil, fmt.Errorf("failed to get node %s: %w", nodeClaim.Status.NodeName, err)
 		}
 
-		if !resources.NodeIsReadyAndNotDeleting(node) {
+		if !nodeutil.NodeIsReadyAndNotDeleting(node) {
 			return nodes, nil
 		}
 

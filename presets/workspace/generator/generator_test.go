@@ -45,8 +45,8 @@ func TestGeneratePreset(t *testing.T) {
 					BytesPerToken:          131072,
 					ModelTokenLimit:        131072,
 					DiskStorageRequirement: "87Gi", // 7.15 + 80
+					AttnType:               "GQA",
 				},
-				AttnType: "GQA",
 			},
 			expectedVLLM: model.VLLMParam{
 				ModelName: "phi-4-mini-instruct",
@@ -72,8 +72,8 @@ func TestGeneratePreset(t *testing.T) {
 					BytesPerToken:          8192,
 					ModelTokenLimit:        2048,
 					DiskStorageRequirement: "93Gi", // 13.44 + 80
+					AttnType:               "MQA",
 				},
-				AttnType: "MQA",
 			},
 			expectedVLLM: model.VLLMParam{
 				ModelName: "falcon-7b-instruct",
@@ -100,8 +100,8 @@ func TestGeneratePreset(t *testing.T) {
 					ModelTokenLimit:        262144,
 					DiskStorageRequirement: "89Gi", // 9.70 + 80
 					QuantMethod:            "fp8",
+					AttnType:               "GQA",
 				},
-				AttnType: "GQA",
 			},
 			expectedVLLM: model.VLLMParam{
 				ModelName: "ministral-3-8b-instruct-2512",
@@ -129,8 +129,8 @@ func TestGeneratePreset(t *testing.T) {
 					DiskStorageRequirement: "714Gi", // 634.70 + 80
 					ToolCallParser:         "mistral",
 					QuantMethod:            "compressed-tensors",
+					AttnType:               "MLA",
 				},
-				AttnType: "MLA",
 			},
 			expectedVLLM: model.VLLMParam{
 				ModelName: "mistral-large-3-675b-instruct-2512",
@@ -158,8 +158,8 @@ func TestGeneratePreset(t *testing.T) {
 					DiskStorageRequirement: "136Gi", // 56.87 + 80
 					ReasoningParser:        "qwen3",
 					ToolCallParser:         "qwen3_xml",
+					AttnType:               "GQA",
 				},
-				AttnType: "GQA",
 			},
 			expectedVLLM: model.VLLMParam{
 				ModelName: "qwen3-coder-30b-a3b-instruct",
@@ -187,8 +187,8 @@ func TestGeneratePreset(t *testing.T) {
 					DiskStorageRequirement: "95Gi", // 15.26 + 80
 					ReasoningParser:        "qwen3",
 					ToolCallParser:         "hermes",
+					AttnType:               "GQA",
 				},
-				AttnType: "GQA",
 			},
 			expectedVLLM: model.VLLMParam{
 				ModelName: "qwen3-8b",
@@ -217,8 +217,8 @@ func TestGeneratePreset(t *testing.T) {
 					ReasoningParser:        "deepseek_v3",
 					ToolCallParser:         "deepseek_v31",
 					QuantMethod:            "fp8",
+					AttnType:               "MLA",
 				},
-				AttnType: "MLA",
 			},
 			expectedVLLM: model.VLLMParam{
 				ModelName: "deepseek-v3.1",
@@ -247,8 +247,8 @@ func TestGeneratePreset(t *testing.T) {
 					ReasoningParser:        "deepseek_v3",
 					ToolCallParser:         "deepseek_v3",
 					QuantMethod:            "fp8",
+					AttnType:               "MLA",
 				},
-				AttnType: "MLA",
 			},
 			expectedVLLM: model.VLLMParam{
 				ModelName: "deepseek-v3",
@@ -276,8 +276,8 @@ func TestGeneratePreset(t *testing.T) {
 					DiskStorageRequirement: "110Gi", // 30.51 + 80
 					ReasoningParser:        "qwen3",
 					ToolCallParser:         "hermes",
+					AttnType:               "GQA",
 				},
-				AttnType: "GQA",
 			},
 			expectedVLLM: model.VLLMParam{
 				ModelName: "nemotron-orchestrator-8b",
@@ -307,8 +307,8 @@ func TestGeneratePreset(t *testing.T) {
 					ToolCallParser:         "hermes",
 					QuantMethod:            "awq",
 					QuantBits:              4,
+					AttnType:               "GQA",
 				},
-				AttnType: "GQA",
 			},
 			expectedVLLM: model.VLLMParam{
 				ModelName: "qwen3-8b-awq",
@@ -490,8 +490,8 @@ func TestLoadFromCatalog(t *testing.T) {
 					BytesPerToken:          131072,
 					ModelTokenLimit:        131072,
 					DiskStorageRequirement: "87Gi",
+					AttnType:               "GQA",
 				},
-				AttnType: "GQA",
 			},
 		},
 		{
@@ -508,8 +508,8 @@ func TestLoadFromCatalog(t *testing.T) {
 					BytesPerToken:          204800,
 					ModelTokenLimit:        16384,
 					DiskStorageRequirement: "107Gi",
+					AttnType:               "GQA",
 				},
-				AttnType: "GQA",
 			},
 		},
 		{
@@ -527,8 +527,8 @@ func TestLoadFromCatalog(t *testing.T) {
 					ModelTokenLimit:        131072,
 					DiskStorageRequirement: "88Gi",
 					ToolCallParser:         "functiongemma",
+					AttnType:               "GQA",
 				},
-				AttnType: "GQA",
 			},
 		},
 		{
@@ -546,8 +546,8 @@ func TestLoadFromCatalog(t *testing.T) {
 					ModelTokenLimit:        32768,
 					DiskStorageRequirement: "93Gi",
 					ToolCallParser:         "mistral",
+					AttnType:               "GQA",
 				},
-				AttnType: "GQA",
 			},
 		},
 		{
@@ -564,8 +564,8 @@ func TestLoadFromCatalog(t *testing.T) {
 					BytesPerToken:          139264,
 					ModelTokenLimit:        262144,
 					DiskStorageRequirement: "89Gi",
+					AttnType:               "GQA",
 				},
-				AttnType: "GQA",
 			},
 		},
 		{

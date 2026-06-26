@@ -42,6 +42,7 @@ const sidebars = {
             items: [
                 'inference',
                 'multi-node-inference',
+                'model-mirror-streaming',
                 'memory-estimator',
                 'keda-autoscaler-inference',
                 'tuning',
@@ -72,6 +73,7 @@ const sidebars = {
             items: [
                 'aikit',
                 'gateway-api-inference-extension',
+                'prefill-decode-disaggregation',
             ],
         },
         {

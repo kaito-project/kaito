@@ -26,6 +26,7 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
@@ -90,7 +91,7 @@ func (w *Workspace) validateInferenceConfig(ctx context.Context) (errs *apis.Fie
 	modelLenRequired := false
 
 	// Get SKU handler to check GPU configuration
-	skuHandler, err := utils.GetSKUHandler()
+	skuHandler, err := sku.GetSKUHandler()
 	if err != nil {
 		return apis.ErrGeneric(fmt.Sprintf("Failed to get SKU handler: %v", err), "instanceType")
 	}

@@ -1,0 +1,218 @@
+name: Publish nightly controller ACR images
+
+on:
+  schedule:
+    - cron: '30 1 * * *'
+  workflow_dispatch:
+    inputs:
+      git_ref:
+        description: 'Git ref to build from (branch, tag, or SHA)'
+        required: false
+        default: 'main'
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  GO_VERSION: '1.26.4'
+
+concurrency:
+  group: nightly-acr-images
+  cancel-in-progress: true
+
+jobs:
+  build-publish-acr-nightly-images:
+    runs-on:
+      labels:
+        - self-hosted
+        - hostname:kaito-e2e-github-runner
+    environment: publish-mcr
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image_name: workspace
+            chart_path: charts/kaito/workspace
+            make_image_target: docker-build-workspace
+            make_chart_target: helm-package-workspace
+            image_name_var: IMG_NAME
+          - image_name: ragengine
+            chart_path: charts/kaito/ragengine
+            make_image_target: docker-build-ragengine
+            make_chart_target: helm-package-ragengine
+            image_name_var: RAGENGINE_IMAGE_NAME
+    steps:
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.19.4'
+
+      - name: Install ORAS
+        run: |
+          VER='1.3.0'
+          curl -LO "https://github.com/oras-project/oras/releases/download/v${VER}/oras_${VER}_linux_amd64.tar.gz"
+          sudo tar -zxf "./oras_${VER}_linux_amd64.tar.gz" -C '/usr/local/bin'
+          rm -f "./oras_${VER}_linux_amd64.tar.gz"
+
+      - name: Set up Go ${{ env.GO_VERSION }}
+        uses: actions/setup-go@v5.5.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 0
+          submodules: true
+          ref: ${{ github.event.inputs.git_ref || 'main' }}
+
+      - id: get-image-tag
+        name: Compute nightly image tag
+        run: |
+          # Semver-compatible nightly tag: <base VERSION>-<UTC date>, e.g. 0.10.0-20260609.
+          base_version="$(grep -E '^VERSION \?=' Makefile | awk '{print $3}' | sed 's/^v//')"
+          date_tag="$(date -u +%Y%m%d)"
+          echo "img_tag=${base_version}-${date_tag}" >> "$GITHUB_OUTPUT"
+
+      - name: Authenticate to ACR
+        run: |
+          az login --identity --client-id "${CLIENTID}"
+          az acr login -n "${REGISTRY}"
+        env:
+          CLIENTID: ${{ secrets.IDENTITY_CLIENT_ID }}
+          REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
+
+      - name: Build and push ${{ matrix.image_name }}:${{ steps.get-image-tag.outputs.img_tag }}
+        run: |
+          make "${{ matrix.make_image_target }}" \
+            REGISTRY="${REGISTRY}" \
+            IMG_TAG="${IMG_TAG}" \
+            "${{ matrix.image_name_var }}=${{ matrix.image_name }}"
+        env:
+          REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
+          IMG_TAG: ${{ steps.get-image-tag.outputs.img_tag }}
+
+      - name: Pin chart version and image to nightly tag
+        run: |
+          # Chart.yaml: align version/appVersion with IMG_TAG so helm package emits
+          # <name>-<IMG_TAG>.tgz, which is what the Makefile target expects.
+          yq -i ".version = \"${IMG_TAG}\" | .appVersion = \"${IMG_TAG}\"" "${CHART_PATH}/Chart.yaml"
+          # values.yaml: point the controller image at the nightly ACR registry+tag
+          # so installs of the nightly chart pull the matching nightly image.
+          yq -i ".image.repository = \"${REGISTRY}/${IMAGE_NAME}\" | .image.tag = \"${IMG_TAG}\"" "${CHART_PATH}/values.yaml"
+        env:
+          CHART_PATH: ${{ matrix.chart_path }}
+          IMAGE_NAME: ${{ matrix.image_name }}
+          REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
+          IMG_TAG: ${{ steps.get-image-tag.outputs.img_tag }}
+
+      - name: Package and push chart ${{ matrix.image_name }}:${{ steps.get-image-tag.outputs.img_tag }}
+        run: |
+          make "${{ matrix.make_chart_target }}" \
+            REGISTRY="${REGISTRY}/helm" \
+            IMG_TAG="${IMG_TAG}" \
+            "${{ matrix.image_name_var }}=${{ matrix.image_name }}"
+        env:
+          REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
+          IMG_TAG: ${{ steps.get-image-tag.outputs.img_tag }}
+
+      - name: Publish Extension
+        if: ${{ matrix.image_name == 'workspace' }}
+        env:
+          IDENTITY_CLIENT_ID: ${{ secrets.IDENTITY_CLIENT_ID }}
+          EXTENSIONS_DP_RESOURCE: ${{ secrets.EXTENSIONS_DP_RESOURCE }}
+          EXTENSIONS_DP_ENDPOINT: ${{ secrets.EXTENSIONS_DP_ENDPOINT }}
+          EXTENSIONS_API_VERSION: ${{ secrets.EXTENSIONS_API_VERSION }}
+          KAITO_EXTENSION_SUBSCRIPTION: ${{ secrets.KAITO_EXTENSION_SUBSCRIPTION }}
+          KAITO_EXTENSION_TYPE: ${{ secrets.KAITO_EXTENSION_TYPE }}
+          KAITO_EXTENSION_VERSION: ${{ steps.get-image-tag.outputs.img_tag }}
+          KAITO_EXTENSION_REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
+        run: |
+          az login --identity --client-id "${IDENTITY_CLIENT_ID}"
+          az rest --resource "${EXTENSIONS_DP_RESOURCE}" --method 'PUT' --url "https://${EXTENSIONS_DP_ENDPOINT}/subscriptions/${KAITO_EXTENSION_SUBSCRIPTION}/extensionTypeRegistrations/${KAITO_EXTENSION_TYPE}/versions/${KAITO_EXTENSION_VERSION}?api-version=${EXTENSIONS_API_VERSION}" --body '{
+              "artifactEndpoints": [
+                  {
+                      "regions": [
+                          "eastus2euap",
+                          "centraluseuap",
+                          "westcentralus",
+                          "eastasia",
+                          "uksouth",
+                          "eastus",
+                          "australiaeast",
+                          "brazilsouth",
+                          "canadacentral",
+                          "centralindia",
+                          "eastus2",
+                          "eastus3",
+                          "francecentral",
+                          "germanywestcentral",
+                          "japaneast",
+                          "koreacentral",
+                          "malaysiasouth",
+                          "northcentralus",
+                          "northeurope",
+                          "swedencentral",
+                          "switzerlandnorth",
+                          "westus2",
+                          "australiacentral",
+                          "israelcentral",
+                          "italynorth",
+                          "jioindiawest",
+                          "mexicocentral",
+                          "norwayeast",
+                          "qatarcentral",
+                          "southafricanorth",
+                          "taiwannorth",
+                          "uaenorth",
+                          "ukwest",
+                          "centralus",
+                          "chilecentral",
+                          "japanwest",
+                          "malaysiawest",
+                          "newzealandnorth",
+                          "southcentralus",
+                          "southeastasia",
+                          "westeurope",
+                          "westus3",
+                          "westus",
+                          "australiacentral2",
+                          "australiasoutheast",
+                          "brazilsoutheast",
+                          "canadaeast",
+                          "denmarkeast",
+                          "francesouth",
+                          "germanynorth",
+                          "jioindiacentral",
+                          "koreasouth",
+                          "norwaywest",
+                          "polandcentral",
+                          "southafricawest",
+                          "southcentralus2",
+                          "southindia",
+                          "spaincentral",
+                          "swedensouth",
+                          "switzerlandwest",
+                          "taiwannorthwest",
+                          "uaecentral",
+                          "southeastus",
+                          "southwestus",
+                          "southeastus3",
+                          "southeastus5",
+                          "indonesiacentral",
+                          "austriaeast",
+                          "israelnorthwest",
+                          "belgiumcentral",
+                          "northeastus5",
+                          "indiasouthcentral"
+                      ],
+                      "releasetrains": [
+                          "dev",
+                          "preview"
+                      ],
+                      "fullPathToHelmChart": "'"${KAITO_EXTENSION_REGISTRY}"'/helm/workspace",
+                      "isCustomerHidden": false,
+                      "packageConfigName": "since-0.9.3"
+                  }
+              ]
+          }'

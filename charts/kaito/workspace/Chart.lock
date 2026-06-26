@@ -7,6 +7,9 @@ dependencies:
   version: 0.17.4
 - name: local-csi-driver
   repository: oci://localcsidriver.azurecr.io/acstor/charts
-  version: 0.2.9
-digest: sha256:7f11d82e101c8c3abf4df4b623005d7e61f82c65b4b6920f7b72f18ba42a8c25
-generated: "2025-12-12T16:06:44.271279+11:00"
+  version: 0.2.18
+- name: productionstack
+  repository: oci://mcr.microsoft.com/aks/kaito/helm
+  version: 0.2.1
+digest: sha256:eb50dbca9351042ced69e065f5bb20ce3e56fde77a2895cccd057130769a0cbf
+generated: "2026-06-23T16:38:10.151447469Z"

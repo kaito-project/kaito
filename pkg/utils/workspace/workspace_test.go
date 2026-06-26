@@ -20,6 +20,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -266,4 +268,86 @@ func TestUpdateWorkspaceStatus(t *testing.T) {
 		mockClient.AssertExpectations(t)
 		mockClient.StatusMock.AssertExpectations(t)
 	})
+}
+
+func TestGetInferenceContainerImage(t *testing.T) {
+	tests := []struct {
+		name   string
+		ss     *appsv1.StatefulSet
+		expect string
+	}{
+		{
+			name: "returns named container image matching statefulset name",
+			ss: &appsv1.StatefulSet{
+				ObjectMeta: metav1.ObjectMeta{Name: "my-workspace"},
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{Name: "sidecar", Image: "sidecar:v1"},
+								{Name: "my-workspace", Image: "inference:v2"},
+							},
+						},
+					},
+				},
+			},
+			expect: "inference:v2",
+		},
+		{
+			name: "falls back to first container when no name matches",
+			ss: &appsv1.StatefulSet{
+				ObjectMeta: metav1.ObjectMeta{Name: "my-workspace"},
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{Name: "other", Image: "image-a:v1"},
+								{Name: "another", Image: "image-b:v2"},
+							},
+						},
+					},
+				},
+			},
+			expect: "image-a:v1",
+		},
+		{
+			name: "empty containers returns empty string",
+			ss: &appsv1.StatefulSet{
+				ObjectMeta: metav1.ObjectMeta{Name: "my-workspace"},
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{},
+						},
+					},
+				},
+			},
+			expect: "",
+		},
+		{
+			name: "named container is not first in list",
+			ss: &appsv1.StatefulSet{
+				ObjectMeta: metav1.ObjectMeta{Name: "ws-abc"},
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{Name: "http-proxy", Image: "proxy:latest"},
+								{Name: "metrics", Image: "metrics:v1"},
+								{Name: "ws-abc", Image: "base:0.3.2"},
+							},
+						},
+					},
+				},
+			},
+			expect: "base:0.3.2",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := GetInferenceContainerImage(tt.ss)
+			assert.Equal(t, tt.expect, got)
+		})
+	}
 }

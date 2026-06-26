@@ -1,0 +1,8 @@
+action: redact
+scanners:
+  - type: json
+    required_elements: 1
+    repair: true
+  - type: reading_time
+    max_time: 0.25
+    truncate: true

@@ -25,10 +25,14 @@ import (
 var (
 	// FeatureGates is a map that holds the feature gate names and their default values for KAITO.
 	FeatureGates = map[string]bool{
-		consts.FeatureFlagVLLM:                         true,
-		consts.FeatureFlagDisableNodeAutoProvisioning:  false,
-		consts.FeatureFlagGatewayAPIInferenceExtension: false,
-		consts.FeatureFlagEnableInferenceSetController: false,
+		consts.FeatureFlagVLLM:                               true,
+		consts.FeatureFlagDisableNodeAutoProvisioning:        false,
+		consts.FeatureFlagGatewayAPIInferenceExtension:       false,
+		consts.FeatureFlagEnableInferenceSetController:       true,
+		consts.FeatureFlagEnableMultiRoleInferenceController: false,
+		consts.FeatureFlagModelMirror:                        false,
+		consts.FeatureFlagModelStreaming:                     false,
+		consts.FeatureFlagEnableBaseImageAutoUpgrade:         false,
 		//	Add more feature gates here
 	}
 )

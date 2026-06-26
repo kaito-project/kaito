@@ -40,9 +40,19 @@ featureGates:
   vLLM: true
   disableNodeAutoProvisioning: false
   gatewayAPIInferenceExtension: false
-  enableInferenceSetController: false
+  enableInferenceSetController: true
+  enableMultiRoleInferenceController: false
+  ModelMirror: false
+  ModelStreaming: false
+  enableBaseImageAutoUpgrade: false
+defaultModelMirrorStorageClass: ""
+defaultStreamingServiceAccount: ""
+# CPU/memory request==limit for the ModelMirror download Job. Empty uses the controller
+# defaults (3 CPU / 8Gi). Lower for resource-constrained clusters (e.g. e2e on small nodes).
+modelMirrorDownloadCPU: ""
+modelMirrorDownloadMemory: ""
 defaultNodeImageFamily: ""
-nodeProvisioner: ""
+nodeProvisioner: "azure-gpu-provisioner"
 karpenterProvider: "azure"
 karpenterProviders:
   azure:
@@ -129,11 +139,11 @@ local-csi-driver:
   image:
     driver:
       repository: mcr.microsoft.com/acstor/local-csi-driver
-      tag: v0.2.9
+      tag: v0.2.18
       pullPolicy: Always
     manager:
       repository: mcr.microsoft.com/acstor/local-csi-manager
-      tag: v0.2.9
+      tag: v0.2.18
       pullPolicy: Always
     csiProvisioner:
       pullPolicy: Always
@@ -166,7 +176,14 @@ local-csi-driver:
     enforceEphemeral:
       enabled: false
     hyperconverged:
-      enabled: false
+      enabled: true
   observability:
     metrics:
       enabled: false
+# Production Stack umbrella chart (BBR, KEDA Kaito scaler, LLM gateway auth).
+# Disabled by default; flip `enabled` to true to install. Override subchart
+# values by nesting them under the subchart's name (see the chart's own
+# values.yaml for keys).
+# See https://github.com/kaito-project/production-stack for more details
+productionstack:
+  enabled: false

@@ -69,6 +69,7 @@ var (
 		"HunYuanMoEV1ForCausalLM":                "hunyuan_a13b",
 		"GraniteForCausalLM":                     "granite",
 		"KimiK2ForCausalLM":                      "kimi_k2",
+		"KimiK25ForConditionalGeneration":        "kimi_k2",
 		"MiniMaxM2ForCausalLM":                   "minimax_m2_append_think",
 		"Mistral3ForConditionalGeneration":       "mistral",
 		"MistralForCausalLM":                     "mistral",
@@ -164,6 +165,7 @@ var (
 		"NemotronH_Nano_VL_V2":                   "qwen3_coder",
 		"Phi4MiniForCausalLM":                    "phi4_mini_json",
 		"KimiK2ForCausalLM":                      "kimi_k2",
+		"KimiK25ForConditionalGeneration":        "kimi_k2",
 		"GigaChat3ForCausalLM":                   "gigachat3",
 	}
 
@@ -176,6 +178,14 @@ var (
 		"llama-3":     "tool-chat-llama3.1-json.jinja",
 		"phi-4-mini":  "tool-chat-phi4-mini.jinja",
 		"qwen2.5":     "tool-chat-hermes.jinja",
+	}
+
+	// tokenizerModePrefixMap maps model name prefixes to their vLLM tokenizer mode.
+	tokenizerModePrefixMap = map[string]string{
+		// Use deepseek_v32 tokenizer mode for both DeepSeek R1 and V3 models to avoid special token decoding issues:
+		// https://github.com/kaito-project/kaito/issues/1976
+		"deepseek-r1": "deepseek_v32",
+		"deepseek-v3": "deepseek_v32",
 	}
 
 	// vllmAttentionBackendPrefixMap maps model name prefixes to their vLLM attention backend.
@@ -193,6 +203,8 @@ var (
 		// JIT compilation with CUDA dev headers (nvcc, cublasLt, nvrtc).
 		// Pin to triton backend to avoid the JIT dependency for now.
 		"mistral-small-4-119b-2603": "triton",
+		// MiniMax-M2.7 FP8 MoE also defaults to FlashInfer CUTLASS which needs nvcc.
+		"minimax-m2.7": "triton",
 	}
 
 	// vllmGdnPrefillBackendPrefixMap maps model name prefixes to their vLLM GDN prefill backend.
@@ -202,6 +214,15 @@ var (
 	vllmGdnPrefillBackendPrefixMap = map[string]string{
 		"qwen3.5": "triton",
 		"qwen3.6": "triton",
+	}
+
+	// vllmExpertParallelEnabled maps model name prefixes to enable expert parallelism.
+	// Expert parallelism distributes MoE experts across TP ranks, which can avoid
+	// FP8 block quantization issues when expert weight dimensions are not divisible
+	// by the quantization block size.
+	// source: https://docs.vllm.ai/en/latest/configuration/engine_args/#-enable-expert-parallel
+	vllmExpertParallelEnabled = map[string]bool{
+		"minimax-m2": true,
 	}
 
 	// catalogOverrides provides hardcoded values for models whose HuggingFace
@@ -645,6 +666,14 @@ func (g *Generator) FinalizeParams() {
 	g.Param.VLLM.ModelRunParams["config_format"] = g.ConfigFormat
 	g.Param.VLLM.ModelRunParams["tokenizer_mode"] = g.TokenizerMode
 
+	// Override tokenizer mode based on model name prefix
+	for prefix, mode := range tokenizerModePrefixMap {
+		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
+			g.Param.VLLM.ModelRunParams["tokenizer_mode"] = mode
+			break
+		}
+	}
+
 	// Set attention backend based on model name prefix
 	for prefix, backend := range vllmAttentionBackendPrefixMap {
 		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
@@ -666,9 +695,17 @@ func (g *Generator) FinalizeParams() {
 		}
 	}
 
+	// Enable expert parallelism based on model name prefix
+	for prefix, enabled := range vllmExpertParallelEnabled {
+		if strings.HasPrefix(g.Param.Metadata.Name, prefix) && enabled {
+			g.Param.VLLM.ModelRunParams["enable-expert-parallel"] = ""
+			break
+		}
+	}
+
 	bpt, attnType := g.calculateKVCacheTokenSize()
 	g.Param.Metadata.BytesPerToken = bpt
-	g.Param.AttnType = attnType
+	g.Param.Metadata.AttnType = attnType
 }
 
 // loadFromCatalog checks whether the model repo exists in the embedded catalog.

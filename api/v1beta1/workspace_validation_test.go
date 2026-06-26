@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	v1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"knative.dev/pkg/apis"
@@ -28,6 +29,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
+	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
@@ -2882,6 +2884,57 @@ vllm:
 				if !strings.Contains(errMsg, tc.errContent) {
 					t.Errorf("validateInferenceConfig() error message = %v, expected to contain = %v", errMsg, tc.errContent)
 				}
+			}
+		})
+	}
+}
+
+func TestWorkspaceValidateStreamingCSIDriver(t *testing.T) {
+	RegisterValidationTestModels()
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+	// Force gates: ModelStreaming on (so the check runs), vLLM on (so runtime resolves to vllm by default).
+	origStream := featuregates.FeatureGates[consts.FeatureFlagModelStreaming]
+	origVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+	featuregates.FeatureGates[consts.FeatureFlagModelStreaming] = true
+	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagModelStreaming] = origStream
+		featuregates.FeatureGates[consts.FeatureFlagVLLM] = origVLLM
+	}()
+
+	// Fake client with NO CSIDriver object -> streaming (vllm) workspaces should be rejected,
+	// transformers/disabled workspaces should pass (they short-circuit before the lookup).
+	scheme := runtime.NewScheme()
+	_ = storagev1.AddToScheme(scheme)
+	cl := fake.NewClientBuilder().WithScheme(scheme).Build()
+	k8sclient.SetGlobalClient(cl)
+
+	presetSpec := &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}}}
+
+	tests := []struct {
+		name         string
+		runtimeAnn   string // value for kaito.sh/runtime
+		streamingAnn string // value for kaito.sh/model-streaming ("" = unset)
+		wantErr      bool
+	}{
+		{"vllm streaming, no CSI driver -> reject", "vllm", "", true},
+		{"transformers -> skip (no reject)", "transformers", "", false},
+		{"disabled annotation -> skip (no reject)", "vllm", "disabled", false},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			anns := map[string]string{AnnotationWorkspaceRuntime: tc.runtimeAnn}
+			if tc.streamingAnn != "" {
+				anns[mmconsts.AnnotationModelStreaming] = tc.streamingAnn
+			}
+			w := &Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "ws", Namespace: "default", Annotations: anns},
+				Inference:  presetSpec,
+			}
+			err := w.validateStreamingCSIDriver(context.Background())
+			if (err != nil) != tc.wantErr {
+				t.Errorf("validateStreamingCSIDriver() err=%v wantErr=%v", err, tc.wantErr)
 			}
 		})
 	}

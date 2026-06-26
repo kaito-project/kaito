@@ -72,11 +72,13 @@ class StreamingBufferWindow:
             return WindowEmitResult(chunks=(), blocked=True)
 
         self._pending_buffer += text
-        scan_text = self._scan_window()
-        if len(scan_text) < self._min_scan_chars:
+        if len(self._pending_buffer) < self._min_scan_chars:
             return WindowEmitResult(chunks=())
 
-        return self._scan_and_emit(scan_text)
+        return self._scan_and_emit(
+            self._pending_buffer,
+            emit_limit=max(0, len(self._pending_buffer) - self._holdback_chars),
+        )
 
     def flush(self) -> WindowEmitResult:
         if self._blocked:
@@ -84,21 +86,21 @@ class StreamingBufferWindow:
         if not self._pending_buffer:
             return WindowEmitResult(chunks=())
 
-        return self._scan_and_emit(self._pending_buffer)
+        return self._scan_and_emit(
+            self._pending_buffer, emit_limit=len(self._pending_buffer)
+        )
 
-    def _scan_window(self) -> str:
-        if self._holdback_chars == 0:
-            return self._pending_buffer
-        return self._pending_buffer[: -self._holdback_chars]
-
-    def _scan_and_emit(self, scan_text: str) -> WindowEmitResult:
+    def _scan_and_emit(self, scan_text: str, *, emit_limit: int) -> WindowEmitResult:
         scan_result = self._scanner.scan(scan_text)
         if scan_result.blocked:
             self._blocked = True
             self._pending_buffer = ""
             return WindowEmitResult(chunks=(), blocked=True)
 
-        safe_prefix_chars = max(0, min(scan_result.safe_prefix_chars, len(scan_text)))
+        safe_prefix_chars = max(
+            0,
+            min(scan_result.safe_prefix_chars, len(scan_text), emit_limit),
+        )
         if safe_prefix_chars == 0:
             return WindowEmitResult(chunks=())
 

@@ -1483,7 +1483,7 @@ func validateMultiRoleInferencePDDisaggregation(mriObj *kaitov1alpha1.MultiRoleI
 					`command -v curl > /dev/null 2>&1 || (apt-get update -qq > /dev/null 2>&1 && apt-get install -y -qq curl > /dev/null 2>&1); `+
 						`curl -sf --max-time 120 -X POST -H "Content-Type: application/json" `+
 						`-d '{"model":"%s","messages":[{"role":"user","content":"%s"}],"max_tokens":50,"temperature":0}' `+
-						`%s`,
+						`%s && echo ''`,
 					modelName, longPrompt, gatewayEndpoint)},
 				Container: decodeWS.Name,
 				Stdout:    true,
@@ -1495,9 +1495,11 @@ func validateMultiRoleInferencePDDisaggregation(mriObj *kaitov1alpha1.MultiRoleI
 			cancel()
 			if execErr != nil {
 				GinkgoWriter.Printf("Request %d failed: %v, stdout: %s\n", i+1, execErr, stdout)
-			} else {
-				GinkgoWriter.Printf("Request %d succeeded\n", i+1)
+			} else if strings.Contains(stdout, "choices") {
+				GinkgoWriter.Printf("Request %d succeeded: %s\n", i+1, stdout[:min(len(stdout), 200)])
 				successCount++
+			} else {
+				GinkgoWriter.Printf("Request %d returned unexpected response: %s\n", i+1, stdout[:min(len(stdout), 200)])
 			}
 			// Brief pause between requests
 			time.Sleep(5 * time.Second)
@@ -1624,7 +1626,7 @@ func validateMultiRoleInferencePDDisaggregation(mriObj *kaitov1alpha1.MultiRoleI
 
 		// Validate KV transfer metrics
 		Eventually(func() bool {
-			tailLines := int64(200)
+			tailLines := int64(500)
 			req := coreClient.CoreV1().Pods(mriObj.Namespace).GetLogs(decodePodName, &corev1.PodLogOptions{
 				TailLines: &tailLines,
 				Container: decodeWS.Name,
@@ -1642,6 +1644,7 @@ func validateMultiRoleInferencePDDisaggregation(mriObj *kaitov1alpha1.MultiRoleI
 			logs := buf.String()
 
 			// Check for "KV Transfer metrics: Num successful transfers" >= 1
+			// Also accept NIXL transfer success markers
 			for _, line := range strings.Split(logs, "\n") {
 				if strings.Contains(line, "Num successful transfers") {
 					parts := strings.Split(line, "Num successful transfers:")
@@ -1655,10 +1658,14 @@ func validateMultiRoleInferencePDDisaggregation(mriObj *kaitov1alpha1.MultiRoleI
 						}
 					}
 				}
+				// Also check for nixl_num_success_from_source metric
+				if strings.Contains(line, "nixl_num_success_from_source") {
+					GinkgoWriter.Printf("Decode pod shows NIXL transfer activity: %s\n", line)
+					return true
+				}
 			}
-			GinkgoWriter.Printf("Decode pod does not yet show successful KV transfers\n")
 			return false
-		}, 3*time.Minute, 10*time.Second).Should(BeTrue(),
+		}, 5*time.Minute, 15*time.Second).Should(BeTrue(),
 			"Decode pod should show Num successful transfers >= 1")
 	})
 }

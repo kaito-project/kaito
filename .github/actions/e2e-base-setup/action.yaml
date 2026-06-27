@@ -362,7 +362,7 @@ runs:
       shell: bash
       run: |
         echo "Installing Istio for E2E testing..."
-        helm repo add istio https://istio-release.storage.googleapis.com/charts
+        helm repo add istio https://istio-release.storage.googleapis.com/charts --force-update
         helm repo update
         helm upgrade --install istio-base istio/base --namespace istio-system --create-namespace --version 1.28.3 --wait
         helm upgrade --install istiod istio/istiod --namespace istio-system --version 1.28.3 \

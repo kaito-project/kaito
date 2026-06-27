@@ -27,8 +27,12 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/samber/lo"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -48,15 +52,17 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 	// MRI and InferenceSet tests run first so they are not interrupted by
 	// slow/flaky GPU-provisioning timeouts in the preset workspace tests below.
-	It("should create a MultiRoleInference with prefill and decode roles successfully", Serial, utils.GinkgoLabelFastCheck, func() {
+	It("should perform P/D disaggregated inference with KV cache transfer successfully", Serial, utils.GinkgoLabelFastCheck, func() {
+		// Fail early if Istio CRDs are not installed
+		Expect(isIstioCRDAvailable()).To(BeTrue(), "Istio CRDs must be available for P/D traffic validation")
+
+		// Uses the same MRI creation as existing test but adds P/D validation
 		mriObj := createGemma3MultiRoleInference()
 		defer cleanupResourcesForMultiRoleInference(mriObj)
 
 		validateMultiRoleInferenceChildInferenceSets(mriObj)
 
-		// Validate each child InferenceSet's status, replicas, benchmark, and GWIE resources
 		childInferenceSets := getMultiRoleInferenceChildInferenceSets(mriObj)
-		// Build a map of role name -> expected replicas for accurate validation
 		roleReplicas := map[string]int32{}
 		for _, role := range mriObj.Spec.Roles {
 			if role.Replicas != nil {
@@ -66,21 +72,22 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		for i := range childInferenceSets {
 			is := &childInferenceSets[i]
 			validateInferenceSetStatus(is)
-			// Match replicas by role label instead of assuming all roles have the same count
-			roleName := is.Labels[kaitov1alpha1.LabelInferenceRole]
-			Expect(roleName).NotTo(BeEmpty(), "InferenceSet %s missing required %s label", is.Name, kaitov1alpha1.LabelInferenceRole)
-			expectedReplicas, ok := roleReplicas[roleName]
-			Expect(ok).To(BeTrue(), "InferenceSet %s has unexpected role label %q", is.Name, roleName)
+			roleName, ok := is.Labels[kaitov1alpha1.LabelInferenceRole]
+			Expect(ok).To(BeTrue(), "InferenceSet %s should have role label %s", is.Name, kaitov1alpha1.LabelInferenceRole)
+			Expect(roleReplicas).To(HaveKey(roleName), "InferenceSet %s has unexpected role %s", is.Name, roleName)
+			expectedReplicas := roleReplicas[roleName]
 			validateInferenceSetReplicas(is, expectedReplicas)
 			validateInferenceSetBenchmarkCompleted(is)
 		}
 
-		// Validate MRI-owned InferencePool and GWIE resources (shared across all roles)
 		validateMultiRoleInferenceGWIEResources(mriObj)
 		validateMultiRoleInferenceStatus(mriObj)
 
-		// Validate chat completions endpoint via a decode pod
+		// P/D-specific validations (require Istio)
+		validateMultiRoleInferenceEPPReady(mriObj)
+		validateMultiRoleInferenceDestinationRule(mriObj)
 		validateMultiRoleInferenceChatCompletions(mriObj)
+		validateMultiRoleInferencePDDisaggregation(mriObj)
 	})
 
 	It("should create a Gemma 3 InferenceSet with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
@@ -417,14 +424,6 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
-	})
-
-	It("should create a MultiRoleInference with prefill and decode roles successfully", Serial, utils.GinkgoLabelFastCheck, func() {
-		mriObj := createGemma3MultiRoleInference()
-		defer cleanupResourcesForMultiRoleInference(mriObj)
-
-		validateMultiRoleInferenceChildInferenceSets(mriObj)
-		validateMultiRoleInferenceStatus(mriObj)
 	})
 
 	It("should create a Gemma 3 InferenceSet with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
@@ -1153,5 +1152,513 @@ func validateInferenceSetBenchmarkCompleted(inferenceSetObj *kaitov1beta1.Infere
 			ws := &wsList.Items[i]
 			logBenchmarkPhaseElapsed(coreClient, ws.Name, ws.Namespace)
 		}
+	})
+}
+
+// validateMultiRoleInferenceEPPReady validates that the EPP deployment is running
+// with the disagg-profile-handler scheduling profile.
+func validateMultiRoleInferenceEPPReady(mriObj *kaitov1alpha1.MultiRoleInference) {
+	eppDeploymentName := kaitoutils.InferencePoolName(mriObj.Name) + "-epp"
+
+	By("Validating EPP deployment is available with disagg-profile-handler", func() {
+		coreClient, err := utils.GetK8sClientset()
+		Expect(err).NotTo(HaveOccurred(), "Failed to create core client")
+
+		// Validate the EPP deployment is available
+		Eventually(func() bool {
+			eppDeployment := &appsv1.Deployment{}
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: mriObj.Namespace,
+				Name:      eppDeploymentName,
+			}, eppDeployment)
+			if err != nil {
+				GinkgoWriter.Printf("EPP deployment %s not found: %v\n", eppDeploymentName, err)
+				return false
+			}
+			// Check for Available condition
+			for _, cond := range eppDeployment.Status.Conditions {
+				if cond.Type == appsv1.DeploymentAvailable && cond.Status == corev1.ConditionTrue {
+					if eppDeployment.Status.ReadyReplicas >= 1 {
+						GinkgoWriter.Printf("EPP deployment %s is available with %d ready replicas\n",
+							eppDeploymentName, eppDeployment.Status.ReadyReplicas)
+						return true
+					}
+				}
+			}
+			return false
+		}, 10*time.Minute, utils.PollInterval).Should(BeTrue(),
+			"EPP deployment %s should be available with ready replicas", eppDeploymentName)
+
+		// Validate EPP pod logs contain disagg-profile-handler scheduling profile
+		Eventually(func() bool {
+			// Get the EPP deployment's pod selector to find its pods reliably
+			eppDeployment := &appsv1.Deployment{}
+			if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: mriObj.Namespace,
+				Name:      eppDeploymentName,
+			}, eppDeployment); err != nil {
+				GinkgoWriter.Printf("Failed to get EPP deployment: %v\n", err)
+				return false
+			}
+			selector, err := metav1.LabelSelectorAsSelector(eppDeployment.Spec.Selector)
+			if err != nil {
+				GinkgoWriter.Printf("Failed to parse EPP deployment selector: %v\n", err)
+				return false
+			}
+			pods, err := coreClient.CoreV1().Pods(mriObj.Namespace).List(ctx, metav1.ListOptions{
+				LabelSelector: selector.String(),
+			})
+			if err != nil || len(pods.Items) == 0 {
+				GinkgoWriter.Printf("Failed to list EPP pods (selector=%s): %v\n", selector.String(), err)
+				return false
+			}
+			// Select a Running+Ready pod to avoid flakes from Pending/Terminating pods
+			var eppPod *corev1.Pod
+			for i := range pods.Items {
+				p := &pods.Items[i]
+				if p.Status.Phase != corev1.PodRunning {
+					continue
+				}
+				for _, cond := range p.Status.Conditions {
+					if cond.Type == corev1.PodReady && cond.Status == corev1.ConditionTrue {
+						eppPod = p
+						break
+					}
+				}
+				if eppPod != nil {
+					break
+				}
+			}
+			if eppPod == nil {
+				GinkgoWriter.Printf("No Running+Ready EPP pod found\n")
+				return false
+			}
+			// Derive container name from pod spec, skipping istio-proxy sidecar
+			containerName := ""
+			for _, c := range eppPod.Spec.Containers {
+				if c.Name != "istio-proxy" {
+					containerName = c.Name
+					break
+				}
+			}
+			tailLines := int64(100)
+			logOpts := &corev1.PodLogOptions{
+				TailLines: &tailLines,
+			}
+			if containerName != "" {
+				logOpts.Container = containerName
+			}
+			req := coreClient.CoreV1().Pods(mriObj.Namespace).GetLogs(eppPod.Name, logOpts)
+			stream, err := req.Stream(ctx)
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get EPP pod logs: %v\n", err)
+				return false
+			}
+			defer stream.Close()
+			buf := new(strings.Builder)
+			if _, err = io.Copy(buf, stream); err != nil {
+				return false
+			}
+			logs := buf.String()
+			if strings.Contains(logs, "disagg-profile-handler") {
+				GinkgoWriter.Printf("EPP pod %s has disagg-profile-handler scheduling profile\n", eppPod.Name)
+				return true
+			}
+			GinkgoWriter.Printf("EPP pod %s logs do not contain disagg-profile-handler yet\n", eppPod.Name)
+			return false
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(),
+			"EPP pod should have disagg-profile-handler in logs")
+	})
+}
+
+// isIstioCRDAvailable checks if Istio DestinationRule CRD is registered in the cluster.
+func isIstioCRDAvailable() bool {
+	list := &unstructured.UnstructuredList{}
+	list.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "networking.istio.io",
+		Version: "v1",
+		Kind:    "DestinationRuleList",
+	})
+	// List in istio-system namespace to avoid requiring cluster-wide list RBAC
+	err := utils.TestingCluster.KubeClient.List(ctx, list, client.InNamespace("istio-system"))
+	return err == nil
+}
+
+// validateMultiRoleInferenceDestinationRule creates and validates a DestinationRule
+// for the EPP service with mode: SIMPLE and insecureSkipVerify: true.
+func validateMultiRoleInferenceDestinationRule(mriObj *kaitov1alpha1.MultiRoleInference) {
+	eppServiceName := kaitoutils.InferencePoolName(mriObj.Name) + "-epp"
+
+	By("Creating DestinationRule for EPP service", func() {
+		dr := &unstructured.Unstructured{}
+		dr.SetGroupVersionKind(schema.GroupVersionKind{
+			Group:   "networking.istio.io",
+			Version: "v1",
+			Kind:    "DestinationRule",
+		})
+		dr.SetName(eppServiceName)
+		dr.SetNamespace(mriObj.Namespace)
+		dr.Object["spec"] = map[string]interface{}{
+			"host": eppServiceName,
+			"trafficPolicy": map[string]interface{}{
+				"tls": map[string]interface{}{
+					"mode":               "SIMPLE",
+					"insecureSkipVerify": true,
+				},
+			},
+		}
+
+		Eventually(func() error {
+			err := utils.TestingCluster.KubeClient.Create(ctx, dr)
+			if err != nil && apierrors.IsAlreadyExists(err) {
+				// Fetch existing to get resourceVersion, then update
+				existing := &unstructured.Unstructured{}
+				existing.SetGroupVersionKind(dr.GroupVersionKind())
+				if getErr := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+					Namespace: dr.GetNamespace(),
+					Name:      dr.GetName(),
+				}, existing); getErr != nil {
+					return getErr
+				}
+				dr.SetResourceVersion(existing.GetResourceVersion())
+				return utils.TestingCluster.KubeClient.Update(ctx, dr)
+			}
+			return err
+		}, 2*time.Minute, utils.PollInterval).Should(Succeed(),
+			"Failed to create DestinationRule for EPP service %s", eppServiceName)
+
+		// Ensure cleanup after test
+		DeferCleanup(func() {
+			cleanupDR := &unstructured.Unstructured{}
+			cleanupDR.SetGroupVersionKind(schema.GroupVersionKind{
+				Group:   "networking.istio.io",
+				Version: "v1",
+				Kind:    "DestinationRule",
+			})
+			cleanupDR.SetName(eppServiceName)
+			cleanupDR.SetNamespace(mriObj.Namespace)
+			_ = utils.TestingCluster.KubeClient.Delete(ctx, cleanupDR)
+		})
+
+		GinkgoWriter.Printf("Created DestinationRule for EPP service %s\n", eppServiceName)
+	})
+
+	By("Validating DestinationRule exists", func() {
+		Eventually(func() bool {
+			dr := &unstructured.Unstructured{}
+			dr.SetGroupVersionKind(schema.GroupVersionKind{
+				Group:   "networking.istio.io",
+				Version: "v1",
+				Kind:    "DestinationRule",
+			})
+			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: mriObj.Namespace,
+				Name:      eppServiceName,
+			}, dr)
+			if err != nil {
+				GinkgoWriter.Printf("DestinationRule not found: %v\n", err)
+				return false
+			}
+			return true
+		}, 2*time.Minute, utils.PollInterval).Should(BeTrue(),
+			"DestinationRule should exist for EPP service %s", eppServiceName)
+	})
+}
+
+// validateMultiRoleInferencePDDisaggregation sends multiple requests through the
+// Istio gateway to trigger P/D disaggregation and verifies pod logs:
+// - Prefill pod shows "Avg prompt throughput" > 0
+// - Decode pod shows "Avg generation throughput" > 0
+// - Decode pod shows "KV Transfer metrics: Num successful transfers" > 0
+func validateMultiRoleInferencePDDisaggregation(mriObj *kaitov1alpha1.MultiRoleInference) {
+	modelName := getModelName(mriObj.Spec.Model.Name)
+	inferencePoolName := kaitoutils.InferencePoolName(mriObj.Name)
+
+	By("Creating HTTPRoute for inference gateway", func() {
+		httpRoute := &unstructured.Unstructured{}
+		httpRoute.SetGroupVersionKind(schema.GroupVersionKind{
+			Group:   "gateway.networking.k8s.io",
+			Version: "v1",
+			Kind:    "HTTPRoute",
+		})
+		httpRoute.SetName(mriObj.Name + "-route")
+		httpRoute.SetNamespace(mriObj.Namespace)
+		httpRoute.Object["spec"] = map[string]interface{}{
+			"parentRefs": []interface{}{
+				map[string]interface{}{
+					"group":     "gateway.networking.k8s.io",
+					"kind":      "Gateway",
+					"name":      "inference-gateway",
+					"namespace": "default",
+				},
+			},
+			"rules": []interface{}{
+				map[string]interface{}{
+					"backendRefs": []interface{}{
+						map[string]interface{}{
+							"group": "inference.networking.k8s.io",
+							"kind":  "InferencePool",
+							"name":  inferencePoolName,
+						},
+					},
+					"matches": []interface{}{
+						map[string]interface{}{
+							"path": map[string]interface{}{
+								"type":  "PathPrefix",
+								"value": "/",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		Eventually(func() error {
+			err := utils.TestingCluster.KubeClient.Create(ctx, httpRoute)
+			if err != nil && apierrors.IsAlreadyExists(err) {
+				// Update existing to ensure spec matches desired state
+				existing := &unstructured.Unstructured{}
+				existing.SetGroupVersionKind(httpRoute.GroupVersionKind())
+				if getErr := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+					Namespace: httpRoute.GetNamespace(),
+					Name:      httpRoute.GetName(),
+				}, existing); getErr != nil {
+					return getErr
+				}
+				httpRoute.SetResourceVersion(existing.GetResourceVersion())
+				return utils.TestingCluster.KubeClient.Update(ctx, httpRoute)
+			}
+			return err
+		}, 2*time.Minute, utils.PollInterval).Should(Succeed(),
+			"Failed to create HTTPRoute for inference gateway")
+
+		DeferCleanup(func() {
+			cleanup := &unstructured.Unstructured{}
+			cleanup.SetGroupVersionKind(httpRoute.GroupVersionKind())
+			cleanup.SetName(httpRoute.GetName())
+			cleanup.SetNamespace(httpRoute.GetNamespace())
+			_ = utils.TestingCluster.KubeClient.Delete(ctx, cleanup)
+		})
+		GinkgoWriter.Printf("Created HTTPRoute %s for InferencePool %s\n", httpRoute.GetName(), inferencePoolName)
+	})
+
+	By("Sending requests through inference gateway to trigger P/D disaggregation", func() {
+		coreClient, err := utils.GetK8sClientset()
+		Expect(err).NotTo(HaveOccurred(), "Failed to create core client")
+
+		k8sConfig, err := utils.GetK8sConfig()
+		Expect(err).NotTo(HaveOccurred(), "Failed to get k8s config")
+
+		// Find the decode workspace and pod for exec-ing curl
+		wsList := &kaitov1beta1.WorkspaceList{}
+		Eventually(func() bool {
+			err = utils.TestingCluster.KubeClient.List(ctx, wsList,
+				client.InNamespace(mriObj.Namespace),
+				client.MatchingLabels{
+					kaitov1alpha1.LabelMultiRoleInferenceParent: mriObj.Name,
+					kaitov1alpha1.LabelInferenceRole:            string(kaitov1alpha1.MultiRoleInferenceRoleDecode),
+				})
+			return err == nil && len(wsList.Items) > 0
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(),
+			"Failed to find decode workspace")
+
+		decodeWS := &wsList.Items[0]
+		decodePodName := decodeWS.Name + "-0"
+		// Route through the Istio inference gateway service
+		gatewayEndpoint := "http://inference-gateway-istio.default.svc.cluster.local/v1/chat/completions"
+
+		// Send 5 requests with long prompts through the gateway
+		longPrompt := "Explain the entire history of distributed computing from the 1960s to present day, " +
+			"including ARPANET, client-server architecture, grid computing, cloud computing, " +
+			"microservices, serverless computing, and edge computing. For each era, describe " +
+			"the key innovations, major companies involved, architectural patterns, and how " +
+			"they influenced modern systems. Include technical details about consistency models, " +
+			"CAP theorem, consensus algorithms like Paxos and Raft, and their practical implications."
+
+		successCount := 0
+		for i := 0; i < 5; i++ {
+			GinkgoWriter.Printf("Sending P/D disaggregation request %d/5\n", i+1)
+			execOption := corev1.PodExecOptions{
+				Command: []string{"sh", "-c", fmt.Sprintf(
+					`command -v curl > /dev/null 2>&1 || (apt-get update -qq > /dev/null 2>&1 && apt-get install -y -qq curl > /dev/null 2>&1); `+
+						`curl -sf --max-time 120 -X POST -H "Content-Type: application/json" `+
+						`-d '{"model":"%s","messages":[{"role":"user","content":"%s"}],"max_tokens":50,"temperature":0}' `+
+						`%s`,
+					modelName, longPrompt, gatewayEndpoint)},
+				Container: decodeWS.Name,
+				Stdout:    true,
+				Stderr:    true,
+			}
+
+			execCtx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+			stdout, execErr := utils.ExecSync(execCtx, k8sConfig, coreClient, mriObj.Namespace, decodePodName, execOption)
+			cancel()
+			if execErr != nil {
+				GinkgoWriter.Printf("Request %d failed: %v, stdout: %s\n", i+1, execErr, stdout)
+			} else {
+				GinkgoWriter.Printf("Request %d succeeded\n", i+1)
+				successCount++
+			}
+			// Brief pause between requests
+			time.Sleep(5 * time.Second)
+		}
+		Expect(successCount).To(BeNumerically(">=", 1),
+			"At least one P/D disaggregation request should succeed")
+	})
+
+	By("Validating prefill pod shows prompt throughput > 0", func() {
+		coreClient, err := utils.GetK8sClientset()
+		Expect(err).NotTo(HaveOccurred())
+
+		// Find prefill pods
+		prefillWSList := &kaitov1beta1.WorkspaceList{}
+		err = utils.TestingCluster.KubeClient.List(ctx, prefillWSList,
+			client.InNamespace(mriObj.Namespace),
+			client.MatchingLabels{
+				kaitov1alpha1.LabelMultiRoleInferenceParent: mriObj.Name,
+				kaitov1alpha1.LabelInferenceRole:            string(kaitov1alpha1.MultiRoleInferenceRolePrefill),
+			})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(prefillWSList.Items).NotTo(BeEmpty(), "Expected at least one prefill workspace")
+
+		prefillWS := &prefillWSList.Items[0]
+		prefillPodName := prefillWS.Name + "-0"
+
+		Eventually(func() bool {
+			tailLines := int64(200)
+			req := coreClient.CoreV1().Pods(mriObj.Namespace).GetLogs(prefillPodName, &corev1.PodLogOptions{
+				TailLines: &tailLines,
+				Container: prefillWS.Name,
+			})
+			stream, err := req.Stream(ctx)
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get prefill pod logs: %v\n", err)
+				return false
+			}
+			defer stream.Close()
+			buf := new(strings.Builder)
+			if _, err = io.Copy(buf, stream); err != nil {
+				return false
+			}
+			logs := buf.String()
+
+			// Check for "Avg prompt throughput" > 0 (or alternative formats)
+			for _, line := range strings.Split(logs, "\n") {
+				if strings.Contains(line, "prompt throughput") {
+					// Try parsing "Avg prompt throughput: <val>"
+					marker := "prompt throughput:"
+					if idx := strings.Index(line, marker); idx >= 0 {
+						valPart := strings.TrimSpace(line[idx+len(marker):])
+						valStr := strings.Split(valPart, " ")[0]
+						// Remove trailing comma if present
+						valStr = strings.TrimRight(valStr, ",")
+						val, parseErr := strconv.ParseFloat(valStr, 64)
+						if parseErr == nil && val > 0 {
+							GinkgoWriter.Printf("Prefill pod has prompt throughput: %.2f > 0\n", val)
+							return true
+						}
+					}
+				}
+			}
+			return false
+		}, 3*time.Minute, 10*time.Second).Should(BeTrue(),
+			"Prefill pod should show Avg prompt throughput > 0")
+	})
+
+	By("Validating decode pod shows generation throughput > 0 and successful KV transfers", func() {
+		coreClient, err := utils.GetK8sClientset()
+		Expect(err).NotTo(HaveOccurred())
+
+		// Find decode pods
+		decodeWSList := &kaitov1beta1.WorkspaceList{}
+		err = utils.TestingCluster.KubeClient.List(ctx, decodeWSList,
+			client.InNamespace(mriObj.Namespace),
+			client.MatchingLabels{
+				kaitov1alpha1.LabelMultiRoleInferenceParent: mriObj.Name,
+				kaitov1alpha1.LabelInferenceRole:            string(kaitov1alpha1.MultiRoleInferenceRoleDecode),
+			})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(decodeWSList.Items).NotTo(BeEmpty(), "Expected at least one decode workspace")
+
+		decodeWS := &decodeWSList.Items[0]
+		decodePodName := decodeWS.Name + "-0"
+
+		// Validate generation throughput > 0
+		Eventually(func() bool {
+			tailLines := int64(200)
+			req := coreClient.CoreV1().Pods(mriObj.Namespace).GetLogs(decodePodName, &corev1.PodLogOptions{
+				TailLines: &tailLines,
+				Container: decodeWS.Name,
+			})
+			stream, err := req.Stream(ctx)
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get decode pod logs: %v\n", err)
+				return false
+			}
+			defer stream.Close()
+			buf := new(strings.Builder)
+			if _, err = io.Copy(buf, stream); err != nil {
+				return false
+			}
+			logs := buf.String()
+
+			// Check for "Avg generation throughput" > 0 (or alternative formats)
+			for _, line := range strings.Split(logs, "\n") {
+				if strings.Contains(line, "generation throughput") {
+					marker := "generation throughput:"
+					if idx := strings.Index(line, marker); idx >= 0 {
+						valPart := strings.TrimSpace(line[idx+len(marker):])
+						valStr := strings.Split(valPart, " ")[0]
+						valStr = strings.TrimRight(valStr, ",")
+						val, parseErr := strconv.ParseFloat(valStr, 64)
+						if parseErr == nil && val > 0 {
+							GinkgoWriter.Printf("Decode pod has generation throughput: %.2f > 0\n", val)
+							return true
+						}
+					}
+				}
+			}
+			return false
+		}, 3*time.Minute, 10*time.Second).Should(BeTrue(),
+			"Decode pod should show Avg generation throughput > 0")
+
+		// Validate KV transfer metrics
+		Eventually(func() bool {
+			tailLines := int64(200)
+			req := coreClient.CoreV1().Pods(mriObj.Namespace).GetLogs(decodePodName, &corev1.PodLogOptions{
+				TailLines: &tailLines,
+				Container: decodeWS.Name,
+			})
+			stream, err := req.Stream(ctx)
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get decode pod logs for KV transfer check: %v\n", err)
+				return false
+			}
+			defer stream.Close()
+			buf := new(strings.Builder)
+			if _, err = io.Copy(buf, stream); err != nil {
+				return false
+			}
+			logs := buf.String()
+
+			// Check for "KV Transfer metrics: Num successful transfers" >= 1
+			for _, line := range strings.Split(logs, "\n") {
+				if strings.Contains(line, "Num successful transfers") {
+					parts := strings.Split(line, "Num successful transfers:")
+					if len(parts) >= 2 {
+						valStr := strings.TrimSpace(strings.Split(parts[1], ",")[0])
+						valStr = strings.TrimSpace(strings.Split(valStr, " ")[0])
+						val, parseErr := strconv.ParseFloat(valStr, 64)
+						if parseErr == nil && val >= 1 {
+							GinkgoWriter.Printf("Decode pod has %d successful KV transfers\n", int(val))
+							return true
+						}
+					}
+				}
+			}
+			GinkgoWriter.Printf("Decode pod does not yet show successful KV transfers\n")
+			return false
+		}, 3*time.Minute, 10*time.Second).Should(BeTrue(),
+			"Decode pod should show Num successful transfers >= 1")
 	})
 }

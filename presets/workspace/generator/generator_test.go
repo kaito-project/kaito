@@ -51,9 +51,9 @@ func TestGeneratePreset(t *testing.T) {
 			expectedVLLM: model.VLLMParam{
 				ModelName: "phi-4-mini-instruct",
 				ModelRunParams: map[string]string{
-					"load_format":    "auto",
-					"config_format":  "auto",
-					"tokenizer_mode": "auto",
+					"load-format":    "auto",
+					"config-format":  "auto",
+					"tokenizer-mode": "auto",
 				},
 				DisallowLoRA: false,
 			},
@@ -78,9 +78,9 @@ func TestGeneratePreset(t *testing.T) {
 			expectedVLLM: model.VLLMParam{
 				ModelName: "falcon-7b-instruct",
 				ModelRunParams: map[string]string{
-					"load_format":    "auto",
-					"config_format":  "auto",
-					"tokenizer_mode": "auto",
+					"load-format":    "auto",
+					"config-format":  "auto",
+					"tokenizer-mode": "auto",
 				},
 				DisallowLoRA: false,
 			},
@@ -99,6 +99,7 @@ func TestGeneratePreset(t *testing.T) {
 					BytesPerToken:          139264,
 					ModelTokenLimit:        262144,
 					DiskStorageRequirement: "89Gi", // 9.70 + 80
+					ReasoningParser:        "mistral",
 					QuantMethod:            "fp8",
 					AttnType:               "GQA",
 				},
@@ -106,9 +107,9 @@ func TestGeneratePreset(t *testing.T) {
 			expectedVLLM: model.VLLMParam{
 				ModelName: "ministral-3-8b-instruct-2512",
 				ModelRunParams: map[string]string{
-					"load_format":    "mistral",
-					"config_format":  "mistral",
-					"tokenizer_mode": "mistral",
+					"load-format":    "mistral",
+					"config-format":  "mistral",
+					"tokenizer-mode": "mistral",
 				},
 				DisallowLoRA: false,
 			},
@@ -127,6 +128,7 @@ func TestGeneratePreset(t *testing.T) {
 					BytesPerToken:          70272,
 					ModelTokenLimit:        294912,
 					DiskStorageRequirement: "714Gi", // 634.70 + 80
+					ReasoningParser:        "mistral",
 					ToolCallParser:         "mistral",
 					QuantMethod:            "compressed-tensors",
 					AttnType:               "MLA",
@@ -135,9 +137,9 @@ func TestGeneratePreset(t *testing.T) {
 			expectedVLLM: model.VLLMParam{
 				ModelName: "mistral-large-3-675b-instruct-2512",
 				ModelRunParams: map[string]string{
-					"load_format":    "mistral",
-					"config_format":  "mistral",
-					"tokenizer_mode": "mistral",
+					"load-format":    "mistral",
+					"config-format":  "mistral",
+					"tokenizer-mode": "mistral",
 				},
 				DisallowLoRA: false,
 			},
@@ -164,9 +166,9 @@ func TestGeneratePreset(t *testing.T) {
 			expectedVLLM: model.VLLMParam{
 				ModelName: "qwen3-coder-30b-a3b-instruct",
 				ModelRunParams: map[string]string{
-					"load_format":    "auto",
-					"config_format":  "auto",
-					"tokenizer_mode": "auto",
+					"load-format":    "auto",
+					"config-format":  "auto",
+					"tokenizer-mode": "auto",
 				},
 				DisallowLoRA: false,
 			},
@@ -193,9 +195,9 @@ func TestGeneratePreset(t *testing.T) {
 			expectedVLLM: model.VLLMParam{
 				ModelName: "qwen3-8b",
 				ModelRunParams: map[string]string{
-					"load_format":    "auto",
-					"config_format":  "auto",
-					"tokenizer_mode": "auto",
+					"load-format":    "auto",
+					"config-format":  "auto",
+					"tokenizer-mode": "auto",
 				},
 				DisallowLoRA: false,
 			},
@@ -223,9 +225,9 @@ func TestGeneratePreset(t *testing.T) {
 			expectedVLLM: model.VLLMParam{
 				ModelName: "deepseek-v3.1",
 				ModelRunParams: map[string]string{
-					"load_format":    "auto",
-					"config_format":  "auto",
-					"tokenizer_mode": "auto",
+					"load-format":    "auto",
+					"config-format":  "auto",
+					"tokenizer-mode": "deepseek_v32",
 				},
 				DisallowLoRA: false,
 			},
@@ -253,9 +255,9 @@ func TestGeneratePreset(t *testing.T) {
 			expectedVLLM: model.VLLMParam{
 				ModelName: "deepseek-v3",
 				ModelRunParams: map[string]string{
-					"load_format":    "auto",
-					"config_format":  "auto",
-					"tokenizer_mode": "auto",
+					"load-format":    "auto",
+					"config-format":  "auto",
+					"tokenizer-mode": "deepseek_v32",
 				},
 				DisallowLoRA: false,
 			},
@@ -282,9 +284,9 @@ func TestGeneratePreset(t *testing.T) {
 			expectedVLLM: model.VLLMParam{
 				ModelName: "nemotron-orchestrator-8b",
 				ModelRunParams: map[string]string{
-					"load_format":    "auto",
-					"config_format":  "auto",
-					"tokenizer_mode": "auto",
+					"load-format":    "auto",
+					"config-format":  "auto",
+					"tokenizer-mode": "auto",
 				},
 				DisallowLoRA: false,
 			},
@@ -313,9 +315,9 @@ func TestGeneratePreset(t *testing.T) {
 			expectedVLLM: model.VLLMParam{
 				ModelName: "qwen3-8b-awq",
 				ModelRunParams: map[string]string{
-					"load_format":    "auto",
-					"config_format":  "auto",
-					"tokenizer_mode": "auto",
+					"load-format":    "auto",
+					"config-format":  "auto",
+					"tokenizer-mode": "auto",
 				},
 				DisallowLoRA: false,
 			},
@@ -611,7 +613,7 @@ func TestLoadFromCatalogMistralFormats(t *testing.T) {
 	catalogData, err := os.ReadFile("../models/model_catalog.yaml")
 	assert.NoError(t, err)
 
-	// Mistral catalog entries should set load_format, config_format, tokenizer_mode
+	// Mistral catalog entries should set load-format, config-format, tokenizer-mode
 	// to "mistral" in VLLM.ModelRunParams after FinalizeParams.
 	mistralRepos := []string{
 		"mistralai/Mistral-7B-v0.3",
@@ -631,9 +633,9 @@ func TestLoadFromCatalogMistralFormats(t *testing.T) {
 			gen.ParseModelMetadata()
 			gen.FinalizeParams()
 
-			assert.Equal(t, "mistral", gen.Param.VLLM.ModelRunParams["load_format"])
-			assert.Equal(t, "mistral", gen.Param.VLLM.ModelRunParams["config_format"])
-			assert.Equal(t, "mistral", gen.Param.VLLM.ModelRunParams["tokenizer_mode"])
+			assert.Equal(t, "mistral", gen.Param.VLLM.ModelRunParams["load-format"])
+			assert.Equal(t, "mistral", gen.Param.VLLM.ModelRunParams["config-format"])
+			assert.Equal(t, "mistral", gen.Param.VLLM.ModelRunParams["tokenizer-mode"])
 		})
 	}
 
@@ -654,9 +656,9 @@ func TestLoadFromCatalogMistralFormats(t *testing.T) {
 			gen.ParseModelMetadata()
 			gen.FinalizeParams()
 
-			assert.Equal(t, "auto", gen.Param.VLLM.ModelRunParams["load_format"])
-			assert.Equal(t, "auto", gen.Param.VLLM.ModelRunParams["config_format"])
-			assert.Equal(t, "auto", gen.Param.VLLM.ModelRunParams["tokenizer_mode"])
+			assert.Equal(t, "auto", gen.Param.VLLM.ModelRunParams["load-format"])
+			assert.Equal(t, "auto", gen.Param.VLLM.ModelRunParams["config-format"])
+			assert.Equal(t, "auto", gen.Param.VLLM.ModelRunParams["tokenizer-mode"])
 		})
 	}
 }

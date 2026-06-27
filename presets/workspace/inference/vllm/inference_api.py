@@ -129,25 +129,16 @@ class KAITOArgumentParser(argparse.ArgumentParser):
                     file_config.kv_cache_cpu_memory_utilization
                 )
 
-            # vLLM upgrades occasionally deprecate or rename flags; skip any
-            # unknown keys from the config file so a stale entry doesn't crash
-            # the server.
-            known_opts = {
-                opt
-                for action in self.vllm_parser._actions
-                for opt in action.option_strings
-            }
             for key, value in file_config.vllm.items():
-                flag = f"--{key}"
-                if flag not in known_opts and f"--{key.replace('_', '-')}" not in known_opts:
-                    logger.warning(
-                        "Ignoring unknown vLLM flag %r from KAITO config file", key
-                    )
-                    continue
-                runtime_args.append(flag)
+                runtime_args.append(f"--{key}")
                 runtime_args.append(str(value))
 
-        vllm_args = self.vllm_parser.parse_args(runtime_args, **kwargs)
+        # vLLM upgrades occasionally deprecate or rename flags; ignore any
+        # unknown flags (from either CLI or the KAITO config file) so stale
+        # entries don't crash the server.
+        vllm_args, unknown = self.vllm_parser.parse_known_args(runtime_args, **kwargs)
+        if unknown:
+            logger.warning("Ignoring unknown vLLM args: %s", unknown)
         # Merge KAITO and vLLM args
         return argparse.Namespace(**vars(kaito_args), **vars(vllm_args))
 

@@ -662,14 +662,14 @@ func (g *Generator) FinalizeParams() {
 		g.Param.VLLM.ModelRunParams = make(map[string]string)
 	}
 	g.Param.VLLM.ModelName = g.Param.Name
-	g.Param.VLLM.ModelRunParams["load_format"] = g.LoadFormat
-	g.Param.VLLM.ModelRunParams["config_format"] = g.ConfigFormat
-	g.Param.VLLM.ModelRunParams["tokenizer_mode"] = g.TokenizerMode
+	g.Param.VLLM.ModelRunParams["load-format"] = g.LoadFormat
+	g.Param.VLLM.ModelRunParams["config-format"] = g.ConfigFormat
+	g.Param.VLLM.ModelRunParams["tokenizer-mode"] = g.TokenizerMode
 
 	// Override tokenizer mode based on model name prefix
 	for prefix, mode := range tokenizerModePrefixMap {
 		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
-			g.Param.VLLM.ModelRunParams["tokenizer_mode"] = mode
+			g.Param.VLLM.ModelRunParams["tokenizer-mode"] = mode
 			break
 		}
 	}

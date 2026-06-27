@@ -1374,6 +1374,41 @@ func validateMultiRoleInferencePDDisaggregation(mriObj *kaitov1alpha1.MultiRoleI
 	modelName := getModelName(mriObj.Spec.Model.Name)
 	inferencePoolName := kaitoutils.InferencePoolName(mriObj.Name)
 
+	By("Patching Gateway to allow routes from test namespace", func() {
+		gw := &unstructured.Unstructured{}
+		gw.SetGroupVersionKind(schema.GroupVersionKind{
+			Group:   "gateway.networking.k8s.io",
+			Version: "v1",
+			Kind:    "Gateway",
+		})
+		Eventually(func() error {
+			if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: "default",
+				Name:      "inference-gateway",
+			}, gw); err != nil {
+				return err
+			}
+			// Patch listeners to allow routes from the test namespace
+			listeners := []interface{}{
+				map[string]interface{}{
+					"name":     "http",
+					"port":     int64(80),
+					"protocol": "HTTP",
+					"allowedRoutes": map[string]interface{}{
+						"namespaces": map[string]interface{}{
+							"from": "All",
+						},
+					},
+				},
+			}
+			spec, _ := gw.Object["spec"].(map[string]interface{})
+			spec["listeners"] = listeners
+			return utils.TestingCluster.KubeClient.Update(ctx, gw)
+		}, 2*time.Minute, utils.PollInterval).Should(Succeed(),
+			"Failed to patch Gateway to allow cross-namespace routes")
+		GinkgoWriter.Printf("Patched Gateway inference-gateway to allow routes from namespace %s\n", mriObj.Namespace)
+	})
+
 	By("Creating HTTPRoute for inference gateway", func() {
 		httpRoute := &unstructured.Unstructured{}
 		httpRoute.SetGroupVersionKind(schema.GroupVersionKind{
@@ -1440,6 +1475,27 @@ func validateMultiRoleInferencePDDisaggregation(mriObj *kaitov1alpha1.MultiRoleI
 			_ = utils.TestingCluster.KubeClient.Delete(ctx, cleanup)
 		})
 		GinkgoWriter.Printf("Created HTTPRoute %s for InferencePool %s\n", httpRoute.GetName(), inferencePoolName)
+
+		// Wait for HTTPRoute to be accepted by the Gateway
+		Eventually(func() bool {
+			route := &unstructured.Unstructured{}
+			route.SetGroupVersionKind(httpRoute.GroupVersionKind())
+			if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: httpRoute.GetNamespace(),
+				Name:      httpRoute.GetName(),
+			}, route); err != nil {
+				return false
+			}
+			// Check if parents status is populated (route accepted)
+			status, _ := route.Object["status"].(map[string]interface{})
+			parents, _ := status["parents"].([]interface{})
+			if len(parents) > 0 {
+				GinkgoWriter.Printf("HTTPRoute %s has been accepted by gateway\n", httpRoute.GetName())
+				return true
+			}
+			return false
+		}, 2*time.Minute, 5*time.Second).Should(BeTrue(),
+			"HTTPRoute should be accepted by the gateway")
 	})
 
 	By("Sending requests through inference gateway to trigger P/D disaggregation", func() {

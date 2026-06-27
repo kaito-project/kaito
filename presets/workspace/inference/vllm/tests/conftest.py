@@ -55,8 +55,19 @@ except (ImportError, Exception):
             "entrypoints.openai.models.protocol",
             "utils",
             "utils.argparse_utils",
+            "v1",
+            "v1.metrics",
+            "v1.metrics.prometheus",
         ],
     )
+
+    # Provide a minimal get_prometheus_registry stub that returns a real
+    # CollectorRegistry so Gauge(..., registry=...) calls succeed at import time.
+    from prometheus_client import CollectorRegistry
+
+    prom_mod = types.ModuleType("vllm.v1.metrics.prometheus")
+    prom_mod.get_prometheus_registry = lambda: CollectorRegistry()
+    sys.modules["vllm.v1.metrics.prometheus"] = prom_mod
 
     # Mock other heavy deps that inference_api imports at module level.
     for mod in ("pynvml", "uvloop", "psutil"):

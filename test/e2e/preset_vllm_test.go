@@ -1241,7 +1241,7 @@ func validateMultiRoleInferenceEPPReady(mriObj *kaitov1alpha1.MultiRoleInference
 					break
 				}
 			}
-			tailLines := int64(100)
+			tailLines := int64(2000)
 			logOpts := &corev1.PodLogOptions{
 				TailLines: &tailLines,
 			}
@@ -1388,9 +1388,36 @@ func validateMultiRoleInferencePDDisaggregation(mriObj *kaitov1alpha1.MultiRoleI
 			}, gw); err != nil {
 				return err
 			}
-			// Patch listeners to allow routes from the test namespace
-			listeners := []interface{}{
-				map[string]interface{}{
+			// Ensure spec map exists (avoid nil map assignment panic)
+			spec, ok := gw.Object["spec"].(map[string]interface{})
+			if !ok || spec == nil {
+				spec = map[string]interface{}{}
+				gw.Object["spec"] = spec
+			}
+			// Merge allowedRoutes into existing listeners instead of replacing.
+			// This preserves TLS/hostnames/annotations from other listeners and
+			// avoids breaking other E2E cases that share the same Gateway.
+			existingListeners, _ := spec["listeners"].([]interface{})
+			updatedListeners := make([]interface{}, 0, len(existingListeners))
+			for _, l := range existingListeners {
+				listener, ok := l.(map[string]interface{})
+				if !ok {
+					updatedListeners = append(updatedListeners, l)
+					continue
+				}
+				// Only patch HTTP listeners to allow cross-namespace routes
+				if proto, _ := listener["protocol"].(string); proto == "HTTP" {
+					listener["allowedRoutes"] = map[string]interface{}{
+						"namespaces": map[string]interface{}{
+							"from": "All",
+						},
+					}
+				}
+				updatedListeners = append(updatedListeners, listener)
+			}
+			// If no HTTP listener exists, add a minimal one
+			if len(updatedListeners) == 0 {
+				updatedListeners = append(updatedListeners, map[string]interface{}{
 					"name":     "http",
 					"port":     int64(80),
 					"protocol": "HTTP",
@@ -1399,10 +1426,9 @@ func validateMultiRoleInferencePDDisaggregation(mriObj *kaitov1alpha1.MultiRoleI
 							"from": "All",
 						},
 					},
-				},
+				})
 			}
-			spec, _ := gw.Object["spec"].(map[string]interface{})
-			spec["listeners"] = listeners
+			spec["listeners"] = updatedListeners
 			return utils.TestingCluster.KubeClient.Update(ctx, gw)
 		}, 2*time.Minute, utils.PollInterval).Should(Succeed(),
 			"Failed to patch Gateway to allow cross-namespace routes")
@@ -1486,12 +1512,29 @@ func validateMultiRoleInferencePDDisaggregation(mriObj *kaitov1alpha1.MultiRoleI
 			}, route); err != nil {
 				return false
 			}
-			// Check if parents status is populated (route accepted)
+			// Check that the route is accepted: at least one parent must have
+			// condition type=Accepted with status=True (not just non-empty parents,
+			// since rejected routes can also populate parents with False conditions).
 			status, _ := route.Object["status"].(map[string]interface{})
 			parents, _ := status["parents"].([]interface{})
-			if len(parents) > 0 {
-				GinkgoWriter.Printf("HTTPRoute %s has been accepted by gateway\n", httpRoute.GetName())
-				return true
+			for _, p := range parents {
+				parent, ok := p.(map[string]interface{})
+				if !ok {
+					continue
+				}
+				conditions, _ := parent["conditions"].([]interface{})
+				for _, c := range conditions {
+					cond, ok := c.(map[string]interface{})
+					if !ok {
+						continue
+					}
+					ctype, _ := cond["type"].(string)
+					cstatus, _ := cond["status"].(string)
+					if ctype == "Accepted" && cstatus == "True" {
+						GinkgoWriter.Printf("HTTPRoute %s has been accepted by gateway\n", httpRoute.GetName())
+						return true
+					}
+				}
 			}
 			return false
 		}, 2*time.Minute, 5*time.Second).Should(BeTrue(),

@@ -15,6 +15,8 @@ package inferenceset
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"maps"
 	"slices"
@@ -337,7 +339,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 			// or no nodes would match.
 			resourceSelector := iObj.Spec.Selector
 			if iObj.Spec.Template.Resource.InstanceType != "" {
-				resourceSelector = uniqueWorkspaceLabelSelector(iObj.Spec.Selector, workspaceObj.Name)
+				resourceSelector = uniqueWorkspaceLabelSelector(iObj.Spec.Selector, workspaceObj.Namespace, workspaceObj.Name)
 			}
 			workspaceObj.Resource = kaitov1beta1.ResourceSpec{
 				InstanceType:  iObj.Spec.Template.Resource.InstanceType,
@@ -723,11 +725,53 @@ func (c *InferenceSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return builder.Complete(c)
 }
 
+// uniqueWorkspaceLabelValue builds a label value that uniquely identifies a
+// workspace across namespaces. Node labels are cluster-scoped, so embedding
+// only the workspace name (which itself only encodes the InferenceSet name +
+// a 5-char random suffix) is ambiguous when two InferenceSets in different
+// namespaces share the same name.
+//
+// The format is "<namespace>.<workspaceName>". To satisfy the Kubernetes label
+// value constraint (max 63 chars, [a-z0-9A-Z]([-_.a-z0-9A-Z]*[a-z0-9A-Z])?),
+// we fall back to a deterministic short hash of the full "<ns>.<name>" string
+// when the joined value would exceed the limit; that hash is still unique per
+// (namespace, workspaceName) tuple because the random suffix in workspaceName
+// makes the full input unique.
+func uniqueWorkspaceLabelValue(namespace, workspaceName string) string {
+	full := namespace + "." + workspaceName
+	if len(full) <= validation.LabelValueMaxLength {
+		return full
+	}
+	// Truncated form: keep a human-readable prefix and append a short hash
+	// of the full identifier so different (ns, name) pairs never collide.
+	sum := sha256.Sum256([]byte(full))
+	const hashLen = 10 // hex chars from sha256, ~40 bits of entropy
+	hash := hex.EncodeToString(sum[:])[:hashLen]
+	// Reserve room for "-" + hash, then truncate the prefix.
+	prefixBudget := validation.LabelValueMaxLength - hashLen - 1
+	prefix := full
+	if len(prefix) > prefixBudget {
+		prefix = prefix[:prefixBudget]
+	}
+	// Make sure the prefix ends with an alphanumeric so the resulting value
+	// still satisfies the label value regex ("-" is fine inside, just not as
+	// the last char before the appended "-<hash>").
+	for len(prefix) > 0 {
+		last := prefix[len(prefix)-1]
+		if (last >= 'a' && last <= 'z') || (last >= 'A' && last <= 'Z') || (last >= '0' && last <= '9') {
+			break
+		}
+		prefix = prefix[:len(prefix)-1]
+	}
+	return prefix + "-" + hash
+}
+
 // uniqueWorkspaceLabelSelector creates a deep copy of the InferenceSet's selector
-// and adds the workspace name as a unique label. This ensures each workspace
-// targets only its own dedicated node(s), preventing cross-workspace node sharing
-// that causes lifecycle conflicts during concurrent scale-up/scale-down operations.
-func uniqueWorkspaceLabelSelector(base *metav1.LabelSelector, workspaceName string) *metav1.LabelSelector {
+// and adds a namespace-qualified workspace identifier as a unique label. This
+// ensures each workspace targets only its own dedicated node(s), preventing
+// cross-workspace node sharing that causes lifecycle conflicts during concurrent
+// scale-up/scale-down operations and avoids collisions across namespaces.
+func uniqueWorkspaceLabelSelector(base *metav1.LabelSelector, namespace, workspaceName string) *metav1.LabelSelector {
 	var selector *metav1.LabelSelector
 	if base != nil {
 		selector = base.DeepCopy()
@@ -737,6 +781,6 @@ func uniqueWorkspaceLabelSelector(base *metav1.LabelSelector, workspaceName stri
 	if selector.MatchLabels == nil {
 		selector.MatchLabels = make(map[string]string)
 	}
-	selector.MatchLabels[consts.InferenceSetWorkspaceNodeLabel] = workspaceName
+	selector.MatchLabels[consts.InferenceSetWorkspaceNodeLabel] = uniqueWorkspaceLabelValue(namespace, workspaceName)
 	return selector
 }

@@ -31,6 +31,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/validation"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
@@ -511,36 +512,40 @@ func TestUniqueWorkspaceLabelSelector(t *testing.T) {
 	tests := []struct {
 		name          string
 		base          *v1.LabelSelector
+		namespace     string
 		workspaceName string
 		wantLabels    map[string]string
 	}{
 		{
-			name: "adds workspace label to existing selector",
+			name: "adds namespace-qualified workspace label to existing selector",
 			base: &v1.LabelSelector{
 				MatchLabels: map[string]string{
 					"apps": "my-model",
 				},
 			},
-			workspaceName: "my-model-abc123",
+			namespace:     "default",
+			workspaceName: "my-model-abc12",
 			wantLabels: map[string]string{
 				"apps":                                "my-model",
-				consts.InferenceSetWorkspaceNodeLabel: "my-model-abc123",
+				consts.InferenceSetWorkspaceNodeLabel: "default.my-model-abc12",
 			},
 		},
 		{
 			name:          "creates selector from nil base",
 			base:          nil,
-			workspaceName: "my-model-xyz",
+			namespace:     "ns-a",
+			workspaceName: "my-model-xyz12",
 			wantLabels: map[string]string{
-				consts.InferenceSetWorkspaceNodeLabel: "my-model-xyz",
+				consts.InferenceSetWorkspaceNodeLabel: "ns-a.my-model-xyz12",
 			},
 		},
 		{
 			name:          "creates selector with empty matchLabels",
 			base:          &v1.LabelSelector{},
-			workspaceName: "ws-1",
+			namespace:     "default",
+			workspaceName: "ws-1-aaaaa",
 			wantLabels: map[string]string{
-				consts.InferenceSetWorkspaceNodeLabel: "ws-1",
+				consts.InferenceSetWorkspaceNodeLabel: "default.ws-1-aaaaa",
 			},
 		},
 		{
@@ -550,10 +555,11 @@ func TestUniqueWorkspaceLabelSelector(t *testing.T) {
 					"apps": "shared-model",
 				},
 			},
-			workspaceName: "ws-unique",
+			namespace:     "team-a",
+			workspaceName: "ws-unique-aaaaa",
 			wantLabels: map[string]string{
 				"apps":                                "shared-model",
-				consts.InferenceSetWorkspaceNodeLabel: "ws-unique",
+				consts.InferenceSetWorkspaceNodeLabel: "team-a.ws-unique-aaaaa",
 			},
 		},
 	}
@@ -568,7 +574,7 @@ func TestUniqueWorkspaceLabelSelector(t *testing.T) {
 				}
 			}
 
-			got := uniqueWorkspaceLabelSelector(tt.base, tt.workspaceName)
+			got := uniqueWorkspaceLabelSelector(tt.base, tt.namespace, tt.workspaceName)
 
 			if got == nil {
 				t.Fatal("expected non-nil selector")
@@ -594,5 +600,61 @@ func TestUniqueWorkspaceLabelSelector(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestUniqueWorkspaceLabelValue(t *testing.T) {
+	const labelMax = 63
+
+	tests := []struct {
+		name          string
+		namespace     string
+		workspaceName string
+	}{
+		{
+			name:          "short namespace and name",
+			namespace:     "default",
+			workspaceName: "ws-aaaaa",
+		},
+		{
+			name:          "long namespace",
+			namespace:     "a-very-long-namespace-name-used-in-multi-tenant-clusters",
+			workspaceName: "my-model-abcde",
+		},
+		{
+			name:      "max-length workspace name",
+			namespace: "ns-with-long-name",
+			// 63-char workspace name (DNS1123 label max).
+			workspaceName: "abcdefghij1234567890abcdefghij1234567890abcdefghij1234567abcde",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := uniqueWorkspaceLabelValue(tt.namespace, tt.workspaceName)
+			if len(got) == 0 {
+				t.Fatal("empty label value")
+			}
+			if len(got) > labelMax {
+				t.Errorf("label value %q is %d chars, exceeds %d", got, len(got), labelMax)
+			}
+			if errs := validation.IsValidLabelValue(got); len(errs) > 0 {
+				t.Errorf("label value %q is invalid: %v", got, errs)
+			}
+		})
+	}
+
+	// Distinctness: same workspace name in different namespaces must yield
+	// different label values.
+	ns1 := "team-a"
+	ns2 := "team-b"
+	name := "foo-abcde"
+	if uniqueWorkspaceLabelValue(ns1, name) == uniqueWorkspaceLabelValue(ns2, name) {
+		t.Errorf("label value collided across namespaces for same workspace name")
+	}
+
+	// Determinism: same input must yield the same output.
+	if uniqueWorkspaceLabelValue(ns1, name) != uniqueWorkspaceLabelValue(ns1, name) {
+		t.Errorf("label value is not deterministic")
 	}
 }

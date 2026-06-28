@@ -31,6 +31,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/rand"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -275,7 +276,12 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 		klog.InfoS("Need to create more workspaces...", "current", len(wsList.Items), "desired", desiredReplicas)
 		for i := range replicaNumToCreate {
 			workspaceObj := &kaitov1beta1.Workspace{}
-			workspaceObj.GenerateName = iObj.Name + "-"
+			// Generate the workspace name client-side so the value is available
+			// when we build the unique label selector below. Using GenerateName
+			// would leave Name empty until the server assigns it on Create, which
+			// would cause uniqueWorkspaceLabelSelector to embed an empty string
+			// and defeat the per-workspace uniqueness fix.
+			workspaceObj.Name = iObj.Name + "-" + rand.String(5)
 			workspaceObj.Namespace = iObj.Namespace
 
 			// Start with labels from the template metadata, then add controller labels.

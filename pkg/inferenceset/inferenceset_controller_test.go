@@ -654,7 +654,9 @@ func TestUniqueWorkspaceLabelValue(t *testing.T) {
 	}
 
 	// Determinism: same input must yield the same output.
-	if uniqueWorkspaceLabelValue(ns1, name) != uniqueWorkspaceLabelValue(ns1, name) {
-		t.Errorf("label value is not deterministic")
+	first := uniqueWorkspaceLabelValue(ns1, name)
+	second := uniqueWorkspaceLabelValue(ns1, name)
+	if first != second {
+		t.Errorf("label value is not deterministic: %q vs %q", first, second)
 	}
 }

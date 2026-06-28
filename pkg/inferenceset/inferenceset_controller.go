@@ -53,7 +53,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/inferenceset"
-	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
@@ -331,29 +330,16 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 			workspaceObj.OwnerReferences = []metav1.OwnerReference{
 				*metav1.NewControllerRef(iObj, kaitov1beta1.GroupVersion.WithKind("InferenceSet")),
 			}
-			// Build the workspace's resource label selector. Each workspace gets a
-			// unique label ("<ns>.<wsName>") so its Resource.LabelSelector only
-			// matches its own dedicated node(s), preventing cross-workspace node
-			// sharing and the lifecycle conflicts that causes during concurrent
-			// scale-up/scale-down operations.
-			//
-			// For Karpenter auto-provisioning (InstanceType set), the unique label
-			// is propagated onto newly-provisioned NodeClaims/Nodes via the NodePool
-			// template (see pkg/nodeprovision/karpenter/nodepool.go), so the
-			// constraint is satisfied automatically.
-			//
-			// For BYO mode (InstanceType empty), nodes are pre-provisioned by the
-			// user and do not carry the generated label. We therefore claim an
-			// unlabeled, ready node that matches the user's selector and patch the
-			// unique label onto it before creating the workspace, so its BYO
-			// provisioner can locate at least one matching node.
-			resourceSelector := uniqueWorkspaceLabelSelector(iObj.Spec.Selector, workspaceObj.Namespace, workspaceObj.Name)
-			uniqueValue := resourceSelector.MatchLabels[consts.InferenceSetWorkspaceNodeLabel]
-			if iObj.Spec.Template.Resource.InstanceType == "" {
-				if err := c.claimBYONode(ctx, iObj.Spec.Selector, uniqueValue); err != nil {
-					klog.ErrorS(err, "failed to claim BYO node for workspace", "workspace", workspaceObj.Name)
-					return reconcile.Result{}, err
-				}
+			// Build the workspace's resource label selector. For auto-provisioning
+			// (InstanceType set), each workspace gets a unique label so its
+			// NodePool provisions dedicated nodes and concurrent scale up/down
+			// does not share nodes across workspaces. For BYO mode
+			// (InstanceType empty), pre-existing user nodes will not carry the
+			// generated label, so we must leave the user's selector untouched
+			// or no nodes would match.
+			resourceSelector := iObj.Spec.Selector
+			if iObj.Spec.Template.Resource.InstanceType != "" {
+				resourceSelector = uniqueWorkspaceLabelSelector(iObj.Spec.Selector, workspaceObj.Namespace, workspaceObj.Name)
 			}
 			workspaceObj.Resource = kaitov1beta1.ResourceSpec{
 				InstanceType:  iObj.Spec.Template.Resource.InstanceType,
@@ -797,56 +783,4 @@ func uniqueWorkspaceLabelSelector(base *metav1.LabelSelector, namespace, workspa
 	}
 	selector.MatchLabels[consts.InferenceSetWorkspaceNodeLabel] = uniqueWorkspaceLabelValue(namespace, workspaceName)
 	return selector
-}
-
-// claimBYONode reserves a pre-provisioned node for a BYO-mode workspace by
-// patching consts.InferenceSetWorkspaceNodeLabel=<uniqueValue> onto the first
-// ready node that matches the user's selector and is not already claimed by
-// another InferenceSet workspace. This is the BYO equivalent of the Karpenter
-// NodePool template-label propagation, and is what makes the augmented
-// workspace LabelSelector resolvable in BYO mode.
-//
-// userSelector is the InferenceSet's Spec.Selector before sanitization; only
-// non-reserved entries actually constrain which nodes are candidates.
-func (c *InferenceSetReconciler) claimBYONode(ctx context.Context, userSelector *metav1.LabelSelector, uniqueValue string) error {
-	matchLabels := client.MatchingLabels(kaitov1beta1.SanitizedMatchLabels(userSelector))
-	nodeList, err := nodes.ListNodes(ctx, c.Client, matchLabels)
-	if err != nil {
-		return fmt.Errorf("failed to list candidate BYO nodes: %w", err)
-	}
-
-	for i := range nodeList.Items {
-		node := &nodeList.Items[i]
-		if !nodes.NodeIsReadyAndNotDeleting(node) {
-			continue
-		}
-		// Skip nodes already claimed by some workspace; the candidate must be
-		// either unlabeled or already carry our exact unique value (idempotent
-		// retries).
-		if existing, ok := node.Labels[consts.InferenceSetWorkspaceNodeLabel]; ok && existing != uniqueValue {
-			continue
-		}
-
-		if node.Labels[consts.InferenceSetWorkspaceNodeLabel] == uniqueValue {
-			return nil
-		}
-
-		patch := client.MergeFrom(node.DeepCopy())
-		if node.Labels == nil {
-			node.Labels = map[string]string{}
-		}
-		node.Labels[consts.InferenceSetWorkspaceNodeLabel] = uniqueValue
-		if err := c.Client.Patch(ctx, node, patch); err != nil {
-			// Another reconcile (or the user) may have just labeled the node;
-			// fall through and try the next candidate.
-			klog.V(2).InfoS("failed to patch BYO node, trying next candidate",
-				"node", node.Name, "error", err.Error())
-			continue
-		}
-		klog.InfoS("claimed BYO node for workspace",
-			"node", node.Name, "label", consts.InferenceSetWorkspaceNodeLabel, "value", uniqueValue)
-		return nil
-	}
-
-	return fmt.Errorf("no unclaimed ready node matches selector %v for BYO workspace", matchLabels)
 }

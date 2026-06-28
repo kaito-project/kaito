@@ -371,7 +371,7 @@ runs:
         kubectl apply -k "github.com/kubernetes-sigs/gateway-api/config/crd?ref=v1.4.1"
         echo "Deploying inference gateway..."
         kubectl apply -f examples/gateway-api-inference-extension/gateway.yaml -n default
-        kubectl wait --for=condition=programmed gateway/inference-gateway -n default --timeout=300s
+        kubectl wait --for=condition=Programmed gateway/inference-gateway -n default --timeout=300s
         echo "Istio and Gateway installed successfully."
 
     - name: Set up E2E ACR Credentials and Secret

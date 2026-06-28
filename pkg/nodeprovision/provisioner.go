@@ -16,6 +16,7 @@ package nodeprovision
 import (
 	"context"
 
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
@@ -88,4 +89,12 @@ type NodeProvisioner interface {
 	// merges these into the workspace status and removes any known node
 	// condition types that are absent from the returned slice.
 	CollectNodeStatusInfo(ctx context.Context, ws *kaitov1beta1.Workspace) ([]metav1.Condition, error)
+
+	// BuildNodeSelector returns extra node selector requirements that pin
+	// workloads to the nodes this provisioner manages for the Workspace.
+	//
+	// Auto-provisioners return workspace name and namespace label requirements
+	// so pods are isolated to provisioned nodes. BYOProvisioner returns nil
+	// (BYO nodes are matched purely via the user-supplied label selector).
+	BuildNodeSelector(ctx context.Context, ws *kaitov1beta1.Workspace) []corev1.NodeSelectorRequirement
 }

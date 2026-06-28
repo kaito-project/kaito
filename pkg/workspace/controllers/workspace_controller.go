@@ -574,7 +574,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	}
 
 	revisionStr := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
-	workloadObj, err := inference.GeneratePresetInference(ctx, wObj, revisionStr, model, c.Client)
+	workloadObj, err := inference.GeneratePresetInference(ctx, wObj, revisionStr, model, c.Client, c.nodeProvisioner)
 	if err != nil {
 		return err
 	}

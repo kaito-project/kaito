@@ -251,3 +251,20 @@ func (g *AzureGPUProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kai
 
 	return []metav1.Condition{nodeCond, nodeClaimCond, resourceCond}, nil
 }
+
+// BuildNodeSelector returns requirements that pin pods to nodes provisioned
+// for this workspace. The labels are stamped on NodeClaims by gpu-provisioner.
+func (g *AzureGPUProvisioner) BuildNodeSelector(ctx context.Context, ws *kaitov1beta1.Workspace) []corev1.NodeSelectorRequirement {
+	return []corev1.NodeSelectorRequirement{
+		{
+			Key:      kaitov1beta1.LabelWorkspaceName,
+			Operator: corev1.NodeSelectorOpIn,
+			Values:   []string{ws.Name},
+		},
+		{
+			Key:      kaitov1beta1.LabelWorkspaceNamespace,
+			Operator: corev1.NodeSelectorOpIn,
+			Values:   []string{ws.Namespace},
+		},
+	}
+}

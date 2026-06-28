@@ -506,3 +506,93 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 		})
 	}
 }
+
+func TestUniqueWorkspaceLabelSelector(t *testing.T) {
+	tests := []struct {
+		name          string
+		base          *metav1.LabelSelector
+		workspaceName string
+		wantLabels    map[string]string
+	}{
+		{
+			name: "adds workspace label to existing selector",
+			base: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"apps": "my-model",
+				},
+			},
+			workspaceName: "my-model-abc123",
+			wantLabels: map[string]string{
+				"apps":                              "my-model",
+				consts.InferenceSetWorkspaceNodeLabel: "my-model-abc123",
+			},
+		},
+		{
+			name:          "creates selector from nil base",
+			base:          nil,
+			workspaceName: "my-model-xyz",
+			wantLabels: map[string]string{
+				consts.InferenceSetWorkspaceNodeLabel: "my-model-xyz",
+			},
+		},
+		{
+			name: "creates selector with empty matchLabels",
+			base: &metav1.LabelSelector{},
+			workspaceName: "ws-1",
+			wantLabels: map[string]string{
+				consts.InferenceSetWorkspaceNodeLabel: "ws-1",
+			},
+		},
+		{
+			name: "does not mutate original selector",
+			base: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"apps": "shared-model",
+				},
+			},
+			workspaceName: "ws-unique",
+			wantLabels: map[string]string{
+				"apps":                              "shared-model",
+				consts.InferenceSetWorkspaceNodeLabel: "ws-unique",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var originalLabels map[string]string
+			if tt.base != nil && tt.base.MatchLabels != nil {
+				originalLabels = make(map[string]string)
+				for k, v := range tt.base.MatchLabels {
+					originalLabels[k] = v
+				}
+			}
+
+			got := uniqueWorkspaceLabelSelector(tt.base, tt.workspaceName)
+
+			if got == nil {
+				t.Fatal("expected non-nil selector")
+			}
+			if len(got.MatchLabels) != len(tt.wantLabels) {
+				t.Errorf("got %d labels, want %d: got=%v", len(got.MatchLabels), len(tt.wantLabels), got.MatchLabels)
+			}
+			for k, v := range tt.wantLabels {
+				if got.MatchLabels[k] != v {
+					t.Errorf("label %q = %q, want %q", k, got.MatchLabels[k], v)
+				}
+			}
+
+			// Verify original selector was not mutated
+			if tt.base != nil && originalLabels != nil {
+				for k, v := range originalLabels {
+					if tt.base.MatchLabels[k] != v {
+						t.Errorf("original selector mutated: key %q changed from %q to %q", k, v, tt.base.MatchLabels[k])
+					}
+				}
+				if _, exists := tt.base.MatchLabels[consts.InferenceSetWorkspaceNodeLabel]; exists {
+					t.Error("original selector should not contain the workspace node label")
+				}
+			}
+		})
+	}
+}

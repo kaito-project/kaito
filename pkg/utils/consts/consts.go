@@ -182,6 +182,12 @@ const (
 
 	WorkspaceCreatedByInferenceSetLabel = "inferenceset.kaito.sh/created-by"
 
+	// InferenceSetWorkspaceNodeLabel is applied to the workspace's LabelSelector
+	// and propagated to provisioned nodes. It ensures each workspace created by an
+	// InferenceSet targets only its own dedicated node(s), preventing cross-workspace
+	// node sharing that causes lifecycle conflicts during scale-up/scale-down.
+	InferenceSetWorkspaceNodeLabel = "inferenceset.kaito.sh/workspace"
+
 	NodeImageFamilyUbuntu     = "ubuntu"
 	NodeImageFamilyAzureLinux = "azurelinux"
 	SpotInstanceKey           = "kubernetes.azure.com/scalesetpriority"

@@ -309,8 +309,8 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 				*metav1.NewControllerRef(iObj, kaitov1beta1.GroupVersion.WithKind("InferenceSet")),
 			}
 			workspaceObj.Resource = kaitov1beta1.ResourceSpec{
-				InstanceType:  iObj.Spec.Template.Resource.InstanceType,
-				LabelSelector: iObj.Spec.Selector,
+				InstanceType: iObj.Spec.Template.Resource.InstanceType,
+				LabelSelector: uniqueWorkspaceLabelSelector(iObj.Spec.Selector, workspaceObj.Name),
 			}
 			workspaceObj.Inference = &iObj.Spec.Template.Inference
 
@@ -690,4 +690,22 @@ func (c *InferenceSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	go monitorInferenceSets(context.Background(), c.Client)
 	return builder.Complete(c)
+}
+
+// uniqueWorkspaceLabelSelector creates a deep copy of the InferenceSet's selector
+// and adds the workspace name as a unique label. This ensures each workspace
+// targets only its own dedicated node(s), preventing cross-workspace node sharing
+// that causes lifecycle conflicts during concurrent scale-up/scale-down operations.
+func uniqueWorkspaceLabelSelector(base *metav1.LabelSelector, workspaceName string) *metav1.LabelSelector {
+	var selector *metav1.LabelSelector
+	if base != nil {
+		selector = base.DeepCopy()
+	} else {
+		selector = &metav1.LabelSelector{}
+	}
+	if selector.MatchLabels == nil {
+		selector.MatchLabels = make(map[string]string)
+	}
+	selector.MatchLabels[consts.InferenceSetWorkspaceNodeLabel] = workspaceName
+	return selector
 }

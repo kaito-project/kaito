@@ -283,13 +283,14 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 			// would cause uniqueWorkspaceLabelSelector to embed an empty string
 			// and defeat the per-workspace uniqueness fix.
 			//
-			// Workspace names must satisfy the DNS1123 subdomain limit of 253
-			// chars. The InferenceSet name itself is already a DNS1123 subdomain
-			// (<=253), so when it is close to the limit we truncate the prefix to
-			// leave room for the "-" separator and the 5-char random suffix
-			// (matching kube-apiserver's GenerateName behavior).
+			// Workspace names must satisfy the DNS1123 *label* limit of 63 chars
+			// (validated in api/v1beta1/workspace_validation.go via
+			// validation.IsDNS1123Label). The InferenceSet name itself is also a
+			// DNS1123 label (<=63), so when it is close to the limit we truncate
+			// the prefix to leave room for the "-" separator and the 5-char
+			// random suffix (matching kube-apiserver's GenerateName behavior).
 			const randSuffixLen = 5
-			const maxNameLen = validation.DNS1123SubdomainMaxLength // 253
+			const maxNameLen = validation.DNS1123LabelMaxLength // 63
 			prefix := iObj.Name
 			if len(prefix) > maxNameLen-randSuffixLen-1 {
 				prefix = prefix[:maxNameLen-randSuffixLen-1]
@@ -327,9 +328,20 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 			workspaceObj.OwnerReferences = []metav1.OwnerReference{
 				*metav1.NewControllerRef(iObj, kaitov1beta1.GroupVersion.WithKind("InferenceSet")),
 			}
+			// Build the workspace's resource label selector. For auto-provisioning
+			// (InstanceType set), each workspace gets a unique label so its
+			// NodePool provisions dedicated nodes and concurrent scale up/down
+			// does not share nodes across workspaces. For BYO mode
+			// (InstanceType empty), pre-existing user nodes will not carry the
+			// generated label, so we must leave the user's selector untouched
+			// or no nodes would match.
+			resourceSelector := iObj.Spec.Selector
+			if iObj.Spec.Template.Resource.InstanceType != "" {
+				resourceSelector = uniqueWorkspaceLabelSelector(iObj.Spec.Selector, workspaceObj.Name)
+			}
 			workspaceObj.Resource = kaitov1beta1.ResourceSpec{
 				InstanceType:  iObj.Spec.Template.Resource.InstanceType,
-				LabelSelector: uniqueWorkspaceLabelSelector(iObj.Spec.Selector, workspaceObj.Name),
+				LabelSelector: resourceSelector,
 			}
 			workspaceObj.Inference = &iObj.Spec.Template.Inference
 

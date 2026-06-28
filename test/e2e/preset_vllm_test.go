@@ -15,6 +15,7 @@ package e2e
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"math/rand"
@@ -34,6 +35,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
@@ -1271,17 +1273,32 @@ func validateMultiRoleInferenceEPPReady(mriObj *kaitov1alpha1.MultiRoleInference
 	})
 }
 
-// isIstioCRDAvailable checks if Istio DestinationRule CRD is registered in the cluster.
+// isIstioCRDAvailable checks if the Istio DestinationRule CRD is registered
+// in the cluster. It uses the RESTMapper so the check only fails when the
+// GVK truly isn't registered, instead of when the caller lacks RBAC to list
+// DestinationRules in a particular namespace.
 func isIstioCRDAvailable() bool {
+	restMapper := utils.TestingCluster.KubeClient.RESTMapper()
+	_, err := restMapper.RESTMapping(schema.GroupKind{
+		Group: "networking.istio.io",
+		Kind:  "DestinationRule",
+	}, "v1")
+	if err == nil {
+		return true
+	}
+	// As a fallback, attempt a namespaced List in the test namespace. A
+	// Forbidden error still means the CRD is registered (RBAC just blocks us).
 	list := &unstructured.UnstructuredList{}
 	list.SetGroupVersionKind(schema.GroupVersionKind{
 		Group:   "networking.istio.io",
 		Version: "v1",
 		Kind:    "DestinationRuleList",
 	})
-	// List in istio-system namespace to avoid requiring cluster-wide list RBAC
-	err := utils.TestingCluster.KubeClient.List(ctx, list, client.InNamespace("istio-system"))
-	return err == nil
+	listErr := utils.TestingCluster.KubeClient.List(ctx, list, client.InNamespace(namespaceName))
+	if listErr == nil || apierrors.IsForbidden(listErr) {
+		return true
+	}
+	return false
 }
 
 // validateMultiRoleInferenceDestinationRule creates and validates a DestinationRule
@@ -1375,6 +1392,12 @@ func validateMultiRoleInferencePDDisaggregation(mriObj *kaitov1alpha1.MultiRoleI
 	inferencePoolName := kaitoutils.InferencePoolName(mriObj.Name)
 
 	By("Patching Gateway to allow routes from test namespace", func() {
+		// Capture the original Gateway listeners so we can restore the shared
+		// default/inference-gateway after the test. This avoids leaking
+		// per-test configuration into other E2E cases or reruns.
+		var originalListeners []interface{}
+		originalCaptured := false
+
 		gw := &unstructured.Unstructured{}
 		gw.SetGroupVersionKind(schema.GroupVersionKind{
 			Group:   "gateway.networking.k8s.io",
@@ -1394,11 +1417,25 @@ func validateMultiRoleInferencePDDisaggregation(mriObj *kaitov1alpha1.MultiRoleI
 				spec = map[string]interface{}{}
 				gw.Object["spec"] = spec
 			}
+			// Snapshot the original listeners exactly once (deep-copy via JSON
+			// round-trip) for restoration in DeferCleanup.
+			if !originalCaptured {
+				if existing, ok := spec["listeners"].([]interface{}); ok {
+					if b, err := json.Marshal(existing); err == nil {
+						var cloned []interface{}
+						if err := json.Unmarshal(b, &cloned); err == nil {
+							originalListeners = cloned
+						}
+					}
+				}
+				originalCaptured = true
+			}
 			// Merge allowedRoutes into existing listeners instead of replacing.
 			// This preserves TLS/hostnames/annotations from other listeners and
 			// avoids breaking other E2E cases that share the same Gateway.
 			existingListeners, _ := spec["listeners"].([]interface{})
 			updatedListeners := make([]interface{}, 0, len(existingListeners))
+			httpListenerFound := false
 			for _, l := range existingListeners {
 				listener, ok := l.(map[string]interface{})
 				if !ok {
@@ -1412,11 +1449,14 @@ func validateMultiRoleInferencePDDisaggregation(mriObj *kaitov1alpha1.MultiRoleI
 							"from": "All",
 						},
 					}
+					httpListenerFound = true
 				}
 				updatedListeners = append(updatedListeners, listener)
 			}
-			// If no HTTP listener exists, add a minimal one
-			if len(updatedListeners) == 0 {
+			// If no HTTP listener exists (whether the Gateway is empty or it
+			// only has TLS / non-HTTP listeners), append a minimal one so
+			// cross-namespace HTTPRoutes are admitted.
+			if !httpListenerFound {
 				updatedListeners = append(updatedListeners, map[string]interface{}{
 					"name":     "http",
 					"port":     int64(80),
@@ -1433,6 +1473,40 @@ func validateMultiRoleInferencePDDisaggregation(mriObj *kaitov1alpha1.MultiRoleI
 		}, 2*time.Minute, utils.PollInterval).Should(Succeed(),
 			"Failed to patch Gateway to allow cross-namespace routes")
 		GinkgoWriter.Printf("Patched Gateway inference-gateway to allow routes from namespace %s\n", mriObj.Namespace)
+
+		// Restore the original Gateway listeners so this test does not leak
+		// configuration into subsequent E2E cases that share the same Gateway.
+		DeferCleanup(func() {
+			if !originalCaptured {
+				return
+			}
+			restoreGW := &unstructured.Unstructured{}
+			restoreGW.SetGroupVersionKind(schema.GroupVersionKind{
+				Group:   "gateway.networking.k8s.io",
+				Version: "v1",
+				Kind:    "Gateway",
+			})
+			_ = retry.RetryOnConflict(retry.DefaultRetry, func() error {
+				if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+					Namespace: "default",
+					Name:      "inference-gateway",
+				}, restoreGW); err != nil {
+					return err
+				}
+				spec, ok := restoreGW.Object["spec"].(map[string]interface{})
+				if !ok || spec == nil {
+					spec = map[string]interface{}{}
+					restoreGW.Object["spec"] = spec
+				}
+				if originalListeners != nil {
+					spec["listeners"] = originalListeners
+				} else {
+					delete(spec, "listeners")
+				}
+				return utils.TestingCluster.KubeClient.Update(ctx, restoreGW)
+			})
+			GinkgoWriter.Printf("Restored original listeners on Gateway inference-gateway\n")
+		})
 	})
 
 	By("Creating HTTPRoute for inference gateway", func() {

@@ -32,6 +32,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
+	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -281,7 +282,19 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 			// would leave Name empty until the server assigns it on Create, which
 			// would cause uniqueWorkspaceLabelSelector to embed an empty string
 			// and defeat the per-workspace uniqueness fix.
-			workspaceObj.Name = iObj.Name + "-" + rand.String(5)
+			//
+			// Workspace names must satisfy the DNS1123 subdomain limit of 253
+			// chars. The InferenceSet name itself is already a DNS1123 subdomain
+			// (<=253), so when it is close to the limit we truncate the prefix to
+			// leave room for the "-" separator and the 5-char random suffix
+			// (matching kube-apiserver's GenerateName behavior).
+			const randSuffixLen = 5
+			const maxNameLen = validation.DNS1123SubdomainMaxLength // 253
+			prefix := iObj.Name
+			if len(prefix) > maxNameLen-randSuffixLen-1 {
+				prefix = prefix[:maxNameLen-randSuffixLen-1]
+			}
+			workspaceObj.Name = prefix + "-" + rand.String(randSuffixLen)
 			workspaceObj.Namespace = iObj.Namespace
 
 			// Start with labels from the template metadata, then add controller labels.

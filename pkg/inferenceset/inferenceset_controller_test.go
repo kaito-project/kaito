@@ -33,6 +33,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
@@ -658,5 +659,103 @@ func TestUniqueWorkspaceLabelValue(t *testing.T) {
 	second := uniqueWorkspaceLabelValue(ns1, name)
 	if first != second {
 		t.Errorf("label value is not deterministic: %q vs %q", first, second)
+	}
+}
+
+func fakeClientWithObjects(t *testing.T, scheme *runtime.Scheme, objs ...client.Object) client.Client {
+	t.Helper()
+	return fake.NewClientBuilder().WithScheme(scheme).WithObjects(objs...).Build()
+}
+
+func TestClaimBYONode(t *testing.T) {
+	scheme := runtime.NewScheme()
+	if err := corev1.AddToScheme(scheme); err != nil {
+		t.Fatalf("add corev1 to scheme: %v", err)
+	}
+
+	readyNode := func(name string, labels map[string]string) *corev1.Node {
+		n := &corev1.Node{
+			ObjectMeta: v1.ObjectMeta{Name: name, Labels: labels},
+			Status: corev1.NodeStatus{
+				Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}},
+			},
+		}
+		return n
+	}
+
+	tests := []struct {
+		name         string
+		nodes        []client.Object
+		userSelector *v1.LabelSelector
+		wantClaimed  string // node name we expect to be labeled, "" if expecting error
+		wantErr      bool
+	}{
+		{
+			name: "labels first unclaimed ready matching node",
+			nodes: []client.Object{
+				readyNode("n1", map[string]string{"apps": "m"}),
+				readyNode("n2", map[string]string{"apps": "m"}),
+			},
+			userSelector: &v1.LabelSelector{MatchLabels: map[string]string{"apps": "m"}},
+			wantClaimed:  "n1",
+		},
+		{
+			name: "skips node already claimed by another workspace",
+			nodes: []client.Object{
+				readyNode("n1", map[string]string{
+					"apps":                                "m",
+					consts.InferenceSetWorkspaceNodeLabel: "default.other-ws",
+				}),
+				readyNode("n2", map[string]string{"apps": "m"}),
+			},
+			userSelector: &v1.LabelSelector{MatchLabels: map[string]string{"apps": "m"}},
+			wantClaimed:  "n2",
+		},
+		{
+			name: "idempotent when node already labeled with the same value",
+			nodes: []client.Object{
+				readyNode("n1", map[string]string{
+					"apps":                                "m",
+					consts.InferenceSetWorkspaceNodeLabel: "default.ws-xyz",
+				}),
+			},
+			userSelector: &v1.LabelSelector{MatchLabels: map[string]string{"apps": "m"}},
+			wantClaimed:  "n1",
+		},
+		{
+			name: "no candidate nodes returns error",
+			nodes: []client.Object{
+				readyNode("n1", map[string]string{
+					"apps":                                "m",
+					consts.InferenceSetWorkspaceNodeLabel: "default.other-ws",
+				}),
+			},
+			userSelector: &v1.LabelSelector{MatchLabels: map[string]string{"apps": "m"}},
+			wantErr:      true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeClient := fakeClientWithObjects(t, scheme, tt.nodes...)
+			r := &InferenceSetReconciler{Client: fakeClient}
+			err := r.claimBYONode(context.Background(), tt.userSelector, "default.ws-xyz")
+			if tt.wantErr {
+				if err == nil {
+					t.Fatalf("expected error, got nil")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			node := &corev1.Node{}
+			if err := fakeClient.Get(context.Background(), client.ObjectKey{Name: tt.wantClaimed}, node); err != nil {
+				t.Fatalf("get node %s: %v", tt.wantClaimed, err)
+			}
+			if got := node.Labels[consts.InferenceSetWorkspaceNodeLabel]; got != "default.ws-xyz" {
+				t.Errorf("node %s label = %q, want %q", tt.wantClaimed, got, "default.ws-xyz")
+			}
+		})
 	}
 }

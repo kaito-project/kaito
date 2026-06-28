@@ -510,13 +510,13 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 func TestUniqueWorkspaceLabelSelector(t *testing.T) {
 	tests := []struct {
 		name          string
-		base          *metav1.LabelSelector
+		base          *v1.LabelSelector
 		workspaceName string
 		wantLabels    map[string]string
 	}{
 		{
 			name: "adds workspace label to existing selector",
-			base: &metav1.LabelSelector{
+			base: &v1.LabelSelector{
 				MatchLabels: map[string]string{
 					"apps": "my-model",
 				},
@@ -537,7 +537,7 @@ func TestUniqueWorkspaceLabelSelector(t *testing.T) {
 		},
 		{
 			name: "creates selector with empty matchLabels",
-			base: &metav1.LabelSelector{},
+			base: &v1.LabelSelector{},
 			workspaceName: "ws-1",
 			wantLabels: map[string]string{
 				consts.InferenceSetWorkspaceNodeLabel: "ws-1",
@@ -545,7 +545,7 @@ func TestUniqueWorkspaceLabelSelector(t *testing.T) {
 		},
 		{
 			name: "does not mutate original selector",
-			base: &metav1.LabelSelector{
+			base: &v1.LabelSelector{
 				MatchLabels: map[string]string{
 					"apps": "shared-model",
 				},

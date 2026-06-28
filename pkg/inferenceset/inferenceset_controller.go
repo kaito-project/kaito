@@ -309,7 +309,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 				*metav1.NewControllerRef(iObj, kaitov1beta1.GroupVersion.WithKind("InferenceSet")),
 			}
 			workspaceObj.Resource = kaitov1beta1.ResourceSpec{
-				InstanceType: iObj.Spec.Template.Resource.InstanceType,
+				InstanceType:  iObj.Spec.Template.Resource.InstanceType,
 				LabelSelector: uniqueWorkspaceLabelSelector(iObj.Spec.Selector, workspaceObj.Name),
 			}
 			workspaceObj.Inference = &iObj.Spec.Template.Inference

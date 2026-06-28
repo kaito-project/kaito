@@ -523,7 +523,7 @@ func TestUniqueWorkspaceLabelSelector(t *testing.T) {
 			},
 			workspaceName: "my-model-abc123",
 			wantLabels: map[string]string{
-				"apps":                              "my-model",
+				"apps":                                "my-model",
 				consts.InferenceSetWorkspaceNodeLabel: "my-model-abc123",
 			},
 		},
@@ -536,8 +536,8 @@ func TestUniqueWorkspaceLabelSelector(t *testing.T) {
 			},
 		},
 		{
-			name: "creates selector with empty matchLabels",
-			base: &v1.LabelSelector{},
+			name:          "creates selector with empty matchLabels",
+			base:          &v1.LabelSelector{},
 			workspaceName: "ws-1",
 			wantLabels: map[string]string{
 				consts.InferenceSetWorkspaceNodeLabel: "ws-1",
@@ -552,7 +552,7 @@ func TestUniqueWorkspaceLabelSelector(t *testing.T) {
 			},
 			workspaceName: "ws-unique",
 			wantLabels: map[string]string{
-				"apps":                              "shared-model",
+				"apps":                                "shared-model",
 				consts.InferenceSetWorkspaceNodeLabel: "ws-unique",
 			},
 		},

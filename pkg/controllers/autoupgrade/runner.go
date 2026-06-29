@@ -102,7 +102,9 @@ func (r *AutoUpgradeRunner) reconcileInferenceSet(ctx context.Context, inference
 	switch inferenceSetObj.Spec.AutoUpgrade.Strategy {
 	case kaitov1beta1.BlueGreenUpgradeStrategy:
 		r.reconcileBlueGreen(ctx, inferenceSetObj)
-	case kaitov1beta1.InPlaceUpgradeStrategy:
+	case kaitov1beta1.InPlaceUpgradeStrategy, "":
+		// Empty strategy defaults to in-place (the CRD default is InPlace; the
+		// empty value also covers objects created before the field existed).
 		r.reconcileInPlace(ctx, inferenceSetObj)
 	default:
 		klog.ErrorS(fmt.Errorf("unsupported auto-upgrade strategy"), "AutoUpgradeRunner: unsupported strategy", "inferenceset", klog.KObj(inferenceSetObj))

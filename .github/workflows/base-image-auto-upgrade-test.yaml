@@ -570,11 +570,25 @@ jobs:
           NEW_TAG=$(yq '.models[] | select(.name == "base") | .tag' presets/workspace/models/supported_models.yaml)
           echo "Blue: $BLUE_WS  Green: $GREEN_WS"
 
-          # The green surge should run the NEW base image.
-          GREEN_IMAGE=$(kubectl get statefulset "$GREEN_WS" -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
-          echo "Green StatefulSet image: $GREEN_IMAGE"
+          # The green surge should run the NEW base image. The Workspace controller
+          # creates the green StatefulSet asynchronously after the Workspace object,
+          # so poll until the image is populated rather than checking once.
+          echo "Waiting for green StatefulSet to be created on the new base tag $NEW_TAG..."
+          end=$((SECONDS+300))
+          GREEN_IMAGE=""
+          while [ $SECONDS -lt $end ]; do
+            GREEN_IMAGE=$(kubectl get statefulset "$GREEN_WS" -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
+            if echo "$GREEN_IMAGE" | grep -q "$NEW_TAG"; then
+              echo "Green StatefulSet image: $GREEN_IMAGE"
+              break
+            fi
+            echo "Waiting for green StatefulSet image... (current: '${GREEN_IMAGE:-<none>}')"
+            sleep 10
+          done
           if ! echo "$GREEN_IMAGE" | grep -q "$NEW_TAG"; then
-            echo "ERROR: green workspace is not on the new base tag $NEW_TAG"
+            echo "ERROR: green workspace is not on the new base tag $NEW_TAG (image: '${GREEN_IMAGE:-<none>}')"
+            kubectl get workspace -L kaito.sh/upgrade-surge-for
+            kubectl get statefulset "$GREEN_WS" -o yaml 2>/dev/null || true
             exit 1
           fi
 

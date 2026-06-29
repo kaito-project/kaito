@@ -16,7 +16,6 @@ package nodeprovision
 import (
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -257,7 +256,6 @@ func TestGetReadyNodes(t *testing.T) {
 							filtered.Items = append(filtered.Items, n)
 						}
 					}
-					fmt.Printf("DEBUG filtered items=%d, tc.nodeList items=%d\n", len(filtered.Items), len(tc.nodeList.Items))
 					nodeList := args.Get(1).(*corev1.NodeList)
 					*nodeList = *filtered
 				}).Return(nil)

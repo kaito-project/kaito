@@ -248,7 +248,7 @@ async def test_apply_streaming_guardrails_scans_multi_choice_outputs_independent
 
 
 @pytest.mark.asyncio
-async def test_apply_streaming_guardrails_blocks_malformed_sse_event():
+async def test_apply_streaming_guardrails_emits_refusal_for_malformed_sse_event():
     closed = False
 
     async def upstream_chunks():

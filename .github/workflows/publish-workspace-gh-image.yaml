@@ -5,6 +5,12 @@ on:
       release_version:
         description: 'tag to be created for this image (i.e. vxx.xx.xx)'
         required: true
+  workflow_call:
+    inputs:
+      release_version:
+        description: 'tag to be published'
+        required: true
+        type: string
 
 permissions:
   id-token: write
@@ -25,12 +31,12 @@ jobs:
     steps:
       - name: validate version
         run: |
-          echo "${{ github.event.inputs.release_version }}" | grep -E 'v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$'
+          echo "${{ inputs.release_version }}" | grep -E 'v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$'
 
       - id: get-tag
         name: Get tag
         run: |
-            echo "tag=$(echo ${{ github.event.inputs.release_version }})" >> $GITHUB_OUTPUT
+            echo "tag=$(echo ${{ inputs.release_version }})" >> $GITHUB_OUTPUT
 
       - name: Harden Runner
         uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1

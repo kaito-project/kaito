@@ -263,7 +263,7 @@ func getGPUConfig(ctx *generator.WorkspaceGeneratorContext) (*sku.GPUConfig, err
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		// NAP is disabled (BYO scenario) - prefer to get GPU config from matching nodes with nvidia.com labels
 		// Only try to find matching nodes if we have a labelSelector and if WorkerNodes is not already populated
-		readyNodes, err := nodes.GetReadyNodes(ctx.Ctx, ctx.KubeClient, ctx.Workspace)
+		readyNodes, err := nodeprovision.GetReadyNodes(ctx.Ctx, ctx.KubeClient, ctx.NodeProvisioner, ctx.Workspace)
 		if err != nil {
 			return nil, fmt.Errorf("failed to list ready nodes: %w", err)
 		}

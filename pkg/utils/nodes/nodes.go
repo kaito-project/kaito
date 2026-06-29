@@ -122,37 +122,6 @@ func ExtractObjFields(obj client.Object) (instanceType, namespace, name string, 
 	return
 }
 
-// GetReadyNodes finds all ready nodes that match the workspace's label selector
-func GetReadyNodes(ctx context.Context, c client.Client, wObj *kaitov1beta1.Workspace) ([]*corev1.Node, error) {
-	matchLabels := client.MatchingLabels(kaitov1beta1.SanitizedMatchLabels(wObj.Resource.LabelSelector))
-
-	nodeList, err := ListNodes(ctx, c, matchLabels)
-	if err != nil {
-		return nil, err
-	}
-
-	readyNodes := make([]*corev1.Node, 0, len(nodeList.Items))
-	for i := range nodeList.Items {
-		node := &nodeList.Items[i]
-
-		if !NodeIsReadyAndNotDeleting(node) {
-			klog.V(4).InfoS("Node is not ready, skipping",
-				"node", node.Name,
-				"workspace", klog.KObj(wObj))
-			continue
-		} else {
-			readyNodes = append(readyNodes, node)
-		}
-
-	}
-
-	klog.V(4).InfoS("Found ready nodes",
-		"workspace", klog.KObj(wObj),
-		"readyNodes", len(readyNodes))
-
-	return readyNodes, nil
-}
-
 func NodeIsReadyAndNotDeleting(node *corev1.Node) bool {
 	if node.DeletionTimestamp != nil {
 		return false

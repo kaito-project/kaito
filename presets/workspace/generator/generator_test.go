@@ -99,6 +99,7 @@ func TestGeneratePreset(t *testing.T) {
 					BytesPerToken:          139264,
 					ModelTokenLimit:        262144,
 					DiskStorageRequirement: "89Gi", // 9.70 + 80
+					ReasoningParser:        "mistral",
 					QuantMethod:            "fp8",
 					AttnType:               "GQA",
 				},
@@ -127,6 +128,7 @@ func TestGeneratePreset(t *testing.T) {
 					BytesPerToken:          70272,
 					ModelTokenLimit:        294912,
 					DiskStorageRequirement: "714Gi", // 634.70 + 80
+					ReasoningParser:        "mistral",
 					ToolCallParser:         "mistral",
 					QuantMethod:            "compressed-tensors",
 					AttnType:               "MLA",
@@ -225,7 +227,7 @@ func TestGeneratePreset(t *testing.T) {
 				ModelRunParams: map[string]string{
 					"load_format":    "auto",
 					"config_format":  "auto",
-					"tokenizer_mode": "auto",
+					"tokenizer_mode": "deepseek_v32",
 				},
 				DisallowLoRA: false,
 			},
@@ -255,7 +257,7 @@ func TestGeneratePreset(t *testing.T) {
 				ModelRunParams: map[string]string{
 					"load_format":    "auto",
 					"config_format":  "auto",
-					"tokenizer_mode": "auto",
+					"tokenizer_mode": "deepseek_v32",
 				},
 				DisallowLoRA: false,
 			},

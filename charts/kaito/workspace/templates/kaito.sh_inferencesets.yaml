@@ -93,6 +93,17 @@ spec:
                     required:
                     - schedule
                     type: object
+                  strategy:
+                    default: InPlace
+                    description: |-
+                      Strategy selects how Workspaces are replaced during an upgrade.
+                      "InPlace" (default) rolls the existing Workspace's StatefulSet, incurring
+                      downtime. "BlueGreen" creates a new Workspace, waits for it to become
+                      ready, then deletes the old one, avoiding downtime.
+                    enum:
+                    - InPlace
+                    - BlueGreen
+                    type: string
                 type: object
               labelSelector:
                 description: workspace created by InferenceSet controller would use
@@ -487,6 +498,17 @@ spec:
                     required:
                     - schedule
                     type: object
+                  strategy:
+                    default: InPlace
+                    description: |-
+                      Strategy selects how Workspaces are replaced during an upgrade.
+                      "InPlace" (default) rolls the existing Workspace's StatefulSet, incurring
+                      downtime. "BlueGreen" creates a new Workspace, waits for it to become
+                      ready, then deletes the old one, avoiding downtime.
+                    enum:
+                    - InPlace
+                    - BlueGreen
+                    type: string
                 type: object
               labelSelector:
                 description: workspace created by InferenceSet controller would use

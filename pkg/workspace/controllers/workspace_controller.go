@@ -608,11 +608,6 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	}
 
 	if baseImageUpgrade {
-		if err := c.refreshInferenceConfig(ctx, wObj); err != nil {
-			klog.ErrorS(err, "failed to refresh default inference config during upgrade", "workspace", klog.KObj(wObj))
-			// Non-fatal: proceed with upgrade even if config refresh fails
-		}
-
 		// On base image upgrade, update all mutable fields of the StatefulSet
 		// https://github.com/kubernetes/kubernetes/blob/master/pkg/apis/apps/validation/validation.go#L268C1-L269C1
 		existingObj.Spec.Template = desiredStatefulSet.Spec.Template
@@ -637,23 +632,6 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 
 	// Update it with the latest one generated above.
 	return c.Update(ctx, existingObj)
-}
-
-// refreshInferenceConfig deletes and recreates the default inference config ConfigMap in the
-// workspace namespace from the current release template. This is needed during base image
-// auto-upgrades because the content of the default config may change with a newer base image.
-func (c *WorkspaceReconciler) refreshInferenceConfig(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
-	_, err := resources.EnsureConfigOrCopyFromDefault(ctx, c.Client,
-		client.ObjectKey{
-			Name:      wObj.Inference.Config,
-			Namespace: wObj.Namespace,
-		},
-		client.ObjectKey{
-			Name: kaitov1beta1.DefaultInferenceConfigTemplate,
-		},
-		true, // forceRefresh: delete + recreate from release template
-	)
-	return err
 }
 
 // shouldUpgradeBaseImage checks if an auto-upgrade has been requested via the upgrade label

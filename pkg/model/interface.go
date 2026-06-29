@@ -291,6 +291,12 @@ func (v *VLLMParam) DeepCopy() VLLMParam {
 	return out
 }
 
+// MaxModelLenAuto is the sentinel value for RuntimeContext.MaxModelLen that makes
+// KAITO pass `--max-model-len=auto` to vLLM, delegating context-length sizing to
+// vLLM's native auto-fit logic instead of estimating it.
+// https://docs.vllm.ai/en/latest/configuration/engine_args/#-max-model-len
+const MaxModelLenAuto = -1
+
 // RuntimeContext defines the runtime context for a model.
 type RuntimeContext struct {
 	RuntimeName          RuntimeName
@@ -300,7 +306,7 @@ type RuntimeContext struct {
 	NumNodes             int
 	WorkspaceMetadata    metav1.ObjectMeta
 	DistributedInference bool
-	MaxModelLen          int   // max-model-len parameter for vLLM
+	MaxModelLen          int   // max-model-len for vLLM; MaxModelLenAuto means "auto"
 	InferencePort        int32 // port vLLM listens on; 0 means default (5000)
 	RuntimeContextExtraArguments
 }
@@ -371,7 +377,9 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	case p.VLLM.ModelName != "":
 		p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
 	}
-	if rc.MaxModelLen > 0 {
+	if rc.MaxModelLen == MaxModelLenAuto {
+		p.VLLM.ModelRunParams["max-model-len"] = "auto"
+	} else if rc.MaxModelLen > 0 {
 		p.VLLM.ModelRunParams["max-model-len"] = strconv.Itoa(rc.MaxModelLen)
 	}
 	p.VLLM.ModelRunParams["gpu-memory-utilization"] = "0.84"

@@ -1,4 +1,4 @@
-name: Create release
+name: GitHub release
 on:
   workflow_dispatch:
     inputs:
@@ -10,6 +10,17 @@ on:
         description: 'Release branch (e.g., release-0.6)'
         required: true
         type: string
+  workflow_call:
+    inputs:
+      release_version:
+        description: 'Release version (e.g., v0.2.2 or v0.2.2-rc.0)'
+        required: true
+        type: string
+      release_branch:
+        description: 'Release branch (e.g., release-0.6). Optional when called from a tag push.'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   id-token: write
@@ -40,16 +51,16 @@ jobs:
         with:
           submodules: true
           fetch-depth: 0
-          ref: ${{ github.event.inputs.release_version }}
+          ref: ${{ inputs.release_version }}
 
       - name: Validate inputs
         run: |
-          echo "Creating release ${{ github.event.inputs.release_version }} from branch ${{ github.event.inputs.release_branch }}"
-          if [[ ! "${{ github.event.inputs.release_version }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
+          echo "Creating release ${{ inputs.release_version }} from branch ${{ inputs.release_branch }}"
+          if [[ ! "${{ inputs.release_version }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
             echo "Error: Release version must follow format vX.Y.Z or vX.Y.Z-rc.W"
             exit 1
           fi
-          if [[ ! "${{ github.event.inputs.release_branch }}" =~ ^release- ]]; then
+          if [[ -n "${{ inputs.release_branch }}" && ! "${{ inputs.release_branch }}" =~ ^release- ]]; then
             echo "Error: Release branch must start with 'release-'"
             exit 1
           fi
@@ -57,7 +68,7 @@ jobs:
       - name: Check if release already exists
         id: check-release
         run: |
-          TAG="${{ github.event.inputs.release_version }}"
+          TAG="${{ inputs.release_version }}"
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "exists=true" >> $GITHUB_OUTPUT
             echo "Release $TAG already exists, skipping creation"
@@ -76,9 +87,9 @@ jobs:
           args: release --clean --timeout 60m --verbose
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GORELEASER_CURRENT_TAG: ${{ github.event.inputs.release_version }}
+          GORELEASER_CURRENT_TAG: ${{ inputs.release_version }}
 
       - name: Release already exists
         if: steps.check-release.outputs.exists == 'true'
         run: |
-          echo "Release ${{ github.event.inputs.release_version }} already exists."
+          echo "Release ${{ inputs.release_version }} already exists."

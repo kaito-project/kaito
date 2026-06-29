@@ -94,7 +94,7 @@ def test_validate_streaming_guardrails_rejects_streaming_unsafe_scanner():
 
 
 @pytest.mark.asyncio
-async def test_apply_streaming_guardrails_blocks_malformed_sse_event():
+async def test_apply_streaming_guardrails_emits_refusal_for_malformed_sse_event():
     closed = False
 
     async def upstream_chunks():

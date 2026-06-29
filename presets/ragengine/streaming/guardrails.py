@@ -100,14 +100,14 @@ async def apply_streaming_guardrails(
                 return
 
             if parse_result.status != OpenAIChatChunkParseStatus.PARSED:
-                async for chunk in _emit_block(guardrails):
+                async for chunk in _emit_refusal(guardrails):
                     yield chunk
                 return
 
             for content in parse_result.contents:
                 emit_result = window.feed(content)
                 if emit_result.blocked:
-                    async for chunk in _emit_block(guardrails):
+                    async for chunk in _emit_refusal(guardrails):
                         yield chunk
                     return
                 for safe_chunk in emit_result.chunks:
@@ -147,7 +147,7 @@ async def _flush_window_or_block(
 ) -> AsyncIterator[str]:
     flush_result = window.flush()
     if flush_result.blocked:
-        async for chunk in _emit_block(guardrails):
+        async for chunk in _emit_refusal(guardrails):
             yield chunk
         return
 
@@ -155,7 +155,7 @@ async def _flush_window_or_block(
         yield build_openai_chat_delta_sse_chunk(safe_chunk)
 
 
-async def _emit_block(guardrails: OutputGuardrails) -> AsyncIterator[str]:
+async def _emit_refusal(guardrails: OutputGuardrails) -> AsyncIterator[str]:
     guardrails._record_response_action("block")
     yield build_openai_chat_delta_sse_chunk(guardrails.block_message)
     yield build_openai_chat_finish_sse_chunk(finish_reason="content_filter")

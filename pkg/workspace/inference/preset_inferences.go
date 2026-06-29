@@ -40,7 +40,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/nodes"
-	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
@@ -442,31 +441,19 @@ func GetBaseImageTag() string {
 
 func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingModelPath, streamingLoadFormat string) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
-		configVolume, err := resources.EnsureConfigOrCopyFromDefault(ctx.Ctx, ctx.KubeClient,
-			client.ObjectKey{
-				Name:      ctx.Workspace.Inference.Config,
-				Namespace: ctx.Workspace.Namespace,
-			},
-			client.ObjectKey{
-				Name: v1beta1.DefaultInferenceConfigTemplate,
-			},
-			false,
-		)
-		if err != nil {
-			return err
-		}
-
-		// debug print of configVolume (requested)
-		klog.Infof("[debug] configVolume name=%s keys=%v", configVolume.Name, lo.Keys(configVolume.Data))
-
 		// additional volume
 		var volumes []corev1.Volume
 		var volumeMounts []corev1.VolumeMount
 
-		// Add config volume mount
-		cmVolume, cmVolumeMount := utils.ConfigCMVolume(configVolume.Name)
-		volumes = append(volumes, cmVolume)
-		volumeMounts = append(volumeMounts, cmVolumeMount)
+		// Mount the user-provided inference config ConfigMap when set. When empty,
+		// no config volume is mounted and the runtime falls back to its built-in defaults.
+		var cmVolumeMountRef *corev1.VolumeMount
+		if userConfig := ctx.Workspace.Inference.Config; userConfig != "" {
+			cmVolume, cmVolumeMount := utils.ConfigCMVolume(userConfig)
+			volumes = append(volumes, cmVolume)
+			volumeMounts = append(volumeMounts, cmVolumeMount)
+			cmVolumeMountRef = &cmVolumeMount
+		}
 
 		// add model weights volume mount (skip when streaming — weights come from az://)
 		if streamingModelPath == "" {
@@ -525,7 +512,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		commands := inferenceParam.GetInferenceCommand(pkgmodel.RuntimeContext{
 			RuntimeName:          runtimeName,
 			GPUConfig:            gpuConfig,
-			ConfigVolume:         &cmVolumeMount,
+			ConfigVolume:         cmVolumeMountRef,
 			SKUNumGPUs:           gpuConfig.GPUCount,
 			NumNodes:             numNodes,
 			WorkspaceMetadata:    ctx.Workspace.ObjectMeta,

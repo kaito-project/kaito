@@ -33,6 +33,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
@@ -503,6 +504,57 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 			}
 			assert.Equal(t, tc.expectBenchmarkMsg,
 				fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, *tc.inferenceset.Spec.Replicas))
+		})
+	}
+}
+
+func TestPartitionManagedWorkspaces(t *testing.T) {
+	ws := func(name string, labels map[string]string) v1beta1.Workspace {
+		return v1beta1.Workspace{
+			ObjectMeta: v1.ObjectMeta{Name: name, Labels: labels},
+		}
+	}
+
+	tests := []struct {
+		name           string
+		input          []v1beta1.Workspace
+		wantManaged    []string
+		wantInProgress bool
+	}{
+		{
+			name:           "no surge - all managed",
+			input:          []v1beta1.Workspace{ws("a", nil), ws("b", nil)},
+			wantManaged:    []string{"a", "b"},
+			wantInProgress: false,
+		},
+		{
+			name: "one surge excluded - upgrade in progress",
+			input: []v1beta1.Workspace{
+				ws("blue", nil),
+				ws("green", map[string]string{kaitov1alpha1.LabelUpgradeSurgeFor: "blue"}),
+			},
+			wantManaged:    []string{"blue"},
+			wantInProgress: true,
+		},
+		{
+			name: "only surge",
+			input: []v1beta1.Workspace{
+				ws("green", map[string]string{kaitov1alpha1.LabelUpgradeSurgeFor: "blue"}),
+			},
+			wantManaged:    nil,
+			wantInProgress: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			managed, inProgress := partitionManagedWorkspaces(tt.input)
+			assert.Equal(t, tt.wantInProgress, inProgress)
+			var names []string
+			for _, m := range managed {
+				names = append(names, m.Name)
+			}
+			assert.Equal(t, tt.wantManaged, names)
 		})
 	}
 }

@@ -166,7 +166,7 @@ jobs:
           kubectl wait --for=condition=available deploy/qdrant -n qdrant --timeout=300s
 
       - name: Create node pool for RAG workloads
-        uses: azure/CLI@v2.2.0
+        uses: azure/CLI@v3.0.0
         with:
           inlineScript: |
             set -euo pipefail
@@ -235,7 +235,7 @@ jobs:
         if: ${{ always() }}
         env:
           AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
-        uses: azure/CLI@v2.2.0
+        uses: azure/CLI@v3.0.0
         with:
           inlineScript: |
             set +e

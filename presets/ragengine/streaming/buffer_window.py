@@ -47,19 +47,15 @@ class StreamingBufferWindow:
         scanner: WindowScanner,
         *,
         holdback_chars: int,
-        min_scan_chars: int,
         max_emit_chars: int,
     ) -> None:
         if holdback_chars < 0:
             raise ValueError("holdback_chars must be non-negative.")
-        if min_scan_chars < 0:
-            raise ValueError("min_scan_chars must be non-negative.")
         if max_emit_chars <= 0:
             raise ValueError("max_emit_chars must be positive.")
 
         self._scanner = scanner
         self._holdback_chars = holdback_chars
-        self._min_scan_chars = min_scan_chars
         self._max_emit_chars = max_emit_chars
         self._pending_buffer = ""
         self._blocked = False
@@ -74,7 +70,7 @@ class StreamingBufferWindow:
 
         self._pending_buffer += text
         safe_emit_limit = self._safe_emit_limit()
-        if safe_emit_limit < self._min_scan_chars:
+        if safe_emit_limit == 0:
             return WindowEmitResult(chunks=())
 
         return self._scan_and_emit(

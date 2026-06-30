@@ -30,7 +30,6 @@ from ragengine.streaming.openai import (
 from ragengine.streaming.sse import iter_sse_events
 
 STREAMING_GUARDRAILS_HOLDBACK_CHARS = 256
-STREAMING_GUARDRAILS_MIN_SCAN_CHARS = 1
 STREAMING_GUARDRAILS_MAX_EMIT_CHARS = 4096
 STREAMING_GUARDRAILS_SUPPORTED_SCANNERS = frozenset({"ban_substrings"})
 
@@ -85,7 +84,6 @@ async def apply_streaming_guardrails(
         window = StreamingBufferWindow(
             scanner,
             holdback_chars=STREAMING_GUARDRAILS_HOLDBACK_CHARS,
-            min_scan_chars=STREAMING_GUARDRAILS_MIN_SCAN_CHARS,
             max_emit_chars=STREAMING_GUARDRAILS_MAX_EMIT_CHARS,
         )
 

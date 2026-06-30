@@ -24,7 +24,7 @@ variable "kaito_gpu_provisioner_version" {
 
 variable "kaito_workspace_version" {
   type        = string
-  default     = "0.8.0"
+  default     = "0.10.0"
   description = "kaito workspace version"
 }
 
@@ -42,7 +42,7 @@ variable "deploy_kaito_ragengine" {
 
 variable "kaito_ragengine_version" {
   type        = string
-  default     = "0.7.0"
+  default     = "0.10.0"
   description = "KAITO RAGEngine version"
 }
 

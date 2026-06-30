@@ -29,7 +29,7 @@ Choose auto-provisioning when:
 - You prefer to specify exact Azure instance types in your workspaces
 
 :::note
-Alternative: If you already have GPU nodes or manage them separately, use the [preferred nodes approach](quick-start#option-1-using-preferred-nodes-existing-gpu-nodes) instead.
+Alternative: If you already have GPU nodes or manage them separately, use the [bring your own GPU nodes approach](./installation.md#option-2-bring-your-own-gpu-nodes) instead.
 :::
 
 ## Set Up Auto-Provisioning

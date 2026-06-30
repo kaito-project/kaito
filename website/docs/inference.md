@@ -2,103 +2,97 @@
 title: Inference
 ---
 
-This document presents how to use the KAITO `workspace` Custom Resource Definition (CRD) for model serving and serving with LoRA adapters.
+`InferenceSet` is the recommended Custom Resource Definition (CRD) for serving models in production. It supports 
+- Serving a model with more than one replica for higher throughput and availability.
+- Autoscaling the number of replicas based on inference request load (e.g. with the [KEDA autoscaler](./keda-autoscaler-inference.md)).
+- Integrating with the [Gateway API Inference Extension](./gateway-api-inference-extension.md) for KV-cache-aware request routing.
 
-:::tip Multi-Node Inference
-For large models requiring multiple nodes, see the [Multi-Node Inference](./multi-node-inference.md) documentation.
+:::info
+The `InferenceSet` controller is available starting from KAITO v0.8.0 (alpha) and was promoted to **beta** in KAITO v0.11.0, where it is enabled by default. For older versions, enable it explicitly with `--set featureGates.enableInferenceSetController=true` during installation.
 :::
+
+## How it works
+
+An `InferenceSet` is a higher-level controller that creates and manages one inference replica per `spec.replicas`. Every replica is rendered from the same shared `spec.template`, so all replicas serve the same model with the same configuration. The controller continuously reconciles the actual number of replicas to match `spec.replicas`, creating or deleting them as needed. Each replica runs as an independent inference server pod exposing the same OpenAI-compatible API.
+
+```mermaid
+flowchart TD
+    IS[InferenceSet] -->|creates spec.replicas| WS1[Workspace 1]
+    IS -->|creates| WS2[Workspace 2]
+    IS -->|creates| WSN[Workspace N]
+    WS1 --> P1[Inference Pod]
+    WS2 --> P2[Inference Pod]
+    WSN --> PN[Inference Pod]
+```
 
 ## Usage
 
-The basic usage for inference is simple. Users just need to specify the GPU SKU used for inference in the `resource` spec and one of the KAITO supported model name in the `inference` spec in the `workspace` custom resource. For example,
+Deploying a Hugging Face model with `InferenceSet` is straightforward. You just need to specify a Hugging Face model card ID (or a KAITO preset name), the GPU SKU, the desired number of replicas, and a `labelSelector` that the controller applies to each replica. For example:
 
 ```yaml
 apiVersion: kaito.sh/v1beta1
-kind: Workspace
+kind: InferenceSet
 metadata:
-  name: workspace-falcon-7b
-resource:
-  instanceType: "Standard_NC24ads_A100_v4"
+  name: gemma-4-31b
+spec:
+  replicas: 2
   labelSelector:
     matchLabels:
-      apps: falcon-7b
-inference:
-  preset:
-    name: "falcon-7b"
+      apps: gemma-4-31b
+  template:
+    resource:
+      instanceType: "Standard_NC24ads_A100_v4"
+    inference:
+      preset:
+        name: "google/gemma-4-31B-it"
 ```
 
-:::info
+### InferenceSet spec fields
 
-Starting from KAITO v0.9.0, generic Hugging Face models are supported on a best-effort basis. By specifying a Hugging Face model card ID as `inference.preset.name` in the KAITO workspace, you can run any Hugging Face model with a model architecture supported by vLLM on KAITO. Below is an example illustrating how to create a Hugging Face inference workload using the model card ID `Qwen/Qwen3-0.6B` from https://huggingface.co/Qwen/Qwen3-0.6B:
+| Field | Required | Description |
+| --- | --- | --- |
+| `spec.replicas` | No (default `1`) | Desired number of replicas. Set to `0` to scale to zero. |
+| `spec.labelSelector` | Yes | Labels applied to each replica so the controller can identify and manage them. |
+| `spec.nodeCountLimit` | No | Maximum number of GPU nodes that may be created across all replicas. Unlimited if unset. |
+| `spec.template.resource.instanceType` | Yes | GPU node SKU used for every replica. |
+| `spec.template.inference.preset.name` | Yes | The model to serve — a Hugging Face model card ID or a KAITO preset name. |
+| `spec.template.inference.adapters` | No | One or more LoRA adapters to merge at serving time. |
+| `spec.template.inference.config` | No | Name of a ConfigMap holding custom vLLM runtime parameters. |
+| `spec.autoUpgrade` | No | Configures automatic base image upgrades of replicas after a controller upgrade. See [Automatic base image upgrades](#automatic-base-image-upgrades). |
 
-```yaml
-apiVersion: kaito.sh/v1beta1
-kind: Workspace
-metadata:
-  name: qwen3-06b
-resource:
-  instanceType: Standard_NC24ads_A100_v4
-  labelSelector:
-    matchLabels:
-      apps: qwen3-06b
-inference:
-  preset:
-    name: Qwen/Qwen3-0.6B
+### Checking status
+
+The `InferenceSet` status reports how many replicas exist and how many are ready:
+
+```bash
+$ kubectl get inferenceset gemma-4-31b
+NAME         REPLICAS   READYREPLICAS   AGE
+gemma-4-31b   2          2               5m
 ```
 
+You can also list the individual replicas created by the `InferenceSet`:
+
+```bash
+$ kubectl get workspace -l kaito.sh/inferenceset=gemma-4-31b
+```
+
+### Scaling
+
+To change the number of replicas, update `spec.replicas`:
+
+```bash
+kubectl scale inferenceset gemma-4-31b --replicas=3
+```
+
+The controller adds or removes replicas to match the new count. When scaling down, replicas that are not yet ready are removed first. The `InferenceSet` exposes the Kubernetes `scale` subresource, so it can be targeted directly by autoscalers such as HPA or a KEDA `ScaledObject`. For load-based and schedule-based autoscaling, see [Autoscaling Inference with KEDA](./keda-autoscaler-inference.md).
+
+:::note Updating the template
+The `InferenceSet` controller reconciles the replica **count** (scaling) and replica labels. It does not currently perform an in-place rolling update of existing replicas when you edit other `spec.template` fields (such as inference parameters or adapters) — the one exception is the base image, which can be rolled out automatically via [Automatic base image upgrades](#automatic-base-image-upgrades). To apply other template changes today, recreate the `InferenceSet` (or delete individual replicas so the controller recreates them from the updated template).
 :::
 
-If a user runs KAITO in an on-premise Kubernetes cluster where GPU SKUs are unavailable, the GPU nodes can be pre-configured. The user should ensure that the corresponding vendor-specific GPU plugin is installed successfully in every prepared node, i.e. the node status should report a non-zero GPU resource in the allocatable field. For example:
+## Serving with custom parameters
 
-```
-$ kubectl get node $NODE_NAME -o json | jq .status.allocatable
-{
-  "cpu": "XXXX",
-  "ephemeral-storage": "YYYY",
-  "hugepages-1Gi": "0",
-  "hugepages-2Mi": "0",
-  "memory": "ZZZZ",
-  "nvidia.com/gpu": "1",
-  "pods": "100"
-}
-```
-
-Next, the user needs to add the node names in the `preferredNodes` field in the `resource` spec. As a result, the KAITO controller will skip the steps for GPU node provisioning and use the prepared nodes to run the inference workload.
-
-:::warning
-The node objects of the preferred nodes need to contain the same matching labels as specified in the `resource` spec. Otherwise, the KAITO controller would not recognize them.
-:::
-
-### Inference runtime selection
-
-KAITO now supports both [vLLM](https://github.com/vllm-project/vllm) and [transformers](https://github.com/huggingface/transformers) runtime. `vLLM` provides better serving latency and throughput. `transformers` provides more compatibility with models in the Huggingface model hub.
-
-From KAITO v0.4.0, the default runtime is switched to `vLLM`. If you want to use `transformers` runtime, you can specify the runtime in the `inference` spec using an annotation. For example,
-
-```yaml
-apiVersion: kaito.sh/v1beta1
-kind: Workspace
-metadata:
-  name: workspace-falcon-7b
-  annotations:
-    kaito.sh/runtime: "transformers"
-resource:
-  instanceType: "Standard_NC24ads_A100_v4"
-  labelSelector:
-    matchLabels:
-      apps: falcon-7b
-inference:
-  preset:
-    name: "falcon-7b"
-```
-
-:::note Multi-Node Support
-Multi-node distributed inference is currently supported only with the vLLM runtime. For details on configuring multi-node deployments, see [Multi-Node Inference](./multi-node-inference.md).
-:::
-
-### Inference with custom parameters
-
-Users can customize vLLM runtime parameters by creating a ConfigMap containing an `inference_config.yaml` file and referencing it in the workspace spec. For example:
+You can customize vLLM runtime parameters by creating a ConfigMap containing an `inference_config.yaml` file and referencing it from `spec.template.inference.config`. Every replica created by the `InferenceSet` uses the same parameters. For example:
 
 ```yaml
 apiVersion: v1
@@ -111,25 +105,27 @@ data:
     max_probe_steps: 6
     vllm:
       gpu-memory-utilization: 0.95  # Controls GPU memory usage (0.0-1.0)
-      tensor-parallel-size: 2        # Number of GPUs for tensor parallelism
+      tensor-parallel-size: 2       # Number of GPUs for tensor parallelism
       max-model-len: 131072         # Maximum sequence length
-      swap-space: 4                 # CPU swap space in GB
       cpu-offload-gb: 0             # Amount of GPU memory to offload to CPU
 ---
 apiVersion: kaito.sh/v1beta1
-kind: Workspace
+kind: InferenceSet
 metadata:
   namespace: myns
-  name: workspace-example
-resource:
-  instanceType: "Standard_NC24ads_A100_v4"
+  name: example
+spec:
+  replicas: 2
   labelSelector:
     matchLabels:
       apps: example
-inference:
-  preset:
-    name: "example-model"
-  config: "my-inference-params"  # Reference to ConfigMap name
+  template:
+    resource:
+      instanceType: "Standard_NC24ads_A100_v4"
+    inference:
+      preset:
+        name: "example-model"
+      config: "my-inference-params"  # Reference to ConfigMap name
 ```
 
 Key vLLM parameters include:
@@ -139,78 +135,43 @@ Key vLLM parameters include:
 
 For the complete list of vLLM parameters, refer to the [vLLM documentation](https://docs.vllm.ai/en/latest/serving/engine_args.html).
 
-### Inference benchmark
+## Serving with LoRA adapters
 
-When using the vLLM runtime, KAITO automatically runs a post-load throughput benchmark (via [guidellm](https://github.com/neuralmagic/guidellm)) after the model loads and before marking the workspace as ready. The benchmark result is stored in `status.performance.metrics` and the `BenchmarkCompleted` condition is set on the workspace.
-
-To disable the benchmark, set the `kaito.sh/disable-benchmark` annotation to `"true"` on a Workspace or InferenceSet:
+KAITO supports serving inference with LoRA adapters produced by [model fine-tuning jobs](./tuning.md). Specify one or more adapters in the `adapters` field of `spec.template.inference`. Each replica created by the `InferenceSet` loads the adapters alongside the raw model weights. For example:
 
 ```yaml
 apiVersion: kaito.sh/v1beta1
-kind: Workspace
+kind: InferenceSet
 metadata:
-  name: workspace-phi-4-mini
-  annotations:
-    kaito.sh/disable-benchmark: "true"
-resource:
-  instanceType: "Standard_NC24ads_A100_v4"
+  name: phi4-mini
+spec:
+  replicas: 2
   labelSelector:
     matchLabels:
-      apps: phi-4-mini
-inference:
-  preset:
-    name: "phi-4-mini"
+      apps: phi4-mini
+  template:
+    resource:
+      instanceType: "Standard_NC24ads_A100_v4"
+    inference:
+      preset:
+        name: "microsoft/Phi-4-mini-instruct"
+      adapters:
+        - source:
+            name: "phi4-mini-adapter"
+            image: "<YOUR_IMAGE>"
 ```
 
-When set on an InferenceSet, the annotation is propagated to all child Workspaces it creates.
-
-:::note
-The benchmark only runs with the vLLM runtime. It is not supported with the `transformers` runtime.
-:::
-
-### Inference with LoRA adapters
-
-KAITO also supports running the inference workload with LoRA adapters produced by [model fine-tuning jobs](./tuning.md). Users can specify one or more adapters in the `adapters` field of the `inference` spec. For example,
-
-```yaml
-apiVersion: kaito.sh/v1beta1
-kind: Workspace
-metadata:
-  name: workspace-falcon-7b
-resource:
-  instanceType: "Standard_NC24ads_A100_v4"
-  labelSelector:
-    matchLabels:
-      apps: falcon-7b
-inference:
-  preset:
-    name: "falcon-7b"
-  adapters:
-    - source:
-        name: "falcon-7b-adapter"
-        image:  "<YOUR_IMAGE>"
-      strength: "0.2"
-```
-Currently, only images are supported as adapter sources. The `strength` field specifies the multiplier applied to the adapter weights relative to the raw model weights.
+Currently, only images are supported as adapter sources.
 
 **Note:** When building a container image for an existing adapter, ensure all adapter files are copied to the **/data** directory inside the container.
 
-For detailed `InferenceSpec` API definitions, refer to the [documentation](https://github.com/kaito-project/kaito/blob/2ccc93daf9d5385649f3f219ff131ee7c9c47f3e/api/v1alpha1/workspace_types.go#L75).
+## Inference API
 
-### Inference API
-
-The OpenAPI specification for the inference API is available at [vLLM API](../../presets/workspace/inference/vllm/api_spec.json), [transformers API](../../presets/workspace/inference/text-generation/api_spec.json).
-
-#### vLLM inference API
-
-vLLM supports OpenAI-compatible inference APIs. Check [here](https://docs.vllm.ai/en/stable/serving/openai_compatible_server.html) for more details.
-
-#### Transformers inference API
-
-The transformers runtime now uses an OpenAI-compatible API powered by the HuggingFace `transformers serve` engine.
+Every replica runs the vLLM runtime and exposes an OpenAI-compatible HTTP API on port 80, reachable through the Kubernetes `Service` of each replica. To distribute requests across all replicas behind a single endpoint, front the `InferenceSet` with the [Gateway API Inference Extension](./gateway-api-inference-extension.md).
 
 **Chat Completions**
-```
+
+```bash
 curl -X POST "http://<SERVICE>:80/v1/chat/completions" \
     -H "Content-Type: application/json" \
     -d '{
@@ -221,43 +182,96 @@ curl -X POST "http://<SERVICE>:80/v1/chat/completions" \
     }'
 ```
 
-**Responses API**
-```
-curl -X POST "http://<SERVICE>:80/v1/responses" \
+**Completions**
+
+```bash
+curl -X POST "http://<SERVICE>:80/v1/completions" \
     -H "Content-Type: application/json" \
     -d '{
         "model": "MODEL_NAME",
-        "input": "YOUR_PROMPT_HERE",
-        "max_output_tokens": 200
+        "prompt": "YOUR_PROMPT_HERE",
+        "max_tokens": 200
     }'
 ```
 
 **List Models**
-```
+
+```bash
 curl -X GET "http://<SERVICE>:80/v1/models"
 ```
 
-For the full list of supported parameters, refer to the [OpenAI API reference](https://platform.openai.com/docs/api-reference/chat/create) and the [HuggingFace transformers serve documentation](https://huggingface.co/docs/transformers/en/serve-cli/serving).
+vLLM supports the full set of OpenAI-compatible inference APIs. See the [vLLM OpenAI-compatible server documentation](https://docs.vllm.ai/en/stable/serving/openai_compatible_server.html) for the complete list of endpoints and parameters.
 
-# Inference workload
+## Automatic base image upgrades
 
-Depending on whether the specified model supports distributed inference or not, the KAITO controller will choose to use either Kubernetes **apps.deployment** workload (by default) or Kubernetes **apps.statefulset** workload (if the model supports distributed inference) to manage the inference service, which is exposed using a Cluster-IP type of Kubernetes `service`.
+KAITO ships the inference server (vLLM) as a base image embedded in the controller. When you upgrade the KAITO controller to a release that bundles a newer base image, existing replicas keep running their old image until they are recreated. With automatic base image upgrades enabled, the controller detects this version drift and rolls the replicas onto the new image one at a time, waiting for each replica to become ready before moving to the next. This is the rolling-update mechanism KAITO provides for `InferenceSet`.
 
-For multi-node distributed inference, KAITO uses StatefulSets to ensure stable pod identity and coordination between leader and worker pods. See [Multi-Node Inference](./multi-node-inference.md) for detailed architecture information.
+### When to use
+Enable auto-upgrade when you want long-running `InferenceSet` workloads to automatically pick up newer base images (e.g. vLLM bug fixes, performance improvements, or security patches) shipped with KAITO controller upgrades, without manually recreating replicas — while keeping the service available throughout the rollout. If you instead prefer to pin replicas to a fixed base image and control exactly when they change, leave auto-upgrade disabled.
 
-When adapters are specified in the `inference` spec, the KAITO controller adds an initcontainer for each adapter in addition to the main container. The pod structure is shown in Figure 1.
+### Enabling auto-upgrade
 
-![KAITO inference service pod structure](/img/kaito-inference-adapter.png)
+Auto-upgrade requires two things:
 
-If an image is specified as the adapter source, the corresponding initcontainer uses that image as its container image. These initcontainers ensure all adapter data is available locally before the inference service starts. The main container uses a supported model image, launching the [inference_api.py](../../presets/workspace/inference/text-generation/inference_api.py) script.
+1. The `enableBaseImageAutoUpgrade` feature gate must be enabled on the KAITO controller (it is **off by default**). Enable it at install/upgrade time:
 
-All containers share local volumes by mounting the same `EmptyDir` volumes, avoiding file copies between containers.
+   ```bash
+   helm upgrade --install kaito-workspace ./charts/kaito/workspace \
+     --set featureGates.enableBaseImageAutoUpgrade=true \
+     # ... other values
+   ```
 
-## Workload update
+2. The `InferenceSet` must opt in via `spec.autoUpgrade.enabled: true`:
 
-To update the `adapters` field in the `inference` spec, users can modify the `workspace` custom resource. The KAITO controller will apply the changes, triggering a workload deployment update. This will recreate the inference service pod, resulting in a brief service downtime. Once the new adapters are merged with the raw model weights and loaded into GPU memory, the service will resume.
+   ```yaml
+   apiVersion: kaito.sh/v1beta1
+   kind: InferenceSet
+   metadata:
+     name: gemma-4-31b
+   spec:
+     replicas: 3
+     labelSelector:
+       matchLabels:
+         apps: gemma-4-31b
+     template:
+       resource:
+         instanceType: "Standard_NC24ads_A100_v4"
+       inference:
+         preset:
+           name: "google/gemma-4-31B-it"
+     autoUpgrade:
+       enabled: true
+   ```
 
+### Restricting upgrades to a maintenance window
 
-# Troubleshooting
+By default, upgrades may start at any time. To limit when rollouts begin, set a `maintenanceWindow` with a 5-field cron `schedule` (UTC) and an optional `duration` (defaults to `4h`). The controller only starts
+upgrading replicas while the current time is inside the window; an upgrade already in progress is allowed to finish even if the window closes, and the next replica waits for the following window.
 
-TBD
+```yaml
+spec:
+  autoUpgrade:
+    enabled: true
+    maintenanceWindow:
+      schedule: "0 2 * * 6"   # every Saturday at 02:00 UTC
+      duration: "4h"           # window stays open for 4 hours
+```
+
+### Observing upgrade progress
+
+The upgrade state is reported under `status.autoUpgrade`:
+
+- `numDriftedWorkspaces` — number of replicas still running an old base image (`0` when fully up-to-date).
+- `lastSuccessfulUpgradeTime` — timestamp of the most recently completed replica upgrade.
+
+```bash
+kubectl get inferenceset gemma-4-31b -o jsonpath='{.status.autoUpgrade}'
+```
+
+## Related documentation
+
+- [Workspace](./workspace.md) - The underlying single-replica CRD and how it works internally.
+- [Autoscaling Inference with KEDA](./keda-autoscaler-inference.md) - Load- and schedule-based autoscaling of an `InferenceSet`.
+- [Gateway API Inference Extension](./gateway-api-inference-extension.md) - KV-cache-aware routing across `InferenceSet` replicas.
+- [Multi-Node Inference](./multi-node-inference.md) - Distributed inference for large models across multiple nodes.
+

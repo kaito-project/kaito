@@ -2,244 +2,147 @@
 title: Multi-Node Inference
 ---
 
-This document explains how to configure and use multi-node distributed inference in KAITO for large models that require more GPU resources than a single node can provide.
+Multi-node inference is used for models that are too large to fit on a single GPU node. KAITO automatically combines **tensor parallelism** within each node and **pipeline parallelism** across nodes so a single model can be served by a coordinated group of pods.
 
-## Overview
-
-Multi-node inference allows you to deploy large AI models across multiple nodes (servers) when the model is too large to fit on a single node. KAITO supports different parallelism strategies depending on your model's requirements:
-
-| Strategy | Use Case | Supported |
-|----------|----------|-----------|
-| **Single GPU** | Small models that fit on one GPU | ✅ |
-| **Single-Node Multi-GPU** | Models that need multiple GPUs but fit on one node | ✅ |
-| **Multi-Node Multi-GPU** | Very large models (400B+ parameters) requiring multiple nodes | ✅ |
-
-## When to Use Multi-Node Inference
-
-Consider multi-node inference when:
-
-- Your model has 400B+ parameters and cannot fit on a single node
-- You need to serve models like very large language models that exceed single-node memory capacity
-- You have specific performance requirements that benefit from distributed processing
-
-:::note
-Multi-node inference introduces additional complexity and network overhead. Only use it when your model truly requires more resources than a single node can provide.
+:::note Runtime
+Multi-node distributed inference is supported **only with the vLLM runtime**. The `transformers` runtime is single-node only.
 :::
 
-## Supported Models
+## When KAITO uses multi-node inference
 
-The following preset models support multi-node distributed inference:
+Multi-node inference is not something you switch on with a flag — the controller decides automatically. Distributed inference is used when **all three** of these hold (`shouldUseDistributedInference`):
 
-- **Llama3**: `llama-3.3-70b-instruct`
-- **DeepSeek**: `deepseek-r1-0528`, `deepseek-v3-0324` 
+1. **The model supports it** — `Model.SupportDistributedInference()` returns `true`. All vLLM-served models qualify, whether a KAITO preset or a Hugging Face model card ID.
+2. **The runtime is vLLM.**
+3. **More than one node is required** — `Workspace.Status.TargetNodeCount > 1`.
 
-Check the [presets documentation](./presets.md) for the complete list and their specific requirements.
+### How the node count is decided
 
-## Configuration
+The number of nodes is computed by KAITO's **node estimator** (`NodeEstimator.EstimateNodeCount`), not taken directly from the spec. The estimator sizes the deployment from:
 
-### Basic Multi-Node Setup
+- the model's total weight size (expanded ~2% for the vLLM in-memory representation),
+- the GPU memory and GPU count of the requested `instanceType`,
+- the KV-cache requirement for the configured context length, plus a fixed memory overhead and a utilization factor (default `0.84`).
 
-To deploy a model across multiple nodes, specify the node count in your Workspace configuration:
-
-```yaml
-apiVersion: kaito.sh/v1beta1
-kind: Workspace
-metadata:
-  name: workspace-large-model
-resource:
-  count: 2                    # Number of nodes to use
-  instanceType: "Standard_NC80adis_H100_v5"
-  labelSelector:
-    matchLabels:
-      apps: large-model
-inference:
-  preset:
-    name: "llama-3.3-70b-instruct"
-```
-
-### Pre-Provisioned Nodes
-
-If you're using pre-provisioned GPU nodes, specify them explicitly:
-
-```yaml
-apiVersion: kaito.sh/v1beta1
-kind: Workspace
-metadata:
-  name: workspace-large-model
-resource:
-  count: 2
-  preferredNodes:
-    - gpu-node-1
-    - gpu-node-2
-  labelSelector:
-    matchLabels:
-      apps: large-model
-inference:
-  preset:
-    name: "llama-3.3-70b-instruct"
-```
-
-:::warning
-Pre-provisioned nodes must have the same matching labels as specified in the `resource` spec, and each node must report available GPU resources.
-:::
-
-### Custom vLLM Parameters for Multi-Node
-
-You can customize vLLM runtime parameters for distributed inference using a ConfigMap:
-
-```yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: distributed-inference-config
-data:
-  inference_config.yaml: |
-    vllm:
-      gpu-memory-utilization: 0.95
-      max-model-len: 131072
----
-apiVersion: kaito.sh/v1beta1
-kind: Workspace
-metadata:
-  name: workspace-large-model
-resource:
-  count: 2
-  instanceType: "Standard_NC80adis_H100_v5"
-  labelSelector:
-    matchLabels:
-      apps: large-model
-inference:
-  preset:
-    name: "llama-3.3-70b-instruct"
-  config: "distributed-inference-config"
-```
-
-Key parameters for multi-node inference:
-- `tensor-parallel-size`: Automatically set by KAITO based on the number of GPUs per node
-- `pipeline-parallel-size`: Automatically set by KAITO based on the number of nodes
-- `gpu-memory-utilization`: Fraction of GPU memory to use (0.0-1.0) - user configurable
-- `max-model-len`: Maximum sequence length - user configurable
-
-:::note
-The `tensor-parallel-size` and `pipeline-parallel-size` parameters are automatically managed by KAITO based on your cluster configuration and do not need to be specified in the ConfigMap.
-:::
-
-## Architecture
-
-### Single-Node Multi-GPU
-
-When using multiple GPUs on a single node, KAITO uses **tensor parallelism** to split the model across GPUs within that node:
-
-```
-┌─────────────────────────────────────┐
-│             Node 1                  │
-│  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐    │
-│  │GPU 1│ │GPU 2│ │GPU 3│ │GPU 4│    │
-│  └─────┘ └─────┘ └─────┘ └─────┘    │
-│           Model Split               │
-└─────────────────────────────────────┘
-```
-
-### Multi-Node Multi-GPU
-
-For multi-node deployments, KAITO combines **pipeline parallelism** between nodes and **tensor parallelism** within each node:
-
-```
-┌─────────────────────┐    ┌─────────────────────┐
-│       Node 1        │    │       Node 2        │
-│  ┌─────┐┌─────┐     │    │  ┌─────┐ ┌─────┐    │
-│  │GPU 1││GPU 2│     │◄──►│  │GPU 3│ │GPU 4│    │
-│  └─────┘└─────┘     │    │  └─────┘ └─────┘    │
-│   Layers 1-N/2      │    │   Layers N/2+1-N    │
-└─────────────────────┘    └─────────────────────┘
-```
-
-## Resource Validation
-
-KAITO automatically validates that your configuration provides sufficient resources:
-
-- **GPU Count**: `(GPUs per instance) × (workspace.resource.count) ≥ (Required GPUs for model)`
-- **Memory**: `(GPU memory) × (Total GPUs) ≥ (Required model memory)`
-
-If validation fails, you'll receive an error message when creating or updating the workspace.
-
-:::tip Resource Optimization
-KAITO may use fewer nodes than specified in `workspace.resource.count` if the model can fit efficiently on fewer nodes. This optimizes GPU utilization and reduces network overhead, but be mindful of the costs when provisioning many nodes.
-:::
-
-## Service Architecture
-
-Multi-node inference uses Kubernetes StatefulSets to ensure stable pod identity and coordination:
-
-- **Leader Pod** (index 0): Coordinates the distributed inference and serves the API
-- **Worker Pods** (index 1+): Join the Ray cluster and participate in model serving
-
-The service endpoint points to the leader pod, which handles all incoming requests and coordinates with worker pods.
-
-:::note Future Enhancement
-KAITO will support [LeaderWorkerSet](https://lws.sigs.k8s.io/docs/overview/) in the future to provide better management of leader-worker topologies and improved fault tolerance for multi-node deployments.
-:::
-
-## Health Monitoring
-
-Multi-node deployments use specialized health checks:
-
-- **Liveness Probes**: Monitor Ray cluster health and detect dead actors
-- **Readiness Probes**: Check service availability via the leader pod's `/health` endpoint
-
-If worker pods fail, the leader will restart to reinitialize the entire cluster, ensuring all pods are synchronized.
-
-## Best Practices
-
-1. **Resource Planning**: Carefully plan your GPU and memory requirements before deployment
-2. **Network Bandwidth**: Ensure sufficient network bandwidth between nodes for optimal performance
-3. **Monitoring**: Monitor both individual node health and overall cluster performance
-4. **Cost Management**: Be aware that multi-node deployments can be expensive; only use when necessary
-
-## Troubleshooting
-
-### Service Unavailable After Deployment
-
-If the service becomes unavailable:
-
-1. Check if all pods are running: `kubectl get pods -l app=<your-app-label>`
-2. Verify Ray cluster health in leader pod logs
-3. Ensure network connectivity between nodes
-4. Check resource allocation and GPU availability
-
-### Worker Pod Failures
-
-Worker pod failures will trigger leader pod restart to reinitialize the cluster:
-
-1. Monitor pod restart events
-2. Check for resource constraints (memory, GPU)
-3. Verify node-to-node network connectivity
-4. Review pod logs for Ray cluster connection issues
-
-### Performance Issues
-
-If you experience poor performance:
-
-1. Monitor network latency between nodes
-2. Check GPU utilization across all nodes
-3. Review memory usage and potential bottlenecks
-4. Consider adjusting parallelism parameters
-
-## API Usage
-
-Multi-node inference services expose the same API as single-node deployments. The vLLM runtime provides OpenAI-compatible endpoints:
+It then picks the smallest node count whose aggregate GPU memory can hold the model plus overhead, and records the result in `status.targetNodeCount`. If that value is greater than `1`, the workspace is served as a multi-node deployment.
 
 ```bash
-# Get the cluster IP of your service
-kubectl get services
+$ kubectl get workspace workspace-large-model
+NAME                    INSTANCE                    TARGETNODECOUNT   ...
+workspace-large-model   Standard_NC80adis_H100_v5   2                 ...
+```
 
-# Check service health
-kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- \
-  curl http://<CLUSTER-IP>:80/health
+:::info `resource.count` is deprecated
+The legacy `resource.count` and `resource.preferredNodes` fields are deprecated in `v1beta1`. You no longer need to specify how many nodes a model needs — KAITO derives it from the model and the GPU SKU. A minimal spec is enough:
 
-# Generate text using chat completions API
-kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- \
-  curl -X POST http://<CLUSTER-IP>:80/v1/chat/completions \
+```yaml
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-large-model
+resource:
+  instanceType: "Standard_NC80adis_H100_v5"
+  labelSelector:
+    matchLabels:
+      apps: large-model
+inference:
+  preset:
+    name: "llama-3.3-70b-instruct"
+```
+:::
+
+## Parallelism strategy
+
+Based on the model size, the GPU SKU, and the estimated node count, KAITO selects a parallelism layout and injects the corresponding vLLM flags automatically (`configureParallelism`). Users do **not** set these.
+
+| Scenario | vLLM configuration |
+| --- | --- |
+| Model fits on one GPU | `data-parallel-size = GPUs per node`, `tensor-parallel-size = 1` |
+| Model fits on one node (multi-GPU) | `tensor-parallel-size = GPUs per node` |
+| Model spans multiple nodes | `tensor-parallel-size = GPUs per node`, `pipeline-parallel-size = number of nodes`, `distributed-executor-backend = ray` |
+
+In the multi-node case, each node holds a slice of the model's layers (a pipeline stage), and within a node those layers are sharded across that node's GPUs (tensor parallel).
+
+```mermaid
+flowchart LR
+    subgraph N1["Node 0 — Pod-0 (leader)"]
+        direction TB
+        G1[GPU 0] --- G2[GPU 1]
+        L1["Pipeline stage 0<br/>layers 1…N/2"]
+    end
+    subgraph N2["Node 1 — Pod-1 (worker)"]
+        direction TB
+        G3[GPU 2] --- G4[GPU 3]
+        L2["Pipeline stage 1<br/>layers N/2+1…N"]
+    end
+    N1 <-->|Ray| N2
+```
+
+## Workload topology: StatefulSet + Ray
+
+For distributed inference KAITO manages the pods with a **StatefulSet** sized to `targetNodeCount` replicas (`GenerateStatefulSetManifest`). A StatefulSet is used because the pods need **stable, ordinal identities** to form a deterministic leader/worker topology:
+
+- **Pod-0 (leader)** starts the Ray cluster head and the vLLM OpenAI API server.
+- **Pod-1 … Pod-N (workers)** start Ray and join the leader's cluster; they contribute GPUs to the pipeline but do not serve the API directly.
+
+Each pod learns its role from a `POD_INDEX` environment variable, projected from the Kubernetes pod-ordinal label `apps.kubernetes.io/pod-index`. The model launch command branches on it:
+
+```sh
+if [ "${POD_INDEX}" = "0" ]; then
+  /workspace/vllm/multi-node-serving.sh leader ...   # Ray head + vLLM API
+else
+  /workspace/vllm/multi-node-serving.sh worker ...   # Ray worker joins leader
+fi
+```
+
+Workers find the leader through a **headless Service** that gives every pod a stable DNS name. The leader address is constructed as (`GetRayLeaderHost`):
+
+```
+<workspace-name>-0.<workspace-name>-headless.<namespace>.svc.cluster.local
+```
+
+Ray cluster communication uses port **6379** (`PortRayCluster`), and the leader is told the expected `ray_cluster_size` so it waits for all workers to join before initialization completes.
+
+## Services and ports
+
+KAITO creates two Services for a distributed workspace:
+
+| Service | Type | Selector | Purpose |
+| --- | --- | --- | --- |
+| `<name>-headless` | Headless (`clusterIP: None`) | all pods | Per-pod DNS so workers can reach the leader. Uses `publishNotReadyAddresses: true` so names resolve before pods are ready. |
+| `<name>` | ClusterIP | **pod-0 only** (`statefulset.kubernetes.io/pod-name=<name>-0`) | Client-facing API endpoint. |
+
+Port mapping on the main Service:
+
+- `80 → 5000` — the vLLM OpenAI-compatible HTTP API (served by the leader).
+- `6379` — Ray cluster port.
+- `8265` — Ray dashboard.
+
+Because the client Service selects only pod-0, all inference requests land on the leader, which coordinates the pipeline across the worker pods.
+
+## Health probes and fault tolerance
+
+Distributed pods use specialized probes wired up by `SetDistributedInferenceProbe`, all backed by `multi-node-health-check.py`:
+
+- **Startup & readiness probes** call the script in `readiness` mode, which issues an HTTP `GET` to the leader's `http://<leader>:5000/health`. The startup probe tolerates a long window (≈30 minutes by default, ≈60 minutes for models larger than 300 GiB) to allow weights to download and the full cluster to initialize.
+- **Liveness probe** (on the leader) calls the script in `liveness` mode, which queries the **Ray GCS** for dead actors. If any worker has died, the probe fails immediately (`failureThreshold: 1`).
+
+When a worker pod fails, the leader's liveness probe detects the dead Ray actor and the leader pod is restarted. Because pipeline parallelism requires a synchronized cluster, restarting the leader forces the whole group to reinitialize: the StatefulSet brings pods back in ordinal order, the leader rebuilds the Ray head, and all workers rejoin. A short `terminationGracePeriodSeconds` keeps this recovery fast.
+
+:::note Future enhancement
+KAITO plans to adopt [LeaderWorkerSet](https://lws.sigs.k8s.io/docs/overview/) to provide finer-grained management of leader-worker topologies and improved fault tolerance for multi-node deployments.
+:::
+
+## Inference API
+
+A multi-node workspace exposes exactly the same OpenAI-compatible API as a single-node workspace — clients are unaware of the distributed topology. Requests go to the main ClusterIP Service (port 80), which routes to the leader:
+
+```bash
+# Health
+curl http://<CLUSTER-IP>:80/health
+
+# Chat completions
+curl -X POST http://<CLUSTER-IP>:80/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "llama-3.3-70b-instruct",
@@ -248,17 +151,8 @@ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- \
   }'
 ```
 
-For detailed API specifications, see the [inference documentation](./inference.md#inference-api).
+## Related documentation
 
-## Limitations
-
-- **Custom Models**: Multi-node inference is currently only supported for preset models
-- **Fault Tolerance**: The system requires leader restart when worker pods fail
-- **Network Dependency**: Performance heavily depends on inter-node network quality
-- **Complexity**: Debugging and monitoring are more complex than single-node deployments
-
-## Related Documentation
-
-- [Inference](./inference.md) - General inference documentation
-- [Presets](./presets.md) - Supported models and their requirements
-- [Custom Model](./custom-model.md) - Using custom models (single-node only)
+- [Workspace](./workspace.md) - The single-replica CRD and how it works internally.
+- [Inference](./inference.md) - Serving models with `InferenceSet`.
+- [Presets](./presets.md) - Supported models and their requirements.

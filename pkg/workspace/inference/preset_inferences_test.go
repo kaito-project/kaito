@@ -85,6 +85,7 @@ func TestGeneratePresetInference(t *testing.T) {
 		callMocks          func(c *test.MockClient)
 		expectedCmd        string
 		hasAdapters        bool
+		inferenceConfig    string
 		expectedModelImage string
 		expectedVolume     string
 		expectedEnvVars    []corev1.EnvVar
@@ -100,7 +101,24 @@ func TestGeneratePresetInference(t *testing.T) {
 			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
-			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=1 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
+			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=auto --tensor-parallel-size=1 --served-model-name=mymodel",
+			hasAdapters:     false,
+			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar},
+		},
+
+		"test-model/vllm-with-user-config": {
+			workspace: test.MockWorkspaceWithPresetVLLM,
+			nodeCount: 1,
+			modelName: "test-model",
+			callMocks: func(c *test.MockClient) {
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+			},
+			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
+			// User-provided Inference.Config should mount the configmap and append
+			// --kaito-config-file pointing at the in-pod mount path.
+			inferenceConfig: "my-inference-config",
+			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=auto --tensor-parallel-size=1 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
 			hasAdapters:     false,
 			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar},
 		},
@@ -115,7 +133,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			},
 			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
 			// T4 GPU does not support bfloat16, so dtype=float16 is added
-			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --dtype=float16 --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=1 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
+			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --dtype=float16 --gpu-memory-utilization=0.84 --max-model-len=auto --tensor-parallel-size=1 --served-model-name=mymodel",
 			hasAdapters:     false,
 			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar},
 		},
@@ -131,7 +149,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			expectedModelImage: "test-registry/kaito-test-no-tensor-parallel-model:1.0.0",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
-			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml",
+			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=auto",
 			hasAdapters:     false,
 			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar},
 		},
@@ -147,7 +165,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			expectedModelImage: "test-registry/kaito-test-no-lora-support-model:1.0.0",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
-			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml",
+			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=auto",
 			hasAdapters:     false,
 			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar},
 		},
@@ -161,7 +179,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
 			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
-			expectedCmd:        "/bin/sh -c python3 /workspace/vllm/inference_api.py --enable-lora --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=1 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
+			expectedCmd:        "/bin/sh -c python3 /workspace/vllm/inference_api.py --enable-lora --gpu-memory-utilization=0.84 --max-model-len=auto --tensor-parallel-size=1 --served-model-name=mymodel",
 			hasAdapters:        true,
 			expectedVolume:     "adapter-volume",
 			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar, {
@@ -211,7 +229,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			expectedCmd: `/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=2048 --tensor-parallel-size=2 --model=test-repo/test-model-a100 --code-revision=test-revision --download-dir=/workspace/weights --kaito-config-file=/mnt/config/inference_config.yaml`,
+			expectedCmd: `/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.84 --max-model-len=auto --tensor-parallel-size=2 --model=test-repo/test-model-a100 --code-revision=test-revision --download-dir=/workspace/weights`,
 			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar, {
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{
@@ -235,7 +253,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=7 --ray_port=6379; python3 /workspace/vllm/inference_api.py --distributed-executor-backend=ray --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --dtype=float16 --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --kaito-kv-cache-cpu-memory-utilization=0 --pipeline-parallel-size=7 --tensor-parallel-size=1; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
+			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=7 --ray_port=6379; python3 /workspace/vllm/inference_api.py --distributed-executor-backend=ray --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --dtype=float16 --gpu-memory-utilization=0.84 --max-model-len=auto --kaito-kv-cache-cpu-memory-utilization=0 --pipeline-parallel-size=7 --tensor-parallel-size=1; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
 
 			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar, {
 				Name: "HF_TOKEN",
@@ -272,7 +290,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				// Mock node list for BYO node discovery
 				c.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 			},
-			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=7 --ray_port=6379; python3 /workspace/vllm/inference_api.py --distributed-executor-backend=ray --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --dtype=float16 --gpu-memory-utilization=0.84 --max-model-len=2048 --kaito-config-file=/mnt/config/inference_config.yaml --kaito-kv-cache-cpu-memory-utilization=0 --pipeline-parallel-size=7 --tensor-parallel-size=1; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
+			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=7 --ray_port=6379; python3 /workspace/vllm/inference_api.py --distributed-executor-backend=ray --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --dtype=float16 --gpu-memory-utilization=0.84 --max-model-len=auto --kaito-kv-cache-cpu-memory-utilization=0 --pipeline-parallel-size=7 --tensor-parallel-size=1; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
 
 			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar, {
 				Name: "HF_TOKEN",
@@ -368,6 +386,10 @@ func TestGeneratePresetInference(t *testing.T) {
 				workspace.Inference.Adapters = nil
 			}
 
+			// Always assign (including the zero value) so prior test cases don't leak
+			// a non-empty Config into later runs through the shared MockWorkspace.
+			workspace.Inference.Config = tc.inferenceConfig
+
 			model := plugin.KaitoModelRegister.MustGet(tc.modelName)
 
 			svc := &corev1.Service{
@@ -381,7 +403,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			}
 			mockClient.CreateOrUpdateObjectInMap(svc)
 
-			createdObject, _ := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, model, mockClient)
+			createdObject, _ := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, model, mockClient, nil)
 
 			statefulset := createdObject.(*appsv1.StatefulSet)
 			image := statefulset.Spec.Template.Spec.Containers[0].Image
@@ -1659,6 +1681,149 @@ func TestInjectRoutingSidecar(t *testing.T) {
 				if !hasDecodePort {
 					t.Errorf("main container should have containerPort %d", consts.PortDecodeVLLM)
 				}
+			}
+		})
+	}
+}
+
+// fakeNodeProvisioner is a minimal NodeProvisioner used to drive
+// SetProvisionerNodeSelector tests. Only BuildNodeSelector is exercised.
+type fakeNodeProvisioner struct {
+	reqs []corev1.NodeSelectorRequirement
+}
+
+func (f *fakeNodeProvisioner) Name() string                  { return "fake" }
+func (f *fakeNodeProvisioner) Start(_ context.Context) error { return nil }
+func (f *fakeNodeProvisioner) ProvisionNodes(_ context.Context, _ *v1beta1.Workspace) error {
+	return nil
+}
+func (f *fakeNodeProvisioner) DeleteNodes(_ context.Context, _ *v1beta1.Workspace) error { return nil }
+func (f *fakeNodeProvisioner) EnsureNodesReady(_ context.Context, _ *v1beta1.Workspace) (bool, bool, error) {
+	return true, false, nil
+}
+func (f *fakeNodeProvisioner) EnableDriftRemediation(_ context.Context, _, _ string) error {
+	return nil
+}
+func (f *fakeNodeProvisioner) DisableDriftRemediation(_ context.Context, _, _ string) error {
+	return nil
+}
+func (f *fakeNodeProvisioner) CollectNodeStatusInfo(_ context.Context, _ *v1beta1.Workspace) ([]metav1.Condition, error) {
+	return nil, nil
+}
+func (f *fakeNodeProvisioner) BuildNodeSelector(_ context.Context, _ *v1beta1.Workspace) []corev1.NodeSelectorRequirement {
+	return f.reqs
+}
+
+func TestSetProvisionerNodeSelector(t *testing.T) {
+	wsReqs := []corev1.NodeSelectorRequirement{
+		{
+			Key:      v1beta1.LabelWorkspaceName,
+			Operator: corev1.NodeSelectorOpIn,
+			Values:   []string{"ws-a"},
+		},
+		{
+			Key:      v1beta1.LabelWorkspaceNamespace,
+			Operator: corev1.NodeSelectorOpIn,
+			Values:   []string{"ns-a"},
+		},
+	}
+
+	existingReq := corev1.NodeSelectorRequirement{
+		Key:      "topology.kubernetes.io/zone",
+		Operator: corev1.NodeSelectorOpIn,
+		Values:   []string{"zone-1"},
+	}
+
+	testcases := map[string]struct {
+		provisioner    *fakeNodeProvisioner
+		initialSpec    *corev1.PodSpec
+		expectAffinity bool
+		expectReqs     []corev1.NodeSelectorRequirement
+	}{
+		"nil provisioner is a no-op": {
+			provisioner:    nil,
+			initialSpec:    &corev1.PodSpec{},
+			expectAffinity: false,
+		},
+		"empty requirements is a no-op": {
+			provisioner:    &fakeNodeProvisioner{reqs: nil},
+			initialSpec:    &corev1.PodSpec{},
+			expectAffinity: false,
+		},
+		"creates full affinity tree when spec has none": {
+			provisioner:    &fakeNodeProvisioner{reqs: wsReqs},
+			initialSpec:    &corev1.PodSpec{},
+			expectAffinity: true,
+			expectReqs:     wsReqs,
+		},
+		"creates NodeAffinity when spec has Affinity but no NodeAffinity": {
+			provisioner:    &fakeNodeProvisioner{reqs: wsReqs},
+			initialSpec:    &corev1.PodSpec{Affinity: &corev1.Affinity{}},
+			expectAffinity: true,
+			expectReqs:     wsReqs,
+		},
+		"appends to existing NodeSelectorTerms[0].MatchExpressions": {
+			provisioner: &fakeNodeProvisioner{reqs: wsReqs},
+			initialSpec: &corev1.PodSpec{
+				Affinity: &corev1.Affinity{
+					NodeAffinity: &corev1.NodeAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+							NodeSelectorTerms: []corev1.NodeSelectorTerm{
+								{MatchExpressions: []corev1.NodeSelectorRequirement{existingReq}},
+							},
+						},
+					},
+				},
+			},
+			expectAffinity: true,
+			expectReqs:     append([]corev1.NodeSelectorRequirement{existingReq}, wsReqs...),
+		},
+		"adds a term when NodeSelectorTerms is empty": {
+			provisioner: &fakeNodeProvisioner{reqs: wsReqs},
+			initialSpec: &corev1.PodSpec{
+				Affinity: &corev1.Affinity{
+					NodeAffinity: &corev1.NodeAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{},
+					},
+				},
+			},
+			expectAffinity: true,
+			expectReqs:     wsReqs,
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			ws := &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "ws-a", Namespace: "ns-a"},
+			}
+			gctx := &generator.WorkspaceGeneratorContext{
+				Ctx:       context.TODO(),
+				Workspace: ws,
+			}
+			if tc.provisioner != nil {
+				gctx.NodeProvisioner = tc.provisioner
+			}
+
+			if err := SetProvisionerNodeSelector(gctx, tc.initialSpec); err != nil {
+				t.Fatalf("SetProvisionerNodeSelector returned error: %v", err)
+			}
+
+			if !tc.expectAffinity {
+				if tc.initialSpec.Affinity != nil && tc.initialSpec.Affinity.NodeAffinity != nil &&
+					tc.initialSpec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution != nil {
+					t.Fatalf("expected no node affinity, got %+v", tc.initialSpec.Affinity.NodeAffinity)
+				}
+				return
+			}
+
+			nodeSel := tc.initialSpec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution
+			if nodeSel == nil || len(nodeSel.NodeSelectorTerms) == 0 {
+				t.Fatalf("expected non-empty NodeSelectorTerms, got %+v", nodeSel)
+			}
+			got := nodeSel.NodeSelectorTerms[0].MatchExpressions
+			if !reflect.DeepEqual(got, tc.expectReqs) {
+				t.Errorf("MatchExpressions mismatch\n  got:  %+v\n  want: %+v", got, tc.expectReqs)
 			}
 		})
 	}

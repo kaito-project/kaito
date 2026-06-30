@@ -89,6 +89,10 @@ from ragengine.metrics.prometheus_metrics import (  # noqa: E402
     rag_persist_latency,
     rag_persist_requests_total,
 )
+from ragengine.streaming.guardrails import (  # noqa: E402
+    apply_streaming_guardrails,
+    raise_if_streaming_guardrails_unsupported,
+)
 
 # Import Prometheus client for metrics collection
 
@@ -353,13 +357,26 @@ async def chat_completions(request: dict):
             )
 
         guardrails = guardrails_reloader.get_current()
+        if request.get("tools") or request.get("functions"):
+            raise HTTPException(
+                status_code=400,
+                detail="tools and functions are not supported.",
+            )
+        if request.get("n", 1) > 1:
+            raise HTTPException(
+                status_code=400,
+                detail="n > 1 is not supported.",
+            )
         if request.get("stream") is True:
             if guardrails.enabled:
-                raise HTTPException(
-                    status_code=400,
-                    detail="stream=true is not supported when output guardrails are enabled.",
-                )
+                raise_if_streaming_guardrails_unsupported(guardrails)
             response = await rag_ops.chat_completion(request)
+            if guardrails.enabled:
+                response = apply_streaming_guardrails(
+                    response,
+                    guardrails,
+                    request,
+                )
             status = STATUS_SUCCESS
             return StreamingResponse(
                 response,

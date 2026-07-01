@@ -42,9 +42,7 @@ class BadSubstringScanner:
 
 
 def test_safe_prefix_emits_in_max_emit_chars_chunks():
-    window = StreamingBufferWindow(
-        AllowScanner(), holdback_chars=0, max_emit_chars=3
-    )
+    window = StreamingBufferWindow(AllowScanner(), holdback_chars=0, max_emit_chars=3)
 
     result = window.feed("abcdefgh")
     flush_result = window.flush()
@@ -68,9 +66,7 @@ def test_constructor_rejects_invalid_window_settings(kwargs, message):
 
 def test_holdback_tail_is_retained_and_not_emitted():
     scanner = BadSubstringScanner()
-    window = StreamingBufferWindow(
-        scanner, holdback_chars=3, max_emit_chars=10
-    )
+    window = StreamingBufferWindow(scanner, holdback_chars=3, max_emit_chars=10)
 
     result = window.feed("abcdef")
     flush_result = window.flush()
@@ -108,9 +104,7 @@ def test_split_bad_substring_is_detected_before_tail_emits():
 
 def test_final_flush_scans_and_emits_remaining_text():
     scanner = BadSubstringScanner()
-    window = StreamingBufferWindow(
-        scanner, holdback_chars=5, max_emit_chars=4
-    )
+    window = StreamingBufferWindow(scanner, holdback_chars=5, max_emit_chars=4)
 
     result = window.feed("tail")
     flush_result = window.flush()

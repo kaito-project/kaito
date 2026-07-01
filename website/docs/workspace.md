@@ -28,7 +28,7 @@ Each step is reflected in the `Workspace` status conditions (see [Status conditi
 
 The controller first ensures enough GPU nodes exist to satisfy the `resource` spec. Based on the requested `instanceType`, KAITO provisions GPU nodes (for example, by creating `NodeClaim` objects through the GPU provisioner) and waits until the nodes are `Ready` with their vendor GPU device plugins reporting allocatable GPUs. The matching `labelSelector` labels are applied so the inference pods land on those nodes.
 
-For on-premise clusters where GPU SKUs cannot be provisioned dynamically, nodes can be pre-configured and supplied directly. The user must ensure the vendor-specific GPU plugin is installed on every prepared node — i.e. the node's `status.allocatable` reports a non-zero GPU resource:
+For on-premise clusters where GPU SKUs cannot be provisioned dynamically, nodes can be pre-configured and supplied directly. Check the [bring your own GPU nodes guide](./installation.md#option-2-bring-your-own-gpu-nodes) for details. The user must ensure the vendor-specific GPU plugin is installed on every prepared node — i.e. the node's `status.allocatable` reports a non-zero GPU resource:
 
 ```
 $ kubectl get node $NODE_NAME -o json | jq .status.allocatable
@@ -43,10 +43,8 @@ $ kubectl get node $NODE_NAME -o json | jq .status.allocatable
 }
 ```
 
-When node names are listed in the `preferredNodes` field of the `resource` spec, the controller skips GPU node provisioning and schedules the workload onto those prepared nodes.
-
 :::warning
-The node objects of the preferred nodes need to contain the same matching labels as specified in the `resource` spec. Otherwise, the KAITO controller would not recognize them.
+The node objects of the BYO nodes need to contain the same matching labels as specified in the `resource` spec. Otherwise, the KAITO controller would not recognize them.
 :::
 
 A minimal `Workspace` only needs the GPU SKU in the `resource` spec and a model name in the `inference` spec:

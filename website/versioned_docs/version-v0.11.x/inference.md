@@ -1,5 +1,5 @@
 ---
-title: Inference
+title: InferenceSet
 ---
 
 `InferenceSet` is the recommended Custom Resource Definition (CRD) for serving models in production. It supports 

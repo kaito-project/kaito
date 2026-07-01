@@ -41,7 +41,6 @@ const sidebars = {
             collapsed: false,
             items: [
                 'inference',
-                'multi-node-inference',
                 'model-mirror-streaming',
                 'memory-estimator',
                 'keda-autoscaler-inference',
@@ -95,6 +94,8 @@ const sidebars = {
                 'contributing',
                 'preset-onboarding',
                 'proposals',
+                'workspace',
+                'multi-node-inference',
             ],
         },
     ],

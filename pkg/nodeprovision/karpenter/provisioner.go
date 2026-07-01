@@ -590,3 +590,20 @@ func (p *KarpenterProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *ka
 
 	return []metav1.Condition{nodeCond, nodeClaimCond, resourceCond}, nil
 }
+
+// BuildNodeSelector returns requirements that pin pods to nodes provisioned
+// for this workspace. The labels are stamped on NodeClaims by Karpenter.
+func (p *KarpenterProvisioner) BuildNodeSelector(ctx context.Context, ws *kaitov1beta1.Workspace) []corev1.NodeSelectorRequirement {
+	return []corev1.NodeSelectorRequirement{
+		{
+			Key:      consts.KarpenterWorkspaceNameKey,
+			Operator: corev1.NodeSelectorOpIn,
+			Values:   []string{ws.Name},
+		},
+		{
+			Key:      consts.KarpenterWorkspaceNamespaceKey,
+			Operator: corev1.NodeSelectorOpIn,
+			Values:   []string{ws.Namespace},
+		},
+	}
+}

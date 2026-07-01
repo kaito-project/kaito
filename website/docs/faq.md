@@ -17,11 +17,13 @@ Then the node should have the label: `apps=falcon-7b`. In addition, if the GPU n
 
 ### Will KAITO controller upgrade affect existing inference workload?
 
-No. KAITO controller does not update existing inference workload when controller is upgraded. 
+By default, no. Upgrading the KAITO controller does not change existing `Workspace` inference workloads — they keep running their current base image until recreated.
+
+The exception is `InferenceSet` with **automatic base image upgrades** enabled. When you upgrade the controller to a release that bundles a newer base image, an `InferenceSet` with `spec.autoUpgrade.enabled: true` (and the `enableBaseImageAutoUpgrade` feature gate turned on) detects the version drift and rolls its replicas onto the new image one at a time, keeping the service available throughout. See [Automatic base image upgrades](./inference.md#automatic-base-image-upgrades) for details.
 
 ### How to upgrade the existing workload to use the latest model configuration?
-
-You can delete the existing inference workload (`StatefulSet`) manually, and the workspace controller will create a new one with the latest preset configuration (e.g., the latest base image) defined in the latest release.
+- Option 1 (recommended): **Use an `InferenceSet` with auto-upgrade**. Enable `spec.autoUpgrade.enabled: true` so the controller automatically performs a rolling, one-replica-at-a-time upgrade onto the latest base image after a controller upgrade. See [Automatic base image upgrades](./inference.md#automatic-base-image-upgrades).
+- Option 2: **Delete and recreate**. You can delete the existing inference workload (`StatefulSet`) manually, and the workspace controller will create a new one with the latest preset configuration (e.g., the latest base image) defined in the latest release.
 
 
 ### How to update model/inference parameters to override the KAITO Preset Configuration?

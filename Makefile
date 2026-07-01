@@ -139,7 +139,7 @@ generate-vllm-arch-list: ## Regenerate presets/workspace/models/vllm_model_arch_
 
 .PHONY: unit-test
 unit-test: ## Run unit tests.
-	go test -v $(shell go list ./pkg/... ./api/... | \
+	go test -v $(shell go list ./pkg/... ./api/... ./presets/... | \
 	grep -v -e /vendor -e /api/v1alpha1/zz_generated.deepcopy.go -e /api/v1beta1/zz_generated.deepcopy.go -e /pkg/utils/test/...) \
 	-race -coverprofile=coverage.txt -covermode=atomic
 	go tool cover -func=coverage.txt

@@ -133,8 +133,8 @@ class _LLMGuardWindowScanner:
                 [scanner], self._prompt, text, fail_fast=False
             )
             if not all(results_valid.values()):
-                return WindowScanResult(safe_prefix_chars=0, blocked=True)
-        return WindowScanResult(safe_prefix_chars=len(text))
+                return WindowScanResult(safe_prefix_len=0, blocked=True)
+        return WindowScanResult(safe_prefix_len=len(text))
 
 
 async def _flush_window_or_block(

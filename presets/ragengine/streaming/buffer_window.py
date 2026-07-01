@@ -26,7 +26,7 @@ from typing import Protocol
 
 @dataclass(frozen=True)
 class WindowScanResult:
-    safe_prefix_chars: int
+    safe_prefix_len: int
     blocked: bool = False
 
 
@@ -65,13 +65,13 @@ class StreamingBufferWindow:
             return WindowEmitResult(chunks=(), blocked=True)
 
         self._pending_buffer += text
-        safe_emit_limit = self._safe_emit_limit()
-        if safe_emit_limit == 0:
+        emit_prefix_len = self._emit_prefix_len()
+        if emit_prefix_len == 0:
             return WindowEmitResult(chunks=())
 
         return self._scan_and_emit(
             self._pending_buffer,
-            safe_emit_limit=safe_emit_limit,
+            emit_prefix_len=emit_prefix_len,
         )
 
     def flush(self) -> WindowEmitResult:
@@ -82,10 +82,10 @@ class StreamingBufferWindow:
 
         return self._scan_and_emit(
             self._pending_buffer,
-            safe_emit_limit=len(self._pending_buffer),
+            emit_prefix_len=len(self._pending_buffer),
         )
 
-    def _safe_emit_limit(self) -> int:
+    def _emit_prefix_len(self) -> int:
         if self._holdback_chars == 0:
             return len(self._pending_buffer)
         return max(0, len(self._pending_buffer) - self._holdback_chars)
@@ -94,7 +94,7 @@ class StreamingBufferWindow:
         self,
         scan_text: str,
         *,
-        safe_emit_limit: int,
+        emit_prefix_len: int,
     ) -> WindowEmitResult:
         scan_result = self._scanner.scan(scan_text)
         if scan_result.blocked:
@@ -102,13 +102,13 @@ class StreamingBufferWindow:
             self._pending_buffer = ""
             return WindowEmitResult(chunks=(), blocked=True)
 
-        safe_prefix_chars = max(
+        safe_prefix_len = max(
             0,
-            min(scan_result.safe_prefix_chars, safe_emit_limit),
+            min(scan_result.safe_prefix_len, emit_prefix_len),
         )
-        if safe_prefix_chars == 0:
+        if safe_prefix_len == 0:
             return WindowEmitResult(chunks=())
 
-        safe_prefix = self._pending_buffer[:safe_prefix_chars]
-        self._pending_buffer = self._pending_buffer[safe_prefix_chars:]
+        safe_prefix = self._pending_buffer[:safe_prefix_len]
+        self._pending_buffer = self._pending_buffer[safe_prefix_len:]
         return WindowEmitResult(chunks=(safe_prefix,))

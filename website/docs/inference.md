@@ -209,6 +209,21 @@ KAITO ships the inference server (vLLM) as a base image embedded in the controll
 ### When to use
 Enable auto-upgrade when you want long-running `InferenceSet` workloads to automatically pick up newer base images (e.g. vLLM bug fixes, performance improvements, or security patches) shipped with KAITO controller upgrades, without manually recreating replicas — while keeping the service available throughout the rollout. If you instead prefer to pin replicas to a fixed base image and control exactly when they change, leave auto-upgrade disabled.
 
+### Upgrade strategies
+
+Auto-upgrade supports two strategies, selected via `spec.autoUpgrade.strategy`. Both upgrade one replica at a time; they differ in how each replica is replaced.
+
+| Strategy | How it works | Downtime | Extra capacity |
+| --- | --- | --- | --- |
+| `InPlace` (default) | Updates the existing replica's `StatefulSet` image in place. The pod is recreated on the new image and the model is reloaded before it becomes ready again. | Brief per-replica downtime while the pod restarts and reloads weights. | None. |
+| `BlueGreen` | Creates a **new** replica ("green") on the new base image, waits for it to become inference-ready, then deletes the **old** replica ("blue"). | None — the old replica keeps serving until the new one is ready. | Temporarily runs one extra replica during each cutover, requiring additional GPU capacity. |
+
+Choose `BlueGreen` for latency-sensitive or large models where a reload-induced gap is unacceptable and you have spare GPU capacity for the surge replica. Choose `InPlace` (the default) when minimizing capacity/cost matters more than avoiding a brief per-replica interruption.
+
+:::note
+With `BlueGreen`, the surge replica downloads the model weights into its own storage before it can become ready, so a cutover for a large model can take a while — but this happens off the serving path, so the old replica continues serving with no downtime. When node auto-provisioning is enabled this may provision an additional GPU node for the surge replica; in bring-your-own-nodes setups, ensure there is spare labeled node capacity or the surge replica will stay `Pending`.
+:::
+
 ### Enabling auto-upgrade
 
 Auto-upgrade requires two things:
@@ -241,6 +256,7 @@ Auto-upgrade requires two things:
            name: "google/gemma-4-31B-it"
      autoUpgrade:
        enabled: true
+       # strategy: InPlace   # default; use BlueGreen for zero-downtime upgrades
    ```
 
 ### Restricting upgrades to a maintenance window

@@ -47,16 +47,12 @@ class StreamingBufferWindow:
         scanner: WindowScanner,
         *,
         holdback_chars: int,
-        max_emit_chars: int,
     ) -> None:
         if holdback_chars < 0:
             raise ValueError("holdback_chars must be non-negative.")
-        if max_emit_chars <= 0:
-            raise ValueError("max_emit_chars must be positive.")
 
         self._scanner = scanner
         self._holdback_chars = holdback_chars
-        self._max_emit_chars = max_emit_chars
         self._pending_buffer = ""
         self._blocked = False
 
@@ -115,10 +111,4 @@ class StreamingBufferWindow:
 
         safe_prefix = self._pending_buffer[:safe_prefix_chars]
         self._pending_buffer = self._pending_buffer[safe_prefix_chars:]
-        return WindowEmitResult(chunks=self._chunk_safe_prefix(safe_prefix))
-
-    def _chunk_safe_prefix(self, safe_prefix: str) -> tuple[str, ...]:
-        return tuple(
-            safe_prefix[index : index + self._max_emit_chars]
-            for index in range(0, len(safe_prefix), self._max_emit_chars)
-        )
+        return WindowEmitResult(chunks=(safe_prefix,))

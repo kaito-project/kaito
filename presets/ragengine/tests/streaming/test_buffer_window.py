@@ -41,23 +41,20 @@ class BadSubstringScanner:
         return WindowScanResult(safe_prefix_chars=len(text))
 
 
-def test_safe_prefix_emits_in_max_emit_chars_chunks():
-    window = StreamingBufferWindow(AllowScanner(), holdback_chars=0, max_emit_chars=3)
+def test_safe_prefix_emits_as_single_confirmed_chunk():
+    window = StreamingBufferWindow(AllowScanner(), holdback_chars=0)
 
     result = window.feed("abcdefgh")
     flush_result = window.flush()
 
-    assert result.chunks == ("abc", "def", "gh")
+    assert result.chunks == ("abcdefgh",)
     assert result.blocked is False
     assert flush_result.chunks == ()
 
 
 @pytest.mark.parametrize(
     ("kwargs", "message"),
-    (
-        ({"holdback_chars": -1, "max_emit_chars": 1}, "holdback"),
-        ({"holdback_chars": 0, "max_emit_chars": 0}, "max_emit"),
-    ),
+    (({"holdback_chars": -1}, "holdback"),),
 )
 def test_constructor_rejects_invalid_window_settings(kwargs, message):
     with pytest.raises(ValueError, match=message):
@@ -66,7 +63,7 @@ def test_constructor_rejects_invalid_window_settings(kwargs, message):
 
 def test_holdback_tail_is_retained_and_not_emitted():
     scanner = BadSubstringScanner()
-    window = StreamingBufferWindow(scanner, holdback_chars=3, max_emit_chars=10)
+    window = StreamingBufferWindow(scanner, holdback_chars=3)
 
     result = window.feed("abcdef")
     flush_result = window.flush()
@@ -77,9 +74,7 @@ def test_holdback_tail_is_retained_and_not_emitted():
 
 
 def test_blocked_substring_crossing_holdback_boundary_is_detected():
-    window = StreamingBufferWindow(
-        BadSubstringScanner(), holdback_chars=1, max_emit_chars=10
-    )
+    window = StreamingBufferWindow(BadSubstringScanner(), holdback_chars=1)
 
     result = window.feed("safe bad")
 
@@ -89,9 +84,7 @@ def test_blocked_substring_crossing_holdback_boundary_is_detected():
 
 
 def test_split_bad_substring_is_detected_before_tail_emits():
-    window = StreamingBufferWindow(
-        BadSubstringScanner(), holdback_chars=2, max_emit_chars=10
-    )
+    window = StreamingBufferWindow(BadSubstringScanner(), holdback_chars=2)
 
     first_result = window.feed("safe b")
     second_result = window.feed("ad text")
@@ -104,7 +97,7 @@ def test_split_bad_substring_is_detected_before_tail_emits():
 
 def test_final_flush_scans_and_emits_remaining_text():
     scanner = BadSubstringScanner()
-    window = StreamingBufferWindow(scanner, holdback_chars=5, max_emit_chars=4)
+    window = StreamingBufferWindow(scanner, holdback_chars=5)
 
     result = window.feed("tail")
     flush_result = window.flush()
@@ -116,9 +109,7 @@ def test_final_flush_scans_and_emits_remaining_text():
 
 
 def test_blocked_decision_stops_downstream_emission():
-    window = StreamingBufferWindow(
-        BadSubstringScanner(), holdback_chars=0, max_emit_chars=10
-    )
+    window = StreamingBufferWindow(BadSubstringScanner(), holdback_chars=0)
 
     blocked_result = window.feed("bad content")
     later_result = window.feed(" safe content")
@@ -133,9 +124,7 @@ def test_blocked_decision_stops_downstream_emission():
 
 
 def test_blocked_decision_clears_pending_buffer():
-    window = StreamingBufferWindow(
-        BadSubstringScanner(), holdback_chars=2, max_emit_chars=10
-    )
+    window = StreamingBufferWindow(BadSubstringScanner(), holdback_chars=2)
 
     result = window.feed("safe bad content")
 

@@ -210,6 +210,46 @@ func TestGetInferenceCommandVLLMSingleNode(t *testing.T) {
 	assert.Contains(t, cmd[2], "tensor-parallel-size=2")
 }
 
+func TestGetInferenceCommandVLLMKVCacheEventsDefault(t *testing.T) {
+	// Default: --kv-events-config is injected so downstream ZMQ subscribers
+	// can consume BlockStored / BlockRemoved / AllBlocksCleared events.
+	p := &PresetParam{
+		RuntimeParam: RuntimeParam{
+			VLLM: VLLMParam{
+				BaseCommand:    "vllm serve",
+				ModelRunParams: map[string]string{},
+			},
+		},
+	}
+	cmd := p.GetInferenceCommand(RuntimeContext{
+		RuntimeName: RuntimeNameVLLM,
+		SKUNumGPUs:  1,
+		NumNodes:    1,
+	})
+	require.Len(t, cmd, 3)
+	assert.Contains(t, cmd[2], `--kv-events-config='{"enable_kv_cache_events":true}'`)
+
+	// User override via VLLMParam.ModelRunParams must win (no rebuild required).
+	p2 := &PresetParam{
+		RuntimeParam: RuntimeParam{
+			VLLM: VLLMParam{
+				BaseCommand: "vllm serve",
+				ModelRunParams: map[string]string{
+					"kv-events-config": `'{"enable_kv_cache_events":false}'`,
+				},
+			},
+		},
+	}
+	cmd2 := p2.GetInferenceCommand(RuntimeContext{
+		RuntimeName: RuntimeNameVLLM,
+		SKUNumGPUs:  1,
+		NumNodes:    1,
+	})
+	require.Len(t, cmd2, 3)
+	assert.Contains(t, cmd2[2], `--kv-events-config='{"enable_kv_cache_events":false}'`)
+	assert.NotContains(t, cmd2[2], `"enable_kv_cache_events":true`)
+}
+
 func TestGetInferenceCommandVLLMInferencePort(t *testing.T) {
 	p := &PresetParam{
 		RuntimeParam: RuntimeParam{

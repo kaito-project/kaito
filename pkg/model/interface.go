@@ -384,6 +384,17 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	}
 	p.VLLM.ModelRunParams["gpu-memory-utilization"] = "0.84"
 
+	// Enable KV cache events by default so external consumers can subscribe
+	// to BlockStored / BlockRemoved / AllBlocksCleared events over ZMQ on
+	// tcp://*:5557. Passed from the operator side (rather than baked into the
+	// preset image) so we don't need an image rebuild to toggle it and users
+	// can still override via --kaito-config-file. JSON is single-quoted so the
+	// value survives shell interpolation in ShellCmd.
+	// See https://docs.vllm.ai/en/stable/api/vllm/config/kv_events/
+	if _, ok := p.VLLM.ModelRunParams["kv-events-config"]; !ok {
+		p.VLLM.ModelRunParams["kv-events-config"] = `'{"enable_kv_cache_events":true}'`
+	}
+
 	// Disable the allreduce + RMSNorm fusion pass. Since vLLM 0.22.1 this pass is
 	// enabled by default and routes through FlashInfer's TRT-LLM MNNVL kernel, which
 	// is JIT-compiled at runtime and requires the CUDA toolkit (nvcc). The slim

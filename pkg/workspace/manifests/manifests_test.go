@@ -324,3 +324,29 @@ func TestGeneratePullerContainers(t *testing.T) {
 		})
 	}
 }
+
+func TestGenerateServiceManifest_KVEventsPort(t *testing.T) {
+	ws := &kaitov1beta1.Workspace{}
+	ws.Name = "ws"
+	ws.Namespace = "kaito"
+
+	hasKVEvents := func(svc *corev1.Service) bool {
+		for _, p := range svc.Spec.Ports {
+			if p.Name == "kv-events" {
+				if p.Port != consts.PortKVCacheEvents {
+					t.Fatalf("kv-events port = %d, want %d", p.Port, consts.PortKVCacheEvents)
+				}
+				return true
+			}
+		}
+		return false
+	}
+
+	// ClusterIP: kv-events must be exposed for in-cluster consumers.
+	cip := GenerateServiceManifest(ws, corev1.ServiceTypeClusterIP)
+	assert.True(t, hasKVEvents(cip), "ClusterIP Service should expose kv-events port")
+
+	// LoadBalancer: kv-events must NOT be exposed (unauthenticated ZMQ stream).
+	lb := GenerateServiceManifest(ws, corev1.ServiceTypeLoadBalancer)
+	assert.False(t, hasKVEvents(lb), "LoadBalancer Service must not expose kv-events port")
+}

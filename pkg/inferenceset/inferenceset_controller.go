@@ -193,7 +193,7 @@ func aggregateBenchmarkResults(workspaces []kaitov1beta1.Workspace) (totalTPM fl
 
 // partitionManagedWorkspaces splits the given workspaces into those managed by
 // the InferenceSet's normal replica accounting (returned in managed) and detects
-// whether a blue-green auto-upgrade is in progress.
+// whether a surge-based auto-upgrade is in progress.
 //
 // Workspaces carrying the upgrade-surge-for label are surge replacements owned by
 // the AutoUpgradeRunner; they are excluded from managed and their presence sets
@@ -231,7 +231,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 		desiredReplicas = *iObj.Spec.Replicas
 	}
 
-	// Workspaces created by the blue-green auto-upgrade strategy carry the
+	// Workspaces created by the surge-based auto-upgrade strategy carry the
 	// upgrade-surge-for label and are owned by the AutoUpgradeRunner for the
 	// duration of the rollout. Exclude them from replica accounting so the
 	// InferenceSet controller does not fight the runner (e.g. delete the surge

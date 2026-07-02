@@ -47,7 +47,7 @@ type InferenceSetTemplate struct {
 
 // AutoUpgradeStrategy describes how the controller replaces Workspaces when a
 // newer base image version is detected.
-// +kubebuilder:validation:Enum=InPlace;BlueGreen
+// +kubebuilder:validation:Enum=InPlace;Surge
 type AutoUpgradeStrategy string
 
 const (
@@ -56,11 +56,11 @@ const (
 	// while the pod is recreated and the model is reloaded.
 	InPlaceUpgradeStrategy AutoUpgradeStrategy = "InPlace"
 
-	// BlueGreenUpgradeStrategy creates a new Workspace on the new base image,
+	// SurgeBasedUpgradeStrategy creates a new Workspace on the new base image,
 	// waits for it to become inference-ready, then deletes the old Workspace.
-	// This avoids downtime at the cost of temporarily running both Workspaces
+	// This avoids downtime at the cost of temporarily running an extra Workspace
 	// (extra GPU capacity) during the rollout.
-	BlueGreenUpgradeStrategy AutoUpgradeStrategy = "BlueGreen"
+	SurgeBasedUpgradeStrategy AutoUpgradeStrategy = "Surge"
 )
 
 // AutoUpgradePolicy configures automatic base image upgrade behavior.
@@ -74,7 +74,7 @@ type AutoUpgradePolicy struct {
 
 	// Strategy selects how Workspaces are replaced during an upgrade.
 	// "InPlace" (default) rolls the existing Workspace's StatefulSet, incurring
-	// downtime. "BlueGreen" creates a new Workspace, waits for it to become
+	// downtime. "Surge" creates a new Workspace, waits for it to become
 	// ready, then deletes the old one, avoiding downtime.
 	// +optional
 	// +kubebuilder:default:=InPlace

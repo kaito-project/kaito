@@ -98,11 +98,11 @@ spec:
                     description: |-
                       Strategy selects how Workspaces are replaced during an upgrade.
                       "InPlace" (default) rolls the existing Workspace's StatefulSet, incurring
-                      downtime. "BlueGreen" creates a new Workspace, waits for it to become
+                      downtime. "Surge" creates a new Workspace, waits for it to become
                       ready, then deletes the old one, avoiding downtime.
                     enum:
                     - InPlace
-                    - BlueGreen
+                    - Surge
                     type: string
                 type: object
               labelSelector:
@@ -503,11 +503,11 @@ spec:
                     description: |-
                       Strategy selects how Workspaces are replaced during an upgrade.
                       "InPlace" (default) rolls the existing Workspace's StatefulSet, incurring
-                      downtime. "BlueGreen" creates a new Workspace, waits for it to become
+                      downtime. "Surge" creates a new Workspace, waits for it to become
                       ready, then deletes the old one, avoiding downtime.
                     enum:
                     - InPlace
-                    - BlueGreen
+                    - Surge
                     type: string
                 type: object
               labelSelector:

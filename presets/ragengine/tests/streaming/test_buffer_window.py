@@ -26,7 +26,7 @@ from ragengine.streaming.buffer_window import (
 
 class AllowScanner:
     def scan(self, text: str) -> WindowScanResult:
-        return WindowScanResult(safe_prefix_len=len(text))
+        return WindowScanResult()
 
 
 class BadSubstringScanner:
@@ -37,11 +37,11 @@ class BadSubstringScanner:
     def scan(self, text: str) -> WindowScanResult:
         self.scanned_texts.append(text)
         if self.substring in text:
-            return WindowScanResult(safe_prefix_len=0, blocked=True)
-        return WindowScanResult(safe_prefix_len=len(text))
+            return WindowScanResult(blocked=True)
+        return WindowScanResult()
 
 
-def test_safe_prefix_emits_as_single_confirmed_chunk():
+def test_safe_text_emits_as_single_confirmed_chunk():
     window = StreamingBufferWindow(AllowScanner(), holdback_len=0)
 
     result = window.feed("abcdefgh")

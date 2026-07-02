@@ -26,7 +26,6 @@ from typing import Protocol
 
 @dataclass(frozen=True)
 class WindowScanResult:
-    safe_prefix_len: int
     blocked: bool = False
 
 
@@ -101,13 +100,6 @@ class StreamingBufferWindow:
             self._pending_buffer = ""
             return WindowEmitResult(chunks=(), blocked=True)
 
-        safe_prefix_len = max(
-            0,
-            min(scan_result.safe_prefix_len, emit_len),
-        )
-        if safe_prefix_len == 0:
-            return WindowEmitResult(chunks=())
-
-        safe_prefix = self._pending_buffer[:safe_prefix_len]
-        self._pending_buffer = self._pending_buffer[safe_prefix_len:]
-        return WindowEmitResult(chunks=(safe_prefix,))
+        emit_text = self._pending_buffer[:emit_len]
+        self._pending_buffer = self._pending_buffer[emit_len:]
+        return WindowEmitResult(chunks=(emit_text,))

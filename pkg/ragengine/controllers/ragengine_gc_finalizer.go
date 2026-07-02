@@ -22,7 +22,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
 )
@@ -33,7 +32,7 @@ func (c *RAGEngineReconciler) garbageCollectRAGEngine(ctx context.Context, ragEn
 
 	// Only clean up NodeClaims when node auto-provisioning is enabled,
 	// since NodeClaim CRDs may not be installed when it's disabled.
-	if ragEngineObj.Spec.Compute != nil && !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+	if ragEngineObj.Spec.Compute != nil && !consts.IsBYOProvisioner() {
 		// Check if there are any nodeClaims associated with this ragengine.
 		ncList, err := nodeclaim.ListNodeClaim(ctx, ragEngineObj, c.Client)
 		if err != nil {

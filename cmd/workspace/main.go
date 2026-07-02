@@ -124,7 +124,7 @@ func main() {
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.BoolVar(&enableWebhook, "webhook", true,
 		"Enable webhook for controller manager. Default is true.")
-	flag.StringVar(&featureGates, "feature-gates", "vLLM=true,disableNodeAutoProvisioning=false", "Enable Kaito feature gates. Default: vLLM=true,disableNodeAutoProvisioning=false.")
+	flag.StringVar(&featureGates, "feature-gates", "vLLM=true", "Enable Kaito feature gates. Default: vLLM=true.")
 	flag.StringVar(&defaultNodeImageFamily, "default-node-image-family", "", "Default node image family annotation for generated NodeClaims. Supported values: azurelinux, ubuntu. Empty means ubuntu. Unsupported values cause startup failure.")
 	flag.StringVar(&nodeProvisionerType, "node-provisioner", "azure-gpu-provisioner", "Node provisioner type. Supported values: azure-gpu-provisioner, karpenter, byo. Default: azure-gpu-provisioner.")
 	flag.StringVar(&karpenterNodeClassGroup, "karpenter-node-class-group", "karpenter.azure.com", "Karpenter NodeClass API group. Only used when node-provisioner=karpenter.")
@@ -161,7 +161,7 @@ func main() {
 	sku.DefaultSKUHandler = skuHandler
 
 	// ModelStreaming requires ModelMirror
-	if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] && !featuregates.FeatureGates[consts.FeatureFlagModelMirror] {
+	if featuregates.Enabled(consts.FeatureFlagModelStreaming) && !featuregates.Enabled(consts.FeatureFlagModelMirror) {
 		klog.ErrorS(fmt.Errorf("ModelStreaming feature gate requires ModelMirror to be enabled"),
 			"set --feature-gates=ModelMirror=true,ModelStreaming=true")
 		exitWithErrorFunc()
@@ -170,14 +170,10 @@ func main() {
 	// Expose the resolved provisioner type for downstream scheduling logic.
 	consts.ActiveNodeProvisioner = nodeProvisionerType
 
-	// Sync feature gate internal state based on --node-provisioner for downstream consumers.
+	// Validate --node-provisioner value; consumers derive BYO/karpenter behavior
+	// from consts.ActiveNodeProvisioner.
 	switch nodeProvisionerType {
-	case consts.NodeProvisionerBYO:
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
-	case consts.NodeProvisionerKarpenter:
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
-	case consts.NodeProvisionerAzureGPU:
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+	case consts.NodeProvisionerBYO, consts.NodeProvisionerKarpenter, consts.NodeProvisionerAzureGPU:
 	default:
 		klog.ErrorS(fmt.Errorf("unsupported node provisioner type %q", nodeProvisionerType), "unable to set --node-provisioner")
 		exitWithErrorFunc()
@@ -271,7 +267,7 @@ func main() {
 	}
 
 	// Set streaming defaults once at startup (read by inference package via StreamingDefaults).
-	if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+	if featuregates.Enabled(consts.FeatureFlagModelStreaming) {
 		streamer, streamerErr := inference.GetModelStreamer(os.Getenv("CLOUD_PROVIDER"))
 		if streamerErr != nil {
 			klog.ErrorS(streamerErr, "unable to resolve model streamer")
@@ -295,7 +291,7 @@ func main() {
 		exitWithErrorFunc()
 	}
 
-	if featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] {
+	if featuregates.Enabled(consts.FeatureFlagEnableInferenceSetController) {
 		inferenceSetReconciler := inferenceset.NewInferenceSetReconciler(
 			kClient,
 			mgr.GetScheme(),
@@ -322,7 +318,7 @@ func main() {
 		}
 
 		// Register AutoUpgradeRunner for automatic base image upgrades.
-		if featuregates.FeatureGates[consts.FeatureFlagEnableBaseImageAutoUpgrade] {
+		if featuregates.Enabled(consts.FeatureFlagEnableBaseImageAutoUpgrade) {
 			if err = mgr.Add(&autoupgrade.AutoUpgradeRunner{
 				Client:   kClient,
 				Interval: autoupgrade.DefaultInterval,
@@ -334,13 +330,13 @@ func main() {
 	}
 
 	// MultiRoleInference controller — requires enableMultiRoleInferenceController.
-	if featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] {
+	if featuregates.Enabled(consts.FeatureFlagEnableMultiRoleInferenceController) {
 		mriReconciler := multiroleinference.NewMultiRoleInferenceReconciler(
 			kClient,
 			mgr.GetScheme(),
 			log.Log.WithName("controllers").WithName("MultiRoleInference"),
 			mgr.GetEventRecorderFor("KAITO-MultiRoleInference-controller"),
-			featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension],
+			featuregates.Enabled(consts.FeatureFlagGatewayAPIInferenceExtension),
 		)
 		if err = mriReconciler.SetupWithManager(mgr); err != nil {
 			klog.ErrorS(err, "unable to create controller", "controller", "MultiRoleInference")
@@ -349,7 +345,7 @@ func main() {
 	}
 
 	// ModelMirror controller — requires ModelMirror feature gate.
-	if featuregates.FeatureGates[consts.FeatureFlagModelMirror] {
+	if featuregates.Enabled(consts.FeatureFlagModelMirror) {
 		// Start from the built-in defaults and override per-field from flags when provided.
 		downloadResources := mmconsts.DefaultDownloadJobResources()
 		if modelMirrorDownloadCPU != "" {

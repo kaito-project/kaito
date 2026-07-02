@@ -86,7 +86,7 @@ func TestParseFeatureGates(t *testing.T) {
 				assert.Check(t, err != nil, "expected error but got nil")
 			} else {
 				assert.NilError(t, err)
-				if tt.targetFeature != "" && FeatureGates[tt.targetFeature] != tt.expectedValue {
+				if tt.targetFeature != "" && Enabled(tt.targetFeature) != tt.expectedValue {
 					t.Errorf("feature gate test %s fails", tt.name)
 				}
 			}

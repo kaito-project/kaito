@@ -26,7 +26,6 @@ import (
 	"k8s.io/utils/ptr"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/utils/test"
@@ -223,10 +222,10 @@ func TestNodeEstimator_EstimateNodeCount(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Ensure NAP is enabled (default behavior) for these tests
-			originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+			originalValue := consts.ActiveNodeProvisioner
+			consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
+				consts.ActiveNodeProvisioner = originalValue
 			}()
 
 			req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, tt.workspace, nil)
@@ -419,10 +418,10 @@ func TestNodeEstimator_EstimateNodeCount_BYO(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Save original feature gate value and enable BYO mode
-			originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+			originalValue := consts.ActiveNodeProvisioner
+			consts.ActiveNodeProvisioner = consts.NodeProvisionerBYO
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
+				consts.ActiveNodeProvisioner = originalValue
 			}()
 
 			// Create a mock client for BYO scenarios
@@ -536,10 +535,10 @@ func TestNodeEstimator_EstimateNodeCount_Falcon7B(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Ensure NAP is enabled for these tests
-			originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+			originalValue := consts.ActiveNodeProvisioner
+			consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
+				consts.ActiveNodeProvisioner = originalValue
 			}()
 
 			req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, tt.workspace, nil)
@@ -601,10 +600,10 @@ func TestNodeEstimator_EstimateNodeCount_Qwen25Coder32B(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Ensure NAP is enabled for these tests
-			originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+			originalValue := consts.ActiveNodeProvisioner
+			consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
+				consts.ActiveNodeProvisioner = originalValue
 			}()
 
 			req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, tt.workspace, nil)

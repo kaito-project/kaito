@@ -167,9 +167,9 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			// Explicitly set vLLM feature gate so decode-role tests are deterministic.
-			origVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
-			featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
-			defer func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = origVLLM }()
+			origVLLM := featuregates.Enabled(consts.FeatureFlagVLLM)
+			featuregates.Set(consts.FeatureFlagVLLM, true)
+			defer func() { featuregates.Set(consts.FeatureFlagVLLM, origVLLM) }()
 
 			helmRelease, err := GenerateInferencePoolHelmRelease(tc.workspace)
 			assert.NoError(t, err)

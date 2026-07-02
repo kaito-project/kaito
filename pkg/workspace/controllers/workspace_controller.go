@@ -1179,7 +1179,7 @@ func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&batchv1.Job{})
 
 	// Only watch NodeClaim resources if node auto-provisioning is enabled
-	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+	if !consts.IsBYOProvisioner() {
 		bldr = bldr.Watches(&karpenterv1.NodeClaim{},
 			&nodeClaimEventHandler{
 				logger:         c.klogger,
@@ -1191,7 +1191,7 @@ func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	// Watch ModelMirror CRs to immediately reconcile workspaces when downloads complete.
-	if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+	if featuregates.Enabled(consts.FeatureFlagModelStreaming) {
 		bldr = bldr.Watches(&kaitov1alpha1.ModelMirror{},
 			enqueueWorkspacesForModelMirror(c.Client),
 		)

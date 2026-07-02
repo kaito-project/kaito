@@ -21,7 +21,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	estimatorpkg "github.com/kaito-project/kaito/pkg/workspace/estimator"
 	"github.com/kaito-project/kaito/presets/workspace/models"
@@ -37,7 +36,7 @@ func NodeEstimateRequestFromWorkspace(ctx context.Context, w *kaitov1beta1.Works
 		ResourceProfile: estimatorpkg.ResourceProfile{
 			InstanceType:                w.Resource.InstanceType,
 			LabelSelector:               w.Resource.LabelSelector,
-			DisableNodeAutoProvisioning: featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning],
+			DisableNodeAutoProvisioning: consts.IsBYOProvisioner(),
 		},
 	}
 	//nolint:staticcheck //SA1019: deprecate Resource.Count field

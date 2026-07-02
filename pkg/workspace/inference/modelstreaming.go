@@ -40,7 +40,7 @@ var StreamingDefaults = struct {
 // ModelStreamingEnabled returns true if the ModelStreaming feature gate is on
 // AND the workspace does not have the opt-out annotation.
 func ModelStreamingEnabled(ws *v1beta1.Workspace) bool {
-	if !featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+	if !featuregates.Enabled(consts.FeatureFlagModelStreaming) {
 		return false
 	}
 	if ann := ws.Annotations[mmconsts.AnnotationModelStreaming]; ann == "disabled" {

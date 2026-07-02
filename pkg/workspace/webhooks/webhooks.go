@@ -36,13 +36,13 @@ func NewControllerWebhooks() []knativeinjection.ControllerConstructor {
 		NewWorkspaceCRDValidationWebhook,
 	}
 
-	if featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] {
+	if featuregates.Enabled(consts.FeatureFlagEnableInferenceSetController) {
 		constructor = append(constructor, NewInferenceSetCRDValidationWebhook)
 	}
-	if featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] {
+	if featuregates.Enabled(consts.FeatureFlagEnableMultiRoleInferenceController) {
 		constructor = append(constructor, NewMultiRoleInferenceCRDValidationWebhook)
 	}
-	if featuregates.FeatureGates[consts.FeatureFlagModelMirror] {
+	if featuregates.Enabled(consts.FeatureFlagModelMirror) {
 		constructor = append(constructor, NewModelMirrorCRDValidationWebhook)
 	}
 

@@ -103,7 +103,7 @@ func GetWorkspaceRuntimeName(ws *Workspace) model.RuntimeName {
 		panic("workspace is nil")
 	}
 
-	if !featuregates.FeatureGates[consts.FeatureFlagVLLM] {
+	if !featuregates.Enabled(consts.FeatureFlagVLLM) {
 		return model.RuntimeNameHuggingfaceTransformers
 	}
 
@@ -203,7 +203,7 @@ func GetInferenceSetRuntimeName(iObj *InferenceSet) model.RuntimeName {
 		panic("inferenceset is nil")
 	}
 
-	if !featuregates.FeatureGates[consts.FeatureFlagVLLM] {
+	if !featuregates.Enabled(consts.FeatureFlagVLLM) {
 		return model.RuntimeNameHuggingfaceTransformers
 	}
 

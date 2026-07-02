@@ -40,7 +40,6 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	byoprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/byo-provisioner"
 	"github.com/kaito-project/kaito/pkg/utils"
@@ -1012,10 +1011,10 @@ func TestGuardTargetNodeCount(t *testing.T) {
 }
 
 func TestSyncWorkspaceStatus(t *testing.T) {
-	originalDisableNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	originalProvisioner := consts.ActiveNodeProvisioner
+	consts.ActiveNodeProvisioner = consts.NodeProvisionerBYO
 	t.Cleanup(func() {
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalDisableNAP
+		consts.ActiveNodeProvisioner = originalProvisioner
 	})
 
 	testcases := map[string]struct {

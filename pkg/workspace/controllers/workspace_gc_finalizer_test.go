@@ -24,7 +24,6 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	byoprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/byo-provisioner"
 	gpuprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/gpu-provisioner"
 	"github.com/kaito-project/kaito/pkg/utils"
@@ -168,10 +167,15 @@ func TestGarbageCollectWorkspace(t *testing.T) {
 			mockClient := test.NewClient()
 			tc.callMocks(mockClient)
 
-			// Set the feature gate for this test case
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = tc.disableNodeAutoProvisioning
+			// Set the node provisioner for this test case
+			originalProvisioner := consts.ActiveNodeProvisioner
+			if tc.disableNodeAutoProvisioning {
+				consts.ActiveNodeProvisioner = consts.NodeProvisionerBYO
+			} else {
+				consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
+			}
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+				consts.ActiveNodeProvisioner = originalProvisioner
 			}()
 
 			// Select provisioner based on feature gate (mirrors factory logic)

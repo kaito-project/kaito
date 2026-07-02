@@ -483,7 +483,7 @@ func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.
 	isPresetInference := iObj.Spec.Template.Inference.Preset != nil
 
 	// Gateway API Inference Extension is specifically designed to work with vLLM and preset-based inference workloads.
-	if !featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] ||
+	if !featuregates.Enabled(consts.FeatureFlagGatewayAPIInferenceExtension) ||
 		runtimeName != pkgmodel.RuntimeNameVLLM || !isPresetInference {
 		return nil
 	}
@@ -661,7 +661,7 @@ func (c *InferenceSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 5})
 
-	if featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] {
+	if featuregates.Enabled(consts.FeatureFlagGatewayAPIInferenceExtension) {
 		// Verify that all prerequisite CRDs exist before configuring watches that depend on them.
 		// - FluxCD HelmRelease / OCIRepository: required for installing and reconciling the InferencePool Helm chart.
 		// - Gateway API Inference Extension InferencePool / InferenceModel: required runtime CRDs that the Workspace

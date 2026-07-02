@@ -43,7 +43,6 @@ const (
 
 	// Feature flags
 	FeatureFlagVLLM                         = "vLLM"
-	FeatureFlagDisableNodeAutoProvisioning  = "disableNodeAutoProvisioning"
 	FeatureFlagGatewayAPIInferenceExtension = "gatewayAPIInferenceExtension"
 	FeatureFlagEnableInferenceSetController = "enableInferenceSetController"
 
@@ -80,6 +79,12 @@ var ActiveNodeProvisioner string
 // IsKarpenterProvisioner returns true if the active node provisioner is karpenter.
 func IsKarpenterProvisioner() bool {
 	return ActiveNodeProvisioner == NodeProvisionerKarpenter
+}
+
+// IsBYOProvisioner returns true if the active node provisioner is BYO
+// (bring-your-own), i.e. node auto-provisioning is disabled.
+func IsBYOProvisioner() bool {
+	return ActiveNodeProvisioner == NodeProvisionerBYO
 }
 
 const (

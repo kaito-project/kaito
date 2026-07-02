@@ -88,7 +88,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 				w.Inference.validateCreate(ctx, runtime, w.Namespace).ViaField("inference"),
 				w.validateInferenceConfig(ctx),
 			)
-			if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+			if featuregates.Enabled(consts.FeatureFlagModelStreaming) {
 				errs = errs.Also(w.validateStreamingCSIDriver(ctx))
 			}
 		}
@@ -104,7 +104,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 			w.validateUpdate(old).ViaField("spec"),
 			w.Resource.validateUpdate(&old.Resource).ViaField("resource"),
 		)
-		if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+		if featuregates.Enabled(consts.FeatureFlagModelStreaming) {
 			errs = errs.Also(w.validateModelStreamingAnnotationImmutable(old))
 		}
 		if w.Inference != nil {
@@ -146,7 +146,7 @@ func (w *Workspace) validateCreate() (errs *apis.FieldError) {
 
 	// Check node auto-provisioning feature gate and validate instanceType accordingly
 	// This validation only applies to CREATE operations, not UPDATE (since instanceType is immutable)
-	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+	if consts.IsBYOProvisioner() {
 		// When NAP is disabled, instanceType must be empty (BYO scenario)
 		if w.Resource.InstanceType != "" {
 			errs = errs.Also(apis.ErrInvalidValue("instanceType must be empty when node auto-provisioning is disabled (BYO scenario)", "resource.instanceType"))
@@ -444,7 +444,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 		return errs
 	}
 
-	napDisabled := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	napDisabled := consts.IsBYOProvisioner()
 
 	if napDisabled {
 		if presetName != "" { // If the user is using a custom pod template instead of a preset, we don't need to list the BYO nodes to get GPU info as we don't know the GPU requirements of a custom model.
@@ -585,7 +585,7 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 	}
 
 	// Check node auto-provisioning feature gate and validate instanceType accordingly
-	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+	if consts.IsBYOProvisioner() {
 		// When NAP is disabled, instanceType must be empty (BYO scenario)
 		if old.InstanceType == "" {
 			if r.InstanceType != "" {

@@ -20,6 +20,14 @@ faiss-cpu==1.11.0
 llama-index-vector-stores-faiss==0.5.3
 llama-index-vector-stores-qdrant==0.9.1
 qdrant-client==1.16.2
+llama-index-vector-stores-milvus==1.1.0
+pymilvus==2.6.7
+# Pin milvus-lite (transitive of pymilvus) to a version known to preserve
+# dynamic metadata fields (filename, branch, ref_doc_id) on insert/retrieve.
+# Newer milvus-lite releases have regressed on metadata persistence in tests.
+milvus-lite==2.5.1
+# milvus-lite imports pkg_resources which is removed in setuptools>=81.
+setuptools<81
 llama-index-vector-stores-chroma==0.5.5
 llama-index-vector-stores-azurecosmosmongo==0.7.1
 uvicorn==0.34.2

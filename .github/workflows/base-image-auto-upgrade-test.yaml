@@ -352,7 +352,7 @@ jobs:
       contents: read
       id-token: write
     env:
-      INFERENCESET_NAME: auto-upgrade-bg-test
+      INFERENCESET_NAME: auto-upgrade-surge-test
 
     steps:
       - name: Harden Runner
@@ -466,8 +466,8 @@ jobs:
                 echo "Workspace $WS_NAME is ready"
                 SS_IMAGE=$(kubectl get statefulset "$WS_NAME" -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
                 echo "Current workload image: $SS_IMAGE"
-                # Record the original (blue) workspace name for later comparison.
-                echo "BLUE_WS=$WS_NAME" >> "$GITHUB_ENV"
+                # Record the original (old) workspace name for later comparison.
+                echo "OLD_WS=$WS_NAME" >> "$GITHUB_ENV"
                 break
               fi
               POD_STATUS=$(kubectl get pods -l kaito.sh/workspace="$WS_NAME" -o jsonpath='{.items[0].status.phase}' 2>/dev/null || true)
@@ -516,179 +516,242 @@ jobs:
             exit 1
           fi
 
-      - name: Verify a surge (green) workspace is created
+      - name: Verify a surge workspace is created
         shell: bash
         run: |
           NEW_TAG=$(yq '.models[] | select(.name == "base") | .tag' presets/workspace/models/supported_models.yaml)
           echo "Expected new base tag: $NEW_TAG"
-          echo "Blue (old) workspace: $BLUE_WS"
+          echo "Old workspace: $OLD_WS"
           echo "Waiting for the surge workspace to be created..."
 
           end=$((SECONDS+600))
-          GREEN_WS=""
+          SURGE_WS=""
           while [ $SECONDS -lt $end ]; do
-            # The surge (green) workspace carries the upgrade-surge-for label.
-            GREEN_WS=$(kubectl get workspace -l kaito.sh/upgrade-surge-for -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
-            if [ -n "$GREEN_WS" ]; then
-              SURGE_FOR=$(kubectl get workspace "$GREEN_WS" -o json | jq -r '.metadata.labels["kaito.sh/upgrade-surge-for"] // empty')
-              echo "Surge workspace created: $GREEN_WS (surge-for=$SURGE_FOR)"
+            # The surge workspace carries the upgrade-surge-for label.
+            SURGE_WS=$(kubectl get workspace -l kaito.sh/upgrade-surge-for -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+            if [ -n "$SURGE_WS" ]; then
+              SURGE_FOR=$(kubectl get workspace "$SURGE_WS" -o json | jq -r '.metadata.labels["kaito.sh/upgrade-surge-for"] // empty')
+              echo "Surge workspace created: $SURGE_WS (surge-for=$SURGE_FOR)"
 
-              # The surge must replace the blue workspace and must NOT be the blue one.
-              if [ "$GREEN_WS" = "$BLUE_WS" ]; then
-                echo "ERROR: surge workspace is the same as blue workspace"
+              # The surge must replace the old workspace and must NOT be the old one.
+              if [ "$SURGE_WS" = "$OLD_WS" ]; then
+                echo "ERROR: surge workspace is the same as the old workspace"
                 exit 1
               fi
-              if [ "$SURGE_FOR" != "$BLUE_WS" ]; then
-                echo "ERROR: surge-for=$SURGE_FOR does not point to blue workspace $BLUE_WS"
+              if [ "$SURGE_FOR" != "$OLD_WS" ]; then
+                echo "ERROR: surge-for=$SURGE_FOR does not point to old workspace $OLD_WS"
                 exit 1
               fi
-              echo "GREEN_WS=$GREEN_WS" >> "$GITHUB_ENV"
+              echo "SURGE_WS=$SURGE_WS" >> "$GITHUB_ENV"
               break
             fi
             echo "Waiting for surge workspace... (none yet)"
             sleep 10
           done
 
-          if [ -z "$GREEN_WS" ]; then
+          if [ -z "$SURGE_WS" ]; then
             echo "Timeout: surge workspace was not created"
             kubectl get workspace -L kaito.sh/upgrade-surge-for
             kubectl logs deploy/kaito-workspace -n kaito-workspace --tail=200
             exit 1
           fi
 
-          # Blue must still exist and must NOT carry the surge label.
-          kubectl get workspace "$BLUE_WS" >/dev/null
-          BLUE_SURGE=$(kubectl get workspace "$BLUE_WS" -o json | jq -r '.metadata.labels["kaito.sh/upgrade-surge-for"] // empty')
-          if [ -n "$BLUE_SURGE" ]; then
-            echo "ERROR: blue workspace unexpectedly has surge label"
+          # Old workspace must still exist and must NOT carry the surge label.
+          kubectl get workspace "$OLD_WS" >/dev/null
+          OLD_SURGE_LABEL=$(kubectl get workspace "$OLD_WS" -o json | jq -r '.metadata.labels["kaito.sh/upgrade-surge-for"] // empty')
+          if [ -n "$OLD_SURGE_LABEL" ]; then
+            echo "ERROR: old workspace unexpectedly has surge label"
             exit 1
           fi
 
-      - name: Verify no downtime - blue stays ready until green is ready
+      - name: Scale up during in-flight upgrade
+        shell: bash
+        run: |
+          # The surge for OLD_WS is now in flight (SURGE_WS created, not yet
+          # promoted). Scale the InferenceSet from 1 to 2 and verify the controller
+          # creates an additional (stable) replica DURING the upgrade. This proves
+          # an in-flight surge no longer blocks scaling: the runner owns the surge
+          # and the old workspace it replaces, while the InferenceSet controller is
+          # free to reconcile the remaining replica slots.
+          echo "Scaling ${INFERENCESET_NAME} from 1 to 2 while the surge is in flight..."
+          kubectl patch inferenceset ${INFERENCESET_NAME} --type=merge -p '{"spec":{"replicas":2}}'
+
+          echo "Waiting for a new stable replica (neither the old workspace nor the surge) to be created..."
+          end=$((SECONDS+600))
+          SCALED_WS=""
+          while [ $SECONDS -lt $end ]; do
+            for w in $(kubectl get workspace -l inferenceset.kaito.sh/created-by=${INFERENCESET_NAME} -o jsonpath='{.items[*].metadata.name}'); do
+              if [ "$w" != "$OLD_WS" ] && [ "$w" != "$SURGE_WS" ]; then
+                W_SURGE=$(kubectl get workspace "$w" -o json | jq -r '.metadata.labels["kaito.sh/upgrade-surge-for"] // empty')
+                if [ -z "$W_SURGE" ]; then
+                  SCALED_WS="$w"
+                  break
+                fi
+              fi
+            done
+            if [ -n "$SCALED_WS" ]; then
+              echo "New stable replica created during upgrade: $SCALED_WS"
+              echo "SCALED_WS=$SCALED_WS" >> "$GITHUB_ENV"
+              break
+            fi
+            # The in-flight surge must not vanish while we wait for the scale-up.
+            if ! kubectl get workspace "$SURGE_WS" >/dev/null 2>&1; then
+              echo "NOTE: surge $SURGE_WS already completed before scale-up was observed"
+            fi
+            echo "Waiting for scaled replica... (none yet)"
+            sleep 10
+          done
+
+          if [ -z "$SCALED_WS" ]; then
+            echo "ERROR: scaling was blocked during the in-flight upgrade (no new replica created)"
+            kubectl get workspace -L kaito.sh/upgrade-surge-for
+            kubectl logs deploy/kaito-workspace -n kaito-workspace --tail=200
+            exit 1
+          fi
+
+          # Old workspace must still be present and serving: scaling must not disturb
+          # the in-flight upgrade or cause downtime on the old replica.
+          OLD_DELETING=$(kubectl get workspace "$OLD_WS" -o jsonpath='{.metadata.deletionTimestamp}' 2>/dev/null || true)
+          if [ -n "$OLD_DELETING" ]; then
+            echo "ERROR: old workspace was deleted as a side effect of scaling (downtime!)"
+            exit 1
+          fi
+
+      - name: Verify no downtime - old stays ready until surge is ready
         shell: bash
         run: |
           NEW_TAG=$(yq '.models[] | select(.name == "base") | .tag' presets/workspace/models/supported_models.yaml)
-          echo "Blue: $BLUE_WS  Green: $GREEN_WS"
+          echo "Old: $OLD_WS  Surge: $SURGE_WS"
 
-          # The green surge should run the NEW base image. The Workspace controller
-          # creates the green StatefulSet asynchronously after the Workspace object,
+          # The surge should run the NEW base image. The Workspace controller
+          # creates the surge StatefulSet asynchronously after the Workspace object,
           # so poll until the image is populated rather than checking once.
-          echo "Waiting for green StatefulSet to be created on the new base tag $NEW_TAG..."
+          echo "Waiting for surge StatefulSet to be created on the new base tag $NEW_TAG..."
           end=$((SECONDS+300))
-          GREEN_IMAGE=""
+          SURGE_IMAGE=""
           while [ $SECONDS -lt $end ]; do
-            GREEN_IMAGE=$(kubectl get statefulset "$GREEN_WS" -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
-            if echo "$GREEN_IMAGE" | grep -q "$NEW_TAG"; then
-              echo "Green StatefulSet image: $GREEN_IMAGE"
+            SURGE_IMAGE=$(kubectl get statefulset "$SURGE_WS" -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
+            if echo "$SURGE_IMAGE" | grep -q "$NEW_TAG"; then
+              echo "Surge StatefulSet image: $SURGE_IMAGE"
               break
             fi
-            echo "Waiting for green StatefulSet image... (current: '${GREEN_IMAGE:-<none>}')"
+            echo "Waiting for surge StatefulSet image... (current: '${SURGE_IMAGE:-<none>}')"
             sleep 10
           done
-          if ! echo "$GREEN_IMAGE" | grep -q "$NEW_TAG"; then
-            echo "ERROR: green workspace is not on the new base tag $NEW_TAG (image: '${GREEN_IMAGE:-<none>}')"
+          if ! echo "$SURGE_IMAGE" | grep -q "$NEW_TAG"; then
+            echo "ERROR: surge workspace is not on the new base tag $NEW_TAG (image: '${SURGE_IMAGE:-<none>}')"
             kubectl get workspace -L kaito.sh/upgrade-surge-for
-            kubectl get statefulset "$GREEN_WS" -o yaml 2>/dev/null || true
+            kubectl get statefulset "$SURGE_WS" -o yaml 2>/dev/null || true
             exit 1
           fi
 
-          # While the green workspace comes up (and downloads weights), the blue
+          # While the surge workspace comes up (and downloads weights), the old
           # workspace MUST keep serving (InferenceReady=True). This is the core
-          # no-downtime guarantee of surge-based upgrades. Poll until green is ready, and on
-          # every poll assert blue is still ready and not being deleted.
-          echo "Waiting for green to become ready while asserting blue stays ready..."
+          # no-downtime guarantee of surge-based upgrades. Poll until the surge is
+          # ready, and on every poll assert the old workspace is still ready and not
+          # being deleted.
+          echo "Waiting for the surge to become ready while asserting the old workspace stays ready..."
           end=$((SECONDS+2400))
           while [ $SECONDS -lt $end ]; do
-            GREEN_READY=$(kubectl get workspace "$GREEN_WS" -o jsonpath='{.status.conditions[?(@.type=="InferenceReady")].status}' 2>/dev/null || true)
-            if [ "$GREEN_READY" = "True" ]; then
-              echo "Green workspace $GREEN_WS is ready"
+            SURGE_READY=$(kubectl get workspace "$SURGE_WS" -o jsonpath='{.status.conditions[?(@.type=="InferenceReady")].status}' 2>/dev/null || true)
+            if [ "$SURGE_READY" = "True" ]; then
+              echo "Surge workspace $SURGE_WS is ready"
               break
             fi
 
-            # Blue must still be present and serving during the surge bring-up.
-            BLUE_DELETING=$(kubectl get workspace "$BLUE_WS" -o jsonpath='{.metadata.deletionTimestamp}' 2>/dev/null || true)
-            BLUE_READY=$(kubectl get workspace "$BLUE_WS" -o jsonpath='{.status.conditions[?(@.type=="InferenceReady")].status}' 2>/dev/null || true)
-            if [ -n "$BLUE_DELETING" ]; then
-              echo "ERROR: blue workspace is being deleted before green is ready (downtime!)"
+            # Old workspace must still be present and serving during the surge bring-up.
+            OLD_DELETING=$(kubectl get workspace "$OLD_WS" -o jsonpath='{.metadata.deletionTimestamp}' 2>/dev/null || true)
+            OLD_READY=$(kubectl get workspace "$OLD_WS" -o jsonpath='{.status.conditions[?(@.type=="InferenceReady")].status}' 2>/dev/null || true)
+            if [ -n "$OLD_DELETING" ]; then
+              echo "ERROR: old workspace is being deleted before the surge is ready (downtime!)"
               kubectl get workspace -L kaito.sh/upgrade-surge-for
               exit 1
             fi
-            if [ "$BLUE_READY" != "True" ]; then
-              echo "ERROR: blue workspace lost readiness before green is ready (downtime!) - InferenceReady=$BLUE_READY"
-              kubectl get workspace "$BLUE_WS" -o yaml
+            if [ "$OLD_READY" != "True" ]; then
+              echo "ERROR: old workspace lost readiness before the surge is ready (downtime!) - InferenceReady=$OLD_READY"
+              kubectl get workspace "$OLD_WS" -o yaml
               exit 1
             fi
 
-            echo "Waiting... (green ready: ${GREEN_READY:-False}, blue ready: $BLUE_READY)"
+            echo "Waiting... (surge ready: ${SURGE_READY:-False}, old ready: $OLD_READY)"
             sleep 20
           done
 
           if [ $SECONDS -ge $end ]; then
-            echo "Timeout: green workspace did not become ready"
+            echo "Timeout: surge workspace did not become ready"
             kubectl get workspace -L kaito.sh/upgrade-surge-for
-            kubectl describe pods -l kaito.sh/workspace="$GREEN_WS" 2>/dev/null | tail -60 || true
-            kubectl logs -l kaito.sh/workspace="$GREEN_WS" --tail=100 2>/dev/null || true
+            kubectl describe pods -l kaito.sh/workspace="$SURGE_WS" 2>/dev/null | tail -60 || true
+            kubectl logs -l kaito.sh/workspace="$SURGE_WS" --tail=100 2>/dev/null || true
             kubectl logs deploy/kaito-workspace -n kaito-workspace --tail=200
             exit 1
           fi
 
-      - name: Verify cutover - blue deleted and green promoted
+      - name: Verify cutover - old deleted and surge promoted
         shell: bash
         run: |
-          echo "Waiting for blue ($BLUE_WS) to be deleted after green became ready..."
+          echo "Waiting for the old workspace ($OLD_WS) to be deleted after the surge became ready..."
           end=$((SECONDS+600))
           while [ $SECONDS -lt $end ]; do
-            if ! kubectl get workspace "$BLUE_WS" >/dev/null 2>&1; then
-              echo "Blue workspace $BLUE_WS deleted (cutover complete)"
+            if ! kubectl get workspace "$OLD_WS" >/dev/null 2>&1; then
+              echo "Old workspace $OLD_WS deleted (cutover complete)"
               break
             fi
-            echo "Waiting for blue deletion..."
+            echo "Waiting for old workspace deletion..."
             sleep 10
           done
-          if kubectl get workspace "$BLUE_WS" >/dev/null 2>&1; then
-            echo "Timeout: blue workspace was not deleted"
+          if kubectl get workspace "$OLD_WS" >/dev/null 2>&1; then
+            echo "Timeout: old workspace was not deleted"
             kubectl get workspace -L kaito.sh/upgrade-surge-for
             kubectl logs deploy/kaito-workspace -n kaito-workspace --tail=200
             exit 1
           fi
 
-          echo "Waiting for green ($GREEN_WS) to be promoted (surge label removed)..."
+          echo "Waiting for the surge ($SURGE_WS) to be promoted (surge label removed)..."
           end=$((SECONDS+600))
           while [ $SECONDS -lt $end ]; do
-            SURGE_LABEL=$(kubectl get workspace "$GREEN_WS" -o json | jq -r '.metadata.labels["kaito.sh/upgrade-surge-for"] // empty')
+            SURGE_LABEL=$(kubectl get workspace "$SURGE_WS" -o json | jq -r '.metadata.labels["kaito.sh/upgrade-surge-for"] // empty')
             if [ -z "$SURGE_LABEL" ]; then
-              echo "Green workspace promoted (surge label removed)"
+              echo "Surge workspace promoted (surge label removed)"
               break
             fi
             echo "Waiting for promotion... (surge-for still: $SURGE_LABEL)"
             sleep 10
           done
-          SURGE_LABEL=$(kubectl get workspace "$GREEN_WS" -o json | jq -r '.metadata.labels["kaito.sh/upgrade-surge-for"] // empty')
+          SURGE_LABEL=$(kubectl get workspace "$SURGE_WS" -o json | jq -r '.metadata.labels["kaito.sh/upgrade-surge-for"] // empty')
           if [ -n "$SURGE_LABEL" ]; then
-            echo "Timeout: green workspace was not promoted"
-            kubectl get workspace "$GREEN_WS" -o yaml
+            echo "Timeout: surge workspace was not promoted"
+            kubectl get workspace "$SURGE_WS" -o yaml
             exit 1
           fi
 
-          # Exactly one managed workspace should remain, on the new tag, ready.
+          # After cutover + scale-up, exactly two replicas should remain: the
+          # promoted surge and the replica added during the upgrade. Both must be
+          # on the new tag and ready, with no surge labels left.
           NEW_TAG=$(yq '.models[] | select(.name == "base") | .tag' presets/workspace/models/supported_models.yaml)
-          COUNT=$(kubectl get workspace -l inferenceset.kaito.sh/created-by=${INFERENCESET_NAME} -o json | jq '.items | length')
-          echo "Workspace count for InferenceSet: $COUNT"
-          if [ "$COUNT" != "1" ]; then
-            echo "ERROR: expected exactly 1 workspace after cutover, got $COUNT"
+          echo "Waiting for the InferenceSet to settle at 2 ready replicas on $NEW_TAG..."
+          end=$((SECONDS+2400))
+          while [ $SECONDS -lt $end ]; do
+            data=$(kubectl get workspace -l inferenceset.kaito.sh/created-by=${INFERENCESET_NAME} -o json)
+            COUNT=$(echo "$data" | jq '.items | length')
+            SURGES=$(echo "$data" | jq '[.items[]|select(.metadata.labels["kaito.sh/upgrade-surge-for"])]|length')
+            READY=$(echo "$data" | jq '[.items[]|select(.status.conditions[]?|select(.type=="InferenceReady" and .status=="True"))]|length')
+            # Count workspaces whose StatefulSet image is on the new tag.
+            ONNEW=0
+            for w in $(echo "$data" | jq -r '.items[].metadata.name'); do
+              IMG=$(kubectl get statefulset "$w" -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
+              if echo "$IMG" | grep -q "$NEW_TAG"; then ONNEW=$((ONNEW+1)); fi
+            done
+            echo "count=$COUNT surges=$SURGES ready=$READY onNewTag=$ONNEW"
+            if [ "$COUNT" = "2" ] && [ "$SURGES" = "0" ] && [ "$READY" = "2" ] && [ "$ONNEW" = "2" ]; then
+              echo "Upgrade + scale-up settled: 2 replicas, both ready on $NEW_TAG, no surges."
+              break
+            fi
+            sleep 20
+          done
+          if [ $SECONDS -ge $end ]; then
+            echo "ERROR: InferenceSet did not settle at 2 ready replicas on the new tag"
             kubectl get workspace -L kaito.sh/upgrade-surge-for
-            exit 1
-          fi
-
-          GREEN_IMAGE=$(kubectl get statefulset "$GREEN_WS" -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
-          GREEN_READY=$(kubectl get workspace "$GREEN_WS" -o jsonpath='{.status.conditions[?(@.type=="InferenceReady")].status}' 2>/dev/null || true)
-          echo "Final workspace $GREEN_WS image: $GREEN_IMAGE, InferenceReady: $GREEN_READY"
-          if ! echo "$GREEN_IMAGE" | grep -q "$NEW_TAG"; then
-            echo "ERROR: final workspace is not on the new base tag $NEW_TAG"
-            exit 1
-          fi
-          if [ "$GREEN_READY" != "True" ]; then
-            echo "ERROR: final workspace is not ready"
+            kubectl logs deploy/kaito-workspace -n kaito-workspace --tail=200
             exit 1
           fi
 

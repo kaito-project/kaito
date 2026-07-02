@@ -77,7 +77,7 @@ const (
 	// retained after upgrade completes as an audit trail.
 	LabelUpgradeToVersion = KAITOPrefix + "upgrade-to-version"
 
-	// LabelUpgradeSurgeFor marks a Workspace created by the blue-green auto-upgrade
+	// LabelUpgradeSurgeFor marks a Workspace created by the surge-based auto-upgrade
 	// strategy as a surge replacement for the named (old) Workspace. The value is the
 	// name of the Workspace being replaced. The label is removed once the old Workspace
 	// has been deleted, promoting the surge Workspace to a normal managed replica.

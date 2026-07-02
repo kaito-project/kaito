@@ -29,3 +29,18 @@ The exception is `InferenceSet` with **automatic base image upgrades** enabled. 
 ### How to update model/inference parameters to override the KAITO Preset Configuration?
 
 KAITO provides an option to use a custom configmap to override the preset configurations set by the controller. Check out this [example](https://github.com/kaito-project/kaito/blob/main/examples/inference/kaito_workspace_custom_config.yaml).
+
+### Does KAITO support `az aks stop` / `az aks start`?
+
+No. KAITO does not currently support stopping and starting an AKS cluster via
+`az aks stop` / `az aks start`. During the cluster wake-up window, the node
+provisioner can mistake a still-valid node for a leaked one and delete the
+backing agent pool, which races with the in-progress `start` operation and can
+leave the cluster in a `Failed` state with an orphaned VM scale set.
+
+If your goal is to save GPU cost, scale the `replicas` of your `InferenceSet` /
+`Workspace` down to `0` when idle (and scale back up when needed) instead of
+stopping the whole cluster. This releases the GPU nodes while avoiding the
+wake-up race.
+
+See also the [Azure setup limitations](azure#az-aks-stop--az-aks-start-is-not-supported).

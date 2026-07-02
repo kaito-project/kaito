@@ -221,3 +221,21 @@ Notes:
 
 - `kaito.sh/node-image-family` has higher priority than `--default-node-image-family`.
 - If the annotation value is unsupported, Workspace creation is rejected by validation webhook.
+
+## Limitations
+
+### `az aks stop` / `az aks start` is not supported
+
+KAITO does not currently support stopping and starting an AKS cluster via
+`az aks stop` / `az aks start`. During the cluster wake-up window, the Azure GPU
+Provisioner can mistake a still-valid node for a leaked one and delete the
+backing agent pool. This races with the in-progress `start` operation and can
+leave the cluster in a `Failed` state with an orphaned VM scale set that keeps
+billing.
+
+If your goal is to save GPU cost, scale the `replicas` of your `InferenceSet` /
+`Workspace` down to `0` when idle (and scale back up when needed) instead of
+stopping the whole cluster. This releases the GPU nodes while avoiding the
+wake-up race.
+
+See also the [FAQ entry](faq#does-kaito-support-az-aks-stop--az-aks-start).

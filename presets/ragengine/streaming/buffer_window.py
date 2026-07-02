@@ -26,13 +26,11 @@ from typing import Protocol
 
 @dataclass(frozen=True)
 class WindowScanResult:
-    safe_prefix_chars: int
     blocked: bool = False
 
 
 class WindowScanner(Protocol):
-    def scan(self, text: str) -> WindowScanResult:
-        pass
+    def scan(self, text: str) -> WindowScanResult: ...
 
 
 @dataclass(frozen=True)
@@ -46,21 +44,13 @@ class StreamingBufferWindow:
         self,
         scanner: WindowScanner,
         *,
-        holdback_chars: int | None,
-        min_scan_chars: int,
-        max_emit_chars: int,
+        holdback_len: int | None,
     ) -> None:
-        if holdback_chars is not None and holdback_chars < 0:
-            raise ValueError("holdback_chars must be non-negative.")
-        if min_scan_chars < 0:
-            raise ValueError("min_scan_chars must be non-negative.")
-        if max_emit_chars <= 0:
-            raise ValueError("max_emit_chars must be positive.")
+        if holdback_len is not None and holdback_len < 0:
+            raise ValueError("holdback_len must be non-negative.")
 
         self._scanner = scanner
-        self._holdback_chars = holdback_chars
-        self._min_scan_chars = min_scan_chars
-        self._max_emit_chars = max_emit_chars
+        self._holdback_len = holdback_len
         self._pending_buffer = ""
         self._blocked = False
 
@@ -73,13 +63,13 @@ class StreamingBufferWindow:
             return WindowEmitResult(chunks=(), blocked=True)
 
         self._pending_buffer += text
-        safe_emit_limit = self._safe_emit_limit()
-        if safe_emit_limit < self._min_scan_chars:
+        emit_len = self._calc_emit_len()
+        if emit_len == 0:
             return WindowEmitResult(chunks=())
 
         return self._scan_and_emit(
             self._pending_buffer,
-            safe_emit_limit=safe_emit_limit,
+            emit_len=emit_len,
         )
 
     def flush(self) -> WindowEmitResult:
@@ -90,21 +80,21 @@ class StreamingBufferWindow:
 
         return self._scan_and_emit(
             self._pending_buffer,
-            safe_emit_limit=len(self._pending_buffer),
+            emit_len=len(self._pending_buffer),
         )
 
-    def _safe_emit_limit(self) -> int:
-        if self._holdback_chars is None:
+    def _calc_emit_len(self) -> int:
+        if self._holdback_len is None:
             return 0
-        if self._holdback_chars == 0:
+        if self._holdback_len == 0:
             return len(self._pending_buffer)
-        return max(0, len(self._pending_buffer) - self._holdback_chars)
+        return max(0, len(self._pending_buffer) - self._holdback_len)
 
     def _scan_and_emit(
         self,
         scan_text: str,
         *,
-        safe_emit_limit: int,
+        emit_len: int,
     ) -> WindowEmitResult:
         scan_result = self._scanner.scan(scan_text)
         if scan_result.blocked:
@@ -112,19 +102,6 @@ class StreamingBufferWindow:
             self._pending_buffer = ""
             return WindowEmitResult(chunks=(), blocked=True)
 
-        safe_prefix_chars = max(
-            0,
-            min(scan_result.safe_prefix_chars, safe_emit_limit),
-        )
-        if safe_prefix_chars == 0:
-            return WindowEmitResult(chunks=())
-
-        safe_prefix = self._pending_buffer[:safe_prefix_chars]
-        self._pending_buffer = self._pending_buffer[safe_prefix_chars:]
-        return WindowEmitResult(chunks=self._chunk_safe_prefix(safe_prefix))
-
-    def _chunk_safe_prefix(self, safe_prefix: str) -> tuple[str, ...]:
-        return tuple(
-            safe_prefix[index : index + self._max_emit_chars]
-            for index in range(0, len(safe_prefix), self._max_emit_chars)
-        )
+        emit_text = self._pending_buffer[:emit_len]
+        self._pending_buffer = self._pending_buffer[emit_len:]
+        return WindowEmitResult(chunks=(emit_text,))

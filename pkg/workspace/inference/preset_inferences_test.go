@@ -403,7 +403,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			}
 			mockClient.CreateOrUpdateObjectInMap(svc)
 
-			createdObject, _ := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, model, mockClient)
+			createdObject, _ := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, model, mockClient, nil)
 
 			statefulset := createdObject.(*appsv1.StatefulSet)
 			image := statefulset.Spec.Template.Spec.Containers[0].Image
@@ -1681,6 +1681,149 @@ func TestInjectRoutingSidecar(t *testing.T) {
 				if !hasDecodePort {
 					t.Errorf("main container should have containerPort %d", consts.PortDecodeVLLM)
 				}
+			}
+		})
+	}
+}
+
+// fakeNodeProvisioner is a minimal NodeProvisioner used to drive
+// SetProvisionerNodeSelector tests. Only BuildNodeSelector is exercised.
+type fakeNodeProvisioner struct {
+	reqs []corev1.NodeSelectorRequirement
+}
+
+func (f *fakeNodeProvisioner) Name() string                  { return "fake" }
+func (f *fakeNodeProvisioner) Start(_ context.Context) error { return nil }
+func (f *fakeNodeProvisioner) ProvisionNodes(_ context.Context, _ *v1beta1.Workspace) error {
+	return nil
+}
+func (f *fakeNodeProvisioner) DeleteNodes(_ context.Context, _ *v1beta1.Workspace) error { return nil }
+func (f *fakeNodeProvisioner) EnsureNodesReady(_ context.Context, _ *v1beta1.Workspace) (bool, bool, error) {
+	return true, false, nil
+}
+func (f *fakeNodeProvisioner) EnableDriftRemediation(_ context.Context, _, _ string) error {
+	return nil
+}
+func (f *fakeNodeProvisioner) DisableDriftRemediation(_ context.Context, _, _ string) error {
+	return nil
+}
+func (f *fakeNodeProvisioner) CollectNodeStatusInfo(_ context.Context, _ *v1beta1.Workspace) ([]metav1.Condition, error) {
+	return nil, nil
+}
+func (f *fakeNodeProvisioner) BuildNodeSelector(_ context.Context, _ *v1beta1.Workspace) []corev1.NodeSelectorRequirement {
+	return f.reqs
+}
+
+func TestSetProvisionerNodeSelector(t *testing.T) {
+	wsReqs := []corev1.NodeSelectorRequirement{
+		{
+			Key:      v1beta1.LabelWorkspaceName,
+			Operator: corev1.NodeSelectorOpIn,
+			Values:   []string{"ws-a"},
+		},
+		{
+			Key:      v1beta1.LabelWorkspaceNamespace,
+			Operator: corev1.NodeSelectorOpIn,
+			Values:   []string{"ns-a"},
+		},
+	}
+
+	existingReq := corev1.NodeSelectorRequirement{
+		Key:      "topology.kubernetes.io/zone",
+		Operator: corev1.NodeSelectorOpIn,
+		Values:   []string{"zone-1"},
+	}
+
+	testcases := map[string]struct {
+		provisioner    *fakeNodeProvisioner
+		initialSpec    *corev1.PodSpec
+		expectAffinity bool
+		expectReqs     []corev1.NodeSelectorRequirement
+	}{
+		"nil provisioner is a no-op": {
+			provisioner:    nil,
+			initialSpec:    &corev1.PodSpec{},
+			expectAffinity: false,
+		},
+		"empty requirements is a no-op": {
+			provisioner:    &fakeNodeProvisioner{reqs: nil},
+			initialSpec:    &corev1.PodSpec{},
+			expectAffinity: false,
+		},
+		"creates full affinity tree when spec has none": {
+			provisioner:    &fakeNodeProvisioner{reqs: wsReqs},
+			initialSpec:    &corev1.PodSpec{},
+			expectAffinity: true,
+			expectReqs:     wsReqs,
+		},
+		"creates NodeAffinity when spec has Affinity but no NodeAffinity": {
+			provisioner:    &fakeNodeProvisioner{reqs: wsReqs},
+			initialSpec:    &corev1.PodSpec{Affinity: &corev1.Affinity{}},
+			expectAffinity: true,
+			expectReqs:     wsReqs,
+		},
+		"appends to existing NodeSelectorTerms[0].MatchExpressions": {
+			provisioner: &fakeNodeProvisioner{reqs: wsReqs},
+			initialSpec: &corev1.PodSpec{
+				Affinity: &corev1.Affinity{
+					NodeAffinity: &corev1.NodeAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+							NodeSelectorTerms: []corev1.NodeSelectorTerm{
+								{MatchExpressions: []corev1.NodeSelectorRequirement{existingReq}},
+							},
+						},
+					},
+				},
+			},
+			expectAffinity: true,
+			expectReqs:     append([]corev1.NodeSelectorRequirement{existingReq}, wsReqs...),
+		},
+		"adds a term when NodeSelectorTerms is empty": {
+			provisioner: &fakeNodeProvisioner{reqs: wsReqs},
+			initialSpec: &corev1.PodSpec{
+				Affinity: &corev1.Affinity{
+					NodeAffinity: &corev1.NodeAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{},
+					},
+				},
+			},
+			expectAffinity: true,
+			expectReqs:     wsReqs,
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			ws := &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "ws-a", Namespace: "ns-a"},
+			}
+			gctx := &generator.WorkspaceGeneratorContext{
+				Ctx:       context.TODO(),
+				Workspace: ws,
+			}
+			if tc.provisioner != nil {
+				gctx.NodeProvisioner = tc.provisioner
+			}
+
+			if err := SetProvisionerNodeSelector(gctx, tc.initialSpec); err != nil {
+				t.Fatalf("SetProvisionerNodeSelector returned error: %v", err)
+			}
+
+			if !tc.expectAffinity {
+				if tc.initialSpec.Affinity != nil && tc.initialSpec.Affinity.NodeAffinity != nil &&
+					tc.initialSpec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution != nil {
+					t.Fatalf("expected no node affinity, got %+v", tc.initialSpec.Affinity.NodeAffinity)
+				}
+				return
+			}
+
+			nodeSel := tc.initialSpec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution
+			if nodeSel == nil || len(nodeSel.NodeSelectorTerms) == 0 {
+				t.Fatalf("expected non-empty NodeSelectorTerms, got %+v", nodeSel)
+			}
+			got := nodeSel.NodeSelectorTerms[0].MatchExpressions
+			if !reflect.DeepEqual(got, tc.expectReqs) {
+				t.Errorf("MatchExpressions mismatch\n  got:  %+v\n  want: %+v", got, tc.expectReqs)
 			}
 		})
 	}

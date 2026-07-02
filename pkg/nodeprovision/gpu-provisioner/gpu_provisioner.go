@@ -58,7 +58,7 @@ func (g *AzureGPUProvisioner) Start(ctx context.Context) error { return nil }
 
 // ProvisionNodes creates NodeClaims via the Azure gpu-provisioner backend.
 func (g *AzureGPUProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {
-	readyNodes, err := nodes.GetReadyNodes(ctx, g.nodeClaimManager.Client, ws)
+	readyNodes, err := nodeprovision.GetReadyNodes(ctx, g.nodeClaimManager.Client, g, ws)
 	if err != nil {
 		return fmt.Errorf("failed to list ready nodes: %w", err)
 	}
@@ -250,4 +250,21 @@ func (g *AzureGPUProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kai
 	}
 
 	return []metav1.Condition{nodeCond, nodeClaimCond, resourceCond}, nil
+}
+
+// BuildNodeSelector returns requirements that pin pods to nodes provisioned
+// for this workspace. The labels are stamped on NodeClaims by gpu-provisioner.
+func (g *AzureGPUProvisioner) BuildNodeSelector(ctx context.Context, ws *kaitov1beta1.Workspace) []corev1.NodeSelectorRequirement {
+	return []corev1.NodeSelectorRequirement{
+		{
+			Key:      kaitov1beta1.LabelWorkspaceName,
+			Operator: corev1.NodeSelectorOpIn,
+			Values:   []string{ws.Name},
+		},
+		{
+			Key:      kaitov1beta1.LabelWorkspaceNamespace,
+			Operator: corev1.NodeSelectorOpIn,
+			Values:   []string{ws.Namespace},
+		},
+	}
 }

@@ -1538,11 +1538,12 @@ func validateCreateNode(workspaceObj *kaitov1beta1.Workspace, numOfNode int) {
 func validateInferenceConfig(workspaceObj *kaitov1beta1.Workspace) {
 	By("Checking the inference config exists", func() {
 		Eventually(func() bool {
-			configMap := &corev1.ConfigMap{}
-			configName := kaitov1beta1.DefaultInferenceConfigTemplate
-			if workspaceObj.Inference.Config != "" {
-				configName = workspaceObj.Inference.Config
+			if workspaceObj.Inference.Config == "" {
+				return true
 			}
+			configMap := &corev1.ConfigMap{}
+			configName := workspaceObj.Inference.Config
+
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
 				Namespace: workspaceObj.Namespace,
 				Name:      configName,

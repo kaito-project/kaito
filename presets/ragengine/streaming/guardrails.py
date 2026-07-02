@@ -35,8 +35,6 @@ from ragengine.streaming.openai import (
 )
 from ragengine.streaming.sse import iter_sse_events
 
-STREAMING_GUARDRAILS_MIN_SCAN_CHARS = 1
-STREAMING_GUARDRAILS_MAX_EMIT_CHARS = 4096
 STREAMING_GUARDRAILS_SUPPORTED_SCANNERS = frozenset({"ban_substrings", "regex"})
 
 
@@ -87,7 +85,7 @@ async def apply_streaming_guardrails(
 
         prompt = guardrails._extract_prompt(request)
         scanner = _LLMGuardWindowScanner(prompt=prompt, built_scanners=built_scanners)
-        holdback_chars = _calculate_streaming_holdback_chars(guardrails)
+        holdback_len = _calculate_streaming_holdback_len(guardrails)
         windows: dict[int, StreamingBufferWindow] = {}
 
         async for event in iter_sse_events(upstream_chunks):
@@ -120,7 +118,7 @@ async def apply_streaming_guardrails(
                         windows,
                         delta.choice_index,
                         scanner=scanner,
-                        holdback_chars=holdback_chars,
+                        holdback_len=holdback_len,
                     )
                     emit_result = window.feed(delta.content)
                     if emit_result.blocked:
@@ -168,8 +166,8 @@ class _LLMGuardWindowScanner:
                 [scanner], self._prompt, text, fail_fast=False
             )
             if not all(results_valid.values()):
-                return WindowScanResult(safe_prefix_chars=0, blocked=True)
-        return WindowScanResult(safe_prefix_chars=len(text))
+                return WindowScanResult(blocked=True)
+        return WindowScanResult()
 
 
 async def _flush_window_or_block(
@@ -228,15 +226,13 @@ def _window_for_choice(
     choice_index: int,
     *,
     scanner: _LLMGuardWindowScanner,
-    holdback_chars: int | None,
+    holdback_len: int | None,
 ) -> StreamingBufferWindow:
     window = windows.get(choice_index)
     if window is None:
         window = StreamingBufferWindow(
             scanner,
-            holdback_chars=holdback_chars,
-            min_scan_chars=STREAMING_GUARDRAILS_MIN_SCAN_CHARS,
-            max_emit_chars=STREAMING_GUARDRAILS_MAX_EMIT_CHARS,
+            holdback_len=holdback_len,
         )
         windows[choice_index] = window
     return window
@@ -250,17 +246,17 @@ def _any_window_blocked(windows: dict[int, StreamingBufferWindow]) -> bool:
     return any(window.blocked for window in windows.values())
 
 
-def _calculate_streaming_holdback_chars(guardrails: OutputGuardrails) -> int | None:
-    holdback_chars = 0
+def _calculate_streaming_holdback_len(guardrails: OutputGuardrails) -> int | None:
+    holdback_len = 0
     for scanner_config in guardrails.scanner_configs:
-        scanner_holdback = _scanner_holdback_chars(scanner_config.config)
+        scanner_holdback = _scanner_holdback_len(scanner_config.config)
         if scanner_holdback is None:
             return None
-        holdback_chars = max(holdback_chars, scanner_holdback)
-    return holdback_chars
+        holdback_len = max(holdback_len, scanner_holdback)
+    return holdback_len
 
 
-def _scanner_holdback_chars(config: Any) -> int | None:
+def _scanner_holdback_len(config: Any) -> int | None:
     if isinstance(config, BanSubstringsConfig):
         return max((len(substring) - 1 for substring in config.substrings), default=0)
     if isinstance(config, RegexConfig):

@@ -16,7 +16,6 @@ package inferenceset
 import (
 	"context"
 	"fmt"
-	"maps"
 	"slices"
 	"sort"
 	"strconv"
@@ -193,6 +192,63 @@ func aggregateBenchmarkResults(workspaces []kaitov1beta1.Workspace) (totalTPM fl
 	return
 }
 
+// classifyWorkspaces separates the given workspaces for the InferenceSet controller
+// during a possible in-flight surge-based auto-upgrade.
+//
+// The AutoUpgradeRunner owns a set of Workspaces while a surge upgrade is running:
+// each "surge" Workspace (carrying the upgrade-surge-for label) and the old Workspace
+// it is replacing (named by that label). These runner-owned Workspaces must not be
+// created or deleted by the InferenceSet controller.
+//
+// Returns:
+//   - managed: all non-surge Workspaces (used for readiness/benchmark status). Includes
+//     the old Workspaces currently being replaced, which keep serving during a surge.
+//   - stable: managed Workspaces that are NOT being replaced by an in-flight surge; these
+//     are the Workspaces the controller freely scales up/down.
+//   - numSurges: number of in-flight surges. Each occupies one replica slot (its paired
+//     old Workspace is the outgoing instance of that same slot), so the controller
+//     reconciles stable toward (desiredReplicas - numSurges).
+//
+// Reserving a slot per surge — rather than pausing all scaling while any surge exists —
+// lets users scale up or down even while an upgrade is in progress or stuck, without the
+// controller ever creating or deleting the runner-owned surge or its paired old Workspace.
+func classifyWorkspaces(workspaces []kaitov1beta1.Workspace) (managed, stable []kaitov1beta1.Workspace, numSurges int) {
+	// First pass: find in-flight surges and the names of the old Workspaces they replace.
+	replacedOld := make(map[string]struct{})
+	for i := range workspaces {
+		if old, ok := workspaces[i].Labels[kaitov1alpha1.LabelUpgradeSurgeFor]; ok {
+			numSurges++
+			if old != "" {
+				replacedOld[old] = struct{}{}
+			}
+		}
+	}
+	// Second pass: managed = all non-surge Workspaces; stable additionally excludes the
+	// old Workspaces currently being replaced by a surge.
+	for i := range workspaces {
+		if _, ok := workspaces[i].Labels[kaitov1alpha1.LabelUpgradeSurgeFor]; ok {
+			continue // surge Workspace (runner-owned)
+		}
+		managed = append(managed, workspaces[i])
+		if _, ok := replacedOld[workspaces[i].Name]; !ok {
+			stable = append(stable, workspaces[i])
+		}
+	}
+	return
+}
+
+// stableTargetForReplicas returns the number of stable Workspaces the controller should
+// maintain given the desired replica count and the number of in-flight surges. Each surge
+// reserves one replica slot, so the controller only manages the leftover slots. Clamped to
+// be non-negative.
+func stableTargetForReplicas(desiredReplicas int32, numSurges int) int {
+	target := int(desiredReplicas) - numSurges
+	if target < 0 {
+		target = 0
+	}
+	return target
+}
+
 func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iObj *kaitov1beta1.InferenceSet) (reconcile.Result, error) {
 	if iObj == nil {
 		return reconcile.Result{}, nil
@@ -213,14 +269,27 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	if iObj.Spec.Replicas != nil {
 		desiredReplicas = *iObj.Spec.Replicas
 	}
-	klog.InfoS("Found workspaces for inference set", "name", iObj.Name, "current", len(wsList.Items), "desired", desiredReplicas)
 
-	replicaNumToDelete := len(wsList.Items) - int(desiredReplicas)
+	// Workspaces created by the surge-based auto-upgrade strategy carry the
+	// upgrade-surge-for label and are owned by the AutoUpgradeRunner for the
+	// duration of the rollout. Each surge (together with the old Workspace it is
+	// replacing) reserves one replica slot; the InferenceSet controller manages
+	// only the remaining "stable" Workspaces, reconciling them toward
+	// (desiredReplicas - numSurges). This keeps the controller from fighting the
+	// runner over the surge or its paired old Workspace, while still allowing
+	// scale up/down even while an upgrade is in progress or stuck.
+	managed, stable, numSurges := classifyWorkspaces(wsList.Items)
+	stableTarget := stableTargetForReplicas(desiredReplicas, numSurges)
+	klog.InfoS("Found workspaces for inference set", "name", iObj.Name,
+		"managed", len(managed), "stable", len(stable), "surges", numSurges,
+		"desired", desiredReplicas, "stableTarget", stableTarget)
+
+	replicaNumToDelete := len(stable) - stableTarget
 	var deletingWorkspaces []string
 	if replicaNumToDelete > 0 {
-		klog.InfoS("Found extra workspaces, deleting...", "current", len(wsList.Items), "desired", desiredReplicas)
+		klog.InfoS("Found extra workspaces, deleting...", "stable", len(stable), "stableTarget", stableTarget)
 		// first delete workspace that is not in ready state
-		for _, ws := range wsList.Items {
+		for _, ws := range stable {
 			if !ws.DeletionTimestamp.IsZero() {
 				deletingWorkspaces = append(deletingWorkspaces, ws.Name)
 				replicaNumToDelete--
@@ -241,7 +310,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 
 		// delete rest of extra workspaces
 		if replicaNumToDelete > 0 {
-			for _, ws := range wsList.Items {
+			for _, ws := range stable {
 				// check whether ws.Name is already in deletingWorkspaces
 				if slices.Contains(deletingWorkspaces, ws.Name) {
 					continue
@@ -268,52 +337,15 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 		if wsList, err = inferenceset.ListWorkspaces(ctx, iObj, c.Client); err != nil {
 			return ctrl.Result{}, err
 		}
+		managed, stable, numSurges = classifyWorkspaces(wsList.Items)
+		stableTarget = stableTargetForReplicas(desiredReplicas, numSurges)
 	}
 
-	replicaNumToCreate := int(desiredReplicas) - len(wsList.Items)
+	replicaNumToCreate := stableTarget - len(stable)
 	if replicaNumToCreate > 0 {
-		klog.InfoS("Need to create more workspaces...", "current", len(wsList.Items), "desired", desiredReplicas)
+		klog.InfoS("Need to create more workspaces...", "stable", len(stable), "stableTarget", stableTarget)
 		for i := range replicaNumToCreate {
-			workspaceObj := &kaitov1beta1.Workspace{}
-			workspaceObj.GenerateName = iObj.Name + "-"
-			workspaceObj.Namespace = iObj.Namespace
-
-			// Start with labels from the template metadata, then add controller labels.
-			workspaceLabels := maps.Clone(iObj.Spec.Template.Labels)
-			if workspaceLabels == nil {
-				workspaceLabels = make(map[string]string)
-			}
-			// Also propagate select labels from the InferenceSet's own metadata,
-			// in case template.metadata.labels was pruned by the API server.
-			if role, ok := iObj.Labels[kaitov1beta1.LabelInferenceRole]; ok {
-				workspaceLabels[kaitov1beta1.LabelInferenceRole] = role
-			}
-			if mriParent, ok := iObj.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent]; ok {
-				workspaceLabels[kaitov1alpha1.LabelMultiRoleInferenceParent] = mriParent
-			}
-			workspaceLabels[consts.WorkspaceCreatedByInferenceSetLabel] = iObj.Name
-			workspaceObj.Labels = workspaceLabels
-
-			// Start with annotations from the template metadata.
-			workspaceAnnotations := maps.Clone(iObj.Spec.Template.Annotations)
-			// Propagate the disable-benchmark opt-out so each child workspace inherits it.
-			// Benchmark is on by default; only propagate when explicitly disabled.
-			if !kaitov1beta1.IsInferenceSetBenchmarkEnabled(iObj) {
-				if workspaceAnnotations == nil {
-					workspaceAnnotations = make(map[string]string)
-				}
-				workspaceAnnotations[kaitov1beta1.AnnotationDisableBenchmark] = "true"
-			}
-			workspaceObj.Annotations = workspaceAnnotations
-			workspaceObj.OwnerReferences = []metav1.OwnerReference{
-				*metav1.NewControllerRef(iObj, kaitov1beta1.GroupVersion.WithKind("InferenceSet")),
-			}
-			workspaceObj.Resource = kaitov1beta1.ResourceSpec{
-				InstanceType:  iObj.Spec.Template.Resource.InstanceType,
-				LabelSelector: iObj.Spec.Selector,
-			}
-			workspaceObj.Inference = &iObj.Spec.Template.Inference
-
+			workspaceObj := inferenceset.NewWorkspaceForInferenceSet(iObj)
 			klog.InfoS("creating workspace", "workspace", workspaceObj.Name, "index", i)
 			if err := c.Client.Create(ctx, workspaceObj); err != nil {
 				klog.ErrorS(err, "failed to create workspace", "workspace", workspaceObj.Name)
@@ -362,7 +394,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	}
 
 	// check whether all the workspaces are ready
-	totalTPM, readyReplicas, benchmarkedReplicas, hasBenchmarkTPMResult := aggregateBenchmarkResults(wsList.Items)
+	totalTPM, readyReplicas, benchmarkedReplicas, hasBenchmarkTPMResult := aggregateBenchmarkResults(managed)
 
 	// update the replicas in the status
 	if err = inferenceset.UpdateInferenceSetStatus(ctx, c.Client, &client.ObjectKey{Name: iObj.Name, Namespace: iObj.Namespace}, func(status *kaitov1beta1.InferenceSetStatus) error {

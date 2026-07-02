@@ -39,6 +39,24 @@ type InferenceSetTemplate struct {
 	Inference kaitov1beta1.InferenceSpec `json:"inference"`
 }
 
+// AutoUpgradeStrategy describes how the controller replaces Workspaces when a
+// newer base image version is detected.
+// +kubebuilder:validation:Enum=InPlace;Surge
+type AutoUpgradeStrategy string
+
+const (
+	// InPlaceUpgradeStrategy upgrades the existing Workspace's StatefulSet in place
+	// (rolling update of the pod template image). This is fast but incurs downtime
+	// while the pod is recreated and the model is reloaded.
+	InPlaceUpgradeStrategy AutoUpgradeStrategy = "InPlace"
+
+	// SurgeBasedUpgradeStrategy creates a new Workspace on the new base image,
+	// waits for it to become inference-ready, then deletes the old Workspace.
+	// This avoids downtime at the cost of temporarily running an extra Workspace
+	// (extra GPU capacity) during the rollout.
+	SurgeBasedUpgradeStrategy AutoUpgradeStrategy = "Surge"
+)
+
 // AutoUpgradePolicy configures automatic base image upgrade behavior.
 type AutoUpgradePolicy struct {
 	// Enabled controls whether the controller automatically upgrades
@@ -47,6 +65,14 @@ type AutoUpgradePolicy struct {
 	// +optional
 	// +kubebuilder:default:=false
 	Enabled bool `json:"enabled"`
+
+	// Strategy selects how Workspaces are replaced during an upgrade.
+	// "InPlace" (default) rolls the existing Workspace's StatefulSet, incurring
+	// downtime. "Surge" creates a new Workspace, waits for it to become
+	// ready, then deletes the old one, avoiding downtime.
+	// +optional
+	// +kubebuilder:default:=InPlace
+	Strategy AutoUpgradeStrategy `json:"strategy,omitempty"`
 
 	// MaintenanceWindow restricts when upgrades may be applied.
 	// If not specified, upgrades may be applied at any time.

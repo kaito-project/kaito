@@ -33,6 +33,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
@@ -503,6 +504,97 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 			}
 			assert.Equal(t, tc.expectBenchmarkMsg,
 				fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, *tc.inferenceset.Spec.Replicas))
+		})
+	}
+}
+
+func TestClassifyWorkspaces(t *testing.T) {
+	ws := func(name string, labels map[string]string) v1beta1.Workspace {
+		return v1beta1.Workspace{
+			ObjectMeta: v1.ObjectMeta{Name: name, Labels: labels},
+		}
+	}
+
+	tests := []struct {
+		name         string
+		input        []v1beta1.Workspace
+		wantManaged  []string
+		wantStable   []string
+		wantNumSurge int
+	}{
+		{
+			name:         "no surge - all managed and stable",
+			input:        []v1beta1.Workspace{ws("a", nil), ws("b", nil)},
+			wantManaged:  []string{"a", "b"},
+			wantStable:   []string{"a", "b"},
+			wantNumSurge: 0,
+		},
+		{
+			name: "one surge - old workspace managed but not stable",
+			input: []v1beta1.Workspace{
+				ws("old", nil),
+				ws("surge", map[string]string{kaitov1alpha1.LabelUpgradeSurgeFor: "old"}),
+			},
+			// old is still serving (managed) but reserved by the runner (not stable).
+			wantManaged:  []string{"old"},
+			wantStable:   nil,
+			wantNumSurge: 1,
+		},
+		{
+			name: "surge plus an unrelated stable replica",
+			input: []v1beta1.Workspace{
+				ws("old", nil),
+				ws("surge", map[string]string{kaitov1alpha1.LabelUpgradeSurgeFor: "old"}),
+				ws("other", nil),
+			},
+			// "other" is freely scalable; "old" is reserved; "surge" is runner-owned.
+			wantManaged:  []string{"old", "other"},
+			wantStable:   []string{"other"},
+			wantNumSurge: 1,
+		},
+		{
+			name: "surge whose old workspace is already deleted",
+			input: []v1beta1.Workspace{
+				ws("surge", map[string]string{kaitov1alpha1.LabelUpgradeSurgeFor: "old"}),
+			},
+			wantManaged:  nil,
+			wantStable:   nil,
+			wantNumSurge: 1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			managed, stable, numSurges := classifyWorkspaces(tt.input)
+			assert.Equal(t, tt.wantNumSurge, numSurges)
+			names := func(wss []v1beta1.Workspace) []string {
+				var out []string
+				for _, w := range wss {
+					out = append(out, w.Name)
+				}
+				return out
+			}
+			assert.Equal(t, tt.wantManaged, names(managed))
+			assert.Equal(t, tt.wantStable, names(stable))
+		})
+	}
+}
+
+func TestStableTargetForReplicas(t *testing.T) {
+	tests := []struct {
+		name      string
+		desired   int32
+		numSurges int
+		want      int
+	}{
+		{name: "no surge", desired: 3, numSurges: 0, want: 3},
+		{name: "one surge reserves a slot", desired: 3, numSurges: 1, want: 2},
+		{name: "clamped to zero", desired: 1, numSurges: 2, want: 0},
+		{name: "zero desired", desired: 0, numSurges: 0, want: 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, stableTargetForReplicas(tt.desired, tt.numSurges))
 		})
 	}
 }

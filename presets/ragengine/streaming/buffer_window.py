@@ -46,13 +46,13 @@ class StreamingBufferWindow:
         self,
         scanner: WindowScanner,
         *,
-        holdback_chars: int,
+        holdback_len: int,
     ) -> None:
-        if holdback_chars < 0:
-            raise ValueError("holdback_chars must be non-negative.")
+        if holdback_len < 0:
+            raise ValueError("holdback_len must be non-negative.")
 
         self._scanner = scanner
-        self._holdback_chars = holdback_chars
+        self._holdback_len = holdback_len
         self._pending_buffer = ""
         self._blocked = False
 
@@ -65,13 +65,13 @@ class StreamingBufferWindow:
             return WindowEmitResult(chunks=(), blocked=True)
 
         self._pending_buffer += text
-        emit_prefix_len = self._emit_prefix_len()
-        if emit_prefix_len == 0:
+        emit_len = self._calc_emit_len()
+        if emit_len == 0:
             return WindowEmitResult(chunks=())
 
         return self._scan_and_emit(
             self._pending_buffer,
-            emit_prefix_len=emit_prefix_len,
+            emit_len=emit_len,
         )
 
     def flush(self) -> WindowEmitResult:
@@ -82,19 +82,19 @@ class StreamingBufferWindow:
 
         return self._scan_and_emit(
             self._pending_buffer,
-            emit_prefix_len=len(self._pending_buffer),
+            emit_len=len(self._pending_buffer),
         )
 
-    def _emit_prefix_len(self) -> int:
-        if self._holdback_chars == 0:
+    def _calc_emit_len(self) -> int:
+        if self._holdback_len == 0:
             return len(self._pending_buffer)
-        return max(0, len(self._pending_buffer) - self._holdback_chars)
+        return max(0, len(self._pending_buffer) - self._holdback_len)
 
     def _scan_and_emit(
         self,
         scan_text: str,
         *,
-        emit_prefix_len: int,
+        emit_len: int,
     ) -> WindowEmitResult:
         scan_result = self._scanner.scan(scan_text)
         if scan_result.blocked:
@@ -104,7 +104,7 @@ class StreamingBufferWindow:
 
         safe_prefix_len = max(
             0,
-            min(scan_result.safe_prefix_len, emit_prefix_len),
+            min(scan_result.safe_prefix_len, emit_len),
         )
         if safe_prefix_len == 0:
             return WindowEmitResult(chunks=())

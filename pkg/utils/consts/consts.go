@@ -108,21 +108,22 @@ const (
 	// PortInferenceServer is the default port for the inference server.
 	PortInferenceServer = int32(5000)
 
-	// InferencePoolChartURL is the OCI registry URL for the Gateway API Inference Extension inferencepool chart.
-	InferencePoolChartURL = "oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool"
+	// InferencePoolChartURL is the OCI registry URL for the llm-d router gateway chart.
+	// Migrated from GWIE inferencepool chart to llm-d-router-gateway which provides
+	// the same InferencePool deployment with advanced routing capabilities.
+	InferencePoolChartURL = "oci://ghcr.io/llm-d/charts/llm-d-router-gateway"
 
-	// InferencePoolChartVersion is the tag/version of the inferencepool chart to deploy.
-	// MUST KEEP IN SYNC with the version in go.mod.
-	InferencePoolChartVersion = "v1.3.1"
+	// InferencePoolChartVersion is the tag/version of the llm-d-router-gateway chart to deploy.
+	InferencePoolChartVersion = "v0.9.1"
 
 	// EPP (Endpoint Picker) image configuration.
-	// The InferencePool chart composes the image as: {hub}/{name}:{tag}
-	// Using llm-d inference scheduler which consolidates the GWIE EPP implementation
-	// with advanced scheduling plugins (KV cache-aware routing, P/D disaggregation, etc.)
-	// See: https://github.com/llm-d/llm-d-inference-scheduler
-	EPPImageHub  = "mcr.microsoft.com/oss/v2/llm-d"
-	EPPImageName = "llm-d-inference-scheduler"
-	EPPImageTag  = "v0.8.0"
+	// The llm-d-router chart composes the image as: {registry}/{repository}:{tag}
+	// Using llm-d router endpoint picker which provides advanced scheduling plugins
+	// (KV cache-aware routing, P/D disaggregation, pluggable filters/scorers).
+	// See: https://github.com/llm-d/llm-d-router
+	EPPImageRegistry   = "ghcr.io/llm-d"
+	EPPImageRepository = "llm-d-router-endpoint-picker"
+	EPPImageTag        = "v0.9.1"
 
 	// TokenizerSidecar runs a GPU-less vLLM render process for tokenization.
 	// It exposes /v1/completions/render and /v1/chat/completions/render on port 8100.

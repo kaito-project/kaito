@@ -624,8 +624,8 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	// Build EPP extension values with llm-d image and P/D plugins config.
 	eppValues := map[string]any{
 		"image": map[string]string{
-			"hub":        consts.EPPImageHub,
-			"name":       consts.EPPImageName,
+			"registry":   consts.EPPImageRegistry,
+			"repository": consts.EPPImageRepository,
 			"tag":        consts.EPPImageTag,
 			"pullPolicy": string(corev1.PullIfNotPresent),
 		},
@@ -652,11 +652,17 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	// On prefill pods vLLM listens directly on 5000; on decode pods the routing
 	// sidecar listens on 5000 and transparently proxies /metrics to vLLM on 5001.
 	// This keeps a single metrics port across roles, avoiding per-role EPP config.
-	// Disable secure-serving so the Gateway can reach EPP over plaintext gRPC
-	// without requiring TLS DestinationRules or certificate bootstrapping.
 	eppValues["flags"] = map[string]string{
-		"secure-serving":            "false",
 		"model-server-metrics-port": fmt.Sprintf("%d", consts.PortInferenceServer),
+	}
+	eppValues["resources"] = map[string]any{
+		"requests": map[string]string{
+			"cpu":    "1",
+			"memory": "2Gi",
+		},
+		"limits": map[string]string{
+			"memory": "16Gi",
+		},
 	}
 	// No tokenizer sidecar: the EPP plugin pipeline (approx-prefix-cache-producer
 	// + prefix-based-pd-decider) does not require a token-producer plugin, so a
@@ -666,13 +672,13 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	// it unconditionally.
 
 	helmValues := map[string]any{
-		"inferenceExtension": eppValues,
-		"inferencePool": map[string]any{
-			"targetPorts": []map[string]any{
-				{"number": consts.PortInferenceServer}, // sidecar (decode) or vLLM (prefill) on port 5000
-			},
+		"router": map[string]any{
+			"epp": eppValues,
 			"modelServers": map[string]any{
 				"matchLabels": matchLabels,
+				"targetPorts": []map[string]any{
+					{"number": consts.PortInferenceServer}, // sidecar (decode) or vLLM (prefill) on port 5000
+				},
 			},
 		},
 	}

@@ -17,7 +17,6 @@ import (
 	"context"
 	"fmt"
 	"maps"
-	"slices"
 	"sort"
 	"strconv"
 	"time"
@@ -216,50 +215,55 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	klog.InfoS("Found workspaces for inference set", "name", iObj.Name, "current", len(wsList.Items), "desired", desiredReplicas)
 
 	replicaNumToDelete := len(wsList.Items) - int(desiredReplicas)
-	var deletingWorkspaces []string
 	if replicaNumToDelete > 0 {
 		klog.InfoS("Found extra workspaces, deleting...", "current", len(wsList.Items), "desired", desiredReplicas)
-		// first delete workspace that is not in ready state
-		for _, ws := range wsList.Items {
+
+		// Partition workspaces into those already being deleted, those that are
+		// not ready, and those that are ready. Workspaces already being deleted
+		// count toward the target without issuing a new delete; among the rest,
+		// prefer deleting non-ready workspaces before ready ones.
+		var notReady, ready []*kaitov1beta1.Workspace
+		for i := range wsList.Items {
+			ws := &wsList.Items[i]
 			if !ws.DeletionTimestamp.IsZero() {
-				deletingWorkspaces = append(deletingWorkspaces, ws.Name)
 				replicaNumToDelete--
-				klog.InfoS("Skipping workspace that is already being deleted...", "workspace", klog.KObj(&ws))
-			} else if controllers.DetermineWorkspacePhase(&ws) != "succeeded" {
-				klog.InfoS("Deleting non-ready workspace...", "workspace", klog.KObj(&ws))
-				if err := c.Client.Delete(ctx, &ws, &client.DeleteOptions{}); err != nil {
-					klog.ErrorS(err, "failed to delete non-ready workspace", "workspace", klog.KObj(&ws))
-					return ctrl.Result{}, err
-				}
-				deletingWorkspaces = append(deletingWorkspaces, ws.Name)
-				replicaNumToDelete--
-			}
-			if replicaNumToDelete <= 0 {
-				break
+				klog.InfoS("Skipping workspace that is already being deleted...", "workspace", klog.KObj(ws))
+			} else if controllers.DetermineWorkspacePhase(ws) != "succeeded" {
+				notReady = append(notReady, ws)
+			} else {
+				ready = append(ready, ws)
 			}
 		}
 
-		// delete rest of extra workspaces
-		if replicaNumToDelete > 0 {
-			for _, ws := range wsList.Items {
-				// check whether ws.Name is already in deletingWorkspaces
-				if slices.Contains(deletingWorkspaces, ws.Name) {
-					continue
-				}
+		var toDelete []*kaitov1beta1.Workspace
+		for _, ws := range append(notReady, ready...) {
+			if replicaNumToDelete <= 0 {
+				break
+			}
+			toDelete = append(toDelete, ws)
+			replicaNumToDelete--
+		}
 
-				if !ws.DeletionTimestamp.IsZero() {
-					replicaNumToDelete--
-					klog.InfoS("Skipping workspace that is already being deleted...", "workspace", klog.KObj(&ws))
-				} else {
-					klog.InfoS("Deleting extra workspace...", "workspace", klog.KObj(&ws))
-					if err := c.Client.Delete(ctx, &ws, &client.DeleteOptions{}); err != nil {
-						klog.ErrorS(err, "failed to delete extra workspace", "workspace", klog.KObj(&ws))
+		if len(toDelete) > 0 {
+			// Set deletion expectations before issuing any delete so that stale
+			// cache reads in subsequent reconciles do not over-delete workspaces.
+			// The expectation is lowered when the delete event is observed by the
+			// workspace event handler, or here if the delete call does not result
+			// in an eventual delete event (already-gone or failed).
+			if err := c.expectations.ExpectDeletions(c.klogger, isKey, len(toDelete)); err != nil {
+				klog.ErrorS(err, "failed to set deletion expectations", "inferenceset", isKey)
+				return ctrl.Result{}, err
+			}
+			for _, ws := range toDelete {
+				klog.InfoS("Deleting extra workspace...", "workspace", klog.KObj(ws))
+				if err := c.Client.Delete(ctx, ws, &client.DeleteOptions{}); err != nil {
+					// No delete event will be observed for this workspace, so lower
+					// the expectation to avoid stalling until it expires.
+					c.expectations.DeletionObserved(c.klogger, isKey)
+					if !apierrors.IsNotFound(err) {
+						klog.ErrorS(err, "failed to delete extra workspace", "workspace", klog.KObj(ws))
 						return ctrl.Result{}, err
 					}
-					replicaNumToDelete--
-				}
-				if replicaNumToDelete <= 0 {
-					break
 				}
 			}
 		}
@@ -273,6 +277,14 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	replicaNumToCreate := int(desiredReplicas) - len(wsList.Items)
 	if replicaNumToCreate > 0 {
 		klog.InfoS("Need to create more workspaces...", "current", len(wsList.Items), "desired", desiredReplicas)
+		// Set creation expectations before issuing any create so that a stale
+		// cache read in a subsequent reconcile does not create duplicate
+		// workspaces. The expectation is lowered when the create event is
+		// observed by the workspace event handler, or here if the create fails.
+		if err := c.expectations.ExpectCreations(c.klogger, isKey, replicaNumToCreate); err != nil {
+			klog.ErrorS(err, "failed to set creation expectations", "inferenceset", isKey)
+			return reconcile.Result{}, err
+		}
 		for i := range replicaNumToCreate {
 			workspaceObj := &kaitov1beta1.Workspace{}
 			workspaceObj.GenerateName = iObj.Name + "-"
@@ -316,6 +328,9 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 
 			klog.InfoS("creating workspace", "workspace", workspaceObj.Name, "index", i)
 			if err := c.Client.Create(ctx, workspaceObj); err != nil {
+				// The create failed, so no create event will be observed for it;
+				// lower the expectation to avoid stalling until it expires.
+				c.expectations.CreationObserved(c.klogger, isKey)
 				klog.ErrorS(err, "failed to create workspace", "workspace", workspaceObj.Name)
 				return reconcile.Result{}, err
 			}

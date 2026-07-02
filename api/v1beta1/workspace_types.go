@@ -258,17 +258,17 @@ const (
 // Each concern (model weights, KV cache) is configured independently with its
 // own provider and mode, allowing different backends per concern.
 type CacheSpec struct {
-	// ModelWeights configures caching of static model weight files.
+	// ModelCache configures caching of model weight files.
 	// +optional
-	ModelWeights *ModelWeightsCacheConfig `json:"modelWeights,omitempty"`
+	ModelCache *ModelCacheSpec `json:"modelCache,omitempty"`
 
 	// KVCache configures caching of attention key/value tensors.
 	// +optional
-	KVCache *KVCacheConfig `json:"kvCache,omitempty"`
+	KVCache *KVCacheSpec `json:"kvCache,omitempty"`
 }
 
-// ModelWeightsCacheConfig controls how model weight files are cached.
-type ModelWeightsCacheConfig struct {
+// ModelCacheSpec controls how model weight files are cached.
+type ModelCacheSpec struct {
 	// Provider selects the cache implementation for model weights.
 	// +kubebuilder:validation:MinLength=1
 	Provider CacheProvider `json:"provider"`
@@ -278,17 +278,19 @@ type ModelWeightsCacheConfig struct {
 	// +kubebuilder:validation:Enum=Required;Opportunistic;Disabled
 	Mode CacheMode `json:"mode,omitempty"`
 
-	// PrewarmOnDeploy triggers cache population before model serving starts.
+	// Config is the name of a ConfigMap in the same namespace containing
+	// provider-specific model cache configuration. The provider validates
+	// and merges this with its defaults from Helm values.
 	// +optional
-	PrewarmOnDeploy bool `json:"prewarmOnDeploy,omitempty"`
+	Config string `json:"config,omitempty"`
 
 	// CleanupOnDelete invalidates cached model data when workspace is deleted.
 	// +optional
 	CleanupOnDelete bool `json:"cleanupOnDelete,omitempty"`
 }
 
-// KVCacheConfig controls how attention KV tensors are cached.
-type KVCacheConfig struct {
+// KVCacheSpec controls how attention KV tensors are cached.
+type KVCacheSpec struct {
 	// Provider selects the cache implementation for KV tensors.
 	// +kubebuilder:validation:MinLength=1
 	Provider CacheProvider `json:"provider"`
@@ -297,6 +299,13 @@ type KVCacheConfig struct {
 	// +kubebuilder:default:="Opportunistic"
 	// +kubebuilder:validation:Enum=Required;Opportunistic;Disabled
 	Mode CacheMode `json:"mode,omitempty"`
+
+	// Config is the name of a ConfigMap in the same namespace containing
+	// provider-specific KV cache configuration (e.g., cache size, TTL,
+	// eviction policy). The provider validates and merges this with its
+	// defaults from Helm values.
+	// +optional
+	Config string `json:"config,omitempty"`
 }
 
 // Workspace is the Schema for the workspaces API

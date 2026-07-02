@@ -436,6 +436,13 @@ spec:
               kvCache:
                 description: KVCache configures caching of attention key/value tensors.
                 properties:
+                  config:
+                    description: |-
+                      Config is the name of a ConfigMap in the same namespace containing
+                      provider-specific KV cache configuration (e.g., cache size, TTL,
+                      eviction policy). The provider validates and merges this with its
+                      defaults from Helm values.
+                    type: string
                   mode:
                     default: Opportunistic
                     description: Mode controls cache behavior.
@@ -452,14 +459,19 @@ spec:
                 required:
                 - provider
                 type: object
-              modelWeights:
-                description: ModelWeights configures caching of static model weight
-                  files.
+              modelCache:
+                description: ModelCache configures caching of model weight files.
                 properties:
                   cleanupOnDelete:
                     description: CleanupOnDelete invalidates cached model data when
                       workspace is deleted.
                     type: boolean
+                  config:
+                    description: |-
+                      Config is the name of a ConfigMap in the same namespace containing
+                      provider-specific model cache configuration. The provider validates
+                      and merges this with its defaults from Helm values.
+                    type: string
                   mode:
                     default: Opportunistic
                     description: Mode controls cache behavior.
@@ -468,10 +480,6 @@ spec:
                     - Opportunistic
                     - Disabled
                     type: string
-                  prewarmOnDeploy:
-                    description: PrewarmOnDeploy triggers cache population before
-                      model serving starts.
-                    type: boolean
                   provider:
                     description: Provider selects the cache implementation for model
                       weights.

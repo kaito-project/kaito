@@ -328,9 +328,16 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 		}
 	}
 
+	// TODO(distributed-cache): Phase 4 — ModelMirror Integration (Cache Warming).
+	// Cache warming occurs as a side-effect of ModelMirror's download. Two paths:
+	//   CSI: Set provider StorageClass on ModelMirror PVC (writes flow through CSI to cache).
+	//   Webhook: Provider webhook injects cache interception into download pods.
+	// In Required mode, gate on both ModelMirror Ready AND provider.IsReady().
+	// In Opportunistic mode, gate only on ModelMirror Ready; cache warms lazily on first read.
+
 	// Check cache readiness when configured. In Required mode, block deployment
 	// until the cache is ready.
-	cacheResult := cache.ReconcileCache(ctx, wObj, &wObj.Status)
+	cacheResult := cache.ReconcileCache(ctx, c.Client, wObj, &wObj.Status)
 	if cacheResult.BlockDeployment {
 		klog.V(2).InfoS("Cache not ready, blocking deployment", "workspace", klog.KObj(wObj))
 		if cacheResult.RequeueNeeded {
@@ -357,6 +364,8 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 
 func (c *WorkspaceReconciler) deleteWorkspace(ctx context.Context, wObj *kaitov1beta1.Workspace) (reconcile.Result, error) {
 	klog.InfoS("deleteWorkspace", "workspace", klog.KObj(wObj))
+	// TODO(distributed-cache): Call provider.Cleanup() here when workspace.Cache.ModelCache.CleanupOnDelete
+	// is true. Add a cache-cleanup finalizer to gate deletion until cleanup completes or times out.
 	return c.garbageCollectWorkspace(ctx, wObj)
 }
 func (c *WorkspaceReconciler) syncControllerRevision(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
@@ -585,26 +594,6 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		return err
 	}
 
-	// Trigger/track model weight prewarm after model resolution.
-	if wObj.Cache != nil && wObj.Cache.ModelWeights != nil && wObj.Cache.ModelWeights.PrewarmOnDeploy {
-		params := model.GetInferenceParameters()
-		var modelName, modelRevision string
-		if params != nil {
-			modelName = params.Name
-			if params.Version != "" {
-				_, rev, _ := utils.ParseHuggingFaceModelVersion(params.Version)
-				modelRevision = rev
-			}
-		}
-		if modelName == "" {
-			modelName = presetName
-		}
-		cache.ReconcilePrewarm(ctx, wObj, c.Client,
-			modelName, modelRevision,
-			wObj.Inference.Preset.PresetOptions.ModelAccessSecret,
-			&wObj.Status)
-	}
-
 	revisionStr := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
 	workloadObj, err := inference.GeneratePresetInference(ctx, wObj, revisionStr, model, c.Client, c.nodeProvisioner)
 	if err != nil {
@@ -732,6 +721,10 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 				meta.RemoveStatusCondition(&status.Conditions, t)
 			}
 		}
+
+		// Reconcile cache conditions against the freshly-fetched status so
+		// they are persisted alongside node/inference/tuning conditions.
+		cache.ReconcileCache(ctx, c.Client, wObj, status)
 
 		// Extract ResourceStatus condition status for downstream use.
 		resourceConditionStatus := metav1.ConditionFalse

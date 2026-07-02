@@ -1,6 +1,15 @@
-#!/usr/bin/env python3
 # Copyright (c) KAITO authors.
-# Licensed under the Apache License, Version 2.0.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """Cache prewarm script: downloads model from HuggingFace, uploads to Azure Blob Storage.
 
 Environment variables:
@@ -9,7 +18,7 @@ Environment variables:
     BLOB_ENDPOINT         Azure Blob Storage endpoint
     BLOB_CONTAINER        Blob container name
     BLOB_PATH             Relative path within container for model files
-    TACHYON_DISCOVERY_ENDPOINT  Cache server discovery endpoint (for future use)
+    CACHE_DISCOVERY_URL   Cache server discovery endpoint (for future use)
     HF_TOKEN              (optional) HuggingFace access token for gated models
 """
 
@@ -90,7 +99,7 @@ def upload_to_blob(
         for future in as_completed(futures):
             local_file = futures[future]
             try:
-                blob_name = future.result()
+                future.result()
                 uploaded += 1
                 if uploaded % 10 == 0 or uploaded == len(files):
                     logger.info(f"  Uploaded {uploaded}/{len(files)} files")

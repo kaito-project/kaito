@@ -35,6 +35,9 @@ type InferenceSetTemplate struct {
 	// +optional
 	Resource  InferenceSetResourceSpec `json:"resource"`
 	Inference InferenceSpec            `json:"inference"`
+	// Cache configures distributed caching for all Workspaces created by this InferenceSet.
+	// +optional
+	Cache *CacheSpec `json:"cache,omitempty"`
 }
 
 // AutoUpgradePolicy configures automatic base image upgrade behavior.

@@ -14,9 +14,21 @@
 package cache
 
 import (
+	"context"
+	"strings"
 	"testing"
 
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/generator"
 )
 
 func TestMergeMutations_DeduplicatesEnvVars(t *testing.T) {
@@ -110,4 +122,431 @@ func TestApplyMutations_EmptyContainers(t *testing.T) {
 	if len(spec.Containers) != 0 {
 		t.Errorf("expected no containers modified")
 	}
+}
+
+type availabilityTestProvider struct {
+	name           string
+	available      bool
+	availableErr   error
+	mutations      *PodMutations
+	mutationsCalls int
+}
+
+func (p *availabilityTestProvider) Name() string { return p.name }
+
+func (p *availabilityTestProvider) IsAvailable(_ context.Context, _ string) (bool, error) {
+	return p.available, p.availableErr
+}
+
+func (p *availabilityTestProvider) IsReady(_ context.Context, _ string) (bool, string, error) {
+	return p.available, "", nil
+}
+
+func (p *availabilityTestProvider) PodMutations(_ context.Context, _ CacheConcern, _ *kaitov1beta1.Workspace, _, _, _ string) (*PodMutations, error) {
+	p.mutationsCalls++
+	if p.mutations != nil {
+		return p.mutations, nil
+	}
+	return &PodMutations{}, nil
+}
+
+func (p *availabilityTestProvider) Cleanup(_ context.Context, _ *kaitov1beta1.Workspace, _ string) error {
+	return nil
+}
+
+func TestCollectMutations_OpportunisticUnavailableProviderSkips(t *testing.T) {
+	isolateProviderRegistry(t)
+
+	provider := &availabilityTestProvider{
+		name:      "availability-test",
+		available: false,
+		mutations: &PodMutations{
+			Labels:  map[string]string{"should-not": "appear"},
+			EnvVars: []corev1.EnvVar{{Name: "SHOULD_NOT_APPEAR", Value: "true"}},
+		},
+	}
+	Register(provider)
+
+	ws := &kaitov1beta1.Workspace{
+		Cache: &kaitov1beta1.CacheSpec{
+			ModelCache: &kaitov1beta1.ModelCacheSpec{
+				Provider: kaitov1beta1.CacheProvider(provider.name),
+				Mode:     kaitov1beta1.CacheModeOpportunistic,
+			},
+		},
+	}
+
+	mutations, err := collectMutations(context.Background(), nil, ws, "microsoft/phi-4", "main")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if provider.mutationsCalls != 0 {
+		t.Fatalf("expected PodMutations not to be called, got %d calls", provider.mutationsCalls)
+	}
+	if len(mutations.EnvVars) != 0 {
+		t.Fatalf("expected no env vars, got %v", mutations.EnvVars)
+	}
+	if len(mutations.Labels) != 0 {
+		t.Fatalf("expected no labels, got %v", mutations.Labels)
+	}
+}
+
+func TestCollectMutations_RequiredUnavailableProviderReturnsError(t *testing.T) {
+	isolateProviderRegistry(t)
+
+	provider := &availabilityTestProvider{name: "availability-test", available: false}
+	Register(provider)
+
+	ws := &kaitov1beta1.Workspace{
+		Cache: &kaitov1beta1.CacheSpec{
+			ModelCache: &kaitov1beta1.ModelCacheSpec{
+				Provider: kaitov1beta1.CacheProvider(provider.name),
+				Mode:     kaitov1beta1.CacheModeRequired,
+			},
+		},
+	}
+
+	_, err := collectMutations(context.Background(), nil, ws, "microsoft/phi-4", "main")
+	if err == nil {
+		t.Fatal("expected error for unavailable required provider")
+	}
+	if !strings.Contains(err.Error(), "not available") {
+		t.Fatalf("expected availability error, got %v", err)
+	}
+}
+
+func TestCollectMutations_BothConcernsMergeResults(t *testing.T) {
+	isolateProviderRegistry(t)
+
+	Register(&dacsTestProvider{
+		blobPrefix:  "kaito-models",
+		discoveryEP: "cache-sample-discovery.dacs-cache-system.svc.cluster.local",
+		kvEnabled:   true,
+	})
+
+	ws := &kaitov1beta1.Workspace{
+		Cache: &kaitov1beta1.CacheSpec{
+			ModelCache: &kaitov1beta1.ModelCacheSpec{
+				Provider: "dacs",
+				Mode:     kaitov1beta1.CacheModeOpportunistic,
+			},
+			KVCache: &kaitov1beta1.KVCacheSpec{
+				Provider: "dacs",
+				Mode:     kaitov1beta1.CacheModeRequired,
+			},
+		},
+	}
+
+	mutations, err := collectMutations(context.Background(), nil, ws, "microsoft/phi-4", "main")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if mutations.Labels["dacs.azure.com/inject"] != "true" {
+		t.Fatalf("expected DACS injection label, got %v", mutations.Labels)
+	}
+	if len(mutations.EnvVars) != 2 {
+		t.Fatalf("expected model and KV env vars, got %v", mutations.EnvVars)
+	}
+
+	envVars := map[string]string{}
+	for _, envVar := range mutations.EnvVars {
+		envVars[envVar.Name] = envVar.Value
+	}
+	if envVars["KAITO_MODEL_PATH"] != "/mnt/models/kaito-models/microsoft/phi-4/main" {
+		t.Fatalf("expected KAITO_MODEL_PATH to be set, got %q", envVars["KAITO_MODEL_PATH"])
+	}
+	if _, ok := envVars["VLLM_KV_TRANSFER_CONFIG"]; !ok {
+		t.Fatalf("expected VLLM_KV_TRANSFER_CONFIG to be set, got %v", envVars)
+	}
+}
+
+type concernTestProvider struct {
+	name string
+}
+
+func (p *concernTestProvider) Name() string { return p.name }
+
+func (p *concernTestProvider) IsAvailable(_ context.Context, _ string) (bool, error) {
+	return true, nil
+}
+
+func (p *concernTestProvider) IsReady(_ context.Context, _ string) (bool, string, error) {
+	return true, "ready", nil
+}
+
+func (p *concernTestProvider) PodMutations(_ context.Context, concern CacheConcern, _ *kaitov1beta1.Workspace, _, _, _ string) (*PodMutations, error) {
+	switch concern {
+	case CacheConcernModelWeights:
+		return &PodMutations{
+			Labels:  map[string]string{"model-label": "enabled"},
+			EnvVars: []corev1.EnvVar{{Name: "MODEL_ENV", Value: "weights"}},
+		}, nil
+	case CacheConcernKVCache:
+		return &PodMutations{
+			EnvVars: []corev1.EnvVar{{Name: "KV_ENV", Value: "cache"}},
+		}, nil
+	default:
+		return &PodMutations{}, nil
+	}
+}
+
+func (p *concernTestProvider) Cleanup(_ context.Context, _ *kaitov1beta1.Workspace, _ string) error {
+	return nil
+}
+
+func TestCollectMutations_WithBothConcernsMergesLabelsAndEnvVars(t *testing.T) {
+	isolateProviderRegistry(t)
+
+	provider := &concernTestProvider{name: "concern-test"}
+	Register(provider)
+
+	ws := &kaitov1beta1.Workspace{
+		Cache: &kaitov1beta1.CacheSpec{
+			ModelCache: &kaitov1beta1.ModelCacheSpec{
+				Provider: kaitov1beta1.CacheProvider(provider.name),
+				Mode:     kaitov1beta1.CacheModeRequired,
+			},
+			KVCache: &kaitov1beta1.KVCacheSpec{
+				Provider: kaitov1beta1.CacheProvider(provider.name),
+				Mode:     kaitov1beta1.CacheModeRequired,
+			},
+		},
+	}
+
+	mutations, err := collectMutations(context.Background(), nil, ws, "ignored", "ignored")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if mutations.Labels["model-label"] != "enabled" {
+		t.Fatalf("expected model weights label to be merged, got %v", mutations.Labels)
+	}
+	if len(mutations.EnvVars) != 2 {
+		t.Fatalf("expected env vars from both concerns, got %v", mutations.EnvVars)
+	}
+	envVars := map[string]string{}
+	for _, envVar := range mutations.EnvVars {
+		envVars[envVar.Name] = envVar.Value
+	}
+	if envVars["MODEL_ENV"] != "weights" {
+		t.Fatalf("MODEL_ENV: got %q", envVars["MODEL_ENV"])
+	}
+	if envVars["KV_ENV"] != "cache" {
+		t.Fatalf("KV_ENV: got %q", envVars["KV_ENV"])
+	}
+}
+
+func TestSetCachePodTemplateLabels_ModifierAppliesLabels(t *testing.T) {
+	isolateProviderRegistry(t)
+	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+
+	provider := &concernTestProvider{name: "concern-test"}
+	Register(provider)
+
+	ctx := &generator.WorkspaceGeneratorContext{
+		Ctx: context.Background(),
+		Workspace: &kaitov1beta1.Workspace{
+			Cache: &kaitov1beta1.CacheSpec{
+				ModelCache: &kaitov1beta1.ModelCacheSpec{
+					Provider: kaitov1beta1.CacheProvider(provider.name),
+					Mode:     kaitov1beta1.CacheModeRequired,
+				},
+			},
+		},
+	}
+	ss := &appsv1.StatefulSet{}
+
+	if err := SetCachePodTemplateLabels()(ctx, ss); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if ss.Spec.Template.Labels["model-label"] != "enabled" {
+		t.Fatalf("expected pod template label to be applied, got %v", ss.Spec.Template.Labels)
+	}
+}
+
+func TestApplyTemplateCacheMutations_AppliesLabelsAndEnvVars(t *testing.T) {
+	isolateProviderRegistry(t)
+
+	provider := &concernTestProvider{name: "concern-test"}
+	Register(provider)
+
+	ws := &kaitov1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{Name: "workspace"},
+		Cache: &kaitov1beta1.CacheSpec{
+			ModelCache: &kaitov1beta1.ModelCacheSpec{
+				Provider: kaitov1beta1.CacheProvider(provider.name),
+				Mode:     kaitov1beta1.CacheModeRequired,
+			},
+			KVCache: &kaitov1beta1.KVCacheSpec{
+				Provider: kaitov1beta1.CacheProvider(provider.name),
+				Mode:     kaitov1beta1.CacheModeRequired,
+			},
+		},
+	}
+	ss := &appsv1.StatefulSet{
+		Spec: appsv1.StatefulSetSpec{
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{{
+						Name: "model",
+						Env:  []corev1.EnvVar{{Name: "EXISTING", Value: "keep"}},
+					}},
+				},
+			},
+		},
+	}
+
+	ApplyTemplateCacheMutations(context.Background(), ws, ss)
+
+	if ss.Spec.Template.Labels["model-label"] != "enabled" {
+		t.Fatalf("expected label to be applied, got %v", ss.Spec.Template.Labels)
+	}
+	envVars := map[string]string{}
+	for _, envVar := range ss.Spec.Template.Spec.Containers[0].Env {
+		envVars[envVar.Name] = envVar.Value
+	}
+	if envVars["EXISTING"] != "keep" {
+		t.Fatal("existing env var was not preserved")
+	}
+	if envVars["MODEL_ENV"] != "weights" {
+		t.Fatalf("MODEL_ENV: got %q", envVars["MODEL_ENV"])
+	}
+	if envVars["KV_ENV"] != "cache" {
+		t.Fatalf("KV_ENV: got %q", envVars["KV_ENV"])
+	}
+}
+
+func TestMountCacheConfigMaps_ModelCacheConfig(t *testing.T) {
+	scheme := runtime.NewScheme()
+	_ = corev1.AddToScheme(scheme)
+
+	// Create a user ConfigMap
+	userCM := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{Name: "my-model-config", Namespace: "default"},
+		Data:       map[string]string{"key1": "userval1", "key2": "userval2"},
+	}
+	kubeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(userCM).Build()
+
+	// Register a mock provider with DefaultConfig
+	Register(&mockDefaultConfigProvider{name: "dacs", defaults: map[string]string{
+		"key1":     "default1",
+		"key3":     "default3",
+		"endpoint": "discovery.svc:9065",
+	}})
+	defer func() {
+		mu.Lock()
+		delete(providers, "dacs")
+		mu.Unlock()
+	}()
+
+	ws := &kaitov1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{Name: "test-ws", Namespace: "default"},
+		Cache: &kaitov1beta1.CacheSpec{
+			ModelCache: &kaitov1beta1.ModelCacheSpec{
+				Provider: "dacs",
+				Mode:     kaitov1beta1.CacheModeOpportunistic,
+				Config:   "my-model-config",
+			},
+		},
+	}
+
+	mutations := &PodMutations{}
+	mountCacheConfigMaps(context.Background(), kubeClient, ws, mutations)
+
+	// Verify a volume was added
+	if len(mutations.Volumes) != 1 {
+		t.Fatalf("expected 1 volume, got %d", len(mutations.Volumes))
+	}
+	if mutations.Volumes[0].Name != "cache-model-config" {
+		t.Errorf("expected volume name 'cache-model-config', got %q", mutations.Volumes[0].Name)
+	}
+
+	// Verify a volume mount was added
+	if len(mutations.VolumeMounts) != 1 {
+		t.Fatalf("expected 1 volumeMount, got %d", len(mutations.VolumeMounts))
+	}
+	if mutations.VolumeMounts[0].MountPath != "/etc/kaito/cache/model" {
+		t.Errorf("expected mountPath '/etc/kaito/cache/model', got %q", mutations.VolumeMounts[0].MountPath)
+	}
+
+	// Verify the runtime ConfigMap was created with merged data
+	runtimeCM := &corev1.ConfigMap{}
+	err := kubeClient.Get(context.Background(), client.ObjectKey{Namespace: "default", Name: "cache-model-test-ws"}, runtimeCM)
+	if err != nil {
+		t.Fatalf("runtime ConfigMap not created: %v", err)
+	}
+	// User value overrides default
+	if runtimeCM.Data["key1"] != "userval1" {
+		t.Errorf("expected key1='userval1' (user override), got %q", runtimeCM.Data["key1"])
+	}
+	// User-only key preserved
+	if runtimeCM.Data["key2"] != "userval2" {
+		t.Errorf("expected key2='userval2', got %q", runtimeCM.Data["key2"])
+	}
+	// Default-only key preserved
+	if runtimeCM.Data["key3"] != "default3" {
+		t.Errorf("expected key3='default3' (from defaults), got %q", runtimeCM.Data["key3"])
+	}
+}
+
+func TestMountCacheConfigMaps_NilClient(t *testing.T) {
+	ws := &kaitov1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{Name: "test-ws", Namespace: "default"},
+		Cache: &kaitov1beta1.CacheSpec{
+			ModelCache: &kaitov1beta1.ModelCacheSpec{
+				Provider: "dacs",
+				Config:   "my-config",
+			},
+		},
+	}
+	mutations := &PodMutations{}
+	mountCacheConfigMaps(context.Background(), nil, ws, mutations)
+	if len(mutations.Volumes) != 0 {
+		t.Error("expected no volumes when client is nil")
+	}
+}
+
+func TestMountCacheConfigMaps_NoConfigSet(t *testing.T) {
+	scheme := runtime.NewScheme()
+	_ = corev1.AddToScheme(scheme)
+	kubeClient := fake.NewClientBuilder().WithScheme(scheme).Build()
+
+	ws := &kaitov1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{Name: "test-ws", Namespace: "default"},
+		Cache: &kaitov1beta1.CacheSpec{
+			ModelCache: &kaitov1beta1.ModelCacheSpec{
+				Provider: "dacs",
+				Mode:     kaitov1beta1.CacheModeOpportunistic,
+				// No Config field set
+			},
+		},
+	}
+	mutations := &PodMutations{}
+	mountCacheConfigMaps(context.Background(), kubeClient, ws, mutations)
+	if len(mutations.Volumes) != 0 {
+		t.Error("expected no volumes when Config is empty")
+	}
+}
+
+// mockDefaultConfigProvider implements Provider + DefaultConfigProvider for testing
+type mockDefaultConfigProvider struct {
+	name     string
+	defaults map[string]string
+}
+
+func (m *mockDefaultConfigProvider) Name() string { return m.name }
+func (m *mockDefaultConfigProvider) IsAvailable(_ context.Context, _ string) (bool, error) {
+	return true, nil
+}
+func (m *mockDefaultConfigProvider) IsReady(_ context.Context, _ string) (bool, string, error) {
+	return true, "ready", nil
+}
+func (m *mockDefaultConfigProvider) PodMutations(_ context.Context, _ CacheConcern, _ *kaitov1beta1.Workspace, _, _, _ string) (*PodMutations, error) {
+	return &PodMutations{}, nil
+}
+func (m *mockDefaultConfigProvider) Cleanup(_ context.Context, _ *kaitov1beta1.Workspace, _ string) error {
+	return nil
+}
+func (m *mockDefaultConfigProvider) DefaultConfig(concern string) map[string]string {
+	return m.defaults
 }

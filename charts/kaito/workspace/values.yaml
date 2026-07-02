@@ -191,13 +191,13 @@ productionstack:
 
 # Distributed cache provider configuration.
 # Only active when featureGates.distributedCache is true.
-# The Tachyon CSI driver + mutating webhook must be pre-installed in the cluster.
+# The DACS CSI driver + mutating webhook must be pre-installed in the cluster.
 # KAITO adds pod labels to trigger webhook-based cache library injection.
 cache:
   providers:
-    tachyon:
+    dacs:
       enabled: false
-      discoveryEndpoint: "http://cacheserver-discovery.tachyon-cache-system.svc.cluster.local:9065"
+      discoveryEndpoint: "http://cacheserver-discovery.dacs-cache-system.svc.cluster.local:9065"
       kvCacheEnabled: true
       kvConnectorProtocol: "tcp"
       # Azure Blob Storage endpoint (used by prewarm Jobs).

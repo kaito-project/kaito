@@ -44,6 +44,11 @@ import (
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
+// ValidateCacheProvider is a hook set by pkg/cache at init time to validate
+// that a provider name is registered. This breaks the import cycle between
+// api/v1beta1 and pkg/cache.
+var ValidateCacheProvider func(CacheProvider) error
+
 const (
 	N_SERIES_PREFIX = "Standard_N"
 	D_SERIES_PREFIX = "Standard_D"
@@ -778,11 +783,11 @@ func (c *CacheSpec) validateCreate() (errs *apis.FieldError) {
 			fmt.Sprintf("feature gate %q is not enabled", consts.FeatureFlagDistributedCache), ""))
 		return errs
 	}
-	if c.ModelWeights == nil && c.KVCache == nil {
-		errs = errs.Also(apis.ErrGeneric("at least one of modelWeights or kvCache must be specified", ""))
+	if c.ModelCache == nil && c.KVCache == nil {
+		errs = errs.Also(apis.ErrGeneric("at least one of modelCache or kvCache must be specified", ""))
 	}
-	if c.ModelWeights != nil {
-		errs = errs.Also(c.ModelWeights.validateCreate().ViaField("modelWeights"))
+	if c.ModelCache != nil {
+		errs = errs.Also(c.ModelCache.validateCreate().ViaField("modelCache"))
 	}
 	if c.KVCache != nil {
 		errs = errs.Also(c.KVCache.validateCreate().ViaField("kvCache"))
@@ -790,9 +795,13 @@ func (c *CacheSpec) validateCreate() (errs *apis.FieldError) {
 	return errs
 }
 
-func (m *ModelWeightsCacheConfig) validateCreate() (errs *apis.FieldError) {
+func (m *ModelCacheSpec) validateCreate() (errs *apis.FieldError) {
 	if m.Provider == "" {
 		errs = errs.Also(apis.ErrMissingField("provider"))
+	} else if ValidateCacheProvider != nil {
+		if err := ValidateCacheProvider(m.Provider); err != nil {
+			errs = errs.Also(apis.ErrInvalidValue(string(m.Provider), "provider", err.Error()))
+		}
 	}
 	if m.Mode != "" && m.Mode != CacheModeRequired && m.Mode != CacheModeOpportunistic && m.Mode != CacheModeDisabled {
 		errs = errs.Also(apis.ErrInvalidValue(string(m.Mode), "mode"))
@@ -800,9 +809,13 @@ func (m *ModelWeightsCacheConfig) validateCreate() (errs *apis.FieldError) {
 	return errs
 }
 
-func (k *KVCacheConfig) validateCreate() (errs *apis.FieldError) {
+func (k *KVCacheSpec) validateCreate() (errs *apis.FieldError) {
 	if k.Provider == "" {
 		errs = errs.Also(apis.ErrMissingField("provider"))
+	} else if ValidateCacheProvider != nil {
+		if err := ValidateCacheProvider(k.Provider); err != nil {
+			errs = errs.Also(apis.ErrInvalidValue(string(k.Provider), "provider", err.Error()))
+		}
 	}
 	if k.Mode != "" && k.Mode != CacheModeRequired && k.Mode != CacheModeOpportunistic && k.Mode != CacheModeDisabled {
 		errs = errs.Also(apis.ErrInvalidValue(string(k.Mode), "mode"))

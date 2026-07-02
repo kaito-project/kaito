@@ -2,7 +2,7 @@
 title: Distributed Cache
 ---
 
-This document explains how to enable distributed caching for model weights and KV cache in KAITO using a pluggable cache provider (currently Tachyon).
+This document explains how to enable distributed caching for model weights and KV cache in KAITO using a pluggable cache provider (currently DACS).
 
 ## Overview
 
@@ -16,26 +16,26 @@ Each concern is independently configurable with its own provider and mode.
 ## Prerequisites
 
 1. **KAITO** installed with the `distributedCache` feature gate enabled
-2. **Tachyon cache operator** deployed in the cluster (manages Cache CRs in `tachyon-cache-system` namespace)
-3. **Tachyon CSI driver + mutating webhook** installed (handles library injection into labeled pods)
+2. **DACS cache operator** deployed in the cluster (manages Cache CRs in `dacs-cache-system` namespace)
+3. **DACS CSI driver + mutating webhook** installed (handles library injection into labeled pods)
 4. **Azure Workload Identity** configured on the KAITO nodes (for DefaultAzureCredential access to blob storage)
 
 ## Installation
 
-### 1. Install Tachyon
+### 1. Install DACS
 
-Install the Tachyon distributed cache operator, CSI driver, and mutating webhook. The webhook automatically injects cache libraries into pods labeled with `tachyon.azure.com/inject: "true"`.
+Install the DACS distributed cache operator, CSI driver, and mutating webhook. The webhook automatically injects cache libraries into pods labeled with `dacs.azure.com/inject: "true"`.
 
 ```bash
-helm install tachyon-cache oci://<registry>/charts/tachyon-cache \
-  --namespace tachyon-cache-system --create-namespace \
-  --set cache.nodeSelectorKey=tachyon.azure.com/cache-node \
+helm install dacs-cache oci://<registry>/charts/dacs-cache \
+  --namespace dacs-cache-system --create-namespace \
+  --set cache.nodeSelectorKey=dacs.azure.com/cache-node \
   --set-string cache.nodeSelectorValue=enabled
 ```
 
 ### 2. Configure KAITO
 
-Enable the distributed cache feature gate and configure the Tachyon provider in your Helm values:
+Enable the distributed cache feature gate and configure the DACS provider in your Helm values:
 
 ```yaml
 featureGates:
@@ -43,7 +43,7 @@ featureGates:
 
 cache:
   providers:
-    tachyon:
+    dacs:
       enabled: true
       discoveryEndpoint: ""  # Auto-discovered from Cache CR status if empty
       kvCacheEnabled: true
@@ -79,10 +79,10 @@ inference:
     name: "microsoft/phi-4"
 cache:
   modelWeights:
-    provider: tachyon
+    provider: dacs
     mode: Opportunistic
   kvCache:
-    provider: tachyon
+    provider: dacs
     mode: Opportunistic
 ```
 
@@ -101,10 +101,10 @@ You can configure each concern independently. For example, use `Required` for mo
 ```yaml
 cache:
   modelWeights:
-    provider: tachyon
+    provider: dacs
     mode: Required
   kvCache:
-    provider: tachyon
+    provider: dacs
     mode: Opportunistic
 ```
 
@@ -114,38 +114,38 @@ cache:
 
 When model weight caching is enabled, KAITO applies the following to inference pods:
 
-1. **Pod label** `tachyon.azure.com/inject: "true"` — Triggers the Tachyon mutating webhook
+1. **Pod label** `dacs.azure.com/inject: "true"` — Triggers the DACS mutating webhook
 2. **KAITO_MODEL_PATH** env var — Set to the local path where the model appears (e.g., `/mnt/models/kaito-models/microsoft/phi-4/main`)
 
-The Tachyon webhook (triggered by the label) injects:
+The DACS webhook (triggered by the label) injects:
 - `LD_PRELOAD` with `libStorageIntercept.so` (hostPath from CSI driver)
 - StorageIntercept configuration via a projected ConfigMap volume
-- Python client libraries (`PYTHONPATH`, `TACHYON_LIB_PATH`)
+- Python client libraries (`PYTHONPATH`, `DACS_LIB_PATH`)
 
-The inference runtime (vLLM) reads from `KAITO_MODEL_PATH` as if it were a local filesystem. StorageIntercept transparently fetches data from the Tachyon cache (NVMe-backed) or falls through to blob storage on cache miss.
+The inference runtime (vLLM) reads from `KAITO_MODEL_PATH` as if it were a local filesystem. StorageIntercept transparently fetches data from the DACS cache (NVMe-backed) or falls through to blob storage on cache miss.
 
 ### KV Cache Sharing
 
 When KV caching is enabled, KAITO injects:
 
-1. **Pod label** `tachyon.azure.com/inject: "true"` — For KV connector library access
+1. **Pod label** `dacs.azure.com/inject: "true"` — For KV connector library access
 2. **VLLM_KV_TRANSFER_CONFIG** env var — Configures vLLM's KV transfer mechanism with:
-   - Full connector class path: `py_tachyon_client.connectors.vllm_connector.TachyonKVConnector`
+   - Full connector class path: `dacs_client.connectors.vllm_connector.DacsKVConnector`
    - Discovery endpoint, protocol, and TTL settings
 
 ### Auto-Discovery
 
-If `discoveryEndpoint` is left empty in the Helm configuration, KAITO automatically reads the endpoint from the Cache CR's `status.discoveryEndpoint` field. This enables zero-configuration when Tachyon is installed in the same cluster.
+If `discoveryEndpoint` is left empty in the Helm configuration, KAITO automatically reads the endpoint from the Cache CR's `status.discoveryEndpoint` field. This enables zero-configuration when DACS is installed in the same cluster.
 
 ### Prewarm
 
-If a `prewarmImage` is configured, KAITO can create Kubernetes Jobs that download model weights from Hugging Face and upload them to blob storage before the inference pod starts. Prewarm Jobs also receive the `tachyon.azure.com/inject` label so the webhook injects cache client libraries.
+If a `prewarmImage` is configured, KAITO can create Kubernetes Jobs that download model weights from Hugging Face and upload them to blob storage before the inference pod starts. Prewarm Jobs also receive the `dacs.azure.com/inject` label so the webhook injects cache client libraries.
 
 ## Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│  Inference Pod (labeled: tachyon.azure.com/inject=true)   │
+│  Inference Pod (labeled: dacs.azure.com/inject=true)   │
 │                                                           │
 │  ┌─────────────────────────────────────────────────────┐ │
 │  │ Main Container (vLLM)                                │ │
@@ -157,7 +157,7 @@ If a `prewarmImage` is configured, KAITO can create Kubernetes Jobs that downloa
                               │ (intercepted reads)
                               ▼
               ┌───────────────────────────────┐
-              │  Tachyon Cache (NVMe nodes)    │
+              │  DACS Cache (NVMe nodes)    │
               │  Fast path: local/remote NVMe  │
               └───────────────┬───────────────┘
                               │ (cache miss)
@@ -184,13 +184,13 @@ This allows AI Runway to manage fleet-level cache policies while KAITO handles p
 
 If your Workspace is stuck with condition `ModelWeightsCacheReady=False`:
 
-1. Check the Tachyon Cache CR status:
+1. Check the DACS Cache CR status:
    ```bash
-   kubectl get caches -n tachyon-cache-system -o yaml
+   kubectl get caches -n dacs-cache-system -o yaml
    ```
 2. Verify the cache server pods are running:
    ```bash
-   kubectl get pods -n tachyon-cache-system
+   kubectl get pods -n dacs-cache-system
    ```
 3. If using `Opportunistic` mode, the workspace will proceed without cache. Switch to investigate why the cache infrastructure isn't ready.
 
@@ -200,16 +200,16 @@ If the inference pod fails to load the model:
 
 1. Verify the injection label is on the pod:
    ```bash
-   kubectl get pod <pod> --show-labels | grep tachyon
+   kubectl get pod <pod> --show-labels | grep dacs
    ```
 2. Check that the webhook injected `LD_PRELOAD`:
    ```bash
    kubectl exec <pod> -- env | grep -E "LD_PRELOAD|KAITO_MODEL"
    ```
 3. Confirm the blob storage endpoint is accessible with Workload Identity credentials.
-4. Check Tachyon webhook logs for injection errors:
+4. Check DACS webhook logs for injection errors:
    ```bash
-   kubectl logs -n tachyon-cache-system -l app=tachyon-webhook
+   kubectl logs -n dacs-cache-system -l app=dacs-webhook
    ```
 
 ### Feature gate not active
@@ -227,11 +227,11 @@ The output should include `distributedCache=true`.
 | Helm Value | Description | Default |
 |---|---|---|
 | `featureGates.distributedCache` | Enable the distributed cache feature | `false` |
-| `cache.providers.tachyon.enabled` | Register the Tachyon provider | `false` |
-| `cache.providers.tachyon.discoveryEndpoint` | Tachyon cache server discovery URL (auto-discovered if empty) | `""` |
-| `cache.providers.tachyon.kvCacheEnabled` | Enable KV cache support | `true` |
-| `cache.providers.tachyon.kvConnectorProtocol` | KV connector transport (`tcp` or `rdma`) | `tcp` |
-| `cache.providers.tachyon.blobEndpoint` | Azure Blob Storage endpoint (for prewarm Jobs) | `""` |
-| `cache.providers.tachyon.blobContainer` | Blob container for model storage | `kaito-models` |
-| `cache.providers.tachyon.blobPrefix` | Path prefix within the container | `kaito-models` |
-| `cache.providers.tachyon.prewarmImage` | Image for prewarm Jobs | `""` |
+| `cache.providers.dacs.enabled` | Register the DACS provider | `false` |
+| `cache.providers.dacs.discoveryEndpoint` | DACS cache server discovery URL (auto-discovered if empty) | `""` |
+| `cache.providers.dacs.kvCacheEnabled` | Enable KV cache support | `true` |
+| `cache.providers.dacs.kvConnectorProtocol` | KV connector transport (`tcp` or `rdma`) | `tcp` |
+| `cache.providers.dacs.blobEndpoint` | Azure Blob Storage endpoint (for prewarm Jobs) | `""` |
+| `cache.providers.dacs.blobContainer` | Blob container for model storage | `kaito-models` |
+| `cache.providers.dacs.blobPrefix` | Path prefix within the container | `kaito-models` |
+| `cache.providers.dacs.prewarmImage` | Image for prewarm Jobs | `""` |

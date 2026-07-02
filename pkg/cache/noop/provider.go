@@ -17,6 +17,8 @@ package noop
 import (
 	"context"
 
+	"k8s.io/apimachinery/pkg/runtime"
+
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/cache"
 )
@@ -28,26 +30,27 @@ const ProviderName = "noop"
 type Provider struct{}
 
 var _ cache.Provider = (*Provider)(nil)
+var _ cache.EventTarget = (*Provider)(nil)
 
 func (p *Provider) Name() string { return ProviderName }
 
-func (p *Provider) IsAvailable(_ context.Context) (bool, error) {
+func (p *Provider) IsAvailable(_ context.Context, _ string) (bool, error) {
 	return true, nil
 }
 
-func (p *Provider) IsReady(_ context.Context) (bool, string, error) {
+func (p *Provider) IsReady(_ context.Context, _ string) (bool, string, error) {
 	return true, "noop provider is always ready", nil
 }
 
-func (p *Provider) PodMutations(_ context.Context, _ cache.CacheConcern, _ *kaitov1beta1.Workspace, _, _ string) (*cache.PodMutations, error) {
+func (p *Provider) PodMutations(_ context.Context, _ cache.CacheConcern, _ *kaitov1beta1.Workspace, _, _, _ string) (*cache.PodMutations, error) {
 	return &cache.PodMutations{}, nil
 }
 
-func (p *Provider) Prewarm(_ context.Context, _ cache.PrewarmRequest) error {
+func (p *Provider) Cleanup(_ context.Context, _ *kaitov1beta1.Workspace, _ string) error {
 	return nil
 }
 
-func (p *Provider) Cleanup(_ context.Context, _ cache.PrewarmRequest) error {
+func (p *Provider) EventObject() runtime.Object {
 	return nil
 }
 

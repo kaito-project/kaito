@@ -15,7 +15,7 @@
 
 Safety contract:
 - The unscanned tail is retained in ``pending_buffer`` and must not be emitted.
-- Only scanner-confirmed safe text may be emitted downstream.
+- Only scanner-confirmed safe prefixes may be emitted downstream.
 - Feed scans include the holdback tail before emitting any prefix.
 - Final flush scans the remaining buffer before emitting any remaining text.
 """
@@ -26,7 +26,7 @@ from typing import Protocol
 
 @dataclass(frozen=True)
 class WindowScanResult:
-    safe_len: int
+    safe_prefix_len: int
     blocked: bool = False
 
 
@@ -102,13 +102,13 @@ class StreamingBufferWindow:
             self._pending_buffer = ""
             return WindowEmitResult(chunks=(), blocked=True)
 
-        safe_len = max(
+        safe_prefix_len = max(
             0,
-            min(scan_result.safe_len, emit_len),
+            min(scan_result.safe_prefix_len, emit_len),
         )
-        if safe_len == 0:
+        if safe_prefix_len == 0:
             return WindowEmitResult(chunks=())
 
-        safe_text = self._pending_buffer[:safe_len]
-        self._pending_buffer = self._pending_buffer[safe_len:]
-        return WindowEmitResult(chunks=(safe_text,))
+        safe_prefix = self._pending_buffer[:safe_prefix_len]
+        self._pending_buffer = self._pending_buffer[safe_prefix_len:]
+        return WindowEmitResult(chunks=(safe_prefix,))

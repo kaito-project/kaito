@@ -44,9 +44,9 @@ class StreamingBufferWindow:
         self,
         scanner: WindowScanner,
         *,
-        holdback_len: int | None,
+        holdback_len: int,
     ) -> None:
-        if holdback_len is not None and holdback_len < 0:
+        if holdback_len < 0:
             raise ValueError("holdback_len must be non-negative.")
 
         self._scanner = scanner
@@ -84,8 +84,6 @@ class StreamingBufferWindow:
         )
 
     def _calc_emit_len(self) -> int:
-        if self._holdback_len is None:
-            return 0
         if self._holdback_len == 0:
             return len(self._pending_buffer)
         return max(0, len(self._pending_buffer) - self._holdback_len)

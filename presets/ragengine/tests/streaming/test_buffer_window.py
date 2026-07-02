@@ -83,16 +83,6 @@ def test_blocked_substring_crossing_holdback_boundary_is_detected():
     assert window.blocked is True
 
 
-def test_unbounded_holdback_buffers_until_flush():
-    window = StreamingBufferWindow(AllowScanner(), holdback_len=None)
-
-    result = window.feed("abcdef")
-    flush_result = window.flush()
-
-    assert result.chunks == ()
-    assert flush_result.chunks == ("abcdef",)
-
-
 def test_split_bad_substring_is_detected_before_tail_emits():
     window = StreamingBufferWindow(BadSubstringScanner(), holdback_len=2)
 

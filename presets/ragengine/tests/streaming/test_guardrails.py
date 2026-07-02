@@ -69,6 +69,28 @@ def test_validate_streaming_guardrails_accepts_block_regex_policy():
     assert support.detail is None
 
 
+def test_validate_streaming_guardrails_rejects_unbounded_regex_policy():
+    support = validate_streaming_guardrails(
+        OutputGuardrails(
+            enabled=True,
+            action_on_hit="block",
+            scanner_configs=(
+                ParsedScannerConfig(
+                    type="regex",
+                    action_on_hit="block",
+                    config=RegexConfig(patterns=[r"a.*z"]),
+                ),
+            ),
+        )
+    )
+
+    assert support.supported is False
+    assert support.detail == (
+        "stream=true with output guardrails only supports regex patterns with "
+        "bounded maximum width."
+    )
+
+
 def test_validate_streaming_guardrails_rejects_scanner_action_override():
     support = validate_streaming_guardrails(
         OutputGuardrails(
@@ -144,40 +166,6 @@ async def test_apply_streaming_guardrails_blocks_bounded_regex_across_chunks():
     assert chunks[-3:] == [
         'data: {"choices":[{"index":0,"delta":{"content":"blocked-by-regex"},"finish_reason":null}]}\n\n',
         'data: {"choices":[{"index":0,"delta":{},"finish_reason":"content_filter"}]}\n\n',
-        "data: [DONE]\n\n",
-    ]
-
-
-@pytest.mark.asyncio
-async def test_apply_streaming_guardrails_buffers_unbounded_regex_until_done():
-    async def upstream_chunks():
-        yield 'data: {"choices":[{"index":0,"delta":{"content":"safe"},"finish_reason":null}]}\n\n'
-        yield 'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n'
-        yield "data: [DONE]\n\n"
-
-    guardrails = OutputGuardrails(
-        enabled=True,
-        fail_open=False,
-        action_on_hit="block",
-        scanner_configs=(
-            ParsedScannerConfig(
-                type="regex",
-                action_on_hit="block",
-                config=RegexConfig(patterns=[r"a.*z"]),
-            ),
-        ),
-    )
-
-    chunks = [
-        chunk
-        async for chunk in apply_streaming_guardrails(
-            upstream_chunks(), guardrails, {"messages": []}
-        )
-    ]
-
-    assert chunks == [
-        'data: {"choices":[{"index":0,"delta":{"content":"safe"},"finish_reason":null}]}\n\n',
-        'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n',
         "data: [DONE]\n\n",
     ]
 

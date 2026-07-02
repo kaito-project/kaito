@@ -67,6 +67,14 @@ def validate_streaming_guardrails(
                     f"{scanner_config.type}."
                 ),
             )
+        if _scanner_holdback_len(scanner_config.config) is None:
+            return StreamingGuardrailsSupport(
+                supported=False,
+                detail=(
+                    "stream=true with output guardrails only supports regex "
+                    "patterns with bounded maximum width."
+                ),
+            )
 
     return StreamingGuardrailsSupport(supported=True)
 
@@ -226,7 +234,7 @@ def _window_for_choice(
     choice_index: int,
     *,
     scanner: _LLMGuardWindowScanner,
-    holdback_len: int | None,
+    holdback_len: int,
 ) -> StreamingBufferWindow:
     window = windows.get(choice_index)
     if window is None:
@@ -246,12 +254,12 @@ def _any_window_blocked(windows: dict[int, StreamingBufferWindow]) -> bool:
     return any(window.blocked for window in windows.values())
 
 
-def _calculate_streaming_holdback_len(guardrails: OutputGuardrails) -> int | None:
+def _calculate_streaming_holdback_len(guardrails: OutputGuardrails) -> int:
     holdback_len = 0
     for scanner_config in guardrails.scanner_configs:
         scanner_holdback = _scanner_holdback_len(scanner_config.config)
         if scanner_holdback is None:
-            return None
+            raise ValueError("streaming scanner holdback length must be bounded.")
         holdback_len = max(holdback_len, scanner_holdback)
     return holdback_len
 

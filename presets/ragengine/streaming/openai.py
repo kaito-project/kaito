@@ -90,7 +90,9 @@ def parse_openai_chat_sse_event(event: SSEEvent) -> OpenAIChatChunkParseResult:
                     )
 
                 passthrough_keys = set(delta) - {"content"}
-                if passthrough_keys or ("content" in delta and not isinstance(content, str)):
+                if passthrough_keys or (
+                    "content" in delta and not isinstance(content, str)
+                ):
                     choice_deltas.append(
                         OpenAIChatChoiceDelta(
                             choice_index=choice_index,

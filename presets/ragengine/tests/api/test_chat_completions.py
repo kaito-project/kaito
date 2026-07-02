@@ -326,7 +326,7 @@ async def test_chat_completions_stream_with_unsupported_output_guardrails_is_rej
     assert response.status_code == 400
     assert (
         response.json()["detail"]
-        == "stream=true with output guardrails only supports ban_substrings scanners. "
+        == "stream=true with output guardrails only supports ban_substrings and regex scanners. "
         "Unsupported scanner: json."
     )
 

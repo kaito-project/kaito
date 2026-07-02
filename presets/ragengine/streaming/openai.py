@@ -27,9 +27,18 @@ class OpenAIChatChunkParseStatus(StrEnum):
 
 
 @dataclass(frozen=True)
+class OpenAIChatChoiceDelta:
+    choice_index: int
+    content: str | None = None
+    finish_reason: str | None = None
+    passthrough: bool = False
+
+
+@dataclass(frozen=True)
 class OpenAIChatChunkParseResult:
     status: OpenAIChatChunkParseStatus
     payload: dict[str, Any] | None = None
+    choice_deltas: tuple[OpenAIChatChoiceDelta, ...] = ()
     contents: tuple[str, ...] = ()
     finish_reasons: tuple[str, ...] = ()
     error: str | None = None
@@ -61,30 +70,64 @@ def parse_openai_chat_sse_event(event: SSEEvent) -> OpenAIChatChunkParseResult:
             error="OpenAI chat stream data must be a JSON object.",
         )
 
-    contents: list[str] = []
-    finish_reasons: list[str] = []
+    choice_deltas: list[OpenAIChatChoiceDelta] = []
     choices = payload.get("choices", [])
     if isinstance(choices, list):
         for choice in choices:
             if not isinstance(choice, dict):
                 continue
 
+            choice_index = _coerce_choice_index(choice.get("index"))
             delta = choice.get("delta", {})
             if isinstance(delta, dict):
                 content = delta.get("content")
                 if isinstance(content, str):
-                    contents.append(content)
+                    choice_deltas.append(
+                        OpenAIChatChoiceDelta(
+                            choice_index=choice_index,
+                            content=content,
+                        )
+                    )
+
+                passthrough_keys = set(delta) - {"content"}
+                if passthrough_keys or (
+                    "content" in delta and not isinstance(content, str)
+                ):
+                    choice_deltas.append(
+                        OpenAIChatChoiceDelta(
+                            choice_index=choice_index,
+                            passthrough=True,
+                        )
+                    )
 
             finish_reason = choice.get("finish_reason")
             if isinstance(finish_reason, str):
-                finish_reasons.append(finish_reason)
+                choice_deltas.append(
+                    OpenAIChatChoiceDelta(
+                        choice_index=choice_index,
+                        finish_reason=finish_reason,
+                    )
+                )
 
     return OpenAIChatChunkParseResult(
         status=OpenAIChatChunkParseStatus.PARSED,
         payload=payload,
-        contents=tuple(contents),
-        finish_reasons=tuple(finish_reasons),
+        choice_deltas=tuple(choice_deltas),
+        contents=tuple(
+            delta.content for delta in choice_deltas if delta.content is not None
+        ),
+        finish_reasons=tuple(
+            delta.finish_reason
+            for delta in choice_deltas
+            if delta.finish_reason is not None
+        ),
     )
+
+
+def _coerce_choice_index(value: Any) -> int:
+    if isinstance(value, int):
+        return value
+    return 0
 
 
 def build_openai_chat_delta_sse_chunk(

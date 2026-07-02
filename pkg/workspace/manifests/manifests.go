@@ -120,8 +120,8 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 			},
 		},
 		Spec: corev1.ServiceSpec{
-			Type:  serviceType,
-			Ports: ports,
+			Type:     serviceType,
+			Ports:    ports,
 			Selector: selector,
 			// Added this to allow pods to discover each other
 			// (DNS Resolution) During their initialization phase

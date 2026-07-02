@@ -76,6 +76,41 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 	// listens directly on 5000.
 	httpTargetPort := consts.PortInferenceServer
 
+	ports := []corev1.ServicePort{
+		// HTTP API Port
+		{
+			Name:       "http",
+			Protocol:   corev1.ProtocolTCP,
+			Port:       80,
+			TargetPort: intstr.FromInt32(httpTargetPort),
+		},
+		{
+			Name:       "ray",
+			Protocol:   corev1.ProtocolTCP,
+			Port:       6379,
+			TargetPort: intstr.FromInt32(6379),
+		},
+		{
+			Name:       "dashboard",
+			Protocol:   corev1.ProtocolTCP,
+			Port:       8265,
+			TargetPort: intstr.FromInt32(8265),
+		},
+	}
+
+	// KV cache events ZMQ stream is unauthenticated/unencrypted. Only expose it on
+	// in-cluster (ClusterIP) Services; skip when the workspace opts into a
+	// LoadBalancer Service so we don't accidentally publish it to the internet.
+	// Users who need external access should create their own Service + NetworkPolicy.
+	if serviceType == corev1.ServiceTypeClusterIP {
+		ports = append(ports, corev1.ServicePort{
+			Name:       "kv-events",
+			Protocol:   corev1.ProtocolTCP,
+			Port:       int32(consts.PortKVCacheEvents),
+			TargetPort: intstr.FromInt32(consts.PortKVCacheEvents),
+		})
+	}
+
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      workspaceObj.Name,
@@ -85,35 +120,8 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 			},
 		},
 		Spec: corev1.ServiceSpec{
-			Type: serviceType,
-			Ports: []corev1.ServicePort{
-				// HTTP API Port
-				{
-					Name:       "http",
-					Protocol:   corev1.ProtocolTCP,
-					Port:       80,
-					TargetPort: intstr.FromInt32(httpTargetPort),
-				},
-				// KV cache events ZMQ port
-				{
-					Name:       "kv-events",
-					Protocol:   corev1.ProtocolTCP,
-					Port:       int32(consts.PortKVCacheEvents),
-					TargetPort: intstr.FromInt32(consts.PortKVCacheEvents),
-				},
-				{
-					Name:       "ray",
-					Protocol:   corev1.ProtocolTCP,
-					Port:       6379,
-					TargetPort: intstr.FromInt32(6379),
-				},
-				{
-					Name:       "dashboard",
-					Protocol:   corev1.ProtocolTCP,
-					Port:       8265,
-					TargetPort: intstr.FromInt32(8265),
-				},
-			},
+			Type:  serviceType,
+			Ports: ports,
 			Selector: selector,
 			// Added this to allow pods to discover each other
 			// (DNS Resolution) During their initialization phase

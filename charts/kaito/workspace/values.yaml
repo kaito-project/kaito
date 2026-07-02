@@ -45,6 +45,7 @@ featureGates:
   ModelMirror: false
   ModelStreaming: false
   enableBaseImageAutoUpgrade: false
+  distributedCache: false
 defaultModelMirrorStorageClass: ""
 defaultStreamingServiceAccount: ""
 # CPU/memory request==limit for the ModelMirror download Job. Empty uses the controller
@@ -187,3 +188,23 @@ local-csi-driver:
 # See https://github.com/kaito-project/production-stack for more details
 productionstack:
   enabled: false
+
+# Distributed cache provider configuration.
+# Only active when featureGates.distributedCache is true.
+# The DACS CSI driver + mutating webhook must be pre-installed in the cluster.
+# KAITO adds pod labels to trigger webhook-based cache library injection.
+cache:
+  providers:
+    dacs:
+      enabled: false
+      discoveryEndpoint: "http://cacheserver-discovery.dacs-cache-system.svc.cluster.local:9065"
+      kvCacheEnabled: true
+      kvConnectorProtocol: "tcp"
+      # Azure Blob Storage endpoint (used by prewarm Jobs).
+      blobEndpoint: ""
+      # Blob container for model weight storage.
+      blobContainer: "kaito-models"
+      # Path prefix within the blob container.
+      blobPrefix: "kaito-models"
+      # Container image used for prewarm Jobs (downloads from HF, uploads to cache).
+      prewarmImage: ""

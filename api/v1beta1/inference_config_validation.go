@@ -22,13 +22,11 @@ import (
 	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/presets/workspace/models"
 )
@@ -52,13 +50,7 @@ func (w *Workspace) validateInferenceConfig(ctx context.Context) (errs *apis.Fie
 		err    error
 	)
 	if cmName == "" {
-		klog.Infof("Inference config not specified. Using default: %q", DefaultInferenceConfigTemplate)
-		cmName = DefaultInferenceConfigTemplate
-		cmNS, err = utils.GetReleaseNamespace()
-		if err != nil {
-			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to determine release namespace: %v", err), "namespace"))
-			return errs
-		}
+		return nil
 	}
 
 	// Check if the ConfigMap exists

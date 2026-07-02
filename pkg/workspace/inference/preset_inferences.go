@@ -35,12 +35,12 @@ import (
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/nodeprovision"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/nodes"
-	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
@@ -153,13 +153,14 @@ func GenerateModelWeightsCacheVolume(ctx context.Context, workspaceObj *v1beta1.
 }
 
 func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace, revisionNum string,
-	model pkgmodel.Model, kubeClient client.Client) (client.Object, error) {
+	model pkgmodel.Model, kubeClient client.Client, provisioner nodeprovision.NodeProvisioner) (client.Object, error) {
 
 	gctx := &generator.WorkspaceGeneratorContext{
-		Ctx:        ctx,
-		KubeClient: kubeClient,
-		Workspace:  workspaceObj,
-		Model:      model,
+		Ctx:             ctx,
+		KubeClient:      kubeClient,
+		Workspace:       workspaceObj,
+		Model:           model,
+		NodeProvisioner: provisioner,
 	}
 
 	gpuConfig, err := getGPUConfig(gctx)
@@ -195,6 +196,7 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 
 	podOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec]{
 		GenerateInferencePodSpec(gpuConfig, numNodes, streamingModelPath, streamingLoadFormat),
+		SetProvisionerNodeSelector,
 		SetHFToken,
 	}
 
@@ -260,7 +262,7 @@ func getGPUConfig(ctx *generator.WorkspaceGeneratorContext) (*sku.GPUConfig, err
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		// NAP is disabled (BYO scenario) - prefer to get GPU config from matching nodes with nvidia.com labels
 		// Only try to find matching nodes if we have a labelSelector and if WorkerNodes is not already populated
-		readyNodes, err := nodes.GetReadyNodes(ctx.Ctx, ctx.KubeClient, ctx.Workspace)
+		readyNodes, err := nodeprovision.GetReadyNodes(ctx.Ctx, ctx.KubeClient, ctx.NodeProvisioner, ctx.Workspace)
 		if err != nil {
 			return nil, fmt.Errorf("failed to list ready nodes: %w", err)
 		}
@@ -442,31 +444,19 @@ func GetBaseImageTag() string {
 
 func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingModelPath, streamingLoadFormat string) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
-		configVolume, err := resources.EnsureConfigOrCopyFromDefault(ctx.Ctx, ctx.KubeClient,
-			client.ObjectKey{
-				Name:      ctx.Workspace.Inference.Config,
-				Namespace: ctx.Workspace.Namespace,
-			},
-			client.ObjectKey{
-				Name: v1beta1.DefaultInferenceConfigTemplate,
-			},
-			false,
-		)
-		if err != nil {
-			return err
-		}
-
-		// debug print of configVolume (requested)
-		klog.Infof("[debug] configVolume name=%s keys=%v", configVolume.Name, lo.Keys(configVolume.Data))
-
 		// additional volume
 		var volumes []corev1.Volume
 		var volumeMounts []corev1.VolumeMount
 
-		// Add config volume mount
-		cmVolume, cmVolumeMount := utils.ConfigCMVolume(configVolume.Name)
-		volumes = append(volumes, cmVolume)
-		volumeMounts = append(volumeMounts, cmVolumeMount)
+		// Mount the user-provided inference config ConfigMap when set. When empty,
+		// no config volume is mounted and the runtime falls back to its built-in defaults.
+		var cmVolumeMountRef *corev1.VolumeMount
+		if userConfig := ctx.Workspace.Inference.Config; userConfig != "" {
+			cmVolume, cmVolumeMount := utils.ConfigCMVolume(userConfig)
+			volumes = append(volumes, cmVolume)
+			volumeMounts = append(volumeMounts, cmVolumeMount)
+			cmVolumeMountRef = &cmVolumeMount
+		}
 
 		// add model weights volume mount (skip when streaming — weights come from az://)
 		if streamingModelPath == "" {
@@ -488,7 +478,6 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 				Values:   []string{value},
 			})
 		}
-
 		// resource requirements
 		resourceReq := corev1.ResourceRequirements{
 			Requests: corev1.ResourceList{
@@ -525,7 +514,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		commands := inferenceParam.GetInferenceCommand(pkgmodel.RuntimeContext{
 			RuntimeName:          runtimeName,
 			GPUConfig:            gpuConfig,
-			ConfigVolume:         &cmVolumeMount,
+			ConfigVolume:         cmVolumeMountRef,
 			SKUNumGPUs:           gpuConfig.GPUCount,
 			NumNodes:             numNodes,
 			WorkspaceMetadata:    ctx.Workspace.ObjectMeta,
@@ -808,6 +797,40 @@ func SetDistributedInferenceProbe(ctx *generator.WorkspaceGeneratorContext, spec
 
 func SetDefaultModelWeightsVolume(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 	spec.Volumes = append(spec.Volumes, utils.DefaultModelWeightsVolume)
+	return nil
+}
+
+// SetProvisionerNodeSelector appends provisioner-specific node selector
+// requirements (e.g. kaito.sh/workspace, kaito.sh/workspacenamespace) to the
+// pod's required node affinity, isolating pods to the nodes the provisioner
+// created for this workspace. No-op when the provisioner returns no
+// requirements (BYO mode).
+func SetProvisionerNodeSelector(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+	if ctx.NodeProvisioner == nil {
+		return nil
+	}
+	extra := ctx.NodeProvisioner.BuildNodeSelector(ctx.Ctx, ctx.Workspace)
+	if len(extra) == 0 {
+		return nil
+	}
+
+	if spec.Affinity == nil {
+		spec.Affinity = &corev1.Affinity{}
+	}
+	if spec.Affinity.NodeAffinity == nil {
+		spec.Affinity.NodeAffinity = &corev1.NodeAffinity{}
+	}
+	nodeSel := spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution
+	if nodeSel == nil {
+		nodeSel = &corev1.NodeSelector{
+			NodeSelectorTerms: []corev1.NodeSelectorTerm{{}},
+		}
+		spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution = nodeSel
+	}
+	if len(nodeSel.NodeSelectorTerms) == 0 {
+		nodeSel.NodeSelectorTerms = []corev1.NodeSelectorTerm{{}}
+	}
+	nodeSel.NodeSelectorTerms[0].MatchExpressions = append(nodeSel.NodeSelectorTerms[0].MatchExpressions, extra...)
 	return nil
 }
 

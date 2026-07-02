@@ -28,7 +28,6 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
@@ -381,10 +380,15 @@ func TestGarbageCollectRAGEngine(t *testing.T) {
 			mockClient := test.NewClient()
 			tc.callMocks(mockClient)
 
-			// Set the feature gate for this test case
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = tc.disableNodeAutoProvisioning
+			// Set the node provisioner for this test case
+			originalProvisioner := consts.ActiveNodeProvisioner
+			if tc.disableNodeAutoProvisioning {
+				consts.ActiveNodeProvisioner = consts.NodeProvisionerBYO
+			} else {
+				consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
+			}
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+				consts.ActiveNodeProvisioner = originalProvisioner
 			}()
 
 			reconciler := &RAGEngineReconciler{

@@ -120,10 +120,12 @@ def main(IMG='controller:latest', DISABLE_SECURITY_CONTEXT=True):
     # Build the initial controller image. When a newer manager binary is built,
     # Tilt will replace the old one in the running container with the new one.
     node_provisioner = 'byo' if feature_gates.get('disableNodeAutoProvisioning', False) else 'azure-gpu-provisioner'
+    # disableNodeAutoProvisioning is a Helm-only shim; the binary rejects it as an unknown gate.
+    binary_gates = {k: v for k, v in feature_gates.items() if k != 'disableNodeAutoProvisioning'}
     docker_build_with_restart(IMG, '.',
      dockerfile_contents=DOCKERFILE,
      entrypoint='/manager --feature-gates={} --node-provisioner={}'.format(
-        ','.join(['{}={}'.format(k, str(v).lower()) for k, v in feature_gates.items()]),
+        ','.join(['{}={}'.format(k, str(v).lower()) for k, v in binary_gates.items()]),
         node_provisioner
      ),
      only=['./tilt_bin/manager', './presets/workspace/models/supported_models.yaml'],

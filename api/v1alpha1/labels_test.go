@@ -78,9 +78,9 @@ func TestGetWorkspaceRuntimeName(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Set feature gate
-			featuregates.FeatureGates = map[string]bool{
-				consts.FeatureFlagVLLM: tt.featureEnabled,
-			}
+			orig := featuregates.Enabled(consts.FeatureFlagVLLM)
+			featuregates.Set(consts.FeatureFlagVLLM, tt.featureEnabled)
+			defer featuregates.Set(consts.FeatureFlagVLLM, orig)
 
 			if tt.shouldPanic {
 				defer func() {
@@ -153,9 +153,9 @@ func TestGetInferenceSetRuntimeName(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Set feature gate
-			featuregates.FeatureGates = map[string]bool{
-				consts.FeatureFlagVLLM: tt.featureEnabled,
-			}
+			orig := featuregates.Enabled(consts.FeatureFlagVLLM)
+			featuregates.Set(consts.FeatureFlagVLLM, tt.featureEnabled)
+			defer featuregates.Set(consts.FeatureFlagVLLM, orig)
 
 			if tt.shouldPanic {
 				defer func() {

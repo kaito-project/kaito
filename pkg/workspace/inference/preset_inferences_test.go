@@ -824,10 +824,14 @@ func TestGetGPUConfig(t *testing.T) {
 
 	for k, tc := range testcases {
 		t.Run(k, func(t *testing.T) {
-			originalFeatureGate := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = tc.disableNodeAutoProvisioning
+			originalProvisioner := consts.ActiveNodeProvisioner
+			if tc.disableNodeAutoProvisioning {
+				consts.ActiveNodeProvisioner = consts.NodeProvisionerBYO
+			} else {
+				consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
+			}
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalFeatureGate
+				consts.ActiveNodeProvisioner = originalProvisioner
 			}()
 
 			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
@@ -1570,9 +1574,9 @@ func TestInjectRoutingSidecar(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			// Enable vLLM feature gate for runtime detection
-			originalVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
-			featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
-			defer func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = originalVLLM }()
+			originalVLLM := featuregates.Enabled(consts.FeatureFlagVLLM)
+			featuregates.Set(consts.FeatureFlagVLLM, true)
+			defer func() { featuregates.Set(consts.FeatureFlagVLLM, originalVLLM) }()
 
 			workspace := &v1beta1.Workspace{}
 			workspace.Labels = tc.labels

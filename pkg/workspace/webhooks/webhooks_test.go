@@ -60,16 +60,16 @@ func TestNewControllerWebhooks(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Save original feature gate state
-			originalIS := featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController]
-			originalMRI := featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController]
+			originalIS := featuregates.Enabled(consts.FeatureFlagEnableInferenceSetController)
+			originalMRI := featuregates.Enabled(consts.FeatureFlagEnableMultiRoleInferenceController)
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] = originalIS
-				featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] = originalMRI
+				featuregates.Set(consts.FeatureFlagEnableInferenceSetController, originalIS)
+				featuregates.Set(consts.FeatureFlagEnableMultiRoleInferenceController, originalMRI)
 			}()
 
 			// Set feature gates for test
-			featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] = tt.enableInferenceSet
-			featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] = tt.enableMRI
+			featuregates.Set(consts.FeatureFlagEnableInferenceSetController, tt.enableInferenceSet)
+			featuregates.Set(consts.FeatureFlagEnableMultiRoleInferenceController, tt.enableMRI)
 
 			// Call the function
 			constructors := NewControllerWebhooks()

@@ -25,7 +25,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
@@ -227,10 +226,14 @@ func TestGetReadyNodes(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			originalFeatureGate := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = tc.disableNodeAutoProvisioning
+			originalProvisioner := consts.ActiveNodeProvisioner
+			if tc.disableNodeAutoProvisioning {
+				consts.ActiveNodeProvisioner = consts.NodeProvisionerBYO
+			} else {
+				consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
+			}
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalFeatureGate
+				consts.ActiveNodeProvisioner = originalProvisioner
 			}()
 
 			mockClient := test.NewClient()

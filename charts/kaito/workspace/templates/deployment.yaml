@@ -37,8 +37,18 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- /* featureGates.disableNodeAutoProvisioning is a deprecated Helm-only shim. It is
+                 not a real feature gate anymore — the binary derives BYO mode from
+                 --node-provisioner. Strip it from --feature-gates and, when true, force
+                 --node-provisioner=byo so existing `--set featureGates.disableNodeAutoProvisioning=true`
+                 installs keep working. */}}
+          {{- $gates := omit .Values.featureGates "disableNodeAutoProvisioning" }}
+          {{- $nodeProvisioner := .Values.nodeProvisioner }}
+          {{- if .Values.featureGates.disableNodeAutoProvisioning }}
+          {{- $nodeProvisioner = "byo" }}
+          {{- end }}
           args:
-            - --feature-gates={{ include "utils.joinKeyValuePairs" .Values.featureGates }}
+            - --feature-gates={{ include "utils.joinKeyValuePairs" $gates }}
             {{- if .Values.defaultModelMirrorStorageClass }}
             - --default-model-mirror-storage-class={{ .Values.defaultModelMirrorStorageClass }}
             {{- end }}
@@ -54,8 +64,8 @@ spec:
             {{- if .Values.defaultNodeImageFamily }}
             - --default-node-image-family={{ .Values.defaultNodeImageFamily }}
             {{- end }}
-            - --node-provisioner={{ .Values.nodeProvisioner }}
-            {{- if eq .Values.nodeProvisioner "karpenter" }}
+            - --node-provisioner={{ $nodeProvisioner }}
+            {{- if eq $nodeProvisioner "karpenter" }}
             {{- $provider := index .Values.karpenterProviders .Values.karpenterProvider }}
             - --karpenter-node-class-group={{ $provider.group }}
             - --karpenter-node-class-kind={{ $provider.kind }}

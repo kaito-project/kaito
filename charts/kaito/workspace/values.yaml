@@ -38,6 +38,10 @@ securityContext:
       - "ALL"
 featureGates:
   vLLM: true
+  # Deprecated Helm-only shim: not a real feature gate. Kept so existing installs that
+  # pass `--set featureGates.disableNodeAutoProvisioning=true` keep working. When true,
+  # deployment.yaml forces `--node-provisioner=byo` and Chart.yaml installs the GFD subchart.
+  # Prefer `--set nodeProvisioner=byo` for new installs.
   disableNodeAutoProvisioning: false
   gatewayAPIInferenceExtension: false
   enableInferenceSetController: true

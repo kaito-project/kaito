@@ -29,7 +29,6 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
@@ -244,11 +243,15 @@ func TestCheckNodeClaims(t *testing.T) {
 	// Run all test cases using a for loop
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Set up feature flag
-			originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = tc.featureFlagValue
+			// Set up node provisioner
+			originalValue := consts.ActiveNodeProvisioner
+			if tc.featureFlagValue {
+				consts.ActiveNodeProvisioner = consts.NodeProvisionerBYO
+			} else {
+				consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
+			}
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
+				consts.ActiveNodeProvisioner = originalValue
 			}()
 
 			// Set up mocks

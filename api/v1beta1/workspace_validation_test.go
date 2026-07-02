@@ -839,11 +839,11 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// Set up BYO feature gate if needed
 			if tc.useFeatureGate {
-				// Enable BYO mode by setting the feature gate
-				originalFeatureGate := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+				// Enable BYO mode by setting the active node provisioner
+				originalProvisioner := consts.ActiveNodeProvisioner
+				consts.ActiveNodeProvisioner = consts.NodeProvisionerBYO
 				defer func() {
-					featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalFeatureGate
+					consts.ActiveNodeProvisioner = originalProvisioner
 				}()
 			}
 
@@ -1100,11 +1100,15 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 	// Run the tests
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Set or reset the feature gate if specified
-			originalFeatureGate := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = tc.disableNAP
+			// Set or reset the active node provisioner if specified
+			originalProvisioner := consts.ActiveNodeProvisioner
+			if tc.disableNAP {
+				consts.ActiveNodeProvisioner = consts.NodeProvisionerBYO
+			} else {
+				consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
+			}
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalFeatureGate
+				consts.ActiveNodeProvisioner = originalProvisioner
 			}()
 
 			errs := tc.newResource.validateUpdate(tc.oldResource)
@@ -2053,11 +2057,15 @@ func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Set or reset the feature gate
-			originalFeatureGate := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = tc.disableNAP
+			// Set or reset the active node provisioner
+			originalProvisioner := consts.ActiveNodeProvisioner
+			if tc.disableNAP {
+				consts.ActiveNodeProvisioner = consts.NodeProvisionerBYO
+			} else {
+				consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
+			}
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalFeatureGate
+				consts.ActiveNodeProvisioner = originalProvisioner
 			}()
 
 			// For BYO scenarios, set up fake nodes if needed
@@ -2241,12 +2249,12 @@ func TestWorkspaceValidateUpdate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Set or reset the feature gate if specified
+			// Set or reset the active node provisioner if specified
 			if tt.disableNAP {
-				originalFeatureGate := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+				originalProvisioner := consts.ActiveNodeProvisioner
+				consts.ActiveNodeProvisioner = consts.NodeProvisionerBYO
 				defer func() {
-					featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalFeatureGate
+					consts.ActiveNodeProvisioner = originalProvisioner
 				}()
 			}
 
@@ -2894,13 +2902,13 @@ func TestWorkspaceValidateStreamingCSIDriver(t *testing.T) {
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
 	// Force gates: ModelStreaming on (so the check runs), vLLM on (so runtime resolves to vllm by default).
-	origStream := featuregates.FeatureGates[consts.FeatureFlagModelStreaming]
-	origVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
-	featuregates.FeatureGates[consts.FeatureFlagModelStreaming] = true
-	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
+	origStream := featuregates.Enabled(consts.FeatureFlagModelStreaming)
+	origVLLM := featuregates.Enabled(consts.FeatureFlagVLLM)
+	featuregates.Set(consts.FeatureFlagModelStreaming, true)
+	featuregates.Set(consts.FeatureFlagVLLM, true)
 	defer func() {
-		featuregates.FeatureGates[consts.FeatureFlagModelStreaming] = origStream
-		featuregates.FeatureGates[consts.FeatureFlagVLLM] = origVLLM
+		featuregates.Set(consts.FeatureFlagModelStreaming, origStream)
+		featuregates.Set(consts.FeatureFlagVLLM, origVLLM)
 	}()
 
 	// Fake client with NO CSIDriver object -> streaming (vllm) workspaces should be rejected,

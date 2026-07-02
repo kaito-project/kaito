@@ -319,10 +319,10 @@ func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
 
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
-			originalFeatureGate := featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension]
-			featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = tc.featureGate
+			originalFeatureGate := featuregates.Enabled(consts.FeatureFlagGatewayAPIInferenceExtension)
+			featuregates.Set(consts.FeatureFlagGatewayAPIInferenceExtension, tc.featureGate)
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = originalFeatureGate
+				featuregates.Set(consts.FeatureFlagGatewayAPIInferenceExtension, originalFeatureGate)
 			}()
 
 			iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()

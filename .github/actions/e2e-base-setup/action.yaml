@@ -358,6 +358,22 @@ runs:
         TEST_SUITE: ${{ inputs.node_provisioner }}
         HELM_INSTALL_EXTRA_ARGS: "--set featureGates.gatewayAPIInferenceExtension=true --set featureGates.enableInferenceSetController=true --set featureGates.enableMultiRoleInferenceController=true --set featureGates.enableBaseImageAutoUpgrade=true --set featureGates.ModelMirror=true --set featureGates.ModelStreaming=true --set defaultModelMirrorStorageClass=blob-fuse --set defaultStreamingServiceAccount=kaito-model-streamer --set modelMirrorDownloadCPU=2 --set modelMirrorDownloadMemory=4Gi --set nodeProvisioner=${{ inputs.node_provisioner == 'gpuprovisioner' && 'azure-gpu-provisioner' || 'karpenter' }}"
 
+    - name: Install Istio and Gateway for E2E testing
+      shell: bash
+      run: |
+        echo "Installing Istio for E2E testing..."
+        helm repo add istio https://istio-release.storage.googleapis.com/charts --force-update
+        helm repo update
+        helm upgrade --install istio-base istio/base --namespace istio-system --create-namespace --version 1.28.3 --wait
+        helm upgrade --install istiod istio/istiod --namespace istio-system --version 1.28.3 \
+          --set pilot.env.ENABLE_GATEWAY_API_INFERENCE_EXTENSION="true" --wait
+        echo "Installing Gateway API CRDs..."
+        kubectl apply -k "github.com/kubernetes-sigs/gateway-api/config/crd?ref=v1.4.1"
+        echo "Deploying inference gateway..."
+        kubectl apply -f examples/gateway-api-inference-extension/gateway.yaml -n default
+        kubectl wait --for=condition=Programmed gateway/inference-gateway -n default --timeout=300s
+        echo "Istio and Gateway installed successfully."
+
     - name: Set up E2E ACR Credentials and Secret
       shell: bash
       run: |

@@ -127,7 +127,7 @@ func ListWorkspaces(ctx context.Context, iObj *kaitov1beta1.InferenceSet, kubeCl
 // GenerateName so the API server assigns a unique name on creation.
 //
 // It is shared by the InferenceSet controller (replica scale-up) and the
-// AutoUpgradeRunner (blue-green surge) so both construct identical Workspaces.
+// AutoUpgradeRunner (surge-based upgrade) so both construct identical Workspaces.
 func NewWorkspaceForInferenceSet(iObj *kaitov1beta1.InferenceSet) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}
 	workspaceObj.GenerateName = iObj.Name + "-"

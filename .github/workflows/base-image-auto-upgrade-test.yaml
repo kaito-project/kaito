@@ -342,10 +342,10 @@ jobs:
         run: |
           az group delete --name "${{ env.CLUSTER_NAME }}" --yes --no-wait || true
 
-  # Blue-green strategy: the controller creates a NEW (green) Workspace on the new
-  # base image, waits for it to become ready, then deletes the OLD (blue) one. This
+  # Surge-based strategy: the controller creates a NEW (surge) Workspace on the new
+  # base image, waits for it to become ready, then deletes the OLD one. This
   # verifies the no-downtime upgrade path, in contrast to the in-place job above.
-  bluegreen-auto-upgrade-test:
+  surge-based-auto-upgrade-test:
     runs-on: ["self-hosted", "hostname:kaito-e2e-github-runner"]
     environment: e2e-test
     permissions:
@@ -501,18 +501,18 @@ jobs:
         env:
           REGISTRY: ${{ env.REGISTRY }}
 
-      - name: Patch InferenceSet to enable blue-green autoUpgrade
+      - name: Patch InferenceSet to enable surge-based autoUpgrade
         shell: bash
         run: |
           # The old CRD did not have autoUpgrade; now that the chart (and CRD) is
-          # upgraded, enable autoUpgrade with the BlueGreen strategy.
+          # upgraded, enable autoUpgrade with the Surge strategy.
           kubectl patch inferenceset ${INFERENCESET_NAME} --type=merge \
-            -p '{"spec":{"autoUpgrade":{"enabled":true,"strategy":"BlueGreen"}}}'
+            -p '{"spec":{"autoUpgrade":{"enabled":true,"strategy":"Surge"}}}'
 
           STRATEGY=$(kubectl get inferenceset ${INFERENCESET_NAME} -o jsonpath='{.spec.autoUpgrade.strategy}')
           echo "AutoUpgrade strategy: $STRATEGY"
-          if [ "$STRATEGY" != "BlueGreen" ]; then
-            echo "ERROR: expected strategy BlueGreen, got '$STRATEGY'"
+          if [ "$STRATEGY" != "Surge" ]; then
+            echo "ERROR: expected strategy Surge, got '$STRATEGY'"
             exit 1
           fi
 
@@ -522,7 +522,7 @@ jobs:
           NEW_TAG=$(yq '.models[] | select(.name == "base") | .tag' presets/workspace/models/supported_models.yaml)
           echo "Expected new base tag: $NEW_TAG"
           echo "Blue (old) workspace: $BLUE_WS"
-          echo "Waiting for the blue-green surge workspace to be created..."
+          echo "Waiting for the surge workspace to be created..."
 
           end=$((SECONDS+600))
           GREEN_WS=""
@@ -594,7 +594,7 @@ jobs:
 
           # While the green workspace comes up (and downloads weights), the blue
           # workspace MUST keep serving (InferenceReady=True). This is the core
-          # no-downtime guarantee of blue-green. Poll until green is ready, and on
+          # no-downtime guarantee of surge-based upgrades. Poll until green is ready, and on
           # every poll assert blue is still ready and not being deleted.
           echo "Waiting for green to become ready while asserting blue stays ready..."
           end=$((SECONDS+2400))
@@ -703,7 +703,7 @@ jobs:
             if [ "$DRIFT" = "0" ] && [ -n "$LAST_SUCCESS" ]; then
               echo "NumDriftedWorkspaces: $DRIFT"
               echo "LastSuccessfulUpgradeTime: $LAST_SUCCESS"
-              echo "InferenceSet blue-green auto-upgrade status verified successfully."
+              echo "InferenceSet surge-based auto-upgrade status verified successfully."
               exit 0
             fi
             echo "Waiting for status update... (drift: ${DRIFT:-unknown}, lastSuccess: ${LAST_SUCCESS:-<none>})"

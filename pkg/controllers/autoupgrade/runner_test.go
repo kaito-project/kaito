@@ -751,12 +751,12 @@ func TestReconcileInferenceSet_NoSuccessWhenPreviousDriftWasZero(t *testing.T) {
 	assert.Nil(t, updated.Status.AutoUpgrade.LastSuccessfulUpgradeTime)
 }
 
-// makeBlueGreenInferenceSet builds an InferenceSet with auto-upgrade enabled and
-// the BlueGreen strategy, plus a minimal template/selector so the surge Workspace
+// makeSurgeInferenceSet builds an InferenceSet with auto-upgrade enabled and
+// the Surge strategy, plus a minimal template/selector so the surge Workspace
 // can be generated.
-func makeBlueGreenInferenceSet(name, namespace string) *kaitov1beta1.InferenceSet {
+func makeSurgeInferenceSet(name, namespace string) *kaitov1beta1.InferenceSet {
 	is := makeInferenceSet(name, namespace, true, nil)
-	is.Spec.AutoUpgrade.Strategy = kaitov1beta1.BlueGreenUpgradeStrategy
+	is.Spec.AutoUpgrade.Strategy = kaitov1beta1.SurgeBasedUpgradeStrategy
 	is.Spec.Selector = &metav1.LabelSelector{
 		MatchLabels: map[string]string{"app": name},
 	}
@@ -794,9 +794,9 @@ func listSurgeWorkspaces(t *testing.T, cl client.Client, ns string) []kaitov1bet
 	return surges
 }
 
-// TestReconcileBlueGreen_CreatesSurge verifies that a drifted Workspace triggers
-// the creation of a new surge (green) Workspace, without touching the blue one.
-func TestReconcileBlueGreen_CreatesSurge(t *testing.T) {
+// TestReconcileSurge_CreatesSurge verifies that a drifted Workspace triggers
+// the creation of a new surge Workspace, without touching the old one.
+func TestReconcileSurge_CreatesSurge(t *testing.T) {
 	const (
 		ns       = "default"
 		isName   = "bg-is"
@@ -805,7 +805,7 @@ func TestReconcileBlueGreen_CreatesSurge(t *testing.T) {
 	desiredTag := inference.GetBaseImageTag()
 	setTestRegistry(t)
 
-	is := makeBlueGreenInferenceSet(isName, ns)
+	is := makeSurgeInferenceSet(isName, ns)
 	blue := makeWorkspace("blue-1", ns, isName, kaitov1beta1.WorkspaceStateReady, nil)
 	blueSS := makeStatefulSet("blue-1", ns, oldImage)
 
@@ -827,10 +827,10 @@ func TestReconcileBlueGreen_CreatesSurge(t *testing.T) {
 	assert.True(t, stillThere.DeletionTimestamp.IsZero())
 }
 
-// TestReconcileBlueGreen_WaitsForSurgeReady verifies that the blue Workspace is
+// TestReconcileSurge_WaitsForSurgeReady verifies that the old Workspace is
 // NOT deleted while the surge is still coming up, and that a second reconcile does
 // not create another surge (one-at-a-time).
-func TestReconcileBlueGreen_WaitsForSurgeReady(t *testing.T) {
+func TestReconcileSurge_WaitsForSurgeReady(t *testing.T) {
 	const (
 		ns       = "default"
 		isName   = "bg-is"
@@ -840,7 +840,7 @@ func TestReconcileBlueGreen_WaitsForSurgeReady(t *testing.T) {
 	desiredTag := inference.GetBaseImageTag()
 	setTestRegistry(t)
 
-	is := makeBlueGreenInferenceSet(isName, ns)
+	is := makeSurgeInferenceSet(isName, ns)
 	blue := makeWorkspace("blue-1", ns, isName, kaitov1beta1.WorkspaceStateReady, nil)
 	blueSS := makeStatefulSet("blue-1", ns, oldImage)
 	// Surge exists but is not yet succeeded (no condition set).
@@ -863,9 +863,9 @@ func TestReconcileBlueGreen_WaitsForSurgeReady(t *testing.T) {
 	assert.Len(t, listSurgeWorkspaces(t, cl, ns), 1)
 }
 
-// TestReconcileBlueGreen_DeletesBlueWhenSurgeReady verifies cutover: once the
-// surge is ready, the blue Workspace is deleted.
-func TestReconcileBlueGreen_DeletesBlueWhenSurgeReady(t *testing.T) {
+// TestReconcileSurge_DeletesOldWhenSurgeReady verifies cutover: once the
+// surge is ready, the old Workspace is deleted.
+func TestReconcileSurge_DeletesOldWhenSurgeReady(t *testing.T) {
 	const (
 		ns       = "default"
 		isName   = "bg-is"
@@ -875,7 +875,7 @@ func TestReconcileBlueGreen_DeletesBlueWhenSurgeReady(t *testing.T) {
 	desiredTag := inference.GetBaseImageTag()
 	setTestRegistry(t)
 
-	is := makeBlueGreenInferenceSet(isName, ns)
+	is := makeSurgeInferenceSet(isName, ns)
 	blue := makeWorkspace("blue-1", ns, isName, kaitov1beta1.WorkspaceStateReady, nil)
 	blueSS := makeStatefulSet("blue-1", ns, oldImage)
 	green := makeWorkspace("green-1", ns, isName, kaitov1beta1.WorkspaceStateReady, map[string]string{
@@ -890,14 +890,14 @@ func TestReconcileBlueGreen_DeletesBlueWhenSurgeReady(t *testing.T) {
 
 	r.reconcileInferenceSet(context.Background(), is)
 
-	// Blue should be gone (fake client deletes immediately, no finalizer).
+	// Old workspace should be gone (fake client deletes immediately, no finalizer).
 	err := cl.Get(context.Background(), client.ObjectKeyFromObject(blue), &kaitov1beta1.Workspace{})
-	assert.True(t, apierrors.IsNotFound(err), "blue workspace should be deleted")
+	assert.True(t, apierrors.IsNotFound(err), "old workspace should be deleted")
 }
 
-// TestReconcileBlueGreen_PromotesSurgeAfterBlueGone verifies the final step: once
-// blue is gone, the surge label is removed, promoting green to a normal replica.
-func TestReconcileBlueGreen_PromotesSurgeAfterBlueGone(t *testing.T) {
+// TestReconcileSurge_PromotesSurgeAfterOldGone verifies the final step: once
+// the old Workspace is gone, the surge label is removed, promoting it to a normal replica.
+func TestReconcileSurge_PromotesSurgeAfterOldGone(t *testing.T) {
 	const (
 		ns       = "default"
 		isName   = "bg-is"
@@ -906,7 +906,7 @@ func TestReconcileBlueGreen_PromotesSurgeAfterBlueGone(t *testing.T) {
 	desiredTag := inference.GetBaseImageTag()
 	setTestRegistry(t)
 
-	is := makeBlueGreenInferenceSet(isName, ns)
+	is := makeSurgeInferenceSet(isName, ns)
 	// Blue already gone; only the surge (green) remains, ready, still labeled.
 	green := makeWorkspace("green-1", ns, isName, kaitov1beta1.WorkspaceStateReady, map[string]string{
 		kaitov1alpha1.LabelUpgradeSurgeFor:  "blue-1",
@@ -924,13 +924,13 @@ func TestReconcileBlueGreen_PromotesSurgeAfterBlueGone(t *testing.T) {
 	updated := &kaitov1beta1.Workspace{}
 	require.NoError(t, cl.Get(context.Background(), client.ObjectKeyFromObject(green), updated))
 	_, ok := updated.Labels[kaitov1alpha1.LabelUpgradeSurgeFor]
-	assert.False(t, ok, "surge label should be removed after blue is gone")
+	assert.False(t, ok, "surge label should be removed after old workspace is gone")
 	assert.Empty(t, listSurgeWorkspaces(t, cl, ns))
 }
 
-// TestReconcileBlueGreen_OutsideMaintenanceWindow verifies no surge is created
+// TestReconcileSurge_OutsideMaintenanceWindow verifies no surge is created
 // outside the maintenance window.
-func TestReconcileBlueGreen_OutsideMaintenanceWindow(t *testing.T) {
+func TestReconcileSurge_OutsideMaintenanceWindow(t *testing.T) {
 	const (
 		ns       = "default"
 		isName   = "bg-is"
@@ -938,7 +938,7 @@ func TestReconcileBlueGreen_OutsideMaintenanceWindow(t *testing.T) {
 	)
 	setTestRegistry(t)
 
-	is := makeBlueGreenInferenceSet(isName, ns)
+	is := makeSurgeInferenceSet(isName, ns)
 	// A window that is effectively never open around "now": every Jan 1 at 00:00,
 	// 1 minute long. Extremely unlikely to be within the window during tests.
 	dur := metav1.Duration{Duration: time.Minute}

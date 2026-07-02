@@ -31,8 +31,7 @@ class WindowScanResult:
 
 
 class WindowScanner(Protocol):
-    def scan(self, text: str) -> WindowScanResult:
-        pass
+    def scan(self, text: str) -> WindowScanResult: ...
 
 
 @dataclass(frozen=True)

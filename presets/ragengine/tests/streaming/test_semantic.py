@@ -21,7 +21,7 @@ from ragengine.streaming.openai import (
     ParsedOpenAIChoice,
     ParsedOpenAIChoiceKind,
     build_openai_chat_delta_sse_chunk,
-    build_openai_chat_finish_sse_chunk,
+    build_openai_chat_finish_reason_sse_chunk,
     build_sse_done_chunk,
     parse_openai_chat_sse_event,
 )
@@ -278,7 +278,7 @@ def test_openai_builder_builds_delta_content_chunk():
 
 
 def test_openai_builder_builds_content_filter_finish_chunk():
-    chunk = build_openai_chat_finish_sse_chunk(finish_reason="content_filter")
+    chunk = build_openai_chat_finish_reason_sse_chunk(finish_reason="content_filter")
     result = parse_openai_chat_sse_event(SSEFramer().feed(chunk)[0])
 
     assert result.status == OpenAIChatChunkParseStatus.PARSED

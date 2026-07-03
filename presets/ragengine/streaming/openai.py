@@ -133,7 +133,7 @@ def parse_openai_chat_sse_event(event: SSEEvent) -> OpenAIChatChunkParseResult:
             parsed_choices.append(
                 ParsedOpenAIChoice(
                     choice_index=choice_index,
-                    kind=_parse_passthrough_choice_kind(delta),
+                    kind=_classify_non_content_delta(delta),
                 )
             )
 
@@ -167,7 +167,7 @@ def _parse_choice_index(choice: dict[str, Any]) -> int | None:
     return None
 
 
-def _parse_passthrough_choice_kind(delta: dict[str, Any]) -> ParsedOpenAIChoiceKind:
+def _classify_non_content_delta(delta: dict[str, Any]) -> ParsedOpenAIChoiceKind:
     if "tool_calls" in delta:
         return ParsedOpenAIChoiceKind.TOOL_CALLS
     if "role" in delta:
@@ -192,7 +192,7 @@ def build_openai_chat_delta_sse_chunk(
     return build_sse_data_chunk(payload)
 
 
-def build_openai_chat_finish_sse_chunk(
+def build_openai_chat_finish_reason_sse_chunk(
     *,
     finish_reason: str = "content_filter",
     choice_index: int = 0,

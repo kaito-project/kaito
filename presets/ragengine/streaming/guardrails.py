@@ -26,8 +26,9 @@ from ragengine.guardrails.scanner_schemas import (
 )
 from ragengine.streaming.buffer_window import StreamingBufferWindow, WindowScanResult
 from ragengine.streaming.openai import (
-    OpenAIChatChoiceDelta,
     OpenAIChatChunkParseStatus,
+    ParsedOpenAIChoice,
+    ParsedOpenAIChoiceKind,
     build_openai_chat_delta_sse_chunk,
     build_openai_chat_finish_sse_chunk,
     build_sse_done_chunk,
@@ -111,7 +112,17 @@ async def apply_streaming_guardrails(
                     yield chunk
                 return
 
-            if _has_passthrough_delta(parse_result.choice_deltas):
+            has_raw_passthrough_choice = _has_raw_passthrough_choice(
+                parse_result.parsed_choices
+            )
+            if has_raw_passthrough_choice and _has_content_choice(
+                parse_result.parsed_choices
+            ):
+                async for chunk in _emit_refusal(guardrails):
+                    yield chunk
+                return
+
+            if has_raw_passthrough_choice:
                 async for chunk in _flush_windows_or_block(windows, guardrails):
                     yield chunk
                 if _any_window_blocked(windows):
@@ -119,16 +130,16 @@ async def apply_streaming_guardrails(
                 yield _raw_sse_chunk(event.raw)
                 continue
 
-            finish_deltas: list[OpenAIChatChoiceDelta] = []
-            for delta in parse_result.choice_deltas:
-                if delta.content is not None:
+            finish_choices: list[ParsedOpenAIChoice] = []
+            for parsed_choice in parse_result.parsed_choices:
+                if parsed_choice.kind == ParsedOpenAIChoiceKind.CONTENT:
                     window = _window_for_choice(
                         windows,
-                        delta.choice_index,
+                        parsed_choice.choice_index,
                         scanner=scanner,
                         holdback_len=holdback_len,
                     )
-                    emit_result = window.feed(delta.content)
+                    emit_result = window.feed(parsed_choice.content or "")
                     if emit_result.blocked:
                         async for chunk in _emit_refusal(guardrails):
                             yield chunk
@@ -136,25 +147,25 @@ async def apply_streaming_guardrails(
                     for safe_chunk in emit_result.chunks:
                         yield build_openai_chat_delta_sse_chunk(
                             safe_chunk,
-                            choice_index=delta.choice_index,
+                            choice_index=parsed_choice.choice_index,
                         )
-                if delta.finish_reason is not None:
-                    finish_deltas.append(delta)
+                if parsed_choice.kind == ParsedOpenAIChoiceKind.FINISH:
+                    finish_choices.append(parsed_choice)
 
-            for delta in finish_deltas:
-                window = windows.get(delta.choice_index)
+            for parsed_choice in finish_choices:
+                window = windows.get(parsed_choice.choice_index)
                 if window is not None:
                     async for chunk in _flush_window_or_block(
                         window,
                         guardrails,
-                        choice_index=delta.choice_index,
+                        choice_index=parsed_choice.choice_index,
                     ):
                         yield chunk
                     if window.blocked:
                         return
                 yield build_openai_chat_finish_sse_chunk(
-                    finish_reason=delta.finish_reason,
-                    choice_index=delta.choice_index,
+                    finish_reason=parsed_choice.finish_reason or "stop",
+                    choice_index=parsed_choice.choice_index,
                 )
 
         async for chunk in _flush_windows_or_block(windows, guardrails):
@@ -246,8 +257,23 @@ def _window_for_choice(
     return window
 
 
-def _has_passthrough_delta(deltas: tuple[OpenAIChatChoiceDelta, ...]) -> bool:
-    return any(delta.passthrough for delta in deltas)
+def _has_raw_passthrough_choice(parsed_choices: tuple[ParsedOpenAIChoice, ...]) -> bool:
+    return any(
+        parsed_choice.kind
+        in {
+            ParsedOpenAIChoiceKind.TOOL_CALLS,
+            ParsedOpenAIChoiceKind.ROLE,
+            ParsedOpenAIChoiceKind.PASSTHROUGH,
+        }
+        for parsed_choice in parsed_choices
+    )
+
+
+def _has_content_choice(parsed_choices: tuple[ParsedOpenAIChoice, ...]) -> bool:
+    return any(
+        parsed_choice.kind == ParsedOpenAIChoiceKind.CONTENT
+        for parsed_choice in parsed_choices
+    )
 
 
 def _any_window_blocked(windows: dict[int, StreamingBufferWindow]) -> bool:

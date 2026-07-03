@@ -23,22 +23,31 @@ class OpenAIChatChunkParseStatus(StrEnum):
     PARSED = "parsed"
     DONE = "done"
     MALFORMED_JSON = "malformed_json"
+    INVALID_PAYLOAD = "invalid_payload"
     NO_DATA = "no_data"
 
 
+class ParsedOpenAIChoiceKind(StrEnum):
+    CONTENT = "content"
+    TOOL_CALLS = "tool_calls"
+    ROLE = "role"
+    PASSTHROUGH = "passthrough"
+    FINISH = "finish"
+
+
 @dataclass(frozen=True)
-class OpenAIChatChoiceDelta:
+class ParsedOpenAIChoice:
     choice_index: int
+    kind: ParsedOpenAIChoiceKind
     content: str | None = None
     finish_reason: str | None = None
-    passthrough: bool = False
 
 
 @dataclass(frozen=True)
 class OpenAIChatChunkParseResult:
     status: OpenAIChatChunkParseStatus
     payload: dict[str, Any] | None = None
-    choice_deltas: tuple[OpenAIChatChoiceDelta, ...] = ()
+    parsed_choices: tuple[ParsedOpenAIChoice, ...] = ()
     error: str | None = None
 
 
@@ -64,60 +73,106 @@ def parse_openai_chat_sse_event(event: SSEEvent) -> OpenAIChatChunkParseResult:
 
     if not isinstance(payload, dict):
         return OpenAIChatChunkParseResult(
-            status=OpenAIChatChunkParseStatus.MALFORMED_JSON,
+            status=OpenAIChatChunkParseStatus.INVALID_PAYLOAD,
             error="OpenAI chat stream data must be a JSON object.",
         )
 
-    choice_deltas: list[OpenAIChatChoiceDelta] = []
+    parsed_choices: list[ParsedOpenAIChoice] = []
     choices = payload.get("choices", [])
-    if isinstance(choices, list):
-        for choice in choices:
-            if not isinstance(choice, dict):
-                continue
+    if not isinstance(choices, list):
+        return OpenAIChatChunkParseResult(
+            status=OpenAIChatChunkParseStatus.INVALID_PAYLOAD,
+            payload=payload,
+            error="OpenAI chat stream choices must be a list.",
+        )
 
-            choice_index = _coerce_choice_index(choice.get("index"))
-            delta = choice.get("delta", {})
-            if isinstance(delta, dict):
-                content = delta.get("content")
-                if isinstance(content, str):
-                    choice_deltas.append(
-                        OpenAIChatChoiceDelta(
-                            choice_index=choice_index,
-                            content=content,
-                        )
-                    )
+    for choice in choices:
+        if not isinstance(choice, dict):
+            return OpenAIChatChunkParseResult(
+                status=OpenAIChatChunkParseStatus.INVALID_PAYLOAD,
+                payload=payload,
+                error="OpenAI chat stream choice must be a JSON object.",
+            )
 
-                passthrough_keys = set(delta) - {"content"}
-                if passthrough_keys or (
-                    "content" in delta and not isinstance(content, str)
-                ):
-                    choice_deltas.append(
-                        OpenAIChatChoiceDelta(
-                            choice_index=choice_index,
-                            passthrough=True,
-                        )
-                    )
+        choice_index = _parse_choice_index(choice)
+        if choice_index is None:
+            return OpenAIChatChunkParseResult(
+                status=OpenAIChatChunkParseStatus.INVALID_PAYLOAD,
+                payload=payload,
+                error="OpenAI chat stream choice index must be an integer.",
+            )
 
-            finish_reason = choice.get("finish_reason")
-            if isinstance(finish_reason, str):
-                choice_deltas.append(
-                    OpenAIChatChoiceDelta(
-                        choice_index=choice_index,
-                        finish_reason=finish_reason,
-                    )
+        delta = choice.get("delta", {})
+        if delta is None:
+            delta = {}
+        if not isinstance(delta, dict):
+            return OpenAIChatChunkParseResult(
+                status=OpenAIChatChunkParseStatus.INVALID_PAYLOAD,
+                payload=payload,
+                error="OpenAI chat stream choice delta must be a JSON object.",
+            )
+
+        content = delta.get("content")
+        passthrough_keys = set(delta) - {"content"}
+        if "content" in delta and content is not None and not isinstance(content, str):
+            return OpenAIChatChunkParseResult(
+                status=OpenAIChatChunkParseStatus.INVALID_PAYLOAD,
+                payload=payload,
+                error="OpenAI chat stream delta content must be a string or null.",
+            )
+        if isinstance(content, str):
+            parsed_choices.append(
+                ParsedOpenAIChoice(
+                    choice_index=choice_index,
+                    kind=ParsedOpenAIChoiceKind.CONTENT,
+                    content=content,
                 )
+            )
+
+        if passthrough_keys:
+            parsed_choices.append(
+                ParsedOpenAIChoice(
+                    choice_index=choice_index,
+                    kind=_parse_passthrough_choice_kind(delta),
+                )
+            )
+
+        finish_reason = choice.get("finish_reason")
+        if finish_reason is not None and not isinstance(finish_reason, str):
+            return OpenAIChatChunkParseResult(
+                status=OpenAIChatChunkParseStatus.INVALID_PAYLOAD,
+                payload=payload,
+                error="OpenAI chat stream finish_reason must be a string or null.",
+            )
+        if isinstance(finish_reason, str):
+            parsed_choices.append(
+                ParsedOpenAIChoice(
+                    choice_index=choice_index,
+                    kind=ParsedOpenAIChoiceKind.FINISH,
+                    finish_reason=finish_reason,
+                )
+            )
 
     return OpenAIChatChunkParseResult(
         status=OpenAIChatChunkParseStatus.PARSED,
         payload=payload,
-        choice_deltas=tuple(choice_deltas),
+        parsed_choices=tuple(parsed_choices),
     )
 
 
-def _coerce_choice_index(value: Any) -> int:
+def _parse_choice_index(choice: dict[str, Any]) -> int | None:
+    value = choice.get("index")
     if isinstance(value, int):
         return value
-    return 0
+    return None
+
+
+def _parse_passthrough_choice_kind(delta: dict[str, Any]) -> ParsedOpenAIChoiceKind:
+    if "tool_calls" in delta:
+        return ParsedOpenAIChoiceKind.TOOL_CALLS
+    if "role" in delta:
+        return ParsedOpenAIChoiceKind.ROLE
+    return ParsedOpenAIChoiceKind.PASSTHROUGH
 
 
 def build_openai_chat_delta_sse_chunk(

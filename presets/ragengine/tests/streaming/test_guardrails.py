@@ -203,6 +203,39 @@ async def test_apply_streaming_guardrails_preserves_tool_call_events():
 
 
 @pytest.mark.asyncio
+async def test_apply_streaming_guardrails_rejects_mixed_content_raw_passthrough_choice():
+    async def upstream_chunks():
+        yield 'data: {"choices":[{"index":0,"delta":{"content":"unsafe","tool_calls":[]},"finish_reason":null}]}\n\n'
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        fail_open=False,
+        action_on_hit="block",
+        block_message="blocked-by-policy",
+        scanner_configs=(
+            ParsedScannerConfig(
+                type="ban_substrings",
+                action_on_hit="block",
+                config=BanSubstringsConfig(substrings=["unsafe"], match_type="str"),
+            ),
+        ),
+    )
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream_chunks(), guardrails, {"messages": []}
+        )
+    ]
+
+    assert chunks == [
+        'data: {"choices":[{"index":0,"delta":{"content":"blocked-by-policy"},"finish_reason":null}]}\n\n',
+        'data: {"choices":[{"index":0,"delta":{},"finish_reason":"content_filter"}]}\n\n',
+        "data: [DONE]\n\n",
+    ]
+
+
+@pytest.mark.asyncio
 async def test_apply_streaming_guardrails_scans_multi_choice_outputs_independently():
     async def upstream_chunks():
         yield 'data: {"choices":[{"index":0,"delta":{"content":"un"},"finish_reason":null},{"index":1,"delta":{"content":"safe"},"finish_reason":null}]}\n\n'

@@ -36,7 +36,9 @@ def test_sse_framer_handles_fragmented_event():
     assert len(events) == 1
     result = parse_openai_chat_sse_event(events[0])
     assert result.status == OpenAIChatChunkParseStatus.PARSED
-    assert result.contents == ("hello",)
+    assert result.choice_deltas == (
+        OpenAIChatChoiceDelta(choice_index=0, content="hello"),
+    )
 
 
 def test_sse_framer_handles_multiple_events_in_one_chunk():
@@ -47,9 +49,9 @@ def test_sse_framer_handles_multiple_events_in_one_chunk():
         'data: {"choices":[{"delta":{"content":"second"}}]}\n\n'
     )
 
-    assert [parse_openai_chat_sse_event(event).contents for event in events] == [
-        ("first",),
-        ("second",),
+    assert [parse_openai_chat_sse_event(event).choice_deltas for event in events] == [
+        (OpenAIChatChoiceDelta(choice_index=0, content="first"),),
+        (OpenAIChatChoiceDelta(choice_index=0, content="second"),),
     ]
 
 
@@ -69,7 +71,9 @@ def test_sse_framer_handles_crlf_separator():
 
     result = parse_openai_chat_sse_event(events[0])
     assert result.status == OpenAIChatChunkParseStatus.PARSED
-    assert result.contents == ("crlf",)
+    assert result.choice_deltas == (
+        OpenAIChatChoiceDelta(choice_index=0, content="crlf"),
+    )
 
 
 def test_openai_parser_returns_explicit_status_for_malformed_json():
@@ -88,8 +92,10 @@ def test_openai_parser_tolerates_chunk_without_delta_content():
 
     result = parse_openai_chat_sse_event(events[0])
     assert result.status == OpenAIChatChunkParseStatus.PARSED
-    assert result.contents == ()
-    assert result.finish_reasons == ("stop",)
+    assert result.choice_deltas == (
+        OpenAIChatChoiceDelta(choice_index=0, passthrough=True),
+        OpenAIChatChoiceDelta(choice_index=0, finish_reason="stop"),
+    )
 
 
 def test_openai_parser_classifies_tool_call_delta_as_passthrough():
@@ -124,7 +130,9 @@ def test_openai_builder_builds_delta_content_chunk():
     result = parse_openai_chat_sse_event(SSEFramer().feed(chunk)[0])
 
     assert result.status == OpenAIChatChunkParseStatus.PARSED
-    assert result.contents == ("safe text",)
+    assert result.choice_deltas == (
+        OpenAIChatChoiceDelta(choice_index=0, content="safe text"),
+    )
 
 
 def test_openai_builder_builds_content_filter_finish_chunk():
@@ -132,7 +140,9 @@ def test_openai_builder_builds_content_filter_finish_chunk():
     result = parse_openai_chat_sse_event(SSEFramer().feed(chunk)[0])
 
     assert result.status == OpenAIChatChunkParseStatus.PARSED
-    assert result.finish_reasons == ("content_filter",)
+    assert result.choice_deltas == (
+        OpenAIChatChoiceDelta(choice_index=0, finish_reason="content_filter"),
+    )
 
 
 def test_openai_builder_builds_done_chunk():

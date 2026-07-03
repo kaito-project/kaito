@@ -39,8 +39,6 @@ class OpenAIChatChunkParseResult:
     status: OpenAIChatChunkParseStatus
     payload: dict[str, Any] | None = None
     choice_deltas: tuple[OpenAIChatChoiceDelta, ...] = ()
-    contents: tuple[str, ...] = ()
-    finish_reasons: tuple[str, ...] = ()
     error: str | None = None
 
 
@@ -113,14 +111,6 @@ def parse_openai_chat_sse_event(event: SSEEvent) -> OpenAIChatChunkParseResult:
         status=OpenAIChatChunkParseStatus.PARSED,
         payload=payload,
         choice_deltas=tuple(choice_deltas),
-        contents=tuple(
-            delta.content for delta in choice_deltas if delta.content is not None
-        ),
-        finish_reasons=tuple(
-            delta.finish_reason
-            for delta in choice_deltas
-            if delta.finish_reason is not None
-        ),
     )
 
 

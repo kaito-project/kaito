@@ -326,9 +326,17 @@ func TestGeneratePullerContainers(t *testing.T) {
 }
 
 func TestGenerateServiceManifest_KVEventsPort(t *testing.T) {
-	ws := &kaitov1beta1.Workspace{}
-	ws.Name = "ws"
-	ws.Namespace = "kaito"
+	newWS := func(runtime string) *kaitov1beta1.Workspace {
+		ws := &kaitov1beta1.Workspace{}
+		ws.Name = "ws"
+		ws.Namespace = "kaito"
+		if runtime != "" {
+			ws.Annotations = map[string]string{
+				kaitov1beta1.AnnotationWorkspaceRuntime: runtime,
+			}
+		}
+		return ws
+	}
 
 	hasKVEvents := func(svc *corev1.Service) bool {
 		for _, p := range svc.Spec.Ports {
@@ -342,11 +350,17 @@ func TestGenerateServiceManifest_KVEventsPort(t *testing.T) {
 		return false
 	}
 
-	// ClusterIP: kv-events must be exposed for in-cluster consumers.
-	cip := GenerateServiceManifest(ws, corev1.ServiceTypeClusterIP)
-	assert.True(t, hasKVEvents(cip), "ClusterIP Service should expose kv-events port")
+	// vLLM + ClusterIP: kv-events must be exposed for in-cluster consumers.
+	vllm := newWS(string(pkgmodel.RuntimeNameVLLM))
+	cip := GenerateServiceManifest(vllm, corev1.ServiceTypeClusterIP)
+	assert.True(t, hasKVEvents(cip), "vLLM ClusterIP Service should expose kv-events port")
 
-	// LoadBalancer: kv-events must NOT be exposed (unauthenticated ZMQ stream).
-	lb := GenerateServiceManifest(ws, corev1.ServiceTypeLoadBalancer)
-	assert.False(t, hasKVEvents(lb), "LoadBalancer Service must not expose kv-events port")
+	// vLLM + LoadBalancer: kv-events must NOT be exposed (unauthenticated ZMQ stream).
+	lb := GenerateServiceManifest(vllm, corev1.ServiceTypeLoadBalancer)
+	assert.False(t, hasKVEvents(lb), "vLLM LoadBalancer Service must not expose kv-events port")
+
+	// Non-vLLM runtime (HuggingFace transformers) + ClusterIP: kv-events must NOT be exposed.
+	hf := newWS(string(pkgmodel.RuntimeNameHuggingfaceTransformers))
+	hfCIP := GenerateServiceManifest(hf, corev1.ServiceTypeClusterIP)
+	assert.False(t, hasKVEvents(hfCIP), "non-vLLM ClusterIP Service must not expose kv-events port")
 }

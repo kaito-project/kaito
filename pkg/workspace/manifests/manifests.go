@@ -98,11 +98,13 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 		},
 	}
 
-	// KV cache events ZMQ stream is unauthenticated/unencrypted. Only expose it on
-	// in-cluster (ClusterIP) Services; skip when the workspace opts into a
-	// LoadBalancer Service so we don't accidentally publish it to the internet.
-	// Users who need external access should create their own Service + NetworkPolicy.
-	if serviceType == corev1.ServiceTypeClusterIP {
+	// KV cache events ZMQ stream is unauthenticated/unencrypted and is only
+	// produced by the vLLM runtime. Add the Service port only for vLLM
+	// workspaces, and only on in-cluster (ClusterIP) Services so we don't
+	// accidentally publish it to the internet on a LoadBalancer. Users who
+	// need external access should create their own Service + NetworkPolicy.
+	if serviceType == corev1.ServiceTypeClusterIP &&
+		kaitov1beta1.GetWorkspaceRuntimeName(workspaceObj) == pkgmodel.RuntimeNameVLLM {
 		ports = append(ports, corev1.ServicePort{
 			Name:       "kv-events",
 			Protocol:   corev1.ProtocolTCP,

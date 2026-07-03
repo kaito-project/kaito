@@ -72,10 +72,14 @@ var (
 			Name:          "http",
 			ContainerPort: int32(consts.PortInferenceServer),
 		},
-		{
-			Name:          "kv-events",
-			ContainerPort: int32(consts.PortKVCacheEvents),
-		},
+	}
+
+	// vllmContainerPort is the KV cache events ZMQ port. It is only added to the
+	// pod spec for vLLM inference workspaces; other runtimes don't expose this
+	// endpoint, so advertising it there would be misleading.
+	vllmKVEventsContainerPort = corev1.ContainerPort{
+		Name:          "kv-events",
+		ContainerPort: int32(consts.PortKVCacheEvents),
 	}
 
 	// defaultLivenessProbe has no initial delay because the startup probe ensures
@@ -629,8 +633,13 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 
 		mainContainerEnv := buildMainContainerEnv(runtimeName, inferenceParam, cudaHome, localModelWeightsPath)
 
+		ports := append([]corev1.ContainerPort(nil), containerPorts...)
+		if runtimeName == pkgmodel.RuntimeNameVLLM {
+			ports = append(ports, vllmKVEventsContainerPort)
+		}
+
 		setInferenceContainers(spec, ctx.Workspace.Name, commands, resourceReq,
-			volumeMounts, mainContainerEnv, readinessTimeout, vllmPort, cudaHome)
+			volumeMounts, mainContainerEnv, readinessTimeout, vllmPort, cudaHome, ports)
 
 		applyInferenceRoleEnv(ctx.Workspace.Labels, ctx.Workspace.Name, spec)
 
@@ -806,7 +815,7 @@ func buildMainContainerEnv(runtimeName pkgmodel.RuntimeName, inferenceParam *pkg
 // commands.
 func setInferenceContainers(spec *corev1.PodSpec, containerName string, commands []string,
 	resourceReq corev1.ResourceRequirements, volumeMounts []corev1.VolumeMount, env []corev1.EnvVar,
-	readinessTimeout time.Duration, vllmPort int32, cudaHome string,
+	readinessTimeout time.Duration, vllmPort int32, cudaHome string, ports []corev1.ContainerPort,
 ) {
 	spec.Containers = []corev1.Container{
 		{
@@ -814,7 +823,7 @@ func setInferenceContainers(spec *corev1.PodSpec, containerName string, commands
 			Image:          GetBaseImageName(),
 			Command:        commands,
 			Resources:      resourceReq,
-			Ports:          append([]corev1.ContainerPort(nil), containerPorts...),
+			Ports:          ports,
 			StartupProbe:   buildStartupProbe(readinessTimeout, vllmPort),
 			LivenessProbe:  buildProbeWithPort(defaultLivenessProbe, vllmPort),
 			ReadinessProbe: buildProbeWithPort(defaultReadinessProbe, vllmPort),

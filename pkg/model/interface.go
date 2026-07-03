@@ -384,9 +384,9 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	}
 	p.VLLM.ModelRunParams["gpu-memory-utilization"] = "0.84"
 
-	// Enable KV cache events by default so external consumers can subscribe
-	// to BlockStored / BlockRemoved / AllBlocksCleared events over ZMQ on
-	// tcp://*:5557. Passed from the operator side (rather than baked into the
+	// Enable KV cache events by default so in-cluster subscribers can consume
+	// BlockStored / BlockRemoved / AllBlocksCleared events over ZMQ on the port
+	// defined by consts.PortKVCacheEvents. Passed from the operator side (rather than baked into the
 	// preset image) so we don't need an image rebuild to toggle it and users
 	// can still override via --kaito-config-file. JSON is single-quoted so the
 	// value survives shell interpolation in ShellCmd.

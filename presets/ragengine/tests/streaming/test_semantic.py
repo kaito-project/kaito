@@ -219,7 +219,7 @@ def test_openai_parser_tolerates_chunk_without_delta_content():
         ),
         ParsedOpenAIChoice(
             choice_index=0,
-            kind=ParsedOpenAIChoiceKind.FINISH,
+            kind=ParsedOpenAIChoiceKind.FINISH_REASON,
             finish_reason="stop",
         ),
     )
@@ -285,7 +285,7 @@ def test_openai_builder_builds_content_filter_finish_chunk():
     assert result.parsed_choices == (
         ParsedOpenAIChoice(
             choice_index=0,
-            kind=ParsedOpenAIChoiceKind.FINISH,
+            kind=ParsedOpenAIChoiceKind.FINISH_REASON,
             finish_reason="content_filter",
         ),
     )

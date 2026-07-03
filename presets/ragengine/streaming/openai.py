@@ -32,7 +32,7 @@ class ParsedOpenAIChoiceKind(StrEnum):
     TOOL_CALLS = "tool_calls"
     ROLE = "role"
     PASSTHROUGH = "passthrough"
-    FINISH = "finish"
+    FINISH_REASON = "finish_reason"
 
 
 @dataclass(frozen=True)
@@ -148,7 +148,7 @@ def parse_openai_chat_sse_event(event: SSEEvent) -> OpenAIChatChunkParseResult:
             parsed_choices.append(
                 ParsedOpenAIChoice(
                     choice_index=choice_index,
-                    kind=ParsedOpenAIChoiceKind.FINISH,
+                    kind=ParsedOpenAIChoiceKind.FINISH_REASON,
                     finish_reason=finish_reason,
                 )
             )

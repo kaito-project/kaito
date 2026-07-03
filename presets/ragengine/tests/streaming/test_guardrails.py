@@ -23,7 +23,6 @@ from ragengine.guardrails.scanner_schemas import (  # noqa: E402
     BanSubstringsConfig,
     JSONConfig,
     ParsedScannerConfig,
-    RegexConfig,
 )
 from ragengine.streaming.guardrails import (  # noqa: E402
     apply_streaming_guardrails,
@@ -48,47 +47,6 @@ def test_validate_streaming_guardrails_accepts_block_ban_substrings_policy():
 
     assert support.supported is True
     assert support.detail is None
-
-
-def test_validate_streaming_guardrails_accepts_block_regex_policy():
-    support = validate_streaming_guardrails(
-        OutputGuardrails(
-            enabled=True,
-            action_on_hit="block",
-            scanner_configs=(
-                ParsedScannerConfig(
-                    type="regex",
-                    action_on_hit="block",
-                    config=RegexConfig(patterns=[r"ab\d{2}"]),
-                ),
-            ),
-        )
-    )
-
-    assert support.supported is True
-    assert support.detail is None
-
-
-def test_validate_streaming_guardrails_rejects_unbounded_regex_policy():
-    support = validate_streaming_guardrails(
-        OutputGuardrails(
-            enabled=True,
-            action_on_hit="block",
-            scanner_configs=(
-                ParsedScannerConfig(
-                    type="regex",
-                    action_on_hit="block",
-                    config=RegexConfig(patterns=[r"a.*z"]),
-                ),
-            ),
-        )
-    )
-
-    assert support.supported is False
-    assert support.detail == (
-        "stream=true with output guardrails only supports regex patterns with "
-        "bounded maximum width."
-    )
 
 
 def test_validate_streaming_guardrails_rejects_scanner_action_override():
@@ -130,142 +88,9 @@ def test_validate_streaming_guardrails_rejects_streaming_unsafe_scanner():
 
     assert support.supported is False
     assert support.detail == (
-        "stream=true with output guardrails only supports ban_substrings and regex scanners. "
+        "stream=true with output guardrails only supports ban_substrings scanners. "
         "Unsupported scanner: json."
     )
-
-
-@pytest.mark.asyncio
-async def test_apply_streaming_guardrails_blocks_bounded_regex_across_chunks():
-    async def upstream_chunks():
-        yield 'data: {"choices":[{"index":0,"delta":{"content":"xxab"},"finish_reason":null}]}\n\n'
-        yield 'data: {"choices":[{"index":0,"delta":{"content":"12"},"finish_reason":null}]}\n\n'
-        yield "data: [DONE]\n\n"
-
-    guardrails = OutputGuardrails(
-        enabled=True,
-        fail_open=False,
-        action_on_hit="block",
-        block_message="blocked-by-regex",
-        scanner_configs=(
-            ParsedScannerConfig(
-                type="regex",
-                action_on_hit="block",
-                config=RegexConfig(patterns=[r"ab\d{2}"]),
-            ),
-        ),
-    )
-
-    chunks = [
-        chunk
-        async for chunk in apply_streaming_guardrails(
-            upstream_chunks(), guardrails, {"messages": []}
-        )
-    ]
-
-    assert chunks[-3:] == [
-        'data: {"choices":[{"index":0,"delta":{"content":"blocked-by-regex"},"finish_reason":null}]}\n\n',
-        'data: {"choices":[{"index":0,"delta":{},"finish_reason":"content_filter"}]}\n\n',
-        "data: [DONE]\n\n",
-    ]
-
-
-@pytest.mark.asyncio
-async def test_apply_streaming_guardrails_preserves_tool_call_events():
-    async def upstream_chunks():
-        yield 'data: {"choices":[{"index":0,"delta":{"tool_calls":[{"id":"call-1"}]},"finish_reason":null}]}\n\n'
-        yield "data: [DONE]\n\n"
-
-    guardrails = OutputGuardrails(
-        enabled=True,
-        fail_open=False,
-        action_on_hit="block",
-        scanner_configs=(
-            ParsedScannerConfig(
-                type="regex",
-                action_on_hit="block",
-                config=RegexConfig(patterns=[r"unsafe"]),
-            ),
-        ),
-    )
-
-    chunks = [
-        chunk
-        async for chunk in apply_streaming_guardrails(
-            upstream_chunks(), guardrails, {"messages": []}
-        )
-    ]
-
-    assert chunks == [
-        'data: {"choices":[{"index":0,"delta":{"tool_calls":[{"id":"call-1"}]},"finish_reason":null}]}\n\n',
-        "data: [DONE]\n\n",
-    ]
-
-
-@pytest.mark.asyncio
-async def test_apply_streaming_guardrails_rejects_mixed_content_raw_passthrough_choice():
-    async def upstream_chunks():
-        yield 'data: {"choices":[{"index":0,"delta":{"content":"unsafe","tool_calls":[]},"finish_reason":null}]}\n\n'
-
-    guardrails = OutputGuardrails(
-        enabled=True,
-        fail_open=False,
-        action_on_hit="block",
-        block_message="blocked-by-policy",
-        scanner_configs=(
-            ParsedScannerConfig(
-                type="ban_substrings",
-                action_on_hit="block",
-                config=BanSubstringsConfig(substrings=["unsafe"], match_type="str"),
-            ),
-        ),
-    )
-
-    chunks = [
-        chunk
-        async for chunk in apply_streaming_guardrails(
-            upstream_chunks(), guardrails, {"messages": []}
-        )
-    ]
-
-    assert chunks == [
-        'data: {"choices":[{"index":0,"delta":{"content":"blocked-by-policy"},"finish_reason":null}]}\n\n',
-        'data: {"choices":[{"index":0,"delta":{},"finish_reason":"content_filter"}]}\n\n',
-        "data: [DONE]\n\n",
-    ]
-
-
-@pytest.mark.asyncio
-async def test_apply_streaming_guardrails_scans_multi_choice_outputs_independently():
-    async def upstream_chunks():
-        yield 'data: {"choices":[{"index":0,"delta":{"content":"un"},"finish_reason":null},{"index":1,"delta":{"content":"safe"},"finish_reason":null}]}\n\n'
-        yield "data: [DONE]\n\n"
-
-    guardrails = OutputGuardrails(
-        enabled=True,
-        fail_open=False,
-        action_on_hit="block",
-        scanner_configs=(
-            ParsedScannerConfig(
-                type="ban_substrings",
-                action_on_hit="block",
-                config=BanSubstringsConfig(substrings=["unsafe"], match_type="str"),
-            ),
-        ),
-    )
-
-    chunks = [
-        chunk
-        async for chunk in apply_streaming_guardrails(
-            upstream_chunks(), guardrails, {"messages": []}
-        )
-    ]
-
-    assert chunks == [
-        'data: {"choices":[{"index":0,"delta":{"content":"un"},"finish_reason":null}]}\n\n',
-        'data: {"choices":[{"index":1,"delta":{"content":"safe"},"finish_reason":null}]}\n\n',
-        "data: [DONE]\n\n",
-    ]
 
 
 @pytest.mark.asyncio

@@ -13,22 +13,15 @@
 
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
-from re import _parser as regex_parser
 from typing import Any
 
 from fastapi import HTTPException
 from llm_guard import scan_output
 
 from ragengine.guardrails import OutputGuardrails
-from ragengine.guardrails.scanner_schemas import (
-    BanSubstringsConfig,
-    RegexConfig,
-)
 from ragengine.streaming.buffer_window import StreamingBufferWindow, WindowScanResult
 from ragengine.streaming.openai import (
     OpenAIChatChunkParseStatus,
-    ParsedOpenAIChoice,
-    ParsedOpenAIChoiceKind,
     build_openai_chat_delta_sse_chunk,
     build_openai_chat_finish_sse_chunk,
     build_sse_done_chunk,
@@ -36,7 +29,8 @@ from ragengine.streaming.openai import (
 )
 from ragengine.streaming.sse import iter_sse_events
 
-STREAMING_GUARDRAILS_SUPPORTED_SCANNERS = frozenset({"ban_substrings", "regex"})
+STREAMING_GUARDRAILS_HOLDBACK_LEN = 256
+STREAMING_GUARDRAILS_SUPPORTED_SCANNERS = frozenset({"ban_substrings"})
 
 
 @dataclass(frozen=True)
@@ -64,16 +58,8 @@ def validate_streaming_guardrails(
                 supported=False,
                 detail=(
                     "stream=true with output guardrails only supports "
-                    "ban_substrings and regex scanners. Unsupported scanner: "
+                    "ban_substrings scanners. Unsupported scanner: "
                     f"{scanner_config.type}."
-                ),
-            )
-        if _scanner_holdback_len(scanner_config.config) is None:
-            return StreamingGuardrailsSupport(
-                supported=False,
-                detail=(
-                    "stream=true with output guardrails only supports regex "
-                    "patterns with bounded maximum width."
                 ),
             )
 
@@ -94,15 +80,17 @@ async def apply_streaming_guardrails(
 
         prompt = guardrails._extract_prompt(request)
         scanner = _LLMGuardWindowScanner(prompt=prompt, built_scanners=built_scanners)
-        holdback_len = _calculate_streaming_holdback_len(guardrails)
-        windows: dict[int, StreamingBufferWindow] = {}
+        window = StreamingBufferWindow(
+            scanner,
+            holdback_len=STREAMING_GUARDRAILS_HOLDBACK_LEN,
+        )
 
         async for event in iter_sse_events(upstream_chunks):
             parse_result = parse_openai_chat_sse_event(event)
             if parse_result.status == OpenAIChatChunkParseStatus.DONE:
-                async for chunk in _flush_windows_or_block(windows, guardrails):
+                async for chunk in _flush_window_or_block(window, guardrails):
                     yield chunk
-                if _any_window_blocked(windows):
+                if window.blocked:
                     return
                 yield build_sse_done_chunk()
                 return
@@ -112,63 +100,23 @@ async def apply_streaming_guardrails(
                     yield chunk
                 return
 
-            has_raw_passthrough_choice = _has_raw_passthrough_choice(
-                parse_result.parsed_choices
-            )
-            if has_raw_passthrough_choice and _has_content_choice(
-                parse_result.parsed_choices
-            ):
-                async for chunk in _emit_refusal(guardrails):
-                    yield chunk
-                return
+            for content in parse_result.contents:
+                emit_result = window.feed(content)
+                if emit_result.blocked:
+                    async for chunk in _emit_refusal(guardrails):
+                        yield chunk
+                    return
+                for safe_chunk in emit_result.chunks:
+                    yield build_openai_chat_delta_sse_chunk(safe_chunk)
 
-            if has_raw_passthrough_choice:
-                async for chunk in _flush_windows_or_block(windows, guardrails):
+            if parse_result.finish_reasons:
+                async for chunk in _flush_window_or_block(window, guardrails):
                     yield chunk
-                if _any_window_blocked(windows):
+                if window.blocked:
                     return
                 yield _raw_sse_chunk(event.raw)
-                continue
 
-            finish_choices: list[ParsedOpenAIChoice] = []
-            for parsed_choice in parse_result.parsed_choices:
-                if parsed_choice.kind == ParsedOpenAIChoiceKind.CONTENT:
-                    window = _window_for_choice(
-                        windows,
-                        parsed_choice.choice_index,
-                        scanner=scanner,
-                        holdback_len=holdback_len,
-                    )
-                    emit_result = window.feed(parsed_choice.content or "")
-                    if emit_result.blocked:
-                        async for chunk in _emit_refusal(guardrails):
-                            yield chunk
-                        return
-                    for safe_chunk in emit_result.chunks:
-                        yield build_openai_chat_delta_sse_chunk(
-                            safe_chunk,
-                            choice_index=parsed_choice.choice_index,
-                        )
-                if parsed_choice.kind == ParsedOpenAIChoiceKind.FINISH:
-                    finish_choices.append(parsed_choice)
-
-            for parsed_choice in finish_choices:
-                window = windows.get(parsed_choice.choice_index)
-                if window is not None:
-                    async for chunk in _flush_window_or_block(
-                        window,
-                        guardrails,
-                        choice_index=parsed_choice.choice_index,
-                    ):
-                        yield chunk
-                    if window.blocked:
-                        return
-                yield build_openai_chat_finish_sse_chunk(
-                    finish_reason=parsed_choice.finish_reason or "stop",
-                    choice_index=parsed_choice.choice_index,
-                )
-
-        async for chunk in _flush_windows_or_block(windows, guardrails):
+        async for chunk in _flush_window_or_block(window, guardrails):
             yield chunk
     finally:
         await _aclose(upstream_chunks)
@@ -192,8 +140,6 @@ class _LLMGuardWindowScanner:
 async def _flush_window_or_block(
     window: StreamingBufferWindow,
     guardrails: OutputGuardrails,
-    *,
-    choice_index: int,
 ) -> AsyncIterator[str]:
     flush_result = window.flush()
     if flush_result.blocked:
@@ -202,25 +148,7 @@ async def _flush_window_or_block(
         return
 
     for safe_chunk in flush_result.chunks:
-        yield build_openai_chat_delta_sse_chunk(
-            safe_chunk,
-            choice_index=choice_index,
-        )
-
-
-async def _flush_windows_or_block(
-    windows: dict[int, StreamingBufferWindow],
-    guardrails: OutputGuardrails,
-) -> AsyncIterator[str]:
-    for choice_index, window in sorted(windows.items()):
-        async for chunk in _flush_window_or_block(
-            window,
-            guardrails,
-            choice_index=choice_index,
-        ):
-            yield chunk
-        if window.blocked:
-            return
+        yield build_openai_chat_delta_sse_chunk(safe_chunk)
 
 
 async def _emit_refusal(guardrails: OutputGuardrails) -> AsyncIterator[str]:
@@ -238,77 +166,6 @@ async def _aclose(upstream_chunks: AsyncIterator[str]) -> None:
 
 def _raw_sse_chunk(raw_event: str) -> str:
     return f"{raw_event}\n\n"
-
-
-def _window_for_choice(
-    windows: dict[int, StreamingBufferWindow],
-    choice_index: int,
-    *,
-    scanner: _LLMGuardWindowScanner,
-    holdback_len: int,
-) -> StreamingBufferWindow:
-    window = windows.get(choice_index)
-    if window is None:
-        window = StreamingBufferWindow(
-            scanner,
-            holdback_len=holdback_len,
-        )
-        windows[choice_index] = window
-    return window
-
-
-def _has_raw_passthrough_choice(parsed_choices: tuple[ParsedOpenAIChoice, ...]) -> bool:
-    return any(
-        parsed_choice.kind
-        in {
-            ParsedOpenAIChoiceKind.TOOL_CALLS,
-            ParsedOpenAIChoiceKind.ROLE,
-            ParsedOpenAIChoiceKind.PASSTHROUGH,
-        }
-        for parsed_choice in parsed_choices
-    )
-
-
-def _has_content_choice(parsed_choices: tuple[ParsedOpenAIChoice, ...]) -> bool:
-    return any(
-        parsed_choice.kind == ParsedOpenAIChoiceKind.CONTENT
-        for parsed_choice in parsed_choices
-    )
-
-
-def _any_window_blocked(windows: dict[int, StreamingBufferWindow]) -> bool:
-    return any(window.blocked for window in windows.values())
-
-
-def _calculate_streaming_holdback_len(guardrails: OutputGuardrails) -> int:
-    holdback_len = 0
-    for scanner_config in guardrails.scanner_configs:
-        scanner_holdback = _scanner_holdback_len(scanner_config.config)
-        if scanner_holdback is None:
-            raise ValueError("streaming scanner holdback length must be bounded.")
-        holdback_len = max(holdback_len, scanner_holdback)
-    return holdback_len
-
-
-def _scanner_holdback_len(config: Any) -> int | None:
-    if isinstance(config, BanSubstringsConfig):
-        return max((len(substring) - 1 for substring in config.substrings), default=0)
-    if isinstance(config, RegexConfig):
-        max_pattern_width = 0
-        for pattern in config.patterns:
-            pattern_width = _regex_max_width(pattern)
-            if pattern_width is None:
-                return None
-            max_pattern_width = max(max_pattern_width, pattern_width)
-        return max(0, max_pattern_width - 1)
-    return None
-
-
-def _regex_max_width(pattern: str) -> int | None:
-    _, max_width = regex_parser.parse(pattern, 0).getwidth()
-    if max_width >= regex_parser.MAXWIDTH:
-        return None
-    return max_width
 
 
 def raise_if_streaming_guardrails_unsupported(guardrails: OutputGuardrails) -> None:

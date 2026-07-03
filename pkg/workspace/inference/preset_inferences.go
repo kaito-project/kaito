@@ -59,10 +59,14 @@ var (
 			Name:          "http",
 			ContainerPort: int32(consts.PortInferenceServer),
 		},
-		{
-			Name:          "kv-events",
-			ContainerPort: int32(consts.PortKVCacheEvents),
-		},
+	}
+
+	// vllmContainerPort is the KV cache events ZMQ port. It is only added to the
+	// pod spec for vLLM inference workspaces; other runtimes don't expose this
+	// endpoint, so advertising it there would be misleading.
+	vllmKVEventsContainerPort = corev1.ContainerPort{
+		Name:          "kv-events",
+		ContainerPort: int32(consts.PortKVCacheEvents),
 	}
 
 	// defaultLivenessProbe has no initial delay because the startup probe ensures
@@ -596,13 +600,18 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			}
 		}
 
+		ports := append([]corev1.ContainerPort(nil), containerPorts...)
+		if runtimeName == pkgmodel.RuntimeNameVLLM {
+			ports = append(ports, vllmKVEventsContainerPort)
+		}
+
 		spec.Containers = []corev1.Container{
 			{
 				Name:           ctx.Workspace.Name,
 				Image:          GetBaseImageName(),
 				Command:        commands,
 				Resources:      resourceReq,
-				Ports:          append([]corev1.ContainerPort(nil), containerPorts...),
+				Ports:          ports,
 				StartupProbe:   buildStartupProbe(readinessTimeout, vllmPort),
 				LivenessProbe:  buildProbeWithPort(defaultLivenessProbe, vllmPort),
 				ReadinessProbe: buildProbeWithPort(defaultReadinessProbe, vllmPort),

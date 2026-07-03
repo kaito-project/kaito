@@ -61,9 +61,9 @@ var (
 		},
 	}
 
-	// vllmContainerPort is the KV cache events ZMQ port. It is only added to the
-	// pod spec for vLLM inference workspaces; other runtimes don't expose this
-	// endpoint, so advertising it there would be misleading.
+	// vllmKVEventsContainerPort is the KV cache events ZMQ port. It is only added
+	// to the pod spec for vLLM inference workspaces; other runtimes don't expose
+	// this endpoint, so advertising it there would be misleading.
 	vllmKVEventsContainerPort = corev1.ContainerPort{
 		Name:          "kv-events",
 		ContainerPort: int32(consts.PortKVCacheEvents),

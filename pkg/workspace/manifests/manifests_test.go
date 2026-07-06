@@ -326,6 +326,15 @@ func TestGeneratePullerContainers(t *testing.T) {
 }
 
 func TestGenerateServiceManifest_KVEventsPort(t *testing.T) {
+	// Deterministically pin the vLLM feature gate for this test. Other packages'
+	// tests mutate featuregates.FeatureGates (sometimes flipping FeatureFlagVLLM
+	// to false or replacing the whole map) without restoring it, which would
+	// otherwise make kaitov1beta1.GetWorkspaceRuntimeName here flaky under
+	// parallel `go test` runs.
+	origVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
+	defer func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = origVLLM }()
+
 	newWS := func(runtime string) *kaitov1beta1.Workspace {
 		ws := &kaitov1beta1.Workspace{}
 		ws.Name = "ws"

@@ -30,7 +30,6 @@ class OpenAIChatChunkParseStatus(StrEnum):
 class ParsedOpenAIChoiceKind(StrEnum):
     CONTENT = "content"
     FINISH_REASON = "finish_reason"
-    # Non-content delta fields forwarded unchanged, e.g. role, tool_calls, refusal.
     PASSTHROUGH = "passthrough"
 
 

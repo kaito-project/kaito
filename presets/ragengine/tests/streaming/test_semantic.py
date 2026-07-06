@@ -167,7 +167,7 @@ def test_openai_parser_parses_content_mixed_with_passthrough_fields():
         ),
         ParsedOpenAIChoice(
             choice_index=0,
-            kind=ParsedOpenAIChoiceKind.TOOL_CALLS,
+            kind=ParsedOpenAIChoiceKind.PASSTHROUGH,
         ),
     )
 
@@ -215,7 +215,7 @@ def test_openai_parser_tolerates_chunk_without_delta_content():
     assert result.parsed_choices == (
         ParsedOpenAIChoice(
             choice_index=0,
-            kind=ParsedOpenAIChoiceKind.ROLE,
+            kind=ParsedOpenAIChoiceKind.PASSTHROUGH,
         ),
         ParsedOpenAIChoice(
             choice_index=0,
@@ -225,7 +225,7 @@ def test_openai_parser_tolerates_chunk_without_delta_content():
     )
 
 
-def test_openai_parser_classifies_tool_call_delta_as_tool_calls():
+def test_openai_parser_classifies_tool_call_delta_as_passthrough():
     events = SSEFramer().feed(
         'data: {"choices":[{"index":2,"delta":{"tool_calls":[{"id":"call-1"}]},"finish_reason":null}]}\n\n'
     )
@@ -236,7 +236,7 @@ def test_openai_parser_classifies_tool_call_delta_as_tool_calls():
     assert result.parsed_choices == (
         ParsedOpenAIChoice(
             choice_index=2,
-            kind=ParsedOpenAIChoiceKind.TOOL_CALLS,
+            kind=ParsedOpenAIChoiceKind.PASSTHROUGH,
         ),
     )
 

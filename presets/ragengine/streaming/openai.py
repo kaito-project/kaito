@@ -29,10 +29,9 @@ class OpenAIChatChunkParseStatus(StrEnum):
 
 class ParsedOpenAIChoiceKind(StrEnum):
     CONTENT = "content"
-    TOOL_CALLS = "tool_calls"
-    ROLE = "role"
-    PASSTHROUGH = "passthrough"
     FINISH_REASON = "finish_reason"
+    # Non-content delta fields forwarded unchanged, e.g. role, tool_calls, refusal.
+    PASSTHROUGH = "passthrough"
 
 
 @dataclass(frozen=True)
@@ -133,7 +132,7 @@ def parse_openai_chat_sse_event(event: SSEEvent) -> OpenAIChatChunkParseResult:
             parsed_choices.append(
                 ParsedOpenAIChoice(
                     choice_index=choice_index,
-                    kind=_classify_non_content_delta(delta),
+                    kind=ParsedOpenAIChoiceKind.PASSTHROUGH,
                 )
             )
 
@@ -165,14 +164,6 @@ def _parse_choice_index(choice: dict[str, Any]) -> int | None:
     if isinstance(value, int):
         return value
     return None
-
-
-def _classify_non_content_delta(delta: dict[str, Any]) -> ParsedOpenAIChoiceKind:
-    if "tool_calls" in delta:
-        return ParsedOpenAIChoiceKind.TOOL_CALLS
-    if "role" in delta:
-        return ParsedOpenAIChoiceKind.ROLE
-    return ParsedOpenAIChoiceKind.PASSTHROUGH
 
 
 def build_openai_chat_delta_sse_chunk(

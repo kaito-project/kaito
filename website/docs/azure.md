@@ -12,14 +12,25 @@ This guide covers setting up auto-provisioning capabilities for KAITO on Azure K
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) for managing Azure resources
 - [kubectl](https://kubernetes.io/docs/tasks/tools/) configured to access your AKS cluster
 
+Log in to Azure and select the subscription you want to use:
+
+```bash
+az login
+az account set --subscription "<your-subscription-id>"
+```
+
 ## Understanding Auto-Provisioning on Azure
 
-KAITO can use the [Azure GPU Provisioner](https://github.com/Azure/gpu-provisioner) to automatically provision GPU nodes. This controller:
+KAITO uses [Azure Karpenter (karpenter-provider-azure)](https://github.com/Azure/karpenter-provider-azure) to automatically provision GPU nodes. This controller:
 
 - Creates new GPU nodes when workspaces require specific instance types
 - Supports various Azure GPU SKUs (Standard_NC series, etc.)
 - Manages node lifecycle based on workload demands
 - Integrates with Azure's managed identity system for secure access
+
+:::warning Deprecation notice
+The [Azure GPU Provisioner](https://github.com/Azure/gpu-provisioner) (`gpu-provisioner`) is **deprecated** and no longer recommended for new clusters. Use Azure Karpenter as described below. Existing `gpu-provisioner` installations continue to work, but new setups should adopt Karpenter (`nodeProvisioner=karpenter`).
+:::
 
 ### When to Use Auto-Provisioning
 
@@ -34,100 +45,99 @@ Alternative: If you already have GPU nodes or manage them separately, use the [b
 
 ## Set Up Auto-Provisioning
 
-### Step 1: Create and configure an AKS Cluster
+Setting up auto-provisioning has two parts:
 
-If you don't have an AKS cluster yet, you can create one using the Azure CLI:
+1. **Create the AKS cluster and install Azure Karpenter** — this is standard self-hosted Karpenter setup. Follow the upstream [self-hosted Karpenter installation](https://github.com/Azure/karpenter-provider-azure#installation-self-hosted-karpenter) guide so you always track the latest supported procedure.
+2. **Apply the KAITO-specific configuration** — point the KAITO workspace controller at Karpenter (Step 2 below).
 
-```bash
-export RESOURCE_GROUP="kaito-rg"
-export CLUSTER_NAME="kaito-cluster"
-export LOCATION="eastus"
-az group create --name $RESOURCE_GROUP --location $LOCATION
-az aks create --resource-group $RESOURCE_GROUP --name $CLUSTER_NAME --enable-oidc-issuer --enable-workload-identity --enable-managed-identity --generate-ssh-keys
-```
+:::tip Prefer `make` targets?
+If you'd rather not run each command by hand, the KAITO repository ships `make` targets that automate Step 1. See [Alternative: set up with KAITO make targets](#alternative-set-up-with-kaito-make-targets).
+:::
 
-Connect to the cluster:
-```bash
-az aks get-credentials --resource-group $RESOURCE_GROUP --name $CLUSTER_NAME
-```
+### Step 1: Create the AKS cluster and install Azure Karpenter
 
-### Step 2: Create Managed Identity
+Follow the [self-hosted Karpenter installation](https://github.com/Azure/karpenter-provider-azure#installation-self-hosted-karpenter) guide to:
 
-Create a managed identity for the GPU provisioner with the necessary permissions:
+- create an AKS cluster with the OIDC issuer and workload identity enabled,
+- create the Karpenter workload identity, federated credential, and role assignments, and
+- install the Azure Karpenter controller with its Helm chart.
 
-```bash
-export SUBSCRIPTION=$(az account show --query id -o tsv)
-export IDENTITY_NAME="kaitoprovisioner"
+Refer to that guide for prerequisites and the full configuration details.
 
-# Create the managed identity
-az identity create --name $IDENTITY_NAME -g $RESOURCE_GROUP
+### Step 2: Configure the KAITO Workspace Controller to Use Karpenter
 
-# Get the principal ID for role assignment
-export IDENTITY_PRINCIPAL_ID=$(az identity show --name $IDENTITY_NAME -g $RESOURCE_GROUP --subscription $SUBSCRIPTION --query 'principalId' -o tsv)
-
-# Assign Contributor role to the cluster
-az role assignment create \
-  --assignee $IDENTITY_PRINCIPAL_ID \
-  --scope /subscriptions/$SUBSCRIPTION/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.ContainerService/managedClusters/$CLUSTER_NAME \
-  --role "Contributor"
-```
-
-### Step 3: Install GPU Provisioner
-
-Install the Azure GPU Provisioner using Helm:
+The KAITO workspace controller must run with `nodeProvisioner=karpenter`. Update your [existing installation](./installation.md) with `helm upgrade`, reusing the same `kaito/workspace` chart from the Helm repository you added during [Installation](./installation.md):
 
 ```bash
-export GPU_PROVISIONER_VERSION=0.4.2
-
-# Download and configure Helm values
-curl -sO https://raw.githubusercontent.com/Azure/gpu-provisioner/main/hack/deploy/configure-helm-values.sh
-chmod +x ./configure-helm-values.sh && ./configure-helm-values.sh $CLUSTER_NAME $RESOURCE_GROUP $IDENTITY_NAME
-
-# Install GPU provisioner
-helm install gpu-provisioner \
-  --values gpu-provisioner-values.yaml \
-  --set settings.azure.clusterName=$CLUSTER_NAME \
-  --wait \
-  https://github.com/Azure/gpu-provisioner/raw/gh-pages/charts/gpu-provisioner-$GPU_PROVISIONER_VERSION.tgz \
-  --namespace gpu-provisioner \
-  --create-namespace
+helm upgrade kaito-workspace kaito/workspace \
+  --namespace kaito-workspace \
+  --reuse-values \
+  --set nodeProvisioner=karpenter
 ```
 
-### Step 4: Create Federated Credential
+Setting `nodeProvisioner=karpenter` does two things: it renders the `kaito-nodeclasses` ConfigMap (the built-in `AKSNodeClass` definitions), and it starts the controller with `--node-provisioner=karpenter`. The upgrade re-renders the ConfigMap and triggers a controller rollout; on startup the new pod reads that ConfigMap and creates the `AKSNodeClass` resources, so the node classes only appear after this step.
 
-Create the federated identity credential to allow the GPU provisioner to access Azure resources:
+### Alternative: set up with KAITO make targets
+
+Instead of running the Step 1 commands by hand, you can use the `make` targets shipped in the KAITO repository. They wrap the same upstream Azure Karpenter installation, so the result matches the official guide. Choose this path only if you're comfortable cloning the repo, and run all commands from the root of the KAITO repository.
+
+Clone the repository and change into it:
 
 ```bash
-export AKS_OIDC_ISSUER=$(az aks show -n $CLUSTER_NAME -g $RESOURCE_GROUP --subscription $SUBSCRIPTION --query "oidcIssuerProfile.issuerUrl" -o tsv)
-
-az identity federated-credential create \
-  --name kaito-federatedcredential \
-  --identity-name $IDENTITY_NAME \
-  -g $RESOURCE_GROUP \
-  --issuer $AKS_OIDC_ISSUER \
-  --subject system:serviceaccount:"gpu-provisioner:gpu-provisioner" \
-  --audience api://AzureADTokenExchange \
-  --subscription $SUBSCRIPTION
+git clone https://github.com/kaito-project/kaito.git
+cd kaito
 ```
+
+Set the shared variables used by the `make` targets:
+
+```bash
+export AZURE_RESOURCE_GROUP="kaito-rg"
+export AZURE_CLUSTER_NAME="kaito-cluster"
+export AZURE_LOCATION="eastus"
+export KARPENTER_NAMESPACE=karpenter
+export AZURE_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+export TEST_SUITE=azkarpenter               # selects the Karpenter identities/roles
+```
+
+:::note
+`make azure-karpenter-helm` requires `yq` v4.30+.
+:::
+
+Create the cluster, identities, and install Azure Karpenter:
+
+```bash
+# Create the resource group and an AKS cluster configured for Karpenter
+# (Azure CNI Overlay + Cilium, OIDC issuer, and workload identity)
+make create-rg
+make create-aks-cluster-for-karpenter
+
+# Create the Karpenter workload identity, federated credential, and role assignments
+make generate-identities
+
+# Install the Azure Karpenter controller
+make azure-karpenter-helm
+```
+
+Then continue with [Step 2: Configure the KAITO Workspace Controller to Use Karpenter](#step-2-configure-the-kaito-workspace-controller-to-use-karpenter) above.
 
 ## Verify Setup
 
-Check that the GPU provisioner is running correctly:
+Check that Karpenter and the KAITO workspace controller are running correctly:
 
 ```bash
 # Check Helm installations
-helm list -n gpu-provisioner
+helm list -n karpenter
 helm list -n kaito-workspace
 
-# Check GPU provisioner status
-kubectl describe deploy gpu-provisioner -n gpu-provisioner
-kubectl get pods -n gpu-provisioner
+# Check Karpenter status
+kubectl describe deploy karpenter -n karpenter
+kubectl get pods -n karpenter
 ```
 
-The GPU provisioner pod should be in a `Running` state. If it's failing, check the logs:
+The Karpenter pod should be in a `Running` state. If it's failing, check the logs:
 
 ```bash
-kubectl logs --selector=app.kubernetes.io/name=gpu-provisioner -n gpu-provisioner
+kubectl logs --selector=app.kubernetes.io/name=karpenter -n karpenter
 ```
 
 ## Using Auto-Provisioning
@@ -140,7 +150,7 @@ kind: Workspace
 metadata:
   name: workspace-phi-4-mini
 resource:
-  instanceType: "Standard_NC24ads_A100_v4"  # Will trigger node creation
+  instanceType: "Standard_NC4as_T4_v3"  # Will trigger node creation
   labelSelector:
     matchLabels:
       apps: phi-4-mini
@@ -170,47 +180,30 @@ For the complete list and specifications, see the [Azure GPU-optimized VM sizes 
 To remove the auto-provisioning setup:
 
 ```bash
-# Uninstall GPU provisioner
-helm uninstall gpu-provisioner -n gpu-provisioner
+# Uninstall Karpenter
+helm uninstall karpenter -n karpenter
 
 # Delete the managed identity (optional)
-az identity delete --name $IDENTITY_NAME -g $RESOURCE_GROUP
-```
-## Configure Node Image Family (Optional)
-
-KAITO supports configuring the node image family for generated `NodeClaim` resources.
-
-:::note Version requirement
-Node Image Family is supported in KAITO **v0.9.0 and later**.
-:::
-
-- Supported values: `ubuntu`, `azurelinux`
-- Controller startup parameter: `--default-node-image-family`
-- Helm chart value: `defaultNodeImageFamily` (mapped to `--default-node-image-family`)
-- Workspace annotation: `metadata.annotations["kaito.sh/node-image-family"]`
-
-### Controller startup parameter
-
-You can set the controller-level default with Helm:
-
-```bash
-helm upgrade --install kaito-workspace kaito/workspace \
-  --namespace kaito-workspace \
-  --create-namespace \
-  --set clusterName="$CLUSTER_NAME" \
-  --set defaultNodeImageFamily=azurelinux \
-  --wait \
-  --take-ownership
+# The Karpenter workload identity created by `make generate-identities` is named azkarpenterIdentity
+az identity delete --name azkarpenterIdentity -g $AZURE_RESOURCE_GROUP
 ```
 
-Notes:
+## Select a Node Class (Optional)
 
-- If startup parameter `--default-node-image-family` is empty, KAITO uses `ubuntu`.
-- If startup parameter `--default-node-image-family` is not one of `ubuntu` or `azurelinux`, the workspace controller fails to start.
+When using Azure Karpenter, KAITO ships **two built-in `AKSNodeClass` definitions** and lets you choose which one a `Workspace` uses through an annotation.
 
-### Per-workspace override via annotation
+These node classes are defined in the KAITO workspace Helm chart under `karpenterProviders.azure.nodeClasses`, rendered into the `kaito-nodeclasses` ConfigMap, and created by the controller at startup:
 
-You can override the controller default on a specific `Workspace`:
+| NodeClass name | Image family | OS disk size | Default |
+| --- | --- | --- | --- |
+| `image-family-ubuntu` | `Ubuntu2204` | 300 GB | ✅ yes |
+| `image-family-azure-linux` | `AzureLinux` | 300 GB | no |
+
+The default node class is the entry labeled `karpenter.kaito.sh/default: "true"` (i.e. `image-family-ubuntu`). Any `Workspace` that does not select a node class uses it.
+
+### Select a node class per Workspace
+
+Set the `kaito.sh/node-class-name` annotation on a `Workspace` to the name of the built-in node class you want:
 
 ```yaml
 apiVersion: kaito.sh/v1beta1
@@ -218,10 +211,41 @@ kind: Workspace
 metadata:
   name: workspace-phi-4-mini
   annotations:
-    kaito.sh/node-image-family: azurelinux
+    kaito.sh/node-class-name: image-family-azure-linux
+resource:
+  instanceType: "Standard_NC4as_T4_v3"
+  labelSelector:
+    matchLabels:
+      apps: phi-4-mini
+inference:
+  preset:
+    name: phi-4-mini-instruct
 ```
 
 Notes:
 
-- `kaito.sh/node-image-family` has higher priority than `--default-node-image-family`.
-- If the annotation value is unsupported, Workspace creation is rejected by validation webhook.
+- If the annotation is absent or empty, KAITO uses the default node class (`image-family-ubuntu`).
+- The annotation value must match the name of an `AKSNodeClass` that exists in the cluster — one of the two built-in names above, or a custom node class you add.
+
+### Add or customize node classes (advanced)
+
+To add your own image families or disk sizes, edit `karpenterProviders.azure.nodeClasses` in the workspace Helm values. Each entry becomes an `AKSNodeClass`, and **exactly one** entry must be marked `default: true`:
+
+```yaml
+karpenterProviders:
+  azure:
+    nodeClasses:
+      - name: image-family-ubuntu
+        default: true
+        spec:
+          imageFamily: Ubuntu2204
+          osDiskSizeGB: 300
+      - name: image-family-azure-linux
+        spec:
+          imageFamily: AzureLinux
+          osDiskSizeGB: 300
+```
+
+:::note
+The legacy `--default-node-image-family` controller flag and the `kaito.sh/node-image-family` annotation apply only to the deprecated `gpu-provisioner` path and are not used by Azure Karpenter.
+:::

@@ -12,6 +12,9 @@ data:
         type: text-generation
         runtime: tfs
         tag: 0.4.2
+        runtimeVersion:
+          vllm: 0.22.1
+          transformers: 5.6.0
       - name: llama-3.1-8b-instruct
         type: text-generation
         version: https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct/commit/0e9e39f249a16976918f6564b8830bc894c89659

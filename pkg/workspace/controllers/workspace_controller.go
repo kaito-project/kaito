@@ -631,7 +631,20 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	existingObj.SetAnnotations(annotations)
 
 	// Update it with the latest one generated above.
-	return c.Update(ctx, existingObj)
+	if err := c.Update(ctx, existingObj); err != nil {
+		return err
+	}
+
+	// After a base image auto-upgrade, clear the recorded benchmark result and reset
+	// the BenchmarkCompleted condition so the post-load benchmark re-runs against the
+	// new image on the next reconcile, re-recording all metrics (including the runtime
+	// metadata such as engineVersion) with fresh values.
+	if baseImageUpgrade {
+		if err := c.resetBenchmarkOnUpgrade(ctx, wObj); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // shouldUpgradeBaseImage checks if an auto-upgrade has been requested via the upgrade label
@@ -995,6 +1008,29 @@ func applyBenchmarkStatus(ctx context.Context, status *kaitov1beta1.WorkspaceSta
 		kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted, metav1.ConditionTrue,
 		"BenchmarkCompleted", "benchmark result has been recorded")
 	return nil
+}
+
+// resetBenchmarkOnUpgrade clears the recorded benchmark result and removes the
+// BenchmarkCompleted condition, so the post-load benchmark re-runs against the new
+// image on the next reconcile.
+func (c *WorkspaceReconciler) resetBenchmarkOnUpgrade(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
+	return workspace.UpdateWorkspaceStatus(ctx, c.Client, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace},
+		func(status *kaitov1beta1.WorkspaceStatus) error {
+			status.Performance = nil
+			meta.RemoveStatusCondition(&status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted))
+			return nil
+		})
+}
+
+// RuntimeMetadataConfig returns the serving runtime metadata (engine, engine
+// version, quantization) as a Metric.Config map, so external systems (e.g. a
+// portal) can read it. Shared by the Workspace and InferenceSet controllers.
+func RuntimeMetadataConfig(runtimeName pkgmodel.RuntimeName, presetName string) map[string]string {
+	return map[string]string{
+		ConfigKeyEngine:        string(runtimeName),
+		ConfigKeyEngineVersion: inference.GetBaseRuntimeVersion(runtimeName),
+		ConfigKeyQuantization:  inference.GetPresetQuantization(presetName),
+	}
 }
 
 func (c *WorkspaceReconciler) updateWorkspaceStatusIfChanged(ctx context.Context, key types.NamespacedName, modifyFn func(*kaitov1beta1.WorkspaceStatus) error) error {

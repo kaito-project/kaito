@@ -370,6 +370,12 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 		status.ReadyReplicas = readyReplicas
 		// set selector for HPA/VPA
 		status.Selector = fmt.Sprintf("%s=%s", consts.WorkspaceCreatedByInferenceSetLabel, iObj.Name)
+		runtimeName := kaitov1beta1.GetInferenceSetRuntimeName(iObj)
+		var presetName string
+		if iObj.Spec.Template.Inference.Preset != nil {
+			presetName = string(iObj.Spec.Template.Inference.Preset.Name)
+		}
+
 		if kaitov1beta1.ShouldRunInferenceSetBenchmark(iObj) {
 			if hasBenchmarkTPMResult {
 				if status.Performance == nil {
@@ -382,6 +388,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 					Description: controllers.BenchmarkDesc,
 					Value:       strconv.FormatFloat(totalTPM, 'f', 2, 64),
 					Unit:        controllers.BenchmarkMetricUnit,
+					Config:      controllers.RuntimeMetadataConfig(runtimeName, presetName),
 				}
 			} else {
 				// No ready replica has a TPM result — clear the TPM key so the profile
@@ -404,6 +411,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 				}
 			}
 		}
+
 		return nil
 	}); err != nil {
 		klog.ErrorS(err, "failed to update inferenceset replicas", "inferenceset", klog.KObj(iObj))

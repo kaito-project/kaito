@@ -442,6 +442,35 @@ func GetBaseImageTag() string {
 	return presetObj.Tag
 }
 
+// GetBaseRuntimeVersion returns the inference engine version baked into the base
+// image for the given runtime, sourced from the base model metadata. It returns
+// an empty string when the runtime is unrecognized or the version is not set.
+func GetBaseRuntimeVersion(runtimeName pkgmodel.RuntimeName) string {
+	rv := metadata.MustGet("base").RuntimeVersion
+	switch runtimeName {
+	case pkgmodel.RuntimeNameVLLM:
+		return rv.VLLM
+	case pkgmodel.RuntimeNameHuggingfaceTransformers:
+		return rv.Transformers
+	default:
+		return ""
+	}
+}
+
+// GetPresetQuantization returns the weight quantization method for a preset model
+// (e.g. "awq", "gptq"). It returns an empty string when the preset name is empty,
+// the model is not in the supported catalog, or the model is not quantized.
+func GetPresetQuantization(presetName string) string {
+	if presetName == "" {
+		return ""
+	}
+	m, ok := metadata.Get(presetName)
+	if !ok {
+		return ""
+	}
+	return m.QuantMethod
+}
+
 func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingModelPath, streamingLoadFormat string) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 		// additional volume

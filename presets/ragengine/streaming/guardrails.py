@@ -151,7 +151,9 @@ async def apply_streaming_guardrails(
                     yield chunk
                 if _has_blocked_window(windows):
                     return
-                passthrough_payload = _build_passthrough_payload(parse_result.payload)
+                passthrough_payload = _build_non_content_passthrough_payload(
+                    parse_result.payload
+                )
                 if passthrough_payload is not None:
                     yield build_sse_data_chunk(passthrough_payload)
 
@@ -243,7 +245,9 @@ def _raw_sse_chunk(raw_event: str) -> str:
     return f"{raw_event}\n\n"
 
 
-def _build_passthrough_payload(payload: dict[str, Any] | None) -> dict[str, Any] | None:
+def _build_non_content_passthrough_payload(
+    payload: dict[str, Any] | None,
+) -> dict[str, Any] | None:
     if payload is None:
         return None
 

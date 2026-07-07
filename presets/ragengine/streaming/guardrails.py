@@ -96,7 +96,7 @@ async def apply_streaming_guardrails(
         async for event in iter_sse_events(upstream_chunks):
             parse_result = parse_openai_chat_sse_event(event)
             if parse_result.status == OpenAIChatChunkParseStatus.DONE:
-                async for chunk in _flush_windows_or_block(windows, guardrails):
+                async for chunk in _flush_all_windows_or_block(windows, guardrails):
                     yield chunk
                 if _has_blocked_window(windows):
                     return
@@ -113,7 +113,7 @@ async def apply_streaming_guardrails(
                 return
 
             if not parse_result.parsed_choices:
-                async for chunk in _flush_windows_or_block(windows, guardrails):
+                async for chunk in _flush_all_windows_or_block(windows, guardrails):
                     yield chunk
                 if _has_blocked_window(windows):
                     return
@@ -157,7 +157,7 @@ async def apply_streaming_guardrails(
                 if passthrough_payload is not None:
                     yield build_sse_data_chunk(passthrough_payload)
 
-        async for chunk in _flush_windows_or_block(windows, guardrails):
+        async for chunk in _flush_all_windows_or_block(windows, guardrails):
             yield chunk
     finally:
         await _aclose(upstream_chunks)
@@ -197,7 +197,7 @@ async def _flush_window_or_block(
         )
 
 
-async def _flush_windows_or_block(
+async def _flush_all_windows_or_block(
     windows: dict[int, StreamingBufferWindow],
     guardrails: OutputGuardrails,
 ) -> AsyncIterator[str]:

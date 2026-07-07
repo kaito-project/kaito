@@ -64,6 +64,7 @@ func (is *InferenceSet) validateCreate() (errs *apis.FieldError) {
 }
 
 func (is *InferenceSet) validateUpdate(_ *InferenceSet) (errs *apis.FieldError) {
+	errs = errs.Also(is.validateInstanceType().ViaField("template"))
 	errs = errs.Also(validateMaintenanceWindow(is.Spec.AutoUpgrade))
 	return errs
 }

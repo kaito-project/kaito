@@ -21,6 +21,7 @@ from llm_guard import scan_output
 from ragengine.guardrails import OutputGuardrails
 from ragengine.streaming.buffer_window import StreamingBufferWindow, WindowScanResult
 from ragengine.streaming.openai import (
+    OpenAIChatChunkParseResult,
     OpenAIChatChunkParseStatus,
     ParsedOpenAIChoiceKind,
     build_openai_chat_delta_sse_chunk,
@@ -213,7 +214,7 @@ async def _flush_passthrough_windows_or_block(
     windows: dict[int, StreamingBufferWindow],
     guardrails: OutputGuardrails,
     *,
-    parse_result: Any,
+    parse_result: OpenAIChatChunkParseResult,
 ) -> AsyncIterator[str]:
     passthrough_choice_indexes = {
         parsed_choice.choice_index

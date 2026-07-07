@@ -22,6 +22,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
+
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func (m *MultiRoleInference) SupportedVerbs() []admissionregistrationv1.OperationType {
@@ -118,9 +120,19 @@ func (m *MultiRoleInference) validateRoles() (errs *apis.FieldError) {
 			))
 		}
 
-		// Validate instanceType is not empty.
-		if role.InstanceType == "" {
-			errs = errs.Also(apis.ErrMissingField(field + ".instanceType"))
+		// Validate instanceType based on active node provisioner.
+		switch consts.ActiveNodeProvisioner {
+		case consts.NodeProvisionerBYO:
+			if role.InstanceType != "" {
+				errs = errs.Also(apis.ErrInvalidValue(role.InstanceType, field+".instanceType",
+					"instanceType must be empty when nodeProvisioner is byo"))
+			}
+		case consts.NodeProvisionerKarpenter, consts.NodeProvisionerAzureGPU:
+			if role.InstanceType == "" {
+				errs = errs.Also(apis.ErrMissingField(field + ".instanceType"))
+			}
+		default:
+			// Unknown or unset provisioner: no validation (backward compat).
 		}
 
 		// Validate replicas >= 1 when specified (nil means autoscaling).

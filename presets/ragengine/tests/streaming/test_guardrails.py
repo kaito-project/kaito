@@ -341,6 +341,27 @@ async def test_apply_streaming_guardrails_forwards_no_data_sse_event():
 
 
 @pytest.mark.asyncio
+async def test_apply_streaming_guardrails_preserves_no_data_sse_separator():
+    async def upstream_chunks():
+        yield ": keep-alive\r\nretry: 1000\r\n\r\n"
+        yield 'data: {"choices":[{"index":0,"delta":{"content":"safe"}}]}\n\n'
+        yield "data: [DONE]\n\n"
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream_chunks(), _guardrails(), {"messages": []}
+        )
+    ]
+
+    assert chunks == [
+        ": keep-alive\r\nretry: 1000\r\n\r\n",
+        'data: {"choices":[{"index":0,"delta":{"content":"safe"},"finish_reason":null}]}\n\n',
+        "data: [DONE]\n\n",
+    ]
+
+
+@pytest.mark.asyncio
 async def test_apply_streaming_guardrails_preserves_choice_index_on_done_flush():
     async def upstream_chunks():
         yield 'data: {"choices":[{"index":2,"delta":{"content":"safe"}}]}\n\n'
@@ -355,5 +376,32 @@ async def test_apply_streaming_guardrails_preserves_choice_index_on_done_flush()
 
     assert chunks == [
         'data: {"choices":[{"index":2,"delta":{"content":"safe"},"finish_reason":null}]}\n\n',
+        "data: [DONE]\n\n",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_apply_streaming_guardrails_flushes_pending_choices_in_stream_order():
+    async def upstream_chunks():
+        yield (
+            'data: {"choices":[{"index":0,"delta":{"content":"first-zero",'
+            '"role":"assistant"}}]}\n\n'
+        )
+        yield 'data: {"choices":[{"index":1,"delta":{"content":"one-tail"}}]}\n\n'
+        yield 'data: {"choices":[{"index":0,"delta":{"content":"zero-tail"}}]}\n\n'
+        yield "data: [DONE]\n\n"
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream_chunks(), _guardrails(), {"messages": []}
+        )
+    ]
+
+    assert chunks == [
+        'data: {"choices":[{"index":0,"delta":{"content":"first-zero"},"finish_reason":null}]}\n\n',
+        'data: {"choices":[{"index":0,"delta":{"role":"assistant"}}]}\n\n',
+        'data: {"choices":[{"index":1,"delta":{"content":"one-tail"},"finish_reason":null}]}\n\n',
+        'data: {"choices":[{"index":0,"delta":{"content":"zero-tail"},"finish_reason":null}]}\n\n',
         "data: [DONE]\n\n",
     ]

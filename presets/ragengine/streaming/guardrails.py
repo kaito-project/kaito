@@ -30,7 +30,7 @@ from ragengine.streaming.openai import (
     build_sse_done_chunk,
     parse_openai_chat_sse_event,
 )
-from ragengine.streaming.sse import iter_sse_events
+from ragengine.streaming.sse import SSEEvent, iter_sse_events
 
 STREAMING_GUARDRAILS_HOLDBACK_LEN = 256
 STREAMING_GUARDRAILS_SUPPORTED_SCANNERS = frozenset({"ban_substrings"})
@@ -104,7 +104,7 @@ async def apply_streaming_guardrails(
                 return
 
             if parse_result.status == OpenAIChatChunkParseStatus.NO_DATA:
-                yield _raw_sse_chunk(event.raw)
+                yield _raw_sse_chunk(event)
                 continue
 
             if parse_result.status != OpenAIChatChunkParseStatus.PARSED:
@@ -125,6 +125,9 @@ async def apply_streaming_guardrails(
             for parsed_choice in parse_result.parsed_choices:
                 if parsed_choice.kind == ParsedOpenAIChoiceKind.CONTENT:
                     window = get_window(parsed_choice.choice_index)
+                    windows[parsed_choice.choice_index] = windows.pop(
+                        parsed_choice.choice_index
+                    )
                     emit_result = window.feed(parsed_choice.content or "")
                     if emit_result.blocked:
                         async for chunk in _emit_refusal(
@@ -244,8 +247,8 @@ def _has_blocked_window(windows: dict[int, StreamingBufferWindow]) -> bool:
     return any(window.blocked for window in windows.values())
 
 
-def _raw_sse_chunk(raw_event: str) -> str:
-    return f"{raw_event}\n\n"
+def _raw_sse_chunk(event: SSEEvent) -> str:
+    return f"{event.raw}{event.separator}"
 
 
 def _build_non_content_passthrough_payload(

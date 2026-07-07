@@ -20,11 +20,12 @@ SSE_EVENT_SEPARATORS = ("\r\n\r\n", "\n\n")
 @dataclass(frozen=True)
 class SSEEvent:
     raw: str
+    separator: str
     lines: tuple[str, ...]
     data: str | None
 
     @classmethod
-    def from_raw(cls, raw_event: str) -> "SSEEvent":
+    def from_raw(cls, raw_event: str, *, separator: str) -> "SSEEvent":
         lines = tuple(raw_event.splitlines())
         data_lines: list[str] = []
         for line in lines:
@@ -38,6 +39,7 @@ class SSEEvent:
 
         return cls(
             raw=raw_event,
+            separator=separator,
             lines=lines,
             data="\n".join(data_lines) if data_lines else None,
         )
@@ -59,7 +61,7 @@ class SSEFramer:
             raw_event = self._buffer[:separator_index]
             self._buffer = self._buffer[separator_index + len(separator_text) :]
             if raw_event:
-                events.append(SSEEvent.from_raw(raw_event))
+                events.append(SSEEvent.from_raw(raw_event, separator=separator_text))
 
         return events
 

@@ -159,6 +159,59 @@ async def test_apply_streaming_guardrails_sanitizes_content_from_passthrough_eve
     ]
 
 
+@pytest.mark.parametrize(
+    ("upstream_delta", "expected_passthrough_delta"),
+    (
+        ('"content":"safe","role":"assistant"', '"role":"assistant"'),
+        (
+            '"content":"safe","tool_calls":[{"id":"call-1"}]',
+            '"tool_calls":[{"id":"call-1"}]',
+        ),
+        ('"content":"safe","vendor_field":"value"', '"vendor_field":"value"'),
+    ),
+)
+@pytest.mark.asyncio
+async def test_apply_streaming_guardrails_strips_content_from_mixed_delta(
+    upstream_delta: str,
+    expected_passthrough_delta: str,
+):
+    async def upstream_chunks():
+        yield f'data: {{"choices":[{{"index":0,"delta":{{{upstream_delta}}}}}]}}\n\n'
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream_chunks(), _guardrails(), {"messages": []}
+        )
+    ]
+
+    assert chunks == [
+        'data: {"choices":[{"index":0,"delta":{"content":"safe"},"finish_reason":null}]}\n\n',
+        f'data: {{"choices":[{{"index":0,"delta":{{{expected_passthrough_delta}}}}}]}}\n\n',
+    ]
+
+
+@pytest.mark.asyncio
+async def test_apply_streaming_guardrails_handles_content_and_passthrough_choices():
+    async def upstream_chunks():
+        yield (
+            'data: {"choices":[{"index":0,"delta":{"content":"safe"}},'
+            '{"index":1,"delta":{"role":"assistant"}}]}\n\n'
+        )
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream_chunks(), _guardrails(), {"messages": []}
+        )
+    ]
+
+    assert chunks == [
+        'data: {"choices":[{"index":0,"delta":{"content":"safe"},"finish_reason":null}]}\n\n',
+        'data: {"choices":[{"index":1,"delta":{"role":"assistant"}}]}\n\n',
+    ]
+
+
 @pytest.mark.asyncio
 async def test_apply_streaming_guardrails_flushes_safe_content_before_finish_reason():
     async def upstream_chunks():

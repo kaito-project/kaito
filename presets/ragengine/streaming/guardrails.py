@@ -218,12 +218,15 @@ async def _flush_passthrough_windows_or_block(
     *,
     parse_result: OpenAIChatChunkParseResult,
 ) -> AsyncIterator[str]:
-    passthrough_choice_indexes = {
-        parsed_choice.choice_index
-        for parsed_choice in parse_result.parsed_choices
-        if parsed_choice.kind != ParsedOpenAIChoiceKind.CONTENT
-    }
-    for choice_index in passthrough_choice_indexes:
+    choice_indexes = []
+    seen_choice_indexes = set()
+    for parsed_choice in parse_result.parsed_choices:
+        if parsed_choice.choice_index in seen_choice_indexes:
+            continue
+        seen_choice_indexes.add(parsed_choice.choice_index)
+        choice_indexes.append(parsed_choice.choice_index)
+
+    for choice_index in choice_indexes:
         window = windows.get(choice_index)
         if window is None:
             continue

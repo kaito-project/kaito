@@ -17,10 +17,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestInferenceSetValidate(t *testing.T) {

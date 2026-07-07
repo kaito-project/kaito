@@ -18,14 +18,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-
 	"github.com/robfig/cron/v3"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
+
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func (is *InferenceSet) SupportedVerbs() []admissionregistrationv1.OperationType {

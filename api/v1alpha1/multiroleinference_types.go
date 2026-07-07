@@ -59,8 +59,10 @@ type MultiRoleInferenceRoleSpec struct {
 
 	// InstanceType specifies the GPU node SKU for this role.
 	// Different roles may use different instance types (e.g., larger GPU for prefill).
-	// +required
-	InstanceType string `json:"instanceType"`
+	// This field is required when node auto-provisioning is enabled.
+	// This field must be empty when node auto-provisioning is disabled (BYO scenario).
+	// +optional
+	InstanceType string `json:"instanceType,omitempty"`
 
 	// RuntimeConfig references a ConfigMap with role-specific vLLM runtime arguments.
 	// These override or extend the default inference parameters for this role.

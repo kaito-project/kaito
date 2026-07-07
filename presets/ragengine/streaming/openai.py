@@ -112,7 +112,7 @@ def parse_openai_chat_sse_event(event: SSEEvent) -> OpenAIChatChunkParseResult:
             )
 
         content = delta.get("content")
-        non_content_keys = set(delta) - {"content"}
+        has_non_content = any(key != "content" for key in delta)
         if "content" in delta and content is not None and not isinstance(content, str):
             return OpenAIChatChunkParseResult(
                 status=OpenAIChatChunkParseStatus.INVALID_PAYLOAD,
@@ -128,7 +128,7 @@ def parse_openai_chat_sse_event(event: SSEEvent) -> OpenAIChatChunkParseResult:
                 )
             )
 
-        if non_content_keys:
+        if has_non_content:
             parsed_choices.append(
                 ParsedOpenAIChoice(
                     choice_index=choice_index,

@@ -139,6 +139,25 @@ async def test_apply_streaming_guardrails_emits_refusal_for_malformed_sse_event(
 
 
 @pytest.mark.asyncio
+async def test_apply_streaming_guardrails_emits_refusal_for_invalid_payload():
+    async def upstream_chunks():
+        yield 'data: {"choices":{"index":0}}\n\n'
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream_chunks(), _guardrails(), {"messages": []}
+        )
+    ]
+
+    assert chunks == [
+        'data: {"choices":[{"index":0,"delta":{"content":"blocked-by-policy"},"finish_reason":null}]}\n\n',
+        'data: {"choices":[{"index":0,"delta":{},"finish_reason":"content_filter"}]}\n\n',
+        "data: [DONE]\n\n",
+    ]
+
+
+@pytest.mark.asyncio
 async def test_apply_streaming_guardrails_sanitizes_content_from_passthrough_event():
     async def upstream_chunks():
         yield (
@@ -156,6 +175,27 @@ async def test_apply_streaming_guardrails_sanitizes_content_from_passthrough_eve
     assert chunks == [
         'data: {"choices":[{"index":2,"delta":{"content":"safe"},"finish_reason":null}]}\n\n',
         'data: {"choices":[{"index":2,"delta":{"role":"assistant"},"finish_reason":"stop"}]}\n\n',
+    ]
+
+
+@pytest.mark.asyncio
+async def test_apply_streaming_guardrails_flushes_pending_content_before_tool_calls():
+    async def upstream_chunks():
+        yield 'data: {"choices":[{"index":0,"delta":{"content":"safe"}}]}\n\n'
+        yield (
+            'data: {"choices":[{"index":0,"delta":{"tool_calls":[{"id":"call-1"}]}}]}\n\n'
+        )
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream_chunks(), _guardrails(), {"messages": []}
+        )
+    ]
+
+    assert chunks == [
+        'data: {"choices":[{"index":0,"delta":{"content":"safe"},"finish_reason":null}]}\n\n',
+        'data: {"choices":[{"index":0,"delta":{"tool_calls":[{"id":"call-1"}]}}]}\n\n',
     ]
 
 

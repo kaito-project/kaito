@@ -200,6 +200,73 @@ async def test_apply_streaming_guardrails_blocks_before_forwarding_finish_reason
 
 
 @pytest.mark.asyncio
+async def test_apply_streaming_guardrails_uses_separate_windows_per_choice():
+    async def upstream_chunks():
+        yield (
+            'data: {"choices":[{"index":0,"delta":{"content":"un"}},'
+            '{"index":1,"delta":{"content":"safe"}}]}\n\n'
+        )
+        yield "data: [DONE]\n\n"
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream_chunks(), _guardrails(), {"messages": []}
+        )
+    ]
+
+    assert chunks == [
+        'data: {"choices":[{"index":0,"delta":{"content":"un"},"finish_reason":null}]}\n\n',
+        'data: {"choices":[{"index":1,"delta":{"content":"safe"},"finish_reason":null}]}\n\n',
+        "data: [DONE]\n\n",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_apply_streaming_guardrails_emits_refusal_with_blocked_choice_index():
+    async def upstream_chunks():
+        yield 'data: {"choices":[{"index":1,"delta":{"content":"unsafe"}}]}\n\n'
+        yield "data: [DONE]\n\n"
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream_chunks(), _guardrails(), {"messages": []}
+        )
+    ]
+
+    assert chunks == [
+        'data: {"choices":[{"index":1,"delta":{"content":"blocked-by-policy"},"finish_reason":null}]}\n\n',
+        'data: {"choices":[{"index":1,"delta":{},"finish_reason":"content_filter"}]}\n\n',
+        "data: [DONE]\n\n",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_apply_streaming_guardrails_forwards_empty_choices_usage_chunk():
+    async def upstream_chunks():
+        yield 'data: {"choices":[{"index":0,"delta":{"content":"safe"}}]}\n\n'
+        yield (
+            'data: {"choices":[],"usage":{"prompt_tokens":1,'
+            '"completion_tokens":1,"total_tokens":2}}\n\n'
+        )
+        yield "data: [DONE]\n\n"
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream_chunks(), _guardrails(), {"messages": []}
+        )
+    ]
+
+    assert chunks == [
+        'data: {"choices":[{"index":0,"delta":{"content":"safe"},"finish_reason":null}]}\n\n',
+        'data: {"choices":[],"usage":{"prompt_tokens":1,"completion_tokens":1,"total_tokens":2}}\n\n',
+        "data: [DONE]\n\n",
+    ]
+
+
+@pytest.mark.asyncio
 async def test_apply_streaming_guardrails_preserves_choice_index_on_done_flush():
     async def upstream_chunks():
         yield 'data: {"choices":[{"index":2,"delta":{"content":"safe"}}]}\n\n'

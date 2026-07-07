@@ -82,22 +82,22 @@ async def apply_streaming_guardrails(
 
         prompt = guardrails._extract_prompt(request)
         scanner = _LLMGuardWindowScanner(prompt=prompt, built_scanners=built_scanners)
-        window = StreamingBufferWindow(
-            scanner,
-            holdback_len=STREAMING_GUARDRAILS_HOLDBACK_LEN,
-        )
-        pending_content_choice_index = 0
+        windows: dict[int, StreamingBufferWindow] = {}
+
+        def get_window(choice_index: int) -> StreamingBufferWindow:
+            if choice_index not in windows:
+                windows[choice_index] = StreamingBufferWindow(
+                    scanner,
+                    holdback_len=STREAMING_GUARDRAILS_HOLDBACK_LEN,
+                )
+            return windows[choice_index]
 
         async for event in iter_sse_events(upstream_chunks):
             parse_result = parse_openai_chat_sse_event(event)
             if parse_result.status == OpenAIChatChunkParseStatus.DONE:
-                async for chunk in _flush_window_or_block(
-                    window,
-                    guardrails,
-                    choice_index=pending_content_choice_index,
-                ):
+                async for chunk in _flush_windows_or_block(windows, guardrails):
                     yield chunk
-                if window.blocked:
+                if _has_blocked_window(windows):
                     return
                 yield build_sse_done_chunk()
                 return
@@ -107,13 +107,25 @@ async def apply_streaming_guardrails(
                     yield chunk
                 return
 
+            if not parse_result.parsed_choices:
+                async for chunk in _flush_windows_or_block(windows, guardrails):
+                    yield chunk
+                if _has_blocked_window(windows):
+                    return
+                if parse_result.payload is not None:
+                    yield build_sse_data_chunk(parse_result.payload)
+                continue
+
             has_passthrough_choice = False
             for parsed_choice in parse_result.parsed_choices:
                 if parsed_choice.kind == ParsedOpenAIChoiceKind.CONTENT:
-                    pending_content_choice_index = parsed_choice.choice_index
+                    window = get_window(parsed_choice.choice_index)
                     emit_result = window.feed(parsed_choice.content or "")
                     if emit_result.blocked:
-                        async for chunk in _emit_refusal(guardrails):
+                        async for chunk in _emit_refusal(
+                            guardrails,
+                            choice_index=parsed_choice.choice_index,
+                        ):
                             yield chunk
                         return
                     for safe_chunk in emit_result.chunks:
@@ -126,23 +138,19 @@ async def apply_streaming_guardrails(
                 has_passthrough_choice = True
 
             if has_passthrough_choice:
-                async for chunk in _flush_window_or_block(
-                    window,
+                async for chunk in _flush_passthrough_windows_or_block(
+                    windows,
                     guardrails,
-                    choice_index=pending_content_choice_index,
+                    parse_result=parse_result,
                 ):
                     yield chunk
-                if window.blocked:
+                if _has_blocked_window(windows):
                     return
                 passthrough_payload = _build_passthrough_payload(parse_result.payload)
                 if passthrough_payload is not None:
                     yield build_sse_data_chunk(passthrough_payload)
 
-        async for chunk in _flush_window_or_block(
-            window,
-            guardrails,
-            choice_index=pending_content_choice_index,
-        ):
+        async for chunk in _flush_windows_or_block(windows, guardrails):
             yield chunk
     finally:
         await _aclose(upstream_chunks)
@@ -171,7 +179,7 @@ async def _flush_window_or_block(
 ) -> AsyncIterator[str]:
     flush_result = window.flush()
     if flush_result.blocked:
-        async for chunk in _emit_refusal(guardrails):
+        async for chunk in _emit_refusal(guardrails, choice_index=choice_index):
             yield chunk
         return
 
@@ -180,6 +188,50 @@ async def _flush_window_or_block(
             safe_chunk,
             choice_index=choice_index,
         )
+
+
+async def _flush_windows_or_block(
+    windows: dict[int, StreamingBufferWindow],
+    guardrails: OutputGuardrails,
+) -> AsyncIterator[str]:
+    for choice_index, window in windows.items():
+        async for chunk in _flush_window_or_block(
+            window,
+            guardrails,
+            choice_index=choice_index,
+        ):
+            yield chunk
+        if window.blocked:
+            return
+
+
+async def _flush_passthrough_windows_or_block(
+    windows: dict[int, StreamingBufferWindow],
+    guardrails: OutputGuardrails,
+    *,
+    parse_result: Any,
+) -> AsyncIterator[str]:
+    passthrough_choice_indexes = {
+        parsed_choice.choice_index
+        for parsed_choice in parse_result.parsed_choices
+        if parsed_choice.kind != ParsedOpenAIChoiceKind.CONTENT
+    }
+    for choice_index in passthrough_choice_indexes:
+        window = windows.get(choice_index)
+        if window is None:
+            continue
+        async for chunk in _flush_window_or_block(
+            window,
+            guardrails,
+            choice_index=choice_index,
+        ):
+            yield chunk
+        if window.blocked:
+            return
+
+
+def _has_blocked_window(windows: dict[int, StreamingBufferWindow]) -> bool:
+    return any(window.blocked for window in windows.values())
 
 
 def _build_passthrough_payload(payload: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -208,10 +260,20 @@ def _build_passthrough_payload(payload: dict[str, Any] | None) -> dict[str, Any]
     return passthrough_payload
 
 
-async def _emit_refusal(guardrails: OutputGuardrails) -> AsyncIterator[str]:
+async def _emit_refusal(
+    guardrails: OutputGuardrails,
+    *,
+    choice_index: int = 0,
+) -> AsyncIterator[str]:
     guardrails._record_response_action("block")
-    yield build_openai_chat_delta_sse_chunk(guardrails.block_message)
-    yield build_openai_chat_finish_reason_sse_chunk(finish_reason="content_filter")
+    yield build_openai_chat_delta_sse_chunk(
+        guardrails.block_message,
+        choice_index=choice_index,
+    )
+    yield build_openai_chat_finish_reason_sse_chunk(
+        finish_reason="content_filter",
+        choice_index=choice_index,
+    )
     yield build_sse_done_chunk()
 
 

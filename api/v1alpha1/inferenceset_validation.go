@@ -92,15 +92,20 @@ func validateMaintenanceWindow(autoUpgrade *AutoUpgradePolicy) (errs *apis.Field
 // is enabled, and is empty when using BYO (Bring Your Own) nodes.
 func (is *InferenceSet) validateInstanceType() (errs *apis.FieldError) {
 	instanceType := is.Spec.Template.Resource.InstanceType
-	if consts.ActiveNodeProvisioner == consts.NodeProvisionerBYO {
+	switch consts.ActiveNodeProvisioner {
+	case consts.NodeProvisionerBYO:
+		// BYO mode: instanceType must be empty.
 		if instanceType != "" {
 			errs = errs.Also(apis.ErrInvalidValue(instanceType, "resource.instanceType",
 				"instanceType must be empty when nodeProvisioner is byo"))
 		}
-	} else {
+	case consts.NodeProvisionerKarpenter, consts.NodeProvisionerAzureGPU:
+		// Auto-provisioning modes: instanceType is required.
 		if instanceType == "" {
 			errs = errs.Also(apis.ErrMissingField("resource.instanceType"))
 		}
+	default:
+		// Unknown or unset provisioner: no validation (backward compat).
 	}
 	return errs
 }

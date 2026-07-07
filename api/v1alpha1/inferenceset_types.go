@@ -22,8 +22,10 @@ import (
 
 type InferenceSetResourceSpec struct {
 	// InstanceType specifies the GPU node SKU.
-	// +required
-	InstanceType string `json:"instanceType"`
+	// This field is required when node auto-provisioning is enabled.
+	// This field must be empty when node auto-provisioning is disabled (BYO scenario).
+	// +optional
+	InstanceType string `json:"instanceType,omitempty"`
 }
 
 // InferenceSetTemplate defines the template for creating InferenceSet instances.

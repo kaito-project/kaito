@@ -23,6 +23,7 @@ import respx
 
 from ragengine.guardrails import OutputGuardrails
 from ragengine.guardrails.scanner_schemas import (
+    BanSubstringsConfig,
     JSONConfig,
     ParsedScannerConfig,
     RegexConfig,
@@ -290,6 +291,71 @@ async def test_chat_completions_stream_with_index_name_is_rejected(async_client)
         response.json()["detail"]
         == "stream=true is only supported for passthrough chat completions."
     )
+
+
+@pytest.mark.asyncio
+@respx.mock
+@patch("requests.get")
+async def test_chat_completions_stream_applies_supported_output_guardrails(
+    mock_get, async_client, monkeypatch
+):
+    mock_get.return_value.status_code = 200
+    mock_get.return_value.json.return_value = {
+        "data": [{"id": "mock-model", "max_model_len": 2048}]
+    }
+
+    respx.post("http://localhost:5000/v1/chat/completions").mock(
+        return_value=httpx.Response(
+            200,
+            content=(
+                'data: {"choices":[{"index":0,"delta":{"content":"unsafe"},"finish_reason":null}]}\n\n'
+                "data: [DONE]\n\n"
+            ),
+            headers={"content-type": "text/event-stream"},
+        )
+    )
+
+    import ragengine.main
+
+    monkeypatch.setattr(
+        ragengine.main.guardrails_reloader,
+        "_current",
+        OutputGuardrails(
+            enabled=True,
+            action_on_hit="block",
+            block_message="blocked-by-policy",
+            scanner_configs=(
+                ParsedScannerConfig(
+                    type="ban_substrings",
+                    action_on_hit="block",
+                    config=BanSubstringsConfig(substrings=["unsafe"], match_type="str"),
+                ),
+            ),
+        ),
+    )
+
+    async with async_client.stream(
+        "POST",
+        "/v1/chat/completions",
+        json={
+            "model": "mock-model",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "stream": True,
+        },
+    ) as response:
+        body = await response.aread()
+
+    assert response.status_code == 200
+    response_text = body.decode()
+    assert (
+        'data: {"choices":[{"index":0,"delta":{"content":"blocked-by-policy"},"finish_reason":null}]}'
+        in response_text
+    )
+    assert (
+        'data: {"choices":[{"index":0,"delta":{},"finish_reason":"content_filter"}]}'
+        in response_text
+    )
+    assert "data: [DONE]" in response_text
 
 
 @pytest.mark.asyncio

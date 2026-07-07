@@ -30,6 +30,22 @@ from ragengine.streaming.guardrails import (  # noqa: E402
 )
 
 
+def _guardrails() -> OutputGuardrails:
+    return OutputGuardrails(
+        enabled=True,
+        fail_open=False,
+        action_on_hit="block",
+        block_message="blocked-by-policy",
+        scanner_configs=(
+            ParsedScannerConfig(
+                type="ban_substrings",
+                action_on_hit="block",
+                config=BanSubstringsConfig(substrings=["unsafe"], match_type="str"),
+            ),
+        ),
+    )
+
+
 def test_validate_streaming_guardrails_accepts_block_ban_substrings_policy():
     support = validate_streaming_guardrails(
         OutputGuardrails(
@@ -105,19 +121,7 @@ async def test_apply_streaming_guardrails_emits_refusal_for_malformed_sse_event(
         finally:
             closed = True
 
-    guardrails = OutputGuardrails(
-        enabled=True,
-        fail_open=False,
-        action_on_hit="block",
-        block_message="blocked-by-policy",
-        scanner_configs=(
-            ParsedScannerConfig(
-                type="ban_substrings",
-                action_on_hit="block",
-                config=BanSubstringsConfig(substrings=["unsafe"], match_type="str"),
-            ),
-        ),
-    )
+    guardrails = _guardrails()
 
     chunks = [
         chunk
@@ -132,3 +136,83 @@ async def test_apply_streaming_guardrails_emits_refusal_for_malformed_sse_event(
         "data: [DONE]\n\n",
     ]
     assert closed is True
+
+
+@pytest.mark.asyncio
+async def test_apply_streaming_guardrails_sanitizes_content_from_passthrough_event():
+    async def upstream_chunks():
+        yield (
+            'data: {"choices":[{"index":2,"delta":{"content":"safe",'
+            '"role":"assistant"},"finish_reason":"stop"}]}\n\n'
+        )
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream_chunks(), _guardrails(), {"messages": []}
+        )
+    ]
+
+    assert chunks == [
+        'data: {"choices":[{"index":2,"delta":{"content":"safe"},"finish_reason":null}]}\n\n',
+        'data: {"choices":[{"index":2,"delta":{"role":"assistant"},"finish_reason":"stop"}]}\n\n',
+    ]
+
+
+@pytest.mark.asyncio
+async def test_apply_streaming_guardrails_flushes_safe_content_before_finish_reason():
+    async def upstream_chunks():
+        yield 'data: {"choices":[{"index":0,"delta":{"content":"safe"},"finish_reason":"stop"}]}\n\n'
+        yield "data: [DONE]\n\n"
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream_chunks(), _guardrails(), {"messages": []}
+        )
+    ]
+
+    assert chunks == [
+        'data: {"choices":[{"index":0,"delta":{"content":"safe"},"finish_reason":null}]}\n\n',
+        'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n',
+        "data: [DONE]\n\n",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_apply_streaming_guardrails_blocks_before_forwarding_finish_reason():
+    async def upstream_chunks():
+        yield 'data: {"choices":[{"index":0,"delta":{"content":"unsafe"},"finish_reason":"stop"}]}\n\n'
+        yield "data: [DONE]\n\n"
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream_chunks(), _guardrails(), {"messages": []}
+        )
+    ]
+
+    assert chunks == [
+        'data: {"choices":[{"index":0,"delta":{"content":"blocked-by-policy"},"finish_reason":null}]}\n\n',
+        'data: {"choices":[{"index":0,"delta":{},"finish_reason":"content_filter"}]}\n\n',
+        "data: [DONE]\n\n",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_apply_streaming_guardrails_preserves_choice_index_on_done_flush():
+    async def upstream_chunks():
+        yield 'data: {"choices":[{"index":2,"delta":{"content":"safe"}}]}\n\n'
+        yield "data: [DONE]\n\n"
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream_chunks(), _guardrails(), {"messages": []}
+        )
+    ]
+
+    assert chunks == [
+        'data: {"choices":[{"index":2,"delta":{"content":"safe"},"finish_reason":null}]}\n\n',
+        "data: [DONE]\n\n",
+    ]

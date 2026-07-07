@@ -17,12 +17,12 @@ import (
 	"context"
 	"testing"
 
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+
 	"github.com/stretchr/testify/assert"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/pkg/apis"
-
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestInferenceSet_SupportedVerbs(t *testing.T) {

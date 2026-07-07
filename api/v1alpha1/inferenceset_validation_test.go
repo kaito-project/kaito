@@ -409,11 +409,11 @@ func TestValidateMaintenanceWindow(t *testing.T) {
 
 func TestInferenceSet_validateInstanceType(t *testing.T) {
 	tests := []struct {
-		name             string
-		nodeProvisioner  string
-		instanceType     string
-		wantErr          bool
-		errField         string
+		name            string
+		nodeProvisioner string
+		instanceType    string
+		wantErr         bool
+		errField        string
 	}{
 		{
 			name:            "BYO mode with empty instanceType - valid",

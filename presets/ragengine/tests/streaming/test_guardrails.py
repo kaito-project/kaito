@@ -267,6 +267,27 @@ async def test_apply_streaming_guardrails_forwards_empty_choices_usage_chunk():
 
 
 @pytest.mark.asyncio
+async def test_apply_streaming_guardrails_forwards_no_data_sse_event():
+    async def upstream_chunks():
+        yield ": keep-alive\n\n"
+        yield 'data: {"choices":[{"index":0,"delta":{"content":"safe"}}]}\n\n'
+        yield "data: [DONE]\n\n"
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream_chunks(), _guardrails(), {"messages": []}
+        )
+    ]
+
+    assert chunks == [
+        ": keep-alive\n\n",
+        'data: {"choices":[{"index":0,"delta":{"content":"safe"},"finish_reason":null}]}\n\n',
+        "data: [DONE]\n\n",
+    ]
+
+
+@pytest.mark.asyncio
 async def test_apply_streaming_guardrails_preserves_choice_index_on_done_flush():
     async def upstream_chunks():
         yield 'data: {"choices":[{"index":2,"delta":{"content":"safe"}}]}\n\n'

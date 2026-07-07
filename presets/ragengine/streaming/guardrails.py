@@ -102,6 +102,10 @@ async def apply_streaming_guardrails(
                 yield build_sse_done_chunk()
                 return
 
+            if parse_result.status == OpenAIChatChunkParseStatus.NO_DATA:
+                yield _raw_sse_chunk(event.raw)
+                continue
+
             if parse_result.status != OpenAIChatChunkParseStatus.PARSED:
                 async for chunk in _emit_refusal(guardrails):
                     yield chunk
@@ -232,6 +236,10 @@ async def _flush_passthrough_windows_or_block(
 
 def _has_blocked_window(windows: dict[int, StreamingBufferWindow]) -> bool:
     return any(window.blocked for window in windows.values())
+
+
+def _raw_sse_chunk(raw_event: str) -> str:
+    return f"{raw_event}\n\n"
 
 
 def _build_passthrough_payload(payload: dict[str, Any] | None) -> dict[str, Any] | None:

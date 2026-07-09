@@ -36,12 +36,6 @@ inputs:
     required: false
     default: "false"
 
-outputs:
-  cluster_name:
-    description: "Cluster name"
-  registry:
-    description: "Registry value"
-
 runs:
   using: "composite"
   steps:
@@ -226,11 +220,35 @@ runs:
       env:
         ARCH: amd64
 
+    # TEMPORARY FIX (capacity issue): try the requested `inputs.region` first,
+    # and fall back to polandcentral if that region has no capacity.
+    # The RG/ACR created earlier stay in `inputs.region`; only the AKS cluster
+    # moves regions on fallback (RG can host an AKS resource in another region).
+    # TODO: remove this fallback once regional capacity is restored.
     - name: create cluster (karpenter)
       if: ${{ inputs.node_provisioner == 'azkarpenter' }}
       shell: bash
       run: |
-        make create-aks-cluster-for-karpenter
+        # TEMPORARY FIX: capacity fallback -> polandcentral.
+        create_karpenter_cluster() {
+          local location="$1"
+          local vm_size="$2"
+          az aks create --name "$AZURE_CLUSTER_NAME" --resource-group "$AZURE_RESOURCE_GROUP" \
+            --location "$location" --attach-acr "$AZURE_ACR_NAME" --node-vm-size "$vm_size" \
+            --kubernetes-version "$AKS_K8S_VERSION" --generate-ssh-keys \
+            --network-plugin azure --network-plugin-mode overlay --network-dataplane cilium \
+            --enable-managed-identity --enable-oidc-issuer --enable-workload-identity -o none
+        }
+
+        set +e
+        create_karpenter_cluster "$AZURE_LOCATION" Standard_D4d_v4
+        rc=$?
+        set -e
+        if [ $rc -ne 0 ]; then
+          echo "::warning::$AZURE_LOCATION AKS creation failed (rc=$rc); retrying in polandcentral with Standard_NV12ads_A10_v5"
+          create_karpenter_cluster polandcentral Standard_NV12ads_A10_v5
+        fi
+        az aks get-credentials --name "$AZURE_CLUSTER_NAME" --resource-group "$AZURE_RESOURCE_GROUP" --overwrite-existing
       env:
         AZURE_ACR_NAME: ${{ env.CLUSTER_NAME }}
         AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
@@ -242,7 +260,26 @@ runs:
       if: ${{ inputs.node_provisioner == 'gpuprovisioner' }}
       shell: bash
       run: |
-        make create-aks-cluster
+        # TEMPORARY FIX: capacity fallback -> polandcentral.
+        create_gpu_cluster() {
+          local location="$1"
+          local vm_size="$2"
+          az aks create --name "$AZURE_CLUSTER_NAME" --resource-group "$AZURE_RESOURCE_GROUP" \
+            --location "$location" --attach-acr "$AZURE_ACR_NAME" \
+            --kubernetes-version "$AKS_K8S_VERSION" --generate-ssh-keys \
+            --enable-managed-identity --enable-workload-identity --enable-oidc-issuer \
+            --node-vm-size "$vm_size" -o none
+        }
+
+        set +e
+        create_gpu_cluster "$AZURE_LOCATION" Standard_D4d_v4
+        rc=$?
+        set -e
+        if [ $rc -ne 0 ]; then
+          echo "::warning::$AZURE_LOCATION AKS creation failed (rc=$rc); retrying in polandcentral with Standard_NV12ads_A10_v5"
+          create_gpu_cluster polandcentral Standard_NV12ads_A10_v5
+        fi
+        az aks get-credentials --name "$AZURE_CLUSTER_NAME" --resource-group "$AZURE_RESOURCE_GROUP" --overwrite-existing
       env:
         AZURE_ACR_NAME: ${{ env.CLUSTER_NAME }}
         AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}

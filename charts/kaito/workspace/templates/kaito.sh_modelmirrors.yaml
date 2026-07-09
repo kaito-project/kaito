@@ -50,8 +50,9 @@ spec:
           spec:
             properties:
               jobNamespace:
-                description: JobNamespace is the namespace where the PVC and download
-                  Job will be created.
+                description: |-
+                  JobNamespace is the namespace where the PVC and download Job will be created.
+                  Empty for stream-only sources that create no PVC or Job.
                 type: string
               source:
                 properties:
@@ -103,10 +104,12 @@ spec:
                     description: ModelID is the model identifier (e.g. "Qwen/Qwen2.5-Coder-32B-Instruct").
                     type: string
                   registry:
-                    description: Registry is the source registry type. Currently only
-                      "huggingface" is supported.
+                    description: |-
+                      Registry is the source registry type. "huggingface" mirrors the model to a PVC;
+                      "azureml" streams directly from a pre-existing blob (no PVC, no download).
                     enum:
                     - huggingface
+                    - azureml
                     type: string
                 required:
                 - modelID
@@ -115,18 +118,19 @@ spec:
               storage:
                 properties:
                   size:
-                    description: Size is the PVC size (e.g. "20Gi").
+                    description: |-
+                      Size is the requested model storage: the PVC size for mirror (huggingface)
+                      sources, or informational for stream-only (azureml) sources that create no PVC.
                     type: string
                   storageClassName:
-                    description: StorageClassName is the StorageClass to use for the
-                      PVC.
+                    description: |-
+                      StorageClassName is the StorageClass to use for the PVC. Nil for stream-only
+                      sources that create no PVC.
                     type: string
                 required:
                 - size
-                - storageClassName
                 type: object
             required:
-            - jobNamespace
             - source
             - storage
             type: object

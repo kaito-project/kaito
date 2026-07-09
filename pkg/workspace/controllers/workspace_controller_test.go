@@ -1011,6 +1011,34 @@ func TestGuardTargetNodeCount(t *testing.T) {
 	}
 }
 
+func TestEnsureModelMirror_PartialSASAnnotationsFail(t *testing.T) {
+	// A workspace with SOME but not all five SAS streaming annotations must fail fast
+	// (no-fallback contract) — before any CR creation or model resolution. The guard is
+	// the first statement in ensureModelMirror, so a bare reconciler (no client) suffices.
+	ws := &v1beta1.Workspace{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      "ws-partial-sas",
+			Namespace: "default",
+			Annotations: map[string]string{
+				inference.AnnotationStreamURI:         "az://c/model",
+				inference.AnnotationStreamAccount:     "acct",
+				inference.AnnotationStreamDatarefsURL: "https://x/datarefs",
+				inference.AnnotationStreamBlobURI:     "https://acct.blob.core.windows.net/c/prefix",
+				// inference.kaito.sh/stream-asset-id intentionally omitted (4 of 5).
+			},
+		},
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "phi-4"}},
+		},
+	}
+
+	reconciler := &WorkspaceReconciler{}
+	err := reconciler.ensureModelMirror(context.Background(), ws)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "incomplete SAS blob streaming configuration")
+	assert.Contains(t, err.Error(), inference.AnnotationStreamAssetID)
+}
+
 func TestSyncWorkspaceStatus(t *testing.T) {
 	originalDisableNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true

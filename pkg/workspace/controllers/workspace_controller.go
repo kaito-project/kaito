@@ -39,6 +39,7 @@ import (
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
+	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -169,6 +170,10 @@ func (c *WorkspaceReconciler) ensureFinalizer(ctx context.Context, workspaceObj 
 // ensureModelMirror creates the ModelMirror CR for the workspace's model if it doesn't exist.
 // Returns nil if the CR exists (any phase) or was created successfully.
 func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
+	if err := inference.RequireSASBlobStreamingAnnotations(wObj.Annotations); err != nil {
+		return err
+	}
+
 	modelID := inference.ResolveHFModelID(wObj)
 	crName := inference.ModelMirrorCRName(modelID)
 	storageClass := inference.ResolveStorageClass(wObj, inference.StreamingDefaults.StorageClass)
@@ -188,7 +193,8 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 		return fmt.Errorf("failed to get ModelMirror CR %s: %w", crName, err)
 	}
 
-	// Validate StorageClass uses the correct CSI provisioner for streaming.
+	// Validate the StorageClass exists and uses the correct CSI provisioner. This runs for the
+	// SAS blob path too: SAS streaming is an optimization layered on model mirroring.
 	sc := &storagev1.StorageClass{}
 	if err := c.Client.Get(ctx, client.ObjectKey{Name: storageClass}, sc); err != nil {
 		return fmt.Errorf("StorageClass %q not found: %w", storageClass, err)
@@ -201,7 +207,8 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 	}
 
 	// Validate ServiceAccount exists and has provider-specific identity configured.
-	if err := inference.StreamingDefaults.ModelStreamer.ValidateAuth(ctx, wObj, c.Client, inference.StreamingDefaults.ServiceAccount); err != nil {
+	// ValidateAuth dispatches to the correct provider (SAS blob or HF) based on annotations.
+	if err := inference.SelectModelStreamer(wObj).ValidateAuth(ctx, wObj, c.Client, inference.StreamingDefaults.ServiceAccount); err != nil {
 		return err
 	}
 
@@ -225,20 +232,25 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 		}
 	}
 
-	cr := &kaitov1alpha1.ModelMirror{
-		ObjectMeta: metav1.ObjectMeta{Name: crName},
-		Spec: kaitov1alpha1.ModelMirrorSpec{
-			Source: kaitov1alpha1.ModelMirrorSource{
-				Registry:     "huggingface",
-				ModelID:      modelID,
-				AccessSecret: accessSecret,
+	var cr *kaitov1alpha1.ModelMirror
+	if inference.HasSASBlobStreamingAnnotations(wObj.Annotations) {
+		cr = buildStreamOnlyModelMirror(crName, modelID, modelSize, accessSecret)
+	} else {
+		cr = &kaitov1alpha1.ModelMirror{
+			ObjectMeta: metav1.ObjectMeta{Name: crName},
+			Spec: kaitov1alpha1.ModelMirrorSpec{
+				Source: kaitov1alpha1.ModelMirrorSource{
+					Registry:     "huggingface",
+					ModelID:      modelID,
+					AccessSecret: accessSecret,
+				},
+				Storage: kaitov1alpha1.ModelMirrorStorage{
+					Size:             modelSize,
+					StorageClassName: ptr.To(storageClass),
+				},
+				JobNamespace: wObj.Namespace,
 			},
-			Storage: kaitov1alpha1.ModelMirrorStorage{
-				Size:             modelSize,
-				StorageClassName: storageClass,
-			},
-			JobNamespace: wObj.Namespace,
-		},
+		}
 	}
 
 	if err := c.Client.Create(ctx, cr); err != nil {
@@ -250,6 +262,32 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 
 	klog.InfoS("Created ModelMirror CR", "name", crName, "modelID", modelID, "workspace", klog.KObj(wObj))
 	return nil
+}
+
+// buildStreamOnlyModelMirror constructs a skip-download ModelMirror CR: the model weights
+// live in a pre-existing external location, so the mirror creates no PVC and runs no
+// download Job (signalled by a nil StorageClassName and empty JobNamespace).
+func buildStreamOnlyModelMirror(
+	crName, modelID, modelSize string,
+	accessSecret *corev1.ObjectReference,
+) *kaitov1alpha1.ModelMirror {
+	return &kaitov1alpha1.ModelMirror{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: crName,
+		},
+		Spec: kaitov1alpha1.ModelMirrorSpec{
+			Source: kaitov1alpha1.ModelMirrorSource{
+				Registry:     "azureml",
+				ModelID:      modelID,
+				AccessSecret: accessSecret,
+			},
+			Storage: kaitov1alpha1.ModelMirrorStorage{
+				Size:             modelSize,
+				StorageClassName: nil,
+			},
+			// JobNamespace intentionally empty for a skip-download source (no PVC/Job).
+		},
+	}
 }
 
 // waitForModelMirror checks if the ModelMirror CR is Ready.

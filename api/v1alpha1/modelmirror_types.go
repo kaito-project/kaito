@@ -39,14 +39,16 @@ type ModelMirrorSpec struct {
 	// +kubebuilder:validation:Required
 	Storage ModelMirrorStorage `json:"storage"`
 	// JobNamespace is the namespace where the PVC and download Job will be created.
-	// +kubebuilder:validation:Required
-	JobNamespace string `json:"jobNamespace"`
+	// Empty for stream-only sources that create no PVC or Job.
+	// +optional
+	JobNamespace string `json:"jobNamespace,omitempty"`
 }
 
 type ModelMirrorSource struct {
-	// Registry is the source registry type. Currently only "huggingface" is supported.
+	// Registry is the source registry type. "huggingface" mirrors the model to a PVC;
+	// "azureml" streams directly from a pre-existing blob (no PVC, no download).
 	// +kubebuilder:validation:Required
-	// +kubebuilder:validation:Enum=huggingface
+	// +kubebuilder:validation:Enum=huggingface;azureml
 	Registry string `json:"registry"`
 	// ModelID is the model identifier (e.g. "Qwen/Qwen2.5-Coder-32B-Instruct").
 	// +kubebuilder:validation:Required
@@ -57,12 +59,14 @@ type ModelMirrorSource struct {
 }
 
 type ModelMirrorStorage struct {
-	// Size is the PVC size (e.g. "20Gi").
+	// Size is the requested model storage: the PVC size for mirror (huggingface)
+	// sources, or informational for stream-only (azureml) sources that create no PVC.
 	// +kubebuilder:validation:Required
 	Size string `json:"size"`
-	// StorageClassName is the StorageClass to use for the PVC.
-	// +kubebuilder:validation:Required
-	StorageClassName string `json:"storageClassName"`
+	// StorageClassName is the StorageClass to use for the PVC. Nil for stream-only
+	// sources that create no PVC.
+	// +optional
+	StorageClassName *string `json:"storageClassName,omitempty"`
 }
 
 type ModelMirrorPhase string

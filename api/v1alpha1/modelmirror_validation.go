@@ -45,17 +45,29 @@ func (m *ModelMirror) Validate(ctx context.Context) (errs *apis.FieldError) {
 	}
 
 	// Value validation (presence enforced by CRD schema)
-	if m.Spec.Source.Registry != "huggingface" {
+	switch m.Spec.Source.Registry {
+	case "huggingface", "azureml":
+		// ok
+	default:
 		errs = errs.Also(apis.ErrInvalidValue(
-			fmt.Sprintf("%q is not supported, only \"huggingface\" is supported", m.Spec.Source.Registry),
+			fmt.Sprintf("%q is not supported, only \"huggingface\" and \"azureml\" are supported", m.Spec.Source.Registry),
 			"spec.source.registry"))
 	}
 	if _, err := resource.ParseQuantity(m.Spec.Storage.Size); err != nil {
 		errs = errs.Also(apis.ErrInvalidValue(m.Spec.Storage.Size, "spec.storage.size"))
 	}
-	sc := &storagev1.StorageClass{}
-	if err := k8sclient.Client.Get(ctx, types.NamespacedName{Name: m.Spec.Storage.StorageClassName}, sc); err != nil {
-		errs = errs.Also(apis.ErrInvalidValue(m.Spec.Storage.StorageClassName, "spec.storage.storageClassName"))
+	// StorageClass rules differ by source:
+	//   - PVC-backed sources (huggingface) require an existing StorageClass.
+	//   - stream-only sources (azureml) create no PVC, so StorageClass must be absent.
+	scAbsent := m.Spec.Storage.StorageClassName == nil || *m.Spec.Storage.StorageClassName == ""
+	if m.Spec.Source.Registry == "huggingface" && scAbsent {
+		errs = errs.Also(apis.ErrMissingField("spec.storage.storageClassName"))
+	}
+	if !scAbsent {
+		sc := &storagev1.StorageClass{}
+		if err := k8sclient.Client.Get(ctx, types.NamespacedName{Name: *m.Spec.Storage.StorageClassName}, sc); err != nil {
+			errs = errs.Also(apis.ErrInvalidValue(*m.Spec.Storage.StorageClassName, "spec.storage.storageClassName"))
+		}
 	}
 	return errs
 }

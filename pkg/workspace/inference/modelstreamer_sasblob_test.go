@@ -1,0 +1,70 @@
+package inference
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/utils/generator"
+)
+
+func wsWithStreamAnnotations() *v1beta1.Workspace {
+	return &v1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "ws1",
+			Namespace: "default",
+			Annotations: map[string]string{
+				AnnotationStreamURI:         "az://c/model",
+				AnnotationStreamAccount:     "acct",
+				AnnotationStreamDatarefsURL: "https://x/datarefs",
+				AnnotationStreamAssetID:     "azureml://registries/r/models/m/versions/1",
+				AnnotationStreamBlobURI:     "https://acct.blob.core.windows.net/c/prefix",
+			},
+		},
+	}
+}
+
+func TestSASBlobProvider_GetStreamingConfig(t *testing.T) {
+	p := &SASBlobProvider{}
+	ctx := &generator.WorkspaceGeneratorContext{Workspace: wsWithStreamAnnotations()}
+
+	cfg, err := p.GetStreamingConfig(ctx, "microsoft/phi-4")
+	assert.NoError(t, err)
+	assert.Equal(t, "az://c/model", cfg.ModelPath)
+
+	var accountVal string
+	for _, e := range cfg.ProviderEnvVars {
+		if e.Name == "AZURE_STORAGE_ACCOUNT_NAME" {
+			accountVal = e.Value
+		}
+	}
+	assert.Equal(t, "acct", accountVal)
+	assert.Equal(t, "true", cfg.PodLabels["azure.workload.identity/use"])
+	assert.Len(t, cfg.InitContainers, 1)
+	assert.Len(t, cfg.Volumes, 1)
+
+	envByName := map[string]string{}
+	for _, e := range cfg.InitContainers[0].Env {
+		envByName[e.Name] = e.Value
+	}
+	assert.Equal(t, "https://x/datarefs", envByName["STREAM_DATAREFS_URL"])
+	assert.Equal(t, "azureml://registries/r/models/m/versions/1", envByName["STREAM_ASSET_ID"])
+	assert.Equal(t, "https://acct.blob.core.windows.net/c/prefix", envByName["STREAM_BLOB_URI"])
+
+	ic := cfg.InitContainers[0]
+	assert.Equal(t, "fetch-sas", ic.Name)
+	assert.Equal(t, []string{"python3", "/workspace/vllm/fetch_sas.py"}, ic.Command)
+	// Image is intentionally unset here; it is resolved during pod generation to match
+	// the inference container image.
+	assert.Equal(t, "", ic.Image)
+	assert.Equal(t, "/streaming/sas_token", envByName["SAS_TOKEN_PATH"])
+	// init container mounts the shared volume at /streaming
+	assert.Len(t, ic.VolumeMounts, 1)
+	assert.Equal(t, "/streaming", ic.VolumeMounts[0].MountPath)
+
+	assert.NotNil(t, cfg.Volumes[0].EmptyDir)
+	assert.Equal(t, corev1.StorageMediumMemory, cfg.Volumes[0].EmptyDir.Medium)
+}

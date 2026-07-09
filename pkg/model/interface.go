@@ -170,6 +170,23 @@ type Metadata struct {
 	// model's HuggingFace config.json.
 	// +optional
 	QuantBits int `yaml:"quantBits,omitempty"`
+
+	// RuntimeVersion records the inference engine versions baked into the image.
+	// It is primarily meaningful on the "base" model entry and is used to surface
+	// the serving engine version in the workspace/inferenceset status.
+	// +optional
+	RuntimeVersion RuntimeVersion `yaml:"runtimeVersion,omitempty"`
+}
+
+// RuntimeVersion holds the versions of the inference engines shipped in the base image.
+type RuntimeVersion struct {
+	// VLLM is the vLLM engine version (e.g. "0.22.1").
+	// +optional
+	VLLM string `yaml:"vllm,omitempty"`
+
+	// Transformers is the Hugging Face Transformers version (e.g. "5.6.0").
+	// +optional
+	Transformers string `yaml:"transformers,omitempty"`
 }
 
 // Validate checks if the Metadata is valid.

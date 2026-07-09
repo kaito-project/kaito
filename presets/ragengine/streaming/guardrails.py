@@ -29,9 +29,7 @@ from ragengine.streaming.openai import (
 )
 from ragengine.streaming.sse import iter_sse_events
 
-STREAMING_GUARDRAILS_HOLDBACK_CHARS = 256
-STREAMING_GUARDRAILS_MIN_SCAN_CHARS = 1
-STREAMING_GUARDRAILS_MAX_EMIT_CHARS = 4096
+STREAMING_GUARDRAILS_HOLDBACK_LEN = 256
 STREAMING_GUARDRAILS_SUPPORTED_SCANNERS = frozenset({"ban_substrings"})
 
 
@@ -84,9 +82,7 @@ async def apply_streaming_guardrails(
         scanner = _LLMGuardWindowScanner(prompt=prompt, built_scanners=built_scanners)
         window = StreamingBufferWindow(
             scanner,
-            holdback_chars=STREAMING_GUARDRAILS_HOLDBACK_CHARS,
-            min_scan_chars=STREAMING_GUARDRAILS_MIN_SCAN_CHARS,
-            max_emit_chars=STREAMING_GUARDRAILS_MAX_EMIT_CHARS,
+            holdback_len=STREAMING_GUARDRAILS_HOLDBACK_LEN,
         )
 
         async for event in iter_sse_events(upstream_chunks):
@@ -137,8 +133,8 @@ class _LLMGuardWindowScanner:
                 [scanner], self._prompt, text, fail_fast=False
             )
             if not all(results_valid.values()):
-                return WindowScanResult(safe_prefix_chars=0, blocked=True)
-        return WindowScanResult(safe_prefix_chars=len(text))
+                return WindowScanResult(blocked=True)
+        return WindowScanResult()
 
 
 async def _flush_window_or_block(

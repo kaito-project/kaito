@@ -86,7 +86,7 @@ func TestParseBenchmarkResult(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			result, err := parseBenchmarkResult(strings.NewReader(tc.logs))
+			result, err := parseBenchmarkResult(strings.NewReader(tc.logs), nil)
 			if tc.expectErr {
 				assert.Error(t, err)
 				assert.Nil(t, result)
@@ -103,4 +103,43 @@ func TestParseBenchmarkResult(t *testing.T) {
 			assert.Equal(t, tc.expectConfig, m.Config)
 		})
 	}
+}
+
+// TestParseBenchmarkResultMergesRuntimeConfig verifies that the runtime metadata
+// config is recorded in the peak metric alongside any benchmark parameters.
+func TestParseBenchmarkResultMergesRuntimeConfig(t *testing.T) {
+	logs := "KAITO_BENCHMARK_CONFIG 2026-01-01T00:00:00Z {\"duration_sec\":60,\"input_tokens\":2048,\"output_tokens\":256,\"max_concurrency\":523}\n" +
+		"KAITO_BENCHMARK_RESULT 2026-01-01T00:00:02Z {\"vllm_total_tpm\":12345.67,\"ttft_avg_ms\":100,\"tpot_avg_ms\":50}\n"
+	runtimeConfig := map[string]string{
+		ConfigKeyEngine:        "vllm",
+		ConfigKeyEngineVersion: "0.22.1",
+		ConfigKeyQuantization:  "",
+	}
+
+	result, err := parseBenchmarkResult(strings.NewReader(logs), runtimeConfig)
+	require.NoError(t, err)
+
+	m := result.Metrics[BenchmarkMetricPeakTPM]
+	// Benchmark parameters preserved.
+	assert.Equal(t, "60", m.Config["durationSec"])
+	assert.Equal(t, "523", m.Config["maxConcurrency"])
+	// Runtime metadata merged in.
+	assert.Equal(t, "vllm", m.Config[ConfigKeyEngine])
+	assert.Equal(t, "0.22.1", m.Config[ConfigKeyEngineVersion])
+	assert.Equal(t, "", m.Config[ConfigKeyQuantization])
+}
+
+// TestParseBenchmarkResultRuntimeConfigOnly verifies the runtime metadata is
+// recorded even when no KAITO_BENCHMARK_CONFIG line is present.
+func TestParseBenchmarkResultRuntimeConfigOnly(t *testing.T) {
+	logs := "KAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":500,\"ttft_avg_ms\":0,\"tpot_avg_ms\":0}\n"
+	runtimeConfig := map[string]string{ConfigKeyEngine: "transformers", ConfigKeyEngineVersion: "5.6.0"}
+
+	result, err := parseBenchmarkResult(strings.NewReader(logs), runtimeConfig)
+	require.NoError(t, err)
+
+	m := result.Metrics[BenchmarkMetricPeakTPM]
+	assert.Equal(t, "transformers", m.Config[ConfigKeyEngine])
+	assert.Equal(t, "5.6.0", m.Config[ConfigKeyEngineVersion])
+	assert.NotContains(t, m.Config, "durationSec")
 }

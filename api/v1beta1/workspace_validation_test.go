@@ -336,7 +336,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Valid Resource - SKU Capacity == Model Requirement",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
 			modelGPUCount:           "1",
@@ -362,7 +362,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Only Template set",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NV12s_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
 			preset:         false,
@@ -397,7 +397,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Tuning validation with single node",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
 			runtime:        model.RuntimeNameVLLM,
@@ -408,7 +408,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Tuning validation with multinode",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(2),
 			},
 			runtime:        model.RuntimeNameVLLM,
@@ -419,7 +419,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Invalid Preset Name",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(2),
 			},
 			errContent:         "",
@@ -431,7 +431,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "vLLM + Distributed Inference",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(4),
 			},
 			preset:             true,
@@ -777,7 +777,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Deprecated Model",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
 			preset:             true,
@@ -789,7 +789,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Empty TotalSafeTensorFileSize skips GPU memory validation",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
 			modelGPUCount:           "1",
@@ -804,7 +804,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Malformed TotalSafeTensorFileSize returns validation error",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
 			modelGPUCount:           "1",
@@ -819,7 +819,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Valid TotalSafeTensorFileSize with sufficient memory passes",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
 			modelGPUCount:           "1",
@@ -964,7 +964,7 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 				Count:        pointerToInt(1),
 			},
 			oldResource: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
 			disableNAP: false, // NAP enabled
@@ -974,7 +974,7 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 		{
 			name: "NAP enabled - set instanceType initially (valid)",
 			newResource: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3", // Setting for first time
+				InstanceType: "Standard_NV36ads_A10_v5", // Setting for first time
 				Count:        pointerToInt(1),
 			},
 			oldResource: &ResourceSpec{
@@ -1010,7 +1010,7 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 				},
 			},
 			oldResource: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3", // Had instanceType from v0.7
+				InstanceType: "Standard_NV36ads_A10_v5", // Had instanceType from v0.7
 				Count:        pointerToInt(1),
 				LabelSelector: &metav1.LabelSelector{
 					MatchLabels: map[string]string{"gpu": "v100"}, // Same labelSelector
@@ -1023,11 +1023,11 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 		{
 			name: "NAP disabled - keep instanceType set (backward compatibility)",
 			newResource: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3", // Still has instanceType
+				InstanceType: "Standard_NV36ads_A10_v5", // Still has instanceType
 				Count:        pointerToInt(1),
 			},
 			oldResource: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3", // Had instanceType from v0.7
+				InstanceType: "Standard_NV36ads_A10_v5", // Had instanceType from v0.7
 				Count:        pointerToInt(1),
 			},
 			disableNAP: true, // NAP disabled (BYO mode)
@@ -1701,7 +1701,7 @@ func TestWorkspaceValidateCreate(t *testing.T) {
 			name: "Neither Inference nor Tuning specified",
 			workspace: &Workspace{
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NC4as_T4_v3",
+					InstanceType: "Standard_NV36ads_A10_v5",
 					Count:        pointerToInt(1),
 				},
 			},
@@ -1714,7 +1714,7 @@ func TestWorkspaceValidateCreate(t *testing.T) {
 				Inference: &InferenceSpec{},
 				Tuning:    &TuningSpec{},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NC4as_T4_v3",
+					InstanceType: "Standard_NV36ads_A10_v5",
 					Count:        pointerToInt(1),
 				},
 			},
@@ -1726,7 +1726,7 @@ func TestWorkspaceValidateCreate(t *testing.T) {
 			workspace: &Workspace{
 				Inference: &InferenceSpec{},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NC4as_T4_v3",
+					InstanceType: "Standard_NV36ads_A10_v5",
 					Count:        pointerToInt(1),
 				},
 			},
@@ -1738,7 +1738,7 @@ func TestWorkspaceValidateCreate(t *testing.T) {
 			workspace: &Workspace{
 				Tuning: &TuningSpec{Input: &DataSource{}},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NC4as_T4_v3",
+					InstanceType: "Standard_NV36ads_A10_v5",
 					Count:        pointerToInt(1),
 				},
 			},
@@ -1755,7 +1755,7 @@ func TestWorkspaceValidateCreate(t *testing.T) {
 				},
 				Inference: &InferenceSpec{},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NC4as_T4_v3",
+					InstanceType: "Standard_NV36ads_A10_v5",
 					Count:        pointerToInt(1),
 				},
 			},
@@ -1798,7 +1798,7 @@ func TestWorkspaceValidateName(t *testing.T) {
 			Namespace: "kaito",
 		},
 		Resource: ResourceSpec{
-			InstanceType: "Standard_NC4as_T4_v3",
+			InstanceType: "Standard_NV36ads_A10_v5",
 			Count:        pointerToInt(1),
 		},
 		Inference: &InferenceSpec{
@@ -1869,7 +1869,7 @@ func TestWorkspaceValidatePerformanceModeAnnotation(t *testing.T) {
 			Namespace: "kaito",
 		},
 		Resource: ResourceSpec{
-			InstanceType: "Standard_NC4as_T4_v3",
+			InstanceType: "Standard_NV36ads_A10_v5",
 			Count:        pointerToInt(1),
 		},
 		Inference: &InferenceSpec{
@@ -1978,7 +1978,7 @@ func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 					Namespace: "kaito",
 				},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NC4as_T4_v3", // Valid instanceType when NAP enabled
+					InstanceType: "Standard_NV36ads_A10_v5", // Valid instanceType when NAP enabled
 					Count:        pointerToInt(1),
 				},
 				Inference: &InferenceSpec{
@@ -2001,7 +2001,7 @@ func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 					Namespace: "kaito",
 				},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NC4as_T4_v3", // Invalid: instanceType provided when NAP disabled
+					InstanceType: "Standard_NV36ads_A10_v5", // Invalid: instanceType provided when NAP disabled
 					Count:        pointerToInt(1),
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
@@ -2171,7 +2171,7 @@ func TestWorkspaceValidateUpdate(t *testing.T) {
 				},
 				Tuning: &TuningSpec{Input: &DataSource{}, Output: &DataDestination{Image: "test-image:latest", ImagePushSecret: "secret"}},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NC4as_T4_v3",
+					InstanceType: "Standard_NV36ads_A10_v5",
 					Count:        pointerToInt(1),
 				},
 			},
@@ -2182,7 +2182,7 @@ func TestWorkspaceValidateUpdate(t *testing.T) {
 				},
 				Tuning: &TuningSpec{Input: &DataSource{}, Output: &DataDestination{Image: "test-image:latest", ImagePushSecret: "secret"}},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NC4as_T4_v3",
+					InstanceType: "Standard_NV36ads_A10_v5",
 					Count:        pointerToInt(1),
 				},
 			},
@@ -2196,7 +2196,7 @@ func TestWorkspaceValidateUpdate(t *testing.T) {
 					Namespace: "kaito",
 				},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NC4as_T4_v3", // Created in v0.7 with instanceType
+					InstanceType: "Standard_NV36ads_A10_v5", // Created in v0.7 with instanceType
 					Count:        pointerToInt(1),
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
@@ -2838,7 +2838,7 @@ vllm:
 					Config: "valid-config-with-max-model-len",
 				},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NV24s_v3", // 2 GPUs with 8GB each (16GB total)
+					InstanceType: "Standard_NV72ads_A10_v5", // 2 GPUs with 24GB each (48GB total)
 					Count:        pointerToInt(1),
 				},
 			},
@@ -2860,7 +2860,7 @@ vllm:
 					Config: "invalid-config-exceeds-token-limit",
 				},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NV24s_v3", // 2 GPUs with 8GB each (16GB total)
+					InstanceType: "Standard_NV72ads_A10_v5", // 2 GPUs with 24GB each (48GB total)
 					Count:        pointerToInt(1),
 				},
 			},

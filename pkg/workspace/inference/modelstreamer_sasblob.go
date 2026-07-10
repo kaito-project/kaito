@@ -24,6 +24,8 @@ import (
 )
 
 const (
+	// SASFetchInitContainerName is the name of the init container that mints the SAS token.
+	SASFetchInitContainerName = "fetch-sas"
 	// sasSharedVolumeName is the memory-backed emptyDir shared between the SAS-fetch
 	// init container and the main inference container.
 	sasSharedVolumeName = "streaming-sas"
@@ -49,7 +51,7 @@ func (s *SASBlobProvider) GetStreamingConfig(ctx *generator.WorkspaceGeneratorCo
 	// as the main inference container (so fetch_sas.py + azure-identity are present), and
 	// that image is only resolved during pod generation. SetStreamingConfig sets it.
 	initContainer := corev1.Container{
-		Name:    "fetch-sas",
+		Name:    SASFetchInitContainerName,
 		Command: []string{"python3", "/workspace/vllm/fetch_sas.py"},
 		Env: []corev1.EnvVar{
 			{Name: "STREAM_DATAREFS_URL", Value: ann[AnnotationStreamDatarefsURL]},

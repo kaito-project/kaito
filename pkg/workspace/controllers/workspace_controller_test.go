@@ -1293,7 +1293,7 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 	t.Run("ready when inference and resource are ready", func(t *testing.T) {
 		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStatePending}
 		wObj := &v1beta1.Workspace{ObjectMeta: v1.ObjectMeta{Annotations: map[string]string{v1beta1.AnnotationDisableBenchmark: "true"}}}
-		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue, false)
+		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue, false, "", "")
 
 		assert.Equal(t, v1beta1.WorkspaceStateReady, status.State)
 		inferenceCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
@@ -1307,12 +1307,24 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 
 	t.Run("not ready after established", func(t *testing.T) {
 		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStateReady}
-		applyInferenceWorkspaceStatus(context.Background(), status, &v1beta1.Workspace{}, buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue, false)
+		applyInferenceWorkspaceStatus(context.Background(), status, &v1beta1.Workspace{}, buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue, false, "", "")
 
 		assert.Equal(t, v1beta1.WorkspaceStateNotReady, status.State)
 		inferenceCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
 		assert.NotNil(t, inferenceCondition)
 		assert.Equal(t, v1.ConditionFalse, inferenceCondition.Status)
+	})
+
+	t.Run("not ready surfaces SAS token fetch failure reason", func(t *testing.T) {
+		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStatePending}
+		applyInferenceWorkspaceStatus(context.Background(), status, &v1beta1.Workspace{}, buildReconcileErrMessageAppender(nil),
+			false, v1.ConditionTrue, false, "SASTokenFetchFailed", "SAS token fetch failed: the streaming init container could not obtain a SAS token; check the fetch-sas init container logs")
+
+		inferenceCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
+		assert.NotNil(t, inferenceCondition)
+		assert.Equal(t, v1.ConditionFalse, inferenceCondition.Status)
+		assert.Equal(t, "SASTokenFetchFailed", inferenceCondition.Reason)
+		assert.Contains(t, inferenceCondition.Message, "SAS token fetch failed")
 	})
 
 	t.Run("not-ready path preserves benchmark condition and result (write-once)", func(t *testing.T) {
@@ -1343,7 +1355,7 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 
 		// inferenceReady=false drives the not-ready path. benchmarkApplicable=true.
 		// Write-once: the recorded result and condition must be preserved (no clear).
-		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue, true)
+		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue, true, "", "")
 
 		assert.NotNil(t, status.Performance, "Performance must be preserved on not-ready (write-once)")
 		if status.Performance != nil {
@@ -1379,7 +1391,7 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 		// Empty fake client: if the skip guard did NOT fire, applyBenchmarkStatus would
 		// try to read logs and fail. We assert it stays Ready with the result intact.
 		k8sclient.SetGlobalClientGoClient(kubefake.NewClientset())
-		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue, true)
+		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue, true, "", "")
 
 		assert.Equal(t, v1beta1.WorkspaceStateReady, status.State)
 		m, ok := status.Performance.Metrics[BenchmarkMetricPeakTPM]
@@ -1399,7 +1411,7 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 		// benchmarkApplicable=false (no probe). Empty fake client would fail a log read;
 		// asserting Ready proves applyBenchmarkStatus was not invoked.
 		k8sclient.SetGlobalClientGoClient(kubefake.NewClientset())
-		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue, false)
+		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue, false, "", "")
 
 		assert.Equal(t, v1beta1.WorkspaceStateReady, status.State)
 		succeeded := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeSucceeded))

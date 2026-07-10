@@ -696,7 +696,7 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 		return err
 	}
 
-	inferenceReady, hasBenchmarkProbe, err := c.collectInferenceReadyStatus(ctx, wObj)
+	inferenceReady, hasBenchmarkProbe, infFailReason, infFailMsg, err := c.collectInferenceReadyStatus(ctx, wObj)
 	if err != nil {
 		return err
 	}
@@ -788,7 +788,7 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 				}
 			}
 
-			applyInferenceWorkspaceStatus(ctx, status, wObj, appendReconcileErrMessage, inferenceReady, resourceConditionStatus, benchmarkApplicable)
+			applyInferenceWorkspaceStatus(ctx, status, wObj, appendReconcileErrMessage, inferenceReady, resourceConditionStatus, benchmarkApplicable, infFailReason, infFailMsg)
 			return nil
 		}
 
@@ -838,17 +838,17 @@ func (c *WorkspaceReconciler) collectNodeStatusSnapshot(ctx context.Context, wOb
 // collectInferenceReadyStatus reports whether the inference workload is ready and
 // whether its StatefulSet carries the benchmark startup probe (false for legacy,
 // pre-benchmark-feature workspaces).
-func (c *WorkspaceReconciler) collectInferenceReadyStatus(ctx context.Context, wObj *kaitov1beta1.Workspace) (inferenceReady bool, hasBenchmarkProbe bool, err error) {
+func (c *WorkspaceReconciler) collectInferenceReadyStatus(ctx context.Context, wObj *kaitov1beta1.Workspace) (inferenceReady bool, hasBenchmarkProbe bool, failReason, failMsg string, err error) {
 	if wObj.Inference == nil {
-		return false, false, nil
+		return false, false, "", "", nil
 	}
 
 	ss := &appsv1.StatefulSet{}
 	if err := c.Get(ctx, types.NamespacedName{Name: wObj.Name, Namespace: wObj.Namespace}, ss); err != nil {
 		if apierrors.IsNotFound(err) {
-			return false, false, nil
+			return false, false, "", "", nil
 		}
-		return false, false, err
+		return false, false, "", "", err
 	}
 
 	replicas := int32(1)
@@ -856,7 +856,39 @@ func (c *WorkspaceReconciler) collectInferenceReadyStatus(ctx context.Context, w
 		replicas = *ss.Spec.Replicas
 	}
 
-	return ss.Status.ReadyReplicas == replicas, hasBenchmarkStartupProbe(ss), nil
+	ready := ss.Status.ReadyReplicas == replicas
+	// When not ready, surface a SAS-specific reason if the streaming init container
+	// (fetch-sas) is failing
+	if !ready {
+		failReason, failMsg = c.detectSASInitFailure(ctx, wObj)
+	}
+
+	return ready, hasBenchmarkStartupProbe(ss), failReason, failMsg, nil
+}
+
+// detectSASInitFailure returns a reason/message when a workspace pod's SAS-fetch
+// init container has failed or is crash-looping. Returns empty strings when no
+// such failure is observed.
+func (c *WorkspaceReconciler) detectSASInitFailure(ctx context.Context, wObj *kaitov1beta1.Workspace) (reason, message string) {
+	pods := &corev1.PodList{}
+	if err := c.List(ctx, pods, client.InNamespace(wObj.Namespace),
+		client.MatchingLabels{kaitov1beta1.LabelWorkspaceName: wObj.Name}); err != nil {
+		return "", ""
+	}
+	for i := range pods.Items {
+		for _, ics := range pods.Items[i].Status.InitContainerStatuses {
+			if ics.Name != inference.SASFetchInitContainerName {
+				continue
+			}
+			if t := ics.LastTerminationState.Terminated; t != nil && t.ExitCode != 0 {
+				return "SASTokenFetchFailed", "SAS token fetch failed: the streaming init container could not obtain a SAS token; check the fetch-sas init container logs"
+			}
+			if w := ics.State.Waiting; w != nil && w.Reason == "CrashLoopBackOff" {
+				return "SASTokenFetchFailed", "SAS token fetch failed: the streaming init container could not obtain a SAS token; check the fetch-sas init container logs"
+			}
+		}
+	}
+	return "", ""
 }
 
 // benchmarkEntrypointMarker is the script basename that uniquely identifies the
@@ -970,7 +1002,7 @@ func applyTuningWorkspaceStatus(status *kaitov1beta1.WorkspaceStatus, generation
 }
 
 func applyInferenceWorkspaceStatus(ctx context.Context, status *kaitov1beta1.WorkspaceStatus, wObj *kaitov1beta1.Workspace, appendMessage func(string) string,
-	inferenceReady bool, resourceConditionStatus metav1.ConditionStatus, benchmarkApplicable bool) {
+	inferenceReady bool, resourceConditionStatus metav1.ConditionStatus, benchmarkApplicable bool, notReadyReason, notReadyMessage string) {
 	generation := wObj.GetGeneration()
 	resourceReady := resourceConditionStatus == metav1.ConditionTrue
 	isInferenceEstablished := status.State == kaitov1beta1.WorkspaceStateReady || status.State == kaitov1beta1.WorkspaceStateNotReady
@@ -994,8 +1026,14 @@ func applyInferenceWorkspaceStatus(ctx context.Context, status *kaitov1beta1.Wor
 		return
 	}
 
+	// Default to a generic pending reason; override with a specific one (e.g. a failed
+	// SAS token fetch) when the caller detected the cause.
+	inferenceReason, inferenceMessage := "WorkspaceInferenceStatusPending", "Inference workload is not ready"
+	if notReadyReason != "" {
+		inferenceReason, inferenceMessage = notReadyReason, notReadyMessage
+	}
 	setWorkspaceCondition(status, generation, appendMessage,
-		kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionFalse, "WorkspaceInferenceStatusPending", "Inference workload is not ready")
+		kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionFalse, inferenceReason, inferenceMessage)
 	setWorkspaceCondition(status, generation, appendMessage,
 		kaitov1beta1.WorkspaceConditionTypeSucceeded, metav1.ConditionFalse, "workspacePending", "workspace is waiting for inference workload readiness")
 

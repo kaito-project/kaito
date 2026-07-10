@@ -6,8 +6,8 @@ authors:
 reviewers:
   - "@Fei-Guo"
   - "@zhuangqh"
-creation-date: 2026-07-09
-last-updated: 2026-07-09
+creation-date: 2026-07-10
+last-updated: 2026-07-10
 status: draft
 ---
 
@@ -80,10 +80,9 @@ As a team lead, I want to run 7 independent phi-4-mini instances on a single A10
 ### Goals
 
 1. Allow users to run inference workloads on MIG partitions.
-2. Validate at admission time that the model fits in the requested MIG partition.
-3. Support running multiple KAITO workspaces on MIG partitions of the same node.
-4. Handle both NVIDIA MIG strategies (single and mixed).
-5. Prevent tensor parallelism on MIG slices (hardware-isolated, limited CUDA IPC between slices).
+2. Support running multiple KAITO workspaces on MIG partitions of the same node.
+3. Handle both NVIDIA MIG strategies (single and mixed).
+4. Prevent tensor parallelism on MIG slices (hardware-isolated, limited CUDA IPC between slices).
 
 ### Non-Goals
 
@@ -102,13 +101,11 @@ NVIDIA provides two strategies for exposing MIG devices in Kubernetes. The choic
 - Different partition sizes can coexist on the same GPU (e.g., one `3g.40gb` + one `4g.40gb` on an A100-80GB).
 - Each profile is exposed as a distinct extended resource: `nvidia.com/mig-1g.10gb`, `nvidia.com/mig-3g.40gb`, etc.
 - Pods must request the specific MIG resource type they need.
-- GFD labels: `nvidia.com/mig.strategy=mixed`, `nvidia.com/gpu.product=A100-SXM4-80GB-MIG-1g.10gb`.
 
 ### Single Strategy
 
 - All MIG partitions on a node must be the same size.
 - Partitions are exposed as regular `nvidia.com/gpu` resources (same as non-MIG GPUs).
-- GFD labels: `nvidia.com/mig.strategy=single`, `nvidia.com/gpu.memory=10240` (per-slice), `nvidia.com/gpu.count=7`.
 
 ### Key Differences
 
@@ -119,15 +116,12 @@ NVIDIA provides two strategies for exposing MIG devices in Kubernetes. The choic
 | Pod must know it's MIG? | Yes (requests specific profile) | No (looks like regular GPU) |
 | Partial allocation | Yes (request 1 of N partitions) | Yes (request 1 of N "GPUs") |
 
-Real-world data from GitHub issues across NVIDIA, KServe, and KubeRay repos shows that **mixed strategy with `1g.10gb` and `3g.40gb` profiles are the most commonly used** configurations. Mixed strategy is also the approach used by users running multiple different-sized models on the same GPU.
 
 ## Proposal
 
-### Mixed Strategy Support
+### API Changes
 
-#### API Changes
-
-Add `MIG` field to `ResourceSpec`:
+Add `MIG` field to `ResourceSpec` (only used for mixed strategy):
 
 ```go
 type ResourceSpec struct {
@@ -148,75 +142,6 @@ type MIGSpec struct {
 
 > **Design decision: no `Count` field.** MIG slices are hardware-isolated with only limited CUDA IPC between them, so tensor parallelism across slices is not feasible. Each Workspace pod always requests exactly 1 MIG slice. For running multiple instances of the same model, use multiple Workspace CRs or an InferenceSet (see Multi-replica with InferenceSet below).
 
-#### Validation
-
-When `resource.mig` is set:
-
-1. Feature gate `enableMIG` must be true.
-2. `instanceType` must be empty (BYO only). The webhook validates this per-Workspace rather than requiring a global feature gate.
-3. Profile must match the MIG profile format (`<digits>g.<digits>gb`) and correspond to a known NVIDIA MIG profile. Long-term, consider relaxing the whitelist to regex-only validation so new GPU generations don't require a KAITO release.
-4. Model must fit in a single MIG partition: `model_size × 1.02 < partition_memory × 0.84`. The 1.02× covers model-loading overhead (CUDA context, cuBLAS workspace). The 0.84 is KAITO's conservative `gpu-memory-utilization` setting (vLLM default is 0.90).
-5. Model must not require tensor parallelism (`GPUCountRequirement` must be `"1"` or `DisableTensorParallelism` must be true).
-6. MIG spec is immutable on update.
-7. MIG is rejected for tuning workloads.
-
-#### Pod Spec Generation
-
-- Resource requests/limits use `nvidia.com/mig-<profile>: 1` instead of `nvidia.com/gpu`.
-- Tensor parallelism is forced to 1.
-- MIG-specific toleration added for `nvidia.com/mig-<profile>` (precautionary — the NVIDIA device plugin does not add MIG taints by default, but cluster operators may).
-
-#### Estimator
-
-- MIG workloads always return nodeCount=1. Multi-node MIG is technically possible but out of scope.
-- Memory check: model must fit in a single slice.
-
-#### vLLM MIG Compatibility
-
-vLLM has a known issue parsing MIG device UUIDs in mixed strategy mode ([vLLM #6551](https://github.com/vllm-project/vllm/issues/6551), [#17047](https://github.com/vllm-project/vllm/issues/17047)). When the NVIDIA device plugin sets `CUDA_VISIBLE_DEVICES` to a MIG UUID (e.g., `MIG-52b4...`), vLLM's initialization crashes attempting to parse it as an integer.
-
-Additionally, KAITO's `get_max_gpu_memory_utilization()` in `inference_api.py` uses `pynvml` which reports parent GPU memory (80GB) rather than MIG slice memory (10GB). The runtime allocation via `torch.cuda.mem_get_info()` is correct, but the initialization path needs fixing.
-
-**Workarounds required in Step 1:**
-- Patch KAITO's Python entrypoint to handle MIG UUID format before vLLM initialization
-- Replace `pynvml` calls with `torch.cuda.mem_get_info()` for memory detection
-
-### Multi-Workspace on a Single Node
-
-One of MIG's primary benefits is GPU sharing. In KAITO, each Workspace creates its own StatefulSet. Multiple Workspaces can target the same node via `labelSelector` since KAITO does not set pod anti-affinity. Kubernetes resource accounting handles co-location natively — two Workspaces each requesting `nvidia.com/mig-1g.10gb: 1` get separate MIG partitions on the same node.
-
-#### Multi-replica with InferenceSet
-
-For running multiple replicas of the same model on MIG, creating N separate Workspace CRs is tedious. The InferenceSet CRD is a better fit — it manages N Workspace replicas as a single object with autoscaling, rolling updates, and aggregated status:
-
-```yaml
-apiVersion: kaito.sh/v1beta1
-kind: InferenceSet
-metadata:
-  name: phi-4-mini-mig
-spec:
-  replicas: 7
-  # Top-level labelSelector maps to each child Workspace's resource.labelSelector.
-  labelSelector:
-    matchLabels:
-      kaito.sh/mig-enabled: "true"
-  # NodeCountLimit caps how many GPU nodes the set may consume. With MIG, a single
-  # A100-80GB node exposes 7× 1g.10gb slices, so 7 replicas can pack onto 1 node.
-  nodeCountLimit: 1
-  template:
-    resource:
-      # instanceType is omitted (BYO) — required for MIG. See API Changes below.
-      mig:
-        profile: "1g.10gb"
-    inference:
-      preset:
-        name: "phi-4-mini"
-```
-
-Seven replicas each request `nvidia.com/mig-1g.10gb: 1`; the Kubernetes scheduler packs all seven onto the single BYO A100 node's seven slices. Scaling `replicas` up or down (manually or via HPA on the `scale` subresource) adds or removes slices.
-
-##### InferenceSet API Changes
-
 `InferenceSetResourceSpec` currently exposes only `InstanceType` (marked `+required`), because InferenceSet was designed for the NAP path. MIG requires BYO nodes, so two changes are needed in **both `v1alpha1` and `v1beta1`**:
 
 ```go
@@ -234,7 +159,7 @@ type InferenceSetResourceSpec struct {
 }
 ```
 
-The controller propagation at [inferenceset_controller.go#L323](pkg/inferenceset/inferenceset_controller.go#L323) gains one line so each child Workspace inherits the MIG spec:
+The controller propagation at inferenceset_controller.go gains one line so each child Workspace inherits the MIG spec:
 
 ```go
 workspaceObj.Resource = kaitov1beta1.ResourceSpec{
@@ -246,84 +171,82 @@ workspaceObj.Resource = kaitov1beta1.ResourceSpec{
 
 > **Making `InstanceType` optional is a broader change** than MIG alone — it also unblocks non-MIG BYO InferenceSets (deploying replicas onto pre-existing nodes via label selector). This is intentional and complements the BYO Workspace work. Existing InferenceSet CRs that set `instanceType` are unaffected.
 
-##### Mixed strategy with InferenceSet
 
-Behaves exactly like N Workspaces sharing MIG slices, but managed as one object:
+### Validation
 
-- Each replica's child Workspace requests `nvidia.com/mig-<profile>: 1` and forces TP=1 (inherited from the Workspace-level MIG logic — no InferenceSet-specific runtime code).
-- The scheduler bin-packs replicas onto available slices across the label-selected BYO nodes.
-- `NodeCountLimit` bounds node consumption. With MIG this is a *slice-packing ceiling*, not a per-replica node count: 7 `1g.10gb` replicas fit within `nodeCountLimit: 1` on an A100-80GB. The InferenceSet estimator must divide by slices-per-node rather than assuming one node per replica.
-- Excess replicas beyond available slices produce Pending pods (same limitation as multi-Workspace; see Risks).
+When `resource.mig` is set:
 
-##### Single strategy with InferenceSet
+1. Feature gate `enableMIG` must be true.
+2. `instanceType` must be empty (BYO only). The webhook validates this per-Workspace rather than requiring a global feature gate.
+3. Profile must match the MIG profile format (`<digits>g.<digits>gb`) and correspond to a known NVIDIA MIG profile. Long-term, consider relaxing the whitelist to regex-only validation so new GPU generations don't require a KAITO release.
+4. Model must not require tensor parallelism. The webhook rejects a model only when it *explicitly* declares a multi-GPU requirement (`GPUCountRequirement` is set and is neither `""` nor `"1"`, with `DisableTensorParallelism` false). An empty `GPUCountRequirement` means the estimator sizes GPUs from model memory, so it is treated as single-device.
+5. MIG spec is immutable on update.
+6. MIG is rejected for tuning workloads.
 
-No InferenceSet API change is required. Slices appear as plain `nvidia.com/gpu`, so each child Workspace auto-detects MIG from GFD node labels (Step 2b) and forces TP=1 on its own. The user writes a normal InferenceSet with no `mig` block:
+### Estimator
 
+- MIG workloads always return nodeCount=1. Multi-node MIG is technically possible but out of scope.
+- Memory-fit check: the model plus runtime overhead must fit the slice's usable memory. The estimator reuses its non-MIG single-device overhead model rather than a single fudge factor:
+  - `modelSize = TotalSafeTensorFileSize × 1.02` (weight expansion once loaded by vLLM)
+  - `overhead = 2.3 GiB base (CUDA context, NCCL, small-model activations/CUDA graphs) + KV cache (maxModelLen × BytesPerToken) + 0.05 × modelSize`
+  - fits when `modelSize + overhead ≤ slice_memory × 0.84` (the `0.84` mirrors vLLM's `--gpu-memory-utilization`).
+
+### Pod Spec Generation
+
+- Resource requests/limits use `nvidia.com/mig-<profile>: 1` instead of `nvidia.com/gpu` on the mixed/spec-driven path. Under single strategy the request stays `nvidia.com/gpu`: the profile is a spec property (`resource.mig.profile`), and single-strategy workloads have no spec profile, so they keep requesting the generic resource.
+- Tensor parallelism is forced to 1.
+- **CPU KV-cache offload is disabled** (`kaito-kv-cache-cpu-memory-utilization=0`). LMCache sizes its CPU offload buffer from *host* RAM (cgroup-unaware); on a shared MIG node, several pods each reserving a large fraction of host RAM overcommits the node and triggers OOM kills. Offload is therefore turned off for any MIG workload.
+- MIG-specific toleration added for `nvidia.com/mig-<profile>` (precautionary — the NVIDIA device plugin does not add MIG taints by default, but cluster operators may). Only added on the mixed/spec-driven path where a per-profile taint key exists.
+
+### MIG Mode Detection
+`GetGPUConfigFromNodeLabels` detects a MIG node from the NVIDIA GPU Operator mig-manager labels: `nvidia.com/mig.config != "all-disabled"` **and** `nvidia.com/mig.config.state == "success"`. This signal works for **both** strategies and is robust to the transient states during repartitioning.
+
+When detected, KAITO sets `IsMIG=true` on the GPU config, which (a) disables CPU KV-cache offload and (b) sizes memory against a slice. It deliberately does **not** derive a MIG *profile* from node labels: under single strategy the slices are requested via the generic `nvidia.com/gpu` resource, so no per-profile name is needed, and a physically partitioned GPU can host multiple different profiles. The requested profile stays a spec property (`resource.mig.profile`) used only on the mixed path. Consequently `GPUConfig` carries only `IsMIG`, not a profile field.
+
+### get_max_gpu_memory_utilization Changes
+
+KAITO's `get_max_gpu_memory_utilization()` in `inference_api.py` uses `pynvml` which reports parent GPU memory (80GB) rather than MIG slice memory (10GB). The runtime allocation via `torch.cuda.mem_get_info()` is correct, but the initialization path needs fixing
+
+
+### Example CRs
+#### Mixed strategy
+Under mixed strategy a GPU can contain different profiles and we need to specify which profile to deploy our model on:
 ```yaml
 apiVersion: kaito.sh/v1beta1
 kind: InferenceSet
 metadata:
-  name: phi-4-mini-single-strategy
+  name: phi-4-mini-mig
 spec:
-  replicas: 7
+  replicas: 2
   labelSelector:
     matchLabels:
-      kaito.sh/mig-enabled: "true"
+      kaito-inferenceset: "phi-4-mini-mig"
   template:
-    resource: {}          # no instanceType, no mig — auto-detected per child Workspace
+    resource:
+      mig:
+        profile: "2g.24gb"
     inference:
       preset:
         name: "phi-4-mini"
 ```
 
-##### Validation
-
-InferenceSet's webhook delegates the MIG rules (feature gate, BYO-only, profile format, memory fit, TP rejection, tuning rejection) to the shared Workspace validation helper, applied against the template. This gives admission-time feedback on the InferenceSet itself rather than only surfacing errors on the generated child Workspaces. MIG spec is immutable on update, consistent with the Workspace rule.
-
-### Single Strategy Support
-
-With single strategy, MIG partitions appear as regular `nvidia.com/gpu` resources. KAITO's BYO path doesn't know it's dealing with MIG slices, causing incorrect `tensor-parallel-size`, `max-model-len`, and GPU resource count calculations.
-
-#### Step 2a: ConfigMap overrides
-
-The Workspace API already supports user-provided inference ConfigMaps via `inference.config`. The vLLM Python entrypoint reads ConfigMap values and applies them as CLI overrides (argparse last-wins). The controller-side must also respect these overrides when computing `max-model-len` and GPU resource request count (~40-50 lines of Go). This is a general-purpose improvement that benefits non-MIG users too.
-
-#### Step 2b: Auto-detection from GFD labels
-
-GFD exposes `nvidia.com/mig.strategy=single` as a node label. In `GetGPUConfigFromNodeLabels`, KAITO can detect this and automatically set `IsMIG=true`, force TP=1, and parse the profile from the `nvidia.com/gpu.product` label (e.g., `A100-SXM4-80GB-MIG-1g.10gb`). This eliminates the ConfigMap requirement for single strategy and provides admission-time validation.
-
-#### Single strategy user workflow (after Steps 2a+2b)
-
+#### Single strategy
+Same as deploying an InferenceSet without MIG because GPU slices appear as plain `nvidia.com/gpu` under single strategy:
 ```yaml
-# No MIG spec needed — KAITO auto-detects single strategy from node labels
 apiVersion: kaito.sh/v1beta1
-kind: Workspace
+kind: InferenceSet
 metadata:
-  name: phi-4-mini-single-strategy
+  name: phi-4-mini-mig
 spec:
-  resource:
-    labelSelector:
-      matchLabels:
-        kaito.sh/mig-enabled: "true"
-  inference:
-    preset:
-      name: "phi-4-mini"
+  replicas: 2
+  labelSelector:
+    matchLabels:
+      kaito-inferenceset: "phi-4-mini-mig"
+  template:
+    inference:
+      preset:
+        name: "phi-4-mini"
 ```
-
-## Compatible Models
-
-Models that work on MIG partitions must have `GPUCountRequirement: "1"`. KAITO automatically forces TP=1 for MIG workloads. Preset models that fit on a `1g.10gb` partition (~8.4 GiB usable, i.e. 10 GiB × 0.84):
-
-| Model | SafeTensor Size | MIG on 1g.10gb |
-|-------|----------------|----------------|
-| phi-4-mini | ~7.15 GiB | Yes (TP auto-forced to 1) |
-| phi-3-mini-4k-instruct | ~7.12 GiB | Yes (TP auto-forced to 1) |
-| mistral-7b | ~13.5 GiB | No — needs larger partition (e.g., `2g.20gb`) |
-| falcon-7b | ~13.5 GiB | No — needs larger partition |
-
-**Note on quantized models:** Users running quantized models (AWQ, GPTQ) via BYO templates can fit larger models on small MIG slices (e.g., 4-bit Mistral-7B at ~3.5 GiB fits on `1g.5gb`). KAITO's preset validation uses full-precision sizes; quantization-aware validation is future work.
-
-**Performance:** A `1g.10gb` slice provides ~1/8th of the A100's HBM bandwidth (~255 GB/s). For phi-4-mini at FP16, this yields ~34 tokens/sec — well above human reading speed (~6 tokens/sec). With INT4 quantization, throughput exceeds 100 tokens/sec per slice.
 
 ## Alternatives Considered
 
@@ -338,31 +261,13 @@ resourceRequests:
 
 This is more Kubernetes-native and forward-compatible (works with any extended resource). However, it doesn't enable admission-time validation — KAITO can't parse memory from an opaque resource name to check model fit. The structured `MIGSpec` enables profile validation, memory-fit checking, and TP rejection that a raw map cannot. If we later support non-NVIDIA accelerator partitioning, a generic `resourceRequests` map could complement `MIGSpec`.
 
-### 2. Full auto-detection (no `MIGSpec` at all)
-
-KAITO could infer everything from node labels: detect MIG from `nvidia.com/mig.strategy` or `nvidia.com/mig-*` allocatable resources, pick the smallest profile where the model fits, and auto-set TP=1. The user would write a normal BYO Workspace with no MIG-specific fields.
-
-This is the simplest UX but sacrifices explicit user intent — the user can't choose a specific profile, and validation happens at reconcile time against real node state rather than at admission. We chose explicit `MIGSpec` for mixed strategy (user declares intent, gets early validation) and plan auto-detection for single strategy (where the node genuinely looks like regular GPUs).
-
-### 3. NVIDIA MPS instead of MIG
+### 2. NVIDIA MPS instead of MIG
 
 MPS (Multi-Process Service) is NVIDIA's software-level GPU sharing. It provides logical partitioning with SM percentage limits but no memory isolation, no memory bandwidth QoS, and no error isolation. MIG provides hardware-level isolation on all three dimensions. For multi-tenant inference where workloads must not interfere with each other, MIG is the right choice.
 
-## Open Questions
-
-1. Should the profile whitelist be replaced with regex-only validation (`^\d+g\.\d+gb$`) to avoid blocking new GPU generations? The scheduler already rejects invalid resource names.
-2. Should KAITO surface `FailedScheduling` pod events in Workspace status conditions in Step 1 or Step 2?
-3. The proposal specifies per-Workspace BYO validation (`instanceType == ""`). The current code checks a global `disableNodeAutoProvisioning` feature gate. Should we keep the per-Workspace approach (more flexible, allows mixed MIG + NAP clusters) or the global gate (simpler)?
-4. Relaxing `InferenceSetResourceSpec.InstanceType` from `+required` to `+optional` is needed for BYO MIG but changes an existing released field's requiredness. Is this acceptable in `v1beta1` (widening is backward-compatible for existing CRs), or should MIG on InferenceSet instead gate BYO through a separate signal?
-5. For MIG on InferenceSet, should `NodeCountLimit` be interpreted as a slice-packing ceiling (this proposal) or should we add an explicit slices-per-node input so the estimator doesn't have to infer it from the profile?
 
 ## Future Work
 
-- **Quantization-aware validation.** Teach the memory-fit check about quantized model sizes so preset models with AWQ/GPTQ can be validated against small MIG partitions.
 - **Dynamic Resource Allocation (DRA).** The Kubernetes DRA API ([KEP-4381](https://github.com/kubernetes/enhancements/issues/4381), beta in 1.32) is the long-term replacement for extended resources. `MIGSpec` is an abstraction layer that can translate to DRA `ResourceClaims` when DRA matures.
 - **Scheduling failure surfacing.** Propagate pod `FailedScheduling` events to Workspace status conditions.
 - **B200/Blackwell and other GPU profiles.** B200 (180GB) MIG profiles are documented by NVIDIA. Additional MIG-capable GPUs (H20, GB200, RTX PRO 5000/6000) will be added as validated.
-
-## Implementation History
-
-- [x] 2026/03/11: Open proposal PR

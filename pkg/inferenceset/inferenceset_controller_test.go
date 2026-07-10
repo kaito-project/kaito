@@ -59,7 +59,7 @@ func TestInferenceSetSyncControllerRevision(t *testing.T) {
 						*dep = appsv1.ControllerRevision{
 							ObjectMeta: v1.ObjectMeta{
 								Annotations: map[string]string{
-									InferenceSetHashAnnotation: "05e6d3ba23ae871ac11ab7a93452f7e70fe02fb5a88827c6ff7a77f91e5d45bc",
+									InferenceSetHashAnnotation: "8b215f13847260f94d2debfebec7ee9540a7b2c08c0d5cabdfdded1ca133f6cc",
 								},
 							},
 							Revision: 1,

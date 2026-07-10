@@ -123,21 +123,6 @@ func TestGeneratePresetInference(t *testing.T) {
 			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar},
 		},
 
-		"test-model/vllm-float16": {
-			workspace: test.MockWorkspaceWithPresetVLLMFloat16,
-			nodeCount: 1,
-			modelName: "test-model",
-			callMocks: func(c *test.MockClient) {
-				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
-				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
-			},
-			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
-			// T4 GPU does not support bfloat16, so dtype=float16 is added
-			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --dtype=float16 --gpu-memory-utilization=0.84 --max-model-len=auto --tensor-parallel-size=1 --served-model-name=mymodel",
-			hasAdapters:     false,
-			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar},
-		},
-
 		"test-model-no-parallel/vllm": {
 			workspace: test.MockWorkspaceWithPresetVLLM,
 			nodeCount: 1,
@@ -253,7 +238,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.Service{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=7 --ray_port=6379; python3 /workspace/vllm/inference_api.py --distributed-executor-backend=ray --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --dtype=float16 --gpu-memory-utilization=0.84 --max-model-len=auto --kaito-kv-cache-cpu-memory-utilization=0 --pipeline-parallel-size=7 --tensor-parallel-size=1; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
+			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=4 --ray_port=6379; python3 /workspace/vllm/inference_api.py --distributed-executor-backend=ray --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --gpu-memory-utilization=0.84 --max-model-len=auto --kaito-kv-cache-cpu-memory-utilization=0 --pipeline-parallel-size=4 --tensor-parallel-size=1; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
 
 			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar, {
 				Name: "HF_TOKEN",
@@ -277,10 +262,10 @@ func TestGeneratePresetInference(t *testing.T) {
 		},
 
 		"test-model-download-distributed/vllm (more nodes than required)": {
-			// Using Standard_NC4as_T4_v3, which has 16GB GPU memory per node.
-			// The preset requires 64GB GPU memory for the model; estimator computes 7 nodes needed.
+			// Using Standard_NV36ads_A10_v5, which has 24GB GPU memory per node.
+			// The preset requires 64GB GPU memory for the model; estimator computes 4 nodes needed.
 			workspace: test.MockWorkspaceWithPresetDownloadVLLM,
-			nodeCount: 8, // 8 nodes requested; model requires 7, so 7 pipeline stages are used
+			nodeCount: 8, // 8 nodes requested; model requires 4, so 4 pipeline stages are used
 			modelName: "test-model-download",
 			callMocks: func(c *test.MockClient) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
@@ -290,7 +275,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				// Mock node list for BYO node discovery
 				c.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 			},
-			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=7 --ray_port=6379; python3 /workspace/vllm/inference_api.py --distributed-executor-backend=ray --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --dtype=float16 --gpu-memory-utilization=0.84 --max-model-len=auto --kaito-kv-cache-cpu-memory-utilization=0 --pipeline-parallel-size=7 --tensor-parallel-size=1; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
+			expectedCmd: `/bin/sh -c if [ "${POD_INDEX}" = "0" ]; then  --ray_cluster_size=4 --ray_port=6379; python3 /workspace/vllm/inference_api.py --distributed-executor-backend=ray --model=test-repo/test-model --code-revision=test-revision --download-dir=/workspace/weights --gpu-memory-utilization=0.84 --max-model-len=auto --kaito-kv-cache-cpu-memory-utilization=0 --pipeline-parallel-size=4 --tensor-parallel-size=1; else  --ray_address=testWorkspace-0.testWorkspace-headless.kaito.svc.cluster.local --ray_port=6379; fi`,
 
 			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar, {
 				Name: "HF_TOKEN",

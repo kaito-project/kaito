@@ -17,6 +17,8 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"slices"
+	"strings"
 
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	storagev1 "k8s.io/api/storage/v1"
@@ -45,12 +47,10 @@ func (m *ModelMirror) Validate(ctx context.Context) (errs *apis.FieldError) {
 	}
 
 	// Value validation (presence enforced by CRD schema)
-	switch m.Spec.Source.Registry {
-	case "huggingface", "azureml":
-		// ok
-	default:
+	if !slices.Contains(SupportedRegistries, m.Spec.Source.Registry) {
+		supported := `"` + strings.Join(SupportedRegistries, `", "`) + `"`
 		errs = errs.Also(apis.ErrInvalidValue(
-			fmt.Sprintf("%q is not supported, only \"huggingface\" and \"azureml\" are supported", m.Spec.Source.Registry),
+			fmt.Sprintf("%q is not supported, only %s are supported", m.Spec.Source.Registry, supported),
 			"spec.source.registry"))
 	}
 	if _, err := resource.ParseQuantity(m.Spec.Storage.Size); err != nil {
@@ -60,7 +60,7 @@ func (m *ModelMirror) Validate(ctx context.Context) (errs *apis.FieldError) {
 	//   - PVC-backed sources (huggingface) require an existing StorageClass.
 	//   - stream-only sources (azureml) create no PVC, so StorageClass must be absent.
 	scAbsent := m.Spec.Storage.StorageClassName == nil || *m.Spec.Storage.StorageClassName == ""
-	if m.Spec.Source.Registry == "huggingface" && scAbsent {
+	if m.Spec.Source.Registry == RegistryHuggingFace && scAbsent {
 		errs = errs.Also(apis.ErrMissingField("spec.storage.storageClassName"))
 	}
 	if !scAbsent {

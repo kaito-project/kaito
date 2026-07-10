@@ -240,7 +240,7 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 			ObjectMeta: metav1.ObjectMeta{Name: crName},
 			Spec: kaitov1alpha1.ModelMirrorSpec{
 				Source: kaitov1alpha1.ModelMirrorSource{
-					Registry:     "huggingface",
+					Registry:     kaitov1alpha1.RegistryHuggingFace,
 					ModelID:      modelID,
 					AccessSecret: accessSecret,
 				},
@@ -277,7 +277,7 @@ func buildStreamOnlyModelMirror(
 		},
 		Spec: kaitov1alpha1.ModelMirrorSpec{
 			Source: kaitov1alpha1.ModelMirrorSource{
-				Registry:     "azureml",
+				Registry:     kaitov1alpha1.RegistryAzureML,
 				ModelID:      modelID,
 				AccessSecret: accessSecret,
 			},

@@ -44,6 +44,17 @@ type ModelMirrorSpec struct {
 	JobNamespace string `json:"jobNamespace,omitempty"`
 }
 
+// Supported ModelMirror source registries.
+const (
+	// RegistryHuggingFace mirrors the model to a PVC (download at reconcile time).
+	RegistryHuggingFace = "huggingface"
+	// RegistryAzureML streams directly from a pre-existing blob (no PVC, no download).
+	RegistryAzureML = "azureml"
+)
+
+// SupportedRegistries is the set of accepted ModelMirrorSource.Registry values.
+var SupportedRegistries = []string{RegistryHuggingFace, RegistryAzureML}
+
 type ModelMirrorSource struct {
 	// Registry is the source registry type. "huggingface" mirrors the model to a PVC;
 	// "azureml" streams directly from a pre-existing blob (no PVC, no download).

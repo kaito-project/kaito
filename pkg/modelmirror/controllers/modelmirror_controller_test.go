@@ -110,7 +110,7 @@ func TestJobRetryInterval(t *testing.T) {
 	}
 }
 
-func TestReconcile_StreamOnly_SetsReadyNoProvision(t *testing.T) {
+func TestReconcile_Static_SetsReadyNoProvision(t *testing.T) {
 	scheme := runtime.NewScheme()
 	_ = kaitov1alpha1.AddToScheme(scheme)
 	_ = batchv1.AddToScheme(scheme)
@@ -122,7 +122,8 @@ func TestReconcile_StreamOnly_SetsReadyNoProvision(t *testing.T) {
 			Name: "abc123",
 		},
 		Spec: kaitov1alpha1.ModelMirrorSpec{
-			Source:  kaitov1alpha1.ModelMirrorSource{Registry: "azureml", ModelID: "microsoft/phi-4"},
+			Mode:    kaitov1alpha1.ModelMirrorModeStatic,
+			Source:  kaitov1alpha1.ModelMirrorSource{Registry: kaitov1alpha1.RegistryAzureML, ModelID: "microsoft/phi-4"},
 			Storage: kaitov1alpha1.ModelMirrorStorage{Size: "85Gi", StorageClassName: nil},
 		},
 	}
@@ -135,10 +136,10 @@ func TestReconcile_StreamOnly_SetsReadyNoProvision(t *testing.T) {
 	got := &kaitov1alpha1.ModelMirror{}
 	assert.NoError(t, client.Get(context.Background(), types.NamespacedName{Name: "abc123"}, got))
 	assert.Equal(t, kaitov1alpha1.ModelMirrorPhaseReady, got.Status.Phase)
-	// A skip-download mirror stored the weights nowhere locally, so ModelPath is empty.
+	// A static mirror stored the weights nowhere locally, so ModelPath is empty.
 	assert.Empty(t, got.Status.ModelPath)
 
-	// Both conditions must be True for a skip-download source.
+	// Both conditions must be True for a static mirror.
 	condStatus := func(condType string) metav1.ConditionStatus {
 		for _, c := range got.Status.Conditions {
 			if c.Type == condType {
@@ -152,11 +153,11 @@ func TestReconcile_StreamOnly_SetsReadyNoProvision(t *testing.T) {
 
 	pvcs := &corev1.PersistentVolumeClaimList{}
 	_ = client.List(context.Background(), pvcs)
-	assert.Empty(t, pvcs.Items, "stream-only must not create a PVC")
+	assert.Empty(t, pvcs.Items, "static mirror must not create a PVC")
 
 	jobs := &batchv1.JobList{}
 	_ = client.List(context.Background(), jobs)
-	assert.Empty(t, jobs.Items, "stream-only must not create a Job")
+	assert.Empty(t, jobs.Items, "static mirror must not create a Job")
 
-	assert.Empty(t, got.Finalizers, "stream-only must not add a finalizer")
+	assert.Empty(t, got.Finalizers, "static mirror must not add a finalizer")
 }

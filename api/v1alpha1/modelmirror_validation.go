@@ -56,12 +56,18 @@ func (m *ModelMirror) Validate(ctx context.Context) (errs *apis.FieldError) {
 	if _, err := resource.ParseQuantity(m.Spec.Storage.Size); err != nil {
 		errs = errs.Also(apis.ErrInvalidValue(m.Spec.Storage.Size, "spec.storage.size"))
 	}
-	// StorageClass rules differ by source:
-	//   - PVC-backed sources (huggingface) require an existing StorageClass.
-	//   - stream-only sources (azureml) create no PVC, so StorageClass must be absent.
+	// StorageClass rules differ by mode:
+	//   - Managed mirrors download to a PVC and require an existing StorageClass.
+	//   - Static mirrors map to BYO storage, create no PVC, so StorageClass must be absent.
+	// Mode defaults to Managed (via the CRD schema); treat an empty value as Managed.
+	static := m.Spec.Mode == ModelMirrorModeStatic
 	scAbsent := m.Spec.Storage.StorageClassName == nil || *m.Spec.Storage.StorageClassName == ""
-	if m.Spec.Source.Registry == RegistryHuggingFace && scAbsent {
+	if !static && scAbsent {
 		errs = errs.Also(apis.ErrMissingField("spec.storage.storageClassName"))
+	}
+	if static && !scAbsent {
+		errs = errs.Also(apis.ErrInvalidValue(
+			"storageClassName must not be set for a static mirror", "spec.storage.storageClassName"))
 	}
 	if !scAbsent {
 		sc := &storagev1.StorageClass{}

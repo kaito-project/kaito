@@ -72,16 +72,17 @@ func (r *ModelMirrorReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return r.handleDeletion(ctx, cr)
 	}
 
-	// Skip-download source (no StorageClass): there is no PVC to provision and no weights
-	// to download, so mark Ready immediately and never create a finalizer, PVC, or Job.
-	if cr.Spec.Storage.StorageClassName == nil {
+	// Static mirror (BYO storage): the model weights already exist in a pre-existing
+	// location, so there is no PVC to provision and no weights to download. Mark Ready
+	// immediately and never create a finalizer, PVC, or Job.
+	if cr.Spec.Mode == kaitov1alpha1.ModelMirrorModeStatic {
 		if cr.Status.Phase == kaitov1alpha1.ModelMirrorPhaseReady {
 			return ctrl.Result{}, nil
 		}
 		cr.Status.Phase = kaitov1alpha1.ModelMirrorPhaseReady
 		cr.Status.FailureMessage = ""
-		setCondition(cr, mmconsts.ConditionTypeReady, metav1.ConditionTrue, "SkipDownload", "No download required")
-		setCondition(cr, mmconsts.ConditionTypeStorageReady, metav1.ConditionTrue, "SkipDownload", "No PVC required")
+		setCondition(cr, mmconsts.ConditionTypeReady, metav1.ConditionTrue, "StaticMirror", "No download required")
+		setCondition(cr, mmconsts.ConditionTypeStorageReady, metav1.ConditionTrue, "StaticMirror", "No PVC required")
 		return ctrl.Result{}, r.Status().Update(ctx, cr)
 	}
 

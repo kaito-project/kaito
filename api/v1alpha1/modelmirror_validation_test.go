@@ -38,28 +38,29 @@ func storageClass(name string) *storagev1.StorageClass {
 	}
 }
 
-// TestModelMirrorValidate_StreamOnly_Passes: azureml registry with nil StorageClassName
+// TestModelMirrorValidate_Static_Passes: a static mirror with nil StorageClassName
 // and empty JobNamespace should pass validation without requiring a StorageClass.
-func TestModelMirrorValidate_StreamOnly_Passes(t *testing.T) {
+func TestModelMirrorValidate_Static_Passes(t *testing.T) {
 	client := fake.NewClientBuilder().WithScheme(newStorageScheme()).Build()
 	k8sclient.SetGlobalClient(client)
 
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
-			Source:  ModelMirrorSource{Registry: "azureml", ModelID: "org/model"},
+			Mode:    ModelMirrorModeStatic,
+			Source:  ModelMirrorSource{Registry: RegistryAzureML, ModelID: "org/model"},
 			Storage: ModelMirrorStorage{Size: "85Gi"},
 			// JobNamespace intentionally empty
 		},
 	}
 
 	if err := m.Validate(context.Background()); err != nil {
-		t.Errorf("expected nil error for stream-only mirror, got: %v", err)
+		t.Errorf("expected nil error for static mirror, got: %v", err)
 	}
 }
 
-// TestModelMirrorValidate_Mirror_StillValidates: huggingface with a StorageClass that
-// exists in the cluster should pass validation.
-func TestModelMirrorValidate_Mirror_StillValidates(t *testing.T) {
+// TestModelMirrorValidate_Static_WithStorageClass_Fails: a static mirror must not set
+// a StorageClassName (it creates no PVC).
+func TestModelMirrorValidate_Static_WithStorageClass_Fails(t *testing.T) {
 	client := fake.NewClientBuilder().
 		WithScheme(newStorageScheme()).
 		WithRuntimeObjects(storageClass("blob-fuse")).
@@ -68,7 +69,30 @@ func TestModelMirrorValidate_Mirror_StillValidates(t *testing.T) {
 
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
-			Source:       ModelMirrorSource{Registry: "huggingface", ModelID: "org/model"},
+			Mode:    ModelMirrorModeStatic,
+			Source:  ModelMirrorSource{Registry: RegistryAzureML, ModelID: "org/model"},
+			Storage: ModelMirrorStorage{StorageClassName: ptr.To("blob-fuse"), Size: "85Gi"},
+		},
+	}
+
+	if err := m.Validate(context.Background()); err == nil {
+		t.Error("expected error when a static mirror sets storageClassName, got nil")
+	}
+}
+
+// TestModelMirrorValidate_Managed_StillValidates: a managed mirror with a StorageClass
+// that exists in the cluster should pass validation.
+func TestModelMirrorValidate_Managed_StillValidates(t *testing.T) {
+	client := fake.NewClientBuilder().
+		WithScheme(newStorageScheme()).
+		WithRuntimeObjects(storageClass("blob-fuse")).
+		Build()
+	k8sclient.SetGlobalClient(client)
+
+	m := &ModelMirror{
+		Spec: ModelMirrorSpec{
+			Mode:         ModelMirrorModeManaged,
+			Source:       ModelMirrorSource{Registry: RegistryHuggingFace, ModelID: "org/model"},
 			Storage:      ModelMirrorStorage{StorageClassName: ptr.To("blob-fuse"), Size: "20Gi"},
 			JobNamespace: "default",
 		},
@@ -79,15 +103,16 @@ func TestModelMirrorValidate_Mirror_StillValidates(t *testing.T) {
 	}
 }
 
-// TestModelMirrorValidate_Mirror_MissingStorageClass_Fails: huggingface with a
+// TestModelMirrorValidate_Managed_MissingStorageClass_Fails: a managed mirror with a
 // StorageClassName that does not exist in the cluster should return an error.
-func TestModelMirrorValidate_Mirror_MissingStorageClass_Fails(t *testing.T) {
+func TestModelMirrorValidate_Managed_MissingStorageClass_Fails(t *testing.T) {
 	client := fake.NewClientBuilder().WithScheme(newStorageScheme()).Build()
 	k8sclient.SetGlobalClient(client)
 
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
-			Source:       ModelMirrorSource{Registry: "huggingface", ModelID: "org/model"},
+			Mode:         ModelMirrorModeManaged,
+			Source:       ModelMirrorSource{Registry: RegistryHuggingFace, ModelID: "org/model"},
 			Storage:      ModelMirrorStorage{StorageClassName: ptr.To("nonexistent"), Size: "20Gi"},
 			JobNamespace: "default",
 		},
@@ -116,40 +141,43 @@ func TestModelMirrorValidate_BadRegistry_Fails(t *testing.T) {
 	}
 }
 
-// TestModelMirrorValidate_HuggingFace_NilStorageClass_Fails: a huggingface CR with
-// nil StorageClassName must fail validation because it requires a PVC-backed StorageClass.
-func TestModelMirrorValidate_HuggingFace_NilStorageClass_Fails(t *testing.T) {
+// TestModelMirrorValidate_Managed_NilStorageClass_Fails: a managed mirror with nil
+// StorageClassName must fail validation because it requires a PVC-backed StorageClass.
+// An empty Mode defaults to Managed, so this also covers the default case.
+func TestModelMirrorValidate_Managed_NilStorageClass_Fails(t *testing.T) {
 	client := fake.NewClientBuilder().WithScheme(newStorageScheme()).Build()
 	k8sclient.SetGlobalClient(client)
 
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
-			Source:       ModelMirrorSource{Registry: "huggingface", ModelID: "org/model"},
+			// Mode intentionally empty -> defaults to Managed
+			Source:       ModelMirrorSource{Registry: RegistryHuggingFace, ModelID: "org/model"},
 			Storage:      ModelMirrorStorage{Size: "20Gi"}, // StorageClassName intentionally nil
 			JobNamespace: "default",
 		},
 	}
 
 	if err := m.Validate(context.Background()); err == nil {
-		t.Error("expected error when huggingface StorageClassName is nil, got nil")
+		t.Error("expected error when managed StorageClassName is nil, got nil")
 	}
 }
 
-// TestModelMirrorValidate_HuggingFace_EmptyStorageClass_Fails: a huggingface CR with
-// an empty-string StorageClassName must also fail validation.
-func TestModelMirrorValidate_HuggingFace_EmptyStorageClass_Fails(t *testing.T) {
+// TestModelMirrorValidate_Managed_EmptyStorageClass_Fails: a managed mirror with an
+// empty-string StorageClassName must also fail validation.
+func TestModelMirrorValidate_Managed_EmptyStorageClass_Fails(t *testing.T) {
 	client := fake.NewClientBuilder().WithScheme(newStorageScheme()).Build()
 	k8sclient.SetGlobalClient(client)
 
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
-			Source:       ModelMirrorSource{Registry: "huggingface", ModelID: "org/model"},
+			Mode:         ModelMirrorModeManaged,
+			Source:       ModelMirrorSource{Registry: RegistryHuggingFace, ModelID: "org/model"},
 			Storage:      ModelMirrorStorage{StorageClassName: ptr.To(""), Size: "20Gi"},
 			JobNamespace: "default",
 		},
 	}
 
 	if err := m.Validate(context.Background()); err == nil {
-		t.Error("expected error when huggingface StorageClassName is empty string, got nil")
+		t.Error("expected error when managed StorageClassName is empty string, got nil")
 	}
 }

@@ -52,7 +52,19 @@ spec:
               jobNamespace:
                 description: |-
                   JobNamespace is the namespace where the PVC and download Job will be created.
-                  Empty for stream-only sources that create no PVC or Job.
+                  Empty for static mirrors that create no PVC or Job.
+                type: string
+              mode:
+                default: Managed
+                description: |-
+                  Mode selects how the model weights are made available:
+                    - "Managed" (default): the controller downloads the model to a PVC via a download Job.
+                    - "Static": the model weights already exist in a pre-existing (BYO) storage location;
+                      the controller creates no PVC and no download Job, and the weights location is
+                      reported in status.modelPath.
+                enum:
+                - Managed
+                - Static
                 type: string
               source:
                 properties:
@@ -104,9 +116,7 @@ spec:
                     description: ModelID is the model identifier (e.g. "Qwen/Qwen2.5-Coder-32B-Instruct").
                     type: string
                   registry:
-                    description: |-
-                      Registry is the source registry type. "huggingface" mirrors the model to a PVC;
-                      "azureml" streams directly from a pre-existing blob (no PVC, no download).
+                    description: Registry is the source registry type.
                     enum:
                     - huggingface
                     - azureml
@@ -119,13 +129,13 @@ spec:
                 properties:
                   size:
                     description: |-
-                      Size is the requested model storage: the PVC size for mirror (huggingface)
-                      sources, or informational for stream-only (azureml) sources that create no PVC.
+                      Size is the requested model storage: the PVC size for managed mirrors, or
+                      informational for static mirrors that create no PVC.
                     type: string
                   storageClassName:
                     description: |-
-                      StorageClassName is the StorageClass to use for the PVC. Nil for stream-only
-                      sources that create no PVC.
+                      StorageClassName is the StorageClass to use for the PVC. Nil for static
+                      mirrors that create no PVC.
                     type: string
                 required:
                 - size

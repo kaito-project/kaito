@@ -234,11 +234,12 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 
 	var cr *kaitov1alpha1.ModelMirror
 	if inference.HasSASBlobStreamingAnnotations(wObj.Annotations) {
-		cr = buildStreamOnlyModelMirror(crName, modelID, modelSize, accessSecret)
+		cr = buildStaticModelMirror(crName, modelID, modelSize, accessSecret)
 	} else {
 		cr = &kaitov1alpha1.ModelMirror{
 			ObjectMeta: metav1.ObjectMeta{Name: crName},
 			Spec: kaitov1alpha1.ModelMirrorSpec{
+				Mode: kaitov1alpha1.ModelMirrorModeManaged,
 				Source: kaitov1alpha1.ModelMirrorSource{
 					Registry:     kaitov1alpha1.RegistryHuggingFace,
 					ModelID:      modelID,
@@ -264,10 +265,11 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 	return nil
 }
 
-// buildStreamOnlyModelMirror constructs a skip-download ModelMirror CR: the model weights
-// live in a pre-existing external location, so the mirror creates no PVC and runs no
-// download Job (signalled by a nil StorageClassName and empty JobNamespace).
-func buildStreamOnlyModelMirror(
+// buildStaticModelMirror constructs a static ModelMirror CR: the model weights live in a
+// pre-existing (BYO) storage location, so the mirror creates no PVC and runs no download
+// Job. Mode=Static drives the skip-download behavior; StorageClassName and JobNamespace
+// are left empty because there is no PVC or Job.
+func buildStaticModelMirror(
 	crName, modelID, modelSize string,
 	accessSecret *corev1.ObjectReference,
 ) *kaitov1alpha1.ModelMirror {
@@ -276,6 +278,7 @@ func buildStreamOnlyModelMirror(
 			Name: crName,
 		},
 		Spec: kaitov1alpha1.ModelMirrorSpec{
+			Mode: kaitov1alpha1.ModelMirrorModeStatic,
 			Source: kaitov1alpha1.ModelMirrorSource{
 				Registry:     kaitov1alpha1.RegistryAzureML,
 				ModelID:      modelID,
@@ -285,7 +288,7 @@ func buildStreamOnlyModelMirror(
 				Size:             modelSize,
 				StorageClassName: nil,
 			},
-			// JobNamespace intentionally empty for a skip-download source (no PVC/Job).
+			// JobNamespace intentionally empty for a static mirror (no PVC/Job).
 		},
 	}
 }

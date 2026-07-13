@@ -34,21 +34,42 @@ type ModelMirror struct {
 }
 
 type ModelMirrorSpec struct {
+	// Mode selects how the model weights are made available:
+	//   - "Managed" (default): the controller downloads the model to a PVC via a download Job.
+	//   - "Static": the model weights already exist in a pre-existing (BYO) storage location;
+	//     the controller creates no PVC and no download Job, and the weights location is
+	//     reported in status.modelPath.
+	// +kubebuilder:validation:Enum=Managed;Static
+	// +kubebuilder:default=Managed
+	// +optional
+	Mode ModelMirrorMode `json:"mode,omitempty"`
 	// +kubebuilder:validation:Required
 	Source ModelMirrorSource `json:"source"`
 	// +kubebuilder:validation:Required
 	Storage ModelMirrorStorage `json:"storage"`
 	// JobNamespace is the namespace where the PVC and download Job will be created.
-	// Empty for stream-only sources that create no PVC or Job.
+	// Empty for static mirrors that create no PVC or Job.
 	// +optional
 	JobNamespace string `json:"jobNamespace,omitempty"`
 }
 
+// ModelMirrorMode describes how a ModelMirror provisions the model weights.
+type ModelMirrorMode string
+
+const (
+	// ModelMirrorModeManaged downloads the model to a PVC via a download Job.
+	ModelMirrorModeManaged ModelMirrorMode = "Managed"
+	// ModelMirrorModeStatic maps to an existing (BYO) storage location where the model
+	// weights are already available. No PVC or download Job is created, the weights
+	// location is reported in status.modelPath.
+	ModelMirrorModeStatic ModelMirrorMode = "Static"
+)
+
 // Supported ModelMirror source registries.
 const (
-	// RegistryHuggingFace mirrors the model to a PVC (download at reconcile time).
+	// RegistryHuggingFace mirrors the model from HuggingFace.
 	RegistryHuggingFace = "huggingface"
-	// RegistryAzureML streams directly from a pre-existing blob (no PVC, no download).
+	// RegistryAzureML mirrors the model from a managed model catalog.
 	RegistryAzureML = "azureml"
 )
 
@@ -56,8 +77,7 @@ const (
 var SupportedRegistries = []string{RegistryHuggingFace, RegistryAzureML}
 
 type ModelMirrorSource struct {
-	// Registry is the source registry type. "huggingface" mirrors the model to a PVC;
-	// "azureml" streams directly from a pre-existing blob (no PVC, no download).
+	// Registry is the source registry type.
 	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:Enum=huggingface;azureml
 	Registry string `json:"registry"`
@@ -70,12 +90,12 @@ type ModelMirrorSource struct {
 }
 
 type ModelMirrorStorage struct {
-	// Size is the requested model storage: the PVC size for mirror (huggingface)
-	// sources, or informational for stream-only (azureml) sources that create no PVC.
+	// Size is the requested model storage: the PVC size for managed mirrors, or
+	// informational for static mirrors that create no PVC.
 	// +kubebuilder:validation:Required
 	Size string `json:"size"`
-	// StorageClassName is the StorageClass to use for the PVC. Nil for stream-only
-	// sources that create no PVC.
+	// StorageClassName is the StorageClass to use for the PVC. Nil for static
+	// mirrors that create no PVC.
 	// +optional
 	StorageClassName *string `json:"storageClassName,omitempty"`
 }

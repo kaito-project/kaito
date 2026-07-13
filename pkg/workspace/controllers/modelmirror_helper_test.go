@@ -17,9 +17,11 @@ import (
 	"testing"
 
 	corev1 "k8s.io/api/core/v1"
+
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 )
 
-func TestBuildStreamOnlyModelMirror(t *testing.T) {
+func TestBuildStaticModelMirror(t *testing.T) {
 	const (
 		crName    = "qwen2-5-coder-32b"
 		modelID   = "Qwen/Qwen2.5-Coder-32B-Instruct"
@@ -27,19 +29,23 @@ func TestBuildStreamOnlyModelMirror(t *testing.T) {
 	)
 	accessSecret := &corev1.ObjectReference{Name: "my-secret", Namespace: "default"}
 
-	cr := buildStreamOnlyModelMirror(crName, modelID, modelSize, accessSecret)
+	cr := buildStaticModelMirror(crName, modelID, modelSize, accessSecret)
 
 	if cr.Name != crName {
 		t.Errorf("Name: got %q, want %q", cr.Name, crName)
 	}
 
-	// A skip-download mirror carries no streaming vocabulary; the mirror is agnostic to it.
+	if cr.Spec.Mode != kaitov1alpha1.ModelMirrorModeStatic {
+		t.Errorf("Mode: got %q, want %q", cr.Spec.Mode, kaitov1alpha1.ModelMirrorModeStatic)
+	}
+
+	// A static mirror carries no streaming vocabulary; the mirror is agnostic to it.
 	if len(cr.Annotations) != 0 {
 		t.Errorf("Annotations: got %v, want none", cr.Annotations)
 	}
 
-	if cr.Spec.Source.Registry != "azureml" {
-		t.Errorf("Source.Registry: got %q, want %q", cr.Spec.Source.Registry, "azureml")
+	if cr.Spec.Source.Registry != kaitov1alpha1.RegistryAzureML {
+		t.Errorf("Source.Registry: got %q, want %q", cr.Spec.Source.Registry, kaitov1alpha1.RegistryAzureML)
 	}
 	if cr.Spec.Source.ModelID != modelID {
 		t.Errorf("Source.ModelID: got %q, want %q", cr.Spec.Source.ModelID, modelID)
@@ -52,17 +58,17 @@ func TestBuildStreamOnlyModelMirror(t *testing.T) {
 		t.Errorf("Storage.Size: got %q, want %q", cr.Spec.Storage.Size, modelSize)
 	}
 	if cr.Spec.Storage.StorageClassName != nil {
-		t.Errorf("Storage.StorageClassName: got %v, want nil (no PVC for skip-download)", cr.Spec.Storage.StorageClassName)
+		t.Errorf("Storage.StorageClassName: got %v, want nil (no PVC for a static mirror)", cr.Spec.Storage.StorageClassName)
 	}
 
-	// No PVC/Job is created for a skip-download source, so JobNamespace must be empty.
+	// No PVC/Job is created for a static mirror, so JobNamespace must be empty.
 	if cr.Spec.JobNamespace != "" {
-		t.Errorf("JobNamespace: got %q, want empty (no Job for skip-download)", cr.Spec.JobNamespace)
+		t.Errorf("JobNamespace: got %q, want empty (no Job for a static mirror)", cr.Spec.JobNamespace)
 	}
 }
 
-func TestBuildStreamOnlyModelMirror_NilAccessSecret(t *testing.T) {
-	cr := buildStreamOnlyModelMirror("model-cr", "org/model", "20Gi", nil)
+func TestBuildStaticModelMirror_NilAccessSecret(t *testing.T) {
+	cr := buildStaticModelMirror("model-cr", "org/model", "20Gi", nil)
 
 	if cr.Spec.Source.AccessSecret != nil {
 		t.Errorf("Source.AccessSecret: got %v, want nil", cr.Spec.Source.AccessSecret)

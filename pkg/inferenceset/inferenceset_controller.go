@@ -50,6 +50,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
+	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 )
 
@@ -191,61 +192,111 @@ func aggregateBenchmarkResults(workspaces []kaitov1beta1.Workspace) (totalTPM fl
 	return
 }
 
-// classifyWorkspaces separates the given workspaces for the InferenceSet controller
-// during a possible in-flight surge-based auto-upgrade.
-//
-// The AutoUpgradeRunner owns a set of Workspaces while a surge upgrade is running:
-// each "surge" Workspace (carrying the upgrade-surge-for label) and the old Workspace
-// it is replacing (named by that label). These runner-owned Workspaces must not be
-// created or deleted by the InferenceSet controller.
-//
-// Returns:
-//   - managed: all non-surge Workspaces (used for readiness/benchmark status). Includes
-//     the old Workspaces currently being replaced, which keep serving during a surge.
-//   - stable: managed Workspaces that are NOT being replaced by an in-flight surge; these
-//     are the Workspaces the controller freely scales up/down.
-//   - numSurges: number of in-flight surges. Each occupies one replica slot (its paired
-//     old Workspace is the outgoing instance of that same slot), so the controller
-//     reconciles stable toward (desiredReplicas - numSurges).
-//
-// Reserving a slot per surge — rather than pausing all scaling while any surge exists —
-// lets users scale up or down even while an upgrade is in progress or stuck, without the
-// controller ever creating or deleting the runner-owned surge or its paired old Workspace.
-func classifyWorkspaces(workspaces []kaitov1beta1.Workspace) (managed, stable []kaitov1beta1.Workspace, numSurges int) {
-	// First pass: find in-flight surges and the names of the old Workspaces they replace.
-	replacedOld := make(map[string]struct{})
-	for i := range workspaces {
-		if old, ok := workspaces[i].Labels[kaitov1alpha1.LabelUpgradeSurgeFor]; ok {
-			numSurges++
-			if old != "" {
-				replacedOld[old] = struct{}{}
-			}
+// isWorkspaceOnOldImage reports whether the Workspace's StatefulSet is running a base
+// image other than the controller's current desired image. A Workspace whose StatefulSet
+// does not exist yet is treated as new (not old), so a freshly created incoming replica
+// is never preferentially deleted during a scale-down.
+func (c *InferenceSetReconciler) isWorkspaceOnOldImage(ctx context.Context, ws *kaitov1beta1.Workspace, desiredImage string) (bool, error) {
+	ss := &appsv1.StatefulSet{}
+	if err := resources.GetResource(ctx, ws.Name, ws.Namespace, c.Client, ss); err != nil {
+		if apierrors.IsNotFound(err) {
+			return false, nil
 		}
+		return false, err
 	}
-	// Second pass: managed = all non-surge Workspaces; stable additionally excludes the
-	// old Workspaces currently being replaced by a surge.
-	for i := range workspaces {
-		if _, ok := workspaces[i].Labels[kaitov1alpha1.LabelUpgradeSurgeFor]; ok {
-			continue // surge Workspace (runner-owned)
-		}
-		managed = append(managed, workspaces[i])
-		if _, ok := replacedOld[workspaces[i].Name]; !ok {
-			stable = append(stable, workspaces[i])
-		}
-	}
-	return
+	return workspace.GetInferenceContainerImage(ss) != desiredImage, nil
 }
 
-// stableTargetForReplicas returns the number of stable Workspaces the controller should
-// maintain given the desired replica count and the number of in-flight surges. Each surge
-// reserves one replica slot, so the controller only manages the leftover slots. Clamped to
-// be non-negative.
-func stableTargetForReplicas(desiredReplicas int32, numSurges int) int {
-	target := int(desiredReplicas) - numSurges
-	if target < 0 {
-		target = 0
+// selectWorkspacesToDelete chooses which Workspaces to remove when the InferenceSet is over
+// its desired replica count. It balances two goals:
+//
+//   - Zero-downtime auto-upgrade: prefer deleting Workspaces running an OLD base image so
+//     that freshly created new-image Workspaces survive the scale-down. A Ready old Workspace
+//     is only retired while enough Ready replicas remain (see below), which makes the
+//     controller wait for a new-image surge Workspace to become Ready before cutting over.
+//   - Availability: never delete a Ready Workspace if doing so would drop the number of Ready
+//     replicas below desiredReplicas.
+//
+// New-image Workspaces are deleted only as a last resort — when the surplus exceeds the
+// number of old Workspaces (e.g. the user genuinely scaled the InferenceSet down) — so a
+// normal upgrade surge never deletes the incoming replica.
+//
+// Workspaces already being deleted count toward the target without issuing a new delete.
+func (c *InferenceSetReconciler) selectWorkspacesToDelete(ctx context.Context, workspaces []kaitov1beta1.Workspace, desiredReplicas, numToDelete int) ([]*kaitov1beta1.Workspace, error) {
+	desiredImage := inference.GetBaseImageName()
+
+	// Classify each live Workspace once, recording whether it is Ready and whether it is
+	// running an old base image. Workspaces already terminating count toward the target.
+	type candidate struct {
+		ws    *kaitov1beta1.Workspace
+		ready bool
+		old   bool
 	}
-	return target
+	candidates := make([]candidate, 0, len(workspaces))
+	readyCount, oldCount := 0, 0
+	for i := range workspaces {
+		ws := &workspaces[i]
+		if !ws.DeletionTimestamp.IsZero() {
+			numToDelete--
+			klog.InfoS("Skipping workspace that is already being deleted...", "workspace", klog.KObj(ws))
+			continue
+		}
+		ready := controllers.DetermineWorkspacePhase(ws) == "succeeded"
+		old, err := c.isWorkspaceOnOldImage(ctx, ws, desiredImage)
+		if err != nil {
+			return nil, err
+		}
+		if ready {
+			readyCount++
+		}
+		if old {
+			oldCount++
+		}
+		candidates = append(candidates, candidate{ws: ws, ready: ready, old: old})
+	}
+	if numToDelete <= 0 {
+		return nil, nil
+	}
+
+	// Delete in priority order: old before new, and within each, not-ready before ready.
+	sort.SliceStable(candidates, func(i, j int) bool {
+		if candidates[i].old != candidates[j].old {
+			return candidates[i].old // old-image workspaces first
+		}
+		return !candidates[i].ready && candidates[j].ready // not-ready first
+	})
+
+	// Two budgets bound the selection:
+	//   - readyBudget: how many Ready workspaces may be deleted without dropping the Ready
+	//     count below desiredReplicas. This makes the controller wait for a new-image surge
+	//     workspace to become Ready before retiring the old one it replaces.
+	//   - newBudget: new-image workspaces are retired only when the surplus exceeds the number
+	//     of old workspaces (a genuine scale-down), so a normal upgrade never deletes the
+	//     incoming replica.
+	readyBudget := readyCount - desiredReplicas
+	newBudget := numToDelete - oldCount
+
+	toDelete := make([]*kaitov1beta1.Workspace, 0, numToDelete)
+	for _, cand := range candidates {
+		if len(toDelete) >= numToDelete {
+			break
+		}
+		if cand.ready && readyBudget <= 0 {
+			continue // would drop Ready below desiredReplicas
+		}
+		if !cand.old && newBudget <= 0 {
+			continue // keep new-image replicas unless genuinely over-provisioned
+		}
+		toDelete = append(toDelete, cand.ws)
+		if cand.ready {
+			readyBudget--
+		}
+		if !cand.old {
+			newBudget--
+		}
+	}
+
+	return toDelete, nil
 }
 
 func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iObj *kaitov1beta1.InferenceSet) (reconcile.Result, error) {
@@ -269,48 +320,16 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 		desiredReplicas = *iObj.Spec.Replicas
 	}
 
-	// Workspaces created by the surge-based auto-upgrade strategy carry the
-	// upgrade-surge-for label and are owned by the AutoUpgradeRunner for the
-	// duration of the rollout. Each surge (together with the old Workspace it is
-	// replacing) reserves one replica slot; the InferenceSet controller manages
-	// only the remaining "stable" Workspaces, reconciling them toward
-	// (desiredReplicas - numSurges). This keeps the controller from fighting the
-	// runner over the surge or its paired old Workspace, while still allowing
-	// scale up/down even while an upgrade is in progress or stuck.
-	managed, stable, numSurges := classifyWorkspaces(wsList.Items)
-	stableTarget := stableTargetForReplicas(desiredReplicas, numSurges)
 	klog.InfoS("Found workspaces for inference set", "name", iObj.Name,
-		"managed", len(managed), "stable", len(stable), "surges", numSurges,
-		"desired", desiredReplicas, "stableTarget", stableTarget)
+		"current", len(wsList.Items), "desired", desiredReplicas)
 
-	replicaNumToDelete := len(stable) - stableTarget
+	replicaNumToDelete := len(wsList.Items) - int(desiredReplicas)
 	if replicaNumToDelete > 0 {
-		klog.InfoS("Found extra workspaces, deleting...", "stable", len(stable), "stableTarget", stableTarget)
+		klog.InfoS("Found extra workspaces, deleting...", "current", len(wsList.Items), "desired", desiredReplicas)
 
-		// Partition workspaces into those already being deleted, those that are
-		// not ready, and those that are ready. Workspaces already being deleted
-		// count toward the target without issuing a new delete; among the rest,
-		// prefer deleting non-ready workspaces before ready ones.
-		var notReady, ready []*kaitov1beta1.Workspace
-		for i := range stable {
-			ws := &stable[i]
-			if !ws.DeletionTimestamp.IsZero() {
-				replicaNumToDelete--
-				klog.InfoS("Skipping workspace that is already being deleted...", "workspace", klog.KObj(ws))
-			} else if controllers.DetermineWorkspacePhase(ws) != "succeeded" {
-				notReady = append(notReady, ws)
-			} else {
-				ready = append(ready, ws)
-			}
-		}
-
-		var toDelete []*kaitov1beta1.Workspace
-		for _, ws := range append(notReady, ready...) {
-			if replicaNumToDelete <= 0 {
-				break
-			}
-			toDelete = append(toDelete, ws)
-			replicaNumToDelete--
+		toDelete, err := c.selectWorkspacesToDelete(ctx, wsList.Items, int(desiredReplicas), replicaNumToDelete)
+		if err != nil {
+			return ctrl.Result{}, err
 		}
 
 		if len(toDelete) > 0 {
@@ -341,13 +360,11 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 		if wsList, err = inferenceset.ListWorkspaces(ctx, iObj, c.Client); err != nil {
 			return ctrl.Result{}, err
 		}
-		managed, stable, numSurges = classifyWorkspaces(wsList.Items)
-		stableTarget = stableTargetForReplicas(desiredReplicas, numSurges)
 	}
 
-	replicaNumToCreate := stableTarget - len(stable)
+	replicaNumToCreate := int(desiredReplicas) - len(wsList.Items)
 	if replicaNumToCreate > 0 {
-		klog.InfoS("Need to create more workspaces...", "stable", len(stable), "stableTarget", stableTarget)
+		klog.InfoS("Need to create more workspaces...", "current", len(wsList.Items), "desired", desiredReplicas)
 		// Set creation expectations before issuing any create so that a stale
 		// cache read in a subsequent reconcile does not create duplicate
 		// workspaces. The expectation is lowered when the create event is
@@ -409,7 +426,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	}
 
 	// check whether all the workspaces are ready
-	totalTPM, readyReplicas, benchmarkedReplicas, hasBenchmarkTPMResult := aggregateBenchmarkResults(managed)
+	totalTPM, readyReplicas, benchmarkedReplicas, hasBenchmarkTPMResult := aggregateBenchmarkResults(wsList.Items)
 
 	// update the replicas in the status
 	if err = inferenceset.UpdateInferenceSetStatus(ctx, c.Client, &client.ObjectKey{Name: iObj.Name, Namespace: iObj.Namespace}, func(status *kaitov1beta1.InferenceSetStatus) error {

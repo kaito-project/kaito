@@ -342,9 +342,10 @@ jobs:
         run: |
           az group delete --name "${{ env.CLUSTER_NAME }}" --yes --no-wait || true
 
-  # Surge-based strategy: the controller creates a NEW (surge) Workspace on the new
-  # base image, waits for it to become ready, then deletes the OLD one. This
-  # verifies the no-downtime upgrade path, in contrast to the in-place job above.
+  # Surge-based strategy: the auto-upgrade runner adds a NEW Workspace on the new
+  # base image; the InferenceSet controller keeps the OLD one serving until the new
+  # one is Ready, then retires the old one during scale-down. This verifies the
+  # no-downtime upgrade path, in contrast to the in-place job above.
   surge-based-auto-upgrade-test:
     runs-on: ["self-hosted", "hostname:kaito-e2e-github-runner"]
     environment: e2e-test
@@ -516,180 +517,121 @@ jobs:
             exit 1
           fi
 
-      - name: Verify a surge workspace is created
+      - name: Verify a new workspace is created on the new base image
         shell: bash
         run: |
           NEW_TAG=$(yq '.models[] | select(.name == "base") | .tag' presets/workspace/models/supported_models.yaml)
           echo "Expected new base tag: $NEW_TAG"
           echo "Old workspace: $OLD_WS"
-          echo "Waiting for the surge workspace to be created..."
+          echo "Waiting for the auto-upgrade runner to create a new (surge) workspace..."
 
+          # The runner adds one new-image workspace with no special label; it is simply
+          # the workspace belonging to this InferenceSet that is not the original one.
           end=$((SECONDS+600))
-          SURGE_WS=""
-          while [ $SECONDS -lt $end ]; do
-            # The surge workspace carries the upgrade-surge-for label.
-            SURGE_WS=$(kubectl get workspace -l kaito.sh/upgrade-surge-for -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
-            if [ -n "$SURGE_WS" ]; then
-              SURGE_FOR=$(kubectl get workspace "$SURGE_WS" -o json | jq -r '.metadata.labels["kaito.sh/upgrade-surge-for"] // empty')
-              echo "Surge workspace created: $SURGE_WS (surge-for=$SURGE_FOR)"
-
-              # The surge must replace the old workspace and must NOT be the old one.
-              if [ "$SURGE_WS" = "$OLD_WS" ]; then
-                echo "ERROR: surge workspace is the same as the old workspace"
-                exit 1
-              fi
-              if [ "$SURGE_FOR" != "$OLD_WS" ]; then
-                echo "ERROR: surge-for=$SURGE_FOR does not point to old workspace $OLD_WS"
-                exit 1
-              fi
-              echo "SURGE_WS=$SURGE_WS" >> "$GITHUB_ENV"
-              break
-            fi
-            echo "Waiting for surge workspace... (none yet)"
-            sleep 10
-          done
-
-          if [ -z "$SURGE_WS" ]; then
-            echo "Timeout: surge workspace was not created"
-            kubectl get workspace -L kaito.sh/upgrade-surge-for
-            kubectl logs deploy/kaito-workspace -n kaito-workspace --tail=200
-            exit 1
-          fi
-
-          # Old workspace must still exist and must NOT carry the surge label.
-          kubectl get workspace "$OLD_WS" >/dev/null
-          OLD_SURGE_LABEL=$(kubectl get workspace "$OLD_WS" -o json | jq -r '.metadata.labels["kaito.sh/upgrade-surge-for"] // empty')
-          if [ -n "$OLD_SURGE_LABEL" ]; then
-            echo "ERROR: old workspace unexpectedly has surge label"
-            exit 1
-          fi
-
-      - name: Scale up during in-flight upgrade
-        shell: bash
-        run: |
-          # The surge for OLD_WS is now in flight (SURGE_WS created, not yet
-          # promoted). Scale the InferenceSet from 1 to 2 and verify the controller
-          # creates an additional (stable) replica DURING the upgrade. This proves
-          # an in-flight surge no longer blocks scaling: the runner owns the surge
-          # and the old workspace it replaces, while the InferenceSet controller is
-          # free to reconcile the remaining replica slots.
-          echo "Scaling ${INFERENCESET_NAME} from 1 to 2 while the surge is in flight..."
-          kubectl patch inferenceset ${INFERENCESET_NAME} --type=merge -p '{"spec":{"replicas":2}}'
-
-          echo "Waiting for a new stable replica (neither the old workspace nor the surge) to be created..."
-          end=$((SECONDS+600))
-          SCALED_WS=""
+          NEW_WS=""
           while [ $SECONDS -lt $end ]; do
             for w in $(kubectl get workspace -l inferenceset.kaito.sh/created-by=${INFERENCESET_NAME} -o jsonpath='{.items[*].metadata.name}'); do
-              if [ "$w" != "$OLD_WS" ] && [ "$w" != "$SURGE_WS" ]; then
-                W_SURGE=$(kubectl get workspace "$w" -o json | jq -r '.metadata.labels["kaito.sh/upgrade-surge-for"] // empty')
-                if [ -z "$W_SURGE" ]; then
-                  SCALED_WS="$w"
-                  break
-                fi
+              if [ "$w" != "$OLD_WS" ]; then
+                NEW_WS="$w"
+                break
               fi
             done
-            if [ -n "$SCALED_WS" ]; then
-              echo "New stable replica created during upgrade: $SCALED_WS"
-              echo "SCALED_WS=$SCALED_WS" >> "$GITHUB_ENV"
+            if [ -n "$NEW_WS" ]; then
+              echo "New workspace created: $NEW_WS"
+              echo "NEW_WS=$NEW_WS" >> "$GITHUB_ENV"
               break
             fi
-            # The in-flight surge must not vanish while we wait for the scale-up.
-            if ! kubectl get workspace "$SURGE_WS" >/dev/null 2>&1; then
-              echo "NOTE: surge $SURGE_WS already completed before scale-up was observed"
-            fi
-            echo "Waiting for scaled replica... (none yet)"
+            echo "Waiting for new workspace... (none yet)"
             sleep 10
           done
 
-          if [ -z "$SCALED_WS" ]; then
-            echo "ERROR: scaling was blocked during the in-flight upgrade (no new replica created)"
-            kubectl get workspace -L kaito.sh/upgrade-surge-for
+          if [ -z "$NEW_WS" ]; then
+            echo "Timeout: new workspace was not created"
+            kubectl get workspace -l inferenceset.kaito.sh/created-by=${INFERENCESET_NAME}
             kubectl logs deploy/kaito-workspace -n kaito-workspace --tail=200
             exit 1
           fi
 
-          # Old workspace must still be present and serving: scaling must not disturb
-          # the in-flight upgrade or cause downtime on the old replica.
+          # Old workspace must still exist and keep serving (no downtime / not deleted yet).
+          kubectl get workspace "$OLD_WS" >/dev/null
           OLD_DELETING=$(kubectl get workspace "$OLD_WS" -o jsonpath='{.metadata.deletionTimestamp}' 2>/dev/null || true)
           if [ -n "$OLD_DELETING" ]; then
-            echo "ERROR: old workspace was deleted as a side effect of scaling (downtime!)"
+            echo "ERROR: old workspace is being deleted before the new one is ready (downtime!)"
             exit 1
           fi
 
-      - name: Verify no downtime - old stays ready until surge is ready
+      - name: Verify no downtime - old stays ready until the new workspace is ready
         shell: bash
         run: |
           NEW_TAG=$(yq '.models[] | select(.name == "base") | .tag' presets/workspace/models/supported_models.yaml)
-          echo "Old: $OLD_WS  Surge: $SURGE_WS"
+          echo "Old: $OLD_WS  New: $NEW_WS"
 
-          # The surge should run the NEW base image. The Workspace controller
-          # creates the surge StatefulSet asynchronously after the Workspace object,
-          # so poll until the image is populated rather than checking once.
-          echo "Waiting for surge StatefulSet to be created on the new base tag $NEW_TAG..."
+          # The new workspace should run the NEW base image. The Workspace controller
+          # creates its StatefulSet asynchronously after the Workspace object, so poll
+          # until the image is populated rather than checking once.
+          echo "Waiting for the new StatefulSet to be created on the new base tag $NEW_TAG..."
           end=$((SECONDS+300))
-          SURGE_IMAGE=""
+          NEW_IMAGE=""
           while [ $SECONDS -lt $end ]; do
-            SURGE_IMAGE=$(kubectl get statefulset "$SURGE_WS" -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
-            if echo "$SURGE_IMAGE" | grep -q "$NEW_TAG"; then
-              echo "Surge StatefulSet image: $SURGE_IMAGE"
+            NEW_IMAGE=$(kubectl get statefulset "$NEW_WS" -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
+            if echo "$NEW_IMAGE" | grep -q "$NEW_TAG"; then
+              echo "New StatefulSet image: $NEW_IMAGE"
               break
             fi
-            echo "Waiting for surge StatefulSet image... (current: '${SURGE_IMAGE:-<none>}')"
+            echo "Waiting for new StatefulSet image... (current: '${NEW_IMAGE:-<none>}')"
             sleep 10
           done
-          if ! echo "$SURGE_IMAGE" | grep -q "$NEW_TAG"; then
-            echo "ERROR: surge workspace is not on the new base tag $NEW_TAG (image: '${SURGE_IMAGE:-<none>}')"
-            kubectl get workspace -L kaito.sh/upgrade-surge-for
-            kubectl get statefulset "$SURGE_WS" -o yaml 2>/dev/null || true
+          if ! echo "$NEW_IMAGE" | grep -q "$NEW_TAG"; then
+            echo "ERROR: new workspace is not on the new base tag $NEW_TAG (image: '${NEW_IMAGE:-<none>}')"
+            kubectl get workspace -l inferenceset.kaito.sh/created-by=${INFERENCESET_NAME}
+            kubectl get statefulset "$NEW_WS" -o yaml 2>/dev/null || true
             exit 1
           fi
 
-          # While the surge workspace comes up (and downloads weights), the old
-          # workspace MUST keep serving (InferenceReady=True). This is the core
-          # no-downtime guarantee of surge-based upgrades. Poll until the surge is
-          # ready, and on every poll assert the old workspace is still ready and not
-          # being deleted.
-          echo "Waiting for the surge to become ready while asserting the old workspace stays ready..."
+          # While the new workspace comes up (and downloads weights), the old workspace
+          # MUST keep serving (InferenceReady=True). This is the core no-downtime
+          # guarantee. Poll until the new one is ready, and on every poll assert the old
+          # workspace is still ready and not being deleted.
+          echo "Waiting for the new workspace to become ready while asserting the old one stays ready..."
           end=$((SECONDS+2400))
           while [ $SECONDS -lt $end ]; do
-            SURGE_READY=$(kubectl get workspace "$SURGE_WS" -o jsonpath='{.status.conditions[?(@.type=="InferenceReady")].status}' 2>/dev/null || true)
-            if [ "$SURGE_READY" = "True" ]; then
-              echo "Surge workspace $SURGE_WS is ready"
+            NEW_READY=$(kubectl get workspace "$NEW_WS" -o jsonpath='{.status.conditions[?(@.type=="InferenceReady")].status}' 2>/dev/null || true)
+            if [ "$NEW_READY" = "True" ]; then
+              echo "New workspace $NEW_WS is ready"
               break
             fi
 
-            # Old workspace must still be present and serving during the surge bring-up.
+            # Old workspace must still be present and serving during the new one's bring-up.
             OLD_DELETING=$(kubectl get workspace "$OLD_WS" -o jsonpath='{.metadata.deletionTimestamp}' 2>/dev/null || true)
             OLD_READY=$(kubectl get workspace "$OLD_WS" -o jsonpath='{.status.conditions[?(@.type=="InferenceReady")].status}' 2>/dev/null || true)
             if [ -n "$OLD_DELETING" ]; then
-              echo "ERROR: old workspace is being deleted before the surge is ready (downtime!)"
-              kubectl get workspace -L kaito.sh/upgrade-surge-for
+              echo "ERROR: old workspace is being deleted before the new one is ready (downtime!)"
+              kubectl get workspace -l inferenceset.kaito.sh/created-by=${INFERENCESET_NAME}
               exit 1
             fi
             if [ "$OLD_READY" != "True" ]; then
-              echo "ERROR: old workspace lost readiness before the surge is ready (downtime!) - InferenceReady=$OLD_READY"
+              echo "ERROR: old workspace lost readiness before the new one is ready (downtime!) - InferenceReady=$OLD_READY"
               kubectl get workspace "$OLD_WS" -o yaml
               exit 1
             fi
 
-            echo "Waiting... (surge ready: ${SURGE_READY:-False}, old ready: $OLD_READY)"
+            echo "Waiting... (new ready: ${NEW_READY:-False}, old ready: $OLD_READY)"
             sleep 20
           done
 
           if [ $SECONDS -ge $end ]; then
-            echo "Timeout: surge workspace did not become ready"
-            kubectl get workspace -L kaito.sh/upgrade-surge-for
-            kubectl describe pods -l kaito.sh/workspace="$SURGE_WS" 2>/dev/null | tail -60 || true
-            kubectl logs -l kaito.sh/workspace="$SURGE_WS" --tail=100 2>/dev/null || true
+            echo "Timeout: new workspace did not become ready"
+            kubectl get workspace -l inferenceset.kaito.sh/created-by=${INFERENCESET_NAME}
+            kubectl describe pods -l kaito.sh/workspace="$NEW_WS" 2>/dev/null | tail -60 || true
+            kubectl logs -l kaito.sh/workspace="$NEW_WS" --tail=100 2>/dev/null || true
             kubectl logs deploy/kaito-workspace -n kaito-workspace --tail=200
             exit 1
           fi
 
-      - name: Verify cutover - old deleted and surge promoted
+      - name: Verify cutover - old workspace deleted
         shell: bash
         run: |
-          echo "Waiting for the old workspace ($OLD_WS) to be deleted after the surge became ready..."
+          echo "Waiting for the old workspace ($OLD_WS) to be deleted after the new one became ready..."
           end=$((SECONDS+600))
           while [ $SECONDS -lt $end ]; do
             if ! kubectl get workspace "$OLD_WS" >/dev/null 2>&1; then
@@ -701,39 +643,19 @@ jobs:
           done
           if kubectl get workspace "$OLD_WS" >/dev/null 2>&1; then
             echo "Timeout: old workspace was not deleted"
-            kubectl get workspace -L kaito.sh/upgrade-surge-for
+            kubectl get workspace -l inferenceset.kaito.sh/created-by=${INFERENCESET_NAME}
             kubectl logs deploy/kaito-workspace -n kaito-workspace --tail=200
             exit 1
           fi
 
-          echo "Waiting for the surge ($SURGE_WS) to be promoted (surge label removed)..."
-          end=$((SECONDS+600))
-          while [ $SECONDS -lt $end ]; do
-            SURGE_LABEL=$(kubectl get workspace "$SURGE_WS" -o json | jq -r '.metadata.labels["kaito.sh/upgrade-surge-for"] // empty')
-            if [ -z "$SURGE_LABEL" ]; then
-              echo "Surge workspace promoted (surge label removed)"
-              break
-            fi
-            echo "Waiting for promotion... (surge-for still: $SURGE_LABEL)"
-            sleep 10
-          done
-          SURGE_LABEL=$(kubectl get workspace "$SURGE_WS" -o json | jq -r '.metadata.labels["kaito.sh/upgrade-surge-for"] // empty')
-          if [ -n "$SURGE_LABEL" ]; then
-            echo "Timeout: surge workspace was not promoted"
-            kubectl get workspace "$SURGE_WS" -o yaml
-            exit 1
-          fi
-
-          # After cutover + scale-up, exactly two replicas should remain: the
-          # promoted surge and the replica added during the upgrade. Both must be
-          # on the new tag and ready, with no surge labels left.
+          # After cutover, exactly one replica should remain: the new workspace,
+          # on the new tag and ready.
           NEW_TAG=$(yq '.models[] | select(.name == "base") | .tag' presets/workspace/models/supported_models.yaml)
-          echo "Waiting for the InferenceSet to settle at 2 ready replicas on $NEW_TAG..."
+          echo "Waiting for the InferenceSet to settle at 1 ready replica on $NEW_TAG..."
           end=$((SECONDS+2400))
           while [ $SECONDS -lt $end ]; do
             data=$(kubectl get workspace -l inferenceset.kaito.sh/created-by=${INFERENCESET_NAME} -o json)
             COUNT=$(echo "$data" | jq '.items | length')
-            SURGES=$(echo "$data" | jq '[.items[]|select(.metadata.labels["kaito.sh/upgrade-surge-for"])]|length')
             READY=$(echo "$data" | jq '[.items[]|select(.status.conditions[]?|select(.type=="InferenceReady" and .status=="True"))]|length')
             # Count workspaces whose StatefulSet image is on the new tag.
             ONNEW=0
@@ -741,16 +663,16 @@ jobs:
               IMG=$(kubectl get statefulset "$w" -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
               if echo "$IMG" | grep -q "$NEW_TAG"; then ONNEW=$((ONNEW+1)); fi
             done
-            echo "count=$COUNT surges=$SURGES ready=$READY onNewTag=$ONNEW"
-            if [ "$COUNT" = "2" ] && [ "$SURGES" = "0" ] && [ "$READY" = "2" ] && [ "$ONNEW" = "2" ]; then
-              echo "Upgrade + scale-up settled: 2 replicas, both ready on $NEW_TAG, no surges."
+            echo "count=$COUNT ready=$READY onNewTag=$ONNEW"
+            if [ "$COUNT" = "1" ] && [ "$READY" = "1" ] && [ "$ONNEW" = "1" ]; then
+              echo "Upgrade settled: 1 replica, ready on $NEW_TAG."
               break
             fi
             sleep 20
           done
           if [ $SECONDS -ge $end ]; then
-            echo "ERROR: InferenceSet did not settle at 2 ready replicas on the new tag"
-            kubectl get workspace -L kaito.sh/upgrade-surge-for
+            echo "ERROR: InferenceSet did not settle at 1 ready replica on the new tag"
+            kubectl get workspace -l inferenceset.kaito.sh/created-by=${INFERENCESET_NAME}
             kubectl logs deploy/kaito-workspace -n kaito-workspace --tail=200
             exit 1
           fi

@@ -32,14 +32,15 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
+	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 )
 
@@ -508,93 +509,196 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 	}
 }
 
-func TestClassifyWorkspaces(t *testing.T) {
-	ws := func(name string, labels map[string]string) v1beta1.Workspace {
-		return v1beta1.Workspace{
-			ObjectMeta: v1.ObjectMeta{Name: name, Labels: labels},
-		}
+func TestSelectWorkspacesToDelete(t *testing.T) {
+	ctx := context.Background()
+	const ns = "default"
+	desiredImage := inference.GetBaseImageName()
+	oldImage := desiredImage + "-old"
+
+	type wsSpec struct {
+		name        string
+		ready       bool
+		old         bool
+		terminating bool
 	}
 
-	tests := []struct {
-		name         string
-		input        []v1beta1.Workspace
-		wantManaged  []string
-		wantStable   []string
-		wantNumSurge int
-	}{
-		{
-			name:         "no surge - all managed and stable",
-			input:        []v1beta1.Workspace{ws("a", nil), ws("b", nil)},
-			wantManaged:  []string{"a", "b"},
-			wantStable:   []string{"a", "b"},
-			wantNumSurge: 0,
-		},
-		{
-			name: "one surge - old workspace managed but not stable",
-			input: []v1beta1.Workspace{
-				ws("old", nil),
-				ws("surge", map[string]string{kaitov1alpha1.LabelUpgradeSurgeFor: "old"}),
-			},
-			// old is still serving (managed) but reserved by the runner (not stable).
-			wantManaged:  []string{"old"},
-			wantStable:   nil,
-			wantNumSurge: 1,
-		},
-		{
-			name: "surge plus an unrelated stable replica",
-			input: []v1beta1.Workspace{
-				ws("old", nil),
-				ws("surge", map[string]string{kaitov1alpha1.LabelUpgradeSurgeFor: "old"}),
-				ws("other", nil),
-			},
-			// "other" is freely scalable; "old" is reserved; "surge" is runner-owned.
-			wantManaged:  []string{"old", "other"},
-			wantStable:   []string{"other"},
-			wantNumSurge: 1,
-		},
-		{
-			name: "surge whose old workspace is already deleted",
-			input: []v1beta1.Workspace{
-				ws("surge", map[string]string{kaitov1alpha1.LabelUpgradeSurgeFor: "old"}),
-			},
-			wantManaged:  nil,
-			wantStable:   nil,
-			wantNumSurge: 1,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			managed, stable, numSurges := classifyWorkspaces(tt.input)
-			assert.Equal(t, tt.wantNumSurge, numSurges)
-			names := func(wss []v1beta1.Workspace) []string {
-				var out []string
-				for _, w := range wss {
-					out = append(out, w.Name)
-				}
-				return out
+	build := func(specs []wsSpec) ([]v1beta1.Workspace, []client.Object) {
+		var wss []v1beta1.Workspace
+		var objs []client.Object
+		for _, s := range specs {
+			ws := v1beta1.Workspace{ObjectMeta: v1.ObjectMeta{Name: s.name, Namespace: ns}}
+			if s.terminating {
+				now := v1.Now()
+				ws.DeletionTimestamp = &now
+				ws.Finalizers = []string{"kaito.sh/test"}
 			}
-			assert.Equal(t, tt.wantManaged, names(managed))
-			assert.Equal(t, tt.wantStable, names(stable))
-		})
-	}
-}
+			if s.ready {
+				ws.Status.Conditions = []v1.Condition{{
+					Type:               string(v1beta1.WorkspaceConditionTypeSucceeded),
+					Status:             v1.ConditionTrue,
+					Reason:             "ready",
+					LastTransitionTime: v1.Now(),
+				}}
+			}
+			wss = append(wss, ws)
 
-func TestStableTargetForReplicas(t *testing.T) {
-	tests := []struct {
-		name      string
-		desired   int32
-		numSurges int
-		want      int
-	}{
-		{name: "no surge", desired: 3, numSurges: 0, want: 3},
-		{name: "one surge reserves a slot", desired: 3, numSurges: 1, want: 2},
-		{name: "clamped to zero", desired: 1, numSurges: 2, want: 0},
-		{name: "zero desired", desired: 0, numSurges: 0, want: 0},
+			img := desiredImage
+			if s.old {
+				img = oldImage
+			}
+			objs = append(objs, &appsv1.StatefulSet{
+				ObjectMeta: v1.ObjectMeta{Name: s.name, Namespace: ns},
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: s.name, Image: img}}},
+					},
+				},
+			})
+		}
+		return wss, objs
 	}
+
+	oldByName := func(specs []wsSpec) map[string]bool {
+		m := make(map[string]bool)
+		for _, s := range specs {
+			m[s.name] = s.old
+		}
+		return m
+	}
+
+	tests := []struct {
+		name            string
+		specs           []wsSpec
+		desiredReplicas int
+		numToDelete     int
+		wantDeleted     int
+		wantOldDeleted  int
+		wantNewDeleted  int
+	}{
+		{
+			// Surge in flight: 3 old Ready + 1 new not-Ready. The controller must wait
+			// for the new replica to become Ready before retiring an old one.
+			name: "waits for new-image replica to become Ready",
+			specs: []wsSpec{
+				{name: "old-1", ready: true, old: true},
+				{name: "old-2", ready: true, old: true},
+				{name: "old-3", ready: true, old: true},
+				{name: "new-1", ready: false, old: false},
+			},
+			desiredReplicas: 3,
+			numToDelete:     1,
+			wantDeleted:     0,
+		},
+		{
+			// New replica is now Ready: retire exactly one old-image workspace.
+			name: "retires an old-image replica once the new one is Ready",
+			specs: []wsSpec{
+				{name: "old-1", ready: true, old: true},
+				{name: "old-2", ready: true, old: true},
+				{name: "old-3", ready: true, old: true},
+				{name: "new-1", ready: true, old: false},
+			},
+			desiredReplicas: 3,
+			numToDelete:     1,
+			wantDeleted:     1,
+			wantOldDeleted:  1,
+		},
+		{
+			// User scale-down during an upgrade: prefer removing old-image workspaces.
+			name: "scale down prefers old-image workspaces",
+			specs: []wsSpec{
+				{name: "old-1", ready: true, old: true},
+				{name: "old-2", ready: true, old: true},
+				{name: "new-1", ready: true, old: false},
+				{name: "new-2", ready: true, old: false},
+			},
+			desiredReplicas: 2,
+			numToDelete:     2,
+			wantDeleted:     2,
+			wantOldDeleted:  2,
+		},
+		{
+			// Hard scale-down: not enough old workspaces, so new ones must go too.
+			name: "deletes new-image workspaces when surplus exceeds old count",
+			specs: []wsSpec{
+				{name: "old-1", ready: true, old: true},
+				{name: "new-1", ready: true, old: false},
+				{name: "new-2", ready: true, old: false},
+				{name: "new-3", ready: true, old: false},
+			},
+			desiredReplicas: 1,
+			numToDelete:     3,
+			wantDeleted:     3,
+			wantOldDeleted:  1,
+			wantNewDeleted:  2,
+		},
+		{
+			// A workspace already terminating counts toward the target without a new delete.
+			name: "terminating workspace counts toward the target",
+			specs: []wsSpec{
+				{name: "old-1", terminating: true, old: true},
+				{name: "old-2", ready: true, old: true},
+				{name: "old-3", ready: true, old: true},
+			},
+			desiredReplicas: 2,
+			numToDelete:     1,
+			wantDeleted:     0,
+		},
+		{
+			// A not-ready old workspace is retired first (free: does not reduce Ready count).
+			name: "deletes not-ready old workspace first",
+			specs: []wsSpec{
+				{name: "old-1", ready: false, old: true},
+				{name: "new-1", ready: true, old: false},
+				{name: "new-2", ready: true, old: false},
+			},
+			desiredReplicas: 2,
+			numToDelete:     1,
+			wantDeleted:     1,
+			wantOldDeleted:  1,
+		},
+		{
+			// Scale-to-zero: no Ready floor to preserve, so every workspace is retired
+			// (old-image ones first), even Ready ones.
+			name: "scale to zero deletes all workspaces",
+			specs: []wsSpec{
+				{name: "old-1", ready: true, old: true},
+				{name: "new-1", ready: true, old: false},
+			},
+			desiredReplicas: 0,
+			numToDelete:     2,
+			wantDeleted:     2,
+			wantOldDeleted:  1,
+			wantNewDeleted:  1,
+		},
+	}
+
+	scheme := runtime.NewScheme()
+	_ = appsv1.AddToScheme(scheme)
+	_ = corev1.AddToScheme(scheme)
+	_ = v1beta1.AddToScheme(scheme)
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, stableTargetForReplicas(tt.desired, tt.numSurges))
+			wss, objs := build(tt.specs)
+			cl := fake.NewClientBuilder().WithScheme(scheme).WithObjects(objs...).Build()
+			c := &InferenceSetReconciler{Client: cl}
+
+			toDelete, err := c.selectWorkspacesToDelete(ctx, wss, tt.desiredReplicas, tt.numToDelete)
+			assert.NoError(t, err)
+			assert.Len(t, toDelete, tt.wantDeleted)
+
+			isOld := oldByName(tt.specs)
+			oldDeleted, newDeleted := 0, 0
+			for _, ws := range toDelete {
+				if isOld[ws.Name] {
+					oldDeleted++
+				} else {
+					newDeleted++
+				}
+			}
+			assert.Equal(t, tt.wantOldDeleted, oldDeleted, "old workspaces deleted")
+			assert.Equal(t, tt.wantNewDeleted, newDeleted, "new workspaces deleted")
 		})
 	}
 }

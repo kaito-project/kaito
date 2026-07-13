@@ -23,7 +23,6 @@ import (
 	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -770,42 +769,26 @@ func makeSurgeInferenceSet(name, namespace string) *kaitov1beta1.InferenceSet {
 	return is
 }
 
-// markWorkspaceSucceeded sets the WorkspaceSucceeded=True condition so
-// DetermineWorkspacePhase reports "succeeded".
-func markWorkspaceSucceeded(ws *kaitov1beta1.Workspace) {
-	ws.Status.Conditions = append(ws.Status.Conditions, metav1.Condition{
-		Type:               string(kaitov1beta1.WorkspaceConditionTypeSucceeded),
-		Status:             metav1.ConditionTrue,
-		Reason:             "ready",
-		LastTransitionTime: metav1.Now(),
-	})
-}
-
-func listSurgeWorkspaces(t *testing.T, cl client.Client, ns string) []kaitov1beta1.Workspace {
+// listWorkspacesInNamespace returns all Workspaces in the namespace.
+func listWorkspacesInNamespace(t *testing.T, cl client.Client, ns string) []kaitov1beta1.Workspace {
 	t.Helper()
 	all := &kaitov1beta1.WorkspaceList{}
 	require.NoError(t, cl.List(context.Background(), all, client.InNamespace(ns)))
-	var surges []kaitov1beta1.Workspace
-	for i := range all.Items {
-		if _, ok := all.Items[i].Labels[kaitov1alpha1.LabelUpgradeSurgeFor]; ok {
-			surges = append(surges, all.Items[i])
-		}
-	}
-	return surges
+	return all.Items
 }
 
-// TestReconcileSurge_CreatesSurge verifies that a drifted Workspace triggers
-// the creation of a new surge Workspace, without touching the old one.
-func TestReconcileSurge_CreatesSurge(t *testing.T) {
+// TestReconcileSurge_CreatesWorkspaceWhenDrifted verifies that a drifted Workspace at the
+// desired replica count triggers creation of one new Workspace on the new base image,
+// without deleting the old one (the InferenceSet controller performs the cutover).
+func TestReconcileSurge_CreatesWorkspaceWhenDrifted(t *testing.T) {
 	const (
 		ns       = "default"
 		isName   = "bg-is"
 		oldImage = "mcr.microsoft.com/aks/kaito/kaito-base:0.3.0"
 	)
-	desiredTag := inference.GetBaseImageTag()
 	setTestRegistry(t)
 
-	is := makeSurgeInferenceSet(isName, ns)
+	is := makeSurgeInferenceSet(isName, ns) // desired replicas defaults to 1
 	blue := makeWorkspace("blue-1", ns, isName, kaitov1beta1.WorkspaceStateReady, nil)
 	blueSS := makeStatefulSet("blue-1", ns, oldImage)
 
@@ -814,41 +797,41 @@ func TestReconcileSurge_CreatesSurge(t *testing.T) {
 
 	r.reconcileInferenceSet(context.Background(), is)
 
-	// A surge workspace should have been created, pointing at the blue one.
-	surges := listSurgeWorkspaces(t, cl, ns)
-	require.Len(t, surges, 1)
-	assert.Equal(t, "blue-1", surges[0].Labels[kaitov1alpha1.LabelUpgradeSurgeFor])
-	assert.Equal(t, desiredTag, surges[0].Labels[kaitov1alpha1.LabelUpgradeToVersion])
-	assert.Equal(t, isName, surges[0].Labels[consts.WorkspaceCreatedByInferenceSetLabel])
+	// A new Workspace should have been created on the new image, stamped with the version label.
+	all := listWorkspacesInNamespace(t, cl, ns)
+	require.Len(t, all, 2)
+	var newWs *kaitov1beta1.Workspace
+	for i := range all {
+		if all[i].Name != "blue-1" {
+			newWs = &all[i]
+		}
+	}
+	require.NotNil(t, newWs, "a new workspace should have been created")
+	assert.Equal(t, isName, newWs.Labels[consts.WorkspaceCreatedByInferenceSetLabel])
 
-	// Blue must still exist (no downtime / not deleted yet).
+	// Blue must still exist (no downtime / not deleted by the runner).
 	stillThere := &kaitov1beta1.Workspace{}
 	require.NoError(t, cl.Get(context.Background(), client.ObjectKeyFromObject(blue), stillThere))
 	assert.True(t, stillThere.DeletionTimestamp.IsZero())
 }
 
-// TestReconcileSurge_WaitsForSurgeReady verifies that the old Workspace is
-// NOT deleted while the surge is still coming up, and that a second reconcile does
-// not create another surge (one-at-a-time).
-func TestReconcileSurge_WaitsForSurgeReady(t *testing.T) {
+// TestReconcileSurge_NoCreateWhileSurgeInFlight verifies the runner does not add a second
+// new Workspace while an upgrade surge is already in flight (live count above desired). It
+// waits for the InferenceSet controller to retire an old Workspace first.
+func TestReconcileSurge_NoCreateWhileSurgeInFlight(t *testing.T) {
 	const (
 		ns       = "default"
 		isName   = "bg-is"
 		oldImage = "mcr.microsoft.com/aks/kaito/kaito-base:0.3.0"
-		newImage = "mcr.microsoft.com/aks/kaito/kaito-base:0.4.0"
 	)
-	desiredTag := inference.GetBaseImageTag()
-	setTestRegistry(t)
+	desiredImage := setTestRegistry(t)
 
-	is := makeSurgeInferenceSet(isName, ns)
+	is := makeSurgeInferenceSet(isName, ns) // desired replicas defaults to 1
 	blue := makeWorkspace("blue-1", ns, isName, kaitov1beta1.WorkspaceStateReady, nil)
 	blueSS := makeStatefulSet("blue-1", ns, oldImage)
-	// Surge exists but is not yet succeeded (no condition set).
-	green := makeWorkspace("green-1", ns, isName, kaitov1beta1.WorkspaceStatePending, map[string]string{
-		kaitov1alpha1.LabelUpgradeSurgeFor:  "blue-1",
-		kaitov1alpha1.LabelUpgradeToVersion: desiredTag,
-	})
-	greenSS := makeStatefulSet("green-1", ns, newImage)
+	// A new-image workspace already exists (the in-flight surge), so the live count is 2 > 1.
+	green := makeWorkspace("green-1", ns, isName, kaitov1beta1.WorkspaceStatePending, nil)
+	greenSS := makeStatefulSet("green-1", ns, desiredImage)
 	greenSS.Status.ReadyReplicas = 0
 
 	cl := newFakeClient(is, blue, blueSS, green, greenSS)
@@ -856,79 +839,36 @@ func TestReconcileSurge_WaitsForSurgeReady(t *testing.T) {
 
 	r.reconcileInferenceSet(context.Background(), is)
 
-	// Blue not deleted; no second surge created.
+	// No third workspace; runner waits for the controller to retire the old one.
+	assert.Len(t, listWorkspacesInNamespace(t, cl, ns), 2)
+	// Blue not deleted by the runner.
 	stillThere := &kaitov1beta1.Workspace{}
 	require.NoError(t, cl.Get(context.Background(), client.ObjectKeyFromObject(blue), stillThere))
 	assert.True(t, stillThere.DeletionTimestamp.IsZero())
-	assert.Len(t, listSurgeWorkspaces(t, cl, ns), 1)
 }
 
-// TestReconcileSurge_DeletesOldWhenSurgeReady verifies cutover: once the
-// surge is ready, the old Workspace is deleted.
-func TestReconcileSurge_DeletesOldWhenSurgeReady(t *testing.T) {
+// TestReconcileSurge_NoCreateWhenAllUpToDate verifies no new Workspace is created when the
+// fleet has already converged onto the desired base image.
+func TestReconcileSurge_NoCreateWhenAllUpToDate(t *testing.T) {
 	const (
-		ns       = "default"
-		isName   = "bg-is"
-		oldImage = "mcr.microsoft.com/aks/kaito/kaito-base:0.3.0"
-		newImage = "mcr.microsoft.com/aks/kaito/kaito-base:0.4.0"
+		ns     = "default"
+		isName = "bg-is"
 	)
-	desiredTag := inference.GetBaseImageTag()
-	setTestRegistry(t)
+	desiredImage := setTestRegistry(t)
 
 	is := makeSurgeInferenceSet(isName, ns)
 	blue := makeWorkspace("blue-1", ns, isName, kaitov1beta1.WorkspaceStateReady, nil)
-	blueSS := makeStatefulSet("blue-1", ns, oldImage)
-	green := makeWorkspace("green-1", ns, isName, kaitov1beta1.WorkspaceStateReady, map[string]string{
-		kaitov1alpha1.LabelUpgradeSurgeFor:  "blue-1",
-		kaitov1alpha1.LabelUpgradeToVersion: desiredTag,
-	})
-	markWorkspaceSucceeded(green)
-	greenSS := makeStatefulSet("green-1", ns, newImage)
+	blueSS := makeStatefulSet("blue-1", ns, desiredImage)
 
-	cl := newFakeClient(is, blue, blueSS, green, greenSS)
+	cl := newFakeClient(is, blue, blueSS)
 	r := &AutoUpgradeRunner{Client: cl}
 
 	r.reconcileInferenceSet(context.Background(), is)
 
-	// Old workspace should be gone (fake client deletes immediately, no finalizer).
-	err := cl.Get(context.Background(), client.ObjectKeyFromObject(blue), &kaitov1beta1.Workspace{})
-	assert.True(t, apierrors.IsNotFound(err), "old workspace should be deleted")
+	assert.Len(t, listWorkspacesInNamespace(t, cl, ns), 1)
 }
 
-// TestReconcileSurge_PromotesSurgeAfterOldGone verifies the final step: once
-// the old Workspace is gone, the surge label is removed, promoting it to a normal replica.
-func TestReconcileSurge_PromotesSurgeAfterOldGone(t *testing.T) {
-	const (
-		ns       = "default"
-		isName   = "bg-is"
-		newImage = "mcr.microsoft.com/aks/kaito/kaito-base:0.4.0"
-	)
-	desiredTag := inference.GetBaseImageTag()
-	setTestRegistry(t)
-
-	is := makeSurgeInferenceSet(isName, ns)
-	// Blue already gone; only the surge (green) remains, ready, still labeled.
-	green := makeWorkspace("green-1", ns, isName, kaitov1beta1.WorkspaceStateReady, map[string]string{
-		kaitov1alpha1.LabelUpgradeSurgeFor:  "blue-1",
-		kaitov1alpha1.LabelUpgradeToVersion: desiredTag,
-	})
-	markWorkspaceSucceeded(green)
-	greenSS := makeStatefulSet("green-1", ns, newImage)
-
-	cl := newFakeClient(is, green, greenSS)
-	r := &AutoUpgradeRunner{Client: cl}
-
-	r.reconcileInferenceSet(context.Background(), is)
-
-	// Surge label should be removed (promoted to managed replica).
-	updated := &kaitov1beta1.Workspace{}
-	require.NoError(t, cl.Get(context.Background(), client.ObjectKeyFromObject(green), updated))
-	_, ok := updated.Labels[kaitov1alpha1.LabelUpgradeSurgeFor]
-	assert.False(t, ok, "surge label should be removed after old workspace is gone")
-	assert.Empty(t, listSurgeWorkspaces(t, cl, ns))
-}
-
-// TestReconcileSurge_OutsideMaintenanceWindow verifies no surge is created
+// TestReconcileSurge_OutsideMaintenanceWindow verifies no new Workspace is created
 // outside the maintenance window.
 func TestReconcileSurge_OutsideMaintenanceWindow(t *testing.T) {
 	const (
@@ -954,5 +894,5 @@ func TestReconcileSurge_OutsideMaintenanceWindow(t *testing.T) {
 
 	r.reconcileInferenceSet(context.Background(), is)
 
-	assert.Empty(t, listSurgeWorkspaces(t, cl, ns), "no surge should be created outside the window")
+	assert.Len(t, listWorkspacesInNamespace(t, cl, ns), 1, "no new workspace should be created outside the window")
 }

@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package inference
+package modelstreaming
 
 import (
 	"strings"
@@ -44,16 +44,16 @@ func sasCfg() *StreamingConfig {
 					{Name: "STREAM_DATAREFS_URL", Value: "https://example.com/datarefs"},
 					{Name: "STREAM_ASSET_ID", Value: "azureml://registries/r/models/m/versions/1"},
 					{Name: "STREAM_BLOB_URI", Value: "https://myacct.blob.core.windows.net/c/prefix"},
-					{Name: "SAS_TOKEN_PATH", Value: sasSharedMountPath + "/" + sasTokenFileName},
+					{Name: "SAS_TOKEN_PATH", Value: SASSharedMountPath + "/" + SASTokenFileName},
 				},
 				VolumeMounts: []corev1.VolumeMount{
-					{Name: sasSharedVolumeName, MountPath: sasSharedMountPath},
+					{Name: SASSharedVolumeName, MountPath: SASSharedMountPath},
 				},
 			},
 		},
 		Volumes: []corev1.Volume{
 			{
-				Name: sasSharedVolumeName,
+				Name: SASSharedVolumeName,
 				VolumeSource: corev1.VolumeSource{
 					EmptyDir: &corev1.EmptyDirVolumeSource{Medium: corev1.StorageMediumMemory},
 				},
@@ -93,23 +93,22 @@ func TestSetStreamingConfig_SASWiring(t *testing.T) {
 
 	cfg := sasCfg()
 
-	err := SetStreamingConfig(cfg, "microsoft/phi-4", defaultSA)(ctx, spec)
+	const baseImage = "mcr.microsoft.com/kaito/base:test"
+	err := SetStreamingConfig(cfg, "microsoft/phi-4", defaultSA, baseImage)(ctx, spec)
 	require.NoError(t, err)
 
-	// 1. Init container appended, Image set to GetBaseImageName()
+	// 1. Init container appended, Image set to the provided base image
 	require.Len(t, spec.InitContainers, 1)
 	ic := spec.InitContainers[0]
 	assert.Equal(t, "fetch-sas", ic.Name)
-	baseImage := GetBaseImageName()
-	assert.NotEmpty(t, baseImage, "GetBaseImageName() must not return empty string")
-	assert.Equal(t, baseImage, ic.Image, "init container Image should match GetBaseImageName()")
+	assert.Equal(t, baseImage, ic.Image, "init container Image should match the base image passed to SetStreamingConfig")
 
 	// 2. Shared volume appended to pod
 	volumeNames := make([]string, 0, len(spec.Volumes))
 	for _, v := range spec.Volumes {
 		volumeNames = append(volumeNames, v.Name)
 	}
-	assert.Contains(t, volumeNames, sasSharedVolumeName, "pod volumes should include %q", sasSharedVolumeName)
+	assert.Contains(t, volumeNames, SASSharedVolumeName, "pod volumes should include %q", SASSharedVolumeName)
 
 	// 3. Main container has volume mount at /streaming
 	mainIdx := -1
@@ -126,7 +125,7 @@ func TestSetStreamingConfig_SASWiring(t *testing.T) {
 	for _, vm := range main.VolumeMounts {
 		mountPaths = append(mountPaths, vm.MountPath)
 	}
-	assert.Contains(t, mountPaths, sasSharedMountPath, "main container must mount %q", sasSharedMountPath)
+	assert.Contains(t, mountPaths, SASSharedMountPath, "main container must mount %q", SASSharedMountPath)
 
 	// 4. Main container Command[2] starts with "export AZURE_STORAGE_SAS_TOKEN="
 	require.Len(t, main.Command, 3)
@@ -182,7 +181,7 @@ func TestSetStreamingConfig_AzurePathUnchanged(t *testing.T) {
 		},
 	}
 
-	err := SetStreamingConfig(azureCfg, "microsoft/phi-4", defaultSA)(ctx, spec)
+	err := SetStreamingConfig(azureCfg, "microsoft/phi-4", defaultSA, "mcr.microsoft.com/kaito/base:test")(ctx, spec)
 	require.NoError(t, err)
 
 	// No init containers added

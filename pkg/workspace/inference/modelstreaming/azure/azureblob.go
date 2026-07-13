@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package inference
+package azure
 
 import (
 	"context"
@@ -26,6 +26,7 @@ import (
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
+	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
 )
 
 // AzureBlobProvider implements ModelStreamer for Azure Blob Storage.
@@ -48,8 +49,8 @@ func (a *AzureBlobProvider) CSIDriverName() string {
 // The model path is constructed as az://containerName/modelID because the
 // ModelMirror download Job writes to /models/<modelID> inside the PVC,
 // and the PVC is backed by a blob container — so the blob path matches the modelID.
-func (a *AzureBlobProvider) GetStreamingConfig(ctx *generator.WorkspaceGeneratorContext, modelID string) (*StreamingConfig, error) {
-	crName := ModelMirrorCRName(modelID)
+func (a *AzureBlobProvider) GetStreamingConfig(ctx *generator.WorkspaceGeneratorContext, modelID string) (*modelstreaming.StreamingConfig, error) {
+	crName := modelstreaming.ModelMirrorCRName(modelID)
 	mmCR := &kaitov1alpha1.ModelMirror{}
 	if err := ctx.KubeClient.Get(ctx.Ctx, client.ObjectKey{Name: crName}, mmCR); err != nil {
 		return nil, fmt.Errorf("failed to get ModelMirror CR %s for streaming config: %w", crName, err)
@@ -98,7 +99,7 @@ func (a *AzureBlobProvider) GetStreamingConfig(ctx *generator.WorkspaceGenerator
 		return nil, fmt.Errorf("Azure Blob volumeHandle %q has empty containerName", pv.Spec.CSI.VolumeHandle)
 	}
 
-	return &StreamingConfig{
+	return &modelstreaming.StreamingConfig{
 		ModelPath: fmt.Sprintf("az://%s/%s", containerName, modelID),
 		ProviderEnvVars: []corev1.EnvVar{
 			{Name: "AZURE_STORAGE_ACCOUNT_NAME", Value: accountName},
@@ -113,5 +114,5 @@ func (a *AzureBlobProvider) GetStreamingConfig(ctx *generator.WorkspaceGenerator
 // workspace namespace, and checks that it has the Azure Workload Identity client-id
 // annotation required for blob storage authentication.
 func (a *AzureBlobProvider) ValidateAuth(ctx context.Context, ws *v1beta1.Workspace, kubeClient client.Client, defaultSA string) error {
-	return validateStreamingServiceAccount(ctx, ws, kubeClient, defaultSA)
+	return modelstreaming.ValidateStreamingServiceAccount(ctx, ws, kubeClient, defaultSA)
 }

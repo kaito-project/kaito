@@ -50,6 +50,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/workspace/estimator"
 	"github.com/kaito-project/kaito/pkg/workspace/estimator/nodesestimator"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
+	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
 )
 
 func TestSelectWorkspaceNodes(t *testing.T) {
@@ -1020,10 +1021,10 @@ func TestEnsureModelMirror_PartialSASAnnotationsFail(t *testing.T) {
 			Name:      "ws-partial-sas",
 			Namespace: "default",
 			Annotations: map[string]string{
-				inference.AnnotationStreamURI:         "az://c/model",
-				inference.AnnotationStreamAccount:     "acct",
-				inference.AnnotationStreamDatarefsURL: "https://x/datarefs",
-				inference.AnnotationStreamBlobURI:     "https://acct.blob.core.windows.net/c/prefix",
+				modelstreaming.AnnotationStreamURI:         "az://c/model",
+				modelstreaming.AnnotationStreamAccount:     "acct",
+				modelstreaming.AnnotationStreamDatarefsURL: "https://x/datarefs",
+				modelstreaming.AnnotationStreamBlobURI:     "https://acct.blob.core.windows.net/c/prefix",
 				// inference.kaito.sh/stream-asset-id intentionally omitted (4 of 5).
 			},
 		},
@@ -1036,7 +1037,7 @@ func TestEnsureModelMirror_PartialSASAnnotationsFail(t *testing.T) {
 	err := reconciler.ensureModelMirror(context.Background(), ws)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "incomplete SAS blob streaming configuration")
-	assert.Contains(t, err.Error(), inference.AnnotationStreamAssetID)
+	assert.Contains(t, err.Error(), modelstreaming.AnnotationStreamAssetID)
 }
 
 func TestSyncWorkspaceStatus(t *testing.T) {

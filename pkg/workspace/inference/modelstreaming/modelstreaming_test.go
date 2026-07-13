@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package inference
+package modelstreaming
 
 import (
 	"testing"
@@ -25,17 +25,6 @@ import (
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
-
-func TestSelectModelStreamer(t *testing.T) {
-	ws := wsWithStreamAnnotations()
-	_, ok := SelectModelStreamer(ws).(*SASBlobProvider)
-	assert.True(t, ok, "expected SASBlobProvider when all five annotations present")
-
-	StreamingDefaults.ModelStreamer = &AzureBlobProvider{}
-	plain := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "w", Namespace: "default"}}
-	_, ok = SelectModelStreamer(plain).(*AzureBlobProvider)
-	assert.True(t, ok, "expected default provider when no stream annotations")
-}
 
 func TestModelStreamingEnabled(t *testing.T) {
 	tests := []struct {

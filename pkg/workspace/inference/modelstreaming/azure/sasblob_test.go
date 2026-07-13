@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package inference
+package azure
 
 import (
 	"testing"
@@ -22,6 +22,7 @@ import (
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
+	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
 )
 
 func wsWithStreamAnnotations() *v1beta1.Workspace {
@@ -30,14 +31,25 @@ func wsWithStreamAnnotations() *v1beta1.Workspace {
 			Name:      "ws1",
 			Namespace: "default",
 			Annotations: map[string]string{
-				AnnotationStreamURI:         "az://c/model",
-				AnnotationStreamAccount:     "acct",
-				AnnotationStreamDatarefsURL: "https://x/datarefs",
-				AnnotationStreamAssetID:     "azureml://registries/r/models/m/versions/1",
-				AnnotationStreamBlobURI:     "https://acct.blob.core.windows.net/c/prefix",
+				modelstreaming.AnnotationStreamURI:         "az://c/model",
+				modelstreaming.AnnotationStreamAccount:     "acct",
+				modelstreaming.AnnotationStreamDatarefsURL: "https://x/datarefs",
+				modelstreaming.AnnotationStreamAssetID:     "azureml://registries/r/models/m/versions/1",
+				modelstreaming.AnnotationStreamBlobURI:     "https://acct.blob.core.windows.net/c/prefix",
 			},
 		},
 	}
+}
+
+func TestSelectModelStreamer(t *testing.T) {
+	ws := wsWithStreamAnnotations()
+	_, ok := SelectModelStreamer(ws).(*SASBlobProvider)
+	assert.True(t, ok, "expected SASBlobProvider when all five annotations present")
+
+	modelstreaming.StreamingDefaults.ModelStreamer = &AzureBlobProvider{}
+	plain := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "w", Namespace: "default"}}
+	_, ok = SelectModelStreamer(plain).(*AzureBlobProvider)
+	assert.True(t, ok, "expected default provider when no stream annotations")
 }
 
 func TestSASBlobProvider_GetStreamingConfig(t *testing.T) {

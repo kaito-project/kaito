@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package inference
+package modelstreaming
 
 import (
 	"crypto/sha256"
@@ -27,6 +27,20 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
+)
+
+// Shared SAS-fetch wiring, referenced by both SetStreamingConfig (which mounts the volume
+// into the main container) and the SAS provider (which produces the init container).
+const (
+	// SASFetchInitContainerName is the name of the init container that mints the SAS token.
+	SASFetchInitContainerName = "fetch-sas"
+	// SASSharedVolumeName is the memory-backed emptyDir shared between the SAS-fetch
+	// init container and the main inference container.
+	SASSharedVolumeName = "streaming-sas"
+	// SASSharedMountPath is where the shared volume is mounted in both containers.
+	SASSharedMountPath = "/streaming"
+	// SASTokenFileName is the file the init container writes the SAS token to.
+	SASTokenFileName = "sas_token"
 )
 
 // StreamingDefaults holds the cluster-wide defaults for model streaming,
@@ -110,13 +124,16 @@ func buildCommonStreamingEnvVars(modelID string) []corev1.EnvVar {
 //   - Adds common env vars (e.g. KAITO_PROCESSOR)
 //   - Sets serviceAccountName
 //   - When the provider supplies init containers (SAS path): appends the shared volume, sets
-//     init-container images to GetBaseImageName(), mounts the shared volume in the main
+//     init-container images to baseImage, mounts the shared volume in the main
 //     container, and prepends a shell export so the inference process sees the SAS token.
+//
+// baseImage is the fallback image for provider init containers that leave Image empty
+// (passed in by the caller to avoid importing the parent inference package).
 //
 // Note: weights volume mount removal and init container skipping are handled upstream —
 // GenerateInferencePodSpec skips the mount when streamingModelPath is set, and
 // SetModelDownloadInfo returns early when streaming is enabled.
-func SetStreamingConfig(streamingCfg *StreamingConfig, modelID, defaultSA string) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
+func SetStreamingConfig(streamingCfg *StreamingConfig, modelID, defaultSA, baseImage string) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 		mainIdx := -1
 		for i := range spec.Containers {
@@ -143,15 +160,15 @@ func SetStreamingConfig(streamingCfg *StreamingConfig, modelID, defaultSA string
 		if len(streamingCfg.InitContainers) > 0 {
 			for i := range streamingCfg.InitContainers {
 				if streamingCfg.InitContainers[i].Image == "" {
-					streamingCfg.InitContainers[i].Image = GetBaseImageName()
+					streamingCfg.InitContainers[i].Image = baseImage
 				}
 			}
 			spec.InitContainers = append(spec.InitContainers, streamingCfg.InitContainers...)
 
 			// Mount the shared volume in the main inference container so it can read the token.
 			spec.Containers[mainIdx].VolumeMounts = append(spec.Containers[mainIdx].VolumeMounts, corev1.VolumeMount{
-				Name:      sasSharedVolumeName,
-				MountPath: sasSharedMountPath,
+				Name:      SASSharedVolumeName,
+				MountPath: SASSharedMountPath,
 			})
 
 			// Prepend a shell export so the inference process sees the SAS token written by the
@@ -159,7 +176,7 @@ func SetStreamingConfig(streamingCfg *StreamingConfig, modelID, defaultSA string
 			// utils.ShellCmd)
 			cmd := spec.Containers[mainIdx].Command
 			if len(cmd) == 3 && cmd[0] == "/bin/sh" && cmd[1] == "-c" {
-				tokenPath := sasSharedMountPath + "/" + sasTokenFileName
+				tokenPath := SASSharedMountPath + "/" + SASTokenFileName
 				cmd[2] = fmt.Sprintf("export AZURE_STORAGE_SAS_TOKEN=\"$(cat %s)\" && %s", tokenPath, cmd[2])
 				spec.Containers[mainIdx].Command = cmd
 			} else {
@@ -175,12 +192,4 @@ func SetStreamingConfig(streamingCfg *StreamingConfig, modelID, defaultSA string
 		spec.ServiceAccountName = saName
 		return nil
 	}
-}
-
-// SelectModelStreamer picks the streaming provider for a workspace.
-func SelectModelStreamer(ws *v1beta1.Workspace) ModelStreamer {
-	if HasSASBlobStreamingAnnotations(ws.Annotations) {
-		return &SASBlobProvider{}
-	}
-	return StreamingDefaults.ModelStreamer
 }

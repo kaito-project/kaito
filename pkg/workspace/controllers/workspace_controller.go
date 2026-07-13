@@ -63,6 +63,8 @@ import (
 	"github.com/kaito-project/kaito/pkg/workspace/estimator"
 	"github.com/kaito-project/kaito/pkg/workspace/estimator/nodesestimator"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
+	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
+	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/azure"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	"github.com/kaito-project/kaito/pkg/workspace/tuning"
 	"github.com/kaito-project/kaito/presets/workspace/models"
@@ -170,13 +172,13 @@ func (c *WorkspaceReconciler) ensureFinalizer(ctx context.Context, workspaceObj 
 // ensureModelMirror creates the ModelMirror CR for the workspace's model if it doesn't exist.
 // Returns nil if the CR exists (any phase) or was created successfully.
 func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
-	if err := inference.RequireSASBlobStreamingAnnotations(wObj.Annotations); err != nil {
+	if err := modelstreaming.RequireSASBlobStreamingAnnotations(wObj.Annotations); err != nil {
 		return err
 	}
 
-	modelID := inference.ResolveHFModelID(wObj)
-	crName := inference.ModelMirrorCRName(modelID)
-	storageClass := inference.ResolveStorageClass(wObj, inference.StreamingDefaults.StorageClass)
+	modelID := modelstreaming.ResolveHFModelID(wObj)
+	crName := modelstreaming.ModelMirrorCRName(modelID)
+	storageClass := modelstreaming.ResolveStorageClass(wObj, modelstreaming.StreamingDefaults.StorageClass)
 
 	// Check if CR already exists
 	existing := &kaitov1alpha1.ModelMirror{}
@@ -208,7 +210,7 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 
 	// Validate ServiceAccount exists and has provider-specific identity configured.
 	// ValidateAuth dispatches to the correct provider (SAS blob or HF) based on annotations.
-	if err := inference.SelectModelStreamer(wObj).ValidateAuth(ctx, wObj, c.Client, inference.StreamingDefaults.ServiceAccount); err != nil {
+	if err := azure.SelectModelStreamer(wObj).ValidateAuth(ctx, wObj, c.Client, modelstreaming.StreamingDefaults.ServiceAccount); err != nil {
 		return err
 	}
 
@@ -233,7 +235,7 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 	}
 
 	var cr *kaitov1alpha1.ModelMirror
-	if inference.HasSASBlobStreamingAnnotations(wObj.Annotations) {
+	if modelstreaming.HasSASBlobStreamingAnnotations(wObj.Annotations) {
 		cr = buildStaticModelMirror(crName, modelID, modelSize, accessSecret)
 	} else {
 		cr = &kaitov1alpha1.ModelMirror{
@@ -296,8 +298,8 @@ func buildStaticModelMirror(
 // waitForModelMirror checks if the ModelMirror CR is Ready.
 // Returns (nil, nil) to proceed, or (*Result, err) to stop — same pattern as reconcileNodes.
 func (c *WorkspaceReconciler) waitForModelMirror(ctx context.Context, wObj *kaitov1beta1.Workspace) (result *reconcile.Result, err error) {
-	modelID := inference.ResolveHFModelID(wObj)
-	crName := inference.ModelMirrorCRName(modelID)
+	modelID := modelstreaming.ResolveHFModelID(wObj)
+	crName := modelstreaming.ModelMirrorCRName(modelID)
 
 	cr := &kaitov1alpha1.ModelMirror{}
 	if err := c.Client.Get(ctx, client.ObjectKey{Name: crName}, cr); err != nil {
@@ -351,7 +353,7 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 	}
 
 	// Ensure ModelMirror CR exists (starts download in parallel with node provisioning).
-	if inference.ModelStreamingEnabled(wObj) && wObj.Inference != nil && wObj.Inference.Preset != nil {
+	if modelstreaming.ModelStreamingEnabled(wObj) && wObj.Inference != nil && wObj.Inference.Preset != nil {
 		if err := c.ensureModelMirror(ctx, wObj); err != nil {
 			return reconcile.Result{}, err
 		}
@@ -362,7 +364,7 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 	}
 
 	// Wait for ModelMirror CR to be Ready (gate inference pod creation).
-	if inference.ModelStreamingEnabled(wObj) && wObj.Inference != nil && wObj.Inference.Preset != nil {
+	if modelstreaming.ModelStreamingEnabled(wObj) && wObj.Inference != nil && wObj.Inference.Preset != nil {
 		if result, err := c.waitForModelMirror(ctx, wObj); err != nil || result != nil {
 			return *result, err
 		}
@@ -754,10 +756,10 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 		}
 
 		if wObj.Inference != nil {
-			if inference.ModelStreamingEnabled(wObj) && wObj.Inference.Preset != nil {
+			if modelstreaming.ModelStreamingEnabled(wObj) && wObj.Inference.Preset != nil {
 
-				modelID := inference.ResolveHFModelID(wObj)
-				crName := inference.ModelMirrorCRName(modelID)
+				modelID := modelstreaming.ResolveHFModelID(wObj)
+				crName := modelstreaming.ModelMirrorCRName(modelID)
 
 				cr := &kaitov1alpha1.ModelMirror{}
 				if err := c.Get(ctx, client.ObjectKey{Name: crName}, cr); err != nil {
@@ -880,7 +882,7 @@ func (c *WorkspaceReconciler) detectSASInitFailure(ctx context.Context, wObj *ka
 	}
 	for i := range pods.Items {
 		for _, ics := range pods.Items[i].Status.InitContainerStatuses {
-			if ics.Name != inference.SASFetchInitContainerName {
+			if ics.Name != modelstreaming.SASFetchInitContainerName {
 				continue
 			}
 			if t := ics.LastTerminationState.Terminated; t != nil && t.ExitCode != 0 {

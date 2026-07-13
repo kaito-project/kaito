@@ -11,17 +11,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package inference
+package modelstreaming
 
 import (
 	"context"
-	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 )
 
@@ -61,16 +59,4 @@ type ModelStreamer interface {
 	// and checks provider-specific auth configuration (e.g. Azure WI annotation, AWS IAM role).
 	// Returns nil if valid, error with actionable message if not.
 	ValidateAuth(ctx context.Context, ws *v1beta1.Workspace, kubeClient client.Client, defaultSA string) error
-}
-
-// GetModelStreamer returns the ModelStreamer implementation for the given cloud.
-// Currently only Azure is supported. To add a new provider, add a case here
-// and in consts.CSIDriverNameForCloud().
-func GetModelStreamer(cloudName string) (ModelStreamer, error) {
-	switch cloudName {
-	case consts.AzureCloudName:
-		return &AzureBlobProvider{}, nil
-	default:
-		return nil, fmt.Errorf("unsupported cloud provider %q for model streaming; supported: azure", cloudName)
-	}
 }

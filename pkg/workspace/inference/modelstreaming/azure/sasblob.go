@@ -66,6 +66,8 @@ func (s *SASBlobProvider) GetStreamingConfig(ctx *generator.WorkspaceGeneratorCo
 			{Name: "STREAM_DATAREFS_URL", Value: ann[modelstreaming.AnnotationStreamDatarefsURL]},
 			{Name: "STREAM_ASSET_ID", Value: ann[modelstreaming.AnnotationStreamAssetID]},
 			{Name: "STREAM_BLOB_URI", Value: ann[modelstreaming.AnnotationStreamBlobURI]},
+			{Name: "STREAM_IDENTITY_CLIENT_ID", Value: ann[modelstreaming.AnnotationStreamIdentityClientID]},
+			{Name: "STREAM_TOKEN_AUDIENCE", Value: ann[modelstreaming.AnnotationStreamTokenAudience]},
 			{Name: modelstreaming.SASEnvFileEnvVar, Value: envFilePath},
 		},
 		VolumeMounts: []corev1.VolumeMount{

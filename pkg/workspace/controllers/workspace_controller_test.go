@@ -1025,7 +1025,7 @@ func TestEnsureModelMirror_PartialSASAnnotationsFail(t *testing.T) {
 				modelstreaming.AnnotationStreamAccount:     "acct",
 				modelstreaming.AnnotationStreamDatarefsURL: "https://x/datarefs",
 				modelstreaming.AnnotationStreamBlobURI:     "https://acct.blob.core.windows.net/c/prefix",
-				// inference.kaito.sh/stream-asset-id intentionally omitted (4 of 5).
+				// inference.kaito.sh/stream-identity-client-id intentionally omitted (4 of 5 core).
 			},
 		},
 		Inference: &v1beta1.InferenceSpec{
@@ -1037,7 +1037,7 @@ func TestEnsureModelMirror_PartialSASAnnotationsFail(t *testing.T) {
 	err := reconciler.ensureModelMirror(context.Background(), ws)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "incomplete SAS blob streaming configuration")
-	assert.Contains(t, err.Error(), modelstreaming.AnnotationStreamAssetID)
+	assert.Contains(t, err.Error(), modelstreaming.AnnotationStreamIdentityClientID)
 }
 
 func TestSyncWorkspaceStatus(t *testing.T) {

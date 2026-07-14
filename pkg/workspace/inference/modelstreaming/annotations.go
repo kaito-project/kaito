@@ -18,7 +18,7 @@ import (
 	"strings"
 )
 
-// SAS-authenticated blob streaming annotations. When all five are present on a
+// SAS-authenticated blob streaming annotations. When all core annotations are present on a
 // Workspace (with model streaming enabled), KAITO streams weights directly from a
 // pre-existing external blob using a short-lived SAS token minted at pod start,
 // instead of mirroring the model to a PVC.
@@ -32,23 +32,28 @@ const (
 	AnnotationStreamDatarefsURL = "inference.kaito.sh/stream-datarefs-url" // POST target to mint a fresh SAS
 	AnnotationStreamAssetID     = "inference.kaito.sh/stream-asset-id"     // POST body {assetId}
 	AnnotationStreamBlobURI     = "inference.kaito.sh/stream-blob-uri"     // POST body {blobUri}
+	// AnnotationStreamIdentityClientID is the workload identity client ID used to mint the SAS.
+	AnnotationStreamIdentityClientID = "inference.kaito.sh/stream-identity-client-id" // WI client id for token exchange
+	// AnnotationStreamTokenAudience is the AAD token audience for the SAS-mint call. Optional;
+	AnnotationStreamTokenAudience = "inference.kaito.sh/stream-token-audience" // AAD audience for get_token
 )
 
-// sasBlobStreamingAnnotationKeys is the full set of annotations required for the
-// SAS-authenticated blob streaming path. All must be present and non-empty.
-var sasBlobStreamingAnnotationKeys = []string{
+// coreSASBlobStreamingAnnotationKeys is the set of annotations REQUIRED to activate the SAS
+// blob streaming path. They must all be present together (SAS path) or all absent (mirror path).
+// assetId and token-audience are optional
+var coreSASBlobStreamingAnnotationKeys = []string{
 	AnnotationStreamURI,
 	AnnotationStreamAccount,
 	AnnotationStreamDatarefsURL,
-	AnnotationStreamAssetID,
 	AnnotationStreamBlobURI,
+	AnnotationStreamIdentityClientID,
 }
 
-// CountSASBlobStreamingAnnotations returns how many of the five stream-* annotations
+// CountSASBlobStreamingAnnotations returns how many of the core stream-* annotations
 // are present and non-empty.
 func CountSASBlobStreamingAnnotations(annotations map[string]string) int {
 	n := 0
-	for _, k := range sasBlobStreamingAnnotationKeys {
+	for _, k := range coreSASBlobStreamingAnnotationKeys {
 		if annotations[k] != "" {
 			n++
 		}
@@ -56,28 +61,28 @@ func CountSASBlobStreamingAnnotations(annotations map[string]string) int {
 	return n
 }
 
-// HasSASBlobStreamingAnnotations reports whether all five stream-* annotations are
+// HasSASBlobStreamingAnnotations reports whether all core stream-* annotations are
 // present and non-empty.
 func HasSASBlobStreamingAnnotations(annotations map[string]string) bool {
-	return CountSASBlobStreamingAnnotations(annotations) == len(sasBlobStreamingAnnotationKeys)
+	return CountSASBlobStreamingAnnotations(annotations) == len(coreSASBlobStreamingAnnotationKeys)
 }
 
-// RequireSASBlobStreamingAnnotations enforces the no-fallback contract: if some but not
-// all of the five stream-* annotations are present, it returns an error naming the missing
-// ones. It returns nil when all five are present (valid SAS path) or when none are present
-// (valid mirror path).
+// RequireSASBlobStreamingAnnotations enforces the no-fallback contract: if some but not all
+// of the core stream-* annotations are present, it returns an error naming the missing ones.
+// It returns nil when all core are present (valid SAS path) or when none are present
+// (valid mirror path). Optional keys (assetId, token-audience) are ignored here.
 func RequireSASBlobStreamingAnnotations(annotations map[string]string) error {
 	n := CountSASBlobStreamingAnnotations(annotations)
-	if n == 0 || n == len(sasBlobStreamingAnnotationKeys) {
+	if n == 0 || n == len(coreSASBlobStreamingAnnotationKeys) {
 		return nil
 	}
 	var missing []string
-	for _, k := range sasBlobStreamingAnnotationKeys {
+	for _, k := range coreSASBlobStreamingAnnotationKeys {
 		if annotations[k] == "" {
 			missing = append(missing, k)
 		}
 	}
-	return fmt.Errorf("incomplete SAS blob streaming configuration: %d of %d stream annotations set; "+
+	return fmt.Errorf("incomplete SAS blob streaming configuration: %d of %d core stream annotations set; "+
 		"missing: %s (all must be set together, or none)",
-		n, len(sasBlobStreamingAnnotationKeys), strings.Join(missing, ", "))
+		n, len(coreSASBlobStreamingAnnotationKeys), strings.Join(missing, ", "))
 }

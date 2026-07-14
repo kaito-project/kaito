@@ -31,11 +31,13 @@ func wsWithStreamAnnotations() *v1beta1.Workspace {
 			Name:      "ws1",
 			Namespace: "default",
 			Annotations: map[string]string{
-				modelstreaming.AnnotationStreamURI:         "az://c/model",
-				modelstreaming.AnnotationStreamAccount:     "acct",
-				modelstreaming.AnnotationStreamDatarefsURL: "https://x/datarefs",
-				modelstreaming.AnnotationStreamAssetID:     "azureml://registries/r/models/m/versions/1",
-				modelstreaming.AnnotationStreamBlobURI:     "https://acct.blob.core.windows.net/c/prefix",
+				modelstreaming.AnnotationStreamURI:              "az://c/model",
+				modelstreaming.AnnotationStreamAccount:          "acct",
+				modelstreaming.AnnotationStreamDatarefsURL:      "https://x/datarefs",
+				modelstreaming.AnnotationStreamAssetID:          "azureml://registries/r/models/m/versions/1",
+				modelstreaming.AnnotationStreamBlobURI:          "https://acct.blob.core.windows.net/c/prefix",
+				modelstreaming.AnnotationStreamIdentityClientID: "11111111-2222-3333-4444-555555555555",
+				modelstreaming.AnnotationStreamTokenAudience:    "https://ai.azure.com",
 			},
 		},
 	}
@@ -78,6 +80,8 @@ func TestSASBlobProvider_GetStreamingConfig(t *testing.T) {
 	assert.Equal(t, "https://x/datarefs", envByName["STREAM_DATAREFS_URL"])
 	assert.Equal(t, "azureml://registries/r/models/m/versions/1", envByName["STREAM_ASSET_ID"])
 	assert.Equal(t, "https://acct.blob.core.windows.net/c/prefix", envByName["STREAM_BLOB_URI"])
+	assert.Equal(t, "11111111-2222-3333-4444-555555555555", envByName["STREAM_IDENTITY_CLIENT_ID"])
+	assert.Equal(t, "https://ai.azure.com", envByName["STREAM_TOKEN_AUDIENCE"])
 
 	ic := cfg.InitContainers[0]
 	assert.Equal(t, "fetch-sas", ic.Name)
@@ -85,7 +89,7 @@ func TestSASBlobProvider_GetStreamingConfig(t *testing.T) {
 	// fetch_sas.py script is passed as an argument (env var), NOT baked into the image.
 	assert.Equal(t, "python:3.12-slim", ic.Image)
 	assert.Equal(t, []string{"/bin/sh", "-c", initShellCommand}, ic.Command)
-	assert.Contains(t, envByName["FETCH_SAS_SCRIPT"], "DefaultAzureCredential",
+	assert.Contains(t, envByName["FETCH_SAS_SCRIPT"], "WorkloadIdentityCredential",
 		"the embedded fetch_sas.py script must be passed via FETCH_SAS_SCRIPT")
 	assert.Equal(t, modelstreaming.SASSharedMountPath+"/"+modelstreaming.SASEnvFileName, envByName[modelstreaming.SASEnvFileEnvVar])
 	// init container mounts the shared volume at the shared mount path

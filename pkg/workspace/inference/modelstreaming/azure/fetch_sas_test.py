@@ -19,8 +19,8 @@ do NOT run it automatically. Run manually during development:
 It stubs azure.identity so azure-identity need not be installed locally.
 """
 
-import json
 import importlib.util
+import json
 import os
 import sys
 import types

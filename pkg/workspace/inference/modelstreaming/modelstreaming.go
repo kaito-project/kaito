@@ -29,18 +29,26 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
-// Shared SAS-fetch wiring, referenced by both SetStreamingConfig (which mounts the volume
-// into the main container) and the SAS provider (which produces the init container).
+// Shared SAS-fetch wiring, referenced by both SetStreamingConfig (which wires the main
+// container's entrypoint wrapper) and the SAS provider (which produces the init container).
 const (
 	// SASFetchInitContainerName is the name of the init container that mints the SAS token.
 	SASFetchInitContainerName = "fetch-sas"
 	// SASSharedVolumeName is the memory-backed emptyDir shared between the SAS-fetch
 	// init container and the main inference container.
 	SASSharedVolumeName = "streaming-sas"
-	// SASSharedMountPath is where the shared volume is mounted in both containers.
-	SASSharedMountPath = "/streaming"
-	// SASTokenFileName is the file the init container writes the SAS token to.
-	SASTokenFileName = "sas_token"
+	// SASSharedMountPath is where the shared volume is mounted in both containers. It holds
+	// the SAS env file the init container writes and the main container's wrapper sources.
+	SASSharedMountPath = "/mnt/streaming"
+	// SASEnvFileName is the env file (KEY=value lines) the init container writes and the
+	// main container's entrypoint wrapper sources to export AZURE_STORAGE_SAS_TOKEN.
+	SASEnvFileName = "env"
+	// SASEnvFileEnvVar is the env var (set on both the init and main containers) naming the
+	// SAS env file path: the init container writes it, the main container's wrapper sources it.
+	SASEnvFileEnvVar = "STREAM_ENV_FILE"
+	// sasEntrypointWrapper is the transparent entrypoint wrapper baked into the base image.
+	// It sources the SAS env file (STREAM_ENV_FILE) then exec's the original command.
+	sasEntrypointWrapper = "/workspace/vllm/stream-entrypoint.sh"
 )
 
 // StreamingDefaults holds the cluster-wide defaults for model streaming,
@@ -123,17 +131,13 @@ func buildCommonStreamingEnvVars(modelID string) []corev1.EnvVar {
 //   - Adds provider-specific env vars (e.g. AZURE_STORAGE_ACCOUNT_NAME)
 //   - Adds common env vars (e.g. KAITO_PROCESSOR)
 //   - Sets serviceAccountName
-//   - When the provider supplies init containers (SAS path): appends the shared volume, sets
-//     init-container images to baseImage, mounts the shared volume in the main
-//     container, and prepends a shell export so the inference process sees the SAS token.
-//
-// baseImage is the fallback image for provider init containers that leave Image empty
-// (passed in by the caller to avoid importing the parent inference package).
+//   - When the provider supplies init containers (SAS path): appends the shared volume, mounts
+//     it in the main container, and prepends the transparent entrypoint wrapper.
 //
 // Note: weights volume mount removal and init container skipping are handled upstream —
 // GenerateInferencePodSpec skips the mount when streamingModelPath is set, and
 // SetModelDownloadInfo returns early when streaming is enabled.
-func SetStreamingConfig(streamingCfg *StreamingConfig, modelID, defaultSA, baseImage string) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
+func SetStreamingConfig(streamingCfg *StreamingConfig, modelID, defaultSA string) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 		mainIdx := -1
 		for i := range spec.Containers {
@@ -158,30 +162,21 @@ func SetStreamingConfig(streamingCfg *StreamingConfig, modelID, defaultSA, baseI
 		}
 
 		if len(streamingCfg.InitContainers) > 0 {
-			for i := range streamingCfg.InitContainers {
-				if streamingCfg.InitContainers[i].Image == "" {
-					streamingCfg.InitContainers[i].Image = baseImage
-				}
-			}
 			spec.InitContainers = append(spec.InitContainers, streamingCfg.InitContainers...)
 
-			// Mount the shared volume in the main inference container so it can read the token.
+			// Mount the shared volume in the main inference container.
 			spec.Containers[mainIdx].VolumeMounts = append(spec.Containers[mainIdx].VolumeMounts, corev1.VolumeMount{
 				Name:      SASSharedVolumeName,
 				MountPath: SASSharedMountPath,
 			})
 
-			// Prepend a shell export so the inference process sees the SAS token written by the
-			// init container. The command is expected to be [/bin/sh, -c, <cmd>] (produced by
-			// utils.ShellCmd)
-			cmd := spec.Containers[mainIdx].Command
-			if len(cmd) == 3 && cmd[0] == "/bin/sh" && cmd[1] == "-c" {
-				tokenPath := SASSharedMountPath + "/" + SASTokenFileName
-				cmd[2] = fmt.Sprintf("export AZURE_STORAGE_SAS_TOKEN=\"$(cat %s)\" && %s", tokenPath, cmd[2])
-				spec.Containers[mainIdx].Command = cmd
-			} else {
-				return fmt.Errorf("unexpected main container command shape for SAS streaming; expected [/bin/sh -c <cmd>], got %v", cmd)
-			}
+			// Tell the wrapper where to source the SAS env file.
+			spec.Containers[mainIdx].Env = append(spec.Containers[mainIdx].Env, corev1.EnvVar{
+				Name:  SASEnvFileEnvVar,
+				Value: SASSharedMountPath + "/" + SASEnvFileName,
+			})
+
+			spec.Containers[mainIdx].Command = append([]string{sasEntrypointWrapper}, spec.Containers[mainIdx].Command...)
 		}
 
 		// Set ServiceAccount (defaultSA is the controller flag value)

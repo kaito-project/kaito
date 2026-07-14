@@ -81,14 +81,16 @@ func TestSASBlobProvider_GetStreamingConfig(t *testing.T) {
 
 	ic := cfg.InitContainers[0]
 	assert.Equal(t, "fetch-sas", ic.Name)
-	assert.Equal(t, []string{"python3", "/workspace/vllm/fetch_sas.py"}, ic.Command)
-	// Image is intentionally unset here; it is resolved during pod generation to match
-	// the inference container image.
-	assert.Equal(t, "", ic.Image)
-	assert.Equal(t, "/streaming/sas_token", envByName["SAS_TOKEN_PATH"])
-	// init container mounts the shared volume at /streaming
+	// Slim-python init container: azure-identity is pip-installed at runtime and the
+	// fetch_sas.py script is passed as an argument (env var), NOT baked into the image.
+	assert.Equal(t, "python:3.12-slim", ic.Image)
+	assert.Equal(t, []string{"/bin/sh", "-c", initShellCommand}, ic.Command)
+	assert.Contains(t, envByName["FETCH_SAS_SCRIPT"], "DefaultAzureCredential",
+		"the embedded fetch_sas.py script must be passed via FETCH_SAS_SCRIPT")
+	assert.Equal(t, modelstreaming.SASSharedMountPath+"/"+modelstreaming.SASEnvFileName, envByName[modelstreaming.SASEnvFileEnvVar])
+	// init container mounts the shared volume at the shared mount path
 	assert.Len(t, ic.VolumeMounts, 1)
-	assert.Equal(t, "/streaming", ic.VolumeMounts[0].MountPath)
+	assert.Equal(t, modelstreaming.SASSharedMountPath, ic.VolumeMounts[0].MountPath)
 
 	assert.NotNil(t, cfg.Volumes[0].EmptyDir)
 	assert.Equal(t, corev1.StorageMediumMemory, cfg.Volumes[0].EmptyDir.Medium)

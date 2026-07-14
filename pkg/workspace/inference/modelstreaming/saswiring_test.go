@@ -14,7 +14,6 @@
 package modelstreaming
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -27,7 +26,7 @@ import (
 )
 
 // sasCfg returns a StreamingConfig shaped like SASBlobProvider.GetStreamingConfig returns:
-// one init container with empty Image, one memory-backed emptyDir volume, one provider env var.
+// one slim-python init container, one memory-backed emptyDir volume, one provider env var.
 func sasCfg() *StreamingConfig {
 	return &StreamingConfig{
 		ModelPath: "az://container/model",
@@ -38,13 +37,14 @@ func sasCfg() *StreamingConfig {
 		InitContainers: []corev1.Container{
 			{
 				Name:    "fetch-sas",
-				Image:   "", // deliberately empty — SetStreamingConfig must fill it in
-				Command: []string{"python3", "/workspace/vllm/fetch_sas.py"},
+				Image:   "python:3.12-slim",
+				Command: []string{"/bin/sh", "-c", "pip install ... && python3 -c \"$FETCH_SAS_SCRIPT\""},
 				Env: []corev1.EnvVar{
+					{Name: "FETCH_SAS_SCRIPT", Value: "# embedded script"},
 					{Name: "STREAM_DATAREFS_URL", Value: "https://example.com/datarefs"},
 					{Name: "STREAM_ASSET_ID", Value: "azureml://registries/r/models/m/versions/1"},
 					{Name: "STREAM_BLOB_URI", Value: "https://myacct.blob.core.windows.net/c/prefix"},
-					{Name: "SAS_TOKEN_PATH", Value: SASSharedMountPath + "/" + SASTokenFileName},
+					{Name: SASEnvFileEnvVar, Value: SASSharedMountPath + "/" + SASEnvFileName},
 				},
 				VolumeMounts: []corev1.VolumeMount{
 					{Name: SASSharedVolumeName, MountPath: SASSharedMountPath},
@@ -64,10 +64,11 @@ func sasCfg() *StreamingConfig {
 
 // TestSetStreamingConfig_SASWiring verifies that when a SAS-style StreamingConfig (with init
 // containers and a shared volume) is applied, SetStreamingConfig:
-//   - sets the init container Image to GetBaseImageName()
+//   - appends the init container as-is (image already set by the provider)
 //   - appends the shared volume to the pod
 //   - mounts the shared volume in the main container
-//   - prepends "export AZURE_STORAGE_SAS_TOKEN=..." to the main container command
+//   - prepends the transparent entrypoint wrapper to the main container command (unchanged cmd)
+//   - sets STREAM_ENV_FILE on the main container so the wrapper can source the SAS env file
 //   - still sets ServiceAccountName and provider env vars (existing behaviour)
 func TestSetStreamingConfig_SASWiring(t *testing.T) {
 	const wsName = "phi-4-ws"
@@ -93,15 +94,14 @@ func TestSetStreamingConfig_SASWiring(t *testing.T) {
 
 	cfg := sasCfg()
 
-	const baseImage = "mcr.microsoft.com/kaito/base:test"
-	err := SetStreamingConfig(cfg, "microsoft/phi-4", defaultSA, baseImage)(ctx, spec)
+	err := SetStreamingConfig(cfg, "microsoft/phi-4", defaultSA)(ctx, spec)
 	require.NoError(t, err)
 
-	// 1. Init container appended, Image set to the provided base image
+	// 1. Init container appended as-is (image already set by the provider)
 	require.Len(t, spec.InitContainers, 1)
 	ic := spec.InitContainers[0]
 	assert.Equal(t, "fetch-sas", ic.Name)
-	assert.Equal(t, baseImage, ic.Image, "init container Image should match the base image passed to SetStreamingConfig")
+	assert.Equal(t, "python:3.12-slim", ic.Image, "init container keeps the slim-python image from the provider")
 
 	// 2. Shared volume appended to pod
 	volumeNames := make([]string, 0, len(spec.Volumes))
@@ -110,7 +110,7 @@ func TestSetStreamingConfig_SASWiring(t *testing.T) {
 	}
 	assert.Contains(t, volumeNames, SASSharedVolumeName, "pod volumes should include %q", SASSharedVolumeName)
 
-	// 3. Main container has volume mount at /streaming
+	// 3. Main container has volume mount at the shared mount path
 	mainIdx := -1
 	for i := range spec.Containers {
 		if spec.Containers[i].Name == wsName {
@@ -127,25 +127,21 @@ func TestSetStreamingConfig_SASWiring(t *testing.T) {
 	}
 	assert.Contains(t, mountPaths, SASSharedMountPath, "main container must mount %q", SASSharedMountPath)
 
-	// 4. Main container Command[2] starts with "export AZURE_STORAGE_SAS_TOKEN="
-	require.Len(t, main.Command, 3)
-	assert.Equal(t, "/bin/sh", main.Command[0])
-	assert.Equal(t, "-c", main.Command[1])
-	assert.True(t,
-		strings.HasPrefix(main.Command[2], "export AZURE_STORAGE_SAS_TOKEN="),
-		"Command[2] should start with 'export AZURE_STORAGE_SAS_TOKEN=', got: %q", main.Command[2])
-	// Original command must still be present (appended after &&)
-	assert.Contains(t, main.Command[2], "python3 foo")
+	// 4. Main container command is the ORIGINAL command, unchanged, with the wrapper prepended.
+	assert.Equal(t, []string{sasEntrypointWrapper, "/bin/sh", "-c", "python3 foo"}, main.Command,
+		"wrapper must be prepended and the original command left intact")
 
 	// 5. ServiceAccountName set
 	assert.Equal(t, defaultSA, spec.ServiceAccountName)
 
-	// 6. Provider env var appended to main container
+	// 6. Provider env var + STREAM_ENV_FILE on the main container
 	envByName := map[string]string{}
 	for _, e := range main.Env {
 		envByName[e.Name] = e.Value
 	}
 	assert.Equal(t, "myacct", envByName["AZURE_STORAGE_ACCOUNT_NAME"])
+	assert.Equal(t, SASSharedMountPath+"/"+SASEnvFileName, envByName[SASEnvFileEnvVar],
+		"main container must know where to source the SAS env file")
 }
 
 // TestSetStreamingConfig_AzurePathUnchanged verifies that when a config has NO init containers
@@ -181,7 +177,7 @@ func TestSetStreamingConfig_AzurePathUnchanged(t *testing.T) {
 		},
 	}
 
-	err := SetStreamingConfig(azureCfg, "microsoft/phi-4", defaultSA, "mcr.microsoft.com/kaito/base:test")(ctx, spec)
+	err := SetStreamingConfig(azureCfg, "microsoft/phi-4", defaultSA)(ctx, spec)
 	require.NoError(t, err)
 
 	// No init containers added

@@ -14,14 +14,15 @@
 """Init-container script: obtain a short-lived SAS token via SAS-authenticated blob streaming.
 
 Reads pod environment variables, exchanges a Workload Identity AAD token for a
-SAS token via the datarefs endpoint, and writes the SAS query string to a shared
-volume path so the main inference container can read it via AZURE_STORAGE_SAS_TOKEN.
+SAS token via the datarefs endpoint, and writes it as an env file (KEY=value) to a
+shared volume so the main inference container's entrypoint wrapper can source it and
+export AZURE_STORAGE_SAS_TOKEN.
 
 Required environment variables:
     STREAM_DATAREFS_URL  - datarefs endpoint URL
     STREAM_ASSET_ID      - asset identifier for the request body
     STREAM_BLOB_URI      - blob URI for the request body
-    SAS_TOKEN_PATH       - file path to write the SAS token string
+    STREAM_ENV_FILE      - file path to write the env file (KEY=value lines)
 """
 
 import json
@@ -36,7 +37,7 @@ def main() -> int:
     datarefs_url = os.environ["STREAM_DATAREFS_URL"]
     asset_id = os.environ["STREAM_ASSET_ID"]
     blob_uri = os.environ["STREAM_BLOB_URI"]
-    out_path = os.environ["SAS_TOKEN_PATH"]
+    out_path = os.environ["STREAM_ENV_FILE"]
 
     cred = DefaultAzureCredential()
     token = cred.get_token("https://management.azure.com/.default").token
@@ -64,10 +65,12 @@ def main() -> int:
         return 1
 
     sas_token = sas_uri.split("?", 1)[1]
+    # Single-quote the value for safe shell sourcing
+    escaped = sas_token.replace("'", "'\\''")
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     with open(out_path, "w", encoding="utf-8") as f:
-        f.write(sas_token)
-    print(f"SAS token written to {out_path}")
+        f.write(f"AZURE_STORAGE_SAS_TOKEN='{escaped}'\n")
+    print(f"SAS env file written to {out_path}")
     return 0
 
 

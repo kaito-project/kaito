@@ -15,6 +15,7 @@ package azure
 
 import (
 	"context"
+	_ "embed"
 
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -24,29 +25,48 @@ import (
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
 )
 
+// fetchSASScript is the SAS-minting script.
+//
+//go:embed fetch_sas.py
+var fetchSASScript string
+
+const (
+	// sasInitImage is the minimal Python image the SAS-fetch init container runs on. It carries
+	// no cloud SDKs; azure-identity is pip-installed at container start (see initShellCommand).
+	sasInitImage = "python:3.12-slim"
+	// azureIdentityVersion is the azure-identity version pip-installed at runtime by the init
+	// container. Kept in sync with the pin previously in the base image requirements.txt.
+	azureIdentityVersion = "1.19.0"
+)
+
+// initShellCommand pip-installs azure-identity and runs the embedded fetch_sas.py script,
+// which is provided via the FETCH_SAS_SCRIPT env var (not a file in the image).
+const initShellCommand = "pip install --no-cache-dir -q azure-identity==" + azureIdentityVersion +
+	` && python3 -c "$FETCH_SAS_SCRIPT"`
+
 // SASBlobProvider streams weights from a pre-existing external blob using a short-lived
 // SAS token minted at pod start via Workload Identity. Configuration comes entirely from
 // Workspace annotations (not a PVC).
 type SASBlobProvider struct{}
 
 // GetStreamingConfig builds the streaming configuration from the five stream-* annotations
-// on the workspace: the az:// model path, the storage-account env var, the Workload
-// Identity pod label, a SAS-fetch init container, and the shared memory-backed volume the
-// token is written to.
+// on the workspace: the az:// model path, the storage-account env var, the Workload Identity
+// pod label, a SAS-fetch init container (slim-python, script passed as an argument), and the
+// shared memory-backed volume the SAS env file is written to.
 func (s *SASBlobProvider) GetStreamingConfig(ctx *generator.WorkspaceGeneratorContext, modelID string) (*modelstreaming.StreamingConfig, error) {
 	ann := ctx.Workspace.Annotations
 
-	// Image is intentionally left unset here: the init container must run the SAME image
-	// as the main inference container (so fetch_sas.py + azure-identity are present), and
-	// that image is only resolved during pod generation. SetStreamingConfig sets it.
+	envFilePath := modelstreaming.SASSharedMountPath + "/" + modelstreaming.SASEnvFileName
 	initContainer := corev1.Container{
 		Name:    modelstreaming.SASFetchInitContainerName,
-		Command: []string{"python3", "/workspace/vllm/fetch_sas.py"},
+		Image:   sasInitImage,
+		Command: []string{"/bin/sh", "-c", initShellCommand},
 		Env: []corev1.EnvVar{
+			{Name: "FETCH_SAS_SCRIPT", Value: fetchSASScript},
 			{Name: "STREAM_DATAREFS_URL", Value: ann[modelstreaming.AnnotationStreamDatarefsURL]},
 			{Name: "STREAM_ASSET_ID", Value: ann[modelstreaming.AnnotationStreamAssetID]},
 			{Name: "STREAM_BLOB_URI", Value: ann[modelstreaming.AnnotationStreamBlobURI]},
-			{Name: "SAS_TOKEN_PATH", Value: modelstreaming.SASSharedMountPath + "/" + modelstreaming.SASTokenFileName},
+			{Name: modelstreaming.SASEnvFileEnvVar, Value: envFilePath},
 		},
 		VolumeMounts: []corev1.VolumeMount{
 			{Name: modelstreaming.SASSharedVolumeName, MountPath: modelstreaming.SASSharedMountPath},

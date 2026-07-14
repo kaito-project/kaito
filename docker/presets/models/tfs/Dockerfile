@@ -63,8 +63,10 @@ COPY presets/workspace/inference/vllm/inference_api.py \
     presets/workspace/inference/vllm/multi-node-health-check.py \
     presets/workspace/inference/vllm/list_supported_llm_archs.py \
     presets/workspace/inference/vllm/benchmark_entrypoint.py \
-    presets/workspace/inference/vllm/fetch_sas.py \
+    presets/workspace/inference/vllm/stream-entrypoint.sh \
     /workspace/vllm/
+
+RUN chmod +x /workspace/vllm/stream-entrypoint.sh
 
 RUN VLLM_VERSION=$(grep 'vllm==' /workspace/requirements.txt | cut -d'=' -f3) && \
     curl --fail -o /workspace/vllm/multi-node-serving.sh \

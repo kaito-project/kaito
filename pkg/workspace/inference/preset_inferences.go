@@ -198,7 +198,7 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 
 	// Model source: streaming (az://) vs local download. Mutually exclusive.
 	if streamingEnabled {
-		podOpts = append(podOpts, modelstreaming.SetStreamingConfig(streamingCfg, modelID, modelstreaming.StreamingDefaults.ServiceAccount, GetBaseImageName()))
+		podOpts = append(podOpts, modelstreaming.SetStreamingConfig(streamingCfg, modelID, modelstreaming.StreamingDefaults.ServiceAccount))
 	} else {
 		podOpts = append(podOpts, SetModelDownloadInfo)
 	}

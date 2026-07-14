@@ -34,7 +34,9 @@ sys.modules.setdefault("azure", _azure)
 sys.modules["azure.identity"] = _identity
 
 _here = os.path.dirname(os.path.abspath(__file__))
-_spec = importlib.util.spec_from_file_location("fetch_sas", os.path.join(_here, "fetch_sas.py"))
+_spec = importlib.util.spec_from_file_location(
+    "fetch_sas", os.path.join(_here, "fetch_sas.py")
+)
 fetch_sas = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(fetch_sas)
 
@@ -50,7 +52,9 @@ def test_build_request_body_byo():
 
 
 def test_extract_sas_uri_public_key():
-    payload = {"blobReferenceForConsumption": {"credential": {"sasUri": "https://blob?sig=x"}}}
+    payload = {
+        "blobReferenceForConsumption": {"credential": {"sasUri": "https://blob?sig=x"}}
+    }
     assert fetch_sas.extract_sas_uri(payload) == "https://blob?sig=x"
 
 

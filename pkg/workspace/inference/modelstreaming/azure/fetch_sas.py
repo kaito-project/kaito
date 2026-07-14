@@ -48,7 +48,9 @@ def build_request_body(asset_id: str, blob_uri: str) -> bytes:
 def extract_sas_uri(payload: dict) -> str:
     """Extract the SAS URI from a datarefs/credentials response. Tolerates both wrapper
     keys: 'blobReferenceForConsumption' and 'blobReference'."""
-    ref = payload.get("blobReferenceForConsumption") or payload.get("blobReference") or {}
+    ref = (
+        payload.get("blobReferenceForConsumption") or payload.get("blobReference") or {}
+    )
     return ref.get("credential", {}).get("sasUri", "")
 
 

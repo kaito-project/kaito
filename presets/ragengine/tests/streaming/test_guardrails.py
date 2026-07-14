@@ -381,7 +381,7 @@ async def test_apply_streaming_guardrails_forwards_no_data_sse_event():
 
 
 @pytest.mark.asyncio
-async def test_apply_streaming_guardrails_preserves_no_data_sse_separator():
+async def test_apply_streaming_guardrails_forwards_no_data_sse_event_with_standard_separator():
     async def upstream_chunks():
         yield ": keep-alive\r\nretry: 1000\r\n\r\n"
         yield 'data: {"choices":[{"index":0,"delta":{"content":"safe"}}]}\n\n'
@@ -395,7 +395,7 @@ async def test_apply_streaming_guardrails_preserves_no_data_sse_separator():
     ]
 
     assert chunks == [
-        ": keep-alive\r\nretry: 1000\r\n\r\n",
+        ": keep-alive\r\nretry: 1000\n\n",
         'data: {"choices":[{"index":0,"delta":{"content":"safe"},"finish_reason":null}]}\n\n',
         "data: [DONE]\n\n",
     ]

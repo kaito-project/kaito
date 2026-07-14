@@ -248,7 +248,7 @@ def _has_blocked_window(windows: dict[int, StreamingBufferWindow]) -> bool:
 
 
 def _raw_sse_chunk(event: SSEEvent) -> str:
-    return f"{event.raw}{event.separator}"
+    return f"{event.raw}\n\n"
 
 
 def _build_non_content_passthrough_payload(

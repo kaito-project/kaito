@@ -28,7 +28,7 @@ func newTestModelMirror() *kaitov1alpha1.ModelMirror {
 	return &kaitov1alpha1.ModelMirror{
 		Spec: kaitov1alpha1.ModelMirrorSpec{
 			JobNamespace: "default",
-			Source: kaitov1alpha1.ModelMirrorSource{
+			Source: &kaitov1alpha1.ModelMirrorSource{
 				ModelID: "Qwen/Qwen3-8B-AWQ",
 			},
 		},

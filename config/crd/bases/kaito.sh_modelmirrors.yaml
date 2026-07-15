@@ -67,6 +67,10 @@ spec:
                 - Static
                 type: string
               source:
+                description: |-
+                  Source describes where to download the model weights from. Required for a Managed
+                  mirror; omit entirely for a Static mirror (the weights already exist in BYO storage,
+                  so there is nothing to download).
                 properties:
                   accessSecret:
                     description: AccessSecret references a secret containing authentication
@@ -116,16 +120,19 @@ spec:
                     description: ModelID is the model identifier (e.g. "Qwen/Qwen2.5-Coder-32B-Instruct").
                     type: string
                   registry:
-                    description: Registry is the source registry type.
+                    description: Registry is the source registry to download the model
+                      weights from.
                     enum:
                     - huggingface
-                    - azureml
                     type: string
                 required:
                 - modelID
                 - registry
                 type: object
               storage:
+                description: |-
+                  Storage describes the PVC to download the model weights into. Required for a Managed
+                  mirror; omit entirely for a Static mirror (no PVC is created).
                 properties:
                   size:
                     description: |-
@@ -140,9 +147,6 @@ spec:
                 required:
                 - size
                 type: object
-            required:
-            - source
-            - storage
             type: object
           status:
             properties:

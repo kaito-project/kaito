@@ -46,30 +46,48 @@ func (m *ModelMirror) Validate(ctx context.Context) (errs *apis.FieldError) {
 		return errs
 	}
 
-	// Value validation (presence enforced by CRD schema)
-	if !slices.Contains(SupportedRegistries, m.Spec.Source.Registry) {
-		supported := `"` + strings.Join(SupportedRegistries, `", "`) + `"`
-		errs = errs.Also(apis.ErrInvalidValue(
-			fmt.Sprintf("%q is not supported, only %s are supported", m.Spec.Source.Registry, supported),
-			"spec.source.registry"))
+	// Static mirrors point at pre-existing BYO storage: the user fills in nothing but Mode.
+	// Managed mirrors download to a PVC and must fully specify Source + Storage.
+	if m.Spec.Mode == ModelMirrorModeStatic {
+		if m.Spec.Source != nil {
+			errs = errs.Also(apis.ErrDisallowedFields("spec.source"))
+		}
+		if m.Spec.Storage != nil {
+			errs = errs.Also(apis.ErrDisallowedFields("spec.storage"))
+		}
+		return errs
 	}
-	if _, err := resource.ParseQuantity(m.Spec.Storage.Size); err != nil {
+
+	// Managed mirror: Source and Storage are required, and their subfields are validated.
+	if m.Spec.Source == nil {
+		errs = errs.Also(apis.ErrMissingField("spec.source"))
+	} else {
+		if m.Spec.Source.Registry == "" {
+			errs = errs.Also(apis.ErrMissingField("spec.source.registry"))
+		} else if !slices.Contains(SupportedRegistries, m.Spec.Source.Registry) {
+			supported := `"` + strings.Join(SupportedRegistries, `", "`) + `"`
+			errs = errs.Also(apis.ErrInvalidValue(
+				fmt.Sprintf("%q is not supported, only %s are supported", m.Spec.Source.Registry, supported),
+				"spec.source.registry"))
+		}
+		if m.Spec.Source.ModelID == "" {
+			errs = errs.Also(apis.ErrMissingField("spec.source.modelID"))
+		}
+	}
+
+	if m.Spec.Storage == nil {
+		errs = errs.Also(apis.ErrMissingField("spec.storage"))
+		return errs
+	}
+	if m.Spec.Storage.Size == "" {
+		errs = errs.Also(apis.ErrMissingField("spec.storage.size"))
+	} else if _, err := resource.ParseQuantity(m.Spec.Storage.Size); err != nil {
 		errs = errs.Also(apis.ErrInvalidValue(m.Spec.Storage.Size, "spec.storage.size"))
 	}
-	// StorageClass rules differ by mode:
-	//   - Managed mirrors download to a PVC and require an existing StorageClass.
-	//   - Static mirrors map to BYO storage, create no PVC, so StorageClass must be absent.
-	// Mode defaults to Managed (via the CRD schema); treat an empty value as Managed.
-	static := m.Spec.Mode == ModelMirrorModeStatic
-	scAbsent := m.Spec.Storage.StorageClassName == nil || *m.Spec.Storage.StorageClassName == ""
-	if !static && scAbsent {
+	// A Managed mirror downloads to a PVC and requires an existing StorageClass.
+	if m.Spec.Storage.StorageClassName == nil || *m.Spec.Storage.StorageClassName == "" {
 		errs = errs.Also(apis.ErrMissingField("spec.storage.storageClassName"))
-	}
-	if static && !scAbsent {
-		errs = errs.Also(apis.ErrInvalidValue(
-			"storageClassName must not be set for a static mirror", "spec.storage.storageClassName"))
-	}
-	if !scAbsent {
+	} else {
 		sc := &storagev1.StorageClass{}
 		if err := k8sclient.Client.Get(ctx, types.NamespacedName{Name: *m.Spec.Storage.StorageClassName}, sc); err != nil {
 			errs = errs.Also(apis.ErrInvalidValue(*m.Spec.Storage.StorageClassName, "spec.storage.storageClassName"))

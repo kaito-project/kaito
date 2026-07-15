@@ -43,12 +43,16 @@ type ModelMirrorSpec struct {
 	// +kubebuilder:default=Managed
 	// +optional
 	Mode ModelMirrorMode `json:"mode,omitempty"`
-	// +kubebuilder:validation:Required
-	Source ModelMirrorSource `json:"source"`
-	// +kubebuilder:validation:Required
-	Storage ModelMirrorStorage `json:"storage"`
-	// JobNamespace is the namespace where the PVC and download Job will be created.
-	// Empty for static mirrors that create no PVC or Job.
+	// Source describes where to download the model weights from. Required for a Managed
+	// mirror; omit entirely for a Static mirror.
+	// +optional
+	Source *ModelMirrorSource `json:"source,omitempty"`
+	// Storage describes the PVC to download the model weights into. Required for a Managed
+	// mirror; omit entirely for a Static mirror.
+	// +optional
+	Storage *ModelMirrorStorage `json:"storage,omitempty"`
+	// JobNamespace is the namespace where the PVC and download Job will be created;
+	// omit entirely for static mirrors.
 	// +optional
 	JobNamespace string `json:"jobNamespace,omitempty"`
 }
@@ -67,19 +71,16 @@ const (
 
 // Supported ModelMirror source registries.
 const (
-	// RegistryHuggingFace mirrors the model from HuggingFace.
 	RegistryHuggingFace = "huggingface"
-	// RegistryAzureML mirrors the model from a managed model catalog.
-	RegistryAzureML = "azureml"
 )
 
 // SupportedRegistries is the set of accepted ModelMirrorSource.Registry values.
-var SupportedRegistries = []string{RegistryHuggingFace, RegistryAzureML}
+var SupportedRegistries = []string{RegistryHuggingFace}
 
 type ModelMirrorSource struct {
-	// Registry is the source registry type.
+	// Registry is the source registry to download the model weights from.
 	// +kubebuilder:validation:Required
-	// +kubebuilder:validation:Enum=huggingface;azureml
+	// +kubebuilder:validation:Enum=huggingface
 	Registry string `json:"registry"`
 	// ModelID is the model identifier (e.g. "Qwen/Qwen2.5-Coder-32B-Instruct").
 	// +kubebuilder:validation:Required

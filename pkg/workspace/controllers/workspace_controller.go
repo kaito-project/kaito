@@ -178,14 +178,14 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 
 	modelID := modelstreaming.ResolveHFModelID(wObj)
 	crName := modelstreaming.ModelMirrorCRName(modelID)
-	storageClass := modelstreaming.ResolveStorageClass(wObj, modelstreaming.StreamingDefaults.StorageClass)
+	staticMirror := modelstreaming.HasSASBlobStreamingAnnotations(wObj.Annotations)
 
 	// Check if CR already exists
 	existing := &kaitov1alpha1.ModelMirror{}
 	err := c.Client.Get(ctx, client.ObjectKey{Name: crName}, existing)
 	if err == nil {
-		// CR exists — verify it's for the same model (collision check)
-		if existing.Spec.Source.ModelID != modelID {
+		// CR exists — verify it's for the same model (collision check).
+		if existing.Spec.Source != nil && existing.Spec.Source.ModelID != modelID {
 			return fmt.Errorf("ModelMirror CR name collision: %s maps to both %q and %q",
 				crName, existing.Spec.Source.ModelID, modelID)
 		}
@@ -195,8 +195,26 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 		return fmt.Errorf("failed to get ModelMirror CR %s: %w", crName, err)
 	}
 
-	// Validate the StorageClass exists and uses the correct CSI provisioner. This runs for the
-	// SAS blob path too: SAS streaming is an optimization layered on model mirroring.
+	if staticMirror {
+		if err := registry.SelectModelStreamer(wObj).ValidateAuth(ctx, wObj, c.Client, modelstreaming.StreamingDefaults.ServiceAccount); err != nil {
+			return err
+		}
+		staticCR := &kaitov1alpha1.ModelMirror{
+			ObjectMeta: metav1.ObjectMeta{Name: crName},
+			Spec:       kaitov1alpha1.ModelMirrorSpec{Mode: kaitov1alpha1.ModelMirrorModeStatic},
+		}
+		if err := c.Client.Create(ctx, staticCR); err != nil {
+			if apierrors.IsAlreadyExists(err) {
+				return nil // Race condition
+			}
+			return fmt.Errorf("failed to create static ModelMirror CR %s: %w", crName, err)
+		}
+		klog.InfoS("Created static ModelMirror CR", "name", crName, "workspace", klog.KObj(wObj))
+		return nil
+	}
+
+	// Managed mirror: validate the StorageClass exists and uses the correct CSI provisioner.
+	storageClass := modelstreaming.ResolveStorageClass(wObj, modelstreaming.StreamingDefaults.StorageClass)
 	sc := &storagev1.StorageClass{}
 	if err := c.Client.Get(ctx, client.ObjectKey{Name: storageClass}, sc); err != nil {
 		return fmt.Errorf("StorageClass %q not found: %w", storageClass, err)
@@ -209,7 +227,6 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 	}
 
 	// Validate ServiceAccount exists and has provider-specific identity configured.
-	// ValidateAuth dispatches to the correct provider (SAS blob or HF) based on annotations.
 	if err := registry.SelectModelStreamer(wObj).ValidateAuth(ctx, wObj, c.Client, modelstreaming.StreamingDefaults.ServiceAccount); err != nil {
 		return err
 	}
@@ -234,26 +251,21 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 		}
 	}
 
-	var cr *kaitov1alpha1.ModelMirror
-	if modelstreaming.HasSASBlobStreamingAnnotations(wObj.Annotations) {
-		cr = buildStaticModelMirror(crName, modelID, modelSize, accessSecret)
-	} else {
-		cr = &kaitov1alpha1.ModelMirror{
-			ObjectMeta: metav1.ObjectMeta{Name: crName},
-			Spec: kaitov1alpha1.ModelMirrorSpec{
-				Mode: kaitov1alpha1.ModelMirrorModeManaged,
-				Source: kaitov1alpha1.ModelMirrorSource{
-					Registry:     kaitov1alpha1.RegistryHuggingFace,
-					ModelID:      modelID,
-					AccessSecret: accessSecret,
-				},
-				Storage: kaitov1alpha1.ModelMirrorStorage{
-					Size:             modelSize,
-					StorageClassName: ptr.To(storageClass),
-				},
-				JobNamespace: wObj.Namespace,
+	cr := &kaitov1alpha1.ModelMirror{
+		ObjectMeta: metav1.ObjectMeta{Name: crName},
+		Spec: kaitov1alpha1.ModelMirrorSpec{
+			Mode: kaitov1alpha1.ModelMirrorModeManaged,
+			Source: &kaitov1alpha1.ModelMirrorSource{
+				Registry:     kaitov1alpha1.RegistryHuggingFace,
+				ModelID:      modelID,
+				AccessSecret: accessSecret,
 			},
-		}
+			Storage: &kaitov1alpha1.ModelMirrorStorage{
+				Size:             modelSize,
+				StorageClassName: ptr.To(storageClass),
+			},
+			JobNamespace: wObj.Namespace,
+		},
 	}
 
 	if err := c.Client.Create(ctx, cr); err != nil {
@@ -265,34 +277,6 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 
 	klog.InfoS("Created ModelMirror CR", "name", crName, "modelID", modelID, "workspace", klog.KObj(wObj))
 	return nil
-}
-
-// buildStaticModelMirror constructs a static ModelMirror CR: the model weights live in a
-// pre-existing (BYO) storage location, so the mirror creates no PVC and runs no download
-// Job. Mode=Static drives the skip-download behavior; StorageClassName and JobNamespace
-// are left empty because there is no PVC or Job.
-func buildStaticModelMirror(
-	crName, modelID, modelSize string,
-	accessSecret *corev1.ObjectReference,
-) *kaitov1alpha1.ModelMirror {
-	return &kaitov1alpha1.ModelMirror{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: crName,
-		},
-		Spec: kaitov1alpha1.ModelMirrorSpec{
-			Mode: kaitov1alpha1.ModelMirrorModeStatic,
-			Source: kaitov1alpha1.ModelMirrorSource{
-				Registry:     kaitov1alpha1.RegistryAzureML,
-				ModelID:      modelID,
-				AccessSecret: accessSecret,
-			},
-			Storage: kaitov1alpha1.ModelMirrorStorage{
-				Size:             modelSize,
-				StorageClassName: nil,
-			},
-			// JobNamespace intentionally empty for a static mirror (no PVC/Job).
-		},
-	}
 }
 
 // waitForModelMirror checks if the ModelMirror CR is Ready.

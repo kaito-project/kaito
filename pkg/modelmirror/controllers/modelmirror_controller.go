@@ -91,6 +91,14 @@ func (r *ModelMirrorReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, nil
 	}
 
+	if cr.Spec.Source == nil || cr.Spec.Storage == nil {
+		cr.Status.Phase = kaitov1alpha1.ModelMirrorPhasePending
+		msg := "managed ModelMirror requires spec.source and spec.storage"
+		cr.Status.FailureMessage = msg
+		setCondition(cr, mmconsts.ConditionTypeReady, metav1.ConditionFalse, "InvalidSpec", msg)
+		return ctrl.Result{}, r.Status().Update(ctx, cr)
+	}
+
 	// Step 0a: Ensure finalizer
 	if !controllerutil.ContainsFinalizer(cr, mmconsts.ModelMirrorFinalizer) {
 		controllerutil.AddFinalizer(cr, mmconsts.ModelMirrorFinalizer)

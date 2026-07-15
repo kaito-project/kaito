@@ -70,8 +70,8 @@ func TestReconcile_AddsFinalizer(t *testing.T) {
 	cr := &kaitov1alpha1.ModelMirror{
 		ObjectMeta: metav1.ObjectMeta{Name: "abc123"},
 		Spec: kaitov1alpha1.ModelMirrorSpec{
-			Source:       kaitov1alpha1.ModelMirrorSource{Registry: "huggingface", ModelID: "test/model"},
-			Storage:      kaitov1alpha1.ModelMirrorStorage{StorageClassName: ptr.To("blob-nfs"), Size: "10Gi"},
+			Source:       &kaitov1alpha1.ModelMirrorSource{Registry: "huggingface", ModelID: "test/model"},
+			Storage:      &kaitov1alpha1.ModelMirrorStorage{StorageClassName: ptr.To("blob-nfs"), Size: "10Gi"},
 			JobNamespace: "default",
 		},
 		Status: kaitov1alpha1.ModelMirrorStatus{Phase: kaitov1alpha1.ModelMirrorPhasePending},
@@ -122,9 +122,8 @@ func TestReconcile_Static_SetsReadyNoProvision(t *testing.T) {
 			Name: "abc123",
 		},
 		Spec: kaitov1alpha1.ModelMirrorSpec{
-			Mode:    kaitov1alpha1.ModelMirrorModeStatic,
-			Source:  kaitov1alpha1.ModelMirrorSource{Registry: kaitov1alpha1.RegistryAzureML, ModelID: "microsoft/phi-4"},
-			Storage: kaitov1alpha1.ModelMirrorStorage{Size: "85Gi", StorageClassName: nil},
+			// A static mirror sets only Mode — no Source, no Storage (BYO storage; nothing to download).
+			Mode: kaitov1alpha1.ModelMirrorModeStatic,
 		},
 	}
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(cr).WithStatusSubresource(cr).Build()

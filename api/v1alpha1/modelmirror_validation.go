@@ -46,19 +46,31 @@ func (m *ModelMirror) Validate(ctx context.Context) (errs *apis.FieldError) {
 		return errs
 	}
 
-	// Static mirrors point at pre-existing BYO storage: the user fills in nothing but Mode.
-	// Managed mirrors download to a PVC and must fully specify Source + Storage.
-	if m.Spec.Mode == ModelMirrorModeStatic {
-		if m.Spec.Source != nil {
-			errs = errs.Also(apis.ErrDisallowedFields("spec.source"))
-		}
-		if m.Spec.Storage != nil {
-			errs = errs.Also(apis.ErrDisallowedFields("spec.storage"))
-		}
-		return errs
+	// Mode defaults to Managed via the CRD schema; an empty value is treated as Managed.
+	switch m.Spec.Mode {
+	case ModelMirrorModeStatic:
+		return m.validateStaticMirror()
+	default:
+		return m.validateManagedMirror(ctx)
 	}
+}
 
-	// Managed mirror: Source and Storage are required, and their subfields are validated.
+// validateStaticMirror validates a static mirror: the weights already exist in pre-existing
+// (BYO) storage, so the user fills in nothing but Mode — Source and Storage must be absent.
+func (m *ModelMirror) validateStaticMirror() (errs *apis.FieldError) {
+	if m.Spec.Source != nil {
+		errs = errs.Also(apis.ErrDisallowedFields("spec.source"))
+	}
+	if m.Spec.Storage != nil {
+		errs = errs.Also(apis.ErrDisallowedFields("spec.storage"))
+	}
+	return errs
+}
+
+// validateManagedMirror validates a managed mirror: it downloads the model to a PVC, so Source
+// and Storage are required and their subfields are validated. For each subfield, check-empty-first
+// (missing) then value-check only non-empty values.
+func (m *ModelMirror) validateManagedMirror(ctx context.Context) (errs *apis.FieldError) {
 	if m.Spec.Source == nil {
 		errs = errs.Also(apis.ErrMissingField("spec.source"))
 	} else {

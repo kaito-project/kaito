@@ -62,6 +62,11 @@ func (s *SASBlobProvider) GetStreamingConfig(ctx *generator.WorkspaceGeneratorCo
 		Image:   sasInitImage,
 		Command: []string{"/bin/sh", "-c", initShellCommand},
 		Env: []corev1.EnvVar{
+			// FETCH_SAS_SCRIPT carries the ENTIRE fetch_sas.py source (embedded via //go:embed)
+			// as an env var, which the init container runs with `python3 -c "$FETCH_SAS_SCRIPT"`.
+			// This avoids baking the script (and its azure-identity dependency) into the base
+			// image. The Linux env block is capped (ARG_MAX, typically ~2 MiB total across argv +
+			// env); fetch_sas.py is a few KiB, so it fits comfortably with large headroom.
 			{Name: "FETCH_SAS_SCRIPT", Value: fetchSASScript},
 			{Name: "STREAM_DATAREFS_URL", Value: ann[modelstreaming.AnnotationStreamDatarefsURL]},
 			{Name: "STREAM_ASSET_ID", Value: ann[modelstreaming.AnnotationStreamAssetID]},
@@ -101,5 +106,5 @@ func (s *SASBlobProvider) ValidateAuth(ctx context.Context, ws *v1beta1.Workspac
 	if err := modelstreaming.RequireStaticModelMirror(ws.Annotations); err != nil {
 		return err
 	}
-	return modelstreaming.ValidateStreamingServiceAccount(ctx, ws, kubeClient, defaultSA)
+	return ValidateStreamingServiceAccount(ctx, ws, kubeClient, defaultSA)
 }

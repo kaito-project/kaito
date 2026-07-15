@@ -116,5 +116,5 @@ func (a *WIBlobProvider) GetStreamingConfig(ctx *generator.WorkspaceGeneratorCon
 // workspace namespace, and checks that it has the Azure Workload Identity client-id
 // annotation required for blob storage authentication.
 func (a *WIBlobProvider) ValidateAuth(ctx context.Context, ws *v1beta1.Workspace, kubeClient client.Client, defaultSA string) error {
-	return modelstreaming.ValidateStreamingServiceAccount(ctx, ws, kubeClient, defaultSA)
+	return ValidateStreamingServiceAccount(ctx, ws, kubeClient, defaultSA)
 }

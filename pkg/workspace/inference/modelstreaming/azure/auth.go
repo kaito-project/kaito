@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package modelstreaming
+package azure
 
 import (
 	"context"
@@ -22,13 +22,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
 )
 
 // ValidateStreamingServiceAccount verifies the streaming ServiceAccount exists in the
 // workspace namespace and carries the Azure Workload Identity client-id annotation.
-// Shared by different streaming providers.
+// Shared by the Azure streaming providers (SAS and WI).
 func ValidateStreamingServiceAccount(ctx context.Context, ws *v1beta1.Workspace, kubeClient client.Client, defaultSA string) error {
-	saName, err := ResolveStreamingServiceAccount(ws, defaultSA)
+	saName, err := modelstreaming.ResolveStreamingServiceAccount(ws, defaultSA)
 	if err != nil {
 		return err
 	}

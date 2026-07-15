@@ -329,39 +329,46 @@ func TestValidateInferenceSetMIG(t *testing.T) {
 		errContent string
 	}{
 		{
-			name:     "nil MIG passes",
+			name:     "nil partition passes",
 			resource: InferenceSetResourceSpec{},
 		},
 		{
 			name:       "valid MIG",
 			enableMIG:  true,
 			napDisable: true,
-			resource:   InferenceSetResourceSpec{MIG: &kaitov1beta1.MIGSpec{Profile: "1g.10gb"}},
+			resource:   InferenceSetResourceSpec{Partition: &kaitov1beta1.PartitionSpec{Mode: kaitov1beta1.PartitionModeMIG, Profile: "1g.10gb"}},
+		},
+		{
+			name:       "unsupported mode",
+			enableMIG:  true,
+			napDisable: true,
+			resource:   InferenceSetResourceSpec{Partition: &kaitov1beta1.PartitionSpec{Mode: "bogus", Profile: "1g.10gb"}},
+			errContent: "unsupported partition mode",
 		},
 		{
 			name:       "feature gate disabled",
 			napDisable: true,
-			resource:   InferenceSetResourceSpec{MIG: &kaitov1beta1.MIGSpec{Profile: "1g.10gb"}},
+			resource:   InferenceSetResourceSpec{Partition: &kaitov1beta1.PartitionSpec{Mode: kaitov1beta1.PartitionModeMIG, Profile: "1g.10gb"}},
 			errContent: "MIG support is not enabled",
 		},
 		{
 			name:       "invalid profile",
 			enableMIG:  true,
 			napDisable: true,
-			resource:   InferenceSetResourceSpec{MIG: &kaitov1beta1.MIGSpec{Profile: "bogus"}},
+			resource:   InferenceSetResourceSpec{Partition: &kaitov1beta1.PartitionSpec{Mode: kaitov1beta1.PartitionModeMIG, Profile: "bogus"}},
 			errContent: "invalid MIG profile",
 		},
 		{
 			name:       "NAP not disabled",
 			enableMIG:  true,
-			resource:   InferenceSetResourceSpec{MIG: &kaitov1beta1.MIGSpec{Profile: "1g.10gb"}},
+			resource:   InferenceSetResourceSpec{Partition: &kaitov1beta1.PartitionSpec{Mode: kaitov1beta1.PartitionModeMIG, Profile: "1g.10gb"}},
 			errContent: "only supported with BYO nodes",
 		},
 		{
-			name:       "instanceType set with MIG",
+			name:       "instanceType set with partition",
 			enableMIG:  true,
 			napDisable: true,
-			resource:   InferenceSetResourceSpec{InstanceType: "Standard_NC24ads_A100_v4", MIG: &kaitov1beta1.MIGSpec{Profile: "1g.10gb"}},
+			resource:   InferenceSetResourceSpec{InstanceType: "Standard_NC24ads_A100_v4", Partition: &kaitov1beta1.PartitionSpec{Mode: kaitov1beta1.PartitionModeMIG, Profile: "1g.10gb"}},
 			errContent: "instanceType must be empty",
 		},
 	}
@@ -369,7 +376,7 @@ func TestValidateInferenceSetMIG(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			setMIGGates(t, tt.enableMIG, tt.napDisable)
-			errs := validateInferenceSetMIG(&tt.resource)
+			errs := validateInferenceSetPartition(&tt.resource)
 			if tt.errContent == "" {
 				assert.Nil(t, errs)
 			} else {
@@ -383,21 +390,21 @@ func TestValidateInferenceSetMIG(t *testing.T) {
 func TestInferenceSetMIGImmutable(t *testing.T) {
 	setMIGGates(t, true, true)
 	makeIS := func(profile string) *InferenceSet {
-		var m *kaitov1beta1.MIGSpec
+		var p *kaitov1beta1.PartitionSpec
 		if profile != "" {
-			m = &kaitov1beta1.MIGSpec{Profile: profile}
+			p = &kaitov1beta1.PartitionSpec{Mode: kaitov1beta1.PartitionModeMIG, Profile: profile}
 		}
 		return &InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
 			Spec: InferenceSetSpec{
 				Template: InferenceSetTemplate{
-					Resource: InferenceSetResourceSpec{MIG: m},
+					Resource: InferenceSetResourceSpec{Partition: p},
 				},
 			},
 		}
 	}
 
-	// Unchanged MIG is allowed.
+	// Unchanged partition is allowed.
 	errs := makeIS("1g.10gb").validateUpdate(makeIS("1g.10gb"))
 	assert.Nil(t, errs)
 
@@ -406,7 +413,7 @@ func TestInferenceSetMIGImmutable(t *testing.T) {
 	assert.NotNil(t, errs)
 	assert.Contains(t, errs.Error(), "field is immutable")
 
-	// Adding MIG to a non-MIG set is rejected.
+	// Adding a partition to a non-partitioned set is rejected.
 	errs = makeIS("1g.10gb").validateUpdate(makeIS(""))
 	assert.NotNil(t, errs)
 	assert.Contains(t, errs.Error(), "field is immutable")

@@ -23,7 +23,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
@@ -85,7 +84,7 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 
 	// MIG path: when MIG is configured, the model must fit in a single MIG slice.
 	// No tensor parallelism or multi-node distribution is possible with MIG.
-	if featuregates.FeatureGates[consts.FeatureFlagEnableMIG] && req.ResourceProfile.MIGProfile != "" {
+	if req.ResourceProfile.MIGProfile != "" {
 		return c.estimateMIGNodeCount(req, model)
 	}
 

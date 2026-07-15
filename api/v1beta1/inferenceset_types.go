@@ -20,16 +20,16 @@ import (
 
 type InferenceSetResourceSpec struct {
 	// InstanceType specifies the GPU node SKU.
-	// Required when node auto-provisioning is enabled; must be empty for BYO nodes
-	// (including MIG, which requires disableNodeAutoProvisioning=true).
+	// Required when node auto-provisioning is enabled; must be empty for BYO nodes.
 	// +optional
 	InstanceType string `json:"instanceType,omitempty"`
 
-	// MIG specifies NVIDIA Multi-Instance GPU configuration applied to each replica.
-	// Requires the enableMIG feature gate and BYO nodes (disableNodeAutoProvisioning=true).
+	// Partition specifies GPU partitioning applied to each replica. When set, each
+	// replica is scheduled on a GPU partition (slice) instead of a full GPU.
+	// Requires the enableMIG feature gate and BYO nodes.
 	// Propagated verbatim to each child Workspace.
 	// +optional
-	MIG *MIGSpec `json:"mig,omitempty"`
+	Partition *PartitionSpec `json:"partition,omitempty"`
 }
 
 // InferenceSetTemplate defines the template for creating InferenceSet instances.

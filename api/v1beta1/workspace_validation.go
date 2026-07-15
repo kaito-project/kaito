@@ -25,6 +25,7 @@ import (
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
+	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
@@ -381,8 +382,8 @@ func (r *ResourceSpec) validateCreateWithTuning(tuning *TuningSpec) (errs *apis.
 	if *r.Count > 1 {
 		errs = errs.Also(apis.ErrInvalidValue("Tuning does not currently support multinode configurations. Please set the node count to 1. Future support with DeepSpeed will allow this.", "count"))
 	}
-	if r.MIG != nil {
-		errs = errs.Also(apis.ErrInvalidValue("MIG is not supported for tuning workloads", "mig"))
+	if r.Partition != nil {
+		errs = errs.Also(apis.ErrInvalidValue("GPU partitioning is not supported for tuning workloads", "partition"))
 	}
 	return errs
 }
@@ -450,9 +451,9 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 
 	napDisabled := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 
-	// MIG workloads use a different resource type and skip the standard GPU checks below.
-	if r.MIG != nil {
-		return errs.Also(r.validateMIG(ctx, presetName, secretName, wsNamespace, napDisabled, bypassResourceChecks))
+	// Partitioned (e.g. MIG) workloads use a different resource type and skip the standard GPU checks below.
+	if r.Partition != nil {
+		return errs.Also(r.validatePartition(ctx, presetName, secretName, wsNamespace, napDisabled, bypassResourceChecks))
 	}
 
 	if napDisabled {
@@ -587,20 +588,31 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 	return errs
 }
 
-// validateMIG validates the MIG configuration for an inference workload. MIG is
-// only supported behind the enableMIG feature gate on BYO nodes, and the requested
-// profile must be a known MIG profile. Callers should return early after invoking
-// this helper because MIG workloads use a different resource type and skip the
-// standard GPU checks.
-func (r *ResourceSpec) validateMIG(ctx context.Context, presetName, secretName, wsNamespace string, napDisabled, bypassResourceChecks bool) (errs *apis.FieldError) {
-	if !featuregates.FeatureGates[consts.FeatureFlagEnableMIG] {
-		return apis.ErrGeneric("MIG support is not enabled, set feature gate enableMIG=true", "mig")
+// validatePartition validates the GPU partitioning configuration for an inference
+// workload and dispatches on the partition mode. Callers should return early after
+// invoking this helper because partitioned workloads use a different resource type
+// and skip the standard GPU checks.
+func (r *ResourceSpec) validatePartition(ctx context.Context, presetName, secretName, wsNamespace string, napDisabled, bypassResourceChecks bool) (errs *apis.FieldError) {
+	switch r.Partition.Mode {
+	case PartitionModeMIG:
+		return r.validateMIGPartition(ctx, presetName, secretName, wsNamespace, napDisabled, bypassResourceChecks)
+	default:
+		return apis.ErrInvalidValue(fmt.Sprintf("unsupported partition mode %q, only \"mig\" is supported", r.Partition.Mode), "partition.mode")
 	}
-	if err := mig.ValidateMIGProfile(r.MIG.Profile); err != nil {
-		return apis.ErrInvalidValue(err.Error(), "mig.profile")
+}
+
+// validateMIGPartition validates a MIG partition. MIG is only supported behind the
+// enableMIG feature gate on BYO nodes, and the requested profile must be a known
+// MIG profile.
+func (r *ResourceSpec) validateMIGPartition(ctx context.Context, presetName, secretName, wsNamespace string, napDisabled, bypassResourceChecks bool) (errs *apis.FieldError) {
+	if !featuregates.FeatureGates[consts.FeatureFlagEnableMIG] {
+		return apis.ErrGeneric("MIG support is not enabled, set feature gate enableMIG=true", "partition")
+	}
+	if err := mig.ValidateMIGProfile(r.Partition.Profile); err != nil {
+		return apis.ErrInvalidValue(err.Error(), "partition.profile")
 	}
 	if !napDisabled {
-		return apis.ErrGeneric("MIG is only supported with BYO nodes (disableNodeAutoProvisioning=true)", "mig")
+		return apis.ErrGeneric("MIG is only supported with BYO nodes (disableNodeAutoProvisioning=true)", "partition")
 	}
 
 	if presetName == "" {
@@ -625,7 +637,7 @@ func (r *ResourceSpec) validateMIG(ctx context.Context, presetName, secretName, 
 			errs = errs.Also(apis.ErrInvalidValue(
 				fmt.Sprintf("Model %s requires %s GPUs with tensor parallelism, which is not supported on MIG partitions",
 					presetName, params.GPUCountRequirement),
-				"mig"))
+				"partition"))
 		}
 	}
 
@@ -638,9 +650,9 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 		errs = errs.Also(apis.ErrGeneric("field is immutable", "count"))
 	}
 
-	// MIG is immutable once set
-	if !reflect.DeepEqual(r.MIG, old.MIG) {
-		errs = errs.Also(apis.ErrGeneric("field is immutable", "mig"))
+	// Partition config is immutable once set
+	if !apiequality.Semantic.DeepEqual(r.Partition, old.Partition) {
+		errs = errs.Also(apis.ErrGeneric("field is immutable", "partition"))
 	}
 
 	// Check node auto-provisioning feature gate and validate instanceType accordingly

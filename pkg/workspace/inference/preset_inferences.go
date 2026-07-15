@@ -256,9 +256,10 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 }
 
 func getGPUConfig(ctx *generator.WorkspaceGeneratorContext) (*sku.GPUConfig, error) {
-	// MIG path: build GPU config from the MIG spec.
-	if featuregates.FeatureGates[consts.FeatureFlagEnableMIG] && ctx.Workspace.Resource.MIG != nil {
-		return utils.GetMIGGPUConfig(ctx.Workspace.Resource.MIG.Profile)
+	// Partition path: build GPU config from the partition spec (MIG mode).
+	if featuregates.FeatureGates[consts.FeatureFlagEnableMIG] && ctx.Workspace.Resource.Partition != nil &&
+		ctx.Workspace.Resource.Partition.Mode == v1beta1.PartitionModeMIG {
+		return utils.GetMIGGPUConfig(ctx.Workspace.Resource.Partition.Profile)
 	}
 
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
@@ -515,8 +516,8 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		// (nvidia.com/mig-<profile>). The requested profile is a workload property,
 		// so it is read from the spec. Node-detected MIG under the "single" strategy
 		// has no spec profile and keeps requesting nvidia.com/gpu.
-		if migSpec := ctx.Workspace.Resource.MIG; migSpec != nil && migSpec.Profile != "" {
-			gpuResourceName = corev1.ResourceName(mig.MIGResourceName(migSpec.Profile))
+		if p := ctx.Workspace.Resource.Partition; p != nil && p.Mode == v1beta1.PartitionModeMIG && p.Profile != "" {
+			gpuResourceName = corev1.ResourceName(mig.MIGResourceName(p.Profile))
 		}
 		resourceReq := corev1.ResourceRequirements{
 			Requests: corev1.ResourceList{
@@ -653,11 +654,11 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		// Add MIG-specific toleration so pods can schedule onto MIG-tainted nodes
 		// if the cluster operator taints them (the NVIDIA device plugin does not by default).
 		// Only the spec-driven "mixed" path has a per-profile taint key.
-		if migSpec := ctx.Workspace.Resource.MIG; migSpec != nil && migSpec.Profile != "" {
+		if p := ctx.Workspace.Resource.Partition; p != nil && p.Mode == v1beta1.PartitionModeMIG && p.Profile != "" {
 			spec.Tolerations = append(spec.Tolerations, corev1.Toleration{
 				Effect:   corev1.TaintEffectNoSchedule,
 				Operator: corev1.TolerationOpExists,
-				Key:      mig.MIGResourceName(migSpec.Profile),
+				Key:      mig.MIGResourceName(p.Profile),
 			})
 		}
 		spec.Volumes = volumes

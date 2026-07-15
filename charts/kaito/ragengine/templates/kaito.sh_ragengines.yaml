@@ -406,20 +406,31 @@ spec:
                         type: object
                     type: object
                     x-kubernetes-map-type: atomic
-                  mig:
+                  partition:
                     description: |-
-                      MIG specifies NVIDIA Multi-Instance GPU configuration for the workload.
-                      When set, the workload will be scheduled on MIG partitions instead of full GPUs.
-                      Requires the enableMIG feature gate and BYO nodes (disableNodeAutoProvisioning=true).
+                      Partition specifies GPU partitioning for the workload. When set, the workload
+                      is scheduled on a GPU partition (slice) instead of a full GPU.
+                      Requires the enableMIG feature gate and BYO nodes.
                     properties:
+                      mode:
+                        allOf:
+                        - enum:
+                          - mig
+                        - enum:
+                          - mig
+                        description: |-
+                          Mode selects the GPU partitioning technology. Currently only "mig" (NVIDIA
+                          Multi-Instance GPU) is supported.
+                        type: string
                       profile:
                         description: |-
-                          Profile is the MIG partition profile name (e.g., "1g.10gb", "2g.20gb", "3g.40gb").
-                          Must match a valid NVIDIA MIG profile name.
-                          Each workload is scheduled on exactly one MIG slice; tensor parallelism across
-                          slices is not supported. Use multiple Workspaces or an InferenceSet to run replicas.
+                          Profile is the partition profile, interpreted according to Mode. For MIG this
+                          is a profile name like "1g.10gb", "2g.20gb", "3g.40gb". Each workload is
+                          scheduled on exactly one partition; tensor parallelism across partitions is
+                          not supported. Use multiple Workspaces or an InferenceSet to run replicas.
                         type: string
                     required:
+                    - mode
                     - profile
                     type: object
                   preferredNodes:

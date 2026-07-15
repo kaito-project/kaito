@@ -126,7 +126,7 @@ func GetGPUConfigFromNodeLabels(node *corev1.Node) (*GPUConfig, error) {
 // Note: only IsMIG is derived here (used to size against a slice and disable
 // CPU KV-cache offload). MIGProfile is intentionally left empty — the per-slice
 // nvidia.com/mig-<profile> extended resource used by the "mixed" strategy is
-// populated only via the spec-driven path (Workspace.Resource.MIG), so a
+// populated only via the spec-driven path (Workspace.Resource.Partition), so a
 // node-detected MIG under the "single" strategy keeps requesting nvidia.com/gpu.
 func isMIGNode(node *corev1.Node) bool {
 	migConfig := node.Labels[consts.NvidiaMIGConfig]

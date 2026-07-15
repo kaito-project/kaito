@@ -95,41 +95,48 @@ func TestValidateInferenceSetMIG(t *testing.T) {
 		errContent string
 	}{
 		{
-			name:     "nil MIG passes",
+			name:     "nil partition passes",
 			resource: InferenceSetResourceSpec{},
 		},
 		{
 			name:       "valid MIG",
 			enableMIG:  true,
 			napDisable: true,
-			resource:   InferenceSetResourceSpec{MIG: &MIGSpec{Profile: "1g.10gb"}},
+			resource:   InferenceSetResourceSpec{Partition: &PartitionSpec{Mode: PartitionModeMIG, Profile: "1g.10gb"}},
+		},
+		{
+			name:       "unsupported mode",
+			enableMIG:  true,
+			napDisable: true,
+			resource:   InferenceSetResourceSpec{Partition: &PartitionSpec{Mode: "bogus", Profile: "1g.10gb"}},
+			errContent: "unsupported partition mode",
 		},
 		{
 			name:       "feature gate disabled",
 			enableMIG:  false,
 			napDisable: true,
-			resource:   InferenceSetResourceSpec{MIG: &MIGSpec{Profile: "1g.10gb"}},
+			resource:   InferenceSetResourceSpec{Partition: &PartitionSpec{Mode: PartitionModeMIG, Profile: "1g.10gb"}},
 			errContent: "MIG support is not enabled",
 		},
 		{
 			name:       "invalid profile",
 			enableMIG:  true,
 			napDisable: true,
-			resource:   InferenceSetResourceSpec{MIG: &MIGSpec{Profile: "bogus"}},
+			resource:   InferenceSetResourceSpec{Partition: &PartitionSpec{Mode: PartitionModeMIG, Profile: "bogus"}},
 			errContent: "invalid MIG profile",
 		},
 		{
 			name:       "NAP not disabled",
 			enableMIG:  true,
 			napDisable: false,
-			resource:   InferenceSetResourceSpec{MIG: &MIGSpec{Profile: "1g.10gb"}},
+			resource:   InferenceSetResourceSpec{Partition: &PartitionSpec{Mode: PartitionModeMIG, Profile: "1g.10gb"}},
 			errContent: "only supported with BYO nodes",
 		},
 		{
-			name:       "instanceType set with MIG",
+			name:       "instanceType set with partition",
 			enableMIG:  true,
 			napDisable: true,
-			resource:   InferenceSetResourceSpec{InstanceType: "Standard_NC24ads_A100_v4", MIG: &MIGSpec{Profile: "1g.10gb"}},
+			resource:   InferenceSetResourceSpec{InstanceType: "Standard_NC24ads_A100_v4", Partition: &PartitionSpec{Mode: PartitionModeMIG, Profile: "1g.10gb"}},
 			errContent: "instanceType must be empty",
 		},
 	}
@@ -137,7 +144,7 @@ func TestValidateInferenceSetMIG(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			setMIGGates(t, tt.enableMIG, tt.napDisable)
-			errs := validateInferenceSetMIG(&tt.resource)
+			errs := validateInferenceSetPartition(&tt.resource)
 			if tt.errContent == "" {
 				assert.Nil(t, errs)
 			} else {
@@ -151,21 +158,21 @@ func TestValidateInferenceSetMIG(t *testing.T) {
 func TestInferenceSetMIGImmutable(t *testing.T) {
 	setMIGGates(t, true, true)
 	makeIS := func(profile string) *InferenceSet {
-		var m *MIGSpec
+		var p *PartitionSpec
 		if profile != "" {
-			m = &MIGSpec{Profile: profile}
+			p = &PartitionSpec{Mode: PartitionModeMIG, Profile: profile}
 		}
 		return &InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
 			Spec: InferenceSetSpec{
 				Template: InferenceSetTemplate{
-					Resource: InferenceSetResourceSpec{MIG: m},
+					Resource: InferenceSetResourceSpec{Partition: p},
 				},
 			},
 		}
 	}
 
-	// Unchanged MIG is allowed.
+	// Unchanged partition is allowed.
 	errs := makeIS("1g.10gb").validateUpdate(makeIS("1g.10gb"))
 	assert.Nil(t, errs)
 
@@ -174,7 +181,7 @@ func TestInferenceSetMIGImmutable(t *testing.T) {
 	assert.NotNil(t, errs)
 	assert.Contains(t, errs.Error(), "field is immutable")
 
-	// Adding MIG to a non-MIG set is rejected.
+	// Adding a partition to a non-partitioned set is rejected.
 	errs = makeIS("1g.10gb").validateUpdate(makeIS(""))
 	assert.NotNil(t, errs)
 	assert.Contains(t, errs.Error(), "field is immutable")

@@ -323,7 +323,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 			workspaceObj.Resource = kaitov1beta1.ResourceSpec{
 				InstanceType:  iObj.Spec.Template.Resource.InstanceType,
 				LabelSelector: iObj.Spec.Selector,
-				MIG:           iObj.Spec.Template.Resource.MIG,
+				Partition:     iObj.Spec.Template.Resource.Partition,
 			}
 			workspaceObj.Inference = &iObj.Spec.Template.Inference
 

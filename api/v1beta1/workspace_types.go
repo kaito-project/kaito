@@ -45,19 +45,35 @@ type ResourceSpec struct {
 	// +optional
 	PreferredNodes []string `json:"preferredNodes,omitempty"`
 
-	// MIG specifies NVIDIA Multi-Instance GPU configuration for the workload.
-	// When set, the workload will be scheduled on MIG partitions instead of full GPUs.
-	// Requires the enableMIG feature gate and BYO nodes (disableNodeAutoProvisioning=true).
+	// Partition specifies GPU partitioning for the workload. When set, the workload
+	// is scheduled on a GPU partition (slice) instead of a full GPU.
+	// Requires the enableMIG feature gate and BYO nodes.
 	// +optional
-	MIG *MIGSpec `json:"mig,omitempty"`
+	Partition *PartitionSpec `json:"partition,omitempty"`
 }
 
-// MIGSpec describes the NVIDIA Multi-Instance GPU (MIG) configuration.
-type MIGSpec struct {
-	// Profile is the MIG partition profile name (e.g., "1g.10gb", "2g.20gb", "3g.40gb").
-	// Must match a valid NVIDIA MIG profile name.
-	// Each workload is scheduled on exactly one MIG slice; tensor parallelism across
-	// slices is not supported. Use multiple Workspaces or an InferenceSet to run replicas.
+// PartitionMode identifies the GPU partitioning technology.
+// +kubebuilder:validation:Enum=mig
+type PartitionMode string
+
+const (
+	// PartitionModeMIG partitions the GPU using NVIDIA Multi-Instance GPU (MIG).
+	PartitionModeMIG PartitionMode = "mig"
+)
+
+// PartitionSpec describes GPU partitioning for a workload. Today only NVIDIA MIG
+// (mode "mig") is supported; the mode discriminator leaves room for other GPU
+// partitioning technologies in the future.
+type PartitionSpec struct {
+	// Mode selects the GPU partitioning technology. Currently only "mig" (NVIDIA
+	// Multi-Instance GPU) is supported.
+	// +kubebuilder:validation:Enum=mig
+	Mode PartitionMode `json:"mode"`
+
+	// Profile is the partition profile, interpreted according to Mode. For MIG this
+	// is a profile name like "1g.10gb", "2g.20gb", "3g.40gb". Each workload is
+	// scheduled on exactly one partition; tensor parallelism across partitions is
+	// not supported. Use multiple Workspaces or an InferenceSet to run replicas.
 	Profile string `json:"profile"`
 }
 

@@ -691,7 +691,7 @@ func TestNodeEstimator_EstimateNodeCount_MIG(t *testing.T) {
 				},
 				Resource: kaitov1beta1.ResourceSpec{
 					// InstanceType is empty for BYO/MIG.
-					MIG: &kaitov1beta1.MIGSpec{Profile: tt.migProfile},
+					Partition: &kaitov1beta1.PartitionSpec{Mode: kaitov1beta1.PartitionModeMIG, Profile: tt.migProfile},
 				},
 				Inference: &kaitov1beta1.InferenceSpec{
 					Preset: &kaitov1beta1.PresetSpec{
@@ -743,7 +743,7 @@ func TestNodeEstimator_EstimateNodeCount_MIG_ContextSize(t *testing.T) {
 			Namespace: "default",
 		},
 		Resource: kaitov1beta1.ResourceSpec{
-			MIG: &kaitov1beta1.MIGSpec{Profile: "1g.24gb"}, // 24 * 0.84 = 20.16 GiB available
+			Partition: &kaitov1beta1.PartitionSpec{Mode: kaitov1beta1.PartitionModeMIG, Profile: "1g.24gb"}, // 24 * 0.84 = 20.16 GiB available
 		},
 		Inference: &kaitov1beta1.InferenceSpec{
 			Preset: &kaitov1beta1.PresetSpec{

@@ -18,5 +18,6 @@ spec:
         accessMode: public
         name: phi-4-mini-instruct
     resource:
-      mig:
+      partition:
+        mode: mig
         profile: "2g.24gb"

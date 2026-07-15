@@ -7,7 +7,7 @@ reviewers:
   - "@Fei-Guo"
   - "@zhuangqh"
 creation-date: 2026-07-10
-last-updated: 2026-07-10
+last-updated: 2026-07-15
 status: draft
 ---
 
@@ -29,7 +29,8 @@ spec:
     labelSelector:
       matchLabels:
         kaito.sh/mig-enabled: "true"
-    mig:
+    partition:
+      mode: mig
       profile: "1g.10gb"
   inference:
     preset:
@@ -72,7 +73,7 @@ Refs: [Issue #1744](https://github.com/kaito-project/kaito/issues/1744)
 As a platform engineer managing an AKS cluster with A100 nodes, I want to partition idle GPUs into MIG slices so my ML engineers can deploy small models without wasting full A100s.
 
 **ML engineer deploying a small model:**
-As an ML engineer, I want to deploy phi-4-mini on a MIG partition by adding `mig.profile: "1g.10gb"` to my Workspace spec, without needing to understand NVIDIA device plugin internals.
+As an ML engineer, I want to deploy phi-4-mini on a MIG partition by adding a `partition` block (`mode: mig`, `profile: "1g.10gb"`) to my Workspace spec, without needing to understand NVIDIA device plugin internals.
 
 **Team running multiple small models cost-effectively:**
 As a team lead, I want to run 7 independent phi-4-mini instances on a single A100-80GB using `1g.10gb` MIG slices, reclaiming GPU capacity that would otherwise sit idle.
@@ -121,51 +122,71 @@ NVIDIA provides two strategies for exposing MIG devices in Kubernetes. The choic
 
 ### API Changes
 
-Add `MIG` field to `ResourceSpec` (only used for mixed strategy):
+GPU partitioning is exposed through a generic `Partition` field on `ResourceSpec`. A
+`mode` discriminator selects the partitioning technology; today only NVIDIA MIG
+(`mode: "mig"`) is implemented, but the shape leaves room for other partitioning
+technologies without another breaking API change.
 
 ```go
 type ResourceSpec struct {
     // ... existing fields ...
 
-    // MIG specifies NVIDIA Multi-Instance GPU configuration.
+    // Partition specifies GPU partitioning for the workload.
     // Requires enableMIG feature gate and BYO nodes (instanceType must be empty).
     // +optional
-    MIG *MIGSpec `json:"mig,omitempty"`
+    Partition *PartitionSpec `json:"partition,omitempty"`
 }
 
-type MIGSpec struct {
-    // Profile is the MIG partition profile name (e.g., "1g.10gb").
-    // Validated against known NVIDIA MIG profiles.
+// PartitionMode identifies the GPU partitioning technology.
+// +kubebuilder:validation:Enum=mig
+type PartitionMode string
+
+const (
+    // PartitionModeMIG partitions the GPU using NVIDIA Multi-Instance GPU (MIG).
+    PartitionModeMIG PartitionMode = "mig"
+)
+
+type PartitionSpec struct {
+    // Mode selects the partitioning technology. Currently only "mig".
+    // +kubebuilder:validation:Enum=mig
+    Mode PartitionMode `json:"mode"`
+    // Profile is the partition profile, interpreted per Mode. For MIG this is a
+    // profile name like "1g.10gb", "3g.40gb".
     Profile string `json:"profile"`
 }
 ```
 
-> **Design decision: no `Count` field.** MIG slices are hardware-isolated with only limited CUDA IPC between them, so tensor parallelism across slices is not feasible. Each Workspace pod always requests exactly 1 MIG slice. For running multiple instances of the same model, use multiple Workspace CRs or an InferenceSet (see Multi-replica with InferenceSet below).
+> **Design decision: generic `Partition`, not a MIG-specific field.** Naming the field
+> after one vendor's technology would force another breaking API change to add a second.
+> The `mode` discriminator keeps the API stable — validation and the controller dispatch
+> on it, and the NVIDIA-specific implementation (the `mig` package, `IsMIG`,
+> `GetMIGGPUConfig`) lives behind `mode: "mig"`.
 
-`InferenceSetResourceSpec` currently exposes only `InstanceType` (marked `+required`), because InferenceSet was designed for the NAP path. MIG requires BYO nodes, so two changes are needed in **both `v1alpha1` and `v1beta1`**:
+> **Design decision: no `Count` field.** MIG slices are hardware-isolated with only limited CUDA IPC between them, so tensor parallelism across slices is not feasible. Each Workspace pod always requests exactly 1 partition. For running multiple instances of the same model, use multiple Workspace CRs or an InferenceSet (see Multi-replica with InferenceSet below).
+
+`InferenceSetResourceSpec` currently exposes only `InstanceType` (marked `+required`), because InferenceSet was designed for the NAP path. Partitioning requires BYO nodes, so two changes are needed in **both `v1alpha1` and `v1beta1`**:
 
 ```go
 type InferenceSetResourceSpec struct {
     // InstanceType specifies the GPU node SKU.
-    // Now optional: must be empty (BYO) when MIG is set.
+    // Now optional: must be empty (BYO) when Partition is set.
     // +optional
     InstanceType string `json:"instanceType,omitempty"`
 
-    // MIG specifies NVIDIA Multi-Instance GPU configuration for each replica.
-    // Requires enableMIG feature gate and BYO nodes (instanceType must be empty).
-    // Mirrors Workspace ResourceSpec.MIG; propagated verbatim to each child Workspace.
+    // Partition specifies GPU partitioning for each replica. Mirrors Workspace
+    // ResourceSpec.Partition; propagated verbatim to each child Workspace.
     // +optional
-    MIG *MIGSpec `json:"mig,omitempty"`
+    Partition *PartitionSpec `json:"partition,omitempty"`
 }
 ```
 
-The controller propagation at inferenceset_controller.go gains one line so each child Workspace inherits the MIG spec:
+The controller propagation at inferenceset_controller.go gains one line so each child Workspace inherits the partition spec:
 
 ```go
 workspaceObj.Resource = kaitov1beta1.ResourceSpec{
     InstanceType:  iObj.Spec.Template.Resource.InstanceType,
     LabelSelector: iObj.Spec.Selector,
-    MIG:           iObj.Spec.Template.Resource.MIG, // new
+    Partition:     iObj.Spec.Template.Resource.Partition, // new
 }
 ```
 
@@ -174,7 +195,7 @@ workspaceObj.Resource = kaitov1beta1.ResourceSpec{
 
 ### Validation
 
-When `resource.mig` is set:
+When `resource.partition` is set (validation dispatches on `mode`; only `mig` is implemented today):
 
 1. Feature gate `enableMIG` must be true.
 2. `instanceType` must be empty (BYO only). The webhook validates this per-Workspace rather than requiring a global feature gate.
@@ -193,7 +214,7 @@ When `resource.mig` is set:
 
 ### Pod Spec Generation
 
-- Resource requests/limits use `nvidia.com/mig-<profile>: 1` instead of `nvidia.com/gpu` on the mixed/spec-driven path. Under single strategy the request stays `nvidia.com/gpu`: the profile is a spec property (`resource.mig.profile`), and single-strategy workloads have no spec profile, so they keep requesting the generic resource.
+- Resource requests/limits use `nvidia.com/mig-<profile>: 1` instead of `nvidia.com/gpu` on the mixed/spec-driven path. Under single strategy the request stays `nvidia.com/gpu`: the profile is a spec property (`resource.partition.profile`), and single-strategy workloads have no spec profile, so they keep requesting the generic resource.
 - Tensor parallelism is forced to 1.
 - **CPU KV-cache offload is disabled** (`kaito-kv-cache-cpu-memory-utilization=0`). LMCache sizes its CPU offload buffer from *host* RAM (cgroup-unaware); on a shared MIG node, several pods each reserving a large fraction of host RAM overcommits the node and triggers OOM kills. Offload is therefore turned off for any MIG workload.
 - MIG-specific toleration added for `nvidia.com/mig-<profile>` (precautionary — the NVIDIA device plugin does not add MIG taints by default, but cluster operators may). Only added on the mixed/spec-driven path where a per-profile taint key exists.
@@ -201,7 +222,7 @@ When `resource.mig` is set:
 ### MIG Mode Detection
 `GetGPUConfigFromNodeLabels` detects a MIG node from the NVIDIA GPU Operator mig-manager labels: `nvidia.com/mig.config != "all-disabled"` **and** `nvidia.com/mig.config.state == "success"`. This signal works for **both** strategies and is robust to the transient states during repartitioning.
 
-When detected, KAITO sets `IsMIG=true` on the GPU config, which (a) disables CPU KV-cache offload and (b) sizes memory against a slice. It deliberately does **not** derive a MIG *profile* from node labels: under single strategy the slices are requested via the generic `nvidia.com/gpu` resource, so no per-profile name is needed, and a physically partitioned GPU can host multiple different profiles. The requested profile stays a spec property (`resource.mig.profile`) used only on the mixed path. Consequently `GPUConfig` carries only `IsMIG`, not a profile field.
+When detected, KAITO sets `IsMIG=true` on the GPU config, which (a) disables CPU KV-cache offload and (b) sizes memory against a slice. It deliberately does **not** derive a MIG *profile* from node labels: under single strategy the slices are requested via the generic `nvidia.com/gpu` resource, so no per-profile name is needed, and a physically partitioned GPU can host multiple different profiles. The requested profile stays a spec property (`resource.partition.profile`) used only on the mixed path. Consequently `GPUConfig` carries only `IsMIG`, not a profile field.
 
 ### get_max_gpu_memory_utilization Changes
 
@@ -223,7 +244,8 @@ spec:
       kaito-inferenceset: "phi-4-mini-mig"
   template:
     resource:
-      mig:
+      partition:
+        mode: mig
         profile: "2g.24gb"
     inference:
       preset:
@@ -250,7 +272,7 @@ spec:
 
 ## Alternatives Considered
 
-### 1. Raw `resourceRequests` map instead of `MIGSpec`
+### 1. Raw `resourceRequests` map instead of `PartitionSpec`
 
 The [original issue #1744](https://github.com/kaito-project/kaito/issues/1744) proposed a generic map:
 
@@ -259,7 +281,7 @@ resourceRequests:
   nvidia.com/mig-1g.10gb: 1
 ```
 
-This is more Kubernetes-native and forward-compatible (works with any extended resource). However, it doesn't enable admission-time validation — KAITO can't parse memory from an opaque resource name to check model fit. The structured `MIGSpec` enables profile validation, memory-fit checking, and TP rejection that a raw map cannot. If we later support non-NVIDIA accelerator partitioning, a generic `resourceRequests` map could complement `MIGSpec`.
+This is more Kubernetes-native and forward-compatible (works with any extended resource). However, it doesn't enable admission-time validation — KAITO can't parse memory from an opaque resource name to check model fit. The structured `PartitionSpec` enables profile validation, memory-fit checking, and TP rejection that a raw map cannot. If we later support non-NVIDIA accelerator partitioning, a generic `resourceRequests` map could complement `PartitionSpec`.
 
 ### 2. NVIDIA MPS instead of MIG
 
@@ -268,6 +290,6 @@ MPS (Multi-Process Service) is NVIDIA's software-level GPU sharing. It provides 
 
 ## Future Work
 
-- **Dynamic Resource Allocation (DRA).** The Kubernetes DRA API ([KEP-4381](https://github.com/kubernetes/enhancements/issues/4381), beta in 1.32) is the long-term replacement for extended resources. `MIGSpec` is an abstraction layer that can translate to DRA `ResourceClaims` when DRA matures.
+- **Dynamic Resource Allocation (DRA).** The Kubernetes DRA API ([KEP-4381](https://github.com/kubernetes/enhancements/issues/4381), beta in 1.32) is the long-term replacement for extended resources. `PartitionSpec` is an abstraction layer that can translate to DRA `ResourceClaims` when DRA matures.
 - **Scheduling failure surfacing.** Propagate pod `FailedScheduling` events to Workspace status conditions.
 - **B200/Blackwell and other GPU profiles.** B200 (180GB) MIG profiles are documented by NVIDIA. Additional MIG-capable GPUs (H20, GB200, RTX PRO 5000/6000) will be added as validated.

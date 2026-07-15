@@ -11,7 +11,7 @@ title: Multi-Instance GPU (MIG)
 | **BYO nodes only** — no node auto-provisioning (NAP/Karpenter) | KAITO does not create or partition MIG nodes; requires `disableNodeAutoProvisioning=true`. |
 | **No tensor parallelism** — the model must fit in **one** slice | MIG slices are hardware-isolated with limited cross-slice CUDA IPC; a model requiring more than 1 GPU is rejected. |
 | **No tuning** — inference only | Tuning workloads are not supported on MIG partitions. |
-| **`mig.profile` is immutable** once set | Changing the slice size requires recreating the workspace. |
+| **`partition.profile` is immutable** once set | Changing the slice size requires recreating the workspace. |
 | **KAITO does not manage the partition layout** | Create/destroy MIG instances with the [NVIDIA GPU Operator MIG manager](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-operator-mig.html). |
 | **CPU KV-cache offload is disabled** on MIG pods | A MIG slice's small memory footprint plus host-RAM offload sizing can OOM a shared node; offload is turned off automatically. |
 
@@ -42,29 +42,31 @@ The strategy is chosen when you deploy the NVIDIA device plugin (GPU Operator He
 | --- | --- | --- |
 | Resource requested | `nvidia.com/mig-<profile>` | `nvidia.com/gpu` |
 | Partition sizes per GPU | Can differ (e.g. `2g.24gb` + `3g.47gb`) | Must be uniform per node |
-| `mig.profile` in the spec | **Required** — selects the slice | **Not needed** — any slice is a generic GPU |
+| `partition` in the spec | **Required** (`mode: mig` + profile) — selects the slice | **Not needed** — any slice is a generic GPU |
 
 ## Configuration reference
 
-Add a `mig` block under `resource` (Workspace) or `template.resource` (InferenceSet):
+Add a `partition` block under `resource` (Workspace) or `template.resource` (InferenceSet):
 
 ```yaml
 resource:
   labelSelector:
     matchLabels:
       kaito.sh/mig-enabled: "true"   # target your MIG node(s)
-  mig:
-    profile: "2g.24gb"               # mixed strategy only; omit for single strategy
+  partition:
+    mode: mig                        # only "mig" is supported today
+    profile: "2g.24gb"               # mixed strategy only; omit the partition block for single strategy
 ```
 
+- `mode` — the partitioning technology. Currently only `mig` (NVIDIA Multi-Instance GPU) is supported; the field is a discriminator that leaves room for other technologies later.
 - `profile` — the MIG profile in `<compute>g.<memory>gb` form (e.g. `1g.10gb`, `2g.24gb`, `3g.47gb`, `7g.80gb`). Must be a [known NVIDIA profile](https://docs.nvidia.com/datacenter/tesla/mig-user-guide/latest/supported-mig-profiles.html) and large enough for the model.
 - `instanceType` — must be **empty** (BYO). Node auto-provisioning is disabled.
 - `labelSelector` — targets the MIG node(s); required so the pod lands on a partitioned node.
 
 **How KAITO maps the request:**
 
-- **Mixed** — you set `resource.mig.profile`, and KAITO requests the matching per-profile resource (`nvidia.com/mig-2g.24gb`). This is what lets you pick a specific slice size on a heterogeneously partitioned GPU.
-- **Single** — all slices look like plain `nvidia.com/gpu`, so **no** profile is needed; KAITO still detects the node is MIG (from labels) and size against a slice.
+- **Mixed** — you set `resource.partition` (`mode: mig`, a profile), and KAITO requests the matching per-profile resource (`nvidia.com/mig-2g.24gb`). This is what lets you pick a specific slice size on a heterogeneously partitioned GPU.
+- **Single** — all slices look like plain `nvidia.com/gpu`, so **no** partition block is needed; KAITO still detects the node is MIG (from labels) and sizes against a slice.
 
 ## Example: mixed strategy
 
@@ -87,7 +89,8 @@ spec:
         accessMode: public
         name: "microsoft/Phi-4-mini-instruct"
     resource:
-      mig:
+      partition:
+        mode: mig
         profile: "2g.24gb"
 ```
 
@@ -102,7 +105,8 @@ resource:
   labelSelector:
     matchLabels:
       kaito-workspace: phi-4-mini
-  mig:
+  partition:
+    mode: mig
     profile: "2g.24gb"
 inference:
   preset:
@@ -111,7 +115,7 @@ inference:
 
 ## Example: single strategy
 
-All slices on the node are the same size and exposed as `nvidia.com/gpu`, so **no `mig.profile` is required** — KAITO detects MIG from the node labels and requests a generic GPU (which the device plugin maps to one slice).
+All slices on the node are the same size and exposed as `nvidia.com/gpu`, so **no `partition` block is required** — KAITO detects MIG from the node labels and requests a generic GPU (which the device plugin maps to one slice).
 
 ```yaml
 apiVersion: kaito.sh/v1beta1

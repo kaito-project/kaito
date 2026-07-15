@@ -106,6 +106,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 	})
 
 	It("should create a qwen3-coder-30b-a3b-instruct two-node workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+		Skip("temporarily skip this multi-node test due to e2e env GPU quota issue, will re-enable it after the e2e env is fixed")
 		numOfNode := 2
 		workspaceObj := createQWen3Coder30BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
@@ -152,6 +153,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 	})
 
 	It("should create a multi-node llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+		Skip("temporarily skip this multi-node test due to e2e env GPU quota issue, will re-enable it after the e2e env is fixed")
 		// Need 2 Standard_NC6s_v3 nodes to run Llama 3.1-8B Instruct model.
 		// Each node has 1 V100 GPU, so total 2 GPUs are used
 		numOfNode := 2
@@ -257,6 +259,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 	})
 
 	It("should create a llama-3.3-70b-instruct workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
+		Skip("temporarily skip this multi-node test due to e2e env GPU quota issue, will re-enable it after the e2e env is fixed")
 		// Need 2 Standard_NC48ads_A100_v4 nodes to run Llama 3.3-70B Instruct model.
 		// Each node has 2 A100 GPUs, so total 4 GPUs are used
 		numOfNode := 2

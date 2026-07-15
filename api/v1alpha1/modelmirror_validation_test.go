@@ -276,7 +276,7 @@ func TestModelMirrorValidate_Managed_EmptyValues_ReportMissing(t *testing.T) {
 	}
 }
 
-// TestModelMirrorValidate_Managed_BadSize_ReportsInvalid: a present-but-unparseable size
+// TestModelMirrorValidate_Managed_BadSize_ReportsInvalid: a present-but-unparsable size
 // reports "invalid value" (ErrInvalidValue), distinct from the blank case above.
 func TestModelMirrorValidate_Managed_BadSize_ReportsInvalid(t *testing.T) {
 	client := fake.NewClientBuilder().
@@ -296,7 +296,7 @@ func TestModelMirrorValidate_Managed_BadSize_ReportsInvalid(t *testing.T) {
 
 	err := m.Validate(context.Background())
 	if err == nil {
-		t.Fatal("expected error for unparseable size, got nil")
+		t.Fatal("expected error for unparsable size, got nil")
 	}
 	if !strings.Contains(err.Error(), "invalid value") {
 		t.Errorf("expected 'invalid value' for a non-empty bad size, got: %v", err)

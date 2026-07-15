@@ -62,7 +62,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/version"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
-	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/azure"
+	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/registry"
 	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
 )
 
@@ -273,7 +273,7 @@ func main() {
 
 	// Set streaming defaults once at startup (read by the modelstreaming package via StreamingDefaults).
 	if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
-		streamer, streamerErr := azure.GetModelStreamer(os.Getenv("CLOUD_PROVIDER"))
+		streamer, streamerErr := registry.GetModelStreamer(os.Getenv("CLOUD_PROVIDER"))
 		if streamerErr != nil {
 			klog.ErrorS(streamerErr, "unable to resolve model streamer")
 			exitWithErrorFunc()

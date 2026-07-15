@@ -64,7 +64,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/workspace/estimator/nodesestimator"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
-	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/azure"
+	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/registry"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	"github.com/kaito-project/kaito/pkg/workspace/tuning"
 	"github.com/kaito-project/kaito/presets/workspace/models"
@@ -210,7 +210,7 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 
 	// Validate ServiceAccount exists and has provider-specific identity configured.
 	// ValidateAuth dispatches to the correct provider (SAS blob or HF) based on annotations.
-	if err := azure.SelectModelStreamer(wObj).ValidateAuth(ctx, wObj, c.Client, modelstreaming.StreamingDefaults.ServiceAccount); err != nil {
+	if err := registry.SelectModelStreamer(wObj).ValidateAuth(ctx, wObj, c.Client, modelstreaming.StreamingDefaults.ServiceAccount); err != nil {
 		return err
 	}
 

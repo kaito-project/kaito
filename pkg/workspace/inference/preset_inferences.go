@@ -42,7 +42,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
-	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/azure"
+	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/registry"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
@@ -181,7 +181,7 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 
 	if streamingEnabled {
 		modelID = modelstreaming.ResolveHFModelID(workspaceObj)
-		streamer := azure.SelectModelStreamer(workspaceObj)
+		streamer := registry.SelectModelStreamer(workspaceObj)
 		streamingCfg, err = streamer.GetStreamingConfig(gctx, modelID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to resolve streaming config: %w", err)

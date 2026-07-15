@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package azure
+package registry
 
 import (
 	"fmt"
@@ -19,6 +19,7 @@ import (
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
+	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/azure"
 )
 
 // GetModelStreamer returns the ModelStreamer implementation for the given cloud.
@@ -27,7 +28,7 @@ import (
 func GetModelStreamer(cloudName string) (modelstreaming.ModelStreamer, error) {
 	switch cloudName {
 	case consts.AzureCloudName:
-		return &AzureBlobProvider{}, nil
+		return &azure.AzureBlobProvider{}, nil
 	default:
 		return nil, fmt.Errorf("unsupported cloud provider %q for model streaming; supported: azure", cloudName)
 	}
@@ -38,7 +39,7 @@ func GetModelStreamer(cloudName string) (modelstreaming.ModelStreamer, error) {
 // the cluster default (set at startup via modelstreaming.StreamingDefaults).
 func SelectModelStreamer(ws *v1beta1.Workspace) modelstreaming.ModelStreamer {
 	if modelstreaming.HasSASBlobStreamingAnnotations(ws.Annotations) {
-		return &SASBlobProvider{}
+		return &azure.SASBlobProvider{}
 	}
 	return modelstreaming.StreamingDefaults.ModelStreamer
 }

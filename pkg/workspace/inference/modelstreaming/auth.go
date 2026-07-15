@@ -38,7 +38,7 @@ func ValidateStreamingServiceAccount(ctx context.Context, ws *v1beta1.Workspace,
 	}
 	if sa.Annotations["azure.workload.identity/client-id"] == "" {
 		return fmt.Errorf("ServiceAccount %q is missing annotation azure.workload.identity/client-id; "+
-			"workload identity must be configured for model streaming (see docs/proposals/20260520-model-mirror.md)", saName)
+			"workload identity must be configured for model streaming", saName)
 	}
 	return nil
 }

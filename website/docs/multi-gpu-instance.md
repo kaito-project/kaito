@@ -68,7 +68,8 @@ resource:
 - **Mixed** — you set `resource.partition` (`mode: mig`, a profile), and KAITO requests the matching per-profile resource (`nvidia.com/mig-2g.24gb`). This is what lets you pick a specific slice size on a heterogeneously partitioned GPU.
 - **Single** — all slices look like plain `nvidia.com/gpu`, so **no** partition block is needed; KAITO still detects the node is MIG (from labels) and sizes against a slice.
 
-## Example: mixed strategy
+## Examples
+### Mixed strategy
 
 The GPU is partitioned into differently sized slices, and you select `2g.24gb` explicitly. KAITO requests `nvidia.com/mig-2g.24gb`.
 
@@ -113,7 +114,7 @@ inference:
     name: "microsoft/Phi-4-mini-instruct"
 ```
 
-## Example: single strategy
+### Single strategy
 
 All slices on the node are the same size and exposed as `nvidia.com/gpu`, so **no `partition` block is required** — KAITO detects MIG from the node labels and requests a generic GPU (which the device plugin maps to one slice).
 
@@ -134,6 +135,26 @@ spec:
         accessMode: public
         name: "microsoft/Phi-4-mini-instruct"
 ```
+
+### Verify MIG is working
+Under MIG mode every inference pod should see exactly one MIG device, and the `MIG-...` UUIDs must differ between pods. To verify, run the following script:
+
+   ```bash
+   for p in $(kubectl get pods -l inferenceset.kaito.sh/created-by=phi-4-mini -o name); do
+     echo "== $p =="
+     kubectl exec "$p" -- nvidia-smi -L
+   done
+   ```
+
+Expected outputs:
+   ```text
+   == pod/phi-4-mini-btgq9-0 ==
+   GPU 0: NVIDIA H100 NVL (UUID: GPU-47310961-...)
+     MIG 2g.24gb  Device 0: (UUID: MIG-1bb00402-...)
+   == pod/phi-4-mini-cnm42-0 ==
+   GPU 0: NVIDIA H100 NVL (UUID: GPU-47310961-...)
+     MIG 2g.24gb  Device 0: (UUID: MIG-064e07a2-...) # different slice ✔
+   ```
 
 ## See also
 - [InferenceSet](./inference.md)

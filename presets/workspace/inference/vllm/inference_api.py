@@ -16,6 +16,8 @@ import collections
 import logging
 import os
 import socket
+import subprocess
+import sys
 import threading
 import time
 from dataclasses import dataclass
@@ -24,7 +26,6 @@ from pathlib import Path
 from typing import Any
 
 import psutil
-import torch
 import uvloop
 import vllm.entrypoints.openai.api_server as api_server
 import yaml
@@ -421,17 +422,59 @@ def load_lora_adapters(adapters_dir: str) -> LoRAModulePath | None:
     return lora_list
 
 
+# Snippet executed in a throwaway subprocess to read GPU memory.
+# torch.cuda.mem_get_info reports per-slice memory correctly under MIG (unlike
+# NVML/pynvml, which fails with NVMLError_NoPermission or reports the parent
+# GPU), but the first CUDA call initializes a CUDA context that reserves
+# ~200-400MB and cannot be freed until the process exits. Running it in a
+# subprocess reclaims that memory immediately, instead of pinning it in the
+# long-lived launcher process, which never touches CUDA again after this.
+_GPU_MEM_INFO_SNIPPET = (
+    "import sys, torch; "
+    "free, total = torch.cuda.mem_get_info(int(sys.argv[1])); "
+    "print(f'KAITO_MEM_INFO {free} {total}')"
+)
+
+# Fallback gpu_memory_utilization used when the GPU memory probe fails.
+_DEFAULT_GPU_MEMORY_UTILIZATION = 0.84
+
+
+def _query_gpu_mem_info(device_index: int) -> tuple[int, int]:
+    """Return (free_bytes, total_bytes) for *device_index*.
+
+    Delegates to a short-lived subprocess so the CUDA context that
+    torch.cuda.mem_get_info creates is torn down on exit rather than lingering
+    in the caller for the process lifetime.
+    """
+    result = subprocess.run(
+        [sys.executable, "-c", _GPU_MEM_INFO_SNIPPET, str(device_index)],
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=True,
+    )
+    for line in result.stdout.splitlines():
+        if line.startswith("KAITO_MEM_INFO"):
+            _, free_str, total_str = line.split()
+            return int(free_str), int(total_str)
+    raise RuntimeError(f"unexpected GPU mem-info output: {result.stdout!r}")
+
+
 def get_max_gpu_memory_utilization(device_index: int = 0) -> float:
     # Calculate gpu_memory_utilization based on available GPU memory.
     # This ensures vLLM only uses currently free memory to avoid OOM errors.
     # See https://github.com/kaito-project/kaito/issues/1374.
-    #
-    # Use torch.cuda.mem_get_info() instead of pynvml: on MIG partitions NVML
-    # device-memory queries fail with NVMLError_NoPermission and, when they do
-    # succeed, report the parent GPU's memory rather than the slice's. torch
-    # reports the per-device (per-slice under MIG) free/total memory correctly
-    # and requires no elevated NVML permissions.
-    free_bytes, total_bytes = torch.cuda.mem_get_info(device_index)
+    try:
+        free_bytes, total_bytes = _query_gpu_mem_info(device_index)
+    except Exception as exc:
+        # Never fail startup (or leave a CUDA context in this process) over a
+        # best-effort measurement; fall back to a conservative default.
+        logger.warning(
+            "Could not query GPU memory (%s); falling back to gpu_memory_utilization=%s",
+            exc,
+            _DEFAULT_GPU_MEMORY_UTILIZATION,
+        )
+        return _DEFAULT_GPU_MEMORY_UTILIZATION
 
     # Reserve an additional 600MiB for pytorch memory fragments, calculated based on profiling
     free_memory = free_bytes - 600 * 1024**2

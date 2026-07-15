@@ -29,10 +29,12 @@ import (
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
 )
 
-// AzureBlobProvider implements ModelStreamer for Azure Blob Storage.
-type AzureBlobProvider struct{}
+// WIBlobProvider streams model weights from an Azure Blob container that KAITO's model
+// mirror downloaded into (a PVC-backed blob KAITO owns). The inference pod authenticates via
+// Azure Workload Identity (AAD)
+type WIBlobProvider struct{}
 
-func (a *AzureBlobProvider) CSIDriverName() string {
+func (a *WIBlobProvider) CSIDriverName() string {
 	return consts.CSIDriverNameAzureBlob
 }
 
@@ -49,7 +51,7 @@ func (a *AzureBlobProvider) CSIDriverName() string {
 // The model path is constructed as az://containerName/modelID because the
 // ModelMirror download Job writes to /models/<modelID> inside the PVC,
 // and the PVC is backed by a blob container — so the blob path matches the modelID.
-func (a *AzureBlobProvider) GetStreamingConfig(ctx *generator.WorkspaceGeneratorContext, modelID string) (*modelstreaming.StreamingConfig, error) {
+func (a *WIBlobProvider) GetStreamingConfig(ctx *generator.WorkspaceGeneratorContext, modelID string) (*modelstreaming.StreamingConfig, error) {
 	crName := modelstreaming.ModelMirrorCRName(modelID)
 	mmCR := &kaitov1alpha1.ModelMirror{}
 	if err := ctx.KubeClient.Get(ctx.Ctx, client.ObjectKey{Name: crName}, mmCR); err != nil {
@@ -113,6 +115,6 @@ func (a *AzureBlobProvider) GetStreamingConfig(ctx *generator.WorkspaceGenerator
 // ValidateAuth resolves the streaming SA name, verifies it exists in the
 // workspace namespace, and checks that it has the Azure Workload Identity client-id
 // annotation required for blob storage authentication.
-func (a *AzureBlobProvider) ValidateAuth(ctx context.Context, ws *v1beta1.Workspace, kubeClient client.Client, defaultSA string) error {
+func (a *WIBlobProvider) ValidateAuth(ctx context.Context, ws *v1beta1.Workspace, kubeClient client.Client, defaultSA string) error {
 	return modelstreaming.ValidateStreamingServiceAccount(ctx, ws, kubeClient, defaultSA)
 }

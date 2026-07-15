@@ -172,13 +172,12 @@ func (c *WorkspaceReconciler) ensureFinalizer(ctx context.Context, workspaceObj 
 // ensureModelMirror creates the ModelMirror CR for the workspace's model if it doesn't exist.
 // Returns nil if the CR exists (any phase) or was created successfully.
 func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
-	if err := modelstreaming.RequireSASBlobStreamingAnnotations(wObj.Annotations); err != nil {
+	if err := modelstreaming.RequireStaticModelMirror(wObj.Annotations); err != nil {
 		return err
 	}
 
 	modelID := modelstreaming.ResolveHFModelID(wObj)
 	crName := modelstreaming.ModelMirrorCRName(modelID)
-	staticMirror := modelstreaming.HasSASBlobStreamingAnnotations(wObj.Annotations)
 
 	// Check if CR already exists
 	existing := &kaitov1alpha1.ModelMirror{}
@@ -195,7 +194,7 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 		return fmt.Errorf("failed to get ModelMirror CR %s: %w", crName, err)
 	}
 
-	if staticMirror {
+	if modelstreaming.StaticModelMirrorEnabled(wObj.Annotations) {
 		if err := registry.SelectModelStreamer(wObj).ValidateAuth(ctx, wObj, c.Client, modelstreaming.StreamingDefaults.ServiceAccount); err != nil {
 			return err
 		}

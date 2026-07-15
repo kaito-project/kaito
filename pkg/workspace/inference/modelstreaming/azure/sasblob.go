@@ -95,10 +95,10 @@ func (s *SASBlobProvider) GetStreamingConfig(ctx *generator.WorkspaceGeneratorCo
 	}, nil
 }
 
-// ValidateAuth enforces the no-fallback contract (all five annotations present) and the
+// ValidateAuth enforces the static-mirror contract (all core SAS annotations present) and the
 // Workload Identity ServiceAccount requirement.
 func (s *SASBlobProvider) ValidateAuth(ctx context.Context, ws *v1beta1.Workspace, kubeClient client.Client, defaultSA string) error {
-	if err := modelstreaming.RequireSASBlobStreamingAnnotations(ws.Annotations); err != nil {
+	if err := modelstreaming.RequireStaticModelMirror(ws.Annotations); err != nil {
 		return err
 	}
 	return modelstreaming.ValidateStreamingServiceAccount(ctx, ws, kubeClient, defaultSA)

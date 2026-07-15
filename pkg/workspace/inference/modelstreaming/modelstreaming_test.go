@@ -174,7 +174,7 @@ func TestResolveStorageClass(t *testing.T) {
 	}
 }
 
-func TestAzureBlobProvider_ResolveStreamingConfig_ModelPathAndEnvVars(t *testing.T) {
+func TestWIBlobProvider_ResolveStreamingConfig_ModelPathAndEnvVars(t *testing.T) {
 	// Test that ResolveStreamingConfig produces the correct model path and env vars.
 	// Full PVC→PV mock tests would use test.MockClient; here we verify the output
 	// structure by testing BuildModelPath and env vars logic via a known config.

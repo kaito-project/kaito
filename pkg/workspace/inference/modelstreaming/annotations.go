@@ -36,6 +36,10 @@ const (
 	AnnotationStreamIdentityClientID = "inference.kaito.sh/stream-identity-client-id" // WI client id for token exchange
 	// AnnotationStreamTokenAudience is the AAD token audience for the SAS-mint call. Optional;
 	AnnotationStreamTokenAudience = "inference.kaito.sh/stream-token-audience" // AAD audience for get_token
+
+	// AnnotationStaticModelMirror, when set to "true", marks the workspace as using a STATIC
+	// model mirror: enabling this flag requires the core SAS annotations to be present.
+	AnnotationStaticModelMirror = "inference.kaito.sh/static-model-mirror" // "true" => Mode=Static
 )
 
 // coreSASBlobStreamingAnnotationKeys is the set of annotations REQUIRED to activate the SAS
@@ -67,13 +71,12 @@ func HasSASBlobStreamingAnnotations(annotations map[string]string) bool {
 	return CountSASBlobStreamingAnnotations(annotations) == len(coreSASBlobStreamingAnnotationKeys)
 }
 
-// RequireSASBlobStreamingAnnotations enforces the no-fallback contract: if some but not all
-// of the core stream-* annotations are present, it returns an error naming the missing ones.
-// It returns nil when all core are present (valid SAS path) or when none are present
-// (valid mirror path). Optional keys (assetId, token-audience) are ignored here.
-func RequireSASBlobStreamingAnnotations(annotations map[string]string) error {
-	n := CountSASBlobStreamingAnnotations(annotations)
-	if n == 0 || n == len(coreSASBlobStreamingAnnotationKeys) {
+// RequireStaticModelMirror enforces the static-mirror sas annotations.
+func RequireStaticModelMirror(annotations map[string]string) error {
+	if !StaticModelMirrorEnabled(annotations) {
+		return nil
+	}
+	if HasSASBlobStreamingAnnotations(annotations) {
 		return nil
 	}
 	var missing []string
@@ -82,7 +85,11 @@ func RequireSASBlobStreamingAnnotations(annotations map[string]string) error {
 			missing = append(missing, k)
 		}
 	}
-	return fmt.Errorf("incomplete SAS blob streaming configuration: %d of %d core stream annotations set; "+
-		"missing: %s (all must be set together, or none)",
-		n, len(coreSASBlobStreamingAnnotationKeys), strings.Join(missing, ", "))
+	return fmt.Errorf("%s=true requires all core SAS streaming annotations; missing: %s",
+		AnnotationStaticModelMirror, strings.Join(missing, ", "))
+}
+
+// StaticModelMirrorEnabled reports whether the workspace opts into a static model mirror.
+func StaticModelMirrorEnabled(annotations map[string]string) bool {
+	return annotations[AnnotationStaticModelMirror] == "true"
 }

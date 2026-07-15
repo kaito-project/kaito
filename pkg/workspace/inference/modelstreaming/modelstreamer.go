@@ -51,7 +51,7 @@ type StreamingConfig struct {
 type ModelStreamer interface {
 	// GetStreamingConfig resolves the full streaming model path, provider-specific
 	// env vars, pod labels, init containers, and volumes for the given modelID.
-	// Provider implementations may read from PVC/PV (AzureBlobProvider) or from
+	// Provider implementations may read from PVC/PV (WIBlobProvider) or from
 	// Workspace annotations (SASBlobProvider).
 	GetStreamingConfig(ctx *generator.WorkspaceGeneratorContext, modelID string) (*StreamingConfig, error)
 

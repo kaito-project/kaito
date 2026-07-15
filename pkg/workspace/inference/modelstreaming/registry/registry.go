@@ -28,17 +28,14 @@ import (
 func GetModelStreamer(cloudName string) (modelstreaming.ModelStreamer, error) {
 	switch cloudName {
 	case consts.AzureCloudName:
-		return &azure.AzureBlobProvider{}, nil
+		return &azure.WIBlobProvider{}, nil
 	default:
 		return nil, fmt.Errorf("unsupported cloud provider %q for model streaming; supported: azure", cloudName)
 	}
 }
 
-// SelectModelStreamer picks the streaming provider for a workspace: the SAS blob
-// provider when the workspace carries the SAS blob streaming annotations, otherwise
-// the cluster default (set at startup via modelstreaming.StreamingDefaults).
 func SelectModelStreamer(ws *v1beta1.Workspace) modelstreaming.ModelStreamer {
-	if modelstreaming.HasSASBlobStreamingAnnotations(ws.Annotations) {
+	if modelstreaming.StaticModelMirrorEnabled(ws.Annotations) {
 		return &azure.SASBlobProvider{}
 	}
 	return modelstreaming.StreamingDefaults.ModelStreamer

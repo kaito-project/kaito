@@ -1012,15 +1012,13 @@ func TestGuardTargetNodeCount(t *testing.T) {
 	}
 }
 
-func TestEnsureModelMirror_PartialSASAnnotationsFail(t *testing.T) {
-	// A workspace with SOME but not all five SAS streaming annotations must fail fast
-	// (no-fallback contract) — before any CR creation or model resolution. The guard is
-	// the first statement in ensureModelMirror, so a bare reconciler (no client) suffices.
+func TestEnsureModelMirror_StaticWithPartialSASFails(t *testing.T) {
 	ws := &v1beta1.Workspace{
 		ObjectMeta: v1.ObjectMeta{
-			Name:      "ws-partial-sas",
+			Name:      "ws-static-partial-sas",
 			Namespace: "default",
 			Annotations: map[string]string{
+				modelstreaming.AnnotationStaticModelMirror: "true",
 				modelstreaming.AnnotationStreamURI:         "az://c/model",
 				modelstreaming.AnnotationStreamAccount:     "acct",
 				modelstreaming.AnnotationStreamDatarefsURL: "https://x/datarefs",
@@ -1036,8 +1034,28 @@ func TestEnsureModelMirror_PartialSASAnnotationsFail(t *testing.T) {
 	reconciler := &WorkspaceReconciler{}
 	err := reconciler.ensureModelMirror(context.Background(), ws)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "incomplete SAS blob streaming configuration")
+	assert.Contains(t, err.Error(), modelstreaming.AnnotationStaticModelMirror)
 	assert.Contains(t, err.Error(), modelstreaming.AnnotationStreamIdentityClientID)
+}
+
+func TestEnsureModelMirror_StaticWithoutSASFails(t *testing.T) {
+	ws := &v1beta1.Workspace{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      "ws-static-no-sas",
+			Namespace: "default",
+			Annotations: map[string]string{
+				modelstreaming.AnnotationStaticModelMirror: "true",
+			},
+		},
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "phi-4"}},
+		},
+	}
+
+	reconciler := &WorkspaceReconciler{}
+	err := reconciler.ensureModelMirror(context.Background(), ws)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), modelstreaming.AnnotationStaticModelMirror)
 }
 
 func TestSyncWorkspaceStatus(t *testing.T) {

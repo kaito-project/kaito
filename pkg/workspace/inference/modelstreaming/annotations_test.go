@@ -78,31 +78,42 @@ func TestCountSASBlobStreamingAnnotations(t *testing.T) {
 	assert.Equal(t, 4, CountSASBlobStreamingAnnotations(partial))
 }
 
-func TestRequireSASBlobStreamingAnnotations(t *testing.T) {
-	// Valid: all core (BYO shape), core+optional (public shape), and none (mirror path).
-	assert.NoError(t, RequireSASBlobStreamingAnnotations(coreShape()))
-	assert.NoError(t, RequireSASBlobStreamingAnnotations(publicShape()))
-	assert.NoError(t, RequireSASBlobStreamingAnnotations(nil))
-	assert.NoError(t, RequireSASBlobStreamingAnnotations(map[string]string{}))
+func TestRequireStaticModelMirror(t *testing.T) {
+	// Static disabled -> never checks the SAS annotations, always nil (even with a partial set).
+	assert.NoError(t, RequireStaticModelMirror(nil))
+	assert.NoError(t, RequireStaticModelMirror(map[string]string{}))
+	assert.NoError(t, RequireStaticModelMirror(publicShape())) // full SAS set but static off -> ignored
+	partialNoStatic := coreShape()
+	delete(partialNoStatic, AnnotationStreamBlobURI)
+	assert.NoError(t, RequireStaticModelMirror(partialNoStatic)) // partial + static off -> ignored
 
-	// Optional-only (assetId) does NOT trigger the SAS path -> no error (treated as mirror path).
-	assert.NoError(t, RequireSASBlobStreamingAnnotations(map[string]string{AnnotationStreamAssetID: "x"}))
+	withStatic := func(m map[string]string) map[string]string {
+		m[AnnotationStaticModelMirror] = "true"
+		return m
+	}
 
-	// One CORE key missing -> error naming that key, "4 of 5".
-	oneMissing := coreShape()
-	delete(oneMissing, AnnotationStreamIdentityClientID)
-	err := RequireSASBlobStreamingAnnotations(oneMissing)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), AnnotationStreamIdentityClientID)
-	assert.Contains(t, err.Error(), "4 of 5")
+	// Static enabled + all core SAS annotations -> nil.
+	assert.NoError(t, RequireStaticModelMirror(withStatic(coreShape())))
 
-	// Two CORE keys missing -> both named, "3 of 5".
-	twoMissing := coreShape()
-	delete(twoMissing, AnnotationStreamIdentityClientID)
-	delete(twoMissing, AnnotationStreamBlobURI)
-	err2 := RequireSASBlobStreamingAnnotations(twoMissing)
-	assert.Error(t, err2)
-	assert.Contains(t, err2.Error(), AnnotationStreamIdentityClientID)
-	assert.Contains(t, err2.Error(), AnnotationStreamBlobURI)
-	assert.Contains(t, err2.Error(), "3 of 5")
+	// Static enabled + NONE of the SAS annotations -> error (naming all core keys).
+	errNone := RequireStaticModelMirror(map[string]string{AnnotationStaticModelMirror: "true"})
+	assert.Error(t, errNone)
+	assert.Contains(t, errNone.Error(), AnnotationStaticModelMirror)
+	assert.Contains(t, errNone.Error(), AnnotationStreamURI)
+	assert.Contains(t, errNone.Error(), AnnotationStreamIdentityClientID)
+
+	// Static enabled + PARTIAL SAS set -> error (naming the missing one).
+	partial := coreShape()
+	delete(partial, AnnotationStreamBlobURI)
+	errPartial := RequireStaticModelMirror(withStatic(partial))
+	assert.Error(t, errPartial)
+	assert.Contains(t, errPartial.Error(), AnnotationStreamBlobURI)
+}
+
+func TestStaticModelMirrorEnabled(t *testing.T) {
+	assert.False(t, StaticModelMirrorEnabled(nil))
+	assert.False(t, StaticModelMirrorEnabled(map[string]string{}))
+	assert.False(t, StaticModelMirrorEnabled(map[string]string{AnnotationStaticModelMirror: "false"}))
+	assert.False(t, StaticModelMirrorEnabled(map[string]string{AnnotationStaticModelMirror: "True"})) // only exact "true"
+	assert.True(t, StaticModelMirrorEnabled(map[string]string{AnnotationStaticModelMirror: "true"}))
 }

@@ -15,6 +15,7 @@ package v1beta1
 
 import (
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -22,6 +23,17 @@ type InferenceSetResourceSpec struct {
 	// InstanceType specifies the GPU node SKU.
 	// +required
 	InstanceType string `json:"instanceType"`
+
+	// Requests overrides the compute resources requested by each replica (preset
+	// path only). When unset, each replica requests all GPUs on the matched node.
+	// Set nvidia.com/gpu lower to run each replica on fewer GPUs.
+	// +optional
+	Requests corev1.ResourceList `json:"requests,omitempty"`
+
+	// Limits overrides the compute limits for each replica (preset path only).
+	// Defaults to Requests when unset.
+	// +optional
+	Limits corev1.ResourceList `json:"limits,omitempty"`
 }
 
 // InferenceSetTemplate defines the template for creating InferenceSet instances.

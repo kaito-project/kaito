@@ -44,6 +44,17 @@ type ResourceSpec struct {
 	// The controller will use the `InstanceType` to create the remaining nodes.
 	// +optional
 	PreferredNodes []string `json:"preferredNodes,omitempty"`
+
+	// Requests overrides the compute resources requested by each inference replica
+	// (preset path only). When unset, KAITO requests all GPUs on the matched node.
+	// Set nvidia.com/gpu lower to occupy fewer GPUs.
+	// +optional
+	Requests v1.ResourceList `json:"requests,omitempty"`
+
+	// Limits overrides the compute limits for each inference replica (preset path
+	// only). Defaults to Requests when unset.
+	// +optional
+	Limits v1.ResourceList `json:"limits,omitempty"`
 }
 
 type ModelName string

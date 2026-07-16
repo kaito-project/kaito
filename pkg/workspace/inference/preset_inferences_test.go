@@ -38,6 +38,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
+	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 	workspaceutil "github.com/kaito-project/kaito/pkg/utils/workspace"
@@ -1809,6 +1810,103 @@ func TestSetProvisionerNodeSelector(t *testing.T) {
 			got := nodeSel.NodeSelectorTerms[0].MatchExpressions
 			if !reflect.DeepEqual(got, tc.expectReqs) {
 				t.Errorf("MatchExpressions mismatch\n  got:  %+v\n  want: %+v", got, tc.expectReqs)
+			}
+		})
+	}
+}
+
+// TestGenerateInferencePodSpecResourceOverride verifies that resource.requests /
+// resource.limits on the Workspace override the default "request every GPU on the
+// node" behavior, and that the overridden GPU count also flows into the vLLM
+// command (SKUNumGPUs -> tensor/data-parallel-size) so the parallelism matches the
+// GPUs the pod actually gets.
+func TestGenerateInferencePodSpecResourceOverride(t *testing.T) {
+	test.RegisterTestModel()
+
+	const nodeGPUCount = 8
+	gpuResourceName := corev1.ResourceName(nodes.CapacityNvidiaGPU)
+
+	newWorkspace := func(req, lim corev1.ResourceList) *v1beta1.Workspace {
+		return &v1beta1.Workspace{
+			ObjectMeta: metav1.ObjectMeta{Name: "testWorkspace", Namespace: "kaito"},
+			Resource: v1beta1.ResourceSpec{
+				LabelSelector: &metav1.LabelSelector{},
+				Requests:      req,
+				Limits:        lim,
+			},
+			Inference: &v1beta1.InferenceSpec{
+				Preset: &v1beta1.PresetSpec{
+					PresetMeta: v1beta1.PresetMeta{Name: "test-distributed-model"},
+				},
+			},
+		}
+	}
+
+	testcases := map[string]struct {
+		requests        corev1.ResourceList
+		limits          corev1.ResourceList
+		expectedRequest int64
+		expectedLimit   int64
+	}{
+		"no override requests all node GPUs": {
+			requests:        nil,
+			limits:          nil,
+			expectedRequest: nodeGPUCount,
+			expectedLimit:   nodeGPUCount,
+		},
+		"requests override, limits default to requests": {
+			requests:        corev1.ResourceList{gpuResourceName: resource.MustParse("2")},
+			limits:          nil,
+			expectedRequest: 2,
+			expectedLimit:   2,
+		},
+		"requests and limits both overridden": {
+			requests:        corev1.ResourceList{gpuResourceName: resource.MustParse("4")},
+			limits:          corev1.ResourceList{gpuResourceName: resource.MustParse("4")},
+			expectedRequest: 4,
+			expectedLimit:   4,
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			workspace := newWorkspace(tc.requests, tc.limits)
+			model := plugin.KaitoModelRegister.MustGet("test-distributed-model")
+
+			gctx := &generator.WorkspaceGeneratorContext{
+				Ctx:        context.TODO(),
+				Workspace:  workspace,
+				Model:      model,
+				KubeClient: test.NewClient(),
+			}
+
+			gpuConfig := &sku.GPUConfig{GPUCount: nodeGPUCount}
+			spec := &corev1.PodSpec{}
+			if err := GenerateInferencePodSpec(gpuConfig, 1, "", "")(gctx, spec); err != nil {
+				t.Fatalf("GenerateInferencePodSpec returned error: %v", err)
+			}
+
+			if len(spec.Containers) == 0 {
+				t.Fatal("expected an inference container, got none")
+			}
+			res := spec.Containers[0].Resources
+
+			if got := res.Requests[gpuResourceName]; got.Value() != tc.expectedRequest {
+				t.Errorf("GPU request = %d, want %d", got.Value(), tc.expectedRequest)
+			}
+			if got := res.Limits[gpuResourceName]; got.Value() != tc.expectedLimit {
+				t.Errorf("GPU limit = %d, want %d", got.Value(), tc.expectedLimit)
+			}
+
+			// The effective GPU count must also drive the vLLM command, otherwise the
+			// pod would request N GPUs but vLLM would try to use the node's full count.
+			cmd := strings.Join(spec.Containers[0].Command, " ")
+			params := toParameterMap(strings.Split(cmd, "--")[1:])
+			if tc.expectedRequest > 1 {
+				want := fmt.Sprintf("%d", tc.expectedRequest)
+				if params["tensor-parallel-size"] != want {
+					t.Errorf("tensor-parallel-size = %q, want %q (from GPU request)", params["tensor-parallel-size"], want)
+				}
 			}
 		})
 	}

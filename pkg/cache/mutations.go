@@ -154,10 +154,10 @@ func collectMutations(ctx context.Context, kubeClient client.Client, ws *kaitov1
 			}
 			klog.V(2).InfoS("KV cache provider not registered, skipping",
 				"provider", ws.Cache.KVCache.Provider, "error", err)
-		} else if !providerAppliesTo(p, CacheConcernKVCache, ws, ss) {
-			klog.V(2).InfoS("KV cache provider not applicable to this workload, skipping",
-				"provider", ws.Cache.KVCache.Provider, "workspace", ws.Name)
 		} else {
+			// KV cache is presence-based: its connector is an in-process vLLM
+			// plugin with no model-load-path dependency, so (unlike model weights)
+			// it is not subject to PodApplicabilityChecker.
 			cacheName := extractCacheName(ctx, kubeClient, ws.Namespace, ws.Cache.KVCache.Config)
 			// Check infrastructure availability before injecting mutations.
 			available, availErr := p.IsAvailable(ctx, cacheName)

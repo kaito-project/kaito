@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"time"
 
+	appsv1 "k8s.io/api/apps/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
@@ -43,6 +45,9 @@ type ReconcileResult struct {
 }
 
 // ReconcileCache checks cache provider infrastructure readiness and sets workspace conditions.
+// When a kubeClient is supplied it also verifies the cache was actually injected
+// into the rendered inference StatefulSet, downgrading *CacheReady to False when
+// it was not — so the condition means "infrastructure ready AND injected".
 // Returns whether the workspace deployment should be blocked (Required mode + not ready).
 // This should be called early in the reconcile loop, after nodes are ready.
 func ReconcileCache(ctx context.Context, kubeClient client.Client, ws *kaitov1beta1.Workspace, status *kaitov1beta1.WorkspaceStatus) ReconcileResult {
@@ -98,7 +103,123 @@ func ReconcileCache(ctx context.Context, kubeClient client.Client, ws *kaitov1be
 		}
 	}
 
+	// Verify the configured cache was actually injected into the rendered
+	// StatefulSet, downgrading *CacheReady to False when it was not, so the
+	// condition reflects the inference pod rather than just backend
+	// infrastructure readiness. This needs the workload, so it is skipped when
+	// no client is available (unit tests) and treats a missing StatefulSet as
+	// not-yet-injected. It is also skipped while we are blocking deployment,
+	// since the workload is not being created and the conditions already carry
+	// the more informative infrastructure-not-ready reason.
+	if kubeClient != nil && !result.BlockDeployment {
+		var ss *appsv1.StatefulSet
+		fetched := &appsv1.StatefulSet{}
+		switch err := kubeClient.Get(ctx, client.ObjectKey{Name: ws.Name, Namespace: ws.Namespace}, fetched); {
+		case err == nil:
+			ss = fetched
+		case apierrors.IsNotFound(err):
+			ss = nil
+		default:
+			klog.V(2).InfoS("Failed to fetch StatefulSet for cache injection verification",
+				"workspace", ws.Name, "error", err)
+			return result
+		}
+		verifyCacheInjection(ctx, kubeClient, ws, ss, status)
+	}
+
 	return result
+}
+
+// verifyCacheInjection re-evaluates cache conditions against the *rendered*
+// StatefulSet, downgrading ModelCacheReady/KVCacheReady to False when a
+// configured concern produced no mutations on the actual workload — i.e. the
+// provider was not applicable, its infrastructure was unavailable, or nothing
+// was injected. This makes the condition reflect the inference pod rather than
+// just backend infrastructure readiness, closing the "green but no-op" gap where
+// a Ready cache CR let the condition report success even though the pod never
+// consumed the cache.
+//
+// It only ever downgrades a condition that the infrastructure-ready checks above
+// already set to True; an already-False condition is left untouched so its
+// (more specific) infrastructure/timeout reason is preserved. The effective rule
+// becomes Ready == infrastructure ready AND mutations injected. ss may be nil
+// when the workload does not yet exist, in which case the concern is reported
+// not-yet injected.
+func verifyCacheInjection(ctx context.Context, kubeClient client.Client,
+	ws *kaitov1beta1.Workspace, ss *appsv1.StatefulSet, status *kaitov1beta1.WorkspaceStatus) {
+
+	if !featuregates.FeatureGates[consts.FeatureFlagDistributedCache] || ws.Cache == nil {
+		return
+	}
+
+	if ws.Cache.ModelCache != nil && ws.Cache.ModelCache.Mode != kaitov1beta1.CacheModeDisabled &&
+		conditionIsTrue(status, kaitov1beta1.WorkspaceConditionTypeModelCacheReady) {
+		if injected, reason := concernInjected(ctx, kubeClient, ws, CacheConcernModelWeights, ss); !injected {
+			setCacheCondition(status, ws.GetGeneration(),
+				kaitov1beta1.WorkspaceConditionTypeModelCacheReady, false, reason)
+		}
+	}
+
+	if ws.Cache.KVCache != nil && ws.Cache.KVCache.Mode != kaitov1beta1.CacheModeDisabled &&
+		conditionIsTrue(status, kaitov1beta1.WorkspaceConditionTypeKVCacheReady) {
+		if injected, reason := concernInjected(ctx, kubeClient, ws, CacheConcernKVCache, ss); !injected {
+			setCacheCondition(status, ws.GetGeneration(),
+				kaitov1beta1.WorkspaceConditionTypeKVCacheReady, false, reason)
+		}
+	}
+}
+
+// conditionIsTrue reports whether the named condition is currently set to True.
+func conditionIsTrue(status *kaitov1beta1.WorkspaceStatus, condType kaitov1beta1.ConditionType) bool {
+	c := meta.FindStatusCondition(status.Conditions, string(condType))
+	return c != nil && c.Status == metav1.ConditionTrue
+}
+
+// concernInjected reports whether the provider's mutations for a concern are
+// actually present on the rendered pod template. It recomputes the concern's
+// mutations via the same render-time path (collectMutations) so the two cannot
+// disagree, and confirms any provider-declared labels landed on the workload.
+func concernInjected(ctx context.Context, kubeClient client.Client,
+	ws *kaitov1beta1.Workspace, concern CacheConcern, ss *appsv1.StatefulSet) (bool, string) {
+
+	if ss == nil {
+		return false, "inference workload not yet created; cache not injected"
+	}
+
+	// Evaluate this concern in isolation so we can attribute the result to the
+	// correct condition, reusing the exact render-time collectMutations path.
+	m, err := collectMutations(ctx, kubeClient, singleConcernWorkspace(ws, concern), "", "", ss)
+	if err != nil {
+		return false, fmt.Sprintf("cache not injected: %v", err)
+	}
+	if m == nil || (len(m.Labels) == 0 && len(m.EnvVars) == 0 && len(m.Volumes) == 0 &&
+		len(m.VolumeMounts) == 0 && len(m.InitContainers) == 0) {
+		return false, "cache configured but not injected into inference pod " +
+			"(provider not applicable to this workload or infrastructure unavailable)"
+	}
+
+	for k, v := range m.Labels {
+		if ss.Spec.Template.Labels[k] != v {
+			return false, fmt.Sprintf("expected cache label %q not present on inference pod", k)
+		}
+	}
+
+	return true, ""
+}
+
+// singleConcernWorkspace returns a shallow copy of ws whose Cache carries only
+// the given concern, so collectMutations evaluates that concern in isolation.
+func singleConcernWorkspace(ws *kaitov1beta1.Workspace, concern CacheConcern) *kaitov1beta1.Workspace {
+	cache := *ws.Cache
+	switch concern {
+	case CacheConcernModelWeights:
+		cache.KVCache = nil
+	case CacheConcernKVCache:
+		cache.ModelCache = nil
+	}
+	out := *ws
+	out.Cache = &cache
+	return &out
 }
 
 // checkProviderReady resolves a provider and checks its readiness.

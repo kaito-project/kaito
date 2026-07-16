@@ -19,6 +19,8 @@ import (
 	"testing"
 	"time"
 
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -256,4 +258,199 @@ func (p *noopTestProvider) PodMutations(_ context.Context, _ CacheConcern, _ *ka
 
 func (p *noopTestProvider) Cleanup(_ context.Context, _ *kaitov1beta1.Workspace, _ string) error {
 	return nil
+}
+
+// stsWithPodLabels builds a minimal StatefulSet whose pod template carries the
+// given labels (and optional container args), for exercising injection
+// verification against a rendered workload.
+func stsWithPodLabels(name, namespace string, podLabels map[string]string, args ...string) *appsv1.StatefulSet {
+	return &appsv1.StatefulSet{
+		ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: namespace},
+		Spec: appsv1.StatefulSetSpec{
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{Labels: podLabels},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{{Name: "main", Args: args}},
+				},
+			},
+		},
+	}
+}
+
+func modelCacheWorkspace(provider kaitov1beta1.CacheProvider) *kaitov1beta1.Workspace {
+	return &kaitov1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{Name: "ws", Namespace: "default", CreationTimestamp: metav1.Now()},
+		Cache: &kaitov1beta1.CacheSpec{
+			ModelCache: &kaitov1beta1.ModelCacheSpec{Provider: provider, Mode: kaitov1beta1.CacheModeOpportunistic},
+		},
+	}
+}
+
+func TestVerifyCacheInjection_NilStatefulSet_Downgrades(t *testing.T) {
+	isolateProviderRegistry(t)
+	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+
+	Register(&concernTestProvider{name: "inject-test"})
+	ws := modelCacheWorkspace("inject-test")
+
+	status := &kaitov1beta1.WorkspaceStatus{}
+	// Pre-set the condition True to prove verification downgrades it.
+	setCacheCondition(status, ws.GetGeneration(), kaitov1beta1.WorkspaceConditionTypeModelCacheReady, true, "infra ready")
+
+	verifyCacheInjection(context.Background(), nil, ws, nil, status)
+
+	cond := meta.FindStatusCondition(status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeModelCacheReady))
+	if cond == nil || cond.Status != metav1.ConditionFalse {
+		t.Fatalf("expected ModelCacheReady downgraded to False when workload absent, got %#v", cond)
+	}
+	if !strings.Contains(cond.Message, "not yet created") {
+		t.Errorf("expected 'not yet created' reason, got %q", cond.Message)
+	}
+}
+
+func TestVerifyCacheInjection_InjectedLabelPresent_StaysReady(t *testing.T) {
+	isolateProviderRegistry(t)
+	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+
+	Register(&concernTestProvider{name: "inject-test"})
+	ws := modelCacheWorkspace("inject-test")
+
+	// concernTestProvider injects Labels{"model-label":"enabled"} for model weights.
+	ss := stsWithPodLabels("ws", "default", map[string]string{"model-label": "enabled"})
+
+	status := &kaitov1beta1.WorkspaceStatus{}
+	setCacheCondition(status, ws.GetGeneration(), kaitov1beta1.WorkspaceConditionTypeModelCacheReady, true, "infra ready")
+
+	verifyCacheInjection(context.Background(), nil, ws, ss, status)
+
+	cond := meta.FindStatusCondition(status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeModelCacheReady))
+	if cond == nil || cond.Status != metav1.ConditionTrue {
+		t.Fatalf("expected ModelCacheReady to stay True when label injected, got %#v", cond)
+	}
+}
+
+func TestVerifyCacheInjection_LabelMissing_Downgrades(t *testing.T) {
+	isolateProviderRegistry(t)
+	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+
+	Register(&concernTestProvider{name: "inject-test"})
+	ws := modelCacheWorkspace("inject-test")
+
+	// Pod template is missing the provider's expected label.
+	ss := stsWithPodLabels("ws", "default", map[string]string{"other": "x"})
+
+	status := &kaitov1beta1.WorkspaceStatus{}
+	setCacheCondition(status, ws.GetGeneration(), kaitov1beta1.WorkspaceConditionTypeModelCacheReady, true, "infra ready")
+
+	verifyCacheInjection(context.Background(), nil, ws, ss, status)
+
+	cond := meta.FindStatusCondition(status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeModelCacheReady))
+	if cond == nil || cond.Status != metav1.ConditionFalse {
+		t.Fatalf("expected downgrade to False when injected label missing, got %#v", cond)
+	}
+	if !strings.Contains(cond.Message, "expected cache label") {
+		t.Errorf("expected missing-label reason, got %q", cond.Message)
+	}
+}
+
+func TestVerifyCacheInjection_ProviderNotApplicable_Downgrades(t *testing.T) {
+	isolateProviderRegistry(t)
+	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+
+	// streamerScopedProvider only applies when the workload loads via runai_streamer.
+	Register(&streamerScopedProvider{concernTestProvider{name: "scoped-test"}})
+	ws := modelCacheWorkspace("scoped-test")
+
+	// No runai_streamer arg → provider not applicable → nothing injected.
+	ss := stsWithPodLabels("ws", "default", nil, "--load-format", "auto")
+
+	status := &kaitov1beta1.WorkspaceStatus{}
+	setCacheCondition(status, ws.GetGeneration(), kaitov1beta1.WorkspaceConditionTypeModelCacheReady, true, "infra ready")
+
+	verifyCacheInjection(context.Background(), nil, ws, ss, status)
+
+	cond := meta.FindStatusCondition(status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeModelCacheReady))
+	if cond == nil || cond.Status != metav1.ConditionFalse {
+		t.Fatalf("expected downgrade to False when provider not applicable, got %#v", cond)
+	}
+	if !strings.Contains(cond.Message, "not injected") {
+		t.Errorf("expected not-injected reason, got %q", cond.Message)
+	}
+}
+
+func TestVerifyCacheInjection_EmptyMutations_Downgrades(t *testing.T) {
+	isolateProviderRegistry(t)
+	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+
+	// noopTestProvider is ready but injects nothing.
+	Register(&noopTestProvider{})
+	ws := modelCacheWorkspace("noop-test")
+
+	ss := stsWithPodLabels("ws", "default", map[string]string{"anything": "x"})
+
+	status := &kaitov1beta1.WorkspaceStatus{}
+	setCacheCondition(status, ws.GetGeneration(), kaitov1beta1.WorkspaceConditionTypeModelCacheReady, true, "infra ready")
+
+	verifyCacheInjection(context.Background(), nil, ws, ss, status)
+
+	cond := meta.FindStatusCondition(status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeModelCacheReady))
+	if cond == nil || cond.Status != metav1.ConditionFalse {
+		t.Fatalf("expected downgrade to False when provider injects nothing, got %#v", cond)
+	}
+}
+
+func TestVerifyCacheInjection_KVPresenceInjected_StaysReady(t *testing.T) {
+	isolateProviderRegistry(t)
+	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+
+	// concernTestProvider injects only EnvVars (no labels) for KV cache.
+	Register(&concernTestProvider{name: "kv-test"})
+	ws := &kaitov1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{Name: "ws", Namespace: "default", CreationTimestamp: metav1.Now()},
+		Cache: &kaitov1beta1.CacheSpec{
+			KVCache: &kaitov1beta1.KVCacheSpec{Provider: "kv-test", Mode: kaitov1beta1.CacheModeOpportunistic},
+		},
+	}
+
+	ss := stsWithPodLabels("ws", "default", nil)
+
+	status := &kaitov1beta1.WorkspaceStatus{}
+	setCacheCondition(status, ws.GetGeneration(), kaitov1beta1.WorkspaceConditionTypeKVCacheReady, true, "infra ready")
+
+	verifyCacheInjection(context.Background(), nil, ws, ss, status)
+
+	cond := meta.FindStatusCondition(status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeKVCacheReady))
+	if cond == nil || cond.Status != metav1.ConditionTrue {
+		t.Fatalf("expected KVCacheReady to stay True when KV env injected, got %#v", cond)
+	}
+}
+
+func TestVerifyCacheInjection_AlreadyFalse_NotClobbered(t *testing.T) {
+	isolateProviderRegistry(t)
+	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
+	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
+
+	Register(&concernTestProvider{name: "inject-test"})
+	ws := modelCacheWorkspace("inject-test")
+
+	status := &kaitov1beta1.WorkspaceStatus{}
+	// Infra check already marked it False with a specific reason; verification
+	// must not overwrite that (e.g. with a generic "not yet created").
+	setCacheCondition(status, ws.GetGeneration(), kaitov1beta1.WorkspaceConditionTypeModelCacheReady, false, "cache infrastructure not installed")
+
+	verifyCacheInjection(context.Background(), nil, ws, nil, status)
+
+	cond := meta.FindStatusCondition(status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeModelCacheReady))
+	if cond == nil || cond.Status != metav1.ConditionFalse {
+		t.Fatalf("expected condition to remain False, got %#v", cond)
+	}
+	if cond.Message != "cache infrastructure not installed" {
+		t.Errorf("expected infra reason preserved, got %q", cond.Message)
+	}
 }

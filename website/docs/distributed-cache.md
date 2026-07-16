@@ -140,9 +140,9 @@ kubectl get workspace <name> -o jsonpath='{.status.conditions[?(@.type=="ModelCa
 ```
 
 :::note What "ready" means
-These conditions reflect **cache backend (cluster) readiness** — i.e. the provider reports that its cache infrastructure is available and reachable. They do **not** guarantee that this workspace's specific model weights have already been warmed into the cache.
+These conditions mean two things are both true: (1) the provider reports that its cache **backend** infrastructure is available and reachable, **and** (2) KAITO has actually **injected** the provider's cache mutations (labels/env/volumes) into the rendered inference pod. A condition is only reported `True` once both hold; if the backend is ready but the provider is not applicable to the workload (see [Provider-declared applicability](#provider-declared-applicability)) or nothing was injected into the pod, the condition is reported `False`.
 
-As a result, a workspace can show `ModelCacheReady=True` while the first model load is still a cache **miss**. This is expected and harmless: a miss transparently falls through to blob storage and populates the cache, so subsequent loads are served from the cache. In `Required` mode, deployment is unblocked once the cache backend is ready, not once the model is fully warmed.
+They do **not** guarantee that this workspace's specific model weights have already been warmed into the cache. As a result, a workspace can show `ModelCacheReady=True` while the first model load is still a cache **miss**. This is expected and harmless: a miss transparently falls through to blob storage and populates the cache, so subsequent loads are served from the cache. In `Required` mode, deployment is unblocked once the cache backend is ready, not once the model is fully warmed.
 :::
 
 ### KV Cache Sharing
@@ -193,6 +193,7 @@ If your Workspace is stuck with condition `ModelCacheReady=False`:
 
 1. Confirm the provider is installed and registered, and check the provider's own backend/readiness resources.
 2. If using `Opportunistic` mode, the workspace will proceed without cache. Investigate why the cache infrastructure isn't ready.
+3. Check the condition's `message`: the backend may be ready but the condition can still be `False` because the cache was not injected into the inference pod — e.g. the provider is not applicable to this workload (see [Provider-declared applicability](#provider-declared-applicability)) or the pod has not been rendered yet. Inspect the StatefulSet's pod template for the provider's expected labels/env.
 
 ### Model loading errors
 

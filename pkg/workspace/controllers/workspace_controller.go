@@ -769,8 +769,9 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 			}
 		}
 
-		// Reconcile cache conditions against the freshly-fetched status so
-		// they are persisted alongside node/inference/tuning conditions.
+		// Reconcile cache conditions against the freshly-fetched status so they
+		// are persisted alongside node/inference/tuning conditions. This also
+		// downgrades *CacheReady when the cache was not injected into the pod.
 		cache.ReconcileCache(ctx, c.Client, wObj, status)
 
 		// Extract ResourceStatus condition status for downstream use.

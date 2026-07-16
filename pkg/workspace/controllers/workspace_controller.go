@@ -213,7 +213,10 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 	}
 
 	// Managed mirror: validate the StorageClass exists and uses the correct CSI provisioner.
-	storageClass := modelstreaming.ResolveStorageClass(wObj, modelstreaming.StreamingDefaults.StorageClass)
+	storageClass, err := modelstreaming.ResolveStorageClass(wObj, modelstreaming.StreamingDefaults.StorageClass)
+	if err != nil {
+		return err
+	}
 	sc := &storagev1.StorageClass{}
 	if err := c.Client.Get(ctx, client.ObjectKey{Name: storageClass}, sc); err != nil {
 		return fmt.Errorf("StorageClass %q not found: %w", storageClass, err)

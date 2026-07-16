@@ -157,11 +157,12 @@ func TestResolveStorageClass(t *testing.T) {
 		annotation string
 		defaultSC  string
 		expected   string
+		wantErr    bool
 	}{
-		{"annotation set", "my-sc", "", "my-sc"},
-		{"default flag set", "", "default-sc", "default-sc"},
-		{"annotation overrides default", "my-sc", "default-sc", "my-sc"},
-		{"neither set", "", "", ""},
+		{"annotation set", "my-sc", "", "my-sc", false},
+		{"default flag set", "", "default-sc", "default-sc", false},
+		{"annotation overrides default", "my-sc", "default-sc", "my-sc", false},
+		{"neither set", "", "", "", true},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -169,7 +170,13 @@ func TestResolveStorageClass(t *testing.T) {
 			if tc.annotation != "" {
 				ws.Annotations[mmconsts.AnnotationModelMirrorStorageClass] = tc.annotation
 			}
-			assert.Equal(t, tc.expected, ResolveStorageClass(ws, tc.defaultSC))
+			got, err := ResolveStorageClass(ws, tc.defaultSC)
+			if tc.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expected, got)
 		})
 	}
 }

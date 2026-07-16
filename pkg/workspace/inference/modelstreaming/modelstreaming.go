@@ -110,13 +110,17 @@ func ResolveStreamingServiceAccount(ws *v1beta1.Workspace, defaultSA string) (st
 }
 
 // ResolveStorageClass resolves the StorageClass for the ModelMirror PVC.
-// Priority: workspace annotation > controller flag.
-func ResolveStorageClass(ws *v1beta1.Workspace, defaultSC string) string {
+func ResolveStorageClass(ws *v1beta1.Workspace, defaultSC string) (string, error) {
 	sc := ws.Annotations[mmconsts.AnnotationModelMirrorStorageClass]
 	if sc == "" {
 		sc = defaultSC
 	}
-	return sc
+	if sc == "" {
+		return "", fmt.Errorf("model streaming enabled but no storage class configured: "+
+			"set annotation %s on the workspace or --default-model-mirror-storage-class on the controller",
+			mmconsts.AnnotationModelMirrorStorageClass)
+	}
+	return sc, nil
 }
 
 // buildCommonStreamingEnvVars returns env vars common to all cloud providers:

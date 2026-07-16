@@ -133,7 +133,7 @@ func main() {
 	flag.StringVar(&karpenterNodeClassVersion, "karpenter-node-class-version", "v1beta1", "Karpenter NodeClass API version. Only used when node-provisioner=karpenter.")
 	flag.StringVar(&karpenterNodeClassResourceName, "karpenter-node-class-resource-name", "aksnodeclasses", "Plural resource name for the NodeClass CRD (e.g. aksnodeclasses). Combined with --karpenter-node-class-group to form the full CRD name. Only used when node-provisioner=karpenter.")
 	flag.BoolVar(&printVersionAndExit, "version", false, "Print version and exit.")
-	flag.StringVar(&defaultModelMirrorStorageClass, "default-model-mirror-storage-class", "", "StorageClass for ModelMirror PVCs (required when ModelStreaming=true).")
+	flag.StringVar(&defaultModelMirrorStorageClass, "default-model-mirror-storage-class", "", "StorageClass for ModelMirror PVCs.")
 	flag.StringVar(&defaultStreamingServiceAccount, "default-streaming-service-account", "", "Default ServiceAccount for streaming inference pods.")
 	flag.StringVar(&modelMirrorDownloadCPU, "model-mirror-download-cpu", "", "CPU request==limit for the ModelMirror download Job container. Empty uses the built-in default (3).")
 	flag.StringVar(&modelMirrorDownloadMemory, "model-mirror-download-memory", "", "Memory request==limit for the ModelMirror download Job container. Empty uses the built-in default (8Gi).")

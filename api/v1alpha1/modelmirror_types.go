@@ -91,12 +91,10 @@ type ModelMirrorSource struct {
 }
 
 type ModelMirrorStorage struct {
-	// Size is the requested model storage: the PVC size for managed mirrors, or
-	// informational for static mirrors that create no PVC.
+	// Size is the PVC size for managed mirrors.
 	// +kubebuilder:validation:Required
 	Size string `json:"size"`
-	// StorageClassName is the StorageClass to use for the PVC. Nil for static
-	// mirrors that create no PVC.
+	// StorageClassName is the StorageClass to use for the PVC.
 	// +optional
 	StorageClassName *string `json:"storageClassName,omitempty"`
 }

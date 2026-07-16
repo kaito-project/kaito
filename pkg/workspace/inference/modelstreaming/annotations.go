@@ -53,30 +53,11 @@ var coreSASBlobStreamingAnnotationKeys = []string{
 	AnnotationStreamIdentityClientID,
 }
 
-// CountSASBlobStreamingAnnotations returns how many of the core stream-* annotations
-// are present and non-empty.
-func CountSASBlobStreamingAnnotations(annotations map[string]string) int {
-	n := 0
-	for _, k := range coreSASBlobStreamingAnnotationKeys {
-		if annotations[k] != "" {
-			n++
-		}
-	}
-	return n
-}
-
-// HasSASBlobStreamingAnnotations reports whether all core stream-* annotations are
-// present and non-empty.
-func HasSASBlobStreamingAnnotations(annotations map[string]string) bool {
-	return CountSASBlobStreamingAnnotations(annotations) == len(coreSASBlobStreamingAnnotationKeys)
-}
-
-// RequireStaticModelMirror enforces the static-mirror sas annotations.
-func RequireStaticModelMirror(annotations map[string]string) error {
+// ValidateStaticModelMirrorAnnotations enforces the static-mirror contract: when the static flag
+// is enabled, all core SAS streaming annotations must be present (a partial set or none both fail).
+// When the flag is disabled, the SAS annotations are not checked at all.
+func ValidateStaticModelMirrorAnnotations(annotations map[string]string) error {
 	if !StaticModelMirrorEnabled(annotations) {
-		return nil
-	}
-	if HasSASBlobStreamingAnnotations(annotations) {
 		return nil
 	}
 	var missing []string
@@ -84,6 +65,9 @@ func RequireStaticModelMirror(annotations map[string]string) error {
 		if annotations[k] == "" {
 			missing = append(missing, k)
 		}
+	}
+	if len(missing) == 0 {
+		return nil
 	}
 	return fmt.Errorf("%s=true requires all core SAS streaming annotations; missing: %s",
 		AnnotationStaticModelMirror, strings.Join(missing, ", "))

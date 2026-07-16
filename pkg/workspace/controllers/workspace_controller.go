@@ -172,7 +172,7 @@ func (c *WorkspaceReconciler) ensureFinalizer(ctx context.Context, workspaceObj 
 // ensureModelMirror creates the ModelMirror CR for the workspace's model if it doesn't exist.
 // Returns nil if the CR exists (any phase) or was created successfully.
 func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
-	if err := modelstreaming.RequireStaticModelMirror(wObj.Annotations); err != nil {
+	if err := modelstreaming.ValidateStaticModelMirrorAnnotations(wObj.Annotations); err != nil {
 		return err
 	}
 

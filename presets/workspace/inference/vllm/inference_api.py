@@ -24,7 +24,7 @@ from pathlib import Path
 from typing import Any
 
 import psutil
-import pynvml
+import torch
 import uvloop
 import vllm.entrypoints.openai.api_server as api_server
 import yaml
@@ -425,16 +425,19 @@ def get_max_gpu_memory_utilization(device_index: int = 0) -> float:
     # Calculate gpu_memory_utilization based on available GPU memory.
     # This ensures vLLM only uses currently free memory to avoid OOM errors.
     # See https://github.com/kaito-project/kaito/issues/1374.
-    pynvml.nvmlInit()
-    handle = pynvml.nvmlDeviceGetHandleByIndex(device_index)
-    info = pynvml.nvmlDeviceGetMemoryInfo(handle)
-    pynvml.nvmlShutdown()
+    #
+    # Use torch.cuda.mem_get_info() instead of pynvml: on MIG partitions NVML
+    # device-memory queries fail with NVMLError_NoPermission and, when they do
+    # succeed, report the parent GPU's memory rather than the slice's. torch
+    # reports the per-device (per-slice under MIG) free/total memory correctly
+    # and requires no elevated NVML permissions.
+    free_bytes, total_bytes = torch.cuda.mem_get_info(device_index)
 
     # Reserve an additional 600MiB for pytorch memory fragments, calculated based on profiling
-    free_memory = info.free - 600 * 1024**2
+    free_memory = free_bytes - 600 * 1024**2
 
     # Floor to 2 decimal places
-    gpu_memory_utilization = (free_memory * 100 // info.total) / 100
+    gpu_memory_utilization = (free_memory * 100 // total_bytes) / 100
 
     # The value is capped at 0.95 to maintain compatibility with previous behavior
     gpu_memory_utilization = min(0.95, gpu_memory_utilization)

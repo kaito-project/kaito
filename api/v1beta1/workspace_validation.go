@@ -39,6 +39,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/mig"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/presets/workspace/models"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
@@ -380,6 +381,9 @@ func (r *ResourceSpec) validateCreateWithTuning(tuning *TuningSpec) (errs *apis.
 	if *r.Count > 1 {
 		errs = errs.Also(apis.ErrInvalidValue("Tuning does not currently support multinode configurations. Please set the node count to 1. Future support with DeepSpeed will allow this.", "count"))
 	}
+	if r.MIG != nil {
+		errs = errs.Also(apis.ErrInvalidValue("MIG is not supported for tuning workloads", "mig"))
+	}
 	return errs
 }
 
@@ -445,6 +449,11 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 	}
 
 	napDisabled := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+
+	// MIG workloads use a different resource type and skip the standard GPU checks below.
+	if r.MIG != nil {
+		return errs.Also(r.validateMIG(ctx, presetName, secretName, wsNamespace, napDisabled, bypassResourceChecks))
+	}
 
 	if napDisabled {
 		if presetName != "" { // If the user is using a custom pod template instead of a preset, we don't need to list the BYO nodes to get GPU info as we don't know the GPU requirements of a custom model.
@@ -578,10 +587,60 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 	return errs
 }
 
+// validateMIG validates the MIG configuration for an inference workload. MIG is
+// only supported behind the enableMIG feature gate on BYO nodes, and the requested
+// profile must be a known MIG profile. Callers should return early after invoking
+// this helper because MIG workloads use a different resource type and skip the
+// standard GPU checks.
+func (r *ResourceSpec) validateMIG(ctx context.Context, presetName, secretName, wsNamespace string, napDisabled, bypassResourceChecks bool) (errs *apis.FieldError) {
+	if !featuregates.FeatureGates[consts.FeatureFlagEnableMIG] {
+		return apis.ErrGeneric("MIG support is not enabled, set feature gate enableMIG=true", "mig")
+	}
+	if err := mig.ValidateMIGProfile(r.MIG.Profile); err != nil {
+		return apis.ErrInvalidValue(err.Error(), "mig.profile")
+	}
+	if !napDisabled {
+		return apis.ErrGeneric("MIG is only supported with BYO nodes (disableNodeAutoProvisioning=true)", "mig")
+	}
+
+	if presetName == "" {
+		return errs
+	}
+	modelPreset, err := models.GetModelByName(ctx, presetName, secretName, wsNamespace, k8sclient.Client)
+	if err != nil {
+		return apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset")
+	}
+	params := modelPreset.GetInferenceParameters()
+	if params == nil {
+		return errs
+	}
+
+	// Reject only models that explicitly declare a multi-GPU (tensor-parallel)
+	// requirement, which a single MIG partition can never provide. This is a
+	// hard structural incompatibility (not a sizing estimate), so it belongs in
+	// the webhook. An empty GPUCountRequirement means the estimator sizes GPUs
+	// from model memory, so it is treated as single-device.
+	if !params.DisableTensorParallelism && params.GPUCountRequirement != "" && params.GPUCountRequirement != "1" {
+		if !bypassResourceChecks {
+			errs = errs.Also(apis.ErrInvalidValue(
+				fmt.Sprintf("Model %s requires %s GPUs with tensor parallelism, which is not supported on MIG partitions",
+					presetName, params.GPUCountRequirement),
+				"mig"))
+		}
+	}
+
+	return errs
+}
+
 func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError) {
 	// We disable changing node count for now.
 	if r.Count != nil && old.Count != nil && *r.Count != *old.Count {
 		errs = errs.Also(apis.ErrGeneric("field is immutable", "count"))
+	}
+
+	// MIG is immutable once set
+	if !reflect.DeepEqual(r.MIG, old.MIG) {
+		errs = errs.Also(apis.ErrGeneric("field is immutable", "mig"))
 	}
 
 	// Check node auto-provisioning feature gate and validate instanceType accordingly

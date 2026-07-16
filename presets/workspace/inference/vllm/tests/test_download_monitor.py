@@ -40,7 +40,7 @@ _STUBS = {
     "vllm.v1": MagicMock(),
     "vllm.v1.metrics": MagicMock(),
     "vllm.v1.metrics.prometheus": MagicMock(),
-    "pynvml": MagicMock(),
+    "torch": MagicMock(),
     "uvloop": MagicMock(),
     "psutil": MagicMock(),
     "prometheus_client": MagicMock(),

@@ -23,7 +23,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
+	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	estimator "github.com/kaito-project/kaito/pkg/workspace/estimator"
@@ -78,6 +81,12 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 	model, err := models.GetModelByNameWithToken(ctx, req.ModelProfile.Name, req.ModelProfile.AccessToken)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get model by name: %w", err)
+	}
+
+	// MIG path: when MIG is configured, the model must fit in a single MIG slice.
+	// No tensor parallelism or multi-node distribution is possible with MIG.
+	if featuregates.FeatureGates[consts.FeatureFlagEnableMIG] && req.ResourceProfile.MIGProfile != "" {
+		return c.estimateMIGNodeCount(req, model)
 	}
 
 	var gpuConfig *sku.GPUConfig
@@ -176,4 +185,55 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 
 	klog.Infof("[NodeEstimator] Final result: nodeCountPerReplica=%d for workspace %s", nodeCountPerReplica, req.WorkspaceName)
 	return int32(nodeCountPerReplica), nil
+}
+
+// estimateMIGNodeCount validates that the model fits in a single MIG slice and
+// returns a node count of 1. MIG partitions cannot be sharded or distributed, so
+// the model plus its runtime overhead must fit within one slice's usable memory.
+// The overhead model mirrors the non-MIG tensor-parallelism-disabled case in
+// EstimateNodeCount (fixed base + KV cache + weight-scaled activation/CUDA-graph
+// term), sized against the slice's --gpu-memory-utilization budget.
+func (c *NodeEstimator) estimateMIGNodeCount(req estimator.NodeEstimateRequest, m model.Model) (int32, error) {
+	migConfig, migErr := utils.GetMIGGPUConfig(req.ResourceProfile.MIGProfile)
+	if migErr != nil {
+		return 0, fmt.Errorf("failed to get MIG GPU config: %w", migErr)
+	}
+
+	inferParams := m.GetInferenceParameters()
+	totalGPUMemRequired := resource.MustParse(inferParams.TotalSafeTensorFileSize)
+	modelSize := float64(totalGPUMemRequired.Value()) * weightExpansionFactor
+
+	// maxModelLen mirrors the value resolved by the caller
+	// (RuntimeProfile.ContextSize), falling back to 2048.
+	maxModelLen := 2048
+	if req.RuntimeProfile.ContextSize > 0 {
+		maxModelLen = req.RuntimeProfile.ContextSize
+	}
+
+	sliceMemBytes := migConfig.GPUMem.Value()
+	availableSliceMem := float64(sliceMemBytes) * gpuMemoryUtilization
+
+	// A MIG slice holds the entire model on a single device (GPUCount == 1, no
+	// sharding), so the overhead model matches the non-MIG tensor-parallelism-
+	// disabled case: a fixed base (CUDA context, NCCL, small-model
+	// activations/CUDA graphs), the KV cache sized for the context length, and a
+	// weight-scaled term for activation/CUDA-graph memory that grows with model
+	// size.
+	baseOverhead := baseOverheadGiB * float64(consts.GiBToBytes)
+	kvCache := float64(maxModelLen * inferParams.BytesPerToken)
+	overhead := baseOverhead + kvCache + overheadWeightFactor*modelSize
+
+	if modelSize+overhead > availableSliceMem {
+		sliceGiB := float64(sliceMemBytes) / float64(consts.GiBToBytes)
+		return 0, fmt.Errorf("model needs %.1fGB (weights %.1fGB + overhead %.1fGB) but MIG profile %s only provides %.0fGB (%.1fGB available after vLLM gpu-memory-utilization)",
+			(modelSize+overhead)/float64(consts.GiBToBytes),
+			modelSize/float64(consts.GiBToBytes),
+			overhead/float64(consts.GiBToBytes),
+			req.ResourceProfile.MIGProfile,
+			sliceGiB, availableSliceMem/float64(consts.GiBToBytes))
+	}
+
+	klog.Infof("[NodeEstimator] MIG mode: workspace=%s profile=%s modelSize=%.0f overhead=%.0f availSlice=%.0f, nodeCount=1",
+		req.WorkspaceName, req.ResourceProfile.MIGProfile, modelSize, overhead, availableSliceMem)
+	return 1, nil
 }

@@ -44,6 +44,21 @@ type ResourceSpec struct {
 	// The controller will use the `InstanceType` to create the remaining nodes.
 	// +optional
 	PreferredNodes []string `json:"preferredNodes,omitempty"`
+
+	// MIG specifies NVIDIA Multi-Instance GPU configuration for the workload.
+	// When set, the workload will be scheduled on MIG partitions instead of full GPUs.
+	// Requires the enableMIG feature gate and BYO nodes (disableNodeAutoProvisioning=true).
+	// +optional
+	MIG *MIGSpec `json:"mig,omitempty"`
+}
+
+// MIGSpec describes the NVIDIA Multi-Instance GPU (MIG) configuration.
+type MIGSpec struct {
+	// Profile is the MIG partition profile name (e.g., "1g.10gb", "2g.20gb", "3g.40gb").
+	// Must match a valid NVIDIA MIG profile name.
+	// Each workload is scheduled on exactly one MIG slice; tensor parallelism across
+	// slices is not supported. Use multiple Workspaces or an InferenceSet to run replicas.
+	Profile string `json:"profile"`
 }
 
 type ModelName string

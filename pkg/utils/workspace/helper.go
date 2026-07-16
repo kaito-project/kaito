@@ -45,6 +45,9 @@ func NodeEstimateRequestFromWorkspace(ctx context.Context, w *kaitov1beta1.Works
 		//nolint:staticcheck //SA1019: deprecate Resource.Count field
 		req.ResourceProfile.RequestedNodeCount = int(*w.Resource.Count)
 	}
+	if w.Resource.MIG != nil {
+		req.ResourceProfile.MIGProfile = w.Resource.MIG.Profile
+	}
 	if w.Inference != nil && w.Inference.Preset != nil {
 		name := string(w.Inference.Preset.Name)
 		token := ""

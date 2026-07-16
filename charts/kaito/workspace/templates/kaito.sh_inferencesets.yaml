@@ -263,10 +263,27 @@ spec:
                   resource:
                     properties:
                       instanceType:
-                        description: InstanceType specifies the GPU node SKU.
+                        description: |-
+                          InstanceType specifies the GPU node SKU.
+                          Required when node auto-provisioning is enabled; must be empty for BYO nodes
+                          (including MIG, which requires disableNodeAutoProvisioning=true).
                         type: string
-                    required:
-                    - instanceType
+                      mig:
+                        description: |-
+                          MIG specifies NVIDIA Multi-Instance GPU configuration applied to each replica.
+                          Requires the enableMIG feature gate and BYO nodes (disableNodeAutoProvisioning=true).
+                          Propagated verbatim to each child Workspace.
+                        properties:
+                          profile:
+                            description: |-
+                              Profile is the MIG partition profile name (e.g., "1g.10gb", "2g.20gb", "3g.40gb").
+                              Must match a valid NVIDIA MIG profile name.
+                              Each workload is scheduled on exactly one MIG slice; tensor parallelism across
+                              slices is not supported. Use multiple Workspaces or an InferenceSet to run replicas.
+                            type: string
+                        required:
+                        - profile
+                        type: object
                     type: object
                 required:
                 - inference
@@ -657,10 +674,27 @@ spec:
                   resource:
                     properties:
                       instanceType:
-                        description: InstanceType specifies the GPU node SKU.
+                        description: |-
+                          InstanceType specifies the GPU node SKU.
+                          Required when node auto-provisioning is enabled; must be empty for BYO nodes
+                          (including MIG, which requires disableNodeAutoProvisioning=true).
                         type: string
-                    required:
-                    - instanceType
+                      mig:
+                        description: |-
+                          MIG specifies NVIDIA Multi-Instance GPU configuration applied to each replica.
+                          Requires the enableMIG feature gate and BYO nodes (disableNodeAutoProvisioning=true).
+                          Propagated verbatim to each child Workspace.
+                        properties:
+                          profile:
+                            description: |-
+                              Profile is the MIG partition profile name (e.g., "1g.10gb", "2g.20gb", "3g.40gb").
+                              Must match a valid NVIDIA MIG profile name.
+                              Each workload is scheduled on exactly one MIG slice; tensor parallelism across
+                              slices is not supported. Use multiple Workspaces or an InferenceSet to run replicas.
+                            type: string
+                        required:
+                        - profile
+                        type: object
                     type: object
                 required:
                 - inference
@@ -760,9 +794,15 @@ spec:
                 properties:
                   metrics:
                     additionalProperties:
-                      description: Metric holds an aggregated benchmark measurement
-                        across workspace replicas.
+                      description: Metric holds a single benchmark measurement along
+                        with its description and config.
                       properties:
+                        config:
+                          additionalProperties:
+                            type: string
+                          description: Config holds the benchmark parameters used
+                            to produce this metric as free-form key/value pairs.
+                          type: object
                         description:
                           description: Description describes the benchmark type and
                             load pattern, e.g. "stress/high-concurrency".
@@ -772,7 +812,7 @@ spec:
                             "tokens/min").
                           type: string
                         value:
-                          description: Value is the aggregated metric value, formatted
+                          description: Value is the measured metric value, formatted
                             as a string.
                           type: string
                       required:

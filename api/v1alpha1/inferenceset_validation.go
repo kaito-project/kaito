@@ -16,6 +16,7 @@ package v1alpha1
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/robfig/cron/v3"
@@ -23,6 +24,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
+
+	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/mig"
 )
 
 func (is *InferenceSet) SupportedVerbs() []admissionregistrationv1.OperationType {
@@ -57,11 +62,42 @@ func (is *InferenceSet) validateCreate() (errs *apis.FieldError) {
 		errs = errs.Also(apis.ErrInvalidValue(*is.Spec.Replicas, "replicas", "must be non-negative"))
 	}
 	errs = errs.Also(validateMaintenanceWindow(is.Spec.AutoUpgrade))
+	errs = errs.Also(validateInferenceSetMIG(&is.Spec.Template.Resource).ViaField("template", "resource"))
 	return errs
 }
 
-func (is *InferenceSet) validateUpdate(_ *InferenceSet) (errs *apis.FieldError) {
+func (is *InferenceSet) validateUpdate(old *InferenceSet) (errs *apis.FieldError) {
 	errs = errs.Also(validateMaintenanceWindow(is.Spec.AutoUpgrade))
+	// MIG is immutable once set.
+	if !reflect.DeepEqual(is.Spec.Template.Resource.MIG, old.Spec.Template.Resource.MIG) {
+		errs = errs.Also(apis.ErrGeneric("field is immutable", "template", "resource", "mig"))
+	}
+	errs = errs.Also(validateInferenceSetMIG(&is.Spec.Template.Resource).ViaField("template", "resource"))
+	return errs
+}
+
+// validateInferenceSetMIG performs admission-time validation of the MIG portion of an
+// InferenceSet template. Deep model-fit and tensor-parallelism checks are delegated to
+// the Workspace webhook when each child Workspace is created.
+func validateInferenceSetMIG(r *InferenceSetResourceSpec) (errs *apis.FieldError) {
+	if r == nil || r.MIG == nil {
+		return errs
+	}
+	if !featuregates.FeatureGates[consts.FeatureFlagEnableMIG] {
+		errs = errs.Also(apis.ErrGeneric("MIG support is not enabled, set feature gate enableMIG=true", "mig"))
+		return errs
+	}
+	if err := mig.ValidateMIGProfile(r.MIG.Profile); err != nil {
+		errs = errs.Also(apis.ErrInvalidValue(err.Error(), "mig", "profile"))
+		return errs
+	}
+	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		errs = errs.Also(apis.ErrGeneric("MIG is only supported with BYO nodes (disableNodeAutoProvisioning=true)", "mig"))
+		return errs
+	}
+	if r.InstanceType != "" {
+		errs = errs.Also(apis.ErrInvalidValue("instanceType must be empty when MIG is set (BYO scenario)", "instanceType"))
+	}
 	return errs
 }
 

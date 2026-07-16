@@ -589,6 +589,29 @@ func TestGetInferenceCommandVLLMDataParallelism(t *testing.T) {
 	assert.Contains(t, cmd[2], "kaito-kv-cache-cpu-memory-utilization=0")
 }
 
+func TestGetInferenceCommandVLLMMIGDisablesCPUOffload(t *testing.T) {
+	// On a MIG partition, CPU KV-cache offload must be disabled: it sizes itself
+	// from host RAM (cgroup-unaware), so co-located MIG pods would OOM the node.
+	p := &PresetParam{
+		TotalSafeTensorFileSize: "8Gi",
+		RuntimeParam: RuntimeParam{
+			VLLM: VLLMParam{
+				BaseCommand:    "vllm serve",
+				ModelRunParams: map[string]string{},
+			},
+		},
+	}
+	rc := RuntimeContext{
+		RuntimeName: RuntimeNameVLLM,
+		GPUConfig:   &sku.GPUConfig{GPUMem: resource.MustParse("24Gi"), GPUCount: 1, IsMIG: true},
+		SKUNumGPUs:  1,
+		NumNodes:    1,
+	}
+	cmd := p.GetInferenceCommand(rc)
+	require.Len(t, cmd, 3)
+	assert.Contains(t, cmd[2], "kaito-kv-cache-cpu-memory-utilization=0")
+}
+
 func TestGetInferenceCommandVLLMTensorParallelismWhenModelLarge(t *testing.T) {
 	p := &PresetParam{
 		TotalSafeTensorFileSize: "64Gi",

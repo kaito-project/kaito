@@ -447,8 +447,10 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	// problematic, either because:
 	//   - the model needs vLLM's hybrid KV cache manager (incompatible with the
 	//     LMCache connector), or
-	//   - LMCache is disabled for this model (see isLMCacheDisabled).
-	if p.isVLLMHybridKVCacheManagerRequired() || p.isLMCacheDisabled() {
+	//   - LMCache is disabled for this model (see isLMCacheDisabled), or
+	//   - the workload runs on a MIG partition (TODO: suppport KV cache CPU offloading on MIG).
+	if p.isVLLMHybridKVCacheManagerRequired() || p.isLMCacheDisabled() ||
+		(rc.GPUConfig != nil && rc.GPUConfig.IsMIG) {
 		p.VLLM.ModelRunParams["kaito-kv-cache-cpu-memory-utilization"] = "0"
 	}
 

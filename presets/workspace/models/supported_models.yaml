@@ -8,7 +8,7 @@ models:
       vllm: 0.22.1
       transformers: 5.6.0
     # Tag history:
-    # 0.4.3 - add stream-entrypoint.sh transparent wrapper for SAS-authenticated blob streaming
+    # 0.4.3 - add export_sas_token_for_streaming.sh transparent wrapper for SAS-authenticated blob streaming
     # 0.4.2 - add runai-model-streamer for model streaming from cloud blob storage, add KAITO_PROCESSOR benchmark support
     # 0.4.1 - pass trust_remote_code=true to GuideLLM benchmark
     # 0.4.0 - bump vllm to 0.22.1, torch to 2.11.0

@@ -48,7 +48,7 @@ const (
 	SASEnvFileEnvVar = "STREAM_ENV_FILE"
 	// sasEntrypointWrapper is the transparent entrypoint wrapper baked into the base image.
 	// It sources the SAS env file (STREAM_ENV_FILE) then exec's the original command.
-	sasEntrypointWrapper = "/workspace/vllm/stream-entrypoint.sh"
+	sasEntrypointWrapper = "/workspace/vllm/export_sas_token_for_streaming.sh"
 )
 
 // StreamingDefaults holds the cluster-wide defaults for model streaming,

@@ -1,5 +1,5 @@
 #!/bin/sh
-# stream-entrypoint.sh — transparent entrypoint wrapper for SAS-authenticated blob streaming.
+# export_sas_token_for_streaming.sh — transparent entrypoint wrapper for SAS-authenticated blob streaming.
 #
 # The SAS-fetch init container mints a short-lived SAS token and writes it as an env file
 # (KEY=value lines) to STREAM_ENV_FILE. This wrapper sources that file so the inference

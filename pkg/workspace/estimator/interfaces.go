@@ -39,7 +39,7 @@ type ModelProfile struct {
 
 // ResourceProfile describes the compute resources available for the workload.
 type ResourceProfile struct {
-	// InstanceType is the GPU SKU identifier (e.g. "Standard_NC4as_T4_v3").
+	// InstanceType is the GPU SKU identifier (e.g. "Standard_NV36ads_A10_v5").
 	InstanceType string
 	// RequestedNodeCount is the caller-preferred node count; 0 means unspecified.
 	RequestedNodeCount int

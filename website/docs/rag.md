@@ -96,7 +96,7 @@ metadata:
   name: ragengine-start
 spec:
   compute:
-    instanceType: "Standard_NC4as_T4_v3"
+    instanceType: "Standard_NV36ads_A10_v5"
     labelSelector:
       matchLabels:
         apps: ragengine-example
@@ -211,7 +211,7 @@ metadata:
   name: ragengine-with-pvc
 spec:
   compute:
-    instanceType: "Standard_NC4as_T4_v3"
+    instanceType: "Standard_NV36ads_A10_v5"
     labelSelector:
       matchLabels:
         apps: ragengine-example

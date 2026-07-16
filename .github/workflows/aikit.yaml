@@ -110,7 +110,10 @@ jobs:
         run: |
           helm repo add keda-kaito-scaler https://kaito-project.github.io/keda-kaito-scaler/charts/kaito-project
           # keda-kaito-scaler must be in the same namespace as KEDA (shares TLS secrets)
-          helm upgrade --install keda-kaito-scaler -n keda keda-kaito-scaler/keda-kaito-scaler
+          # Pin to v0.5.1: v0.6.0 changed auto-provision to be annotation-driven
+          # (kaito-project/keda-kaito-scaler#122), breaking this integration test
+          # until the InferenceSet fixture is updated with the new annotations.
+          helm upgrade --install keda-kaito-scaler -n keda keda-kaito-scaler/keda-kaito-scaler --version 0.5.1
           kubectl wait --for=condition=available --timeout=300s deployment/keda-kaito-scaler -n keda
 
           # Wait for keda-kaito-scaler TLS certs to be fully provisioned before

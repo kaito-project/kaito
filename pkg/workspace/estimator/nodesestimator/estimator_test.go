@@ -66,7 +66,7 @@ func TestNodeEstimator_EstimateNodeCount(t *testing.T) {
 				},
 				Resource: kaitov1beta1.ResourceSpec{
 					Count:        ptr.To(3),
-					InstanceType: "Standard_NC4as_T4_v3",
+					InstanceType: "Standard_NV36ads_A10_v5",
 				},
 				Inference: nil,
 			},
@@ -82,7 +82,7 @@ func TestNodeEstimator_EstimateNodeCount(t *testing.T) {
 				},
 				Resource: kaitov1beta1.ResourceSpec{
 					Count:        nil,
-					InstanceType: "Standard_NC4as_T4_v3",
+					InstanceType: "Standard_NV36ads_A10_v5",
 				},
 				Inference: nil,
 			},
@@ -98,7 +98,7 @@ func TestNodeEstimator_EstimateNodeCount(t *testing.T) {
 				},
 				Resource: kaitov1beta1.ResourceSpec{
 					Count:        ptr.To(2),
-					InstanceType: "Standard_NC4as_T4_v3",
+					InstanceType: "Standard_NV36ads_A10_v5",
 				},
 				Inference: &kaitov1beta1.InferenceSpec{
 					Preset: nil,
@@ -116,7 +116,7 @@ func TestNodeEstimator_EstimateNodeCount(t *testing.T) {
 				},
 				Resource: kaitov1beta1.ResourceSpec{
 					Count:        ptr.To(4),
-					InstanceType: "Standard_NC4as_T4_v3",
+					InstanceType: "Standard_NV36ads_A10_v5",
 				},
 				Inference: &kaitov1beta1.InferenceSpec{
 					Preset: &kaitov1beta1.PresetSpec{
@@ -182,8 +182,8 @@ func TestNodeEstimator_EstimateNodeCount(t *testing.T) {
 					Namespace: "default",
 				},
 				Resource: kaitov1beta1.ResourceSpec{
-					Count:        ptr.To(1),              // User requests 1 node
-					InstanceType: "Standard_NC4as_T4_v3", // Smaller GPU memory
+					Count:        ptr.To(1),                 // User requests 1 node
+					InstanceType: "Standard_NV36ads_A10_v5", // Smaller GPU memory
 				},
 				Inference: &kaitov1beta1.InferenceSpec{
 					Preset: &kaitov1beta1.PresetSpec{
@@ -205,7 +205,7 @@ func TestNodeEstimator_EstimateNodeCount(t *testing.T) {
 				},
 				Resource: kaitov1beta1.ResourceSpec{
 					Count:        nil, // No count specified
-					InstanceType: "Standard_NC4as_T4_v3",
+					InstanceType: "Standard_NV36ads_A10_v5",
 				},
 				Inference: &kaitov1beta1.InferenceSpec{
 					Preset: &kaitov1beta1.PresetSpec{

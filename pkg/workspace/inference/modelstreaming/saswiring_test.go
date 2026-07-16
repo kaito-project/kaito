@@ -128,7 +128,7 @@ func TestSetStreamingConfig_SASWiring(t *testing.T) {
 	assert.Contains(t, mountPaths, SASSharedMountPath, "main container must mount %q", SASSharedMountPath)
 
 	// 4. Main container command is the ORIGINAL command, unchanged, with the wrapper prepended.
-	assert.Equal(t, []string{sasEntrypointWrapper, "/bin/sh", "-c", "python3 foo"}, main.Command,
+	assert.Equal(t, []string{sasTokenExportWrapper, "/bin/sh", "-c", "python3 foo"}, main.Command,
 		"wrapper must be prepended and the original command left intact")
 
 	// 5. ServiceAccountName set

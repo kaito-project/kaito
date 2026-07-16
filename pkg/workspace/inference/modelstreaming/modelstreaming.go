@@ -46,9 +46,9 @@ const (
 	// SASEnvFileEnvVar is the env var (set on both the init and main containers) naming the
 	// SAS env file path: the init container writes it, the main container's wrapper sources it.
 	SASEnvFileEnvVar = "STREAM_ENV_FILE"
-	// sasEntrypointWrapper is the transparent entrypoint wrapper baked into the base image.
+	// sasTokenExportWrapper is the transparent entrypoint wrapper baked into the base image.
 	// It sources the SAS env file (STREAM_ENV_FILE) then exec's the original command.
-	sasEntrypointWrapper = "/workspace/vllm/export_sas_token_for_streaming.sh"
+	sasTokenExportWrapper = "/workspace/vllm/export_sas_token_for_streaming.sh"
 )
 
 // StreamingDefaults holds the cluster-wide defaults for model streaming,
@@ -176,7 +176,7 @@ func SetStreamingConfig(streamingCfg *StreamingConfig, modelID, defaultSA string
 				Value: SASSharedMountPath + "/" + SASEnvFileName,
 			})
 
-			spec.Containers[mainIdx].Command = append([]string{sasEntrypointWrapper}, spec.Containers[mainIdx].Command...)
+			spec.Containers[mainIdx].Command = append([]string{sasTokenExportWrapper}, spec.Containers[mainIdx].Command...)
 		}
 
 		// Set ServiceAccount (defaultSA is the controller flag value)

@@ -76,9 +76,8 @@ func (is *InferenceSet) validateUpdate(old *InferenceSet) (errs *apis.FieldError
 }
 
 // validateInferenceSetPartition performs admission-time validation of the GPU
-// partitioning portion of an InferenceSet template. Deep model-fit and
-// tensor-parallelism checks are delegated to the Workspace webhook when each child
-// Workspace is created.
+// partitioning portion of an InferenceSet template. Deep model-fit is
+// delegated to the Workspace webhook when each child Workspace is created.
 func validateInferenceSetPartition(r *InferenceSetResourceSpec) (errs *apis.FieldError) {
 	if r == nil || r.Partition == nil {
 		return errs

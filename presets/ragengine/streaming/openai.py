@@ -140,6 +140,7 @@ def parse_openai_chat_sse_event(event: SSEEvent) -> OpenAIChatChunkParseResult:
     )
 
 
+# Builds an OpenAI SSE event containing incremental text content.
 def build_openai_chat_delta_sse_chunk(
     content: str,
     *,
@@ -157,7 +158,8 @@ def build_openai_chat_delta_sse_chunk(
     return build_sse_data_chunk(payload)
 
 
-def build_openai_chat_finish_sse_chunk(
+# Builds an OpenAI SSE event indicating that a choice has finished.
+def build_openai_chat_finish_reason_sse_chunk(
     *,
     finish_reason: str = "content_filter",
     choice_index: int = 0,
@@ -174,9 +176,11 @@ def build_openai_chat_finish_sse_chunk(
     return build_sse_data_chunk(payload)
 
 
+# Builds the [DONE] event indicating that the entire stream has ended.
 def build_sse_done_chunk() -> str:
     return "data: [DONE]\n\n"
 
 
+# Serializes a payload and wraps it as a generic SSE data event.
 def build_sse_data_chunk(payload: dict[str, Any]) -> str:
     return f"data: {json.dumps(payload, separators=(',', ':'))}\n\n"

@@ -55,10 +55,8 @@ type ModelMirrorSpec struct {
 	// omit entirely for static mirrors.
 	// +optional
 	JobNamespace string `json:"jobNamespace,omitempty"`
-	// ServiceAccountName is the ServiceAccount the download Job pod runs as. When set, the
-	// pod also gets the azure.workload.identity/use="true" label so a Workload-Identity-authed
-	// blob StorageClass can mount without a storage account key. Empty (the default) runs the
-	// Job under the namespace default ServiceAccount.
+	// ServiceAccountName is the ServiceAccount used by the workload identity that the download
+	// Job pod runs as. Empty (the default) runs the Job under the namespace default ServiceAccount.
 	// +optional
 	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 }

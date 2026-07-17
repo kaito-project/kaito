@@ -1061,7 +1061,7 @@ func TestEnsureModelMirror_StaticWithoutSASFails(t *testing.T) {
 
 // TestEnsureModelMirror_ManagedStampsServiceAccount verifies the managed (download) path
 // resolves the streaming ServiceAccount and stamps it onto the created ModelMirror CR, so the
-// download Job can later mount a Workload-Identity-authed blob StorageClass.
+// download Job can later mount a workload-identity-authenticated StorageClass.
 func TestEnsureModelMirror_ManagedStampsServiceAccount(t *testing.T) {
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 

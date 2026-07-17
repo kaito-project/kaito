@@ -31,6 +31,7 @@ func (*baseTestModel) GetInferenceParameters() *model.PresetParam {
 			Tag:  "1.0.0",
 		},
 		TotalSafeTensorFileSize: "8Gi",
+		DiskStorageRequirement:  "100Gi",
 		RuntimeParam: model.RuntimeParam{
 			VLLM: model.VLLMParam{
 				BaseCommand:    "python3 /workspace/vllm/inference_api.py",

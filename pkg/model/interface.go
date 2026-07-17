@@ -212,7 +212,6 @@ type PresetParam struct {
 	// Example: For a 14Gi model, calculation is: 14 × 2.5 + 48 = 83, rounded up to 90Gi.
 
 	ImageAccessMode               string         // Defines where the Image is Public or Private.
-	GPUCountRequirement           string         // Number of GPUs required for the Preset. Used for inference.
 	TotalSafeTensorFileSize       string         // Total SafeTensor file size for the Preset. Used for inference.
 	TuningPerGPUMemoryRequirement map[string]int // Min GPU memory per tuning method (batch size 1). Used for tuning.
 	BytesPerToken                 int            // Number of bytes per token for the model. It is calculated by 2 * hidden_layers * kv_heads * head_dim (hidden_size/num_attemtion_numbers) * dtype_size

@@ -30,9 +30,7 @@ func (*baseTestModel) GetInferenceParameters() *model.PresetParam {
 			Name: "test-model",
 			Tag:  "1.0.0",
 		},
-		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "8Gi",
-		DiskStorageRequirement:  "100Gi",
 		RuntimeParam: model.RuntimeParam{
 			VLLM: model.VLLMParam{
 				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
@@ -50,8 +48,7 @@ func (*baseTestModel) GetInferenceParameters() *model.PresetParam {
 }
 func (*baseTestModel) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement: "1",
-		ReadinessTimeout:    time.Duration(30) * time.Minute,
+		ReadinessTimeout: time.Duration(30) * time.Minute,
 	}
 }
 func (*baseTestModel) SupportDistributedInference() bool {
@@ -79,7 +76,6 @@ func (*testDistributedModel) GetInferenceParameters() *model.PresetParam {
 			Name: "test-distributed-model",
 			Tag:  "1.0.0",
 		},
-		GPUCountRequirement:     "2",
 		DiskStorageRequirement:  "100Gi",
 		TotalSafeTensorFileSize: "64Gi",
 		RuntimeParam: model.RuntimeParam{
@@ -110,7 +106,6 @@ func (*testNoTensorParallelModel) GetInferenceParameters() *model.PresetParam {
 			Name: "test-no-tensor-parallel-model",
 			Tag:  "1.0.0",
 		},
-		GPUCountRequirement:     "1",
 		DiskStorageRequirement:  "100Gi",
 		TotalSafeTensorFileSize: "8Gi",
 		RuntimeParam: model.RuntimeParam{
@@ -150,7 +145,6 @@ func (*testModelDownload) GetInferenceParameters() *model.PresetParam {
 			Version:           "https://huggingface.co/test-repo/test-model/commit/test-revision",
 			DownloadAtRuntime: true,
 		},
-		GPUCountRequirement:     "1",
 		DiskStorageRequirement:  "100Gi",
 		TotalSafeTensorFileSize: "64Gi",
 		RuntimeParam: model.RuntimeParam{
@@ -185,7 +179,6 @@ func (*testModelDownloadA100) GetInferenceParameters() *model.PresetParam {
 			Version:           "https://huggingface.co/test-repo/test-model-a100/commit/test-revision",
 			DownloadAtRuntime: true,
 		},
-		GPUCountRequirement:     "1",
 		DiskStorageRequirement:  "100Gi",
 		TotalSafeTensorFileSize: "64Gi",
 		RuntimeParam: model.RuntimeParam{
@@ -210,7 +203,6 @@ func (*testNoLoraSupportModel) GetInferenceParameters() *model.PresetParam {
 			Name: "test-no-lora-support-model",
 			Tag:  "1.0.0",
 		},
-		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "8Gi",
 		DiskStorageRequirement:  "100Gi",
 		RuntimeParam: model.RuntimeParam{
@@ -241,7 +233,6 @@ func (*testFalcon7BModel) GetInferenceParameters() *model.PresetParam {
 			Name: "test-falcon-7b",
 			Tag:  "1.0.0",
 		},
-		GPUCountRequirement:     "1",
 		DiskStorageRequirement:  "90Gi",
 		TotalSafeTensorFileSize: "13.44Gi",
 		BytesPerToken:           8192,
@@ -274,7 +265,6 @@ func (*testQwen25Coder32BModel) GetInferenceParameters() *model.PresetParam {
 			Name: "test-qwen2.5-coder-32b-instruct",
 			Tag:  "1.0.0",
 		},
-		GPUCountRequirement:     "2",
 		DiskStorageRequirement:  "100Gi",
 		TotalSafeTensorFileSize: "62.5Gi",
 		BytesPerToken:           163840,

@@ -27,8 +27,7 @@ import (
 
 func TestPresetParamDeepCopy(t *testing.T) {
 	original := &PresetParam{
-		Metadata:            Metadata{Name: "test-model"},
-		GPUCountRequirement: "2",
+		Metadata: Metadata{Name: "test-model"},
 		TuningPerGPUMemoryRequirement: map[string]int{
 			"lora": 16000,
 		},
@@ -48,7 +47,6 @@ func TestPresetParamDeepCopy(t *testing.T) {
 	copied := original.DeepCopy()
 	require.NotNil(t, copied)
 	assert.Equal(t, original.Metadata.Name, copied.Metadata.Name)
-	assert.Equal(t, original.GPUCountRequirement, copied.GPUCountRequirement)
 	assert.Equal(t, original.TuningPerGPUMemoryRequirement, copied.TuningPerGPUMemoryRequirement)
 
 	// Mutations on the copy must not affect the original.

@@ -51,8 +51,8 @@ spec:
             properties:
               jobNamespace:
                 description: |-
-                  JobNamespace is the namespace where the PVC and download Job will be created.
-                  Empty for static mirrors that create no PVC or Job.
+                  JobNamespace is the namespace where the PVC and download Job will be created;
+                  omit entirely for static mirrors.
                 type: string
               mode:
                 default: Managed
@@ -66,11 +66,17 @@ spec:
                 - Managed
                 - Static
                 type: string
+              serviceAccountName:
+                description: |-
+                  ServiceAccountName is the ServiceAccount the download Job pod runs as. When set, the
+                  pod also gets the azure.workload.identity/use="true" label so a Workload-Identity-authed
+                  blob StorageClass can mount without a storage account key. Empty (the default) runs the
+                  Job under the namespace default ServiceAccount.
+                type: string
               source:
                 description: |-
                   Source describes where to download the model weights from. Required for a Managed
-                  mirror; omit entirely for a Static mirror (the weights already exist in BYO storage,
-                  so there is nothing to download).
+                  mirror; omit entirely for a Static mirror.
                 properties:
                   accessSecret:
                     description: AccessSecret references a secret containing authentication
@@ -132,17 +138,14 @@ spec:
               storage:
                 description: |-
                   Storage describes the PVC to download the model weights into. Required for a Managed
-                  mirror; omit entirely for a Static mirror (no PVC is created).
+                  mirror; omit entirely for a Static mirror.
                 properties:
                   size:
-                    description: |-
-                      Size is the requested model storage: the PVC size for managed mirrors, or
-                      informational for static mirrors that create no PVC.
+                    description: Size is the PVC size for managed mirrors.
                     type: string
                   storageClassName:
-                    description: |-
-                      StorageClassName is the StorageClass to use for the PVC. Nil for static
-                      mirrors that create no PVC.
+                    description: StorageClassName is the StorageClass to use for the
+                      PVC.
                     type: string
                 required:
                 - size

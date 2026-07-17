@@ -233,6 +233,11 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 		return err
 	}
 
+	serviceAccount, err := modelstreaming.ResolveStreamingServiceAccount(wObj, modelstreaming.StreamingDefaults.ServiceAccount)
+	if err != nil {
+		return err
+	}
+
 	// Resolve model metadata for DiskStorageRequirement
 	presetName := string(wObj.Inference.Preset.Name)
 	model, err := models.GetModelByName(ctx, presetName, wObj.Inference.Preset.PresetOptions.ModelAccessSecret, wObj.Namespace, c.Client)
@@ -266,7 +271,8 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 				Size:             modelSize,
 				StorageClassName: ptr.To(storageClass),
 			},
-			JobNamespace: wObj.Namespace,
+			JobNamespace:       wObj.Namespace,
+			ServiceAccountName: serviceAccount,
 		},
 	}
 

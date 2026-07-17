@@ -84,3 +84,24 @@ func TestBuildDownloadJobResources(t *testing.T) {
 		})
 	}
 }
+
+func TestBuildDownloadJobServiceAccount(t *testing.T) {
+	t.Run("empty leaves default SA and no WI label", func(t *testing.T) {
+		cr := newTestModelMirror() // ServiceAccountName unset
+		job := BuildDownloadJob(cr, mmconsts.DefaultDownloadJobResources())
+
+		assert.Empty(t, job.Spec.Template.Spec.ServiceAccountName, "no ServiceAccount should be set")
+		assert.NotContains(t, job.Spec.Template.Labels, "azure.workload.identity/use",
+			"WI label must be absent when no ServiceAccount is set (account-key mount path)")
+	})
+
+	t.Run("set stamps SA and WI label", func(t *testing.T) {
+		cr := newTestModelMirror()
+		cr.Spec.ServiceAccountName = "kaito-model-streamer"
+		job := BuildDownloadJob(cr, mmconsts.DefaultDownloadJobResources())
+
+		assert.Equal(t, "kaito-model-streamer", job.Spec.Template.Spec.ServiceAccountName)
+		assert.Equal(t, "true", job.Spec.Template.Labels["azure.workload.identity/use"],
+			"WI label must be set so a WI-authed blob StorageClass can mount")
+	})
+}

@@ -51,6 +51,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/workspace/estimator/nodesestimator"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
+	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/registry"
 )
 
 func TestSelectWorkspaceNodes(t *testing.T) {
@@ -1056,6 +1057,71 @@ func TestEnsureModelMirror_StaticWithoutSASFails(t *testing.T) {
 	err := reconciler.ensureModelMirror(context.Background(), ws)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), modelstreaming.AnnotationStaticModelMirror)
+}
+
+// TestEnsureModelMirror_ManagedStampsServiceAccount verifies the managed (download) path
+// resolves the streaming ServiceAccount and stamps it onto the created ModelMirror CR, so the
+// download Job can later mount a Workload-Identity-authed blob StorageClass.
+func TestEnsureModelMirror_ManagedStampsServiceAccount(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+	const saName = "kaito-model-streamer"
+	streamer, err := registry.GetModelStreamer(consts.AzureCloudName)
+	assert.NoError(t, err)
+	prevSA := modelstreaming.StreamingDefaults.ServiceAccount
+	prevSC := modelstreaming.StreamingDefaults.StorageClass
+	prevStreamer := modelstreaming.StreamingDefaults.ModelStreamer
+	modelstreaming.StreamingDefaults.ServiceAccount = saName
+	modelstreaming.StreamingDefaults.StorageClass = "blob-fuse"
+	modelstreaming.StreamingDefaults.ModelStreamer = streamer
+	t.Cleanup(func() {
+		modelstreaming.StreamingDefaults.ServiceAccount = prevSA
+		modelstreaming.StreamingDefaults.StorageClass = prevSC
+		modelstreaming.StreamingDefaults.ModelStreamer = prevStreamer
+	})
+
+	mockClient := test.NewClient()
+	// Seed the streaming ServiceAccount (exists + WI annotation) so ValidateAuth passes.
+	mockClient.CreateOrUpdateObjectInMap(&corev1.ServiceAccount{
+		ObjectMeta: v1.ObjectMeta{
+			Name:        saName,
+			Namespace:   "default",
+			Annotations: map[string]string{"azure.workload.identity/client-id": "00000000-0000-0000-0000-000000000000"},
+		},
+	})
+	// Seed the StorageClass with the Azure blob CSI provisioner so SC validation passes.
+	mockClient.CreateOrUpdateObjectInMap(&storagev1.StorageClass{
+		ObjectMeta:  v1.ObjectMeta{Name: "blob-fuse"},
+		Provisioner: consts.CSIDriverNameForCloud(consts.AzureCloudName),
+	})
+	mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&corev1.ServiceAccount{}), mock.Anything).Return(nil)
+	mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+	mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&kaitov1alpha1.ModelMirror{}), mock.Anything).Return(test.NotFoundError())
+	mockClient.On("Create", mock.Anything, mock.IsType(&kaitov1alpha1.ModelMirror{}), mock.Anything).Return(nil)
+
+	ws := &v1beta1.Workspace{
+		ObjectMeta: v1.ObjectMeta{Name: "ws-managed-sa", Namespace: "default"},
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "phi-4"}},
+		},
+	}
+
+	reconciler := &WorkspaceReconciler{Client: mockClient}
+	err = reconciler.ensureModelMirror(context.Background(), ws)
+	assert.NoError(t, err)
+
+	// The created CR must carry the resolved ServiceAccount and be Managed.
+	crMap := mockClient.CreateMapWithType(&kaitov1alpha1.ModelMirror{})
+	var created *kaitov1alpha1.ModelMirror
+	for _, obj := range crMap {
+		if mm, ok := obj.(*kaitov1alpha1.ModelMirror); ok {
+			created = mm
+			break
+		}
+	}
+	assert.NotNil(t, created, "a ModelMirror CR should have been created")
+	assert.Equal(t, kaitov1alpha1.ModelMirrorModeManaged, created.Spec.Mode)
+	assert.Equal(t, saName, created.Spec.ServiceAccountName)
 }
 
 func TestSyncWorkspaceStatus(t *testing.T) {

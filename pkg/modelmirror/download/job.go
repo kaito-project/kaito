@@ -128,5 +128,15 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 			},
 		},
 	}
+
+	// When a ServiceAccount is set, run the Job under it and add the Azure Workload Identity
+	// pod label so a WI-authed blob StorageClass mounts without a storage account key.
+	if cr.Spec.ServiceAccountName != "" {
+		job.Spec.Template.Spec.ServiceAccountName = cr.Spec.ServiceAccountName
+		if job.Spec.Template.Labels == nil {
+			job.Spec.Template.Labels = map[string]string{}
+		}
+		job.Spec.Template.Labels["azure.workload.identity/use"] = "true"
+	}
 	return job
 }

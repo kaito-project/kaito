@@ -504,13 +504,34 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			})
 		}
 		// resource requirements
+		//
+		// Default: request every GPU the node advertises. resource.requests/limits
+		// overrides this so a workload can take fewer GPUs. The override must also
+		// feed SKUNumGPUs below, or vLLM's parallelism won't match the visible GPUs
+		// and startup fails.
+		effectiveGPUCount := gpuConfig.GPUCount
+		gpuResourceName := corev1.ResourceName(nodes.CapacityNvidiaGPU)
+
 		resourceReq := corev1.ResourceRequirements{
 			Requests: corev1.ResourceList{
-				corev1.ResourceName(nodes.CapacityNvidiaGPU): *resource.NewQuantity(int64(gpuConfig.GPUCount), resource.DecimalSI),
+				gpuResourceName: *resource.NewQuantity(int64(gpuConfig.GPUCount), resource.DecimalSI),
 			},
 			Limits: corev1.ResourceList{
-				corev1.ResourceName(nodes.CapacityNvidiaGPU): *resource.NewQuantity(int64(gpuConfig.GPUCount), resource.DecimalSI),
+				gpuResourceName: *resource.NewQuantity(int64(gpuConfig.GPUCount), resource.DecimalSI),
 			},
+		}
+
+		if overrideReq := ctx.Workspace.Resource.Requests; overrideReq != nil {
+			resourceReq.Requests = overrideReq.DeepCopy()
+			// Limits default to Requests (GPUs are not overcommittable).
+			if overrideLim := ctx.Workspace.Resource.Limits; overrideLim != nil {
+				resourceReq.Limits = overrideLim.DeepCopy()
+			} else {
+				resourceReq.Limits = overrideReq.DeepCopy()
+			}
+			if gpuQty, ok := resourceReq.Requests[gpuResourceName]; ok {
+				effectiveGPUCount = int(gpuQty.Value())
+			}
 		}
 
 		// inference command
@@ -540,7 +561,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			RuntimeName:          runtimeName,
 			GPUConfig:            gpuConfig,
 			ConfigVolume:         cmVolumeMountRef,
-			SKUNumGPUs:           gpuConfig.GPUCount,
+			SKUNumGPUs:           effectiveGPUCount,
 			NumNodes:             numNodes,
 			WorkspaceMetadata:    ctx.Workspace.ObjectMeta,
 			DistributedInference: ctx.Model.SupportDistributedInference(),

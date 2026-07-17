@@ -33,7 +33,14 @@ func (src *RAGEngine) ConvertTo(dstRaw conversion.Hub) error {
 		dst.Spec = &v1beta1.RAGEngineSpec{}
 
 		// Convert Compute
-		dst.Spec.Compute = (*v1beta1.ResourceSpec)(src.Spec.Compute)
+		if src.Spec.Compute != nil {
+			dst.Spec.Compute = &v1beta1.ResourceSpec{
+				Count:          src.Spec.Compute.Count,
+				InstanceType:   src.Spec.Compute.InstanceType,
+				LabelSelector:  src.Spec.Compute.LabelSelector,
+				PreferredNodes: src.Spec.Compute.PreferredNodes,
+			}
+		}
 
 		// Convert Storage: v1alpha1 flat -> v1beta1 nested
 		if src.Spec.Storage != nil {
@@ -100,7 +107,14 @@ func (dst *RAGEngine) ConvertFrom(srcRaw conversion.Hub) error {
 		dst.Spec = &RAGEngineSpec{}
 
 		// Convert Compute
-		dst.Spec.Compute = (*ResourceSpec)(src.Spec.Compute)
+		if src.Spec.Compute != nil {
+			dst.Spec.Compute = &ResourceSpec{
+				Count:          src.Spec.Compute.Count,
+				InstanceType:   src.Spec.Compute.InstanceType,
+				LabelSelector:  src.Spec.Compute.LabelSelector,
+				PreferredNodes: src.Spec.Compute.PreferredNodes,
+			}
+		}
 
 		// Convert Storage: v1beta1 nested -> v1alpha1 flat
 		if src.Spec.Storage != nil {

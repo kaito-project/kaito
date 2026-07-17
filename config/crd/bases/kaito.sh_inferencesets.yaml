@@ -665,6 +665,29 @@ spec:
                       instanceType:
                         description: InstanceType specifies the GPU node SKU.
                         type: string
+                      limits:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: |-
+                          Limits overrides the compute limits for each replica (preset path only).
+                          Defaults to Requests when unset.
+                        type: object
+                      requests:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: |-
+                          Requests overrides the compute resources requested by each replica (preset
+                          path only). When unset, each replica requests all GPUs on the matched node.
+                          Set nvidia.com/gpu lower to run each replica on fewer GPUs.
+                        type: object
                     required:
                     - instanceType
                     type: object

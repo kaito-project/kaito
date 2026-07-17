@@ -323,6 +323,8 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 			workspaceObj.Resource = kaitov1beta1.ResourceSpec{
 				InstanceType:  iObj.Spec.Template.Resource.InstanceType,
 				LabelSelector: iObj.Spec.Selector,
+				Requests:      iObj.Spec.Template.Resource.Requests,
+				Limits:        iObj.Spec.Template.Resource.Limits,
 			}
 			workspaceObj.Inference = &iObj.Spec.Template.Inference
 

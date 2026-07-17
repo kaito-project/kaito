@@ -43,7 +43,9 @@ def test_sse_framer_handles_fragmented_event():
     assert len(events) == 1
     result = parse_openai_chat_sse_event(events[0])
     assert result.status == OpenAIChatChunkParseStatus.PARSED
-    assert result.parsed_choices == (ParsedOpenAIChoice(choice_index=0, content="hello"),)
+    assert result.parsed_choices == (
+        ParsedOpenAIChoice(choice_index=0, content="hello"),
+    )
     assert result.contents == ("hello",)
 
 
@@ -87,8 +89,7 @@ def test_openai_parser_returns_explicit_status_for_malformed_json():
 
 def test_openai_parser_tolerates_chunk_without_delta_content():
     result = _parse(
-        '{"choices":[{"index":2,"delta":{"role":"assistant"},'
-        '"finish_reason":"stop"}]}'
+        '{"choices":[{"index":2,"delta":{"role":"assistant"},"finish_reason":"stop"}]}'
     )
 
     assert result.status == OpenAIChatChunkParseStatus.PARSED
@@ -101,8 +102,7 @@ def test_openai_parser_tolerates_chunk_without_delta_content():
 
 def test_openai_parser_extracts_choice_index_content_and_finish_reason():
     result = _parse(
-        '{"choices":[{"index":3,"delta":{"content":"safe"},'
-        '"finish_reason":"stop"}]}'
+        '{"choices":[{"index":3,"delta":{"content":"safe"},"finish_reason":"stop"}]}'
     )
 
     assert result.status == OpenAIChatChunkParseStatus.PARSED

@@ -4,7 +4,7 @@
 vllm==0.22.1
 transformers[serving] ==5.6.0
 huggingface-hub==1.11.0
-torch==2.11.0
+torch==2.13.0
 accelerate>=1.4.0
 fastapi[standard] >=0.115.0,<0.137.0  # Pin below 0.137.0: _IncludedRouter breaks prometheus-fastapi-instrumentator (gh#370)
 pydantic >= 2.12.0

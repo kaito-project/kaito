@@ -117,6 +117,41 @@ def test_openai_parser_extracts_choice_index_content_and_finish_reason():
     assert result.finish_reasons == ("stop",)
 
 
+def test_openai_parser_keeps_multiple_choices_aligned():
+    events = SSEFramer().feed(
+        'data: {"choices":[{"index":0,"delta":{"content":"first"}},'
+        '{"index":2,"delta":{"content":"second"},"finish_reason":"stop"}]}'
+        "\n\n"
+    )
+
+    result = parse_openai_chat_sse_event(events[0])
+
+    assert result.status == OpenAIChatChunkParseStatus.PARSED
+    assert result.parsed_choices == (
+        ParsedOpenAIChoice(choice_index=0, content="first"),
+        ParsedOpenAIChoice(
+            choice_index=2,
+            content="second",
+            finish_reason="stop",
+        ),
+    )
+    assert result.contents == ("first", "second")
+    assert result.finish_reasons == ("stop",)
+
+
+def test_openai_parser_preserves_empty_delta_content():
+    events = SSEFramer().feed(
+        'data: {"choices":[{"index":0,"delta":{"content":""}}]}\n\n'
+    )
+
+    result = parse_openai_chat_sse_event(events[0])
+
+    assert result.status == OpenAIChatChunkParseStatus.PARSED
+    assert result.parsed_choices == (ParsedOpenAIChoice(choice_index=0, content=""),)
+    assert result.contents == ("",)
+    assert result.finish_reasons == ()
+
+
 def test_openai_parser_supports_empty_choices():
     events = SSEFramer().feed('data: {"choices":[]}\n\n')
 
@@ -175,6 +210,15 @@ def test_openai_parser_rejects_invalid_delta_content():
 
     assert result.status == OpenAIChatChunkParseStatus.INVALID_PAYLOAD
     assert result.error == "OpenAI chat stream delta content must be a string or null."
+
+
+def test_openai_parser_rejects_invalid_delta_shape():
+    events = SSEFramer().feed('data: {"choices":[{"index":0,"delta":[]}]}\n\n')
+
+    result = parse_openai_chat_sse_event(events[0])
+
+    assert result.status == OpenAIChatChunkParseStatus.INVALID_PAYLOAD
+    assert result.error == "OpenAI chat stream choice delta must be a JSON object."
 
 
 def test_openai_parser_rejects_invalid_finish_reason():

@@ -114,11 +114,11 @@ def parse_openai_chat_sse_event(event: SSEEvent) -> OpenAIChatChunkParseResult:
                 status=OpenAIChatChunkParseStatus.INVALID_PAYLOAD,
                 error="OpenAI chat stream finish_reason must be a string or null.",
             )
-        if content or finish_reason is not None:
+        if content is not None or finish_reason is not None:
             parsed_choices.append(
                 ParsedOpenAIChoice(
                     choice_index=choice_index,
-                    content=content or None,
+                    content=content,
                     finish_reason=finish_reason,
                 )
             )

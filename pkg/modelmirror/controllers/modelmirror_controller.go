@@ -16,6 +16,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -229,7 +230,7 @@ func (r *ModelMirrorReconciler) ensureDownloadJob(ctx context.Context, cr *kaito
 		return nil
 	}
 
-	job := download.BuildDownloadJob(cr, r.DownloadResources)
+	job := download.BuildDownloadJob(cr, r.DownloadResources, download.WorkloadIdentityPodLabels(os.Getenv("CLOUD_PROVIDER")))
 	log.Info("Creating download Job", "namespace", cr.Spec.JobNamespace)
 	return r.Create(ctx, job)
 }

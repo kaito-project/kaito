@@ -28,7 +28,9 @@ import (
 
 // BuildDownloadJob constructs the Job that downloads model files to the PVC.
 // resources sets the CPU/memory request==limit on the downloader container.
-func BuildDownloadJob(cr *kaitov1alpha1.ModelMirror, resources mmconsts.DownloadJobResources) *batchv1.Job {
+// podLabels are applied to the Job pod template when a ServiceAccount is set (e.g. the
+// cloud workload-identity label); pass nil to add none.
+func BuildDownloadJob(cr *kaitov1alpha1.ModelMirror, resources mmconsts.DownloadJobResources, podLabels map[string]string) *batchv1.Job {
 	modelID := cr.Spec.Source.ModelID
 
 	// Build --exclude flags from DownloadExcludePatterns
@@ -129,14 +131,17 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 		},
 	}
 
-	// When a ServiceAccount is set, run the Job under it and add the cloud workload-identity
-	// pod label. Empty leaves the pod on the namespace default ServiceAccount.
+	// When a ServiceAccount is set, run the Job under it and apply the provider-supplied pod
+	// labels (e.g. the cloud workload-identity label). Empty leaves the pod on the namespace
+	// default ServiceAccount with no extra labels.
 	if cr.Spec.ServiceAccountName != "" {
 		job.Spec.Template.Spec.ServiceAccountName = cr.Spec.ServiceAccountName
-		if job.Spec.Template.Labels == nil {
-			job.Spec.Template.Labels = map[string]string{}
+		for k, v := range podLabels {
+			if job.Spec.Template.Labels == nil {
+				job.Spec.Template.Labels = map[string]string{}
+			}
+			job.Spec.Template.Labels[k] = v
 		}
-		job.Spec.Template.Labels["azure.workload.identity/use"] = "true"
 	}
 	return job
 }

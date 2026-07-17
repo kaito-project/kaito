@@ -200,9 +200,14 @@ When `resource.partition` is set (validation dispatches on `mode`; only `mig` is
 1. Feature gate `enableMIG` must be true.
 2. `instanceType` must be empty (BYO only). The webhook validates this per-Workspace rather than requiring a global feature gate.
 3. Profile must match the MIG profile format (`<digits>g.<digits>gb`) and correspond to a known NVIDIA MIG profile. Long-term, consider relaxing the whitelist to regex-only validation so new GPU generations don't require a KAITO release.
-4. Model must not require tensor parallelism. The webhook rejects a model only when it *explicitly* declares a multi-GPU requirement (`GPUCountRequirement` is set and is neither `""` nor `"1"`, with `DisableTensorParallelism` false). An empty `GPUCountRequirement` means the estimator sizes GPUs from model memory, so it is treated as single-device.
-5. MIG spec is immutable on update.
-6. MIG is rejected for tuning workloads.
+4. MIG spec is immutable on update.
+5. MIG is rejected for tuning workloads.
+
+Model-to-partition fit is only coarsely enforced in the webhook: a lightweight
+admission-time check rejects a preset whose raw weight size (`TotalSafeTensorFileSize`)
+exceeds the slice's advertised memory, giving fast feedback on obviously oversized
+models. The authoritative, overhead-aware sizing is still performed by the node
+estimator, which sizes GPUs from model memory against the slice's usable memory.
 
 ### Estimator
 

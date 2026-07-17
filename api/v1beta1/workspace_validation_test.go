@@ -921,6 +921,81 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 	}
 }
 
+func TestValidateMIGModelFit(t *testing.T) {
+	RegisterValidationTestModels()
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+	origMIG := featuregates.FeatureGates[consts.FeatureFlagEnableMIG]
+	origNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = true
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = origMIG
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = origNAP
+	}()
+
+	scheme := runtime.NewScheme()
+	_ = v1.AddToScheme(scheme)
+	k8sclient.SetGlobalClient(fake.NewClientBuilder().WithScheme(scheme).Build())
+
+	tests := []struct {
+		name                    string
+		presetName              string
+		profile                 string
+		totalSafeTensorFileSize string // only used by the "test-validation" preset
+		bypass                  bool
+		expectErrs              bool
+		errContent              string
+	}{
+		{
+			name:                    "model fits within the MIG slice",
+			presetName:              "test-validation",
+			profile:                 "2g.24gb",
+			totalSafeTensorFileSize: "8Gi",
+			expectErrs:              false,
+		},
+		{
+			name:       "model exceeds the MIG slice",
+			presetName: "test-large-model", // 131Gi weights
+			profile:    "1g.10gb",
+			expectErrs: true,
+			errContent: "exceeds the 1g.10gb MIG slice",
+		},
+		{
+			name:       "bypass annotation allows an oversized model",
+			presetName: "test-large-model",
+			profile:    "1g.10gb",
+			bypass:     true,
+			expectErrs: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			totalSafeTensorFileSize = tc.totalSafeTensorFileSize
+			gpuCountRequirement = "1"
+
+			resourceSpec := &ResourceSpec{
+				InstanceType: "", // BYO
+				Count:        pointerToInt(1),
+				Partition:    &PartitionSpec{Mode: PartitionModeMIG, Profile: tc.profile},
+			}
+			spec := &InferenceSpec{
+				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName(tc.presetName)}},
+			}
+
+			errs := resourceSpec.validateCreateWithInference(context.TODO(), spec, tc.bypass, model.RuntimeNameVLLM, "")
+			hasErrs := errs != nil
+			if hasErrs != tc.expectErrs {
+				t.Errorf("validateCreateWithInference() errors = %v, expectErrs %v", errs, tc.expectErrs)
+			}
+			if hasErrs && tc.errContent != "" && !strings.Contains(errs.Error(), tc.errContent) {
+				t.Errorf("validateCreateWithInference() error = %v, expected to contain %q", errs, tc.errContent)
+			}
+		})
+	}
+}
+
 func TestResourceSpecValidateUpdate(t *testing.T) {
 
 	tests := []struct {

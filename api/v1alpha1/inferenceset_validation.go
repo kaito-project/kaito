@@ -20,15 +20,9 @@ import (
 
 	"github.com/robfig/cron/v3"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
-	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
-
-	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/mig"
 )
 
 func (is *InferenceSet) SupportedVerbs() []admissionregistrationv1.OperationType {
@@ -63,47 +57,11 @@ func (is *InferenceSet) validateCreate() (errs *apis.FieldError) {
 		errs = errs.Also(apis.ErrInvalidValue(*is.Spec.Replicas, "replicas", "must be non-negative"))
 	}
 	errs = errs.Also(validateMaintenanceWindow(is.Spec.AutoUpgrade))
-	errs = errs.Also(validateInferenceSetPartition(&is.Spec.Template.Resource).ViaField("template", "resource"))
 	return errs
 }
 
-func (is *InferenceSet) validateUpdate(old *InferenceSet) (errs *apis.FieldError) {
+func (is *InferenceSet) validateUpdate(_ *InferenceSet) (errs *apis.FieldError) {
 	errs = errs.Also(validateMaintenanceWindow(is.Spec.AutoUpgrade))
-	// Partition config is immutable once set.
-	if !apiequality.Semantic.DeepEqual(is.Spec.Template.Resource.Partition, old.Spec.Template.Resource.Partition) {
-		errs = errs.Also(apis.ErrGeneric("field is immutable", "template", "resource", "partition"))
-	}
-	errs = errs.Also(validateInferenceSetPartition(&is.Spec.Template.Resource).ViaField("template", "resource"))
-	return errs
-}
-
-// validateInferenceSetPartition performs admission-time validation of the GPU
-// partitioning portion of an InferenceSet template. Deep model-fit and
-// tensor-parallelism checks are delegated to the Workspace webhook when each child
-// Workspace is created.
-func validateInferenceSetPartition(r *InferenceSetResourceSpec) (errs *apis.FieldError) {
-	if r == nil || r.Partition == nil {
-		return errs
-	}
-	if r.Partition.Mode != kaitov1beta1.PartitionModeMIG {
-		errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("unsupported partition mode %q, only \"mig\" is supported", r.Partition.Mode), "partition", "mode"))
-		return errs
-	}
-	if !featuregates.FeatureGates[consts.FeatureFlagEnableMIG] {
-		errs = errs.Also(apis.ErrGeneric("MIG support is not enabled, set feature gate enableMIG=true", "partition"))
-		return errs
-	}
-	if err := mig.ValidateMIGProfile(r.Partition.Profile); err != nil {
-		errs = errs.Also(apis.ErrInvalidValue(err.Error(), "partition", "profile"))
-		return errs
-	}
-	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		errs = errs.Also(apis.ErrGeneric("MIG is only supported with BYO nodes (disableNodeAutoProvisioning=true)", "partition"))
-		return errs
-	}
-	if r.InstanceType != "" {
-		errs = errs.Also(apis.ErrInvalidValue("instanceType must be empty when partition is set (BYO scenario)", "instanceType"))
-	}
 	return errs
 }
 

@@ -21,10 +21,6 @@ import (
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/pkg/apis"
-
-	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestInferenceSet_SupportedVerbs(t *testing.T) {
@@ -304,119 +300,6 @@ func TestInferenceSet_validateUpdate(t *testing.T) {
 	old := &InferenceSet{}
 	err := is.validateUpdate(old)
 	assert.Nil(t, err)
-}
-
-// setMIGGates enables/disables the MIG and BYO feature gates for the duration of
-// a test and restores the previous values on cleanup.
-func setMIGGates(t *testing.T, enableMIG, napDisabled bool) {
-	t.Helper()
-	origMIG := featuregates.FeatureGates[consts.FeatureFlagEnableMIG]
-	origNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-	featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = enableMIG
-	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = napDisabled
-	t.Cleanup(func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = origMIG
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = origNAP
-	})
-}
-
-func TestValidateInferenceSetMIG(t *testing.T) {
-	tests := []struct {
-		name       string
-		enableMIG  bool
-		napDisable bool
-		resource   InferenceSetResourceSpec
-		errContent string
-	}{
-		{
-			name:     "nil partition passes",
-			resource: InferenceSetResourceSpec{},
-		},
-		{
-			name:       "valid MIG",
-			enableMIG:  true,
-			napDisable: true,
-			resource:   InferenceSetResourceSpec{Partition: &kaitov1beta1.PartitionSpec{Mode: kaitov1beta1.PartitionModeMIG, Profile: "1g.10gb"}},
-		},
-		{
-			name:       "unsupported mode",
-			enableMIG:  true,
-			napDisable: true,
-			resource:   InferenceSetResourceSpec{Partition: &kaitov1beta1.PartitionSpec{Mode: "bogus", Profile: "1g.10gb"}},
-			errContent: "unsupported partition mode",
-		},
-		{
-			name:       "feature gate disabled",
-			napDisable: true,
-			resource:   InferenceSetResourceSpec{Partition: &kaitov1beta1.PartitionSpec{Mode: kaitov1beta1.PartitionModeMIG, Profile: "1g.10gb"}},
-			errContent: "MIG support is not enabled",
-		},
-		{
-			name:       "invalid profile",
-			enableMIG:  true,
-			napDisable: true,
-			resource:   InferenceSetResourceSpec{Partition: &kaitov1beta1.PartitionSpec{Mode: kaitov1beta1.PartitionModeMIG, Profile: "bogus"}},
-			errContent: "invalid MIG profile",
-		},
-		{
-			name:       "NAP not disabled",
-			enableMIG:  true,
-			resource:   InferenceSetResourceSpec{Partition: &kaitov1beta1.PartitionSpec{Mode: kaitov1beta1.PartitionModeMIG, Profile: "1g.10gb"}},
-			errContent: "only supported with BYO nodes",
-		},
-		{
-			name:       "instanceType set with partition",
-			enableMIG:  true,
-			napDisable: true,
-			resource:   InferenceSetResourceSpec{InstanceType: "Standard_NC24ads_A100_v4", Partition: &kaitov1beta1.PartitionSpec{Mode: kaitov1beta1.PartitionModeMIG, Profile: "1g.10gb"}},
-			errContent: "instanceType must be empty",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			setMIGGates(t, tt.enableMIG, tt.napDisable)
-			errs := validateInferenceSetPartition(&tt.resource)
-			if tt.errContent == "" {
-				assert.Nil(t, errs)
-			} else {
-				assert.NotNil(t, errs)
-				assert.Contains(t, errs.Error(), tt.errContent)
-			}
-		})
-	}
-}
-
-func TestInferenceSetMIGImmutable(t *testing.T) {
-	setMIGGates(t, true, true)
-	makeIS := func(profile string) *InferenceSet {
-		var p *kaitov1beta1.PartitionSpec
-		if profile != "" {
-			p = &kaitov1beta1.PartitionSpec{Mode: kaitov1beta1.PartitionModeMIG, Profile: profile}
-		}
-		return &InferenceSet{
-			ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
-			Spec: InferenceSetSpec{
-				Template: InferenceSetTemplate{
-					Resource: InferenceSetResourceSpec{Partition: p},
-				},
-			},
-		}
-	}
-
-	// Unchanged partition is allowed.
-	errs := makeIS("1g.10gb").validateUpdate(makeIS("1g.10gb"))
-	assert.Nil(t, errs)
-
-	// Changing the profile is rejected.
-	errs = makeIS("2g.20gb").validateUpdate(makeIS("1g.10gb"))
-	assert.NotNil(t, errs)
-	assert.Contains(t, errs.Error(), "field is immutable")
-
-	// Adding a partition to a non-partitioned set is rejected.
-	errs = makeIS("1g.10gb").validateUpdate(makeIS(""))
-	assert.NotNil(t, errs)
-	assert.Contains(t, errs.Error(), "field is immutable")
 }
 
 func TestValidateMaintenanceWindow(t *testing.T) {

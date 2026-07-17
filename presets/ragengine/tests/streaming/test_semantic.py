@@ -19,7 +19,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 from ragengine.streaming.openai import (
     OpenAIChatChunkParseStatus,
     ParsedOpenAIChoice,
-    ParsedOpenAIChoiceKind,
     build_openai_chat_delta_sse_chunk,
     build_openai_chat_finish_reason_sse_chunk,
     build_sse_done_chunk,
@@ -40,7 +39,6 @@ def test_sse_framer_handles_fragmented_event():
     assert result.parsed_choices == (
         ParsedOpenAIChoice(
             choice_index=0,
-            kind=ParsedOpenAIChoiceKind.CONTENT,
             content="hello",
         ),
     )
@@ -58,14 +56,12 @@ def test_sse_framer_handles_multiple_events_in_one_chunk():
         (
             ParsedOpenAIChoice(
                 choice_index=0,
-                kind=ParsedOpenAIChoiceKind.CONTENT,
                 content="first",
             ),
         ),
         (
             ParsedOpenAIChoice(
                 choice_index=0,
-                kind=ParsedOpenAIChoiceKind.CONTENT,
                 content="second",
             ),
         ),
@@ -91,7 +87,6 @@ def test_sse_framer_handles_crlf_separator():
     assert result.parsed_choices == (
         ParsedOpenAIChoice(
             choice_index=0,
-            kind=ParsedOpenAIChoiceKind.CONTENT,
             content="crlf",
         ),
     )
@@ -102,8 +97,9 @@ def test_openai_parser_returns_explicit_status_for_malformed_json():
 
     result = parse_openai_chat_sse_event(events[0])
 
-    assert result.status == OpenAIChatChunkParseStatus.MALFORMED_JSON
-    assert result.error
+    assert result.status == OpenAIChatChunkParseStatus.INVALID
+    assert result.error is not None
+    assert result.error.startswith("Malformed JSON: ")
 
 
 def test_openai_parser_rejects_non_object_payload():
@@ -111,7 +107,7 @@ def test_openai_parser_rejects_non_object_payload():
 
     result = parse_openai_chat_sse_event(events[0])
 
-    assert result.status == OpenAIChatChunkParseStatus.INVALID_PAYLOAD
+    assert result.status == OpenAIChatChunkParseStatus.INVALID
     assert result.error == "OpenAI chat stream data must be a JSON object."
 
 
@@ -120,7 +116,7 @@ def test_openai_parser_rejects_non_list_choices():
 
     result = parse_openai_chat_sse_event(events[0])
 
-    assert result.status == OpenAIChatChunkParseStatus.INVALID_PAYLOAD
+    assert result.status == OpenAIChatChunkParseStatus.INVALID
     assert result.error == "OpenAI chat stream choices must be a list."
 
 
@@ -133,12 +129,23 @@ def test_openai_parser_allows_empty_choices():
     assert result.parsed_choices == ()
 
 
+def test_openai_parser_allows_empty_choices_with_prompt_filter_results():
+    events = SSEFramer().feed(
+        'data: {"choices":[],"prompt_filter_results":[{"prompt_index":0}]}\n\n'
+    )
+
+    result = parse_openai_chat_sse_event(events[0])
+
+    assert result.status == OpenAIChatChunkParseStatus.PARSED
+    assert result.parsed_choices == ()
+
+
 def test_openai_parser_rejects_non_object_choice():
     events = SSEFramer().feed('data: {"choices":["not-an-object"]}\n\n')
 
     result = parse_openai_chat_sse_event(events[0])
 
-    assert result.status == OpenAIChatChunkParseStatus.INVALID_PAYLOAD
+    assert result.status == OpenAIChatChunkParseStatus.INVALID
     assert result.error == "OpenAI chat stream choice must be a JSON object."
 
 
@@ -147,7 +154,18 @@ def test_openai_parser_rejects_missing_choice_index():
 
     result = parse_openai_chat_sse_event(events[0])
 
-    assert result.status == OpenAIChatChunkParseStatus.INVALID_PAYLOAD
+    assert result.status == OpenAIChatChunkParseStatus.INVALID
+    assert result.error == "OpenAI chat stream choice index must be an integer."
+
+
+def test_openai_parser_rejects_boolean_choice_index():
+    events = SSEFramer().feed(
+        'data: {"choices":[{"index":true,"delta":{"content":"text"}}]}\n\n'
+    )
+
+    result = parse_openai_chat_sse_event(events[0])
+
+    assert result.status == OpenAIChatChunkParseStatus.INVALID
     assert result.error == "OpenAI chat stream choice index must be an integer."
 
 
@@ -162,12 +180,24 @@ def test_openai_parser_parses_content_mixed_with_passthrough_fields():
     assert result.parsed_choices == (
         ParsedOpenAIChoice(
             choice_index=0,
-            kind=ParsedOpenAIChoiceKind.CONTENT,
             content="text",
         ),
+    )
+
+
+def test_openai_parser_ignores_null_non_content_delta_fields():
+    events = SSEFramer().feed(
+        'data: {"choices":[{"index":0,"delta":{"content":"text",'
+        '"reasoning_content":null,"refusal":null}}]}\n\n'
+    )
+
+    result = parse_openai_chat_sse_event(events[0])
+
+    assert result.status == OpenAIChatChunkParseStatus.PARSED
+    assert result.parsed_choices == (
         ParsedOpenAIChoice(
             choice_index=0,
-            kind=ParsedOpenAIChoiceKind.PASSTHROUGH,
+            content="text",
         ),
     )
 
@@ -177,7 +207,7 @@ def test_openai_parser_rejects_non_object_delta():
 
     result = parse_openai_chat_sse_event(events[0])
 
-    assert result.status == OpenAIChatChunkParseStatus.INVALID_PAYLOAD
+    assert result.status == OpenAIChatChunkParseStatus.INVALID
     assert result.error == "OpenAI chat stream choice delta must be a JSON object."
 
 
@@ -188,7 +218,7 @@ def test_openai_parser_rejects_non_string_content():
 
     result = parse_openai_chat_sse_event(events[0])
 
-    assert result.status == OpenAIChatChunkParseStatus.INVALID_PAYLOAD
+    assert result.status == OpenAIChatChunkParseStatus.INVALID
     assert result.error == "OpenAI chat stream delta content must be a string or null."
 
 
@@ -199,7 +229,7 @@ def test_openai_parser_rejects_invalid_finish_reason_type():
 
     result = parse_openai_chat_sse_event(events[0])
 
-    assert result.status == OpenAIChatChunkParseStatus.INVALID_PAYLOAD
+    assert result.status == OpenAIChatChunkParseStatus.INVALID
     assert result.error == (
         "OpenAI chat stream finish_reason must be a string or null."
     )
@@ -215,11 +245,6 @@ def test_openai_parser_tolerates_chunk_without_delta_content():
     assert result.parsed_choices == (
         ParsedOpenAIChoice(
             choice_index=0,
-            kind=ParsedOpenAIChoiceKind.PASSTHROUGH,
-        ),
-        ParsedOpenAIChoice(
-            choice_index=0,
-            kind=ParsedOpenAIChoiceKind.FINISH_REASON,
             finish_reason="stop",
         ),
     )
@@ -233,10 +258,21 @@ def test_openai_parser_classifies_tool_call_delta_as_passthrough():
     result = parse_openai_chat_sse_event(events[0])
 
     assert result.status == OpenAIChatChunkParseStatus.PARSED
+    assert result.parsed_choices == ()
+
+
+def test_openai_parser_classifies_tool_call_finish_reason():
+    events = SSEFramer().feed(
+        'data: {"choices":[{"index":0,"delta":{},"finish_reason":"tool_calls"}]}\n\n'
+    )
+
+    result = parse_openai_chat_sse_event(events[0])
+
+    assert result.status == OpenAIChatChunkParseStatus.PARSED
     assert result.parsed_choices == (
         ParsedOpenAIChoice(
-            choice_index=2,
-            kind=ParsedOpenAIChoiceKind.PASSTHROUGH,
+            choice_index=0,
+            finish_reason="tool_calls",
         ),
     )
 
@@ -252,12 +288,10 @@ def test_openai_parser_preserves_multi_choice_content_indexes():
     assert result.parsed_choices == (
         ParsedOpenAIChoice(
             choice_index=0,
-            kind=ParsedOpenAIChoiceKind.CONTENT,
             content="zero",
         ),
         ParsedOpenAIChoice(
             choice_index=1,
-            kind=ParsedOpenAIChoiceKind.CONTENT,
             content="one",
         ),
     )
@@ -271,7 +305,6 @@ def test_openai_builder_builds_delta_content_chunk():
     assert result.parsed_choices == (
         ParsedOpenAIChoice(
             choice_index=0,
-            kind=ParsedOpenAIChoiceKind.CONTENT,
             content="safe text",
         ),
     )
@@ -285,7 +318,6 @@ def test_openai_builder_builds_content_filter_finish_chunk():
     assert result.parsed_choices == (
         ParsedOpenAIChoice(
             choice_index=0,
-            kind=ParsedOpenAIChoiceKind.FINISH_REASON,
             finish_reason="content_filter",
         ),
     )

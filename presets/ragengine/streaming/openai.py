@@ -22,22 +22,13 @@ from ragengine.streaming.sse import SSEEvent
 class OpenAIChatChunkParseStatus(StrEnum):
     PARSED = "parsed"
     DONE = "done"
-    MALFORMED_JSON = "malformed_json"
-    INVALID_PAYLOAD = "invalid_payload"
+    INVALID = "invalid"
     NO_DATA = "no_data"
-
-
-class ParsedOpenAIChoiceKind(StrEnum):
-    CONTENT = "content"
-    FINISH_REASON = "finish_reason"
-    # Non-content delta fields are forwarded without scanning.
-    PASSTHROUGH = "passthrough"
 
 
 @dataclass(frozen=True)
 class ParsedOpenAIChoice:
     choice_index: int
-    kind: ParsedOpenAIChoiceKind
     content: str | None = None
     finish_reason: str | None = None
 
@@ -65,89 +56,46 @@ def parse_openai_chat_sse_event(event: SSEEvent) -> OpenAIChatChunkParseResult:
     try:
         payload = json.loads(data)
     except json.JSONDecodeError as json_error:
-        return OpenAIChatChunkParseResult(
-            status=OpenAIChatChunkParseStatus.MALFORMED_JSON,
-            error=str(json_error),
-        )
+        return _invalid(f"Malformed JSON: {json_error}")
 
     if not isinstance(payload, dict):
-        return OpenAIChatChunkParseResult(
-            status=OpenAIChatChunkParseStatus.INVALID_PAYLOAD,
-            error="OpenAI chat stream data must be a JSON object.",
-        )
+        return _invalid("OpenAI chat stream data must be a JSON object.")
 
     parsed_choices: list[ParsedOpenAIChoice] = []
     choices = payload.get("choices", [])
     if not isinstance(choices, list):
-        return OpenAIChatChunkParseResult(
-            status=OpenAIChatChunkParseStatus.INVALID_PAYLOAD,
-            payload=payload,
-            error="OpenAI chat stream choices must be a list.",
-        )
+        return _invalid("OpenAI chat stream choices must be a list.")
 
     for choice in choices:
         if not isinstance(choice, dict):
-            return OpenAIChatChunkParseResult(
-                status=OpenAIChatChunkParseStatus.INVALID_PAYLOAD,
-                payload=payload,
-                error="OpenAI chat stream choice must be a JSON object.",
-            )
+            return _invalid("OpenAI chat stream choice must be a JSON object.")
 
-        choice_index = _parse_choice_index(choice)
-        if choice_index is None:
-            return OpenAIChatChunkParseResult(
-                status=OpenAIChatChunkParseStatus.INVALID_PAYLOAD,
-                payload=payload,
-                error="OpenAI chat stream choice index must be an integer.",
-            )
+        choice_index = choice.get("index")
+        if isinstance(choice_index, bool) or not isinstance(choice_index, int):
+            return _invalid("OpenAI chat stream choice index must be an integer.")
 
-        delta = choice.get("delta", {})
+        delta = choice.get("delta")
         if delta is None:
             delta = {}
         if not isinstance(delta, dict):
-            return OpenAIChatChunkParseResult(
-                status=OpenAIChatChunkParseStatus.INVALID_PAYLOAD,
-                payload=payload,
-                error="OpenAI chat stream choice delta must be a JSON object.",
-            )
+            return _invalid("OpenAI chat stream choice delta must be a JSON object.")
 
         content = delta.get("content")
-        has_non_content = any(key != "content" for key in delta)
-        if "content" in delta and content is not None and not isinstance(content, str):
-            return OpenAIChatChunkParseResult(
-                status=OpenAIChatChunkParseStatus.INVALID_PAYLOAD,
-                payload=payload,
-                error="OpenAI chat stream delta content must be a string or null.",
-            )
-        if isinstance(content, str):
-            parsed_choices.append(
-                ParsedOpenAIChoice(
-                    choice_index=choice_index,
-                    kind=ParsedOpenAIChoiceKind.CONTENT,
-                    content=content,
-                )
-            )
-
-        if has_non_content:
-            parsed_choices.append(
-                ParsedOpenAIChoice(
-                    choice_index=choice_index,
-                    kind=ParsedOpenAIChoiceKind.PASSTHROUGH,
-                )
+        if content is not None and not isinstance(content, str):
+            return _invalid(
+                "OpenAI chat stream delta content must be a string or null."
             )
 
         finish_reason = choice.get("finish_reason")
         if finish_reason is not None and not isinstance(finish_reason, str):
-            return OpenAIChatChunkParseResult(
-                status=OpenAIChatChunkParseStatus.INVALID_PAYLOAD,
-                payload=payload,
-                error="OpenAI chat stream finish_reason must be a string or null.",
+            return _invalid(
+                "OpenAI chat stream finish_reason must be a string or null."
             )
-        if isinstance(finish_reason, str):
+        if content or finish_reason is not None:
             parsed_choices.append(
                 ParsedOpenAIChoice(
                     choice_index=choice_index,
-                    kind=ParsedOpenAIChoiceKind.FINISH_REASON,
+                    content=content or None,
                     finish_reason=finish_reason,
                 )
             )
@@ -159,11 +107,11 @@ def parse_openai_chat_sse_event(event: SSEEvent) -> OpenAIChatChunkParseResult:
     )
 
 
-def _parse_choice_index(choice: dict[str, Any]) -> int | None:
-    value = choice.get("index")
-    if isinstance(value, int):
-        return value
-    return None
+def _invalid(error: str) -> OpenAIChatChunkParseResult:
+    return OpenAIChatChunkParseResult(
+        status=OpenAIChatChunkParseStatus.INVALID,
+        error=error,
+    )
 
 
 def build_openai_chat_delta_sse_chunk(

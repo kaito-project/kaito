@@ -73,6 +73,21 @@ def test_holdback_tail_is_retained_and_not_emitted():
     assert scanner.scanned_texts == ["abcdef", "def"]
 
 
+def test_emitted_chunks_are_unmodified_contiguous_prefixes():
+    window = StreamingBufferWindow(AllowScanner(), holdback_len=2)
+    source = "abcdefghij"
+
+    first_result = window.feed(source[:4])
+    second_result = window.feed(source[4:8])
+    third_result = window.feed(source[8:])
+    flush_result = window.flush()
+
+    emitted = first_result.chunks + second_result.chunks + third_result.chunks
+    emitted += flush_result.chunks
+    assert emitted == ("ab", "cdef", "gh", "ij")
+    assert "".join(emitted) == source
+
+
 def test_blocked_substring_crossing_holdback_boundary_is_detected():
     window = StreamingBufferWindow(BadSubstringScanner(), holdback_len=1)
 

@@ -44,6 +44,7 @@ class OpenAIChatChunkParseResult:
     error: str | None = None
 
 
+# Parses and validates an OpenAI SSE event, extracting content and finish reasons for each choice.
 def parse_openai_chat_sse_event(event: SSEEvent) -> OpenAIChatChunkParseResult:
     if event.data is None:
         return OpenAIChatChunkParseResult(

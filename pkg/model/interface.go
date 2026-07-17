@@ -234,8 +234,6 @@ type PresetParam struct {
 type RuntimeParam struct {
 	Transformers HuggingfaceTransformersParam
 	VLLM         VLLMParam
-	// Disable the tensor parallelism
-	DisableTensorParallelism bool
 }
 
 type HuggingfaceTransformersParam struct {
@@ -498,10 +496,6 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 //  3. Multi-node (PP + TP): If the model exceeds a single node's capacity, we use
 //     pipeline parallelism across nodes, with tensor parallelism within each node.
 func (p *PresetParam) configureParallelism(rc RuntimeContext) {
-	if p.DisableTensorParallelism {
-		return
-	}
-
 	multiNode := rc.DistributedInference && rc.NumNodes > 1
 
 	// Tier 1: Model fits on a single GPU → Data Parallelism.

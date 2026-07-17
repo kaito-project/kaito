@@ -149,16 +149,6 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 		kvCache := float64(maxModelLen*inferParams.BytesPerToken) / float64(gpuConfig.GPUCount)
 		fixedReserve := baseOverhead + kvCache
 
-		// Tensor-parallelism-disabled models place the full model on each GPU, so
-		// the weight-scaled overhead uses the full model size.
-		if inferParams.DisableTensorParallelism {
-			overhead := fixedReserve + overheadWeightFactor*modelSize
-			if modelSize+overhead > availGPUMem {
-				return 0, fmt.Errorf("GPU memory %.0f bytes is too small for model, needs %.0f bytes (model: %.0f + overhead: %.0f)",
-					gpuMemPerGPU, modelSize+overhead, modelSize, overhead)
-			}
-		}
-
 		if availGPUMem <= fixedReserve {
 			return 0, fmt.Errorf("GPU memory %.0f bytes is too small, needs at least %.1f GB overhead (base: %.1fGB + KV Cache: %.1f GB)",
 				gpuMemPerGPU, fixedReserve/float64(consts.GiBToBytes), baseOverheadGiB, kvCache/float64(consts.GiBToBytes))
@@ -172,10 +162,6 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 
 		klog.Infof("modelSize(%.0f), gpuMemPerGPU(%.0f), availGPUMem(%.0f), fixedReserve(%.0f), availMemPerGPU(%.0f), minGPUs(%d) => nodeCountPerReplica(%d) for workspace %s",
 			modelSize, gpuMemPerGPU, availGPUMem, fixedReserve, availMemPerGPU, minGPUs, nodeCountPerReplica, req.WorkspaceName)
-
-		if nodeCountPerReplica > 1 && inferParams.DisableTensorParallelism {
-			return 0, fmt.Errorf("models with disabled tensor parallelism cannot be distributed across more than 1 GPU node, calculated nodes: %d", nodeCountPerReplica)
-		}
 
 		if nodeCountPerReplica > 1 && !model.SupportDistributedInference() {
 			return 0, fmt.Errorf("models with disabled support distributed inference cannot be distributed across more than 1 GPU node, please use a node with larger GPU memory, calculated nodes: %d", nodeCountPerReplica)

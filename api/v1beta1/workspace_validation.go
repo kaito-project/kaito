@@ -453,7 +453,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 
 	// Partitioned (e.g. MIG) workloads use a different resource type and skip the standard GPU checks below.
 	if r.Partition != nil {
-		return errs.Also(r.validatePartition(ctx, presetName, secretName, wsNamespace, napDisabled, bypassResourceChecks))
+		return errs.Also(r.validatePartition(napDisabled))
 	}
 
 	if napDisabled {
@@ -592,10 +592,10 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 // workload and dispatches on the partition mode. Callers should return early after
 // invoking this helper because partitioned workloads use a different resource type
 // and skip the standard GPU checks.
-func (r *ResourceSpec) validatePartition(ctx context.Context, presetName, secretName, wsNamespace string, napDisabled, bypassResourceChecks bool) (errs *apis.FieldError) {
+func (r *ResourceSpec) validatePartition(napDisabled bool) (errs *apis.FieldError) {
 	switch r.Partition.Mode {
 	case PartitionModeMIG:
-		return r.validateMIGPartition(ctx, presetName, secretName, wsNamespace, napDisabled, bypassResourceChecks)
+		return r.validateMIGPartition(napDisabled)
 	default:
 		return apis.ErrInvalidValue(fmt.Sprintf("unsupported partition mode %q, only \"mig\" is supported", r.Partition.Mode), "partition.mode")
 	}
@@ -603,8 +603,9 @@ func (r *ResourceSpec) validatePartition(ctx context.Context, presetName, secret
 
 // validateMIGPartition validates a MIG partition. MIG is only supported behind the
 // enableMIG feature gate on BYO nodes, and the requested profile must be a known
-// MIG profile.
-func (r *ResourceSpec) validateMIGPartition(ctx context.Context, presetName, secretName, wsNamespace string, napDisabled, bypassResourceChecks bool) (errs *apis.FieldError) {
+// MIG profile. Model-to-partition fit is left to the node estimator, which sizes
+// GPUs from model memory.
+func (r *ResourceSpec) validateMIGPartition(napDisabled bool) (errs *apis.FieldError) {
 	if !featuregates.FeatureGates[consts.FeatureFlagEnableMIG] {
 		return apis.ErrGeneric("MIG support is not enabled, set feature gate enableMIG=true", "partition")
 	}
@@ -613,32 +614,6 @@ func (r *ResourceSpec) validateMIGPartition(ctx context.Context, presetName, sec
 	}
 	if !napDisabled {
 		return apis.ErrGeneric("MIG is only supported with BYO nodes (disableNodeAutoProvisioning=true)", "partition")
-	}
-
-	if presetName == "" {
-		return errs
-	}
-	modelPreset, err := models.GetModelByName(ctx, presetName, secretName, wsNamespace, k8sclient.Client)
-	if err != nil {
-		return apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset")
-	}
-	params := modelPreset.GetInferenceParameters()
-	if params == nil {
-		return errs
-	}
-
-	// Reject only models that explicitly declare a multi-GPU (tensor-parallel)
-	// requirement, which a single MIG partition can never provide. This is a
-	// hard structural incompatibility (not a sizing estimate), so it belongs in
-	// the webhook. An empty GPUCountRequirement means the estimator sizes GPUs
-	// from model memory, so it is treated as single-device.
-	if !params.DisableTensorParallelism && params.GPUCountRequirement != "" && params.GPUCountRequirement != "1" {
-		if !bypassResourceChecks {
-			errs = errs.Also(apis.ErrInvalidValue(
-				fmt.Sprintf("Model %s requires %s GPUs with tensor parallelism, which is not supported on MIG partitions",
-					presetName, params.GPUCountRequirement),
-				"partition"))
-		}
 	}
 
 	return errs

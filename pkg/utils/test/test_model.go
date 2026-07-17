@@ -83,7 +83,6 @@ func (*testDistributedModel) GetInferenceParameters() *model.PresetParam {
 		DiskStorageRequirement:  "100Gi",
 		TotalSafeTensorFileSize: "64Gi",
 		RuntimeParam: model.RuntimeParam{
-			DisableTensorParallelism: false,
 			VLLM: model.VLLMParam{
 				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
 				ModelRunParams: emptyParams,
@@ -115,7 +114,6 @@ func (*testNoTensorParallelModel) GetInferenceParameters() *model.PresetParam {
 		DiskStorageRequirement:  "100Gi",
 		TotalSafeTensorFileSize: "8Gi",
 		RuntimeParam: model.RuntimeParam{
-			DisableTensorParallelism: true,
 			VLLM: model.VLLMParam{
 				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
 				ModelRunParams: emptyParams,
@@ -216,7 +214,6 @@ func (*testNoLoraSupportModel) GetInferenceParameters() *model.PresetParam {
 		TotalSafeTensorFileSize: "8Gi",
 		DiskStorageRequirement:  "100Gi",
 		RuntimeParam: model.RuntimeParam{
-			DisableTensorParallelism: true,
 			VLLM: model.VLLMParam{
 				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
 				ModelRunParams: emptyParams,
@@ -249,7 +246,6 @@ func (*testFalcon7BModel) GetInferenceParameters() *model.PresetParam {
 		TotalSafeTensorFileSize: "13.44Gi",
 		BytesPerToken:           8192,
 		RuntimeParam: model.RuntimeParam{
-			DisableTensorParallelism: true, // falcon-7b has 71 attention heads (prime number)
 			VLLM: model.VLLMParam{
 				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
 				ModelRunParams: emptyParams,
@@ -283,7 +279,6 @@ func (*testQwen25Coder32BModel) GetInferenceParameters() *model.PresetParam {
 		TotalSafeTensorFileSize: "62.5Gi",
 		BytesPerToken:           163840,
 		RuntimeParam: model.RuntimeParam{
-			DisableTensorParallelism: false, // Supports tensor parallelism
 			VLLM: model.VLLMParam{
 				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
 				ModelRunParams: emptyParams,

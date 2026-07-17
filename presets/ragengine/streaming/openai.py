@@ -22,16 +22,22 @@ from ragengine.streaming.sse import SSEEvent
 class OpenAIChatChunkParseStatus(StrEnum):
     PARSED = "parsed"
     DONE = "done"
-    MALFORMED_JSON = "malformed_json"
+    INVALID = "invalid"
     NO_DATA = "no_data"
+
+
+@dataclass(frozen=True)
+class ParsedOpenAIChoice:
+    choice_index: int
+    content: str | None = None
+    finish_reason: str | None = None
 
 
 @dataclass(frozen=True)
 class OpenAIChatChunkParseResult:
     status: OpenAIChatChunkParseStatus
     payload: dict[str, Any] | None = None
-    contents: tuple[str, ...] = ()
-    finish_reasons: tuple[str, ...] = ()
+    parsed_choices: tuple[ParsedOpenAIChoice, ...] = ()
     error: str | None = None
 
 
@@ -50,40 +56,61 @@ def parse_openai_chat_sse_event(event: SSEEvent) -> OpenAIChatChunkParseResult:
     try:
         payload = json.loads(data)
     except json.JSONDecodeError as json_error:
-        return OpenAIChatChunkParseResult(
-            status=OpenAIChatChunkParseStatus.MALFORMED_JSON,
-            error=str(json_error),
-        )
+        return _invalid(f"Malformed JSON: {json_error}")
 
     if not isinstance(payload, dict):
-        return OpenAIChatChunkParseResult(
-            status=OpenAIChatChunkParseStatus.MALFORMED_JSON,
-            error="OpenAI chat stream data must be a JSON object.",
-        )
+        return _invalid("OpenAI chat stream data must be a JSON object.")
 
-    contents: list[str] = []
-    finish_reasons: list[str] = []
+    parsed_choices: list[ParsedOpenAIChoice] = []
     choices = payload.get("choices", [])
-    if isinstance(choices, list):
-        for choice in choices:
-            if not isinstance(choice, dict):
-                continue
+    if not isinstance(choices, list):
+        return _invalid("OpenAI chat stream choices must be a list.")
 
-            delta = choice.get("delta", {})
-            if isinstance(delta, dict):
-                content = delta.get("content")
-                if isinstance(content, str):
-                    contents.append(content)
+    for choice in choices:
+        if not isinstance(choice, dict):
+            return _invalid("OpenAI chat stream choice must be a JSON object.")
 
-            finish_reason = choice.get("finish_reason")
-            if isinstance(finish_reason, str):
-                finish_reasons.append(finish_reason)
+        choice_index = choice.get("index")
+        if isinstance(choice_index, bool) or not isinstance(choice_index, int):
+            return _invalid("OpenAI chat stream choice index must be an integer.")
+
+        delta = choice.get("delta")
+        if delta is None:
+            delta = {}
+        if not isinstance(delta, dict):
+            return _invalid("OpenAI chat stream choice delta must be a JSON object.")
+
+        content = delta.get("content")
+        if content is not None and not isinstance(content, str):
+            return _invalid(
+                "OpenAI chat stream delta content must be a string or null."
+            )
+
+        finish_reason = choice.get("finish_reason")
+        if finish_reason is not None and not isinstance(finish_reason, str):
+            return _invalid(
+                "OpenAI chat stream finish_reason must be a string or null."
+            )
+        if content or finish_reason is not None:
+            parsed_choices.append(
+                ParsedOpenAIChoice(
+                    choice_index=choice_index,
+                    content=content or None,
+                    finish_reason=finish_reason,
+                )
+            )
 
     return OpenAIChatChunkParseResult(
         status=OpenAIChatChunkParseStatus.PARSED,
         payload=payload,
-        contents=tuple(contents),
-        finish_reasons=tuple(finish_reasons),
+        parsed_choices=tuple(parsed_choices),
+    )
+
+
+def _invalid(error: str) -> OpenAIChatChunkParseResult:
+    return OpenAIChatChunkParseResult(
+        status=OpenAIChatChunkParseStatus.INVALID,
+        error=error,
     )
 
 
@@ -104,7 +131,7 @@ def build_openai_chat_delta_sse_chunk(
     return build_sse_data_chunk(payload)
 
 
-def build_openai_chat_finish_sse_chunk(
+def build_openai_chat_finish_reason_sse_chunk(
     *,
     finish_reason: str = "content_filter",
     choice_index: int = 0,

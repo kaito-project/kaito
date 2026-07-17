@@ -11,59 +11,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 from collections.abc import AsyncIterator
-from dataclasses import dataclass
 from typing import Any
 
 from fastapi import HTTPException
 from llm_guard import scan_output
 
 from ragengine.guardrails import OutputGuardrails
-from ragengine.streaming.buffer_window import StreamingBufferWindow, WindowScanResult
+from ragengine.streaming.buffer_window import WindowScanResult
 from ragengine.streaming.openai import (
     OpenAIChatChunkParseStatus,
     build_openai_chat_delta_sse_chunk,
-    build_openai_chat_finish_sse_chunk,
+    build_openai_chat_finish_reason_sse_chunk,
     build_sse_done_chunk,
     parse_openai_chat_sse_event,
 )
+from ragengine.streaming.ordered_sse_guardrail_buffer import (
+    OrderedGuardrailBuffer,
+    ProcessResult,
+    ProcessStatus,
+)
 from ragengine.streaming.sse import iter_sse_events
 
-STREAMING_GUARDRAILS_HOLDBACK_LEN = 256
 STREAMING_GUARDRAILS_SUPPORTED_SCANNERS = frozenset({"ban_substrings"})
 
-
-@dataclass(frozen=True)
-class StreamingGuardrailsSupport:
-    supported: bool
-    detail: str | None = None
-
-
-def validate_streaming_guardrails(
-    guardrails: OutputGuardrails,
-) -> StreamingGuardrailsSupport:
-    for scanner_config in guardrails.scanner_configs:
-        scanner_action = scanner_config.action_on_hit or guardrails.action_on_hit
-        if scanner_action != "block":
-            return StreamingGuardrailsSupport(
-                supported=False,
-                detail=(
-                    "stream=true with output guardrails only supports "
-                    "action=block. Unsupported action: "
-                    f"{scanner_action}."
-                ),
-            )
-        if scanner_config.type not in STREAMING_GUARDRAILS_SUPPORTED_SCANNERS:
-            return StreamingGuardrailsSupport(
-                supported=False,
-                detail=(
-                    "stream=true with output guardrails only supports "
-                    "ban_substrings scanners. Unsupported scanner: "
-                    f"{scanner_config.type}."
-                ),
-            )
-
-    return StreamingGuardrailsSupport(supported=True)
+logger = logging.getLogger(__name__)
 
 
 async def apply_streaming_guardrails(
@@ -80,44 +53,52 @@ async def apply_streaming_guardrails(
 
         prompt = guardrails._extract_prompt(request)
         scanner = _LLMGuardWindowScanner(prompt=prompt, built_scanners=built_scanners)
-        window = StreamingBufferWindow(
-            scanner,
-            holdback_len=STREAMING_GUARDRAILS_HOLDBACK_LEN,
-        )
+        buffer = OrderedGuardrailBuffer(scanner)
+        saw_done = False
 
         async for event in iter_sse_events(upstream_chunks):
             parse_result = parse_openai_chat_sse_event(event)
             if parse_result.status == OpenAIChatChunkParseStatus.DONE:
-                async for chunk in _flush_window_or_block(window, guardrails):
+                saw_done = True
+                break
+
+            if parse_result.status == OpenAIChatChunkParseStatus.INVALID:
+                logger.warning(
+                    "streaming_guardrails_fail_closed status=%s reason=%s",
+                    parse_result.status,
+                    parse_result.error,
+                )
+                for chunk in _build_refusal_chunks(guardrails, record_action=False):
                     yield chunk
-                if window.blocked:
-                    return
-                yield build_sse_done_chunk()
                 return
 
-            if parse_result.status != OpenAIChatChunkParseStatus.PARSED:
-                async for chunk in _emit_refusal(guardrails):
+            result = buffer.push(event, parse_result)
+            for ready_event in result.ready_events:
+                yield ready_event
+            if result.status != ProcessStatus.OK:
+                _log_fail_closed(result)
+                for chunk in _build_refusal_chunks(
+                    guardrails,
+                    choice_index=result.blocked_choice_index or 0,
+                    record_action=result.status == ProcessStatus.BLOCKED,
+                ):
                     yield chunk
                 return
 
-            for content in parse_result.contents:
-                emit_result = window.feed(content)
-                if emit_result.blocked:
-                    async for chunk in _emit_refusal(guardrails):
-                        yield chunk
-                    return
-                for safe_chunk in emit_result.chunks:
-                    yield build_openai_chat_delta_sse_chunk(safe_chunk)
-
-            if parse_result.finish_reasons:
-                async for chunk in _flush_window_or_block(window, guardrails):
-                    yield chunk
-                if window.blocked:
-                    return
-                yield _raw_sse_chunk(event.raw)
-
-        async for chunk in _flush_window_or_block(window, guardrails):
-            yield chunk
+        result = buffer.finish_stream()
+        for ready_event in result.ready_events:
+            yield ready_event
+        if result.status != ProcessStatus.OK:
+            _log_fail_closed(result)
+            for chunk in _build_refusal_chunks(
+                guardrails,
+                choice_index=result.blocked_choice_index or 0,
+                record_action=result.status == ProcessStatus.BLOCKED,
+            ):
+                yield chunk
+            return
+        if saw_done:
+            yield build_sse_done_chunk()
     finally:
         await _aclose(upstream_chunks)
 
@@ -137,25 +118,35 @@ class _LLMGuardWindowScanner:
         return WindowScanResult()
 
 
-async def _flush_window_or_block(
-    window: StreamingBufferWindow,
+def _build_refusal_chunks(
     guardrails: OutputGuardrails,
-) -> AsyncIterator[str]:
-    flush_result = window.flush()
-    if flush_result.blocked:
-        async for chunk in _emit_refusal(guardrails):
-            yield chunk
+    *,
+    choice_index: int = 0,
+    record_action: bool = True,
+) -> tuple[str, str, str]:
+    if record_action:
+        guardrails._record_response_action("block")
+    return (
+        build_openai_chat_delta_sse_chunk(
+            guardrails.block_message,
+            choice_index=choice_index,
+        ),
+        build_openai_chat_finish_reason_sse_chunk(
+            finish_reason="content_filter",
+            choice_index=choice_index,
+        ),
+        build_sse_done_chunk(),
+    )
+
+
+def _log_fail_closed(result: ProcessResult) -> None:
+    if result.status == ProcessStatus.BLOCKED:
         return
-
-    for safe_chunk in flush_result.chunks:
-        yield build_openai_chat_delta_sse_chunk(safe_chunk)
-
-
-async def _emit_refusal(guardrails: OutputGuardrails) -> AsyncIterator[str]:
-    guardrails._record_response_action("block")
-    yield build_openai_chat_delta_sse_chunk(guardrails.block_message)
-    yield build_openai_chat_finish_sse_chunk(finish_reason="content_filter")
-    yield build_sse_done_chunk()
+    logger.warning(
+        "streaming_guardrails_fail_closed status=%s reason=%s",
+        result.status,
+        result.reason,
+    )
 
 
 async def _aclose(upstream_chunks: AsyncIterator[str]) -> None:
@@ -164,11 +155,24 @@ async def _aclose(upstream_chunks: AsyncIterator[str]) -> None:
         await aclose()
 
 
-def _raw_sse_chunk(raw_event: str) -> str:
-    return f"{raw_event}\n\n"
-
-
 def raise_if_streaming_guardrails_unsupported(guardrails: OutputGuardrails) -> None:
-    support = validate_streaming_guardrails(guardrails)
-    if not support.supported:
-        raise HTTPException(status_code=400, detail=support.detail)
+    for scanner_config in guardrails.scanner_configs:
+        scanner_action = scanner_config.action_on_hit or guardrails.action_on_hit
+        if scanner_action != "block":
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "stream=true with output guardrails only supports "
+                    "action=block. Unsupported action: "
+                    f"{scanner_action}."
+                ),
+            )
+        if scanner_config.type not in STREAMING_GUARDRAILS_SUPPORTED_SCANNERS:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "stream=true with output guardrails only supports "
+                    "ban_substrings scanners. Unsupported scanner: "
+                    f"{scanner_config.type}."
+                ),
+            )

@@ -16,6 +16,7 @@
 Safety contract:
 - The unscanned tail is retained in ``pending_buffer`` and must not be emitted.
 - Only scanner-confirmed safe prefixes may be emitted downstream.
+- Emitted chunks must be unmodified contiguous prefixes of the original input text.
 - Feed scans include the holdback tail before emitting any prefix.
 - Final flush scans the remaining buffer before emitting any remaining text.
 """

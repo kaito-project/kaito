@@ -56,6 +56,30 @@ az aks update -n $CLUSTER_NAME -g $RESOURCE_GROUP --attach-acr $ACR_NAME
 
 - `cluster_name`: The name of your Kubernetes cluster. If omitted, Tilt defaults to your current kubectl context.
 
+- `preset_registry_name`: Overrides the registry the controller pulls preset base images from (e.g. `<acr_name>.azurecr.io`). When unset, the chart default (`mcr.microsoft.com/aks/kaito`) is used.
+
+- `feature_gates`: A map of controller feature gates to enable. For example:
+
+  ```yaml
+  feature_gates:
+    vLLM: true
+    gatewayAPIInferenceExtension: true
+    disableNodeAutoProvisioning: true
+    enableInferenceSetController: true
+    enableBaseImageAutoUpgrade: true
+    enableMIG: true
+  ```
+
+- `gpu_feature_discovery`: Overrides for KAITO's bundled `gpu-feature-discovery` subchart. For example:
+
+  ```yaml
+  gpu_feature_discovery:
+    nfd:
+      enabled: false
+    gfd:
+      enabled: false
+  ```
+
 #### 3. Start Tilt
 
 To start Tilt, run the following command in the root of the repository:

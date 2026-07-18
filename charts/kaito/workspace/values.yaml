@@ -41,6 +41,7 @@ featureGates:
   disableNodeAutoProvisioning: false
   gatewayAPIInferenceExtension: false
   enableInferenceSetController: true
+  enableMIG: false
   enableMultiRoleInferenceController: false
   ModelMirror: false
   ModelStreaming: false

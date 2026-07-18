@@ -114,5 +114,23 @@ func GetGPUConfigFromNodeLabels(node *corev1.Node) (*GPUConfig, error) {
 		GPUModel:              gpuProduct,
 		GPUMem:                *resource.NewQuantity(gpuMemGiB*consts.GiBToBytes, resource.BinarySI),
 		CUDAComputeCapability: cudaComputeCap,
+		IsMIG:                 isMIGNode(node),
 	}, nil
+}
+
+// isMIGNode reports whether the node's GPUs are partitioned into MIG slices,
+// based on the labels the NVIDIA GPU Operator's mig-manager applies. A
+// nvidia.com/mig.config other than "all-disabled" that reached
+// nvidia.com/mig.config.state="success" means MIG is active.
+//
+// Note: only IsMIG is derived here (used to size against a slice and disable
+// CPU KV-cache offload). MIGProfile is intentionally left empty — the per-slice
+// nvidia.com/mig-<profile> extended resource used by the "mixed" strategy is
+// populated only via the spec-driven path (Workspace.Resource.Partition), so a
+// node-detected MIG under the "single" strategy keeps requesting nvidia.com/gpu.
+func isMIGNode(node *corev1.Node) bool {
+	migConfig := node.Labels[consts.NvidiaMIGConfig]
+	return migConfig != "" &&
+		migConfig != consts.NvidiaMIGConfigDisabled &&
+		node.Labels[consts.NvidiaMIGConfigState] == consts.NvidiaMIGConfigStateSuccess
 }

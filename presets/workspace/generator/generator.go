@@ -86,6 +86,18 @@ var (
 		"Step3VLForConditionalGeneration":        "step3",
 	}
 
+	// nonReasoningModels lists models that are non-reasoning and the reasoning-parser parameter
+	// should not be passed to vLLM for these models. Passing the reasoning-parser parameter to vLLM
+	// may cause failures like https://github.com/mistralai/mistral-common/issues/247.
+	nonReasoningModels = map[string]bool{
+		"mistral-7b-v0.3":                    true,
+		"mistral-7b-instruct-v0.3":           true,
+		"ministral-3-3b-instruct-2512":       true,
+		"ministral-3-8b-instruct-2512":       true,
+		"ministral-3-14b-instruct-2512":      true,
+		"mistral-large-3-675b-instruct-2512": true,
+	}
+
 	// source: https://github.com/vllm-project/vllm/blob/main/vllm/tool_parsers/__init__.py
 	// key is model name prefix, value is ToolCallParser mode name
 	toolCallParserModeNamePrefixMap = map[string]string{
@@ -536,19 +548,21 @@ func (g *Generator) ParseModelMetadata() {
 	}
 
 	// set reasoning parser based on model name prefix
-	for prefix, parser := range reasoningParserModeNamePrefixMap {
-		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
-			g.Param.Metadata.ReasoningParser = parser
-			break
-		}
-	}
-
-	// set reasoning parser based on model architecture if not set by name prefix
-	if g.Param.Metadata.ReasoningParser == "" {
-		for _, arch := range g.Param.Metadata.Architectures {
-			if parser, ok := reasoningParserArchMap[arch]; ok {
+	if !nonReasoningModels[g.Param.Metadata.Name] {
+		for prefix, parser := range reasoningParserModeNamePrefixMap {
+			if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
 				g.Param.Metadata.ReasoningParser = parser
 				break
+			}
+		}
+
+		// set reasoning parser based on model architecture if not set by name prefix
+		if g.Param.Metadata.ReasoningParser == "" {
+			for _, arch := range g.Param.Metadata.Architectures {
+				if parser, ok := reasoningParserArchMap[arch]; ok {
+					g.Param.Metadata.ReasoningParser = parser
+					break
+				}
 			}
 		}
 	}

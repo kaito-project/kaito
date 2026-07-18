@@ -3,11 +3,12 @@ models:
   - name: base
     type: text-generation
     runtime: tfs
-    tag: 0.4.3
+    tag: 0.4.4
     runtimeVersion:
       vllm: 0.22.1
       transformers: 5.6.0
     # Tag history:
+    # 0.4.4 - use torch.cuda.mem_get_info() instead of pynvml for default gpu_memory_utilization
     # 0.4.3 - add export_sas_token_for_streaming.sh transparent wrapper for SAS-authenticated blob streaming
     # 0.4.2 - add runai-model-streamer for model streaming from cloud blob storage, add KAITO_PROCESSOR benchmark support
     # 0.4.1 - pass trust_remote_code=true to GuideLLM benchmark

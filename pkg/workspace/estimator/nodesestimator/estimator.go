@@ -24,6 +24,7 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/sku"
+	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	estimator "github.com/kaito-project/kaito/pkg/workspace/estimator"
@@ -80,27 +81,38 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 		return 0, fmt.Errorf("failed to get model by name: %w", err)
 	}
 
+	// Resolve the GPU configuration for a single node.
 	var gpuConfig *sku.GPUConfig
-
 	if req.ResourceProfile.DisableNodeAutoProvisioning {
-		// NAP is disabled (BYO scenario) — derive GPU config from existing ready nodes.
-		matchLabels := client.MatchingLabels(kaitov1beta1.SanitizedMatchLabels(req.ResourceProfile.LabelSelector))
-		nodeList, listErr := nodes.ListNodes(ctx, cl, matchLabels)
-		if listErr != nil {
-			return 0, fmt.Errorf("failed to list ready nodes: %w", listErr)
-		}
-		var readyNodes []*corev1.Node
-		for i := range nodeList.Items {
-			if nodes.NodeIsReadyAndNotDeleting(&nodeList.Items[i]) {
-				readyNodes = append(readyNodes, &nodeList.Items[i])
+		// NAP is disabled (BYO scenario).
+		if req.ResourceProfile.MIGProfile != "" {
+			// MIG partition: a single, non-shardable slice (GPUCount == 1). The
+			// model must fit one slice, which is enforced by the IsMIG check after
+			// the fit calculation below. MIG is only supported when NAP is disabled.
+			gpuConfig, err = utils.GetMIGGPUConfig(req.ResourceProfile.MIGProfile)
+			if err != nil {
+				return 0, fmt.Errorf("failed to get MIG GPU config: %w", err)
 			}
-		}
-		if len(readyNodes) == 0 {
-			return 0, fmt.Errorf("no ready nodes found, unable to determine GPU configuration")
-		}
-		gpuConfig, err = sku.GetGPUConfigFromNodeLabels(readyNodes[0])
-		if err != nil {
-			return 0, fmt.Errorf("failed to get GPU config from existing nodes: %w", err)
+		} else {
+			// Derive GPU config from existing ready nodes.
+			matchLabels := client.MatchingLabels(kaitov1beta1.SanitizedMatchLabels(req.ResourceProfile.LabelSelector))
+			nodeList, listErr := nodes.ListNodes(ctx, cl, matchLabels)
+			if listErr != nil {
+				return 0, fmt.Errorf("failed to list ready nodes: %w", listErr)
+			}
+			var readyNodes []*corev1.Node
+			for i := range nodeList.Items {
+				if nodes.NodeIsReadyAndNotDeleting(&nodeList.Items[i]) {
+					readyNodes = append(readyNodes, &nodeList.Items[i])
+				}
+			}
+			if len(readyNodes) == 0 {
+				return 0, fmt.Errorf("no ready nodes found, unable to determine GPU configuration")
+			}
+			gpuConfig, err = sku.GetGPUConfigFromNodeLabels(readyNodes[0])
+			if err != nil {
+				return 0, fmt.Errorf("failed to get GPU config from existing nodes: %w", err)
+			}
 		}
 	} else {
 		// NAP is enabled — instanceType is required and must be valid.
@@ -141,16 +153,6 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 		kvCache := float64(maxModelLen*inferParams.BytesPerToken) / float64(gpuConfig.GPUCount)
 		fixedReserve := baseOverhead + kvCache
 
-		// Tensor-parallelism-disabled models place the full model on each GPU, so
-		// the weight-scaled overhead uses the full model size.
-		if inferParams.DisableTensorParallelism {
-			overhead := fixedReserve + overheadWeightFactor*modelSize
-			if modelSize+overhead > availGPUMem {
-				return 0, fmt.Errorf("GPU memory %.0f bytes is too small for model, needs %.0f bytes (model: %.0f + overhead: %.0f)",
-					gpuMemPerGPU, modelSize+overhead, modelSize, overhead)
-			}
-		}
-
 		if availGPUMem <= fixedReserve {
 			return 0, fmt.Errorf("GPU memory %.0f bytes is too small, needs at least %.1f GB overhead (base: %.1fGB + KV Cache: %.1f GB)",
 				gpuMemPerGPU, fixedReserve/float64(consts.GiBToBytes), baseOverheadGiB, kvCache/float64(consts.GiBToBytes))
@@ -165,8 +167,18 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 		klog.Infof("modelSize(%.0f), gpuMemPerGPU(%.0f), availGPUMem(%.0f), fixedReserve(%.0f), availMemPerGPU(%.0f), minGPUs(%d) => nodeCountPerReplica(%d) for workspace %s",
 			modelSize, gpuMemPerGPU, availGPUMem, fixedReserve, availMemPerGPU, minGPUs, nodeCountPerReplica, req.WorkspaceName)
 
-		if nodeCountPerReplica > 1 && inferParams.DisableTensorParallelism {
-			return 0, fmt.Errorf("models with disabled tensor parallelism cannot be distributed across more than 1 GPU node, calculated nodes: %d", nodeCountPerReplica)
+		// MIG partitions are a single, non-shardable device: the model plus its
+		// runtime overhead must fit one slice. Report the slice-specific shortfall
+		// instead of scaling to multiple GPUs/nodes.
+		if gpuConfig.IsMIG && nodeCountPerReplica > 1 {
+			overhead := fixedReserve + overheadWeightFactor*modelSize
+			sliceGiB := gpuMemPerGPU / float64(consts.GiBToBytes)
+			return 0, fmt.Errorf("model needs %.1fGB (weights %.1fGB + overhead %.1fGB) but MIG profile %s only provides %.0fGB (%.1fGB available after vLLM gpu-memory-utilization)",
+				(modelSize+overhead)/float64(consts.GiBToBytes),
+				modelSize/float64(consts.GiBToBytes),
+				overhead/float64(consts.GiBToBytes),
+				req.ResourceProfile.MIGProfile,
+				sliceGiB, availGPUMem/float64(consts.GiBToBytes))
 		}
 
 		if nodeCountPerReplica > 1 && !model.SupportDistributedInference() {

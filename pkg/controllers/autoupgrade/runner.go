@@ -21,6 +21,7 @@ import (
 
 	"github.com/robfig/cron/v3"
 	appsv1 "k8s.io/api/apps/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
@@ -97,6 +98,23 @@ func (r *AutoUpgradeRunner) reconcileInferenceSet(ctx context.Context, inference
 		return
 	}
 
+	switch inferenceSetObj.Spec.AutoUpgrade.Strategy {
+	case kaitov1beta1.SurgeBasedUpgradeStrategy:
+		r.reconcileSurge(ctx, inferenceSetObj)
+	case kaitov1beta1.InPlaceUpgradeStrategy, "":
+		// Empty strategy defaults to in-place (the CRD default is InPlace; the
+		// empty value also covers objects created before the field existed).
+		r.reconcileInPlace(ctx, inferenceSetObj)
+	default:
+		klog.ErrorS(fmt.Errorf("unsupported auto-upgrade strategy"), "AutoUpgradeRunner: unsupported strategy", "inferenceset", klog.KObj(inferenceSetObj))
+	}
+}
+
+// reconcileInPlace handles a single InferenceSet's auto-upgrade lifecycle using the
+// in-place strategy: it tags the next drifted Workspace with the upgrade label so the
+// Workspace controller rolls that Workspace's StatefulSet to the new base image in
+// place. Only one Workspace is upgraded at a time.
+func (r *AutoUpgradeRunner) reconcileInPlace(ctx context.Context, inferenceSetObj *kaitov1beta1.InferenceSet) {
 	// Get the current controller-embedded base image tag.
 	desiredImage := inference.GetBaseImageName()
 	desiredTag := inference.GetBaseImageTag()
@@ -290,6 +308,105 @@ func (r *AutoUpgradeRunner) tagWorkspaceForUpgrade(ctx context.Context, isObj *k
 	}
 	klog.InfoS("AutoUpgradeRunner: tagged workspace for upgrade",
 		"workspace", klog.KObj(ws), "targetVersion", desiredTag, "inferenceset", klog.KObj(isObj))
+}
+
+// reconcileSurge handles a single InferenceSet's auto-upgrade lifecycle using the
+// surge-based strategy. The runner's only responsibility is to add capacity: when at
+// least one Workspace is drifted (running an old base image) and the InferenceSet is
+// currently at its desired replica count, it creates ONE new Workspace on the new base
+// image (generated fresh from the InferenceSet template, so it picks up the controller's
+// current base image).
+//
+// The InferenceSet controller performs the cutover: when it scales back down to the
+// desired count it prefers deleting old-image Workspaces, and only retires a Ready old
+// Workspace once enough Ready replicas remain (i.e. after the new Workspace becomes
+// Ready), preserving availability. This one-in / one-out handoff — driven purely by the
+// replica count, with no explicit surge bookkeeping — repeats until no drifted Workspaces
+// remain.
+func (r *AutoUpgradeRunner) reconcileSurge(ctx context.Context, inferenceSetObj *kaitov1beta1.InferenceSet) {
+	desiredImage := inference.GetBaseImageName()
+	desiredTag := inference.GetBaseImageTag()
+
+	wsList, err := inferencesetutil.ListWorkspaces(ctx, inferenceSetObj, r.Client)
+	if err != nil {
+		klog.ErrorS(err, "AutoUpgradeRunner: failed to list workspaces", "inferenceset", klog.KObj(inferenceSetObj))
+		return
+	}
+
+	// Count live Workspaces and how many are drifted (still on an old base image). A
+	// Workspace whose StatefulSet does not exist yet is a freshly created new-image
+	// Workspace coming up; it counts toward the live total but not toward drift.
+	liveCount := 0
+	driftCount := 0
+	for i := range wsList.Items {
+		ws := &wsList.Items[i]
+		if ws.DeletionTimestamp != nil {
+			continue
+		}
+		liveCount++
+
+		ss := &appsv1.StatefulSet{}
+		if err := resources.GetResource(ctx, ws.Name, ws.Namespace, r.Client, ss); err != nil {
+			if apierrors.IsNotFound(err) {
+				continue // StatefulSet not created yet; treat as new-image, not drifted.
+			}
+			klog.ErrorS(err, "AutoUpgradeRunner: failed to get StatefulSet", "workspace", klog.KObj(ws))
+			return
+		}
+		if !isWorkspaceInDesiredState(ss, desiredImage) {
+			driftCount++
+		}
+	}
+
+	// Report drift and mark success when the fleet has fully converged onto the new image.
+	if r.statusNeedsUpdate(inferenceSetObj, driftCount) {
+		markSuccess := driftCount == 0 && r.previousDriftCount(inferenceSetObj) > 0
+		if err := r.updateStatus(ctx, inferenceSetObj, driftCount, markSuccess); err != nil {
+			return
+		}
+	}
+
+	if driftCount == 0 {
+		klog.V(4).InfoS("AutoUpgradeRunner: no drifted workspaces, skipping", "inferenceset", klog.KObj(inferenceSetObj))
+		return
+	}
+
+	// Only add a surge Workspace when the InferenceSet is exactly at its desired count:
+	//   - liveCount > desired: a surge is already in flight; wait for the controller to
+	//     retire an old Workspace (returning the count to desired) before adding another.
+	//   - liveCount < desired: the controller is still scaling up and will create new-image
+	//     Workspaces on its own, so no surge is needed.
+	desiredReplicas := int32(1)
+	if inferenceSetObj.Spec.Replicas != nil {
+		desiredReplicas = *inferenceSetObj.Spec.Replicas
+	}
+	if liveCount != int(desiredReplicas) {
+		klog.V(4).InfoS("AutoUpgradeRunner: upgrade surge in flight or scaling, skipping",
+			"inferenceset", klog.KObj(inferenceSetObj), "live", liveCount, "desired", desiredReplicas)
+		return
+	}
+
+	if !r.isWithinMaintenanceWindow(inferenceSetObj) {
+		klog.V(4).InfoS("AutoUpgradeRunner: outside maintenance window, skipping", "inferenceset", klog.KObj(inferenceSetObj))
+		return
+	}
+
+	// Add one new-image Workspace. The controller retires an old one once this is Ready.
+	r.createUpgradeWorkspace(ctx, inferenceSetObj, desiredTag)
+}
+
+// createUpgradeWorkspace creates a new Workspace for the InferenceSet on the current base
+// image. It is generated fresh from the InferenceSet template, so it picks up the
+// controller's current base image.
+func (r *AutoUpgradeRunner) createUpgradeWorkspace(ctx context.Context, inferenceSetObj *kaitov1beta1.InferenceSet, desiredTag string) {
+	ws := inferencesetutil.NewWorkspaceForInferenceSet(inferenceSetObj)
+
+	if err := r.Client.Create(ctx, ws); err != nil {
+		klog.ErrorS(err, "AutoUpgradeRunner: failed to create upgrade workspace", "inferenceset", klog.KObj(inferenceSetObj))
+		return
+	}
+	klog.InfoS("AutoUpgradeRunner: created new workspace for surge-based upgrade",
+		"targetVersion", desiredTag, "inferenceset", klog.KObj(inferenceSetObj))
 }
 
 // isWorkspaceInDesiredState returns true if the workspace's StatefulSet is running

@@ -4,8 +4,11 @@ on:
   pull_request:
     paths:
       - "pkg/controllers/autoupgrade/**"
+      - "pkg/inferenceset/**"
+      - "pkg/utils/inferenceset/**"
       - "pkg/workspace/controllers/workspace_controller.go"
       - "api/v1alpha1/inferenceset_types.go"
+      - "api/v1beta1/inferenceset_types.go"
       - "charts/kaito/workspace/**"
       - ".github/workflows/base-image-auto-upgrade-test.yaml"
   workflow_dispatch:
@@ -25,7 +28,7 @@ env:
   GO_VERSION: "1.26.4"
 
 jobs:
-  auto-upgrade-test:
+  in-place-auto-upgrade-test:
     runs-on: ["self-hosted", "hostname:kaito-e2e-github-runner"]
     environment: e2e-test
     permissions:
@@ -331,6 +334,369 @@ jobs:
           echo "NumDriftedWorkspaces: $DRIFT"
           echo "LastSuccessfulUpgradeTime: $LAST_SUCCESS"
           kubectl get inferenceset auto-upgrade-test -o yaml
+          exit 1
+
+      - name: Cleanup
+        if: always()
+        shell: bash
+        run: |
+          az group delete --name "${{ env.CLUSTER_NAME }}" --yes --no-wait || true
+
+  # Surge-based strategy: the auto-upgrade runner adds a NEW Workspace on the new
+  # base image; the InferenceSet controller keeps the OLD one serving until the new
+  # one is Ready, then retires the old one during scale-down. This verifies the
+  # no-downtime upgrade path, in contrast to the in-place job above.
+  surge-based-auto-upgrade-test:
+    runs-on: ["self-hosted", "hostname:kaito-e2e-github-runner"]
+    environment: e2e-test
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      INFERENCESET_NAME: auto-upgrade-surge-test
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Run e2e-base-setup composite action
+        uses: ./.github/actions/e2e-base-setup
+        with:
+          git_sha: ${{ github.event.pull_request.head.sha || github.sha }}
+          skip_helm_install: true
+
+      - name: Build base image with semantic version tag
+        shell: bash
+        run: |
+          # Build the base image directly with the actual version tag (e.g. 0.3.2)
+          # so the auto-upgrade label shows the real version instead of a random CI ID.
+          BASE_TAG=$(git show HEAD:presets/workspace/models/supported_models.yaml | yq '.models[] | select(.name == "base") | .tag')
+          echo "Building base image: $REGISTRY/kaito-base:$BASE_TAG"
+
+          docker buildx build \
+            --builder img-builder \
+            --build-arg VERSION="$BASE_TAG" \
+            --build-arg MODEL_TYPE=text-generation \
+            --output "type=image,name=$REGISTRY/kaito-base:$BASE_TAG,push=true,compression=zstd" \
+            -f ./docker/presets/models/tfs/Dockerfile .
+
+          # Ensure supported_models.yaml points to test ACR with the semantic tag
+          yq -i "(.models[] | select(.name == \"base\") | .tag) = \"$BASE_TAG\"" presets/workspace/models/supported_models.yaml
+          yq -i "(.models[] | select(.name == \"base\") | .registry) = \"$REGISTRY\"" presets/workspace/models/supported_models.yaml
+          echo "Base model config: registry=$REGISTRY, tag=$BASE_TAG"
+
+      - name: Build workspace controller
+        run: |
+          make docker-build-workspace
+        env:
+          REGISTRY: ${{ env.REGISTRY }}
+          IMG_NAME: "workspace"
+          IMG_TAG: "test"
+          OUTPUT_TYPE: "type=registry"
+          ARCH: "amd64"
+
+      - name: Install old chart (${{ env.OLD_CHART_VERSION }})
+        shell: bash
+        run: |
+          helm repo add kaito https://kaito-project.github.io/kaito/charts/kaito
+          helm repo update
+          helm install kaito-workspace kaito/workspace \
+            --version ${{ env.OLD_CHART_VERSION }} \
+            --namespace kaito-workspace \
+            --create-namespace \
+            --set featureGates.enableInferenceSetController=true
+
+          kubectl wait --for=condition=available deploy "kaito-workspace" -n kaito-workspace --timeout=300s
+
+      - name: Wait for webhook endpoints
+        shell: bash
+        run: |
+          echo "Waiting for webhook service endpoints..."
+          end=$((SECONDS+120))
+          while [ $SECONDS -lt $end ]; do
+            EP=$(kubectl get endpoints kaito-workspace-svc -n kaito-workspace -o jsonpath='{.subsets[0].addresses[0].ip}' 2>/dev/null || true)
+            if [ -n "$EP" ]; then
+              echo "Webhook endpoint ready: $EP"
+              break
+            fi
+            sleep 5
+          done
+
+          if [ $SECONDS -ge $end ]; then
+            echo "Timeout waiting for webhook endpoints"
+            exit 1
+          fi
+
+      - name: Create InferenceSet (without autoUpgrade)
+        shell: bash
+        run: |
+          # Old chart CRD does not have autoUpgrade field, so create without it.
+          cat <<EOF | kubectl apply -f -
+          apiVersion: kaito.sh/v1alpha1
+          kind: InferenceSet
+          metadata:
+            name: ${INFERENCESET_NAME}
+          spec:
+            replicas: 1
+            labelSelector:
+              matchLabels:
+                apps: ${INFERENCESET_NAME}
+            template:
+              resource:
+                instanceType: "Standard_NV36ads_A10_v5"
+              inference:
+                preset:
+                  name: mistral-7b-instruct
+          EOF
+
+      - name: Wait for workspace readiness (old controller)
+        shell: bash
+        run: |
+          echo "Waiting for InferenceSet workspace to become ready..."
+          end=$((SECONDS+2400))
+          while [ $SECONDS -lt $end ]; do
+            WS_NAME=$(kubectl get workspace -l inferenceset.kaito.sh/created-by=${INFERENCESET_NAME} -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+            if [ -n "$WS_NAME" ]; then
+              READY=$(kubectl get workspace "$WS_NAME" -o jsonpath='{.status.conditions[?(@.type=="InferenceReady")].status}' 2>/dev/null || true)
+              if [ "$READY" = "True" ]; then
+                echo "Workspace $WS_NAME is ready"
+                SS_IMAGE=$(kubectl get statefulset "$WS_NAME" -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
+                echo "Current workload image: $SS_IMAGE"
+                # Record the original (old) workspace name for later comparison.
+                echo "OLD_WS=$WS_NAME" >> "$GITHUB_ENV"
+                break
+              fi
+              POD_STATUS=$(kubectl get pods -l kaito.sh/workspace="$WS_NAME" -o jsonpath='{.items[0].status.phase}' 2>/dev/null || true)
+              echo "Waiting... (workspace: $WS_NAME, pod: ${POD_STATUS:-unknown})"
+            else
+              echo "Waiting... (workspace: not yet created)"
+            fi
+            sleep 30
+          done
+
+          if [ $SECONDS -ge $end ]; then
+            echo "Timeout waiting for workspace readiness"
+            kubectl get workspace -o yaml
+            kubectl logs deploy/kaito-workspace -n kaito-workspace --tail=100 2>/dev/null || true
+            exit 1
+          fi
+
+      - name: Upgrade to current chart
+        shell: bash
+        run: |
+          yq -i '(.image.repository) = "'"${REGISTRY}"'/workspace"' ./charts/kaito/workspace/values.yaml
+          yq -i '(.image.tag) = "test"' ./charts/kaito/workspace/values.yaml
+
+          helm upgrade kaito-workspace ./charts/kaito/workspace \
+            --namespace kaito-workspace \
+            --set featureGates.enableBaseImageAutoUpgrade=true \
+            --set featureGates.enableInferenceSetController=true \
+            --take-ownership
+
+          kubectl rollout status deploy/kaito-workspace -n kaito-workspace --timeout=300s
+        env:
+          REGISTRY: ${{ env.REGISTRY }}
+
+      - name: Patch InferenceSet to enable surge-based autoUpgrade
+        shell: bash
+        run: |
+          # The old CRD did not have autoUpgrade; now that the chart (and CRD) is
+          # upgraded, enable autoUpgrade with the Surge strategy.
+          kubectl patch inferenceset ${INFERENCESET_NAME} --type=merge \
+            -p '{"spec":{"autoUpgrade":{"enabled":true,"strategy":"Surge"}}}'
+
+          STRATEGY=$(kubectl get inferenceset ${INFERENCESET_NAME} -o jsonpath='{.spec.autoUpgrade.strategy}')
+          echo "AutoUpgrade strategy: $STRATEGY"
+          if [ "$STRATEGY" != "Surge" ]; then
+            echo "ERROR: expected strategy Surge, got '$STRATEGY'"
+            exit 1
+          fi
+
+      - name: Verify a new workspace is created on the new base image
+        shell: bash
+        run: |
+          NEW_TAG=$(yq '.models[] | select(.name == "base") | .tag' presets/workspace/models/supported_models.yaml)
+          echo "Expected new base tag: $NEW_TAG"
+          echo "Old workspace: $OLD_WS"
+          echo "Waiting for the auto-upgrade runner to create a new (surge) workspace..."
+
+          # The runner adds one new-image workspace with no special label; it is simply
+          # the workspace belonging to this InferenceSet that is not the original one.
+          end=$((SECONDS+600))
+          NEW_WS=""
+          while [ $SECONDS -lt $end ]; do
+            for w in $(kubectl get workspace -l inferenceset.kaito.sh/created-by=${INFERENCESET_NAME} -o jsonpath='{.items[*].metadata.name}'); do
+              if [ "$w" != "$OLD_WS" ]; then
+                NEW_WS="$w"
+                break
+              fi
+            done
+            if [ -n "$NEW_WS" ]; then
+              echo "New workspace created: $NEW_WS"
+              echo "NEW_WS=$NEW_WS" >> "$GITHUB_ENV"
+              break
+            fi
+            echo "Waiting for new workspace... (none yet)"
+            sleep 10
+          done
+
+          if [ -z "$NEW_WS" ]; then
+            echo "Timeout: new workspace was not created"
+            kubectl get workspace -l inferenceset.kaito.sh/created-by=${INFERENCESET_NAME}
+            kubectl logs deploy/kaito-workspace -n kaito-workspace --tail=200
+            exit 1
+          fi
+
+          # Old workspace must still exist and keep serving (no downtime / not deleted yet).
+          kubectl get workspace "$OLD_WS" >/dev/null
+          OLD_DELETING=$(kubectl get workspace "$OLD_WS" -o jsonpath='{.metadata.deletionTimestamp}' 2>/dev/null || true)
+          if [ -n "$OLD_DELETING" ]; then
+            echo "ERROR: old workspace is being deleted before the new one is ready (downtime!)"
+            exit 1
+          fi
+
+      - name: Verify no downtime - old stays ready until the new workspace is ready
+        shell: bash
+        run: |
+          NEW_TAG=$(yq '.models[] | select(.name == "base") | .tag' presets/workspace/models/supported_models.yaml)
+          echo "Old: $OLD_WS  New: $NEW_WS"
+
+          # The new workspace should run the NEW base image. The Workspace controller
+          # creates its StatefulSet asynchronously after the Workspace object, so poll
+          # until the image is populated rather than checking once.
+          echo "Waiting for the new StatefulSet to be created on the new base tag $NEW_TAG..."
+          end=$((SECONDS+300))
+          NEW_IMAGE=""
+          while [ $SECONDS -lt $end ]; do
+            NEW_IMAGE=$(kubectl get statefulset "$NEW_WS" -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
+            if echo "$NEW_IMAGE" | grep -q "$NEW_TAG"; then
+              echo "New StatefulSet image: $NEW_IMAGE"
+              break
+            fi
+            echo "Waiting for new StatefulSet image... (current: '${NEW_IMAGE:-<none>}')"
+            sleep 10
+          done
+          if ! echo "$NEW_IMAGE" | grep -q "$NEW_TAG"; then
+            echo "ERROR: new workspace is not on the new base tag $NEW_TAG (image: '${NEW_IMAGE:-<none>}')"
+            kubectl get workspace -l inferenceset.kaito.sh/created-by=${INFERENCESET_NAME}
+            kubectl get statefulset "$NEW_WS" -o yaml 2>/dev/null || true
+            exit 1
+          fi
+
+          # While the new workspace comes up (and downloads weights), the old workspace
+          # MUST keep serving (InferenceReady=True). This is the core no-downtime
+          # guarantee. Poll until the new one is ready, and on every poll assert the old
+          # workspace is still ready and not being deleted.
+          echo "Waiting for the new workspace to become ready while asserting the old one stays ready..."
+          end=$((SECONDS+2400))
+          while [ $SECONDS -lt $end ]; do
+            NEW_READY=$(kubectl get workspace "$NEW_WS" -o jsonpath='{.status.conditions[?(@.type=="InferenceReady")].status}' 2>/dev/null || true)
+            if [ "$NEW_READY" = "True" ]; then
+              echo "New workspace $NEW_WS is ready"
+              break
+            fi
+
+            # Old workspace must still be present and serving during the new one's bring-up.
+            OLD_DELETING=$(kubectl get workspace "$OLD_WS" -o jsonpath='{.metadata.deletionTimestamp}' 2>/dev/null || true)
+            OLD_READY=$(kubectl get workspace "$OLD_WS" -o jsonpath='{.status.conditions[?(@.type=="InferenceReady")].status}' 2>/dev/null || true)
+            if [ -n "$OLD_DELETING" ]; then
+              echo "ERROR: old workspace is being deleted before the new one is ready (downtime!)"
+              kubectl get workspace -l inferenceset.kaito.sh/created-by=${INFERENCESET_NAME}
+              exit 1
+            fi
+            if [ "$OLD_READY" != "True" ]; then
+              echo "ERROR: old workspace lost readiness before the new one is ready (downtime!) - InferenceReady=$OLD_READY"
+              kubectl get workspace "$OLD_WS" -o yaml
+              exit 1
+            fi
+
+            echo "Waiting... (new ready: ${NEW_READY:-False}, old ready: $OLD_READY)"
+            sleep 20
+          done
+
+          if [ $SECONDS -ge $end ]; then
+            echo "Timeout: new workspace did not become ready"
+            kubectl get workspace -l inferenceset.kaito.sh/created-by=${INFERENCESET_NAME}
+            kubectl describe pods -l kaito.sh/workspace="$NEW_WS" 2>/dev/null | tail -60 || true
+            kubectl logs -l kaito.sh/workspace="$NEW_WS" --tail=100 2>/dev/null || true
+            kubectl logs deploy/kaito-workspace -n kaito-workspace --tail=200
+            exit 1
+          fi
+
+      - name: Verify cutover - old workspace deleted
+        shell: bash
+        run: |
+          echo "Waiting for the old workspace ($OLD_WS) to be deleted after the new one became ready..."
+          end=$((SECONDS+600))
+          while [ $SECONDS -lt $end ]; do
+            if ! kubectl get workspace "$OLD_WS" >/dev/null 2>&1; then
+              echo "Old workspace $OLD_WS deleted (cutover complete)"
+              break
+            fi
+            echo "Waiting for old workspace deletion..."
+            sleep 10
+          done
+          if kubectl get workspace "$OLD_WS" >/dev/null 2>&1; then
+            echo "Timeout: old workspace was not deleted"
+            kubectl get workspace -l inferenceset.kaito.sh/created-by=${INFERENCESET_NAME}
+            kubectl logs deploy/kaito-workspace -n kaito-workspace --tail=200
+            exit 1
+          fi
+
+          # After cutover, exactly one replica should remain: the new workspace,
+          # on the new tag and ready.
+          NEW_TAG=$(yq '.models[] | select(.name == "base") | .tag' presets/workspace/models/supported_models.yaml)
+          echo "Waiting for the InferenceSet to settle at 1 ready replica on $NEW_TAG..."
+          end=$((SECONDS+2400))
+          while [ $SECONDS -lt $end ]; do
+            data=$(kubectl get workspace -l inferenceset.kaito.sh/created-by=${INFERENCESET_NAME} -o json)
+            COUNT=$(echo "$data" | jq '.items | length')
+            READY=$(echo "$data" | jq '[.items[]|select(.status.conditions[]?|select(.type=="InferenceReady" and .status=="True"))]|length')
+            # Count workspaces whose StatefulSet image is on the new tag.
+            ONNEW=0
+            for w in $(echo "$data" | jq -r '.items[].metadata.name'); do
+              IMG=$(kubectl get statefulset "$w" -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
+              if echo "$IMG" | grep -q "$NEW_TAG"; then ONNEW=$((ONNEW+1)); fi
+            done
+            echo "count=$COUNT ready=$READY onNewTag=$ONNEW"
+            if [ "$COUNT" = "1" ] && [ "$READY" = "1" ] && [ "$ONNEW" = "1" ]; then
+              echo "Upgrade settled: 1 replica, ready on $NEW_TAG."
+              break
+            fi
+            sleep 20
+          done
+          if [ $SECONDS -ge $end ]; then
+            echo "ERROR: InferenceSet did not settle at 1 ready replica on the new tag"
+            kubectl get workspace -l inferenceset.kaito.sh/created-by=${INFERENCESET_NAME}
+            kubectl logs deploy/kaito-workspace -n kaito-workspace --tail=200
+            exit 1
+          fi
+
+      - name: Verify InferenceSet status reports zero drift
+        shell: bash
+        run: |
+          end=$((SECONDS+600))
+          while [ $SECONDS -lt $end ]; do
+            DRIFT=$(kubectl get inferenceset ${INFERENCESET_NAME} -o jsonpath='{.status.autoUpgrade.numDriftedWorkspaces}' 2>/dev/null || true)
+            LAST_SUCCESS=$(kubectl get inferenceset ${INFERENCESET_NAME} -o jsonpath='{.status.autoUpgrade.lastSuccessfulUpgradeTime}' 2>/dev/null || true)
+
+            if [ "$DRIFT" = "0" ] && [ -n "$LAST_SUCCESS" ]; then
+              echo "NumDriftedWorkspaces: $DRIFT"
+              echo "LastSuccessfulUpgradeTime: $LAST_SUCCESS"
+              echo "InferenceSet surge-based auto-upgrade status verified successfully."
+              exit 0
+            fi
+            echo "Waiting for status update... (drift: ${DRIFT:-unknown}, lastSuccess: ${LAST_SUCCESS:-<none>})"
+            sleep 15
+          done
+
+          echo "Timeout: InferenceSet status not updated"
+          kubectl get inferenceset ${INFERENCESET_NAME} -o yaml
           exit 1
 
       - name: Cleanup

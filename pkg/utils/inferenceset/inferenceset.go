@@ -19,6 +19,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"maps"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -28,6 +29,7 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
@@ -117,6 +119,58 @@ func ListWorkspaces(ctx context.Context, iObj *kaitov1beta1.InferenceSet, kubeCl
 		)
 	})
 	return workspaceList, err
+}
+
+// NewWorkspaceForInferenceSet builds a child Workspace object owned by the given
+// InferenceSet, applying the InferenceSet's template labels/annotations, owner
+// reference, resource spec, and inference spec. The returned Workspace uses
+// GenerateName so the API server assigns a unique name on creation.
+//
+// It is shared by the InferenceSet controller (replica scale-up) and the
+// AutoUpgradeRunner (surge-based upgrade) so both construct identical Workspaces.
+func NewWorkspaceForInferenceSet(iObj *kaitov1beta1.InferenceSet) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
+	workspaceObj.GenerateName = iObj.Name + "-"
+	workspaceObj.Namespace = iObj.Namespace
+
+	// Start with labels from the template metadata, then add controller labels.
+	workspaceLabels := maps.Clone(iObj.Spec.Template.Labels)
+	if workspaceLabels == nil {
+		workspaceLabels = make(map[string]string)
+	}
+	// Also propagate select labels from the InferenceSet's own metadata,
+	// in case template.metadata.labels was pruned by the API server.
+	if role, ok := iObj.Labels[kaitov1beta1.LabelInferenceRole]; ok {
+		workspaceLabels[kaitov1beta1.LabelInferenceRole] = role
+	}
+	if mriParent, ok := iObj.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent]; ok {
+		workspaceLabels[kaitov1alpha1.LabelMultiRoleInferenceParent] = mriParent
+	}
+	workspaceLabels[consts.WorkspaceCreatedByInferenceSetLabel] = iObj.Name
+	workspaceObj.Labels = workspaceLabels
+
+	// Start with annotations from the template metadata.
+	workspaceAnnotations := maps.Clone(iObj.Spec.Template.Annotations)
+	// Propagate the disable-benchmark opt-out so each child workspace inherits it.
+	// Benchmark is on by default; only propagate when explicitly disabled.
+	if !kaitov1beta1.IsInferenceSetBenchmarkEnabled(iObj) {
+		if workspaceAnnotations == nil {
+			workspaceAnnotations = make(map[string]string)
+		}
+		workspaceAnnotations[kaitov1beta1.AnnotationDisableBenchmark] = "true"
+	}
+	workspaceObj.Annotations = workspaceAnnotations
+	workspaceObj.OwnerReferences = []metav1.OwnerReference{
+		*metav1.NewControllerRef(iObj, kaitov1beta1.GroupVersion.WithKind("InferenceSet")),
+	}
+	workspaceObj.Resource = kaitov1beta1.ResourceSpec{
+		InstanceType:  iObj.Spec.Template.Resource.InstanceType,
+		LabelSelector: iObj.Spec.Selector,
+		Partition:     iObj.Spec.Template.Resource.Partition,
+	}
+	workspaceObj.Inference = &iObj.Spec.Template.Inference
+
+	return workspaceObj
 }
 
 func ComputeInferenceSetHash(iObj *kaitov1beta1.InferenceSet) string {

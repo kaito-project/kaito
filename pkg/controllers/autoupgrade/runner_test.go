@@ -749,3 +749,150 @@ func TestReconcileInferenceSet_NoSuccessWhenPreviousDriftWasZero(t *testing.T) {
 	assert.Equal(t, 0, *updated.Status.AutoUpgrade.NumDriftedWorkspaces)
 	assert.Nil(t, updated.Status.AutoUpgrade.LastSuccessfulUpgradeTime)
 }
+
+// makeSurgeInferenceSet builds an InferenceSet with auto-upgrade enabled and
+// the Surge strategy, plus a minimal template/selector so the surge Workspace
+// can be generated.
+func makeSurgeInferenceSet(name, namespace string) *kaitov1beta1.InferenceSet {
+	is := makeInferenceSet(name, namespace, true, nil)
+	is.Spec.AutoUpgrade.Strategy = kaitov1beta1.SurgeBasedUpgradeStrategy
+	is.Spec.Selector = &metav1.LabelSelector{
+		MatchLabels: map[string]string{"app": name},
+	}
+	is.Spec.Template = kaitov1beta1.InferenceSetTemplate{
+		Inference: kaitov1beta1.InferenceSpec{
+			Preset: &kaitov1beta1.PresetSpec{
+				PresetMeta: kaitov1beta1.PresetMeta{Name: kaitov1beta1.ModelName("phi-3-mini-128k-instruct")},
+			},
+		},
+	}
+	return is
+}
+
+// listWorkspacesInNamespace returns all Workspaces in the namespace.
+func listWorkspacesInNamespace(t *testing.T, cl client.Client, ns string) []kaitov1beta1.Workspace {
+	t.Helper()
+	all := &kaitov1beta1.WorkspaceList{}
+	require.NoError(t, cl.List(context.Background(), all, client.InNamespace(ns)))
+	return all.Items
+}
+
+// TestReconcileSurge_CreatesWorkspaceWhenDrifted verifies that a drifted Workspace at the
+// desired replica count triggers creation of one new Workspace on the new base image,
+// without deleting the old one (the InferenceSet controller performs the cutover).
+func TestReconcileSurge_CreatesWorkspaceWhenDrifted(t *testing.T) {
+	const (
+		ns       = "default"
+		isName   = "bg-is"
+		oldImage = "mcr.microsoft.com/aks/kaito/kaito-base:0.3.0"
+	)
+	setTestRegistry(t)
+
+	is := makeSurgeInferenceSet(isName, ns) // desired replicas defaults to 1
+	blue := makeWorkspace("blue-1", ns, isName, kaitov1beta1.WorkspaceStateReady, nil)
+	blueSS := makeStatefulSet("blue-1", ns, oldImage)
+
+	cl := newFakeClient(is, blue, blueSS)
+	r := &AutoUpgradeRunner{Client: cl}
+
+	r.reconcileInferenceSet(context.Background(), is)
+
+	// A new Workspace should have been created on the new image, stamped with the version label.
+	all := listWorkspacesInNamespace(t, cl, ns)
+	require.Len(t, all, 2)
+	var newWs *kaitov1beta1.Workspace
+	for i := range all {
+		if all[i].Name != "blue-1" {
+			newWs = &all[i]
+		}
+	}
+	require.NotNil(t, newWs, "a new workspace should have been created")
+	assert.Equal(t, isName, newWs.Labels[consts.WorkspaceCreatedByInferenceSetLabel])
+
+	// Blue must still exist (no downtime / not deleted by the runner).
+	stillThere := &kaitov1beta1.Workspace{}
+	require.NoError(t, cl.Get(context.Background(), client.ObjectKeyFromObject(blue), stillThere))
+	assert.True(t, stillThere.DeletionTimestamp.IsZero())
+}
+
+// TestReconcileSurge_NoCreateWhileSurgeInFlight verifies the runner does not add a second
+// new Workspace while an upgrade surge is already in flight (live count above desired). It
+// waits for the InferenceSet controller to retire an old Workspace first.
+func TestReconcileSurge_NoCreateWhileSurgeInFlight(t *testing.T) {
+	const (
+		ns       = "default"
+		isName   = "bg-is"
+		oldImage = "mcr.microsoft.com/aks/kaito/kaito-base:0.3.0"
+	)
+	desiredImage := setTestRegistry(t)
+
+	is := makeSurgeInferenceSet(isName, ns) // desired replicas defaults to 1
+	blue := makeWorkspace("blue-1", ns, isName, kaitov1beta1.WorkspaceStateReady, nil)
+	blueSS := makeStatefulSet("blue-1", ns, oldImage)
+	// A new-image workspace already exists (the in-flight surge), so the live count is 2 > 1.
+	green := makeWorkspace("green-1", ns, isName, kaitov1beta1.WorkspaceStatePending, nil)
+	greenSS := makeStatefulSet("green-1", ns, desiredImage)
+	greenSS.Status.ReadyReplicas = 0
+
+	cl := newFakeClient(is, blue, blueSS, green, greenSS)
+	r := &AutoUpgradeRunner{Client: cl}
+
+	r.reconcileInferenceSet(context.Background(), is)
+
+	// No third workspace; runner waits for the controller to retire the old one.
+	assert.Len(t, listWorkspacesInNamespace(t, cl, ns), 2)
+	// Blue not deleted by the runner.
+	stillThere := &kaitov1beta1.Workspace{}
+	require.NoError(t, cl.Get(context.Background(), client.ObjectKeyFromObject(blue), stillThere))
+	assert.True(t, stillThere.DeletionTimestamp.IsZero())
+}
+
+// TestReconcileSurge_NoCreateWhenAllUpToDate verifies no new Workspace is created when the
+// fleet has already converged onto the desired base image.
+func TestReconcileSurge_NoCreateWhenAllUpToDate(t *testing.T) {
+	const (
+		ns     = "default"
+		isName = "bg-is"
+	)
+	desiredImage := setTestRegistry(t)
+
+	is := makeSurgeInferenceSet(isName, ns)
+	blue := makeWorkspace("blue-1", ns, isName, kaitov1beta1.WorkspaceStateReady, nil)
+	blueSS := makeStatefulSet("blue-1", ns, desiredImage)
+
+	cl := newFakeClient(is, blue, blueSS)
+	r := &AutoUpgradeRunner{Client: cl}
+
+	r.reconcileInferenceSet(context.Background(), is)
+
+	assert.Len(t, listWorkspacesInNamespace(t, cl, ns), 1)
+}
+
+// TestReconcileSurge_OutsideMaintenanceWindow verifies no new Workspace is created
+// outside the maintenance window.
+func TestReconcileSurge_OutsideMaintenanceWindow(t *testing.T) {
+	const (
+		ns       = "default"
+		isName   = "bg-is"
+		oldImage = "mcr.microsoft.com/aks/kaito/kaito-base:0.3.0"
+	)
+	setTestRegistry(t)
+
+	is := makeSurgeInferenceSet(isName, ns)
+	// A window that is effectively never open around "now": every Jan 1 at 00:00,
+	// 1 minute long. Extremely unlikely to be within the window during tests.
+	dur := metav1.Duration{Duration: time.Minute}
+	is.Spec.AutoUpgrade.MaintenanceWindow = &kaitov1beta1.MaintenanceWindow{
+		Schedule: "0 0 1 1 *",
+		Duration: &dur,
+	}
+	blue := makeWorkspace("blue-1", ns, isName, kaitov1beta1.WorkspaceStateReady, nil)
+	blueSS := makeStatefulSet("blue-1", ns, oldImage)
+
+	cl := newFakeClient(is, blue, blueSS)
+	r := &AutoUpgradeRunner{Client: cl}
+
+	r.reconcileInferenceSet(context.Background(), is)
+
+	assert.Len(t, listWorkspacesInNamespace(t, cl, ns), 1, "no new workspace should be created outside the window")
+}

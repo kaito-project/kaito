@@ -10,6 +10,6 @@ dependencies:
   version: 0.2.18
 - name: productionstack
   repository: oci://aitoolchainoperatoratcorp.azurecr.io/helm
-  version: 0.3.1-20260717
-digest: sha256:d1e7ea8b6c2a383563756488aff82c91022dfb0206e25484cd864b9dbfef50b0
-generated: "2026-07-19T06:24:21.857811894Z"
+  version: 0.3.1-20260720
+digest: sha256:45af857d15fa594a2994a78f907f9bfe931b3c3120000eb6c69436c862f10459
+generated: "2026-07-20T03:06:06.185188398Z"

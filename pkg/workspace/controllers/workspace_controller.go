@@ -57,7 +57,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
-	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/estimator"
@@ -593,7 +592,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 
 	if wObj.Inference.Template != nil {
 		// TODO: handle update
-		_, err := inference.CreateTemplateInference(ctx, wObj, c.Client)
+		_, err := inference.CreateTemplateInference(ctx, wObj, c.Client, c.nodeProvisioner)
 		return err
 	}
 
@@ -825,9 +824,10 @@ func (c *WorkspaceReconciler) collectNodeStatusSnapshot(ctx context.Context, wOb
 		workerNodeNames: []string{},
 	}
 
-	// Collect worker node names for status.
-	matchLabels := client.MatchingLabels(kaitov1beta1.SanitizedMatchLabels(wObj.Resource.LabelSelector))
-	nodeList, err := nodes.ListNodes(ctx, c.Client, matchLabels)
+	// Collect worker node names for status. Scope to nodes owned by this
+	// workspace so sibling workspaces sharing the same label selector
+	// (e.g. InferenceSet replicas) are not reported as this workspace's nodes.
+	nodeList, err := nodeprovision.ListWorkspaceNodes(ctx, c.Client, c.nodeProvisioner, wObj)
 	if err != nil {
 		return nil, err
 	}

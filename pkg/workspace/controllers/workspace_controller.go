@@ -370,14 +370,17 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 	// In Opportunistic mode, gate only on ModelMirror Ready; cache warms lazily on first read.
 
 	// Check cache readiness when configured. In Required mode, block deployment
-	// until the cache is ready.
-	cacheResult := cache.ReconcileCache(ctx, c.Client, wObj, &wObj.Status)
-	if cacheResult.BlockDeployment {
-		klog.V(2).InfoS("Cache not ready, blocking deployment", "workspace", klog.KObj(wObj))
-		if cacheResult.RequeueNeeded {
-			return reconcile.Result{RequeueAfter: 10 * time.Second}, nil
+	// until the cache is ready. Gated on the distributed-cache feature flag so
+	// the cache library itself stays feature-gate agnostic.
+	if featuregates.FeatureGates[consts.FeatureFlagDistributedCache] {
+		cacheResult := cache.ReconcileCache(ctx, c.Client, wObj, &wObj.Status)
+		if cacheResult.BlockDeployment {
+			klog.V(2).InfoS("Cache not ready, blocking deployment", "workspace", klog.KObj(wObj))
+			if cacheResult.RequeueNeeded {
+				return reconcile.Result{RequeueAfter: 10 * time.Second}, nil
+			}
+			return reconcile.Result{}, nil
 		}
-		return reconcile.Result{}, nil
 	}
 
 	if wObj.Tuning != nil {
@@ -772,7 +775,11 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 		// Reconcile cache conditions against the freshly-fetched status so they
 		// are persisted alongside node/inference/tuning conditions. This also
 		// downgrades *CacheReady when the cache was not injected into the pod.
-		cache.ReconcileCache(ctx, c.Client, wObj, status)
+		// Gated on the distributed-cache feature flag so the cache library stays
+		// feature-gate agnostic.
+		if featuregates.FeatureGates[consts.FeatureFlagDistributedCache] {
+			cache.ReconcileCache(ctx, c.Client, wObj, status)
+		}
 
 		// Extract ResourceStatus condition status for downstream use.
 		resourceConditionStatus := metav1.ConditionFalse

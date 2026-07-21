@@ -619,6 +619,113 @@ func TestGeneratePresetInference_CacheGatedOnStreaming(t *testing.T) {
 	}
 }
 
+// gateTestProvider is a mock cache.Provider that is always available, ready and
+// applicable (it does not implement cache.PodApplicabilityChecker, so the
+// framework treats it as unconditionally applicable). It injects a sentinel
+// label whenever its PodMutations is invoked, letting tests isolate the caller
+// side feature-gate decision from provider-declared applicability.
+type gateTestProvider struct{ name string }
+
+const gateCacheLabelKey = "cache-gate/injected"
+
+func (p *gateTestProvider) Name() string { return p.name }
+
+func (p *gateTestProvider) IsAvailable(_ context.Context, _ string) (bool, error) {
+	return true, nil
+}
+
+func (p *gateTestProvider) IsReady(_ context.Context, _ string) (bool, string, error) {
+	return true, "ready", nil
+}
+
+func (p *gateTestProvider) PodMutations(_ context.Context, _ cache.CacheConcern, _ *v1beta1.Workspace, _, _, _ string) (*cache.PodMutations, error) {
+	return &cache.PodMutations{
+		Labels: map[string]string{gateCacheLabelKey: "true"},
+	}, nil
+}
+
+func (p *gateTestProvider) Cleanup(_ context.Context, _ *v1beta1.Workspace, _ string) error {
+	return nil
+}
+
+// TestGeneratePresetInference_CacheFeatureGate proves that the distributed-cache
+// feature gate is honoured on the workspacereconciler/operator side (the caller)
+// rather than inside the pkg/cache library: with the gate enabled an
+// unconditionally-applicable provider injects its sentinel; with the gate
+// disabled the same provider must be skipped entirely.
+func TestGeneratePresetInference_CacheFeatureGate(t *testing.T) {
+	test.RegisterTestModel()
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv("PRESET_REGISTRY_NAME", "test-registry")
+	t.Setenv("RELEASE_NAMESPACE", "kaito")
+
+	provider := &gateTestProvider{name: "cache-gate-preset"}
+	cache.Register(provider)
+
+	for _, tc := range []struct {
+		name        string
+		gateEnabled bool
+		expectLabel bool
+	}{
+		{name: "gate enabled - injected", gateEnabled: true, expectLabel: true},
+		{name: "gate disabled - skipped", gateEnabled: false, expectLabel: false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			origGate := featuregates.FeatureGates[consts.FeatureFlagDistributedCache]
+			featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = tc.gateEnabled
+			defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = origGate }()
+
+			mockClient := test.NewClient()
+			mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+			mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+
+			workspace := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+			nodeCount := 1
+			//nolint:staticcheck //SA1019: deprecated Resource.Count field
+			workspace.Resource.Count = &nodeCount
+			workspace.Status.WorkerNodes = []string{"test-node-1"}
+			workspace.Inference.Adapters = nil
+			workspace.Inference.Config = ""
+			workspace.Cache = &v1beta1.CacheSpec{
+				ModelCache: &v1beta1.ModelCacheSpec{
+					Provider: v1beta1.CacheProvider(provider.name),
+					Mode:     v1beta1.CacheModeOpportunistic,
+				},
+			}
+
+			estimator := &nodesestimator.NodeEstimator{}
+			req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(t.Context(), workspace, mockClient)
+			if reqErr != nil {
+				t.Fatalf("failed to build estimate request: %v", reqErr)
+			}
+			nc, err := estimator.EstimateNodeCount(t.Context(), req, mockClient)
+			if err != nil {
+				t.Fatalf("failed to estimate node count: %v", err)
+			}
+			workspace.Status.TargetNodeCount = int32(nc)
+
+			svc := &corev1.Service{
+				ObjectMeta: metav1.ObjectMeta{Name: workspace.Name, Namespace: workspace.Namespace},
+				Spec:       corev1.ServiceSpec{ClusterIP: "10.0.0.1"},
+			}
+			mockClient.CreateOrUpdateObjectInMap(svc)
+
+			model := plugin.KaitoModelRegister.MustGet("test-model")
+
+			createdObject, err := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, model, mockClient, nil)
+			if err != nil {
+				t.Fatalf("GeneratePresetInference returned error: %v", err)
+			}
+			ss := createdObject.(*appsv1.StatefulSet)
+
+			_, gotLabel := ss.Spec.Template.Labels[gateCacheLabelKey]
+			if gotLabel != tc.expectLabel {
+				t.Errorf("cache label %q presence = %v, want %v (gateEnabled=%v)", gateCacheLabelKey, gotLabel, tc.expectLabel, tc.gateEnabled)
+			}
+		})
+	}
+}
+
 func TestGetDistributedInferenceProbe(t *testing.T) {
 	testcases := map[string]struct {
 		probeType           probeType

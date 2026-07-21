@@ -29,27 +29,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
-func TestReconcileCache_FeatureGateDisabled(t *testing.T) {
-	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false
-	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
-
-	ws := &kaitov1beta1.Workspace{
-		ObjectMeta: metav1.ObjectMeta{CreationTimestamp: metav1.Now()},
-		Cache: &kaitov1beta1.CacheSpec{
-			ModelCache: &kaitov1beta1.ModelCacheSpec{
-				Provider: "noop",
-				Mode:     kaitov1beta1.CacheModeRequired,
-			},
-		},
-	}
-	status := &kaitov1beta1.WorkspaceStatus{}
-
-	result := ReconcileCache(context.Background(), nil, ws, status)
-	if result.BlockDeployment {
-		t.Error("should not block when feature gate is disabled")
-	}
-}
-
 func TestReconcileCache_NilCache(t *testing.T) {
 	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
 	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()

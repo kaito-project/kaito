@@ -23,9 +23,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 )
 
@@ -43,13 +41,10 @@ func providerAppliesTo(p Provider, concern CacheConcern, ws *kaitov1beta1.Worksp
 
 // SetCacheMutations returns a pod spec modifier that injects cache provider
 // env vars, volumes, volume mounts, and init containers into the inference pod.
-// Returns nil (no modifier) when the feature gate is disabled or cache is not configured.
+// Returns nil (no modifier) when cache is not configured. Callers are expected
+// to gate on the distributed-cache feature flag before wiring this modifier in.
 func SetCacheMutations() generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec] {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
-		if !featuregates.FeatureGates[consts.FeatureFlagDistributedCache] {
-			return nil
-		}
-
 		ws := ctx.Workspace
 		if ws.Cache == nil {
 			return nil
@@ -401,10 +396,6 @@ func buildRuntimeConfigMap(ctx context.Context, kubeClient client.Client,
 // volumes, mounts, and environment variables.
 func SetCachePodTemplateLabels() generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, appsv1.StatefulSet] {
 	return func(ctx *generator.WorkspaceGeneratorContext, ss *appsv1.StatefulSet) error {
-		if !featuregates.FeatureGates[consts.FeatureFlagDistributedCache] {
-			return nil
-		}
-
 		ws := ctx.Workspace
 		if ws.Cache == nil {
 			return nil

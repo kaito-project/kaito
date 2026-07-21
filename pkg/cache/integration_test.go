@@ -117,19 +117,6 @@ func TestSetCacheMutations_FullPipeline(t *testing.T) {
 		expectNoEnvVars    []string // env vars that should NOT be present
 	}{
 		{
-			name:               "feature gate disabled - no mutations",
-			featureGateEnabled: false,
-			workspace: &kaitov1beta1.Workspace{
-				Cache: &kaitov1beta1.CacheSpec{
-					ModelCache: &kaitov1beta1.ModelCacheSpec{
-						Provider: "example",
-						Mode:     kaitov1beta1.CacheModeRequired,
-					},
-				},
-			},
-			expectNoEnvVars: []string{"RUNAI_STREAMER_EXPERIMENTAL_AZURE_CACHE_ENABLED", "VLLM_KV_TRANSFER_CONFIG"},
-		},
-		{
 			name:               "model weights only - label + streamer env vars",
 			featureGateEnabled: true,
 			workspace: &kaitov1beta1.Workspace{

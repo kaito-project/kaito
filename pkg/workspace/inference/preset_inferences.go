@@ -219,13 +219,13 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		podOpts = append(podOpts, SetBenchmarkConfig(distributed))
 	}
 
-	// Cache injection is attempted whenever a cache is configured and the feature
-	// gate is on. Whether a given provider actually engages with this workload is
-	// the provider's decision (via cache.PodApplicabilityChecker) — e.g. a
-	// streaming provider only applies when the model is loaded via the run:ai
-	// streamer, while a mount-based provider may apply unconditionally. The
+	// Cache injection is attempted whenever the distributed-cache feature gate is
+	// on and a cache is configured. Whether a given provider actually engages with
+	// this workload is the provider's decision (via cache.PodApplicabilityChecker)
+	// — e.g. a streaming provider only applies when the model is loaded via the
+	// run:ai streamer, while a mount-based provider may apply unconditionally. The
 	// framework does not hardcode any such condition here.
-	cacheApplicable := workspaceObj.Cache != nil
+	cacheApplicable := featuregates.FeatureGates[consts.FeatureFlagDistributedCache] && workspaceObj.Cache != nil
 	if cacheApplicable {
 		podOpts = append(podOpts, cache.SetCacheMutations())
 	}

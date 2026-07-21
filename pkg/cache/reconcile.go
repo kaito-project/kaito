@@ -26,8 +26,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
@@ -51,9 +49,6 @@ type ReconcileResult struct {
 // Returns whether the workspace deployment should be blocked (Required mode + not ready).
 // This should be called early in the reconcile loop, after nodes are ready.
 func ReconcileCache(ctx context.Context, kubeClient client.Client, ws *kaitov1beta1.Workspace, status *kaitov1beta1.WorkspaceStatus) ReconcileResult {
-	if !featuregates.FeatureGates[consts.FeatureFlagDistributedCache] {
-		return ReconcileResult{}
-	}
 	if ws.Cache == nil {
 		return ReconcileResult{}
 	}
@@ -148,7 +143,7 @@ func ReconcileCache(ctx context.Context, kubeClient client.Client, ws *kaitov1be
 func verifyCacheInjection(ctx context.Context, kubeClient client.Client,
 	ws *kaitov1beta1.Workspace, ss *appsv1.StatefulSet, status *kaitov1beta1.WorkspaceStatus) {
 
-	if !featuregates.FeatureGates[consts.FeatureFlagDistributedCache] || ws.Cache == nil {
+	if ws.Cache == nil {
 		return
 	}
 

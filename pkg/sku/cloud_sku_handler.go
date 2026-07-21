@@ -34,6 +34,8 @@ type GPUConfig struct {
 	GPUModel              string
 	NVMeDiskEnabled       bool
 	CUDAComputeCapability float64 // CUDA compute capability version (e.g., 7.5 for Turing, 8.0 for Ampere)
+	// IsMIG indicates that this config represents a MIG partition (slice) rather than full GPUs.
+	IsMIG bool
 }
 
 func (cfg *GPUConfig) String() string {

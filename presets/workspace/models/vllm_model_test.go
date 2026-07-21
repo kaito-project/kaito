@@ -435,7 +435,6 @@ func TestVLLMCompatibleModel_GetTuningParameters(t *testing.T) {
 			assert.NotNil(t, params)
 			tc := TransformerTuningParameters["phi-4"]
 			assert.Equal(t, tc.DiskStorageRequirement, params.DiskStorageRequirement)
-			assert.Equal(t, tc.GPUCountRequirement, params.GPUCountRequirement)
 			assert.Equal(t, tc.TotalSafeTensorFileSize, params.TotalSafeTensorFileSize)
 			assert.Equal(t, tc.ModelTokenLimit, params.ModelTokenLimit)
 			assert.Equal(t, tc.BytesPerToken, params.BytesPerToken)

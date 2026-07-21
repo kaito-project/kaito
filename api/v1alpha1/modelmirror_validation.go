@@ -17,6 +17,8 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"slices"
+	"strings"
 
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	storagev1 "k8s.io/api/storage/v1"
@@ -44,18 +46,64 @@ func (m *ModelMirror) Validate(ctx context.Context) (errs *apis.FieldError) {
 		return errs
 	}
 
-	// Value validation (presence enforced by CRD schema)
-	if m.Spec.Source.Registry != "huggingface" {
-		errs = errs.Also(apis.ErrInvalidValue(
-			fmt.Sprintf("%q is not supported, only \"huggingface\" is supported", m.Spec.Source.Registry),
-			"spec.source.registry"))
+	// Mode defaults to Managed via the CRD schema; an empty value is treated as Managed.
+	switch m.Spec.Mode {
+	case ModelMirrorModeStatic:
+		return m.validateStaticMirror()
+	default:
+		return m.validateManagedMirror(ctx)
 	}
-	if _, err := resource.ParseQuantity(m.Spec.Storage.Size); err != nil {
+}
+
+// validateStaticMirror validates a static mirror: the weights already exist in pre-existing
+// (BYO) storage, so the user fills in nothing but Mode — Source and Storage must be absent.
+func (m *ModelMirror) validateStaticMirror() (errs *apis.FieldError) {
+	if m.Spec.Source != nil {
+		errs = errs.Also(apis.ErrDisallowedFields("spec.source"))
+	}
+	if m.Spec.Storage != nil {
+		errs = errs.Also(apis.ErrDisallowedFields("spec.storage"))
+	}
+	return errs
+}
+
+// validateManagedMirror validates a managed mirror: it downloads the model to a PVC, so Source
+// and Storage are required and their subfields are validated. For each subfield, check-empty-first
+// (missing) then value-check only non-empty values.
+func (m *ModelMirror) validateManagedMirror(ctx context.Context) (errs *apis.FieldError) {
+	if m.Spec.Source == nil {
+		errs = errs.Also(apis.ErrMissingField("spec.source"))
+	} else {
+		if m.Spec.Source.Registry == "" {
+			errs = errs.Also(apis.ErrMissingField("spec.source.registry"))
+		} else if !slices.Contains(SupportedRegistries, m.Spec.Source.Registry) {
+			supported := `"` + strings.Join(SupportedRegistries, `", "`) + `"`
+			errs = errs.Also(apis.ErrInvalidValue(
+				fmt.Sprintf("%q is not supported, only %s are supported", m.Spec.Source.Registry, supported),
+				"spec.source.registry"))
+		}
+		if m.Spec.Source.ModelID == "" {
+			errs = errs.Also(apis.ErrMissingField("spec.source.modelID"))
+		}
+	}
+
+	if m.Spec.Storage == nil {
+		errs = errs.Also(apis.ErrMissingField("spec.storage"))
+		return errs
+	}
+	if m.Spec.Storage.Size == "" {
+		errs = errs.Also(apis.ErrMissingField("spec.storage.size"))
+	} else if _, err := resource.ParseQuantity(m.Spec.Storage.Size); err != nil {
 		errs = errs.Also(apis.ErrInvalidValue(m.Spec.Storage.Size, "spec.storage.size"))
 	}
-	sc := &storagev1.StorageClass{}
-	if err := k8sclient.Client.Get(ctx, types.NamespacedName{Name: m.Spec.Storage.StorageClassName}, sc); err != nil {
-		errs = errs.Also(apis.ErrInvalidValue(m.Spec.Storage.StorageClassName, "spec.storage.storageClassName"))
+	// A Managed mirror downloads to a PVC and requires an existing StorageClass.
+	if m.Spec.Storage.StorageClassName == nil || *m.Spec.Storage.StorageClassName == "" {
+		errs = errs.Also(apis.ErrMissingField("spec.storage.storageClassName"))
+	} else {
+		sc := &storagev1.StorageClass{}
+		if err := k8sclient.Client.Get(ctx, types.NamespacedName{Name: *m.Spec.Storage.StorageClassName}, sc); err != nil {
+			errs = errs.Also(apis.ErrInvalidValue(*m.Spec.Storage.StorageClassName, "spec.storage.storageClassName"))
+		}
 	}
 	return errs
 }

@@ -23,7 +23,7 @@ from ragengine.streaming.buffer_window import StreamingBufferWindow, WindowScanR
 from ragengine.streaming.openai import (
     OpenAIChatChunkParseStatus,
     build_openai_chat_delta_sse_chunk,
-    build_openai_chat_finish_sse_chunk,
+    build_openai_chat_finish_reason_sse_chunk,
     build_sse_done_chunk,
     parse_openai_chat_sse_event,
 )
@@ -154,7 +154,7 @@ async def _flush_window_or_block(
 async def _emit_refusal(guardrails: OutputGuardrails) -> AsyncIterator[str]:
     guardrails._record_response_action("block")
     yield build_openai_chat_delta_sse_chunk(guardrails.block_message)
-    yield build_openai_chat_finish_sse_chunk(finish_reason="content_filter")
+    yield build_openai_chat_finish_reason_sse_chunk(finish_reason="content_filter")
     yield build_sse_done_chunk()
 
 

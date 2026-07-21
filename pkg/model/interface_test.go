@@ -27,8 +27,7 @@ import (
 
 func TestPresetParamDeepCopy(t *testing.T) {
 	original := &PresetParam{
-		Metadata:            Metadata{Name: "test-model"},
-		GPUCountRequirement: "2",
+		Metadata: Metadata{Name: "test-model"},
 		TuningPerGPUMemoryRequirement: map[string]int{
 			"lora": 16000,
 		},
@@ -48,7 +47,6 @@ func TestPresetParamDeepCopy(t *testing.T) {
 	copied := original.DeepCopy()
 	require.NotNil(t, copied)
 	assert.Equal(t, original.Metadata.Name, copied.Metadata.Name)
-	assert.Equal(t, original.GPUCountRequirement, copied.GPUCountRequirement)
 	assert.Equal(t, original.TuningPerGPUMemoryRequirement, copied.TuningPerGPUMemoryRequirement)
 
 	// Mutations on the copy must not affect the original.
@@ -586,6 +584,29 @@ func TestGetInferenceCommandVLLMDataParallelism(t *testing.T) {
 	require.Len(t, cmd, 3)
 	assert.Contains(t, cmd[2], "data-parallel-size=4")
 	assert.Contains(t, cmd[2], "tensor-parallel-size=1")
+	assert.Contains(t, cmd[2], "kaito-kv-cache-cpu-memory-utilization=0")
+}
+
+func TestGetInferenceCommandVLLMMIGDisablesCPUOffload(t *testing.T) {
+	// On a MIG partition, CPU KV-cache offload must be disabled: it sizes itself
+	// from host RAM (cgroup-unaware), so co-located MIG pods would OOM the node.
+	p := &PresetParam{
+		TotalSafeTensorFileSize: "8Gi",
+		RuntimeParam: RuntimeParam{
+			VLLM: VLLMParam{
+				BaseCommand:    "vllm serve",
+				ModelRunParams: map[string]string{},
+			},
+		},
+	}
+	rc := RuntimeContext{
+		RuntimeName: RuntimeNameVLLM,
+		GPUConfig:   &sku.GPUConfig{GPUMem: resource.MustParse("24Gi"), GPUCount: 1, IsMIG: true},
+		SKUNumGPUs:  1,
+		NumNodes:    1,
+	}
+	cmd := p.GetInferenceCommand(rc)
+	require.Len(t, cmd, 3)
 	assert.Contains(t, cmd[2], "kaito-kv-cache-cpu-memory-utilization=0")
 }
 

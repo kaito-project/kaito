@@ -16,6 +16,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -72,9 +73,31 @@ func (r *ModelMirrorReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return r.handleDeletion(ctx, cr)
 	}
 
+	// Static mirror (BYO storage): the model weights already exist in a pre-existing
+	// location, so there is no PVC to provision and no weights to download. Mark Ready
+	// immediately and never create a finalizer, PVC, or Job.
+	if cr.Spec.Mode == kaitov1alpha1.ModelMirrorModeStatic {
+		if cr.Status.Phase == kaitov1alpha1.ModelMirrorPhaseReady {
+			return ctrl.Result{}, nil
+		}
+		cr.Status.Phase = kaitov1alpha1.ModelMirrorPhaseReady
+		cr.Status.FailureMessage = ""
+		setCondition(cr, mmconsts.ConditionTypeReady, metav1.ConditionTrue, "StaticMirror", "No download required")
+		setCondition(cr, mmconsts.ConditionTypeStorageReady, metav1.ConditionTrue, "StaticMirror", "No PVC required")
+		return ctrl.Result{}, r.Status().Update(ctx, cr)
+	}
+
 	// Step 0: If already Ready, no-op
 	if cr.Status.Phase == kaitov1alpha1.ModelMirrorPhaseReady {
 		return ctrl.Result{}, nil
+	}
+
+	if cr.Spec.Source == nil || cr.Spec.Storage == nil {
+		cr.Status.Phase = kaitov1alpha1.ModelMirrorPhasePending
+		msg := "managed ModelMirror requires spec.source and spec.storage"
+		cr.Status.FailureMessage = msg
+		setCondition(cr, mmconsts.ConditionTypeReady, metav1.ConditionFalse, "InvalidSpec", msg)
+		return ctrl.Result{}, r.Status().Update(ctx, cr)
 	}
 
 	// Step 0a: Ensure finalizer
@@ -165,7 +188,7 @@ func (r *ModelMirrorReconciler) ensurePVC(ctx context.Context, cr *kaitov1alpha1
 		},
 		Spec: corev1.PersistentVolumeClaimSpec{
 			AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteMany},
-			StorageClassName: ptr.To(cr.Spec.Storage.StorageClassName),
+			StorageClassName: cr.Spec.Storage.StorageClassName,
 			Resources: corev1.VolumeResourceRequirements{
 				Requests: corev1.ResourceList{
 					corev1.ResourceStorage: storageSize,
@@ -207,7 +230,7 @@ func (r *ModelMirrorReconciler) ensureDownloadJob(ctx context.Context, cr *kaito
 		return nil
 	}
 
-	job := download.BuildDownloadJob(cr, r.DownloadResources)
+	job := download.BuildDownloadJob(cr, r.DownloadResources, download.WorkloadIdentityPodLabels(os.Getenv("CLOUD_PROVIDER")))
 	log.Info("Creating download Job", "namespace", cr.Spec.JobNamespace)
 	return r.Create(ctx, job)
 }

@@ -20,6 +20,7 @@ import (
 
 	"github.com/robfig/cron/v3"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
+	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
@@ -59,8 +60,12 @@ func (is *InferenceSet) validateCreate() (errs *apis.FieldError) {
 	return errs
 }
 
-func (is *InferenceSet) validateUpdate(_ *InferenceSet) (errs *apis.FieldError) {
+func (is *InferenceSet) validateUpdate(old *InferenceSet) (errs *apis.FieldError) {
 	errs = errs.Also(validateInferenceSetMaintenanceWindow(is.Spec.AutoUpgrade))
+	// Partition config is immutable once set.
+	if !apiequality.Semantic.DeepEqual(is.Spec.Template.Resource.Partition, old.Spec.Template.Resource.Partition) {
+		errs = errs.Also(apis.ErrGeneric("field is immutable", "template", "resource", "partition"))
+	}
 	return errs
 }
 

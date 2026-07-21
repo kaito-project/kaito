@@ -246,7 +246,6 @@ func (m *vLLMCompatibleModel) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                      MustGet(m.model.Name),
 		DiskStorageRequirement:        tc.DiskStorageRequirement,
-		GPUCountRequirement:           tc.GPUCountRequirement,
 		TotalSafeTensorFileSize:       tc.TotalSafeTensorFileSize,
 		ModelTokenLimit:               tc.ModelTokenLimit,
 		BytesPerToken:                 tc.BytesPerToken,

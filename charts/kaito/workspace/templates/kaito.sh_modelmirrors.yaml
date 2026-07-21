@@ -50,10 +50,31 @@ spec:
           spec:
             properties:
               jobNamespace:
-                description: JobNamespace is the namespace where the PVC and download
-                  Job will be created.
+                description: |-
+                  JobNamespace is the namespace where the PVC and download Job will be created;
+                  omit entirely for static mirrors.
+                type: string
+              mode:
+                default: Managed
+                description: |-
+                  Mode selects how the model weights are made available:
+                    - "Managed" (default): the controller downloads the model to a PVC via a download Job.
+                    - "Static": the model weights already exist in a pre-existing (BYO) storage location;
+                      the controller creates no PVC and no download Job, and the weights location is
+                      reported in status.modelPath.
+                enum:
+                - Managed
+                - Static
+                type: string
+              serviceAccountName:
+                description: |-
+                  ServiceAccountName is the ServiceAccount used by the workload identity that the download
+                  Job pod runs as. Empty (the default) runs the Job under the namespace default ServiceAccount.
                 type: string
               source:
+                description: |-
+                  Source describes where to download the model weights from. Required for a Managed
+                  mirror; omit entirely for a Static mirror.
                 properties:
                   accessSecret:
                     description: AccessSecret references a secret containing authentication
@@ -103,8 +124,8 @@ spec:
                     description: ModelID is the model identifier (e.g. "Qwen/Qwen2.5-Coder-32B-Instruct").
                     type: string
                   registry:
-                    description: Registry is the source registry type. Currently only
-                      "huggingface" is supported.
+                    description: Registry is the source registry to download the model
+                      weights from.
                     enum:
                     - huggingface
                     type: string
@@ -113,9 +134,12 @@ spec:
                 - registry
                 type: object
               storage:
+                description: |-
+                  Storage describes the PVC to download the model weights into. Required for a Managed
+                  mirror; omit entirely for a Static mirror.
                 properties:
                   size:
-                    description: Size is the PVC size (e.g. "20Gi").
+                    description: Size is the PVC size for managed mirrors.
                     type: string
                   storageClassName:
                     description: StorageClassName is the StorageClass to use for the
@@ -123,12 +147,7 @@ spec:
                     type: string
                 required:
                 - size
-                - storageClassName
                 type: object
-            required:
-            - jobNamespace
-            - source
-            - storage
             type: object
           status:
             properties:

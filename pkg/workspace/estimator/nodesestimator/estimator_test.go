@@ -624,3 +624,144 @@ func TestNodeEstimator_EstimateNodeCount_Qwen25Coder32B(t *testing.T) {
 		})
 	}
 }
+
+func TestNodeEstimator_EstimateNodeCount_MIG(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+	ctx := context.Background()
+	calculator := &NodeEstimator{}
+
+	// test-model requires 8Gi of weights with BytesPerToken=0, so the fit check is:
+	//   modelSize  = 8Gi * 1.02                       = 8.16 GiB
+	//   overhead   = 2.3 GiB base + 0 KV + 0.05*8.16  = 2.71 GiB
+	//   needed     ~= 10.87 GiB
+	//   available  = <sliceGB> * 0.84 GiB
+	// so a slice must expose ~13GB before overhead to fit the model.
+	tests := []struct {
+		name          string
+		migProfile    string
+		expectedCount int32
+		expectedError bool
+		errorContains string
+	}{
+		{
+			name:          "Model fits in a large MIG slice",
+			migProfile:    "2g.24gb", // 24 * 0.84 = 20.16 GiB available
+			expectedCount: 1,
+			expectedError: false,
+		},
+		{
+			name:          "Model fits in a 3g.47gb slice",
+			migProfile:    "3g.47gb", // 47 * 0.84 = 39.48 GiB available
+			expectedCount: 1,
+			expectedError: false,
+		},
+		{
+			name:          "Model does not fit in a small MIG slice",
+			migProfile:    "1g.10gb", // 10 * 0.84 = 8.4 GiB available < 10.87 GiB needed
+			expectedCount: 0,
+			expectedError: true,
+			errorContains: "only provides",
+		},
+		{
+			name:          "Invalid MIG profile returns an error",
+			migProfile:    "bogus",
+			expectedCount: 0,
+			expectedError: true,
+			errorContains: "failed to get MIG GPU config",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// MIG is only active behind the enableMIG gate and is BYO-only.
+			origMIG := featuregates.FeatureGates[consts.FeatureFlagEnableMIG]
+			origNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+			featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = true
+			featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+			defer func() {
+				featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = origMIG
+				featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = origNAP
+			}()
+
+			workspace := &kaitov1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-mig-workspace",
+					Namespace: "default",
+				},
+				Resource: kaitov1beta1.ResourceSpec{
+					// InstanceType is empty for BYO/MIG.
+					Partition: &kaitov1beta1.PartitionSpec{Mode: kaitov1beta1.PartitionModeMIG, Profile: tt.migProfile},
+				},
+				Inference: &kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{
+							Name: "test-model",
+						},
+					},
+				},
+			}
+
+			req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, workspace, nil)
+			require.NoError(t, reqErr)
+			count, err := calculator.EstimateNodeCount(ctx, req, nil)
+
+			if tt.expectedError {
+				require.Error(t, err)
+				if tt.errorContains != "" {
+					assert.Contains(t, err.Error(), tt.errorContains)
+				}
+				assert.Equal(t, tt.expectedCount, count)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tt.expectedCount, count)
+			}
+		})
+	}
+}
+
+// TestNodeEstimator_EstimateNodeCount_MIG_ContextSize exercises the MIG path when
+// a non-default context length is supplied via RuntimeProfile.ContextSize.
+func TestNodeEstimator_EstimateNodeCount_MIG_ContextSize(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+	ctx := context.Background()
+	calculator := &NodeEstimator{}
+
+	origMIG := featuregates.FeatureGates[consts.FeatureFlagEnableMIG]
+	origNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = true
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = origMIG
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = origNAP
+	}()
+
+	workspace := &kaitov1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-mig-ctx-workspace",
+			Namespace: "default",
+		},
+		Resource: kaitov1beta1.ResourceSpec{
+			Partition: &kaitov1beta1.PartitionSpec{Mode: kaitov1beta1.PartitionModeMIG, Profile: "1g.24gb"}, // 24 * 0.84 = 20.16 GiB available
+		},
+		Inference: &kaitov1beta1.InferenceSpec{
+			Preset: &kaitov1beta1.PresetSpec{
+				PresetMeta: kaitov1beta1.PresetMeta{
+					Name: "test-model",
+				},
+			},
+		},
+	}
+
+	req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, workspace, nil)
+	require.NoError(t, reqErr)
+
+	// test-model has BytesPerToken=0, so a large context length does not change
+	// the KV cache term; the model still fits in a 1g.24gb slice. This guards the
+	// ContextSize plumbing through the MIG path.
+	req.RuntimeProfile.ContextSize = 131072
+	count, err := calculator.EstimateNodeCount(ctx, req, nil)
+	require.NoError(t, err)
+	assert.Equal(t, int32(1), count)
+}

@@ -50,6 +50,8 @@ import (
 	"github.com/kaito-project/kaito/pkg/workspace/estimator"
 	"github.com/kaito-project/kaito/pkg/workspace/estimator/nodesestimator"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
+	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
+	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/registry"
 )
 
 func TestSelectWorkspaceNodes(t *testing.T) {
@@ -1011,6 +1013,117 @@ func TestGuardTargetNodeCount(t *testing.T) {
 	}
 }
 
+func TestEnsureModelMirror_StaticWithPartialSASFails(t *testing.T) {
+	ws := &v1beta1.Workspace{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      "ws-static-partial-sas",
+			Namespace: "default",
+			Annotations: map[string]string{
+				modelstreaming.AnnotationStaticModelMirror: "true",
+				modelstreaming.AnnotationStreamURI:         "az://c/model",
+				modelstreaming.AnnotationStreamAccount:     "acct",
+				modelstreaming.AnnotationStreamDatarefsURL: "https://x/datarefs",
+				modelstreaming.AnnotationStreamBlobURI:     "https://acct.blob.core.windows.net/c/prefix",
+				// inference.kaito.sh/stream-identity-client-id intentionally omitted (4 of 5 core).
+			},
+		},
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "phi-4"}},
+		},
+	}
+
+	reconciler := &WorkspaceReconciler{}
+	err := reconciler.ensureModelMirror(context.Background(), ws)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), modelstreaming.AnnotationStaticModelMirror)
+	assert.Contains(t, err.Error(), modelstreaming.AnnotationStreamIdentityClientID)
+}
+
+func TestEnsureModelMirror_StaticWithoutSASFails(t *testing.T) {
+	ws := &v1beta1.Workspace{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      "ws-static-no-sas",
+			Namespace: "default",
+			Annotations: map[string]string{
+				modelstreaming.AnnotationStaticModelMirror: "true",
+			},
+		},
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "phi-4"}},
+		},
+	}
+
+	reconciler := &WorkspaceReconciler{}
+	err := reconciler.ensureModelMirror(context.Background(), ws)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), modelstreaming.AnnotationStaticModelMirror)
+}
+
+// TestEnsureModelMirror_ManagedStampsServiceAccount verifies the managed (download) path
+// resolves the streaming ServiceAccount and stamps it onto the created ModelMirror CR, so the
+// download Job can later mount a workload-identity-authenticated StorageClass.
+func TestEnsureModelMirror_ManagedStampsServiceAccount(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+	const saName = "kaito-model-streamer"
+	streamer, err := registry.GetModelStreamer(consts.AzureCloudName)
+	assert.NoError(t, err)
+	prevSA := modelstreaming.StreamingDefaults.ServiceAccount
+	prevSC := modelstreaming.StreamingDefaults.StorageClass
+	prevStreamer := modelstreaming.StreamingDefaults.ModelStreamer
+	modelstreaming.StreamingDefaults.ServiceAccount = saName
+	modelstreaming.StreamingDefaults.StorageClass = "blob-fuse"
+	modelstreaming.StreamingDefaults.ModelStreamer = streamer
+	t.Cleanup(func() {
+		modelstreaming.StreamingDefaults.ServiceAccount = prevSA
+		modelstreaming.StreamingDefaults.StorageClass = prevSC
+		modelstreaming.StreamingDefaults.ModelStreamer = prevStreamer
+	})
+
+	mockClient := test.NewClient()
+	// Seed the streaming ServiceAccount (exists + WI annotation) so ValidateAuth passes.
+	mockClient.CreateOrUpdateObjectInMap(&corev1.ServiceAccount{
+		ObjectMeta: v1.ObjectMeta{
+			Name:        saName,
+			Namespace:   "default",
+			Annotations: map[string]string{"azure.workload.identity/client-id": "00000000-0000-0000-0000-000000000000"},
+		},
+	})
+	// Seed the StorageClass with the Azure blob CSI provisioner so SC validation passes.
+	mockClient.CreateOrUpdateObjectInMap(&storagev1.StorageClass{
+		ObjectMeta:  v1.ObjectMeta{Name: "blob-fuse"},
+		Provisioner: consts.CSIDriverNameForCloud(consts.AzureCloudName),
+	})
+	mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&corev1.ServiceAccount{}), mock.Anything).Return(nil)
+	mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+	mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&kaitov1alpha1.ModelMirror{}), mock.Anything).Return(test.NotFoundError())
+	mockClient.On("Create", mock.Anything, mock.IsType(&kaitov1alpha1.ModelMirror{}), mock.Anything).Return(nil)
+
+	ws := &v1beta1.Workspace{
+		ObjectMeta: v1.ObjectMeta{Name: "ws-managed-sa", Namespace: "default"},
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "phi-4"}},
+		},
+	}
+
+	reconciler := &WorkspaceReconciler{Client: mockClient}
+	err = reconciler.ensureModelMirror(context.Background(), ws)
+	assert.NoError(t, err)
+
+	// The created CR must carry the resolved ServiceAccount and be Managed.
+	crMap := mockClient.CreateMapWithType(&kaitov1alpha1.ModelMirror{})
+	var created *kaitov1alpha1.ModelMirror
+	for _, obj := range crMap {
+		if mm, ok := obj.(*kaitov1alpha1.ModelMirror); ok {
+			created = mm
+			break
+		}
+	}
+	assert.NotNil(t, created, "a ModelMirror CR should have been created")
+	assert.Equal(t, kaitov1alpha1.ModelMirrorModeManaged, created.Spec.Mode)
+	assert.Equal(t, saName, created.Spec.ServiceAccountName)
+}
+
 func TestSyncWorkspaceStatus(t *testing.T) {
 	originalDisableNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
@@ -1265,7 +1378,7 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 	t.Run("ready when inference and resource are ready", func(t *testing.T) {
 		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStatePending}
 		wObj := &v1beta1.Workspace{ObjectMeta: v1.ObjectMeta{Annotations: map[string]string{v1beta1.AnnotationDisableBenchmark: "true"}}}
-		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue, false)
+		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue, false, "", "")
 
 		assert.Equal(t, v1beta1.WorkspaceStateReady, status.State)
 		inferenceCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
@@ -1279,12 +1392,24 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 
 	t.Run("not ready after established", func(t *testing.T) {
 		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStateReady}
-		applyInferenceWorkspaceStatus(context.Background(), status, &v1beta1.Workspace{}, buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue, false)
+		applyInferenceWorkspaceStatus(context.Background(), status, &v1beta1.Workspace{}, buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue, false, "", "")
 
 		assert.Equal(t, v1beta1.WorkspaceStateNotReady, status.State)
 		inferenceCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
 		assert.NotNil(t, inferenceCondition)
 		assert.Equal(t, v1.ConditionFalse, inferenceCondition.Status)
+	})
+
+	t.Run("not ready surfaces SAS token fetch failure reason", func(t *testing.T) {
+		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStatePending}
+		applyInferenceWorkspaceStatus(context.Background(), status, &v1beta1.Workspace{}, buildReconcileErrMessageAppender(nil),
+			false, v1.ConditionTrue, false, "SASTokenFetchFailed", "SAS token fetch failed: the streaming init container could not obtain a SAS token; check the fetch-sas init container logs")
+
+		inferenceCondition := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
+		assert.NotNil(t, inferenceCondition)
+		assert.Equal(t, v1.ConditionFalse, inferenceCondition.Status)
+		assert.Equal(t, "SASTokenFetchFailed", inferenceCondition.Reason)
+		assert.Contains(t, inferenceCondition.Message, "SAS token fetch failed")
 	})
 
 	t.Run("not-ready path preserves benchmark condition and result (write-once)", func(t *testing.T) {
@@ -1315,7 +1440,7 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 
 		// inferenceReady=false drives the not-ready path. benchmarkApplicable=true.
 		// Write-once: the recorded result and condition must be preserved (no clear).
-		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue, true)
+		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue, true, "", "")
 
 		assert.NotNil(t, status.Performance, "Performance must be preserved on not-ready (write-once)")
 		if status.Performance != nil {
@@ -1351,7 +1476,7 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 		// Empty fake client: if the skip guard did NOT fire, applyBenchmarkStatus would
 		// try to read logs and fail. We assert it stays Ready with the result intact.
 		k8sclient.SetGlobalClientGoClient(kubefake.NewClientset())
-		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue, true)
+		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue, true, "", "")
 
 		assert.Equal(t, v1beta1.WorkspaceStateReady, status.State)
 		m, ok := status.Performance.Metrics[BenchmarkMetricPeakTPM]
@@ -1371,7 +1496,7 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 		// benchmarkApplicable=false (no probe). Empty fake client would fail a log read;
 		// asserting Ready proves applyBenchmarkStatus was not invoked.
 		k8sclient.SetGlobalClientGoClient(kubefake.NewClientset())
-		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue, false)
+		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue, false, "", "")
 
 		assert.Equal(t, v1beta1.WorkspaceStateReady, status.State)
 		succeeded := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeSucceeded))

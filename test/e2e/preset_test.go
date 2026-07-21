@@ -1382,6 +1382,7 @@ var _ = Describe("Workspace Preset", func() {
 	})
 
 	It("should create a custom template workspace successfully", utils.GinkgoLabelFastCheck, func() {
+		Skip("temporarily skip this test due to e2e env quota issue, will re-enable it after the e2e env is fixed")
 		numOfNode := 1
 		imageName := "nginx:latest"
 		workspaceObj := createCustomWorkspaceWithPresetCustomMode(imageName, numOfNode)

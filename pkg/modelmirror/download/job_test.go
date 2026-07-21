@@ -28,7 +28,7 @@ func newTestModelMirror() *kaitov1alpha1.ModelMirror {
 	return &kaitov1alpha1.ModelMirror{
 		Spec: kaitov1alpha1.ModelMirrorSpec{
 			JobNamespace: "default",
-			Source: kaitov1alpha1.ModelMirrorSource{
+			Source: &kaitov1alpha1.ModelMirrorSource{
 				ModelID: "Qwen/Qwen3-8B-AWQ",
 			},
 		},
@@ -67,7 +67,7 @@ func TestBuildDownloadJobResources(t *testing.T) {
 				resources.Memory = tc.memory
 			}
 
-			job := BuildDownloadJob(newTestModelMirror(), resources)
+			job := BuildDownloadJob(newTestModelMirror(), resources, nil)
 			containers := job.Spec.Template.Spec.Containers
 			assert.Len(t, containers, 1)
 			res := containers[0].Resources
@@ -83,4 +83,34 @@ func TestBuildDownloadJobResources(t *testing.T) {
 			assert.True(t, res.Limits[corev1.ResourceMemory].Equal(res.Requests[corev1.ResourceMemory]), "memory limit must equal request")
 		})
 	}
+}
+
+func TestBuildDownloadJobServiceAccount(t *testing.T) {
+	t.Run("empty SA leaves default SA and applies no labels", func(t *testing.T) {
+		cr := newTestModelMirror() // ServiceAccountName unset
+		job := BuildDownloadJob(cr, mmconsts.DefaultDownloadJobResources(), map[string]string{"azure.workload.identity/use": "true"})
+
+		assert.Empty(t, job.Spec.Template.Spec.ServiceAccountName, "no ServiceAccount should be set")
+		assert.NotContains(t, job.Spec.Template.Labels, "azure.workload.identity/use",
+			"pod labels must not be applied when no ServiceAccount is set (account-key mount path)")
+	})
+
+	t.Run("set SA stamps SA and applies provider pod labels", func(t *testing.T) {
+		cr := newTestModelMirror()
+		cr.Spec.ServiceAccountName = "kaito-model-streamer"
+		job := BuildDownloadJob(cr, mmconsts.DefaultDownloadJobResources(), map[string]string{"azure.workload.identity/use": "true"})
+
+		assert.Equal(t, "kaito-model-streamer", job.Spec.Template.Spec.ServiceAccountName)
+		assert.Equal(t, "true", job.Spec.Template.Labels["azure.workload.identity/use"],
+			"provider pod labels must be applied so a workload-identity-authenticated StorageClass can mount")
+	})
+
+	t.Run("set SA with nil labels stamps SA but adds no labels", func(t *testing.T) {
+		cr := newTestModelMirror()
+		cr.Spec.ServiceAccountName = "kaito-model-streamer"
+		job := BuildDownloadJob(cr, mmconsts.DefaultDownloadJobResources(), nil)
+
+		assert.Equal(t, "kaito-model-streamer", job.Spec.Template.Spec.ServiceAccountName)
+		assert.Empty(t, job.Spec.Template.Labels, "no pod labels expected when provider supplies none (non-Azure cloud)")
+	})
 }

@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package inference
+package modelstreaming
 
 import (
 	"crypto/sha256"
@@ -27,6 +27,28 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
+)
+
+// Shared SAS-fetch wiring, referenced by both SetStreamingConfig (which wires the main
+// container's entrypoint wrapper) and the SAS provider (which produces the init container).
+const (
+	// SASFetchInitContainerName is the name of the init container that mints the SAS token.
+	SASFetchInitContainerName = "fetch-sas"
+	// SASSharedVolumeName is the memory-backed emptyDir shared between the SAS-fetch
+	// init container and the main inference container.
+	SASSharedVolumeName = "streaming-sas"
+	// SASSharedMountPath is where the shared volume is mounted in both containers. It holds
+	// the SAS env file the init container writes and the main container's wrapper sources.
+	SASSharedMountPath = "/mnt/streaming"
+	// SASEnvFileName is the env file (KEY=value lines) the init container writes and the
+	// main container's entrypoint wrapper sources to export AZURE_STORAGE_SAS_TOKEN.
+	SASEnvFileName = "env"
+	// SASEnvFileEnvVar is the env var (set on both the init and main containers) naming the
+	// SAS env file path: the init container writes it, the main container's wrapper sources it.
+	SASEnvFileEnvVar = "STREAM_ENV_FILE"
+	// sasTokenExportWrapper is the transparent entrypoint wrapper baked into the base image.
+	// It sources the SAS env file (STREAM_ENV_FILE) then exec's the original command.
+	sasTokenExportWrapper = "/workspace/vllm/export_sas_token_for_streaming.sh"
 )
 
 // StreamingDefaults holds the cluster-wide defaults for model streaming,
@@ -88,13 +110,17 @@ func ResolveStreamingServiceAccount(ws *v1beta1.Workspace, defaultSA string) (st
 }
 
 // ResolveStorageClass resolves the StorageClass for the ModelMirror PVC.
-// Priority: workspace annotation > controller flag.
-func ResolveStorageClass(ws *v1beta1.Workspace, defaultSC string) string {
+func ResolveStorageClass(ws *v1beta1.Workspace, defaultSC string) (string, error) {
 	sc := ws.Annotations[mmconsts.AnnotationModelMirrorStorageClass]
 	if sc == "" {
 		sc = defaultSC
 	}
-	return sc
+	if sc == "" {
+		return "", fmt.Errorf("model streaming enabled but no storage class configured: "+
+			"set annotation %s on the workspace or --default-model-mirror-storage-class on the controller",
+			mmconsts.AnnotationModelMirrorStorageClass)
+	}
+	return sc, nil
 }
 
 // buildCommonStreamingEnvVars returns env vars common to all cloud providers:
@@ -106,16 +132,18 @@ func buildCommonStreamingEnvVars(modelID string) []corev1.EnvVar {
 }
 
 // SetStreamingConfig modifies the pod spec for streaming mode:
-// - Adds provider-specific env vars (e.g. AZURE_STORAGE_ACCOUNT_NAME)
-// - Adds common env vars (e.g. KAITO_PROCESSOR)
-// - Sets serviceAccountName
+//   - Adds provider-specific env vars (e.g. AZURE_STORAGE_ACCOUNT_NAME)
+//   - Adds common env vars (e.g. KAITO_PROCESSOR)
+//   - Sets serviceAccountName
+//   - When the provider supplies init containers (SAS path): appends the shared volume, mounts
+//     it in the main container, and prepends the transparent entrypoint wrapper.
 //
 // Note: weights volume mount removal and init container skipping are handled upstream —
 // GenerateInferencePodSpec skips the mount when streamingModelPath is set, and
 // SetModelDownloadInfo returns early when streaming is enabled.
 func SetStreamingConfig(streamingCfg *StreamingConfig, modelID, defaultSA string) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
-		found := false
+		mainIdx := -1
 		for i := range spec.Containers {
 			if spec.Containers[i].Name == ctx.Workspace.Name {
 				// Add provider-specific env vars (e.g. AZURE_STORAGE_ACCOUNT_NAME)
@@ -123,12 +151,36 @@ func SetStreamingConfig(streamingCfg *StreamingConfig, modelID, defaultSA string
 
 				// Add common streaming env vars
 				spec.Containers[i].Env = append(spec.Containers[i].Env, buildCommonStreamingEnvVars(modelID)...)
-				found = true
+				mainIdx = i
 				break
 			}
 		}
-		if !found {
+		if mainIdx == -1 {
 			return fmt.Errorf("inference container %q not found in pod spec", ctx.Workspace.Name)
+		}
+
+		// Wire init containers and shared volumes for providers that supply them (e.g. SAS path).
+		// The Azure/PVC path returns empty slices, so all blocks below are naturally skipped.
+		if len(streamingCfg.Volumes) > 0 {
+			spec.Volumes = append(spec.Volumes, streamingCfg.Volumes...)
+		}
+
+		if len(streamingCfg.InitContainers) > 0 {
+			spec.InitContainers = append(spec.InitContainers, streamingCfg.InitContainers...)
+
+			// Mount the shared volume in the main inference container.
+			spec.Containers[mainIdx].VolumeMounts = append(spec.Containers[mainIdx].VolumeMounts, corev1.VolumeMount{
+				Name:      SASSharedVolumeName,
+				MountPath: SASSharedMountPath,
+			})
+
+			// Tell the wrapper where to source the SAS env file.
+			spec.Containers[mainIdx].Env = append(spec.Containers[mainIdx].Env, corev1.EnvVar{
+				Name:  SASEnvFileEnvVar,
+				Value: SASSharedMountPath + "/" + SASEnvFileName,
+			})
+
+			spec.Containers[mainIdx].Command = append([]string{sasTokenExportWrapper}, spec.Containers[mainIdx].Command...)
 		}
 
 		// Set ServiceAccount (defaultSA is the controller flag value)

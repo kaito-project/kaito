@@ -40,7 +40,6 @@ var ValidStrength string = "0.5"
 var InvalidStrength1 string = "invalid"
 var InvalidStrength2 string = "1.5"
 
-var gpuCountRequirement string
 var totalSafeTensorFileSize string
 var perGPUMemoryRequirement string
 
@@ -57,7 +56,6 @@ type testModel struct{}
 
 func (*testModel) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement:     gpuCountRequirement,
 		TotalSafeTensorFileSize: totalSafeTensorFileSize,
 		ModelTokenLimit:         4096, // Add ModelTokenLimit for validation testing
 		RuntimeParam: model.RuntimeParam{
@@ -69,7 +67,6 @@ func (*testModel) GetInferenceParameters() *model.PresetParam {
 }
 func (*testModel) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement:     gpuCountRequirement,
 		TotalSafeTensorFileSize: totalSafeTensorFileSize,
 	}
 }
@@ -84,13 +81,11 @@ type testModelStatic struct{}
 
 func (*testModelStatic) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "16Gi",
 	}
 }
 func (*testModelStatic) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "16Gi",
 	}
 }
@@ -110,7 +105,6 @@ func (*testModelDownload) GetInferenceParameters() *model.PresetParam {
 			DownloadAtRuntime:    true,
 			DownloadAuthRequired: true,
 		},
-		GPUCountRequirement:     "2",
 		TotalSafeTensorFileSize: "32Gi",
 	}
 }
@@ -129,7 +123,6 @@ type testModelLarge struct{}
 
 func (*testModelLarge) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement:     "8",     // Requires 8 GPUs
 		TotalSafeTensorFileSize: "131Gi", // Approximately 131GB total memory requirement
 	}
 }
@@ -148,7 +141,6 @@ type testModelSmallA10 struct{}
 
 func (*testModelSmallA10) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement:     "1",   // Requires 1 GPU
 		TotalSafeTensorFileSize: "7Gi", // Small model that fits on A10
 	}
 }
@@ -306,7 +298,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 	tests := []struct {
 		name                    string
 		resourceSpec            *ResourceSpec
-		modelGPUCount           string
 		modelPerGPUMemory       string
 		totalSafeTensorFileSize string
 		preset                  bool
@@ -324,7 +315,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_ND96asr_v4",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:           "8",
 			modelPerGPUMemory:       "19Gi",
 			totalSafeTensorFileSize: "152Gi",
 			preset:                  true,
@@ -339,7 +329,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:           "1",
 			modelPerGPUMemory:       "16Gi",
 			totalSafeTensorFileSize: "16Gi",
 			preset:                  true,
@@ -792,7 +781,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:           "1",
 			modelPerGPUMemory:       "0",
 			totalSafeTensorFileSize: "",
 			preset:                  true,
@@ -807,7 +795,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:           "1",
 			modelPerGPUMemory:       "0",
 			totalSafeTensorFileSize: "not-a-quantity",
 			preset:                  true,
@@ -822,7 +809,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:           "1",
 			modelPerGPUMemory:       "16Gi",
 			totalSafeTensorFileSize: "1Gi",
 			preset:                  true,
@@ -899,7 +885,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 					}
 				}
 
-				gpuCountRequirement = tc.modelGPUCount
 				totalSafeTensorFileSize = tc.totalSafeTensorFileSize
 				perGPUMemoryRequirement = tc.modelPerGPUMemory
 
@@ -916,6 +901,80 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 						t.Errorf("validateCreate() error message = %v, expected to contain = %v", errMsg, tc.errContent)
 					}
 				}
+			}
+		})
+	}
+}
+
+func TestValidateMIGModelFit(t *testing.T) {
+	RegisterValidationTestModels()
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+	origMIG := featuregates.FeatureGates[consts.FeatureFlagEnableMIG]
+	origNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = true
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = origMIG
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = origNAP
+	}()
+
+	scheme := runtime.NewScheme()
+	_ = v1.AddToScheme(scheme)
+	k8sclient.SetGlobalClient(fake.NewClientBuilder().WithScheme(scheme).Build())
+
+	tests := []struct {
+		name                    string
+		presetName              string
+		profile                 string
+		totalSafeTensorFileSize string // only used by the "test-validation" preset
+		bypass                  bool
+		expectErrs              bool
+		errContent              string
+	}{
+		{
+			name:                    "model fits within the MIG slice",
+			presetName:              "test-validation",
+			profile:                 "2g.24gb",
+			totalSafeTensorFileSize: "8Gi",
+			expectErrs:              false,
+		},
+		{
+			name:       "model exceeds the MIG slice",
+			presetName: "test-large-model", // 131Gi weights
+			profile:    "1g.10gb",
+			expectErrs: true,
+			errContent: "exceeds the 1g.10gb MIG slice",
+		},
+		{
+			name:       "bypass annotation allows an oversized model",
+			presetName: "test-large-model",
+			profile:    "1g.10gb",
+			bypass:     true,
+			expectErrs: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			totalSafeTensorFileSize = tc.totalSafeTensorFileSize
+
+			resourceSpec := &ResourceSpec{
+				InstanceType: "", // BYO
+				Count:        pointerToInt(1),
+				Partition:    &PartitionSpec{Mode: PartitionModeMIG, Profile: tc.profile},
+			}
+			spec := &InferenceSpec{
+				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName(tc.presetName)}},
+			}
+
+			errs := resourceSpec.validateCreateWithInference(context.TODO(), spec, tc.bypass, model.RuntimeNameVLLM, "")
+			hasErrs := errs != nil
+			if hasErrs != tc.expectErrs {
+				t.Errorf("validateCreateWithInference() errors = %v, expectErrs %v", errs, tc.expectErrs)
+			}
+			if hasErrs && tc.errContent != "" && !strings.Contains(errs.Error(), tc.errContent) {
+				t.Errorf("validateCreateWithInference() error = %v, expected to contain %q", errs, tc.errContent)
 			}
 		})
 	}

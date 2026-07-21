@@ -111,11 +111,10 @@ jobs:
           helm repo add keda-kaito-scaler https://kaito-project.github.io/keda-kaito-scaler/charts/kaito-project
           helm repo update
           # keda-kaito-scaler must be in the same namespace as KEDA (shares TLS secrets)
-          # Install the latest version so we exercise the annotation-driven
-          # auto-provision flow introduced in v0.6.0
-          # (kaito-project/keda-kaito-scaler#122). The InferenceSet fixture
-          # below uses the new indexed metric annotations.
-          helm upgrade --install keda-kaito-scaler -n keda keda-kaito-scaler/keda-kaito-scaler
+          # Pin to v0.6.1 which introduced the annotation-driven auto-provision
+          # flow (kaito-project/keda-kaito-scaler#122). The InferenceSet
+          # fixture below uses the new indexed metric annotations.
+          helm upgrade --install keda-kaito-scaler -n keda keda-kaito-scaler/keda-kaito-scaler --version 0.6.1
           kubectl wait --for=condition=available --timeout=300s deployment/keda-kaito-scaler -n keda
 
           # Wait for keda-kaito-scaler TLS certs to be fully provisioned before
@@ -164,7 +163,7 @@ jobs:
           metadata:
             name: inferenceset-aikit-test
             annotations:
-              # v0.6.0+ annotation-driven auto-provision
+              # v0.6.1+ annotation-driven auto-provision
               # (kaito-project/keda-kaito-scaler#122).
               # Per-metric keys are indexed with a "/{i}" suffix; the presence
               # of metricName/0 enables auto-provisioning.

@@ -163,20 +163,22 @@ jobs:
           metadata:
             name: inferenceset-aikit-test
             annotations:
-              # v0.6.1+ annotation-driven auto-provision
-              # (kaito-project/keda-kaito-scaler#122).
-              # Per-metric keys are indexed with a "/{i}" suffix; the presence
-              # of metricName/0 enables auto-provisioning.
+              # v0.6.1+ annotation-driven auto-provision. The v0.6.0 indexed
+              # keys (metricName/0, upthreshold/0, ...) were invalid Kubernetes
+              # annotation keys and were replaced in
+              # kaito-project/keda-kaito-scaler#129 with a single YAML-list
+              # `scaledobject.kaito.sh/metrics` annotation.
               scaledobject.kaito.sh/auto-provision: "true"
               scaledobject.kaito.sh/max-replicas: "5"
-              # Metric 0: vLLM waiting-queue length (gauge -> per-replica avg).
-              # AIKit does not emit vLLM metrics, so this trigger will never
-              # fire in the test — the goal is only to validate that the
-              # ScaledObject / HPA are created and reconciled correctly.
-              scaledobject.kaito.sh/metricName/0: "vllm:num_requests_waiting"
-              scaledobject.kaito.sh/metricstype/0: "gauge"
-              scaledobject.kaito.sh/upthreshold/0: "10"
-              scaledobject.kaito.sh/downthreshold/0: "1"
+              # One entry per metric. AIKit does not emit vLLM metrics, so
+              # this trigger will never fire in the test — the goal is only
+              # to validate that the ScaledObject / HPA are created and
+              # reconciled correctly.
+              scaledobject.kaito.sh/metrics: |
+                - name: vllm:num_requests_waiting
+                  type: gauge
+                  upthreshold: 10
+                  downthreshold: 1
           spec:
             labelSelector:
               matchLabels:

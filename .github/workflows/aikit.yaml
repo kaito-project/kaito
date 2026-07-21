@@ -111,9 +111,12 @@ jobs:
           helm repo add keda-kaito-scaler https://kaito-project.github.io/keda-kaito-scaler/charts/kaito-project
           helm repo update
           # keda-kaito-scaler must be in the same namespace as KEDA (shares TLS secrets)
-          # Pin to v0.6.1 which introduced the annotation-driven auto-provision
-          # flow (kaito-project/keda-kaito-scaler#122). The InferenceSet
-          # fixture below uses the new indexed metric annotations.
+          # Pin to v0.6.1: v0.6.0 shipped the annotation-driven auto-provision
+          # flow (kaito-project/keda-kaito-scaler#122) but with indexed per-metric
+          # keys that were invalid Kubernetes annotations; v0.6.1 replaced them
+          # with a single YAML-list `scaledobject.kaito.sh/metrics` annotation
+          # (kaito-project/keda-kaito-scaler#129, fixes #128). The InferenceSet
+          # fixture below uses that v0.6.1 metrics-list schema.
           helm upgrade --install keda-kaito-scaler -n keda keda-kaito-scaler/keda-kaito-scaler --version 0.6.1
           kubectl wait --for=condition=available --timeout=300s deployment/keda-kaito-scaler -n keda
 

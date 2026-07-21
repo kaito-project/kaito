@@ -1019,12 +1019,10 @@ func TestEnsureModelMirror_StaticWithPartialSASFails(t *testing.T) {
 			Name:      "ws-static-partial-sas",
 			Namespace: "default",
 			Annotations: map[string]string{
-				modelstreaming.AnnotationStaticModelMirror: "true",
-				modelstreaming.AnnotationStreamURI:         "az://c/model",
-				modelstreaming.AnnotationStreamAccount:     "acct",
-				modelstreaming.AnnotationStreamDatarefsURL: "https://x/datarefs",
-				modelstreaming.AnnotationStreamBlobURI:     "https://acct.blob.core.windows.net/c/prefix",
-				// inference.kaito.sh/stream-identity-client-id intentionally omitted (4 of 5 core).
+				modelstreaming.AnnotationStaticModelMirror:  "true",
+				modelstreaming.AnnotationStreamDatarefsURL:  "https://x/models/m/versions/1/credentials",
+				modelstreaming.AnnotationStreamSourceType:  modelstreaming.SourceTypeBYO,
+				// inference.kaito.sh/stream-identity-client-id intentionally omitted (partial core set).
 			},
 		},
 		Inference: &v1beta1.InferenceSpec{

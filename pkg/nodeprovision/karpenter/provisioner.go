@@ -389,6 +389,9 @@ type nodeReadinessSnapshot struct {
 	// readyNodeClaims is the subset of karpenter-managed NodeClaims that are Ready and not deleting.
 	// Used for GPU plugin readiness checks.
 	readyNodeClaims []*karpenterv1.NodeClaim
+	// allNodeClaims is every karpenter-managed NodeClaim for the workspace (ready or not).
+	// Used to surface the underlying cloud-provider provisioning error in status.
+	allNodeClaims []*karpenterv1.NodeClaim
 }
 
 // buildNodeReadinessSnapshot lists karpenter NodeClaims and all workspace nodes,
@@ -411,6 +414,11 @@ func (p *KarpenterProvisioner) buildNodeReadinessSnapshot(ctx context.Context, w
 		}
 	}
 
+	allNodeClaims := make([]*karpenterv1.NodeClaim, 0, len(nodeClaimList.Items))
+	for i := range nodeClaimList.Items {
+		allNodeClaims = append(allNodeClaims, &nodeClaimList.Items[i])
+	}
+
 	// Count all ready nodes matching workspace labels (BYO + legacy + karpenter).
 	coveredByNonKarpenterCount, readyWithInstanceTypeCount, err := countCoveredNodes(ctx, p.client, ws)
 	if err != nil {
@@ -424,6 +432,7 @@ func (p *KarpenterProvisioner) buildNodeReadinessSnapshot(ctx context.Context, w
 		coveredByNonKarpenterCount: coveredByNonKarpenterCount,
 		targetNodeClaimCount:       targetNodeClaimCount,
 		readyNodeClaims:            readyNodeClaims,
+		allNodeClaims:              allNodeClaims,
 	}, nil
 }
 
@@ -548,6 +557,12 @@ func (p *KarpenterProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *ka
 		nodeClaimCond.Status = metav1.ConditionTrue
 		nodeClaimCond.Reason = "NodeClaimsReady"
 		nodeClaimCond.Message = "Enough NodeClaims are ready"
+	} else if reason, message, ok := nodeclaim.FirstProvisioningError(snap.allNodeClaims); ok {
+		// Surface the underlying cloud-provider provisioning error (e.g. quota
+		// exceeded, unauthorized) so users can see the root cause in the
+		// workspace/inferenceset status instead of a generic message.
+		nodeClaimCond.Reason = reason
+		nodeClaimCond.Message = message
 	}
 
 	// Node condition: are enough nodes ready with GPU resources?

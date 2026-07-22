@@ -20,6 +20,7 @@ dev environments without a GPU or vllm installed.
 
 import sys
 from pathlib import Path
+from types import ModuleType
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -28,6 +29,26 @@ import pytest
 # Use setdefault so we don't replace already-loaded real modules when the
 # full test suite runs in a GPU environment.
 _HF_MOCK = MagicMock(name="huggingface_hub")
+
+
+# starlette needs real classes because rate_limit.RateLimitMiddleware
+# subclasses BaseHTTPMiddleware — a MagicMock can't be a base class.
+class _StubBaseHTTPMiddleware:
+    def __init__(self, app=None):
+        self.app = app
+
+
+class _StubJSONResponse:
+    def __init__(self, status_code, content):
+        self.status_code = status_code
+        self.content = content
+
+
+_starlette_base = ModuleType("starlette.middleware.base")
+_starlette_base.BaseHTTPMiddleware = _StubBaseHTTPMiddleware
+_starlette_responses = ModuleType("starlette.responses")
+_starlette_responses.JSONResponse = _StubJSONResponse
+
 _STUBS = {
     "vllm": MagicMock(),
     "vllm.entrypoints": MagicMock(),
@@ -43,9 +64,12 @@ _STUBS = {
     "torch": MagicMock(),
     "uvloop": MagicMock(),
     "psutil": MagicMock(),
-    "prometheus_client": MagicMock(),
     "yaml": MagicMock(),
     "huggingface_hub": _HF_MOCK,
+    "starlette": ModuleType("starlette"),
+    "starlette.middleware": ModuleType("starlette.middleware"),
+    "starlette.middleware.base": _starlette_base,
+    "starlette.responses": _starlette_responses,
 }
 for _name, _mock in _STUBS.items():
     sys.modules.setdefault(_name, _mock)

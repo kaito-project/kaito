@@ -21,6 +21,8 @@ import (
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/pkg/apis"
+
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestInferenceSet_SupportedVerbs(t *testing.T) {
@@ -397,6 +399,96 @@ func TestValidateMaintenanceWindow(t *testing.T) {
 				assert.NotNil(t, err)
 				if tt.errMsg != "" {
 					assert.Contains(t, err.Error(), tt.errMsg)
+				}
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
+}
+
+func TestInferenceSet_validateInstanceType(t *testing.T) {
+	tests := []struct {
+		name            string
+		nodeProvisioner string
+		instanceType    string
+		wantErr         bool
+		errField        string
+	}{
+		{
+			name:            "BYO mode with empty instanceType - valid",
+			nodeProvisioner: consts.NodeProvisionerBYO,
+			instanceType:    "",
+			wantErr:         false,
+		},
+		{
+			name:            "BYO mode with instanceType set - invalid",
+			nodeProvisioner: consts.NodeProvisionerBYO,
+			instanceType:    "Standard_NC6s_v3",
+			wantErr:         true,
+			errField:        "resource.instanceType",
+		},
+		{
+			name:            "Karpenter mode with instanceType set - valid",
+			nodeProvisioner: consts.NodeProvisionerKarpenter,
+			instanceType:    "Standard_NC6s_v3",
+			wantErr:         false,
+		},
+		{
+			name:            "Karpenter mode with empty instanceType - invalid",
+			nodeProvisioner: consts.NodeProvisionerKarpenter,
+			instanceType:    "",
+			wantErr:         true,
+			errField:        "resource.instanceType",
+		},
+		{
+			name:            "AzureGPU mode with instanceType set - valid",
+			nodeProvisioner: consts.NodeProvisionerAzureGPU,
+			instanceType:    "Standard_NC6s_v3",
+			wantErr:         false,
+		},
+		{
+			name:            "AzureGPU mode with empty instanceType - invalid",
+			nodeProvisioner: consts.NodeProvisionerAzureGPU,
+			instanceType:    "",
+			wantErr:         true,
+			errField:        "resource.instanceType",
+		},
+		{
+			name:            "Unknown provisioner with instanceType - no error",
+			nodeProvisioner: "",
+			instanceType:    "Standard_NC6s_v3",
+			wantErr:         false,
+		},
+		{
+			name:            "Unknown provisioner without instanceType - no error",
+			nodeProvisioner: "",
+			instanceType:    "",
+			wantErr:         false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Save and restore global state
+			orig := consts.ActiveNodeProvisioner
+			consts.ActiveNodeProvisioner = tt.nodeProvisioner
+			defer func() { consts.ActiveNodeProvisioner = orig }()
+
+			is := &InferenceSet{
+				Spec: InferenceSetSpec{
+					Template: InferenceSetTemplate{
+						Resource: InferenceSetResourceSpec{
+							InstanceType: tt.instanceType,
+						},
+					},
+				},
+			}
+			err := is.validateInstanceType()
+			if tt.wantErr {
+				assert.NotNil(t, err)
+				if tt.errField != "" {
+					assert.Contains(t, err.Error(), tt.errField)
 				}
 			} else {
 				assert.Nil(t, err)

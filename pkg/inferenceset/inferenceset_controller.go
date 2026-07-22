@@ -321,9 +321,13 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 				*metav1.NewControllerRef(iObj, kaitov1beta1.GroupVersion.WithKind("InferenceSet")),
 			}
 			workspaceObj.Resource = kaitov1beta1.ResourceSpec{
-				InstanceType:  iObj.Spec.Template.Resource.InstanceType,
 				LabelSelector: iObj.Spec.Selector,
 				Partition:     iObj.Spec.Template.Resource.Partition,
+			}
+			// Only set InstanceType when node auto-provisioning is enabled.
+			// In BYO mode, the Workspace webhook rejects instanceType.
+			if consts.ActiveNodeProvisioner != consts.NodeProvisionerBYO {
+				workspaceObj.Resource.InstanceType = iObj.Spec.Template.Resource.InstanceType
 			}
 			workspaceObj.Inference = &iObj.Spec.Template.Inference
 

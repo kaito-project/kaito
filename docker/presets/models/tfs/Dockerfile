@@ -63,6 +63,7 @@ COPY presets/workspace/inference/vllm/inference_api.py \
     presets/workspace/inference/vllm/multi-node-health-check.py \
     presets/workspace/inference/vllm/list_supported_llm_archs.py \
     presets/workspace/inference/vllm/benchmark_entrypoint.py \
+    presets/workspace/inference/vllm/rate_limit.py \
     presets/workspace/inference/vllm/export_sas_token_for_streaming.sh \
     /workspace/vllm/
 

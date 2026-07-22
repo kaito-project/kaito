@@ -88,6 +88,33 @@ const (
 	//     aggressive batching, throughput-oriented kernels).
 	// Only supported when the vLLM runtime is used.
 	AnnotationPerformanceMode = KAITOPrefix + "performance-mode"
+
+	// AnnotationModelWeightsHostPath points the inference workload at model weights
+	// that are already present on the node (e.g. baked into a custom GPU node image)
+	// instead of downloading them from HuggingFace at runtime. The value must be an
+	// absolute host directory that contains the model weights, for example
+	// "/opt/kaito/models/deepseekv4flash". When set, KAITO mounts that host directory
+	// read-only into the inference container at the same path and passes it to vLLM
+	// as --model, skipping the HuggingFace download entirely.
+	AnnotationModelWeightsHostPath = KAITOPrefix + "model-weights-hostpath"
+
+	// AnnotationCUDAToolkitHostPath mounts a CUDA toolkit that is present on the node
+	// (e.g. baked into a custom GPU node image) into the inference container. Some
+	// runtime kernels such as DeepGEMM JIT-compile at runtime and require nvcc, which
+	// the slim base image does not ship. The value must be an absolute host directory
+	// that contains the CUDA toolkit, for example "/usr/local/cuda". When set, KAITO
+	// mounts that host directory read-only into the container at the same path and
+	// sets CUDA_HOME to it.
+	AnnotationCUDAToolkitHostPath = KAITOPrefix + "cuda-toolkit-hostpath"
+
+	// AnnotationInstallCUDAToolkit, when set to "true", installs the CUDA toolkit
+	// (cuda-toolkit-12-9) into the inference pod at runtime via an init container,
+	// staged into a shared volume that the main container uses as CUDA_HOME. This is
+	// a self-contained fallback for nodes that do not expose a mountable CUDA toolkit
+	// (see AnnotationCUDAToolkitHostPath). It is needed by runtimes such as DeepGEMM
+	// that JIT-compile FP8 kernels with nvcc, which the slim base image does not ship.
+	// When both this and AnnotationCUDAToolkitHostPath are set, this takes precedence.
+	AnnotationInstallCUDAToolkit = KAITOPrefix + "install-cuda-toolkit"
 )
 
 // Valid values for AnnotationPerformanceMode.
@@ -148,6 +175,37 @@ func GetPerformanceMode(ws *Workspace) string {
 		return v
 	}
 	return PerformanceModeBalanced
+}
+
+// GetModelWeightsHostPath returns the value of AnnotationModelWeightsHostPath,
+// or an empty string when the annotation is absent. A non-empty value indicates
+// the workspace should load model weights from a host directory (e.g. baked into
+// a custom GPU node image) instead of downloading them at runtime.
+func GetModelWeightsHostPath(ws *Workspace) string {
+	if ws == nil {
+		return ""
+	}
+	return ws.Annotations[AnnotationModelWeightsHostPath]
+}
+
+// GetCUDAToolkitHostPath returns the value of AnnotationCUDAToolkitHostPath,
+// or an empty string when the annotation is absent. A non-empty value indicates
+// the workspace should mount a CUDA toolkit from the node into the container.
+func GetCUDAToolkitHostPath(ws *Workspace) string {
+	if ws == nil {
+		return ""
+	}
+	return ws.Annotations[AnnotationCUDAToolkitHostPath]
+}
+
+// IsInstallCUDAToolkitEnabled reports whether the workspace opts into installing
+// the CUDA toolkit at runtime via an init container (AnnotationInstallCUDAToolkit
+// set to "true").
+func IsInstallCUDAToolkitEnabled(ws *Workspace) bool {
+	if ws == nil {
+		return false
+	}
+	return ws.Annotations[AnnotationInstallCUDAToolkit] == "true"
 }
 
 // reservedSelectorLabelKeys are labels that KAITO controllers apply to their

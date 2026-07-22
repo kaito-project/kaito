@@ -219,28 +219,33 @@ func TestReadinessTimeoutForModelSize(t *testing.T) {
 		expected      time.Duration
 	}{
 		{
-			name:          "large model above threshold uses 60m",
+			name:          "large model above threshold uses large timeout",
 			modelFileSize: "554.32Gi", // Kimi-K2.5
 			expected:      largeModelReadinessTimeout,
 		},
 		{
-			name:          "very large model above threshold uses 60m",
+			name:          "very large model above threshold uses large timeout",
 			modelFileSize: "641.30Gi", // DeepSeek-R1-0528
 			expected:      largeModelReadinessTimeout,
 		},
 		{
-			name:          "model just above threshold uses 60m",
-			modelFileSize: "300.01Gi",
+			name:          "fp8 model above threshold uses large timeout",
+			modelFileSize: "148.66Gi", // DeepSeek-V4-Flash
+			expected:      largeModelReadinessTimeout,
+		},
+		{
+			name:          "model just above threshold uses large timeout",
+			modelFileSize: "100.01Gi",
 			expected:      largeModelReadinessTimeout,
 		},
 		{
 			name:          "model at threshold uses default",
-			modelFileSize: "300Gi",
+			modelFileSize: "100Gi",
 			expected:      defaultReadinessTimeout,
 		},
 		{
 			name:          "model below threshold uses default",
-			modelFileSize: "131.42Gi", // Llama-3.3-70B
+			modelFileSize: "99Gi",
 			expected:      defaultReadinessTimeout,
 		},
 		{
@@ -704,6 +709,25 @@ func TestGetModelByName(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestGetModelByName_DeepSeekV4Flash verifies DeepSeek-V4-Flash resolves offline
+// from the embedded catalog and wires the deepseek_v4 reasoning parser, tool-call
+// parser, and tokenizer mode.
+func TestGetModelByName_DeepSeekV4Flash(t *testing.T) {
+	m, err := GetModelByNameWithToken(context.Background(), "deepseek-ai/DeepSeek-V4-Flash", "")
+	assert.NoError(t, err)
+	if !assert.NotNil(t, m) {
+		return
+	}
+
+	params := m.GetInferenceParameters()
+	runParams := params.RuntimeParam.VLLM.ModelRunParams
+	assert.Equal(t, "deepseek_v4", runParams["reasoning-parser"])
+	assert.Equal(t, "deepseek_v4", runParams["tool-call-parser"])
+	assert.Equal(t, "", runParams["enable-auto-tool-choice"])
+	assert.Equal(t, "deepseek_v4", runParams["tokenizer_mode"])
+	assert.Equal(t, "fp8", runParams["kv-cache-dtype"])
 }
 
 func TestGetModelByName_BuiltinModels(t *testing.T) {

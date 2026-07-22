@@ -46,6 +46,7 @@ var (
 	reasoningParserModeNamePrefixMap = map[string]string{
 		"deepseek-r1":  "deepseek_r1",
 		"deepseek-v3":  "deepseek_v3",
+		"deepseek-v4":  "deepseek_v4",
 		"ernie-4.5":    "ernie45",
 		"gemma-4":      "gemma4",
 		"glm-4.5":      "glm45",
@@ -119,6 +120,7 @@ var (
 		"deepseek-v3":   "deepseek_v3",
 		"deepseek-v3.1": "deepseek_v31",
 		"deepseek-v3.2": "deepseek_v32",
+		"deepseek-v4":   "deepseek_v4",
 		"kimi_k2":       "kimi_k2",
 		"hunyuan-a13b":  "hunyuan_a13b",
 		"longcat":       "longcat",
@@ -198,6 +200,7 @@ var (
 		// https://github.com/kaito-project/kaito/issues/1976
 		"deepseek-r1": "deepseek_v32",
 		"deepseek-v3": "deepseek_v32",
+		"deepseek-v4": "deepseek_v4",
 	}
 
 	// vllmAttentionBackendPrefixMap maps model name prefixes to their vLLM attention backend.
@@ -217,6 +220,16 @@ var (
 		"mistral-small-4-119b-2603": "triton",
 		// MiniMax-M2.7 FP8 MoE also defaults to FlashInfer CUTLASS which needs nvcc.
 		"minimax-m2.7": "triton",
+	}
+
+	// vllmKVCacheDtypeOverride maps exact model names to their required vLLM
+	// kv-cache-dtype. Some architectures only support a specific KV cache format
+	// and assert at engine init otherwise.
+	// source: https://docs.vllm.ai/en/latest/configuration/engine_args/#-kv-cache-dtype
+	vllmKVCacheDtypeOverride = map[string]string{
+		// DeepSeek-V4 asserts "only supports fp8 kv-cache format for now" when the
+		// kv-cache-dtype is left at the default "auto".
+		"deepseek-v4-flash": "fp8",
 	}
 
 	// vllmGdnPrefillBackendPrefixMap maps model name prefixes to their vLLM GDN prefill backend.
@@ -699,6 +712,11 @@ func (g *Generator) FinalizeParams() {
 	// Set MoE backend based on exact model name match
 	if backend, ok := vllmMoeBackendOverride[g.Param.Metadata.Name]; ok {
 		g.Param.VLLM.ModelRunParams["moe-backend"] = backend
+	}
+
+	// Set kv-cache-dtype based on exact model name match
+	if dtype, ok := vllmKVCacheDtypeOverride[g.Param.Metadata.Name]; ok {
+		g.Param.VLLM.ModelRunParams["kv-cache-dtype"] = dtype
 	}
 
 	// Set GDN prefill backend based on model name prefix

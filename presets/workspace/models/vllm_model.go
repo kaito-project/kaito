@@ -36,11 +36,11 @@ const (
 
 	// largeModelReadinessTimeout is the startup probe timeout for large preset models
 	// whose runtime weight download and load exceed the default window.
-	largeModelReadinessTimeout = 60 * time.Minute
+	largeModelReadinessTimeout = 90 * time.Minute
 
 	// largeModelSizeThreshold is the model weight size above which
 	// largeModelReadinessTimeout is used instead of defaultReadinessTimeout.
-	largeModelSizeThreshold = "300Gi"
+	largeModelSizeThreshold = "100Gi"
 )
 
 // readinessTimeoutForModelSize returns the startup probe timeout for a preset model

@@ -335,6 +335,11 @@ type RuntimeContextExtraArguments struct {
 	// inside buildVLLMInferenceCommand based on the resolved tensor-parallel-size.
 	StreamingModelPath  string // e.g. "az://container/modelID"
 	StreamingLoadFormat string // e.g. "runai_streamer"
+
+	// LocalModelWeightsPath, when set, points vLLM at model weights that already
+	// exist on local disk (e.g. mounted from a custom GPU node image) via --model.
+	// No HuggingFace download is performed. Mutually exclusive with StreamingModelPath.
+	LocalModelWeightsPath string // e.g. "/opt/kaito/models/deepseekv4flash"
 }
 
 func (p *PresetParam) GetInferenceCommand(rc RuntimeContext) []string {
@@ -428,6 +433,11 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		// (e.g. mistral sets load_format=mistral). Remove to avoid conflict
 		// with the hyphenated --load-format=runai_streamer we set above.
 		delete(p.VLLM.ModelRunParams, "load_format")
+	} else if rc.LocalModelWeightsPath != "" {
+		// Weights already exist on local disk (e.g. mounted from a custom GPU
+		// node image). Point vLLM directly at the local directory and skip the
+		// HuggingFace download (no --download-dir / --code-revision).
+		p.VLLM.ModelRunParams["model"] = rc.LocalModelWeightsPath
 	} else if p.DownloadAtRuntime {
 		repoId, revision, _ := utils.ParseHuggingFaceModelVersion(p.Version)
 		p.VLLM.ModelRunParams["model"] = repoId
@@ -583,7 +593,8 @@ func (p *PresetParam) isVLLMHybridKVCacheManagerRequired() bool {
 		switch arch {
 		case "NemotronHForCausalLM", "NemotronH_Nano_VL_V2", "NemotronHMTPModel", "NemotronHPuzzleForCausalLM",
 			"Gemma4ForCausalLM", "Gemma4ForConditionalGeneration",
-			"Qwen3_5ForConditionalGeneration", "Qwen3_5MoeForConditionalGeneration":
+			"Qwen3_5ForConditionalGeneration", "Qwen3_5MoeForConditionalGeneration",
+			"DeepseekV4ForCausalLM":
 			return true
 		}
 	}
@@ -599,6 +610,23 @@ func (p *PresetParam) isLMCacheDisabled() bool {
 	for _, arch := range p.Architectures {
 		switch arch {
 		case "GptOssForCausalLM":
+			return true
+		}
+	}
+	return false
+}
+
+// RequiresDeepGEMM returns true for architectures whose FP8 GEMMs must use the
+// DeepGEMM backend. vLLM otherwise disables DeepGEMM by default in KAITO (via
+// VLLM_USE_DEEP_GEMM=0) and falls back to CUTLASS, which cannot handle these
+// models' E8M0 block-scaled FP8 (fails with "Not yet supported ScalarType").
+// DeepGEMM is bundled with vLLM (vllm.third_party.deep_gemm) and JIT-compiles
+// with nvcc at runtime, so these models also require a CUDA toolkit in the
+// container (see kaito.sh/install-cuda-toolkit).
+func (p *PresetParam) RequiresDeepGEMM() bool {
+	for _, arch := range p.Architectures {
+		switch arch {
+		case "DeepseekV4ForCausalLM":
 			return true
 		}
 	}

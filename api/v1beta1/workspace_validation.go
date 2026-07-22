@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
@@ -133,6 +134,18 @@ func (w *Workspace) validateAnnotations() (errs *apis.FieldError) {
 				fmt.Sprintf("%q is not a valid performance mode; choose one of: balanced, interactivity, throughput", v),
 				fmt.Sprintf("metadata.annotations[%s]", AnnotationPerformanceMode),
 			))
+		}
+	}
+	// Host-path annotations mount a node directory into the inference container.
+	// Require a clean absolute path to avoid relative paths or traversal (e.g. "..").
+	for _, key := range []string{AnnotationModelWeightsHostPath, AnnotationCUDAToolkitHostPath} {
+		if v, ok := annotations[key]; ok {
+			if v == "" || !filepath.IsAbs(v) || filepath.Clean(v) != v {
+				errs = errs.Also(apis.ErrInvalidValue(
+					fmt.Sprintf("%q must be a clean absolute host path (e.g. /opt/kaito/models/mymodel)", v),
+					fmt.Sprintf("metadata.annotations[%s]", key),
+				))
+			}
 		}
 	}
 	return errs

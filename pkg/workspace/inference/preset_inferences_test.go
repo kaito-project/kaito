@@ -1813,3 +1813,252 @@ func TestSetProvisionerNodeSelector(t *testing.T) {
 		})
 	}
 }
+
+// TestGeneratePresetInferenceNodeImageWeights verifies that when a workspace opts
+// into loading model weights from a custom GPU node image via the
+// kaito.sh/model-weights-hostpath / kaito.sh/cuda-toolkit-hostpath annotations, the
+// generated StatefulSet:
+//   - mounts the weights and CUDA toolkit host directories read-only,
+//   - points vLLM at the local weights path via --model (no HF download),
+//   - does not add the default emptyDir weights volume or a model puller, and
+//   - sets CUDA_HOME to the mounted toolkit path.
+func TestGeneratePresetInferenceNodeImageWeights(t *testing.T) {
+	test.RegisterTestModel()
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv("PRESET_REGISTRY_NAME", "test-registry")
+	t.Setenv("RELEASE_NAMESPACE", "kaito")
+
+	const (
+		weightsPath = "/opt/kaito/models/deepseekv4flash"
+		cudaPath    = "/usr/local/cuda"
+	)
+
+	mockClient := test.NewClient()
+	mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+	mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+
+	workspace := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+	nodeCount := 1
+	//nolint:staticcheck //SA1019: deprecate Resource.Count field
+	workspace.Resource.Count = &nodeCount
+	workspace.Status.WorkerNodes = []string{"test-node-1"}
+	workspace.Status.TargetNodeCount = 1
+	workspace.Inference.Adapters = nil
+	workspace.Inference.Config = ""
+	workspace.Annotations = map[string]string{
+		v1beta1.AnnotationModelWeightsHostPath: weightsPath,
+		v1beta1.AnnotationCUDAToolkitHostPath:  cudaPath,
+	}
+
+	svc := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{Name: workspace.Name, Namespace: workspace.Namespace},
+		Spec:       corev1.ServiceSpec{ClusterIP: "10.0.0.1"},
+	}
+	mockClient.CreateOrUpdateObjectInMap(svc)
+
+	model := plugin.KaitoModelRegister.MustGet("test-model")
+
+	createdObject, err := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, model, mockClient, nil)
+	if err != nil {
+		t.Fatalf("GeneratePresetInference returned error: %v", err)
+	}
+
+	ss := createdObject.(*appsv1.StatefulSet)
+	podSpec := ss.Spec.Template.Spec
+
+	// hostPath volumes for weights and CUDA toolkit are present; the default
+	// emptyDir model-weights-volume is not.
+	volumesByName := map[string]corev1.Volume{}
+	for _, v := range podSpec.Volumes {
+		volumesByName[v.Name] = v
+	}
+	if v, ok := volumesByName["model-weights-hostpath"]; !ok {
+		t.Errorf("expected model-weights-hostpath volume, got volumes %v", volumesByName)
+	} else if v.HostPath == nil || v.HostPath.Path != weightsPath {
+		t.Errorf("model-weights-hostpath volume hostPath = %v, want %s", v.HostPath, weightsPath)
+	}
+	if v, ok := volumesByName["cuda-toolkit-hostpath"]; !ok {
+		t.Errorf("expected cuda-toolkit-hostpath volume, got volumes %v", volumesByName)
+	} else if v.HostPath == nil || v.HostPath.Path != cudaPath {
+		t.Errorf("cuda-toolkit-hostpath volume hostPath = %v, want %s", v.HostPath, cudaPath)
+	}
+	if _, ok := volumesByName["model-weights-volume"]; ok {
+		t.Errorf("did not expect default emptyDir model-weights-volume when loading from node image")
+	}
+
+	// The main container mounts both host directories read-only and does not mount
+	// the default weights path.
+	container := podSpec.Containers[0]
+	mountsByPath := map[string]corev1.VolumeMount{}
+	for _, m := range container.VolumeMounts {
+		mountsByPath[m.MountPath] = m
+	}
+	if m, ok := mountsByPath[weightsPath]; !ok || !m.ReadOnly {
+		t.Errorf("expected read-only weights mount at %s, got %v", weightsPath, mountsByPath)
+	}
+	if m, ok := mountsByPath[cudaPath]; !ok || !m.ReadOnly {
+		t.Errorf("expected read-only cuda mount at %s, got %v", cudaPath, mountsByPath)
+	}
+	if _, ok := mountsByPath[utils.DefaultWeightsVolumePath]; ok {
+		t.Errorf("did not expect default weights mount at %s", utils.DefaultWeightsVolumePath)
+	}
+
+	// No model puller init container.
+	for _, ic := range podSpec.InitContainers {
+		if ic.Name == "model-weights-downloader" {
+			t.Errorf("did not expect model puller init container when loading from node image")
+		}
+	}
+
+	// A prewarm init container sequentially reads the weight files into the node
+	// page cache before the main container's mmap-based load.
+	var prewarm *corev1.Container
+	for i := range podSpec.InitContainers {
+		if podSpec.InitContainers[i].Name == "model-weights-prewarm" {
+			prewarm = &podSpec.InitContainers[i]
+			break
+		}
+	}
+	if prewarm == nil {
+		t.Fatalf("expected model-weights-prewarm init container, got %v", podSpec.InitContainers)
+	}
+	if len(prewarm.VolumeMounts) != 1 || prewarm.VolumeMounts[0].MountPath != weightsPath || !prewarm.VolumeMounts[0].ReadOnly {
+		t.Errorf("prewarm should mount weights read-only at %s, got %v", weightsPath, prewarm.VolumeMounts)
+	}
+	// The weights path must be passed as a positional argument (last element),
+	// not interpolated into the script body, to avoid shell injection.
+	if got := prewarm.Command; len(got) < 4 || got[len(got)-1] != weightsPath || strings.Contains(got[2], weightsPath) {
+		t.Errorf("prewarm command should pass weights path as a positional arg, got %v", got)
+	}
+
+	// Command points --model at the local path with no HF download flags.
+	cmd := strings.Join(container.Command, " ")
+	if !strings.Contains(cmd, "--model="+weightsPath) {
+		t.Errorf("command should set --model=%s, got %s", weightsPath, cmd)
+	}
+	if strings.Contains(cmd, "download-dir") || strings.Contains(cmd, "code-revision") {
+		t.Errorf("command should not contain download-dir/code-revision, got %s", cmd)
+	}
+
+	// CUDA_HOME is set to the mounted toolkit path.
+	var cudaHome string
+	for _, e := range container.Env {
+		if e.Name == "CUDA_HOME" {
+			cudaHome = e.Value
+		}
+	}
+	if cudaHome != cudaPath {
+		t.Errorf("CUDA_HOME = %q, want %q", cudaHome, cudaPath)
+	}
+
+	// KAITO_PROCESSOR points the benchmark's tokenizer resolution at the local
+	// weights path.
+	var processor string
+	for _, e := range container.Env {
+		if e.Name == "KAITO_PROCESSOR" {
+			processor = e.Value
+		}
+	}
+	if processor != weightsPath {
+		t.Errorf("KAITO_PROCESSOR = %q, want %q", processor, weightsPath)
+	}
+}
+
+// TestGeneratePresetInferenceInstallCUDAToolkit verifies that when a workspace
+// sets kaito.sh/install-cuda-toolkit=true, the generated StatefulSet:
+//   - adds a cuda-toolkit-installer init container running the provision script,
+//   - shares an emptyDir between the init and main container at /opt/cuda,
+//   - sets CUDA_HOME to /opt/cuda, and
+//   - takes precedence over a CUDA hostPath annotation when both are set.
+func TestGeneratePresetInferenceInstallCUDAToolkit(t *testing.T) {
+	test.RegisterTestModel()
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv("PRESET_REGISTRY_NAME", "test-registry")
+	t.Setenv("RELEASE_NAMESPACE", "kaito")
+
+	mockClient := test.NewClient()
+	mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+	mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+
+	workspace := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+	nodeCount := 1
+	//nolint:staticcheck //SA1019: deprecate Resource.Count field
+	workspace.Resource.Count = &nodeCount
+	workspace.Status.WorkerNodes = []string{"test-node-1"}
+	workspace.Status.TargetNodeCount = 1
+	workspace.Inference.Adapters = nil
+	workspace.Inference.Config = ""
+	// Set both annotations to confirm install takes precedence over hostPath.
+	workspace.Annotations = map[string]string{
+		v1beta1.AnnotationInstallCUDAToolkit:  "true",
+		v1beta1.AnnotationCUDAToolkitHostPath: "/usr/local/cuda",
+	}
+
+	svc := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{Name: workspace.Name, Namespace: workspace.Namespace},
+		Spec:       corev1.ServiceSpec{ClusterIP: "10.0.0.1"},
+	}
+	mockClient.CreateOrUpdateObjectInMap(svc)
+
+	model := plugin.KaitoModelRegister.MustGet("test-model")
+
+	createdObject, err := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, model, mockClient, nil)
+	if err != nil {
+		t.Fatalf("GeneratePresetInference returned error: %v", err)
+	}
+
+	ss := createdObject.(*appsv1.StatefulSet)
+	podSpec := ss.Spec.Template.Spec
+
+	// Installer init container present with the expected command + mount.
+	var installer *corev1.Container
+	for i := range podSpec.InitContainers {
+		if podSpec.InitContainers[i].Name == "cuda-toolkit-installer" {
+			installer = &podSpec.InitContainers[i]
+			break
+		}
+	}
+	if installer == nil {
+		t.Fatalf("expected cuda-toolkit-installer init container, got %v", podSpec.InitContainers)
+	}
+	wantCmd := []string{"/workspace/cuda-provision.sh", "/opt/cuda"}
+	if !reflect.DeepEqual(installer.Command, wantCmd) {
+		t.Errorf("installer command = %v, want %v", installer.Command, wantCmd)
+	}
+	if len(installer.VolumeMounts) != 1 || installer.VolumeMounts[0].MountPath != "/opt/cuda" {
+		t.Errorf("installer mount = %v, want /opt/cuda", installer.VolumeMounts)
+	}
+
+	// Shared emptyDir volume exists; the node hostPath CUDA volume does not (install wins).
+	volumesByName := map[string]corev1.Volume{}
+	for _, v := range podSpec.Volumes {
+		volumesByName[v.Name] = v
+	}
+	if v, ok := volumesByName["cuda-toolkit-install"]; !ok || v.EmptyDir == nil {
+		t.Errorf("expected cuda-toolkit-install emptyDir volume, got %v", volumesByName)
+	}
+	if _, ok := volumesByName["cuda-toolkit-hostpath"]; ok {
+		t.Errorf("did not expect cuda-toolkit-hostpath volume when install-cuda-toolkit is set")
+	}
+
+	// Main container mounts the shared volume at /opt/cuda and has CUDA_HOME=/opt/cuda.
+	container := podSpec.Containers[0]
+	foundMount := false
+	for _, m := range container.VolumeMounts {
+		if m.Name == "cuda-toolkit-install" && m.MountPath == "/opt/cuda" {
+			foundMount = true
+		}
+	}
+	if !foundMount {
+		t.Errorf("expected main container mount cuda-toolkit-install at /opt/cuda, got %v", container.VolumeMounts)
+	}
+	var cudaHome string
+	for _, e := range container.Env {
+		if e.Name == "CUDA_HOME" {
+			cudaHome = e.Value
+		}
+	}
+	if cudaHome != "/opt/cuda" {
+		t.Errorf("CUDA_HOME = %q, want /opt/cuda", cudaHome)
+	}
+}

@@ -20,5 +20,8 @@ steps:
       .
     env:
       - DOCKER_BUILDKIT=1
+    # Large image (~6GB+); the default 600s step timeout is too short.
+    timeout: 3600
   - push:
       - $Registry/kaito-base:{{.Values.IMAGE_TAG}}
+    timeout: 3600

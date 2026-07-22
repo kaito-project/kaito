@@ -3,11 +3,16 @@ models:
   - name: base
     type: text-generation
     runtime: tfs
-    tag: 0.4.4
+    tag: 0.4.9
     runtimeVersion:
       vllm: 0.22.1
-      transformers: 5.6.0
+      transformers: 5.8.1
     # Tag history:
+    # 0.4.9 - bump transformers 5.6.0->5.8.1 (5.8.0 is the earliest release with DeepseekV4Config; 5.8.1 is the patch on it, so transformers recognizes model_type deepseek_v4 and AutoTokenizer/config load natively)
+    # 0.4.8 - benchmark_entrypoint.py tokenizer-only staging fix on guidellm 0.5.4 (reverted the 0.4.6/0.4.7 guidellm 0.7.1 bump; staging is the real node-image benchmark fix and is guidellm-version-independent)
+    # 0.4.7 - (superseded) tokenizer-only staging fix on guidellm 0.7.1
+    # 0.4.6 - (superseded) bump guidellm to 0.7.1 (new BenchmarkScenario API)
+    # 0.4.5 - bookworm base + g++ and optional runtime CUDA toolkit install (cuda-provision.sh) for DeepGEMM
     # 0.4.4 - use torch.cuda.mem_get_info() instead of pynvml for default gpu_memory_utilization
     # 0.4.3 - add export_sas_token_for_streaming.sh transparent wrapper for SAS-authenticated blob streaming
     # 0.4.2 - add runai-model-streamer for model streaming from cloud blob storage, add KAITO_PROCESSOR benchmark support

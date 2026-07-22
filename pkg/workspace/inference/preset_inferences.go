@@ -54,6 +54,15 @@ const (
 	// defaultStartupProbeTimeout is the startup probe timeout for models that do not
 	// specify ReadinessTimeout. 30 minutes covers all current models.
 	defaultStartupProbeTimeout = 30 * time.Minute
+
+	// cudaToolkitInstallPath is the in-pod mount path of the shared volume that the
+	// runtime CUDA toolkit installer (kaito.sh/install-cuda-toolkit) populates and
+	// that the main container uses as CUDA_HOME.
+	cudaToolkitInstallPath = "/opt/cuda"
+
+	// cudaToolkitVolumeName is the name of the emptyDir volume shared between the
+	// CUDA installer init container and the main inference container.
+	cudaToolkitVolumeName = "cuda-toolkit-install"
 )
 
 var (
@@ -197,10 +206,20 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		SetHFToken,
 	}
 
-	// Model source: streaming (az://) vs local download. Mutually exclusive.
-	if streamingEnabled {
+	// Node-image weights: when the workspace opts in via annotation, model weights
+	// are read from a host directory (e.g. baked into a custom GPU node image)
+	// instead of being downloaded from HuggingFace or streamed from blob storage.
+	nodeImageWeightsPath := v1beta1.GetModelWeightsHostPath(workspaceObj)
+
+	// Model source (mutually exclusive): streaming (az://) > node-image weights
+	// (host path) > download-at-runtime (HF repo).
+	switch {
+	case streamingEnabled:
 		podOpts = append(podOpts, modelstreaming.SetStreamingConfig(streamingCfg, modelID, modelstreaming.StreamingDefaults.ServiceAccount))
-	} else {
+	case nodeImageWeightsPath != "":
+		// Weights are mounted from the node (see GenerateInferencePodSpec); no
+		// puller/download setup is needed.
+	default:
 		podOpts = append(podOpts, SetModelDownloadInfo)
 	}
 
@@ -222,8 +241,10 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		manifests.GenerateStatefulSetManifest(revisionNum, numNodes),
 	}
 
-	// Volume handling: streaming skips weights volume (model is read from az:// directly).
-	if !streamingEnabled {
+	// Volume handling: streaming reads directly from az:// and node-image weights
+	// are mounted via hostPath (both handled in GenerateInferencePodSpec), so
+	// neither needs the default download/cache weights volume.
+	if !streamingEnabled && nodeImageWeightsPath == "" {
 		if checkIfNVMeAvailable(ctx, gpuConfig, kubeClient) {
 			ssOpts = append(ssOpts, manifests.AddStatefulSetVolumeClaimTemplates(GenerateModelWeightsCacheVolume(ctx, workspaceObj, model)))
 		} else {
@@ -490,9 +511,50 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			cmVolumeMountRef = &cmVolumeMount
 		}
 
-		// add model weights volume mount (skip when streaming — weights come from az://)
-		if streamingModelPath == "" {
+		// add model weights volume mount (skip when streaming — weights come from
+		// az:// — or when weights are mounted from the node image via hostPath).
+		nodeImageWeightsPath := v1beta1.GetModelWeightsHostPath(ctx.Workspace)
+		if streamingModelPath == "" && nodeImageWeightsPath == "" {
 			volumeMounts = append(volumeMounts, utils.DefaultModelWeightsVolumeMount)
+		}
+
+		// Node-image weights: mount the host directory that holds the baked model
+		// weights read-only at the same path inside the container. vLLM is pointed
+		// at this path via --model (see RuntimeContext.LocalModelWeightsPath below).
+		if nodeImageWeightsPath != "" {
+			vol, mount := utils.HostPathVolume("model-weights-hostpath", nodeImageWeightsPath)
+			volumes = append(volumes, vol)
+			volumeMounts = append(volumeMounts, mount)
+		}
+
+		// CUDA toolkit source for runtimes that JIT-compile with nvcc (e.g. DeepGEMM).
+		// Two mutually exclusive mechanisms, install taking precedence:
+		//   1. install (kaito.sh/install-cuda-toolkit): an init container installs
+		//      cuda-toolkit-12-9 into a shared emptyDir mounted at cudaToolkitInstallPath.
+		//   2. hostPath (kaito.sh/cuda-toolkit-hostpath): mount a CUDA toolkit that
+		//      already exists on the node read-only at the same path.
+		// In both cases CUDA_HOME is set on the main container (below).
+		installCUDAToolkit := v1beta1.IsInstallCUDAToolkitEnabled(ctx.Workspace)
+		cudaToolkitHostPath := v1beta1.GetCUDAToolkitHostPath(ctx.Workspace)
+		var cudaHome string
+		switch {
+		case installCUDAToolkit:
+			cudaVolume := corev1.Volume{
+				Name:         cudaToolkitVolumeName,
+				VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+			}
+			cudaMount := corev1.VolumeMount{
+				Name:      cudaToolkitVolumeName,
+				MountPath: cudaToolkitInstallPath,
+			}
+			volumes = append(volumes, cudaVolume)
+			volumeMounts = append(volumeMounts, cudaMount)
+			cudaHome = cudaToolkitInstallPath
+		case cudaToolkitHostPath != "":
+			vol, mount := utils.HostPathVolume("cuda-toolkit-hostpath", cudaToolkitHostPath)
+			volumes = append(volumes, vol)
+			volumeMounts = append(volumeMounts, mount)
+			cudaHome = cudaToolkitHostPath
 		}
 
 		// add share memory for cross process communication
@@ -562,10 +624,11 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			MaxModelLen:          maxModelLen,
 			InferencePort:        vllmPort,
 			RuntimeContextExtraArguments: pkgmodel.RuntimeContextExtraArguments{
-				AdaptersEnabled:     len(ctx.Workspace.Inference.Adapters) > 0,
-				PerformanceMode:     v1beta1.GetPerformanceMode(ctx.Workspace),
-				StreamingModelPath:  streamingModelPath,
-				StreamingLoadFormat: streamingLoadFormat,
+				AdaptersEnabled:       len(ctx.Workspace.Inference.Adapters) > 0,
+				PerformanceMode:       v1beta1.GetPerformanceMode(ctx.Workspace),
+				StreamingModelPath:    streamingModelPath,
+				StreamingLoadFormat:   streamingLoadFormat,
+				LocalModelWeightsPath: nodeImageWeightsPath,
 			},
 		})
 
@@ -602,12 +665,19 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 				Name:  consts.VLLMUseFlashInferSamplerEnvName,
 				Value: "0",
 			})
-			// Disable vLLM's DeepGEMM FP8 kernels. vLLM 0.22.1 enables them by default
-			// and reports DeepGEMM as available, but the native backend is absent from
-			// the base image, so the FP8 warmup hard-fails at engine init.
+			// Disable vLLM's DeepGEMM FP8 kernels by default. vLLM 0.22.1 enables them
+			// and reports DeepGEMM as available, but the native backend JIT-compiles
+			// with nvcc, which the slim base image does not ship, so the FP8 warmup
+			// hard-fails at engine init. Models whose FP8 GEMMs *require* DeepGEMM
+			// (see RequiresDeepGEMM) instead enable it — they must run with a CUDA
+			// toolkit in the container (kaito.sh/install-cuda-toolkit) for the JIT.
+			deepGEMMValue := "0"
+			if inferenceParam.RequiresDeepGEMM() {
+				deepGEMMValue = "1"
+			}
 			mainContainerEnv = append(mainContainerEnv, corev1.EnvVar{
 				Name:  consts.VLLMUseDeepGEMMEnvName,
-				Value: "0",
+				Value: deepGEMMValue,
 			})
 			// Disable vLLM's FlashInfer MoE backends across all precisions. For MoE
 			// models vLLM auto-selects a FlashInfer (TRTLLM/CUTLASS) expert kernel,
@@ -629,6 +699,27 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			}
 		}
 
+		// When a CUDA toolkit is provided (installed via init container or mounted
+		// from the node), point CUDA_HOME at it so runtime JIT compilers (e.g.
+		// DeepGEMM's nvcc backend) can find nvcc and the CUDA headers.
+		if cudaHome != "" {
+			mainContainerEnv = append(mainContainerEnv, corev1.EnvVar{
+				Name:  "CUDA_HOME",
+				Value: cudaHome,
+			})
+		}
+
+		// For node-image weights, tell the startup benchmark (guidellm) where the
+		// tokenizer lives. Without this, the benchmark's processor resolution falls
+		// back to the served model name (a short catalog id, not a valid HF repo id
+		// or local path) and fails. The weights directory holds the tokenizer.
+		if nodeImageWeightsPath != "" {
+			mainContainerEnv = append(mainContainerEnv, corev1.EnvVar{
+				Name:  "KAITO_PROCESSOR",
+				Value: nodeImageWeightsPath,
+			})
+		}
+
 		spec.Containers = []corev1.Container{
 			{
 				Name:           ctx.Workspace.Name,
@@ -642,6 +733,48 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 				VolumeMounts:   volumeMounts,
 				Env:            mainContainerEnv,
 			},
+		}
+
+		// When install-cuda-toolkit is enabled, prepend an init container that
+		// installs the CUDA toolkit into the shared volume before the main
+		// container starts. It reuses the base image (which ships the provision
+		// script + apt) and needs no GPU.
+		if installCUDAToolkit {
+			spec.InitContainers = append([]corev1.Container{{
+				Name:    "cuda-toolkit-installer",
+				Image:   GetBaseImageName(),
+				Command: []string{"/workspace/cuda-provision.sh", cudaToolkitInstallPath},
+				VolumeMounts: []corev1.VolumeMount{{
+					Name:      cudaToolkitVolumeName,
+					MountPath: cudaToolkitInstallPath,
+				}},
+			}}, spec.InitContainers...)
+		}
+
+		// Node-image weights are loaded by the runtime via mmap (safetensors). On a
+		// cold page cache the mmap fault path is readahead-starved on the virtualized
+		// OS disk (~35 MB/s), so the first load of a large model can take many minutes
+		// even though the disk streams at ~1 GB/s. Prepend an init container that
+		// sequentially reads the weight files with large buffered reads (dd bs=8M,
+		// which drives large I/O regardless of the small default readahead) to warm
+		// the node page cache. The main container's mmap load then hits RAM and
+		// completes in seconds. Page cache is node-global, so it carries over from the
+		// init container to the main container. Best-effort: it never fails startup.
+		if nodeImageWeightsPath != "" {
+			_, weightsMount := utils.HostPathVolume("model-weights-hostpath", nodeImageWeightsPath)
+			spec.InitContainers = append([]corev1.Container{{
+				Name:  "model-weights-prewarm",
+				Image: GetBaseImageName(),
+				// The weights path is passed as a positional argument ($1), never
+				// interpolated into the script, so a path containing shell
+				// metacharacters cannot inject commands.
+				Command: []string{
+					"/bin/sh", "-c",
+					`find "$1" -type f -exec dd if={} of=/dev/null bs=8M \; >/dev/null 2>&1 || true`,
+					"sh", nodeImageWeightsPath,
+				},
+				VolumeMounts: []corev1.VolumeMount{weightsMount},
+			}}, spec.InitContainers...)
 		}
 
 		applyInferenceRoleEnv(ctx.Workspace.Labels, ctx.Workspace.Name, spec)

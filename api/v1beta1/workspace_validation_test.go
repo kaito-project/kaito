@@ -1970,6 +1970,31 @@ func TestWorkspaceValidatePerformanceModeAnnotation(t *testing.T) {
 			annotations: map[string]string{AnnotationPerformanceMode: "fast"},
 			wantErr:     true,
 		},
+		{
+			name:        "model weights hostpath absolute is valid",
+			annotations: map[string]string{AnnotationModelWeightsHostPath: "/opt/kaito/models/deepseekv4flash"},
+			wantErr:     false,
+		},
+		{
+			name:        "cuda toolkit hostpath absolute is valid",
+			annotations: map[string]string{AnnotationCUDAToolkitHostPath: "/usr/local/cuda"},
+			wantErr:     false,
+		},
+		{
+			name:        "relative weights hostpath is invalid",
+			annotations: map[string]string{AnnotationModelWeightsHostPath: "opt/kaito/models"},
+			wantErr:     true,
+		},
+		{
+			name:        "weights hostpath with traversal is invalid",
+			annotations: map[string]string{AnnotationModelWeightsHostPath: "/opt/../etc/secrets"},
+			wantErr:     true,
+		},
+		{
+			name:        "empty cuda toolkit hostpath is invalid",
+			annotations: map[string]string{AnnotationCUDAToolkitHostPath: ""},
+			wantErr:     true,
+		},
 	}
 
 	for _, tt := range tests {

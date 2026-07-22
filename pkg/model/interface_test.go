@@ -187,6 +187,38 @@ func TestGetInferenceCommandHuggingfaceDownloadAtRuntimeWithRevision(t *testing.
 	assert.Contains(t, cmd[2], "allow_remote_files")
 }
 
+func TestGetInferenceCommandVLLMLocalModelWeightsPath(t *testing.T) {
+	// A model that would normally download from HuggingFace, but is instead
+	// served from weights already present on local disk (e.g. mounted from a
+	// custom GPU node image). The command should point --model at the local path
+	// and omit --download-dir / --code-revision.
+	p := &PresetParam{
+		Metadata: Metadata{
+			Version:           "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash/commit/abc123",
+			DownloadAtRuntime: true,
+		},
+		RuntimeParam: RuntimeParam{
+			VLLM: VLLMParam{
+				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
+				ModelRunParams: map[string]string{},
+			},
+		},
+	}
+	rc := RuntimeContext{
+		RuntimeName: RuntimeNameVLLM,
+		SKUNumGPUs:  1,
+		NumNodes:    1,
+		RuntimeContextExtraArguments: RuntimeContextExtraArguments{
+			LocalModelWeightsPath: "/opt/kaito/models/deepseekv4flash",
+		},
+	}
+	cmd := p.GetInferenceCommand(rc)
+	require.Len(t, cmd, 3)
+	assert.Contains(t, cmd[2], "--model=/opt/kaito/models/deepseekv4flash")
+	assert.NotContains(t, cmd[2], "download-dir")
+	assert.NotContains(t, cmd[2], "code-revision")
+}
+
 func TestGetInferenceCommandVLLMSingleNode(t *testing.T) {
 	p := &PresetParam{
 		RuntimeParam: RuntimeParam{

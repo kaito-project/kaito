@@ -114,7 +114,7 @@ definition.
 
 ## Proposal
 ### Runtime Configuration
-V4 requires the followings:
+V4 requires the following:
 
 | Concern | Setting | Why |
 | --- | --- | --- |

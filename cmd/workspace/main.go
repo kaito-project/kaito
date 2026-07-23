@@ -30,6 +30,7 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -48,6 +49,7 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/cache"
+	"github.com/kaito-project/kaito/pkg/cache/dacs"
 	cachenoop "github.com/kaito-project/kaito/pkg/cache/noop"
 	autoupgrade "github.com/kaito-project/kaito/pkg/controllers/autoupgrade"
 	drift "github.com/kaito-project/kaito/pkg/controllers/drift"
@@ -205,9 +207,19 @@ func main() {
 	cfg.UserAgent = workspaceController
 	setRestConfig(cfg, kubeClientQPS, kubeClientBurst)
 
-	// Register built-in cache providers. External providers register themselves
-	// via their own init()/blank import and the cache.Register() hook.
+	// Register cache providers based on feature gates and configuration.
 	cache.Register(cachenoop.NewProvider())
+	if featuregates.FeatureGates[consts.FeatureFlagDistributedCache] && os.Getenv("DACS_ENABLED") == "true" {
+		dynamicClient, dynErr := dynamic.NewForConfig(cfg)
+		if dynErr != nil {
+			klog.ErrorS(dynErr, "unable to create dynamic client for cache providers")
+			exitWithErrorFunc()
+		}
+		dacsCfg := dacs.ConfigFromEnv()
+		cache.Register(dacs.New(dynamicClient, dacsCfg))
+		klog.InfoS("Registered DACS cache provider", "discoveryEndpoint", dacsCfg.DiscoveryEndpoint,
+			"kvCacheEnabled", dacsCfg.KVCacheEnabled)
+	}
 
 	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme: scheme,

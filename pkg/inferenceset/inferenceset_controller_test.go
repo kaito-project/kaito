@@ -523,11 +523,11 @@ func TestAddOrUpdateInferenceSet_PropagatesCacheToWorkspace(t *testing.T) {
 	iObj.Spec.Selector = &v1.LabelSelector{MatchLabels: map[string]string{"app": "test"}}
 	expectedCache := &v1beta1.CacheSpec{
 		ModelCache: &v1beta1.ModelCacheSpec{
-			Provider: "example",
+			Provider: "dacs",
 			Mode:     v1beta1.CacheModeRequired,
 		},
 		KVCache: &v1beta1.KVCacheSpec{
-			Provider: "example",
+			Provider: "dacs",
 			Mode:     v1beta1.CacheModeOpportunistic,
 		},
 	}

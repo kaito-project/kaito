@@ -65,6 +65,7 @@ const sidebars = {
                     ],
                 },
                 'model-as-oci-artifacts',
+                'distributed-cache',
                 'headlamp-kaito',
             ],
         },

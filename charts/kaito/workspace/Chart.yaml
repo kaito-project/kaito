@@ -45,6 +45,11 @@ dependencies:
   version: "0.2.18"
   repository: oci://localcsidriver.azurecr.io/acstor/charts
   condition: localCSIDriver.useLocalCSIDriver
+- name: dacs
+  version: "0.0.1"
+  repository: oci://dacs.azurecr.io/charts/dacs
+  condition: false
+  # condition: cache.providers.dacs.enabled #TODO during merge, change to this condition once dacs is released to public
 - name: productionstack
   version: "0.2.2"
   repository: oci://mcr.microsoft.com/aks/kaito/helm

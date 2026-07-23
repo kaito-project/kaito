@@ -155,6 +155,74 @@ spec:
               template:
                 description: Template is the template used to create the InferenceSet.
                 properties:
+                  cache:
+                    description: |-
+                      Cache configures distributed caching for all Workspaces created by this InferenceSet.
+                      Propagated to child Workspaces at creation time.
+                    properties:
+                      kvCache:
+                        description: KVCache configures caching of attention key/value
+                          tensors.
+                        properties:
+                          config:
+                            description: |-
+                              Config is the name of a ConfigMap in the same namespace containing
+                              provider-specific KV cache configuration (e.g., cache size, TTL,
+                              eviction policy). The provider validates and merges this with its
+                              defaults from Helm values.
+                            type: string
+                          mode:
+                            default: Opportunistic
+                            description: Mode controls cache behavior.
+                            enum:
+                            - Required
+                            - Opportunistic
+                            - Disabled
+                            type: string
+                          provider:
+                            description: Provider selects the cache implementation
+                              for KV tensors.
+                            minLength: 1
+                            type: string
+                        required:
+                        - provider
+                        type: object
+                      modelCache:
+                        description: ModelCache configures caching of model weight
+                          files.
+                        properties:
+                          cleanupOnDelete:
+                            description: |-
+                              CleanupOnDelete invalidates cached model data when workspace is deleted.
+
+                              NOTE: Not yet implemented. This field is reserved for future use; setting it
+                              currently has no effect. Cached model chunks are managed by the cache
+                              provider's own TTL/eviction policy and are not explicitly invalidated on
+                              workspace deletion. See https://github.com/kaito-project/kaito for status.
+                            type: boolean
+                          config:
+                            description: |-
+                              Config is the name of a ConfigMap in the same namespace containing
+                              provider-specific model cache configuration. The provider validates
+                              and merges this with its defaults from Helm values.
+                            type: string
+                          mode:
+                            default: Opportunistic
+                            description: Mode controls cache behavior.
+                            enum:
+                            - Required
+                            - Opportunistic
+                            - Disabled
+                            type: string
+                          provider:
+                            description: Provider selects the cache implementation
+                              for model weights.
+                            minLength: 1
+                            type: string
+                        required:
+                        - provider
+                        type: object
+                    type: object
                   inference:
                     properties:
                       adapters:

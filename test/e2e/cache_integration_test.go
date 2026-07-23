@@ -13,8 +13,8 @@
 
 package e2e
 
-// The blank import of pkg/cache/noop below self-registers the provider's
-// conformance Expectations. The provider-agnostic specs iterate
+// The blank imports of pkg/cache/dacs and pkg/cache/noop below self-register each
+// provider's conformance Expectations. The provider-agnostic specs iterate
 // cache.ListExpectations(), so any newly added, E2E-capable provider is automatically
 // exercised end-to-end with no changes to this file.
 import (
@@ -36,6 +36,7 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/cache"
+	_ "github.com/kaito-project/kaito/pkg/cache/dacs"
 	_ "github.com/kaito-project/kaito/pkg/cache/noop"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -60,15 +61,8 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 		if utils.GetEnv("TEST_CACHE_ENABLED") != "true" {
 			Skip("Cache integration tests disabled (set TEST_CACHE_ENABLED=true)")
 		}
-		if utils.GetEnv("CACHE_VLLM_IMAGE") == "" {
-			Skip("CACHE_VLLM_IMAGE not set; skipping cache integration tests")
-		}
-		if utils.GetEnv("CACHE_MODEL_URL") == "" {
-			Skip("CACHE_MODEL_URL not set; skipping cache integration tests")
-		}
-		if utils.GetEnv("CACHE_STORAGE_ACCOUNT") == "" {
-			Skip("CACHE_STORAGE_ACCOUNT not set; skipping cache integration tests")
-		}
+		// Provider-specific prerequisites (serving image, backend env) are checked
+		// per provider by its E2EWorkspace hook, which skips the affected specs.
 		// Ensure the vllm-sa ServiceAccount exists in the test namespace so
 		// StatefulSet pods can be created. When AZURE_CLIENT_ID is set the SA
 		// is annotated for workload identity so the pod receives a token.
@@ -943,13 +937,13 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 
 // generateCacheWorkspace creates a workspace manifest with cache configuration
 // using template inference to allow running on CPU nodes without GPU validation.
+//
+// The pod template is provider-neutral scaffolding: the provider's serving
+// specifics (image, model args, backend env) are stamped on by its registered
+// E2EWorkspace hook (see applyProviderE2EWorkspace), keeping this helper free of
+// any single provider's details. A provider whose e2e prerequisites are unmet
+// skips the running spec via that hook.
 func generateCacheWorkspace(name, namespace string, provider kaitov1beta1.CacheProvider, cacheSpec kaitov1beta1.CacheSpec) *kaitov1beta1.Workspace {
-	_ = provider // provider is encoded in cacheSpec; kept for call-site clarity.
-
-	vllmImage := utils.GetEnv("CACHE_VLLM_IMAGE")
-	modelURL := utils.GetEnv("CACHE_MODEL_URL")
-	storageAccount := utils.GetEnv("CACHE_STORAGE_ACCOUNT")
-
 	ws := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -975,18 +969,7 @@ func generateCacheWorkspace(name, namespace string, provider kaitov1beta1.CacheP
 				ServiceAccountName: "vllm-sa",
 				Containers: []corev1.Container{
 					{
-						Name:  "vllm",
-						Image: vllmImage,
-						Args: []string{
-							"--model=" + modelURL,
-							"--dtype=float32",
-							"--max-model-len=512",
-							"--load-format=runai_streamer",
-							"--model-loader-extra-config={\"concurrency\":8}",
-						},
-						Env: []corev1.EnvVar{
-							{Name: "AZURE_STORAGE_ACCOUNT_NAME", Value: storageAccount},
-						},
+						Name: "vllm",
 						ReadinessProbe: &corev1.Probe{
 							ProbeHandler: corev1.ProbeHandler{
 								HTTPGet: &corev1.HTTPGetAction{
@@ -1014,7 +997,29 @@ func generateCacheWorkspace(name, namespace string, provider kaitov1beta1.CacheP
 		},
 	}
 	ws.Cache = &cacheSpec
+	applyProviderE2EWorkspace(provider, ws)
 	return ws
+}
+
+// applyProviderE2EWorkspace stamps the provider-specific pod template onto ws via
+// the provider's registered E2EWorkspace hook, or skips the running spec when the
+// provider's e2e prerequisites are unmet. A provider with no hook keeps the neutral
+// skeleton unchanged, so provider onboarding requires no edits here.
+func applyProviderE2EWorkspace(provider kaitov1beta1.CacheProvider, ws *kaitov1beta1.Workspace) {
+	exp, ok := cache.GetExpectations(provider)
+	if !ok || exp.E2EWorkspace == nil {
+		return
+	}
+	cfg := exp.E2EWorkspace()
+	if cfg == nil {
+		return
+	}
+	if cfg.SkipReason != "" {
+		Skip(fmt.Sprintf("provider %q: %s", provider, cfg.SkipReason))
+	}
+	if cfg.Customizer != nil {
+		cfg.Customizer(ws)
+	}
 }
 
 // ensureCacheNamespace creates a namespace (idempotently) so a cache workspace can
@@ -1219,13 +1224,19 @@ func (h *e2eHarness) Poll(timeout time.Duration, fn func() error) error {
 	}
 }
 
-// testRegistryImage returns a fully qualified image reference using the
-// CACHE_VLLM_IMAGE registry prefix. For non-vllm images (adapters, tuning)
-// it derives the registry from the vllm image env var.
+// testRegistryImage returns a fully qualified image reference for e2e helper
+// images (adapters, tuning) by prefixing them with a test container registry. The
+// registry is read from TEST_CACHE_REGISTRY; for backward compatibility it falls
+// back to deriving the registry from the DACS_CACHE_VLLM_IMAGE reference. When
+// neither is set the bare image is returned (the provider's E2EWorkspace hook will
+// have already skipped provider specs that need a registry).
 func testRegistryImage(imageAndTag string) string {
-	base := utils.GetEnv("CACHE_VLLM_IMAGE")
+	if registry := utils.GetEnv("TEST_CACHE_REGISTRY"); registry != "" {
+		return strings.TrimSuffix(registry, "/") + "/" + imageAndTag
+	}
+	base := utils.GetEnv("DACS_CACHE_VLLM_IMAGE")
 	if base == "" {
-		return imageAndTag // will be caught by BeforeEach skip
+		return imageAndTag
 	}
 	// Extract registry from "registry/repo:tag" → "registry"
 	idx := strings.LastIndex(base, "/")

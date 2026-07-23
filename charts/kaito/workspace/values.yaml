@@ -84,8 +84,13 @@ nvidiaDevicePlugin:
 spotInstance:
   enabled: false
 
+# Local CSI driver for ephemeral model storage. This is the default model
+# storage path and is mutually exclusive with the DACS distributed cache:
+# when cache.providers.dacs.enabled is true, DACS provides the model storage
+# path instead, so set useLocalCSIDriver to false to avoid installing both.
+# When DACS is disabled (the default) the local CSI driver is used.
 localCSIDriver:
-  useLocalCSIDriver: true
+  useLocalCSIDriver: false
 webhook:
   port: 9443
 # Knative logging configuration
@@ -192,7 +197,23 @@ productionstack:
 
 # Distributed cache provider configuration.
 # Only active when featureGates.distributedCache is true.
-# Each cache provider is configured under cache.providers.<name>. No provider is
-# bundled with this framework; install a provider and add its config here.
+# The DACS CSI driver + mutating webhook must be pre-installed in the cluster.
+# KAITO adds pod labels to trigger webhook-based cache library injection.
+#
+# Enabling dacs installs the bundled dacs subchart (see Chart.yaml, gated on
+# cache.providers.dacs.enabled) and switches the model storage path from the
+# local CSI driver to DACS. DACS and the local CSI driver are mutually exclusive,
+# so when enabling dacs also set localCSIDriver.useLocalCSIDriver to false.
 cache:
-  providers: {}
+  providers:
+    dacs:
+      enabled: true
+      discoveryEndpoint: ""
+      kvCacheEnabled: true
+      kvConnectorProtocol: "tcp"
+      # OCI image bundling the DACS client libraries (libStorageDirect.so),
+      # mounted into inference pods as an ImageVolume.
+      # glibc requirement: the client is built against glibc 2.35 (manylinux_2_35),
+      # so the inference/base image using the cache MUST be glibc >= 2.35
+      # (Ubuntu 22.04+), otherwise the library fails to load at runtime.
+      clientImage: ""

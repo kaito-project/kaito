@@ -35,7 +35,16 @@ featureGates:
   distributedCache: true
 
 cache:
-  providers: {}   # add your provider's configuration here
+  providers:
+    dacs:
+      enabled: true
+      discoveryEndpoint: ""  # Auto-discovered from Cache CR status if empty
+      kvCacheEnabled: true
+      kvConnectorProtocol: "tcp"
+      blobEndpoint: "https://<your-account>.blob.core.windows.net"  # For prewarm Jobs
+      blobContainer: "kaito-models"
+      blobPrefix: "kaito-models"
+      prewarmImage: ""  # Set if using prewarm Jobs
 ```
 
 Install or upgrade KAITO:
@@ -219,3 +228,19 @@ The output should include `distributedCache=true`.
 |---|---|---|
 | `featureGates.distributedCache` | Enable the distributed cache feature | `false` |
 | `cache.providers` | Per-provider configuration map (`cache.providers.<name>.*`). Provider-specific; see the provider's docs. | `{}` |
+| `cache.providers.dacs.enabled` | Register the DACS provider | `false` |
+| `cache.providers.dacs.discoveryEndpoint` | DACS cache server discovery URL (auto-discovered if empty) | `""` |
+| `cache.providers.dacs.kvCacheEnabled` | Enable KV cache support | `true` |
+| `cache.providers.dacs.kvConnectorProtocol` | KV connector transport (`tcp` or `rdma`) | `tcp` |
+| `cache.providers.dacs.clientImage` | OCI image bundling the DACS client libraries (mounted into inference pods) | `""` |
+| `cache.providers.dacs.blobEndpoint` | Azure Blob Storage endpoint (for prewarm Jobs) | `""` |
+| `cache.providers.dacs.blobContainer` | Blob container for model storage | `kaito-models` |
+| `cache.providers.dacs.blobPrefix` | Path prefix within the container | `kaito-models` |
+| `cache.providers.dacs.prewarmImage` | Image for prewarm Jobs | `""` |
+
+:::warning glibc compatibility
+The DACS client libraries (`libStorageDirect.so`) bundled in `cache.providers.dacs.clientImage`
+are built against **glibc 2.35** (`manylinux_2_35`). Any inference/base image that consumes the
+cache **must be glibc 2.35 or newer (Ubuntu 22.04+)**. On an older base the runai model streamer
+will fail to load the library at runtime.
+:::

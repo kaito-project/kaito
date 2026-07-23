@@ -234,6 +234,11 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		manifests.GenerateStatefulSetManifest(revisionNum, numNodes),
 	}
 
+	// Add cache pod template labels (for webhook-based injection).
+	if cacheApplicable {
+		ssOpts = append(ssOpts, cache.SetCachePodTemplateLabels())
+	}
+
 	// Volume handling: streaming skips weights volume (model is read from az:// directly).
 	if !streamingEnabled {
 		if checkIfNVMeAvailable(ctx, gpuConfig, kubeClient) {

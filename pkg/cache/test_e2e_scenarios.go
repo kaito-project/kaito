@@ -17,6 +17,8 @@ import (
 	"context"
 	"time"
 
+	appsv1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
@@ -100,4 +102,27 @@ type E2EScenario struct {
 	// Implementations should create their own resources in h.Namespace() and clean
 	// them up (a Cleanup closure may be returned instead; see Run semantics below).
 	Run func(h E2EHarness) error
+}
+
+// GetStatefulSet is a convenience for scenarios: it fetches the StatefulSet that the
+// workspace controller creates for a workspace (same name/namespace).
+func GetStatefulSet(h E2EHarness, ws *kaitov1beta1.Workspace) (*appsv1.StatefulSet, error) {
+	sts := &appsv1.StatefulSet{}
+	err := h.Client().Get(h.Ctx(), client.ObjectKey{Namespace: ws.Namespace, Name: ws.Name}, sts)
+	return sts, err
+}
+
+// GetWorkspaceCondition is a convenience for scenarios: it returns the named status
+// condition of a workspace (re-fetched), and whether it was found.
+func GetWorkspaceCondition(h E2EHarness, ws *kaitov1beta1.Workspace, condType string) (metav1.Condition, bool, error) {
+	fresh := &kaitov1beta1.Workspace{}
+	if err := h.Client().Get(h.Ctx(), client.ObjectKey{Namespace: ws.Namespace, Name: ws.Name}, fresh); err != nil {
+		return metav1.Condition{}, false, err
+	}
+	for _, c := range fresh.Status.Conditions {
+		if c.Type == condType {
+			return c, true, nil
+		}
+	}
+	return metav1.Condition{}, false, nil
 }

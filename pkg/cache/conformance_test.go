@@ -13,8 +13,8 @@
 
 package cache_test
 
-// The blank import of pkg/cache/noop below self-registers the provider's
-// conformance Expectations via init(). Adding a new provider package to the
+// The blank imports of pkg/cache/dacs and pkg/cache/noop below self-register each
+// provider's conformance Expectations via init(). Adding a new provider package to the
 // import list is all that is required for the registry-driven suite to discover it.
 import (
 	"context"
@@ -26,6 +26,7 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/cache"
+	_ "github.com/kaito-project/kaito/pkg/cache/dacs"
 	_ "github.com/kaito-project/kaito/pkg/cache/noop"
 )
 
@@ -37,7 +38,7 @@ import (
 func TestProviderConformance_AutoDiscovered(t *testing.T) {
 	exps := cache.ListExpectations()
 	if len(exps) == 0 {
-		t.Fatal("no cache provider expectations registered; expected at least noop")
+		t.Fatal("no cache provider expectations registered; expected at least noop and dacs")
 	}
 	t.Logf("discovered %d cache provider(s) for conformance", len(exps))
 
@@ -96,7 +97,7 @@ func TestProviderConformance_AutoDiscovered(t *testing.T) {
 // the global provider registry is shared across the test binary and is deliberately
 // polluted with fake providers by other unit tests in this package.
 func TestProviderConformance_ShippedProviders(t *testing.T) {
-	shipped := []kaitov1beta1.CacheProvider{"noop"}
+	shipped := []kaitov1beta1.CacheProvider{"noop", "dacs"}
 	for _, name := range shipped {
 		e, ok := cache.GetExpectations(name)
 		if !ok {

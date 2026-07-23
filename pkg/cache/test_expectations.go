@@ -105,6 +105,36 @@ type Expectations struct {
 	// logic lives in the provider — the e2e runner simply calls and acts on
 	// the result.
 	CacheWarm func() *CacheWarmConfig
+
+	// E2EWorkspace returns the provider-specific workspace pod template the
+	// shared e2e conformance specs need to run a real serving workload for this
+	// provider (serving image, vLLM args, backend env, identity), after checking
+	// the provider's e2e prerequisites. Nil means the provider relies on the
+	// neutral skeleton the shared specs build (sufficient for a provider whose
+	// cache engages without a special serving image or load path). A non-nil
+	// result with a SkipReason means the provider's workspace-building specs are
+	// skipped. Keeping all provider-specific env reads and pod shaping here frees
+	// the shared e2e suite of provider details, so a new provider is exercised
+	// end-to-end by registering its Expectations alone.
+	E2EWorkspace func() *E2EWorkspaceConfig
+}
+
+// E2EWorkspaceConfig is returned by a provider's E2EWorkspace function. It supplies
+// the provider-specific pod template the shared e2e conformance specs apply on top
+// of the neutral workspace skeleton they build.
+type E2EWorkspaceConfig struct {
+	// SkipReason is non-empty when the provider's e2e prerequisites are unmet
+	// (e.g. a required serving image or backend env var is not set). The shared
+	// specs skip the provider's workspace-building tests with this message
+	// instead of failing. This replaces suite-wide, provider-specific env gating.
+	SkipReason string
+
+	// Customizer fills in the provider's runtime specifics on the skeleton
+	// workspace the shared specs build (serving image, vLLM args, backend env,
+	// etc.). The specs own the provider-neutral scaffolding (metadata, resource
+	// selector, cache spec, service account); the provider owns everything the
+	// cache backend requires to engage. Must not be nil when SkipReason is empty.
+	Customizer func(ws *kaitov1beta1.Workspace)
 }
 
 // CacheWarmConfig is returned by a provider's CacheWarm function. It carries

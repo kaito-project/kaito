@@ -218,6 +218,12 @@ func (g *AzureGPUProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kai
 		nodeClaimCond.Status = metav1.ConditionTrue
 		nodeClaimCond.Reason = "NodeClaimsReady"
 		nodeClaimCond.Message = "Enough NodeClaims are ready"
+	} else if reason, message, ok := nodeclaim.FirstProvisioningError(existingNodeClaims); ok {
+		// Surface the underlying cloud-provider provisioning error (e.g. quota
+		// exceeded, unauthorized) so users can see the root cause in the
+		// workspace/inferenceset status instead of a generic message.
+		nodeClaimCond.Reason = reason
+		nodeClaimCond.Message = message
 	}
 
 	// Node readiness.

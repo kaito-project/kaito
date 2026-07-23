@@ -862,3 +862,39 @@ func TestCollectNodeStatusInfo_ConditionTypes(t *testing.T) {
 	assert.True(t, typeSet[string(kaitov1beta1.ConditionTypeNodeClaimStatus)])
 	assert.True(t, typeSet[string(kaitov1beta1.ConditionTypeResourceStatus)])
 }
+
+func TestCollectNodeStatusInfo_SurfacesProvisioningError(t *testing.T) {
+	// A NodeClaim that failed to launch (e.g. quota exceeded) must surface its
+	// underlying reason/message on the NodeClaim and Resource conditions.
+	failedNC := makeKarpenterNodeClaim("nc-1", NodePoolName("default", "ws1"), false)
+	failedNC.Status.Conditions = []status.Condition{
+		{
+			Type:    karpenterv1.ConditionTypeLaunched,
+			Status:  metav1.ConditionUnknown,
+			Reason:  "SubscriptionQuotaReached",
+			Message: "Family Cores quota exceeded",
+		},
+	}
+	c := newFakeClient(failedNC) // No ready nodes.
+
+	p := NewKarpenterProvisioner(c, testConfig)
+	ws := newTestWorkspace("default", "ws1", "Standard_NC24ads_A100_v4", 1, nil, nil)
+
+	conditions, err := p.CollectNodeStatusInfo(context.Background(), ws)
+	require.NoError(t, err)
+
+	byType := map[string]metav1.Condition{}
+	for _, cond := range conditions {
+		byType[cond.Type] = cond
+	}
+
+	ncCond := byType[string(kaitov1beta1.ConditionTypeNodeClaimStatus)]
+	assert.Equal(t, metav1.ConditionFalse, ncCond.Status)
+	assert.Equal(t, "SubscriptionQuotaReached", ncCond.Reason)
+	assert.Equal(t, "Family Cores quota exceeded", ncCond.Message)
+
+	// The resource condition mirrors the NodeClaim failure cause.
+	resCond := byType[string(kaitov1beta1.ConditionTypeResourceStatus)]
+	assert.Equal(t, "SubscriptionQuotaReached", resCond.Reason)
+	assert.Equal(t, "Family Cores quota exceeded", resCond.Message)
+}

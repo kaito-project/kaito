@@ -215,6 +215,7 @@ func TestGetInferenceCommandVLLMLocalModelWeightsPath(t *testing.T) {
 	cmd := p.GetInferenceCommand(rc)
 	require.Len(t, cmd, 3)
 	assert.Contains(t, cmd[2], "--model=/opt/kaito/models/deepseekv4flash")
+	assert.Contains(t, cmd[2], "--load-format=runai_streamer")
 	assert.NotContains(t, cmd[2], "download-dir")
 	assert.NotContains(t, cmd[2], "code-revision")
 }

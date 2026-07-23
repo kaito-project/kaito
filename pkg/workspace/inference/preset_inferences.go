@@ -65,6 +65,15 @@ const (
 	// images. Used as CUDA_HOME (and the install target on nodes that lack it) when
 	// kaito.sh/cuda-toolkit-hostpath is not set.
 	defaultCUDAToolkitHostPath = "/opt/kaito/cuda/129"
+
+	// defaultLocalWeightsVolumeName is the hostPath volume that exposes the
+	// conventional node-local model weights directory to vLLM preset pods.
+	defaultLocalWeightsVolumeName = "default-local-weights-hostpath"
+
+	// defaultLocalWeightsHostPath is the conventional node directory KAITO checks for
+	// baked model weights. When populated, vLLM loads from it instead of downloading
+	// from HuggingFace (resolved at runtime via --kaito-local-weights-dir).
+	defaultLocalWeightsHostPath = "/opt/kaito/weights"
 )
 
 var (
@@ -529,6 +538,31 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			volumeMounts = append(volumeMounts, mount)
 		}
 
+		// Default node-local weights: for vLLM preset pods that use neither an explicit
+		// weights hostpath nor streaming, always mount the conventional node weights
+		// directory (/opt/kaito/weights) read-only. If a node bakes weights there, the
+		// entrypoint prefers them at runtime (--kaito-local-weights-dir); otherwise the
+		// pod downloads from HuggingFace as usual. DirectoryOrCreate so the pod still
+		// starts on nodes without it.
+		var defaultLocalWeightsDir string
+		if streamingModelPath == "" && nodeImageWeightsPath == "" &&
+			v1beta1.GetWorkspaceRuntimeName(ctx.Workspace) == pkgmodel.RuntimeNameVLLM {
+			defaultLocalWeightsDir = defaultLocalWeightsHostPath
+			hostPathType := corev1.HostPathDirectoryOrCreate
+			volumes = append(volumes, corev1.Volume{
+				Name: defaultLocalWeightsVolumeName,
+				VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{
+					Path: defaultLocalWeightsDir,
+					Type: &hostPathType,
+				}},
+			})
+			volumeMounts = append(volumeMounts, corev1.VolumeMount{
+				Name:      defaultLocalWeightsVolumeName,
+				MountPath: defaultLocalWeightsDir,
+				ReadOnly:  true,
+			})
+		}
+
 		// CUDA toolkit for models whose FP8 GEMMs require DeepGEMM's nvcc JIT (e.g.
 		// DeepSeek-V4). Only these models get a toolkit. Resolve its location from the
 		// annotation or a default baked path and mount it from the node. The
@@ -628,11 +662,12 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			MaxModelLen:          maxModelLen,
 			InferencePort:        vllmPort,
 			RuntimeContextExtraArguments: pkgmodel.RuntimeContextExtraArguments{
-				AdaptersEnabled:       len(ctx.Workspace.Inference.Adapters) > 0,
-				PerformanceMode:       v1beta1.GetPerformanceMode(ctx.Workspace),
-				StreamingModelPath:    streamingModelPath,
-				StreamingLoadFormat:   streamingLoadFormat,
-				LocalModelWeightsPath: nodeImageWeightsPath,
+				AdaptersEnabled:        len(ctx.Workspace.Inference.Adapters) > 0,
+				PerformanceMode:        v1beta1.GetPerformanceMode(ctx.Workspace),
+				StreamingModelPath:     streamingModelPath,
+				StreamingLoadFormat:    streamingLoadFormat,
+				LocalModelWeightsPath:  nodeImageWeightsPath,
+				DefaultLocalWeightsDir: defaultLocalWeightsDir,
 			},
 		})
 
@@ -759,32 +794,6 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 				VolumeMounts: []corev1.VolumeMount{
 					{Name: cudaToolkitHostVolumeName, MountPath: cudaHome},
 				},
-			}}, spec.InitContainers...)
-		}
-
-		// Node-image weights are loaded by the runtime via mmap (safetensors). On a
-		// cold page cache the mmap fault path is readahead-starved on the virtualized
-		// OS disk (~35 MB/s), so the first load of a large model can take many minutes
-		// even though the disk streams at ~1 GB/s. Prepend an init container that
-		// sequentially reads the weight files with large buffered reads (dd bs=8M,
-		// which drives large I/O regardless of the small default readahead) to warm
-		// the node page cache. The main container's mmap load then hits RAM and
-		// completes in seconds. Page cache is node-global, so it carries over from the
-		// init container to the main container. Best-effort: it never fails startup.
-		if nodeImageWeightsPath != "" {
-			_, weightsMount := utils.HostPathVolume("model-weights-hostpath", nodeImageWeightsPath)
-			spec.InitContainers = append([]corev1.Container{{
-				Name:  "model-weights-prewarm",
-				Image: GetBaseImageName(),
-				// The weights path is passed as a positional argument ($1), never
-				// interpolated into the script, so a path containing shell
-				// metacharacters cannot inject commands.
-				Command: []string{
-					"/bin/sh", "-c",
-					`find "$1" -type f -exec dd if={} of=/dev/null bs=8M \; >/dev/null 2>&1 || true`,
-					"sh", nodeImageWeightsPath,
-				},
-				VolumeMounts: []corev1.VolumeMount{weightsMount},
 			}}, spec.InitContainers...)
 		}
 

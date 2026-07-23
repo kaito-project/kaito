@@ -19,7 +19,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/cache"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 )
@@ -32,6 +35,14 @@ func CreateTemplateInference(ctx context.Context, workspaceObj *kaitov1beta1.Wor
 	if err := ApplyProvisionerNodeSelector(ctx, provisioner, workspaceObj, &ssObj.Spec.Template.Spec); err != nil {
 		return nil, err
 	}
+
+	// Apply cache mutations for template-based workspaces.
+	if featuregates.FeatureGates[consts.FeatureFlagDistributedCache] && workspaceObj.Cache != nil {
+		if cacheErr := cache.ApplyTemplateCacheMutations(ctx, workspaceObj, kubeClient, ssObj); cacheErr != nil {
+			return nil, cacheErr
+		}
+	}
+
 	err := resources.CreateResource(ctx, client.Object(ssObj), kubeClient)
 	if client.IgnoreAlreadyExists(err) != nil {
 		return nil, err

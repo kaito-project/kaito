@@ -270,6 +270,80 @@ type WorkspaceStatus struct {
 	Performance *Performance `json:"performance,omitempty"`
 }
 
+// CacheProvider identifies a cache backend implementation.
+type CacheProvider string
+
+// CacheMode controls how a workspace interacts with the cache.
+type CacheMode string
+
+const (
+	// CacheModeRequired blocks workload deployment until the cache is ready.
+	CacheModeRequired CacheMode = "Required"
+	// CacheModeOpportunistic uses the cache if available, proceeds without if not.
+	CacheModeOpportunistic CacheMode = "Opportunistic"
+	// CacheModeDisabled disables cache interaction entirely.
+	CacheModeDisabled CacheMode = "Disabled"
+)
+
+// CacheSpec configures distributed caching for model workloads.
+// Each concern (model weights, KV cache) is configured independently with its
+// own provider and mode, allowing different backends per concern.
+type CacheSpec struct {
+	// ModelCache configures caching of model weight files.
+	// +optional
+	ModelCache *ModelCacheSpec `json:"modelCache,omitempty"`
+
+	// KVCache configures caching of attention key/value tensors.
+	// +optional
+	KVCache *KVCacheSpec `json:"kvCache,omitempty"`
+}
+
+// ModelCacheSpec controls how model weight files are cached.
+type ModelCacheSpec struct {
+	// Provider selects the cache implementation for model weights.
+	// +kubebuilder:validation:MinLength=1
+	Provider CacheProvider `json:"provider"`
+
+	// Mode controls cache behavior.
+	// +kubebuilder:default:="Opportunistic"
+	// +kubebuilder:validation:Enum=Required;Opportunistic;Disabled
+	Mode CacheMode `json:"mode,omitempty"`
+
+	// Config is the name of a ConfigMap in the same namespace containing
+	// provider-specific model cache configuration. The provider validates
+	// and merges this with its defaults from Helm values.
+	// +optional
+	Config string `json:"config,omitempty"`
+
+	// CleanupOnDelete invalidates cached model data when workspace is deleted.
+	//
+	// NOTE: Not yet implemented. This field is reserved for future use; setting it
+	// currently has no effect. Cached model chunks are managed by the cache
+	// provider's own TTL/eviction policy and are not explicitly invalidated on
+	// workspace deletion. See https://github.com/kaito-project/kaito for status.
+	// +optional
+	CleanupOnDelete bool `json:"cleanupOnDelete,omitempty"`
+}
+
+// KVCacheSpec controls how attention KV tensors are cached.
+type KVCacheSpec struct {
+	// Provider selects the cache implementation for KV tensors.
+	// +kubebuilder:validation:MinLength=1
+	Provider CacheProvider `json:"provider"`
+
+	// Mode controls cache behavior.
+	// +kubebuilder:default:="Opportunistic"
+	// +kubebuilder:validation:Enum=Required;Opportunistic;Disabled
+	Mode CacheMode `json:"mode,omitempty"`
+
+	// Config is the name of a ConfigMap in the same namespace containing
+	// provider-specific KV cache configuration (e.g., cache size, TTL,
+	// eviction policy). The provider validates and merges this with its
+	// defaults from Helm values.
+	// +optional
+	Config string `json:"config,omitempty"`
+}
+
 // Workspace is the Schema for the workspaces API
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
@@ -290,6 +364,7 @@ type Workspace struct {
 	Resource  ResourceSpec    `json:"resource,omitempty"`
 	Inference *InferenceSpec  `json:"inference,omitempty"`
 	Tuning    *TuningSpec     `json:"tuning,omitempty"`
+	Cache     *CacheSpec      `json:"cache,omitempty"`
 	Status    WorkspaceStatus `json:"status,omitempty"`
 }
 

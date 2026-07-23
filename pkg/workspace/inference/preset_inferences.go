@@ -33,6 +33,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/cache"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
@@ -218,8 +219,24 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		podOpts = append(podOpts, SetBenchmarkConfig(distributed))
 	}
 
+	// Cache injection is attempted whenever the distributed-cache feature gate is
+	// on and a cache is configured. Whether a given provider actually engages with
+	// this workload is the provider's decision (via cache.PodApplicabilityChecker)
+	// — e.g. a streaming provider only applies when the model is loaded via the
+	// run:ai streamer, while a mount-based provider may apply unconditionally. The
+	// framework does not hardcode any such condition here.
+	cacheApplicable := featuregates.FeatureGates[consts.FeatureFlagDistributedCache] && workspaceObj.Cache != nil
+	if cacheApplicable {
+		podOpts = append(podOpts, cache.SetCacheMutations())
+	}
+
 	ssOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, appsv1.StatefulSet]{
 		manifests.GenerateStatefulSetManifest(revisionNum, numNodes),
+	}
+
+	// Add cache pod template labels (for webhook-based injection).
+	if cacheApplicable {
+		ssOpts = append(ssOpts, cache.SetCachePodTemplateLabels())
 	}
 
 	// Volume handling: streaming skips weights volume (model is read from az:// directly).
@@ -251,6 +268,13 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	}
 
 	ssOpts = append(ssOpts, manifests.SetStatefulSetPodSpec(podSpec))
+
+	// Add cache pod template labels (for webhook-based injection). This runs after
+	// the pod spec is attached so provider applicability checks can inspect the
+	// fully-rendered workload (containers, args, volumes).
+	if cacheApplicable {
+		ssOpts = append(ssOpts, cache.SetCachePodTemplateLabels())
+	}
 
 	return generator.GenerateManifest(gctx, ssOpts...)
 }

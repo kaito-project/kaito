@@ -111,13 +111,12 @@ jobs:
           helm repo add keda-kaito-scaler https://kaito-project.github.io/keda-kaito-scaler/charts/kaito-project
           helm repo update
           # keda-kaito-scaler must be in the same namespace as KEDA (shares TLS secrets)
-          # Pin to v0.6.1: v0.6.0 shipped the annotation-driven auto-provision
-          # flow (kaito-project/keda-kaito-scaler#122) but with indexed per-metric
-          # keys that were invalid Kubernetes annotations; v0.6.1 replaced them
-          # with a single YAML-list `scaledobject.kaito.sh/metrics` annotation
-          # (kaito-project/keda-kaito-scaler#129, fixes #128). The InferenceSet
-          # fixture below uses that v0.6.1 metrics-list schema.
-          helm upgrade --install keda-kaito-scaler -n keda keda-kaito-scaler/keda-kaito-scaler --version 0.6.1
+          # Install the latest chart version so we always pick up the current
+          # annotation-driven auto-provision schema shipped by keda-kaito-scaler
+          # (see kaito-project/keda-kaito-scaler#129, which introduced the
+          # single YAML-list `scaledobject.kaito.sh/metrics` annotation used by
+          # the InferenceSet fixture below).
+          helm upgrade --install keda-kaito-scaler -n keda keda-kaito-scaler/keda-kaito-scaler
           kubectl wait --for=condition=available --timeout=300s deployment/keda-kaito-scaler -n keda
 
           # Wait for keda-kaito-scaler TLS certs to be fully provisioned before
@@ -166,11 +165,11 @@ jobs:
           metadata:
             name: inferenceset-aikit-test
             annotations:
-              # v0.6.1+ annotation-driven auto-provision. The v0.6.0 indexed
+              # Annotation-driven auto-provision. The earlier v0.6.0 indexed
               # keys (metricName/0, upthreshold/0, ...) were invalid Kubernetes
               # annotation keys and were replaced in
               # kaito-project/keda-kaito-scaler#129 with a single YAML-list
-              # `scaledobject.kaito.sh/metrics` annotation.
+              # `scaledobject.kaito.sh/metrics` annotation used below.
               scaledobject.kaito.sh/auto-provision: "true"
               scaledobject.kaito.sh/max-replicas: "5"
               # One entry per metric. AIKit does not emit vLLM metrics, so

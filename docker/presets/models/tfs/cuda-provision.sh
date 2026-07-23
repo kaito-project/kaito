@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
-# cuda-provision.sh — install the CUDA toolkit into a shared volume at runtime.
+# cuda-provision.sh — install the CUDA toolkit into a directory at runtime.
 #
-# Invoked by an init container when a workspace sets kaito.sh/install-cuda-toolkit=true.
-# Some runtimes (e.g. DeepGEMM for FP8 models like DeepSeek-V4) JIT-compile CUDA
-# kernels with nvcc, which the slim base image does not ship. This installs
-# cuda-toolkit-12-9 from NVIDIA's apt repo and stages it into the target directory
-# (a volume shared with the main container), which then sets CUDA_HOME to it.
+# Invoked by the cuda-toolkit-provisioner init container for models that require
+# DeepGEMM (e.g. FP8 models like DeepSeek-V4), which JIT-compile CUDA kernels with
+# nvcc that the slim base image does not ship. This installs cuda-toolkit-12-9 from
+# NVIDIA's apt repo into the target directory (a node hostPath the main container
+# uses as CUDA_HOME).
 #
-# The target dir persists across container restarts within the pod (emptyDir), so
-# the install runs once per pod even if the main container restarts. The host C++
-# compiler (g++) required by nvcc is baked into the base image.
+# The target dir is a node hostPath, so the install survives pod recreation and is
+# shared by all pods on the node — only cold nodes pay the install. It is idempotent
+# (skips when nvcc is already present). The host C++ compiler (g++) required by nvcc
+# is baked into the base image.
 #
 # Usage: cuda-provision.sh [TARGET_DIR]   (default: /opt/cuda)
 set -euo pipefail

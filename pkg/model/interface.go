@@ -609,13 +609,8 @@ func (p *PresetParam) isLMCacheDisabled() bool {
 	return false
 }
 
-// RequiresDeepGEMM returns true for architectures whose FP8 GEMMs must use the
-// DeepGEMM backend. vLLM otherwise disables DeepGEMM by default in KAITO (via
-// VLLM_USE_DEEP_GEMM=0) and falls back to CUTLASS, which cannot handle these
-// models' E8M0 block-scaled FP8 (fails with "Not yet supported ScalarType").
-// DeepGEMM is bundled with vLLM (vllm.third_party.deep_gemm) and JIT-compiles
-// with nvcc at runtime, so these models also require a CUDA toolkit in the
-// container (see kaito.sh/install-cuda-toolkit).
+// RequiresDeepGEMM returns true for architectures that strictly require the
+// DeepGEMM library.
 func (p *PresetParam) RequiresDeepGEMM() bool {
 	for _, arch := range p.Architectures {
 		switch arch {

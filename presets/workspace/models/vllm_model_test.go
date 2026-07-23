@@ -219,47 +219,42 @@ func TestReadinessTimeoutForModelSize(t *testing.T) {
 		expected      time.Duration
 	}{
 		{
-			name:          "large model above threshold uses large timeout",
-			modelFileSize: "554.32Gi", // Kimi-K2.5
-			expected:      largeModelReadinessTimeout,
+			name:          "very large model is capped",
+			modelFileSize: "641.30Gi", // DeepSeek-R1-0528: 15m + 641.3*30s → capped
+			expected:      maxReadinessTimeout,
 		},
 		{
-			name:          "very large model above threshold uses large timeout",
-			modelFileSize: "641.30Gi", // DeepSeek-R1-0528
-			expected:      largeModelReadinessTimeout,
+			name:          "large model is capped",
+			modelFileSize: "554.32Gi", // Kimi-K2.5: 15m + 554.32*30s → capped
+			expected:      maxReadinessTimeout,
 		},
 		{
-			name:          "fp8 model above threshold uses large timeout",
-			modelFileSize: "148.66Gi", // DeepSeek-V4-Flash
-			expected:      largeModelReadinessTimeout,
+			name:          "150GiB model gets one hour",
+			modelFileSize: "150Gi", // 15m + 150*18s = 60m
+			expected:      60 * time.Minute,
 		},
 		{
-			name:          "model just above threshold uses large timeout",
-			modelFileSize: "100.01Gi",
-			expected:      largeModelReadinessTimeout,
+			name:          "medium model scales linearly (integer GiB)",
+			modelFileSize: "100Gi", // 15m + 100*18s = 45m
+			expected:      45 * time.Minute,
 		},
 		{
-			name:          "model at threshold uses default",
-			modelFileSize: "100Gi",
+			name:          "small-medium model scales linearly (integer GiB)",
+			modelFileSize: "60Gi", // 15m + 60*18s = 33m
+			expected:      33 * time.Minute,
+		},
+		{
+			name:          "small model is floored",
+			modelFileSize: "7.15Gi", // 15m + 7.15*30s ≈ 18.6m → floored
 			expected:      defaultReadinessTimeout,
 		},
 		{
-			name:          "model below threshold uses default",
-			modelFileSize: "99Gi",
-			expected:      defaultReadinessTimeout,
-		},
-		{
-			name:          "small model uses default",
-			modelFileSize: "7.15Gi",
-			expected:      defaultReadinessTimeout,
-		},
-		{
-			name:          "empty size uses default",
+			name:          "empty size uses floor",
 			modelFileSize: "",
 			expected:      defaultReadinessTimeout,
 		},
 		{
-			name:          "unparsable size uses default",
+			name:          "unparsable size uses floor",
 			modelFileSize: "not-a-size",
 			expected:      defaultReadinessTimeout,
 		},

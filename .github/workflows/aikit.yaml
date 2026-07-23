@@ -109,11 +109,14 @@ jobs:
       - name: Deploy KEDA Kaito Scaler
         run: |
           helm repo add keda-kaito-scaler https://kaito-project.github.io/keda-kaito-scaler/charts/kaito-project
+          helm repo update
           # keda-kaito-scaler must be in the same namespace as KEDA (shares TLS secrets)
-          # Pin to v0.5.1: v0.6.0 changed auto-provision to be annotation-driven
-          # (kaito-project/keda-kaito-scaler#122), breaking this integration test
-          # until the InferenceSet fixture is updated with the new annotations.
-          helm upgrade --install keda-kaito-scaler -n keda keda-kaito-scaler/keda-kaito-scaler --version 0.5.1
+          # Install the latest chart version so we always pick up the current
+          # annotation-driven auto-provision schema shipped by keda-kaito-scaler
+          # (see kaito-project/keda-kaito-scaler#129, which introduced the
+          # single YAML-list `scaledobject.kaito.sh/metrics` annotation used by
+          # the InferenceSet fixture below).
+          helm upgrade --install keda-kaito-scaler -n keda keda-kaito-scaler/keda-kaito-scaler
           kubectl wait --for=condition=available --timeout=300s deployment/keda-kaito-scaler -n keda
 
           # Wait for keda-kaito-scaler TLS certs to be fully provisioned before
@@ -162,9 +165,22 @@ jobs:
           metadata:
             name: inferenceset-aikit-test
             annotations:
+              # Annotation-driven auto-provision. The earlier v0.6.0 indexed
+              # keys (metricName/0, upthreshold/0, ...) were invalid Kubernetes
+              # annotation keys and were replaced in
+              # kaito-project/keda-kaito-scaler#129 with a single YAML-list
+              # `scaledobject.kaito.sh/metrics` annotation used below.
               scaledobject.kaito.sh/auto-provision: "true"
               scaledobject.kaito.sh/max-replicas: "5"
-              scaledobject.kaito.sh/threshold: "10"
+              # One entry per metric. AIKit does not emit vLLM metrics, so
+              # this trigger will never fire in the test — the goal is only
+              # to validate that the ScaledObject / HPA are created and
+              # reconciled correctly.
+              scaledobject.kaito.sh/metrics: |
+                - name: vllm:num_requests_waiting
+                  type: gauge
+                  upthreshold: 10
+                  downthreshold: 1
           spec:
             labelSelector:
               matchLabels:

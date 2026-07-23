@@ -41,35 +41,40 @@ fetch_sas = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(fetch_sas)
 
 
-def test_resolve_url_byo_strips_credentials():
-    url = "https://a.services.ai.azure.com/api/projects/p/models/m/versions/1/credentials?api-version=2025-11-15-preview"
-    got = fetch_sas.resolve_url_from_datarefs(url, fetch_sas.SOURCE_BYO)
-    assert got == (
-        "https://a.services.ai.azure.com/api/projects/p/models/m/versions/1?api-version=2025-11-15-preview"
-    ), got
+def test_derive_urls_byo_appends_credentials():
+    # byo input is the BASE model URL (no /credentials); mint appends it, resolve is the base.
+    base = "https://a.services.ai.azure.com/api/projects/p/models/m/versions/1?api-version=2025-11-15-preview"
+    resolve_url, mint_url = fetch_sas.derive_urls(base, fetch_sas.SOURCE_BYO)
+    assert resolve_url == base, resolve_url
+    assert mint_url == (
+        "https://a.services.ai.azure.com/api/projects/p/models/m/versions/1/credentials?api-version=2025-11-15-preview"
+    ), mint_url
 
 
-def test_resolve_url_public_swaps_datarefs_for_models():
-    url = "https://mfep/mferp/managementfrontend/registries/r/datarefs/m/versions/1?api-version=2021-10-01-dataplanepreview"
-    got = fetch_sas.resolve_url_from_datarefs(url, fetch_sas.SOURCE_PUBLIC)
-    assert got == (
+def test_derive_urls_public_swaps_datarefs_for_models():
+    # public input is the datarefs (mint) URL; resolve swaps /datarefs/ -> /models/.
+    mint = "https://mfep/mferp/managementfrontend/registries/r/datarefs/m/versions/1?api-version=2021-10-01-dataplanepreview"
+    resolve_url, mint_url = fetch_sas.derive_urls(mint, fetch_sas.SOURCE_PUBLIC)
+    assert mint_url == mint, mint_url
+    assert resolve_url == (
         "https://mfep/mferp/managementfrontend/registries/r/models/m/versions/1?api-version=2021-10-01-dataplanepreview"
-    ), got
+    ), resolve_url
 
 
-def test_resolve_url_byo_requires_credentials_suffix():
+def test_derive_urls_byo_rejects_credentials_suffix():
+    # byo must NOT include /credentials (RP passes the base).
     try:
-        fetch_sas.resolve_url_from_datarefs(
-            "https://a/models/m/versions/1", fetch_sas.SOURCE_BYO
+        fetch_sas.derive_urls(
+            "https://a/models/m/versions/1/credentials", fetch_sas.SOURCE_BYO
         )
     except ValueError:
         return
-    raise AssertionError("expected ValueError for BYO URL without /credentials")
+    raise AssertionError("expected ValueError for byo URL that includes /credentials")
 
 
-def test_resolve_url_public_requires_datarefs_segment():
+def test_derive_urls_public_requires_datarefs_segment():
     try:
-        fetch_sas.resolve_url_from_datarefs(
+        fetch_sas.derive_urls(
             "https://a/registries/r/models/m", fetch_sas.SOURCE_PUBLIC
         )
     except ValueError:

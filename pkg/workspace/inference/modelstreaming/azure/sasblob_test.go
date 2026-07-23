@@ -35,7 +35,7 @@ func wsWithStreamAnnotations() *v1beta1.Workspace {
 			Name:      "ws1",
 			Namespace: "default",
 			Annotations: map[string]string{
-				modelstreaming.AnnotationStreamDatarefsURL:      "https://x.services.ai.azure.com/api/projects/p/models/m/versions/1/credentials?api-version=2025-11-15-preview",
+				modelstreaming.AnnotationStreamDatarefsURL:      "https://x.services.ai.azure.com/api/projects/p/models/m/versions/1?api-version=2025-11-15-preview",
 				modelstreaming.AnnotationStreamIdentityClientID: "11111111-2222-3333-4444-555555555555",
 				modelstreaming.AnnotationStreamSourceType:       modelstreaming.SourceTypeBYO,
 			},

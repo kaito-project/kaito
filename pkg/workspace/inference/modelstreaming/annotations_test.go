@@ -23,7 +23,7 @@ import (
 // activates the SAS path). The blob-derived values are resolved at runtime, so they are not here.
 func coreShape() map[string]string {
 	return map[string]string{
-		AnnotationStreamDatarefsURL:      "https://x/models/m/versions/1/credentials",
+		AnnotationStreamDatarefsURL:      "https://x/models/m/versions/1",
 		AnnotationStreamIdentityClientID: "00000000-0000-0000-0000-000000000000",
 		AnnotationStreamSourceType:       SourceTypeBYO,
 	}

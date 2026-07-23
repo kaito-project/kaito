@@ -46,7 +46,7 @@ func TestSelectModelStreamer(t *testing.T) {
 			Name:      "ws-sas-not-static",
 			Namespace: "default",
 			Annotations: map[string]string{
-				modelstreaming.AnnotationStreamDatarefsURL:      "https://x/models/m/versions/1/credentials",
+				modelstreaming.AnnotationStreamDatarefsURL:      "https://x/models/m/versions/1",
 				modelstreaming.AnnotationStreamIdentityClientID: "11111111-2222-3333-4444-555555555555",
 				modelstreaming.AnnotationStreamSourceType:       modelstreaming.SourceTypeBYO,
 			},

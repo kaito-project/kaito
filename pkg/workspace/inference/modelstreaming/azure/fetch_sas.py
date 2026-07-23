@@ -25,7 +25,8 @@ script resolves everything else at pod runtime using the workload identity:
      shared env file so the main container's entrypoint wrapper can source them.
 
 Required environment variables:
-    STREAM_DATAREFS_URL       - SAS-mint endpoint URL
+    STREAM_DATAREFS_URL       - model endpoint URL. For public: the datarefs (mint) URL. For byo:
+                                the base model URL WITHOUT '/credentials' (KAITO appends it to mint).
     STREAM_IDENTITY_CLIENT_ID - workload identity client ID to resolve/mint as
     STREAM_SOURCE_TYPE        - model source flavor: "public" or "byo"
     STREAM_ENV_FILE           - file path to write the env file (KEY=value lines)
@@ -51,26 +52,38 @@ AUDIENCE_BY_TYPE = {
 }
 
 
-def resolve_url_from_datarefs(datarefs_url: str, source_type: str) -> str:
-    """Derive the model-resolve URL from the SAS-mint URL.
+def derive_urls(input_url: str, source_type: str) -> "tuple[str, str]":
+    """Return (resolve_url, mint_url) from STREAM_DATAREFS_URL.
 
-    byo:    .../models/{m}/versions/{v}/credentials?... -> strip the trailing '/credentials' segment.
-    public: .../registries/{r}/datarefs/{m}/versions/{v}?... -> swap '/datarefs/' for '/models/'.
+    The '/credentials' minting suffix is a byo detail owned by KAITO:
+      byo:    input is the base model URL (.../models/{m}/versions/{v}, NO '/credentials').
+              resolve = input as-is; mint = input + '/credentials'.
+      public: input is the datarefs (mint) URL (.../registries/{r}/datarefs/{m}/versions/{v}).
+              mint = input as-is; resolve = input with '/datarefs/' -> '/models/'.
+
+    Query and fragment are preserved on both derived URLs.
     """
-    parts = urllib.parse.urlsplit(datarefs_url)
-    path = parts.path
+    parts = urllib.parse.urlsplit(input_url)
+    path = parts.path.rstrip("/")
     if source_type == SOURCE_BYO:
-        # Remove the trailing '/credentials' segment, preserving the query.
-        if not path.rstrip("/").endswith("/credentials"):
-            raise ValueError(f"byo mint URL must end with /credentials: {path}")
-        new_path = path.rstrip("/")[: -len("/credentials")]
+        if path.endswith("/credentials"):
+            raise ValueError(
+                f"byo STREAM_DATAREFS_URL must be the base model URL without '/credentials': {path}"
+            )
+        resolve_path, mint_path = path, path + "/credentials"
     else:
         if "/datarefs/" not in path:
-            raise ValueError(f"public mint URL must contain /datarefs/: {path}")
-        new_path = path.replace("/datarefs/", "/models/", 1)
-    return urllib.parse.urlunsplit(
-        (parts.scheme, parts.netloc, new_path, parts.query, parts.fragment)
-    )
+            raise ValueError(
+                f"public STREAM_DATAREFS_URL must contain '/datarefs/': {path}"
+            )
+        mint_path, resolve_path = path, path.replace("/datarefs/", "/models/", 1)
+
+    def build(p: str) -> str:
+        return urllib.parse.urlunsplit(
+            (parts.scheme, parts.netloc, p, parts.query, parts.fragment)
+        )
+
+    return build(resolve_path), build(mint_path)
 
 
 def http_json(url: str, token: str, body: "bytes | None" = None) -> dict:
@@ -177,8 +190,9 @@ def main() -> int:
     cred = WorkloadIdentityCredential(client_id=client_id)
     token = cred.get_token(f"{audience}/.default").token
 
+    resolve_url, mint_url = derive_urls(datarefs_url, source_type)
+
     # Resolve the model to get its blobUri (and assetId for public).
-    resolve_url = resolve_url_from_datarefs(datarefs_url, source_type)
     model = http_json(resolve_url, token)
     blob_uri = extract_blob_uri(model)
     if not blob_uri:
@@ -192,7 +206,7 @@ def main() -> int:
     body = {"blobUri": blob_uri}
     if asset_id:
         body["assetId"] = asset_id
-    mint = http_json(datarefs_url, token, json.dumps(body).encode())
+    mint = http_json(mint_url, token, json.dumps(body).encode())
     sas_uri = extract_sas_uri(mint)
     if not sas_uri or "?" not in sas_uri:
         print("ERROR: datarefs response had no usable sasUri", file=sys.stderr)

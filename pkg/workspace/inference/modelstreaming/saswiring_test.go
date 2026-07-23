@@ -39,7 +39,7 @@ func sasCfg() *StreamingConfig {
 				Image:   "python:3.12-slim",
 				Command: []string{"/bin/sh", "-c", "pip install ... && python3 /scripts/fetch_sas.py"},
 				Env: []corev1.EnvVar{
-					{Name: "STREAM_DATAREFS_URL", Value: "https://example.com/models/m/versions/1/credentials"},
+					{Name: "STREAM_DATAREFS_URL", Value: "https://example.com/models/m/versions/1"},
 					{Name: "STREAM_IDENTITY_CLIENT_ID", Value: "11111111-2222-3333-4444-555555555555"},
 					{Name: "STREAM_SOURCE_TYPE", Value: SourceTypeBYO},
 					{Name: SASEnvFileEnvVar, Value: SASSharedMountPath + "/" + SASEnvFileName},

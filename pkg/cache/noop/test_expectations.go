@@ -25,6 +25,11 @@ func init() {
 	cache.RegisterExpectations(cache.Expectations{
 		Provider:          cache.ProviderName(ProviderName),
 		NewForConformance: func() cache.Provider { return NewProvider() },
+		// The noop provider injects nothing and has no serving backend, so the
+		// online (in-cluster) e2e specs — which build a real inference workload —
+		// have nothing meaningful to exercise for it. Opt out of e2e; the offline
+		// conformance and unit tests still verify its empty-mutation behavior.
+		E2EExempt: true,
 		ModelWeights: cache.MutationExpectation{
 			Supported:   true,
 			ExpectEmpty: true,

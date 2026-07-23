@@ -97,7 +97,7 @@ func TestProviderConformance_AutoDiscovered(t *testing.T) {
 // the global provider registry is shared across the test binary and is deliberately
 // polluted with fake providers by other unit tests in this package.
 func TestProviderConformance_ShippedProviders(t *testing.T) {
-	shipped := []cache.ProviderName{"noop"}
+	shipped := []cache.ProviderName{"noop", "dacs"}
 	for _, name := range shipped {
 		e, ok := cache.GetExpectations(name)
 		if !ok {

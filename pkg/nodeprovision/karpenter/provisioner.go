@@ -237,13 +237,18 @@ func (p *KarpenterProvisioner) waitForNodeClassReady(ctx context.Context, name s
 //     because karpenter will either self-heal them or delete them after a timeout,
 //     at which point a reconcile is triggered via the NodeClaim watch)
 //   - readyWithInstanceType: total ready nodes (BYO + legacy + karpenter) with correct instance type.
-func countCoveredNodes(ctx context.Context, c client.Client, ws *kaitov1beta1.Workspace) (coveredByNonKarpenter int, readyWithInstanceType int, err error) {
+//
+// Nodes provisioned for a different Workspace that happens to share this
+// Workspace's user-supplied label selector (e.g. a sibling replica of the same
+// InferenceSet) are excluded by comparing the ownership labels, so they do not
+// inflate either count. BYO nodes (which carry no ownership label) remain in scope.
+func (p *KarpenterProvisioner) countCoveredNodes(ctx context.Context, ws *kaitov1beta1.Workspace) (coveredByNonKarpenter int, readyWithInstanceType int, err error) {
 	if ws.Resource.LabelSelector == nil {
 		return 0, 0, nil
 	}
 
 	// Count ready nodes (all types).
-	nodeList, err := nodes.ListNodes(ctx, c, kaitov1beta1.SanitizedMatchLabels(ws.Resource.LabelSelector))
+	nodeList, err := nodes.ListNodes(ctx, p.client, kaitov1beta1.SanitizedMatchLabels(ws.Resource.LabelSelector))
 	if err != nil {
 		return 0, 0, fmt.Errorf("listing nodes: %w", err)
 	}
@@ -254,6 +259,15 @@ func countCoveredNodes(ctx context.Context, c client.Client, ws *kaitov1beta1.Wo
 			continue
 		}
 		if node.Labels[corev1.LabelInstanceTypeStable] != ws.Resource.InstanceType {
+			continue
+		}
+		// Skip nodes provisioned for a different workspace that shares this
+		// workspace's label selector (e.g. an InferenceSet sibling replica).
+		// BYO nodes carry neither ownership label and remain in scope.
+		if name, ok := node.Labels[consts.KarpenterWorkspaceNameKey]; ok && name != ws.Name {
+			continue
+		}
+		if name, ok := node.Labels[kaitov1beta1.LabelWorkspaceName]; ok && name != ws.Name {
 			continue
 		}
 		readyWithInstanceType++
@@ -269,7 +283,7 @@ func countCoveredNodes(ctx context.Context, c client.Client, ws *kaitov1beta1.Wo
 	// These are covered because karpenter engine will self-heal the node or
 	// delete the NodeClaim after a timeout (triggering a reconcile).
 	legacyNodeClaimList := &karpenterv1.NodeClaimList{}
-	if err := c.List(ctx, legacyNodeClaimList,
+	if err := p.client.List(ctx, legacyNodeClaimList,
 		client.MatchingLabels{
 			kaitov1beta1.LabelWorkspaceName:      ws.Name,
 			kaitov1beta1.LabelWorkspaceNamespace: ws.Namespace,
@@ -301,7 +315,7 @@ func (p *KarpenterProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1be
 	}
 
 	// Count non-karpenter ready nodes to compute delta.
-	coveredCount, _, err := countCoveredNodes(ctx, p.client, ws)
+	coveredCount, _, err := p.countCoveredNodes(ctx, ws)
 	if err != nil {
 		return fmt.Errorf("counting non-karpenter nodes: %w", err)
 	}
@@ -412,7 +426,7 @@ func (p *KarpenterProvisioner) buildNodeReadinessSnapshot(ctx context.Context, w
 	}
 
 	// Count all ready nodes matching workspace labels (BYO + legacy + karpenter).
-	coveredByNonKarpenterCount, readyWithInstanceTypeCount, err := countCoveredNodes(ctx, p.client, ws)
+	coveredByNonKarpenterCount, readyWithInstanceTypeCount, err := p.countCoveredNodes(ctx, ws)
 	if err != nil {
 		return nil, fmt.Errorf("counting ready nodes: %w", err)
 	}

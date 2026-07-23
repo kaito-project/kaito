@@ -209,7 +209,7 @@ func TestGetInferenceCommandVLLMLocalModelWeightsPath(t *testing.T) {
 		SKUNumGPUs:  1,
 		NumNodes:    1,
 		RuntimeContextExtraArguments: RuntimeContextExtraArguments{
-			LocalModelWeightsPath: "/opt/kaito/models/deepseekv4flash",
+			UserProvidedLocalModelWeightsPath: "/opt/kaito/models/deepseekv4flash",
 		},
 	}
 	cmd := p.GetInferenceCommand(rc)

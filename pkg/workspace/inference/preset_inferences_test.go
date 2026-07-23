@@ -444,8 +444,12 @@ func TestGeneratePresetInference(t *testing.T) {
 			// fusion pass (its TRT-LLM MNNVL kernel JIT-compiles at runtime and needs
 			// nvcc, which is absent from the runtime image). Inject it into the
 			// expectation so each vLLM case doesn't need to list the flag explicitly.
+			// Likewise, every vLLM preset pod mounts the conventional node weights
+			// directory and passes --kaito-local-weights-dir so the entrypoint can
+			// prefer node-local weights at runtime.
 			if strings.Contains(tc.expectedCmd, "/workspace/vllm/inference_api.py") {
 				expectedParams["compilation-config.pass_config.fuse_allreduce_rms"] = "False"
+				expectedParams["kaito-local-weights-dir"] = defaultLocalWeightsHostPath
 			}
 
 			if mainCmd != expectedMaincmd {
@@ -1910,31 +1914,22 @@ func TestGeneratePresetInferenceNodeImageWeights(t *testing.T) {
 		}
 	}
 
-	// A prewarm init container sequentially reads the weight files into the node
-	// page cache before the main container's mmap-based load.
-	var prewarm *corev1.Container
-	for i := range podSpec.InitContainers {
-		if podSpec.InitContainers[i].Name == "model-weights-prewarm" {
-			prewarm = &podSpec.InitContainers[i]
-			break
+	// No prewarm init container: local weights load via the RunAI streamer, whose
+	// concurrent reads make a page-cache prewarm pass unnecessary.
+	for _, ic := range podSpec.InitContainers {
+		if ic.Name == "model-weights-prewarm" {
+			t.Errorf("did not expect model-weights-prewarm init container")
 		}
 	}
-	if prewarm == nil {
-		t.Fatalf("expected model-weights-prewarm init container, got %v", podSpec.InitContainers)
-	}
-	if len(prewarm.VolumeMounts) != 1 || prewarm.VolumeMounts[0].MountPath != weightsPath || !prewarm.VolumeMounts[0].ReadOnly {
-		t.Errorf("prewarm should mount weights read-only at %s, got %v", weightsPath, prewarm.VolumeMounts)
-	}
-	// The weights path must be passed as a positional argument (last element),
-	// not interpolated into the script body, to avoid shell injection.
-	if got := prewarm.Command; len(got) < 4 || got[len(got)-1] != weightsPath || strings.Contains(got[2], weightsPath) {
-		t.Errorf("prewarm command should pass weights path as a positional arg, got %v", got)
-	}
 
-	// Command points --model at the local path with no HF download flags.
+	// Command points --model at the local path, loads via runai_streamer, and has no
+	// HF download flags.
 	cmd := strings.Join(container.Command, " ")
 	if !strings.Contains(cmd, "--model="+weightsPath) {
 		t.Errorf("command should set --model=%s, got %s", weightsPath, cmd)
+	}
+	if !strings.Contains(cmd, "--load-format=runai_streamer") {
+		t.Errorf("command should set --load-format=runai_streamer, got %s", cmd)
 	}
 	if strings.Contains(cmd, "download-dir") || strings.Contains(cmd, "code-revision") {
 		t.Errorf("command should not contain download-dir/code-revision, got %s", cmd)

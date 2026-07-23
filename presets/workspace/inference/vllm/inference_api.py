@@ -104,6 +104,12 @@ class KAITOArgumentParser(argparse.ArgumentParser):
             default=False,
             help="Disable the queue-depth rate limit guard (which otherwise returns HTTP 429 when the waiting queue exceeds max-num-seqs).",
         )
+        self.add_argument(
+            "--kaito-local-weights-dir",
+            type=str,
+            default="",
+            help="Candidate node-local model weights directory (kaito.sh/model-weights-hostpath, or the conventional /opt/kaito/weights). When it holds model weights, vLLM loads from it instead of downloading from HuggingFace.",
+        )
 
     def _reset_vllm_defaults(self):
         local_rank = int(os.environ.get("LOCAL_RANK", 0))  # Default to 0 if not set
@@ -544,9 +550,59 @@ def set_kv_transfer_config_if_applicable(args: argparse.Namespace) -> None:
         }
 
 
+def _has_local_weights(weights_dir: str) -> bool:
+    """True when *weights_dir* looks like a populated HuggingFace model directory.
+
+    Requires a config.json plus at least one weight file so an empty or
+    auto-created (hostPath DirectoryOrCreate) mount is not mistaken for baked
+    weights.
+    """
+    if not weights_dir or not os.path.isdir(weights_dir):
+        return False
+    if not os.path.isfile(os.path.join(weights_dir, "config.json")):
+        return False
+    try:
+        return any(
+            name.endswith((".safetensors", ".bin", ".pt"))
+            for name in os.listdir(weights_dir)
+        )
+    except OSError:
+        return False
+
+
+def resolve_model_source(args: argparse.Namespace) -> None:
+    """Prefer node-local weights over a HuggingFace download when present.
+
+    KAITO mounts a candidate weights directory (kaito.sh/model-weights-hostpath,
+    or the conventional /opt/kaito/weights) into the pod. When it is populated,
+    point vLLM at it (absolute --model) and drop --download-dir so no HuggingFace
+    fetch happens; otherwise leave args.model as configured (a HF repo id
+    downloads at startup; an image-baked path loads from the image).
+    """
+    candidate = getattr(args, "kaito_local_weights_dir", "") or ""
+    if not candidate:
+        return
+    if _has_local_weights(candidate):
+        logger.info("Using node-local model weights at %s (runai_streamer)", candidate)
+        args.model = candidate
+        # The RunAI streamer's concurrent threaded reads avoid the mmap readahead
+        # cliff when loading large safetensors from a node hostPath.
+        args.load_format = "runai_streamer"
+        if getattr(args, "download_dir", None):
+            args.download_dir = None
+    else:
+        logger.info(
+            "No usable weights at %s; using configured model source %s",
+            candidate,
+            args.model,
+        )
+
+
 if __name__ == "__main__":
     parser = KAITOArgumentParser(description="KAITO wrapper of vLLM serving server")
     args = parser.parse_args()
+
+    resolve_model_source(args)
 
     # set LoRA adapters
     if args.lora_modules is None:

@@ -218,19 +218,19 @@ func TestCollectMutations_RequiredUnavailableProviderReturnsError(t *testing.T) 
 func TestCollectMutations_BothConcernsMergeResults(t *testing.T) {
 	isolateProviderRegistry(t)
 
-	Register(&cacheTestProvider{
-		discoveryEP: "cache-sample-discovery.cache-system.svc.cluster.local",
+	Register(&dacsTestProvider{
+		discoveryEP: "cache-sample-discovery.dacs-cache-system.svc.cluster.local",
 		kvEnabled:   true,
 	})
 
 	ws := &kaitov1beta1.Workspace{
 		Cache: &kaitov1beta1.CacheSpec{
 			ModelCache: &kaitov1beta1.ModelCacheSpec{
-				Provider: "example",
+				Provider: "dacs",
 				Mode:     kaitov1beta1.CacheModeOpportunistic,
 			},
 			KVCache: &kaitov1beta1.KVCacheSpec{
-				Provider: "example",
+				Provider: "dacs",
 				Mode:     kaitov1beta1.CacheModeRequired,
 			},
 		},
@@ -240,7 +240,7 @@ func TestCollectMutations_BothConcernsMergeResults(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if mutations.Labels["cache.example.com/inject"] != "true" {
+	if mutations.Labels["dacs.azure.com/inject"] != "true" {
 		t.Fatalf("expected cache injection label, got %v", mutations.Labels)
 	}
 	if len(mutations.EnvVars) != 3 {

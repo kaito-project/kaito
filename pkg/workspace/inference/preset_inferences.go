@@ -268,6 +268,11 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		manifests.GenerateStatefulSetManifest(revisionNum, numNodes),
 	}
 
+	// Add cache pod template labels (for webhook-based injection).
+	if cacheApplicable {
+		ssOpts = append(ssOpts, cache.SetCachePodTemplateLabels())
+	}
+
 	// Volume handling: streaming reads directly from az:// and node-image weights
 	// are mounted via hostPath (both handled in GenerateInferencePodSpec), so
 	// neither needs the default download/cache weights volume.

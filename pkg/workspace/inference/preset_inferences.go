@@ -55,14 +55,16 @@ const (
 	// specify ReadinessTimeout. 30 minutes covers all current models.
 	defaultStartupProbeTimeout = 30 * time.Minute
 
-	// cudaToolkitInstallPath is the in-pod mount path of the shared volume that the
-	// runtime CUDA toolkit installer (kaito.sh/install-cuda-toolkit) populates and
-	// that the main container uses as CUDA_HOME.
-	cudaToolkitInstallPath = "/opt/cuda"
+	// cudaToolkitHostVolumeName is the name of the hostPath volume that exposes the
+	// node's CUDA toolkit to the pod. The main container mounts it read-only; the
+	// provisioner init container mounts it read-write to install the toolkit when the
+	// node lacks it.
+	cudaToolkitHostVolumeName = "cuda-toolkit-hostpath"
 
-	// cudaToolkitVolumeName is the name of the emptyDir volume shared between the
-	// CUDA installer init container and the main inference container.
-	cudaToolkitVolumeName = "cuda-toolkit-install"
+	// defaultCUDAToolkitHostPath is the CUDA toolkit location on KAITO custom GPU node
+	// images. Used as CUDA_HOME (and the install target on nodes that lack it) when
+	// kaito.sh/cuda-toolkit-hostpath is not set.
+	defaultCUDAToolkitHostPath = "/opt/kaito/cuda/129"
 )
 
 var (
@@ -527,34 +529,36 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			volumeMounts = append(volumeMounts, mount)
 		}
 
-		// CUDA toolkit source for runtimes that JIT-compile with nvcc (e.g. DeepGEMM).
-		// Two mutually exclusive mechanisms, install taking precedence:
-		//   1. install (kaito.sh/install-cuda-toolkit): an init container installs
-		//      cuda-toolkit-12-9 into a shared emptyDir mounted at cudaToolkitInstallPath.
-		//   2. hostPath (kaito.sh/cuda-toolkit-hostpath): mount a CUDA toolkit that
-		//      already exists on the node read-only at the same path.
-		// In both cases CUDA_HOME is set on the main container (below).
-		installCUDAToolkit := v1beta1.IsInstallCUDAToolkitEnabled(ctx.Workspace)
-		cudaToolkitHostPath := v1beta1.GetCUDAToolkitHostPath(ctx.Workspace)
+		// CUDA toolkit for models whose FP8 GEMMs require DeepGEMM's nvcc JIT (e.g.
+		// DeepSeek-V4). Only these models get a toolkit. Resolve its location from the
+		// annotation or a default baked path and mount it from the node. The
+		// cuda-toolkit-provisioner init container (added below) installs the toolkit there
+		// when the node lacks it. Because it lives on the node (hostPath), the install
+		// survives pod recreation and is shared by all pods on the node — only nodes that
+		// lack it ever pay the install.
 		var cudaHome string
-		switch {
-		case installCUDAToolkit:
-			cudaVolume := corev1.Volume{
-				Name:         cudaToolkitVolumeName,
-				VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+		if ctx.Model.GetInferenceParameters().RequiresDeepGEMM() {
+			cudaHome = v1beta1.GetCUDAToolkitHostPath(ctx.Workspace)
+			if cudaHome == "" {
+				cudaHome = defaultCUDAToolkitHostPath
 			}
-			cudaMount := corev1.VolumeMount{
-				Name:      cudaToolkitVolumeName,
-				MountPath: cudaToolkitInstallPath,
-			}
-			volumes = append(volumes, cudaVolume)
-			volumeMounts = append(volumeMounts, cudaMount)
-			cudaHome = cudaToolkitInstallPath
-		case cudaToolkitHostPath != "":
-			vol, mount := utils.HostPathVolume("cuda-toolkit-hostpath", cudaToolkitHostPath)
-			volumes = append(volumes, vol)
-			volumeMounts = append(volumeMounts, mount)
-			cudaHome = cudaToolkitHostPath
+			// DirectoryOrCreate so the pod still starts on nodes that don't have the toolkit
+			// yet (the init container then installs into it).
+			hostPathType := corev1.HostPathDirectoryOrCreate
+			volumes = append(volumes, corev1.Volume{
+				Name: cudaToolkitHostVolumeName,
+				VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{
+					Path: cudaHome,
+					Type: &hostPathType,
+				}},
+			})
+			// The main container only reads the toolkit (nvcc + headers/libs), so mount it
+			// read-only here; the init container mounts it read-write to install.
+			volumeMounts = append(volumeMounts, corev1.VolumeMount{
+				Name:      cudaToolkitHostVolumeName,
+				MountPath: cudaHome,
+				ReadOnly:  true,
+			})
 		}
 
 		// add share memory for cross process communication
@@ -670,7 +674,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			// with nvcc, which the slim base image does not ship, so the FP8 warmup
 			// hard-fails at engine init. Models whose FP8 GEMMs *require* DeepGEMM
 			// (see RequiresDeepGEMM) instead enable it — they must run with a CUDA
-			// toolkit in the container (kaito.sh/install-cuda-toolkit) for the JIT.
+			// toolkit in the container for the JIT.
 			deepGEMMValue := "0"
 			if inferenceParam.RequiresDeepGEMM() {
 				deepGEMMValue = "1"
@@ -735,19 +739,26 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			},
 		}
 
-		// When install-cuda-toolkit is enabled, prepend an init container that
-		// installs the CUDA toolkit into the shared volume before the main
-		// container starts. It reuses the base image (which ships the provision
-		// script + apt) and needs no GPU.
-		if installCUDAToolkit {
+		// For DeepGEMM models, prepend an init container that ensures the CUDA toolkit is
+		// present at CUDA_HOME on the node: cuda-provision.sh installs cuda-toolkit-12-9
+		// there when nvcc is missing and is idempotent (skips when the toolkit is already
+		// baked or was installed by an earlier pod). It mounts the hostPath read-write and
+		// serializes with flock so concurrent pods on the same node don't install at once.
+		// It reuses the base image (which ships the provision script + apt) and needs no
+		// GPU. The path is passed as a positional arg ($1), never interpolated, so a path
+		// with shell metacharacters cannot inject commands.
+		if cudaHome != "" {
 			spec.InitContainers = append([]corev1.Container{{
-				Name:    "cuda-toolkit-installer",
-				Image:   GetBaseImageName(),
-				Command: []string{"/workspace/cuda-provision.sh", cudaToolkitInstallPath},
-				VolumeMounts: []corev1.VolumeMount{{
-					Name:      cudaToolkitVolumeName,
-					MountPath: cudaToolkitInstallPath,
-				}},
+				Name:  "cuda-toolkit-provisioner",
+				Image: GetBaseImageName(),
+				Command: []string{
+					"/bin/sh", "-c",
+					`flock "$1" /workspace/cuda-provision.sh "$1"`,
+					"sh", cudaHome,
+				},
+				VolumeMounts: []corev1.VolumeMount{
+					{Name: cudaToolkitHostVolumeName, MountPath: cudaHome},
+				},
 			}}, spec.InitContainers...)
 		}
 

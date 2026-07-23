@@ -73,9 +73,9 @@ COPY presets/workspace/inference/vllm/inference_api.py \
 
 RUN chmod +x /workspace/vllm/export_sas_token_for_streaming.sh
 
-# Optional runtime CUDA toolkit provisioner. Invoked by an init container when a
-# workspace sets kaito.sh/install-cuda-toolkit=true, to install cuda-toolkit-12-9
-# into a shared volume for runtimes (e.g. DeepGEMM) that JIT-compile with nvcc.
+# Runtime CUDA toolkit provisioner. Invoked by the cuda-toolkit-provisioner init
+# container for models that require DeepGEMM (nvcc JIT), to install cuda-toolkit-12-9
+# into a node hostPath for runtimes that JIT-compile with nvcc.
 COPY docker/presets/models/tfs/cuda-provision.sh /workspace/cuda-provision.sh
 RUN chmod +x /workspace/cuda-provision.sh
 

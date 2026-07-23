@@ -1856,7 +1856,7 @@ func TestGeneratePresetInferenceNodeImageWeights(t *testing.T) {
 	}
 	mockClient.CreateOrUpdateObjectInMap(svc)
 
-	model := plugin.KaitoModelRegister.MustGet("test-model")
+	model := plugin.KaitoModelRegister.MustGet("test-deepgemm-model")
 
 	createdObject, err := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, model, mockClient, nil)
 	if err != nil {
@@ -1964,101 +1964,115 @@ func TestGeneratePresetInferenceNodeImageWeights(t *testing.T) {
 	}
 }
 
-// TestGeneratePresetInferenceInstallCUDAToolkit verifies that when a workspace
-// sets kaito.sh/install-cuda-toolkit=true, the generated StatefulSet:
-//   - adds a cuda-toolkit-installer init container running the provision script,
-//   - shares an emptyDir between the init and main container at /opt/cuda,
-//   - sets CUDA_HOME to /opt/cuda, and
-//   - takes precedence over a CUDA hostPath annotation when both are set.
-func TestGeneratePresetInferenceInstallCUDAToolkit(t *testing.T) {
+// TestGeneratePresetInferenceCUDAToolkitProvisioner verifies that CUDA toolkit
+// provisioning is gated on models that require DeepGEMM: such a model gets a
+// cuda-toolkit-provisioner init container and a read-write hostPath at the
+// resolved toolkit path (the default baked path when no annotation is set), with
+// CUDA_HOME pointing at that node path; a model that does not require DeepGEMM
+// gets no CUDA toolkit at all.
+func TestGeneratePresetInferenceCUDAToolkitProvisioner(t *testing.T) {
 	test.RegisterTestModel()
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	t.Setenv("PRESET_REGISTRY_NAME", "test-registry")
 	t.Setenv("RELEASE_NAMESPACE", "kaito")
 
-	mockClient := test.NewClient()
-	mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
-	mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+	genPodSpec := func(t *testing.T, presetName string, annotations map[string]string) corev1.PodSpec {
+		t.Helper()
+		mockClient := test.NewClient()
+		mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+		mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 
-	workspace := test.MockWorkspaceWithPresetVLLM.DeepCopy()
-	nodeCount := 1
-	//nolint:staticcheck //SA1019: deprecate Resource.Count field
-	workspace.Resource.Count = &nodeCount
-	workspace.Status.WorkerNodes = []string{"test-node-1"}
-	workspace.Status.TargetNodeCount = 1
-	workspace.Inference.Adapters = nil
-	workspace.Inference.Config = ""
-	// Set both annotations to confirm install takes precedence over hostPath.
-	workspace.Annotations = map[string]string{
-		v1beta1.AnnotationInstallCUDAToolkit:  "true",
-		v1beta1.AnnotationCUDAToolkitHostPath: "/usr/local/cuda",
-	}
+		workspace := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+		nodeCount := 1
+		//nolint:staticcheck //SA1019: deprecate Resource.Count field
+		workspace.Resource.Count = &nodeCount
+		workspace.Status.WorkerNodes = []string{"test-node-1"}
+		workspace.Status.TargetNodeCount = 1
+		workspace.Inference.Adapters = nil
+		workspace.Inference.Config = ""
+		workspace.Annotations = annotations
 
-	svc := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{Name: workspace.Name, Namespace: workspace.Namespace},
-		Spec:       corev1.ServiceSpec{ClusterIP: "10.0.0.1"},
-	}
-	mockClient.CreateOrUpdateObjectInMap(svc)
-
-	model := plugin.KaitoModelRegister.MustGet("test-model")
-
-	createdObject, err := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, model, mockClient, nil)
-	if err != nil {
-		t.Fatalf("GeneratePresetInference returned error: %v", err)
-	}
-
-	ss := createdObject.(*appsv1.StatefulSet)
-	podSpec := ss.Spec.Template.Spec
-
-	// Installer init container present with the expected command + mount.
-	var installer *corev1.Container
-	for i := range podSpec.InitContainers {
-		if podSpec.InitContainers[i].Name == "cuda-toolkit-installer" {
-			installer = &podSpec.InitContainers[i]
-			break
+		svc := &corev1.Service{
+			ObjectMeta: metav1.ObjectMeta{Name: workspace.Name, Namespace: workspace.Namespace},
+			Spec:       corev1.ServiceSpec{ClusterIP: "10.0.0.1"},
 		}
-	}
-	if installer == nil {
-		t.Fatalf("expected cuda-toolkit-installer init container, got %v", podSpec.InitContainers)
-	}
-	wantCmd := []string{"/workspace/cuda-provision.sh", "/opt/cuda"}
-	if !reflect.DeepEqual(installer.Command, wantCmd) {
-		t.Errorf("installer command = %v, want %v", installer.Command, wantCmd)
-	}
-	if len(installer.VolumeMounts) != 1 || installer.VolumeMounts[0].MountPath != "/opt/cuda" {
-		t.Errorf("installer mount = %v, want /opt/cuda", installer.VolumeMounts)
+		mockClient.CreateOrUpdateObjectInMap(svc)
+
+		m := plugin.KaitoModelRegister.MustGet(presetName)
+		obj, err := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, m, mockClient, nil)
+		if err != nil {
+			t.Fatalf("GeneratePresetInference returned error: %v", err)
+		}
+		return obj.(*appsv1.StatefulSet).Spec.Template.Spec
 	}
 
-	// Shared emptyDir volume exists; the node hostPath CUDA volume does not (install wins).
-	volumesByName := map[string]corev1.Volume{}
-	for _, v := range podSpec.Volumes {
-		volumesByName[v.Name] = v
-	}
-	if v, ok := volumesByName["cuda-toolkit-install"]; !ok || v.EmptyDir == nil {
-		t.Errorf("expected cuda-toolkit-install emptyDir volume, got %v", volumesByName)
-	}
-	if _, ok := volumesByName["cuda-toolkit-hostpath"]; ok {
-		t.Errorf("did not expect cuda-toolkit-hostpath volume when install-cuda-toolkit is set")
-	}
+	t.Run("DeepGEMM model without annotation uses the default baked path", func(t *testing.T) {
+		const defaultPath = "/opt/kaito/cuda/129"
+		podSpec := genPodSpec(t, "test-deepgemm-model", nil)
 
-	// Main container mounts the shared volume at /opt/cuda and has CUDA_HOME=/opt/cuda.
-	container := podSpec.Containers[0]
-	foundMount := false
-	for _, m := range container.VolumeMounts {
-		if m.Name == "cuda-toolkit-install" && m.MountPath == "/opt/cuda" {
-			foundMount = true
+		var prov *corev1.Container
+		for i := range podSpec.InitContainers {
+			if podSpec.InitContainers[i].Name == "cuda-toolkit-provisioner" {
+				prov = &podSpec.InitContainers[i]
+			}
 		}
-	}
-	if !foundMount {
-		t.Errorf("expected main container mount cuda-toolkit-install at /opt/cuda, got %v", container.VolumeMounts)
-	}
-	var cudaHome string
-	for _, e := range container.Env {
-		if e.Name == "CUDA_HOME" {
-			cudaHome = e.Value
+		if prov == nil {
+			t.Fatalf("expected cuda-toolkit-provisioner init container, got %v", podSpec.InitContainers)
 		}
-	}
-	if cudaHome != "/opt/cuda" {
-		t.Errorf("CUDA_HOME = %q, want /opt/cuda", cudaHome)
-	}
+		// The toolkit path is passed as a positional arg (last element), not
+		// interpolated into the script body, to avoid shell injection.
+		if n := len(prov.Command); n < 4 || prov.Command[n-1] != defaultPath || strings.Contains(prov.Command[2], defaultPath) {
+			t.Errorf("provisioner command should pass %s as a trailing positional arg, got %v", defaultPath, prov.Command)
+		}
+		// The provisioner mounts the hostPath read-write so it can install the toolkit.
+		if len(prov.VolumeMounts) != 1 || prov.VolumeMounts[0].MountPath != defaultPath || prov.VolumeMounts[0].ReadOnly {
+			t.Errorf("provisioner should mount the cuda hostPath read-write at %s, got %v", defaultPath, prov.VolumeMounts)
+		}
+
+		volumesByName := map[string]corev1.Volume{}
+		for _, v := range podSpec.Volumes {
+			volumesByName[v.Name] = v
+		}
+		if _, ok := volumesByName["cuda-toolkit-install"]; ok {
+			t.Errorf("did not expect a cuda-toolkit-install emptyDir volume, got %v", volumesByName)
+		}
+		if v, ok := volumesByName["cuda-toolkit-hostpath"]; !ok || v.HostPath == nil || v.HostPath.Path != defaultPath {
+			t.Errorf("expected cuda-toolkit-hostpath volume at %s, got %v", defaultPath, volumesByName)
+		} else if v.HostPath.Type == nil || *v.HostPath.Type != corev1.HostPathDirectoryOrCreate {
+			t.Errorf("cuda-toolkit-hostpath volume type = %v, want DirectoryOrCreate", v.HostPath.Type)
+		}
+
+		// The main container mounts the same hostPath read-only.
+		for _, m := range podSpec.Containers[0].VolumeMounts {
+			if m.Name == "cuda-toolkit-hostpath" && (m.MountPath != defaultPath || !m.ReadOnly) {
+				t.Errorf("main container should mount cuda hostPath read-only at %s, got %v", defaultPath, m)
+			}
+		}
+
+		var cudaHome string
+		for _, e := range podSpec.Containers[0].Env {
+			if e.Name == "CUDA_HOME" {
+				cudaHome = e.Value
+			}
+		}
+		if cudaHome != defaultPath {
+			t.Errorf("CUDA_HOME = %q, want %q", cudaHome, defaultPath)
+		}
+	})
+
+	t.Run("non-DeepGEMM model gets no CUDA toolkit even with the hostpath annotation", func(t *testing.T) {
+		podSpec := genPodSpec(t, "test-model", map[string]string{
+			v1beta1.AnnotationCUDAToolkitHostPath: "/usr/local/cuda",
+		})
+		for _, ic := range podSpec.InitContainers {
+			if ic.Name == "cuda-toolkit-provisioner" {
+				t.Errorf("did not expect cuda-toolkit-provisioner for a non-DeepGEMM model")
+			}
+		}
+		for _, e := range podSpec.Containers[0].Env {
+			if e.Name == "CUDA_HOME" {
+				t.Errorf("did not expect CUDA_HOME for a non-DeepGEMM model, got %q", e.Value)
+			}
+		}
+	})
 }

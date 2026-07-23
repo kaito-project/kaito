@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Any
 
 import psutil
+import rate_limit
 import uvloop
 import vllm.entrypoints.openai.api_server as api_server
 import yaml
@@ -96,6 +97,12 @@ class KAITOArgumentParser(argparse.ArgumentParser):
             type=float,
             default=None,
             help="KV cache CPU memory utilization. Defaults to 0.5 when neither this flag nor the kaito config file set it.",
+        )
+        self.add_argument(
+            "--kaito-disable-rate-limit",
+            action="store_true",
+            default=False,
+            help="Disable the queue-depth rate limit guard (which otherwise returns HTTP 429 when the waiting queue exceeds max-num-seqs).",
         )
 
     def _reset_vllm_defaults(self):
@@ -549,6 +556,22 @@ if __name__ == "__main__":
 
     logger.info(f"Starting server on port {args.port}")
 
+    def _wrap_build_and_serve(hook):
+        """Chain a pre-serve hook onto api_server.build_and_serve.
+
+        hook(engine_client) runs after the engine is built (so
+        engine_client.vllm_config is fully resolved) but before uvicorn
+        starts accepting requests. Multiple wraps compose in registration
+        order.
+        """
+        prev = api_server.build_and_serve
+
+        async def wrapped(engine_client, listen_address, sock, bargs, **kw):
+            hook(engine_client)
+            return await prev(engine_client, listen_address, sock, bargs, **kw)
+
+        api_server.build_and_serve = wrapped
+
     # Always start the download monitor so both metrics are always exposed.
     # For local model paths _run returns 0 immediately; for HF repo IDs it
     # tracks bandwidth throughout the download.
@@ -599,22 +622,40 @@ if __name__ == "__main__":
         # allocation, and model warmup are all complete. Stop the metrics
         # thread just before vLLM's app starts accepting connections, so
         # only one listener is active at a time.
-        _orig_build_and_serve = api_server.build_and_serve
-
-        async def _patched_build_and_serve(
-            engine_client, listen_address, sock, bargs, **kw
-        ):
+        def _stop_pre_download_metrics(_engine_client):
             pre_metrics.stop()
             monitor.stop()
             logger.info(
                 "Pre-download metrics server stopped; vLLM taking over port %d",
                 args.port,
             )
-            return await _orig_build_and_serve(
-                engine_client, listen_address, sock, bargs, **kw
-            )
 
-        api_server.build_and_serve = _patched_build_and_serve
+        _wrap_build_and_serve(_stop_pre_download_metrics)
+
+    # Install the queue-depth rate limit guard via vLLM's built-in --middleware
+    # extension point. vLLM imports the dotted path and registers it on its
+    # FastAPI app during build_app — no monkey-patching needed on our side.
+    #
+    # args.max_num_seqs is None here unless the user passed --max-num-seqs;
+    # vLLM resolves the real value from usage_context + model_config inside
+    # create_engine_config(). We read it off the built engine_client at the
+    # last possible moment — the pre-serve hook fires after that resolution
+    # but before uvicorn accepts any traffic. Until configure() is called
+    # the middleware is a safe no-op.
+    def _configure_rate_limit(engine_client):
+        max_num_seqs = engine_client.vllm_config.scheduler_config.max_num_seqs
+        rate_limit.configure(max_num_seqs)
+        logger.info(
+            "Rate limit guard active: threshold %d",
+            max_num_seqs,
+        )
+
+    if args.kaito_disable_rate_limit:
+        logger.info("Rate limit guard disabled (--kaito-disable-rate-limit set)")
+    else:
+        _wrap_build_and_serve(_configure_rate_limit)
+        args.middleware = list(args.middleware or [])
+        args.middleware.append("rate_limit.RateLimitMiddleware")
 
     # See https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html
     uvloop.run(api_server.run_server(args))

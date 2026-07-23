@@ -197,8 +197,8 @@ func mergeMutations(dst, src *PodMutations) {
 		}
 	}
 
-	// Deduplicate env vars by name. For path-list vars, merge by appending
-	// with colon separator. For all others, first wins (dst takes priority).
+	// Deduplicate env vars by name: first wins (dst takes priority). Env vars
+	// already present in dst are not overwritten or merged.
 	existingEnvs := make(map[string]int, len(dst.EnvVars))
 	for i, e := range dst.EnvVars {
 		existingEnvs[e.Name] = i

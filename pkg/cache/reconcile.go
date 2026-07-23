@@ -16,7 +16,6 @@ package cache
 import (
 	"context"
 	"fmt"
-	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -26,12 +25,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-)
-
-const (
-	// DefaultCacheReadyTimeout is the maximum time to block deployment in Required mode
-	// waiting for cache to become ready. After this, deployment proceeds without cache.
-	DefaultCacheReadyTimeout = 10 * time.Minute
 )
 
 // ReconcileResult contains the outcome of cache reconciliation.
@@ -54,7 +47,6 @@ func ReconcileCache(ctx context.Context, kubeClient client.Client, ws *kaitov1be
 	}
 
 	result := ReconcileResult{}
-	elapsed := time.Since(ws.CreationTimestamp.Time)
 
 	// Check model weights cache readiness
 	if ws.Cache.ModelCache != nil && ws.Cache.ModelCache.Mode != kaitov1beta1.CacheModeDisabled {
@@ -63,17 +55,10 @@ func ReconcileCache(ctx context.Context, kubeClient client.Client, ws *kaitov1be
 		setCacheCondition(status, ws.GetGeneration(),
 			kaitov1beta1.WorkspaceConditionTypeModelCacheReady, ready, reason)
 
+		// Required mode blocks deployment until the cache is ready — indefinitely.
 		if !ready && ws.Cache.ModelCache.Mode == kaitov1beta1.CacheModeRequired {
-			if elapsed > DefaultCacheReadyTimeout {
-				klog.V(2).InfoS("Cache ready timeout exceeded, proceeding without model cache",
-					"workspace", ws.Name, "elapsed", elapsed, "timeout", DefaultCacheReadyTimeout)
-				setCacheCondition(status, ws.GetGeneration(),
-					kaitov1beta1.WorkspaceConditionTypeModelCacheReady, false,
-					fmt.Sprintf("timeout exceeded (%s): proceeding without cache", DefaultCacheReadyTimeout))
-			} else {
-				result.BlockDeployment = true
-				result.RequeueNeeded = true
-			}
+			result.BlockDeployment = true
+			result.RequeueNeeded = true
 		}
 	}
 
@@ -84,17 +69,10 @@ func ReconcileCache(ctx context.Context, kubeClient client.Client, ws *kaitov1be
 		setCacheCondition(status, ws.GetGeneration(),
 			kaitov1beta1.WorkspaceConditionTypeKVCacheReady, ready, reason)
 
+		// Required mode blocks deployment until the cache is ready — indefinitely.
 		if !ready && ws.Cache.KVCache.Mode == kaitov1beta1.CacheModeRequired {
-			if elapsed > DefaultCacheReadyTimeout {
-				klog.V(2).InfoS("Cache ready timeout exceeded, proceeding without KV cache",
-					"workspace", ws.Name, "elapsed", elapsed, "timeout", DefaultCacheReadyTimeout)
-				setCacheCondition(status, ws.GetGeneration(),
-					kaitov1beta1.WorkspaceConditionTypeKVCacheReady, false,
-					fmt.Sprintf("timeout exceeded (%s): proceeding without cache", DefaultCacheReadyTimeout))
-			} else {
-				result.BlockDeployment = true
-				result.RequeueNeeded = true
-			}
+			result.BlockDeployment = true
+			result.RequeueNeeded = true
 		}
 	}
 

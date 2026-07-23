@@ -89,14 +89,6 @@ rules:
     resources: ["helmreleases"]
     verbs: ["get", "list", "watch", "create", "update"]
   {{- end }}
-  {{- if .Values.featureGates.distributedCache }}
-  - apiGroups: ["storage.azure.com"]
-    resources: ["caches"]
-    verbs: ["get", "list", "watch"]
-  - apiGroups: ["storage.azure.com"]
-    resources: ["caches/status"]
-    verbs: ["get"]
-  {{- end }}
   - apiGroups: [""]
     resources: ["events"]
     verbs: ["create", "patch", "update"]

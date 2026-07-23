@@ -87,7 +87,7 @@ Each concern supports three modes:
 
 | Mode | Behavior |
 |------|----------|
-| `Required` | Block pod deployment until cache infrastructure is ready. Workspace enters a waiting state if cache is unavailable. |
+| `Required` | Block pod deployment until cache infrastructure is ready. Workspace enters a waiting state while cache is unavailable. |
 | `Opportunistic` | Use cache if available; proceed without it if unavailable. This is the recommended default. |
 | `Disabled` | Do not interact with the cache for this concern. |
 

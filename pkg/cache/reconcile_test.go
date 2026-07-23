@@ -120,7 +120,7 @@ func TestReconcileCache_UnregisteredProvider_Opportunistic(t *testing.T) {
 	}
 }
 
-func TestReconcileCache_RequiredTimeoutProceeds(t *testing.T) {
+func TestReconcileCache_RequiredBlocksIndefinitely(t *testing.T) {
 	isolateProviderRegistry(t)
 	featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = true
 	defer func() { featuregates.FeatureGates[consts.FeatureFlagDistributedCache] = false }()
@@ -129,7 +129,8 @@ func TestReconcileCache_RequiredTimeoutProceeds(t *testing.T) {
 
 	ws := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
-			CreationTimestamp: metav1.NewTime(time.Now().Add(-DefaultCacheReadyTimeout - time.Minute)),
+			// Even long after creation, Required mode keeps blocking until ready.
+			CreationTimestamp: metav1.NewTime(time.Now().Add(-24 * time.Hour)),
 		},
 		Cache: &kaitov1beta1.CacheSpec{
 			ModelCache: &kaitov1beta1.ModelCacheSpec{
@@ -141,11 +142,11 @@ func TestReconcileCache_RequiredTimeoutProceeds(t *testing.T) {
 	status := &kaitov1beta1.WorkspaceStatus{}
 
 	result := ReconcileCache(context.Background(), nil, ws, status)
-	if result.BlockDeployment {
-		t.Fatal("should not block after the cache ready timeout is exceeded")
+	if !result.BlockDeployment {
+		t.Fatal("Required mode should block deployment until the cache is ready, regardless of elapsed time")
 	}
-	if result.RequeueNeeded {
-		t.Fatal("should not requeue after the cache ready timeout is exceeded")
+	if !result.RequeueNeeded {
+		t.Fatal("Required mode should requeue while the cache is not ready")
 	}
 
 	cond := meta.FindStatusCondition(status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeModelCacheReady))
@@ -154,9 +155,6 @@ func TestReconcileCache_RequiredTimeoutProceeds(t *testing.T) {
 	}
 	if cond.Status != metav1.ConditionFalse {
 		t.Fatalf("expected condition False, got %s", cond.Status)
-	}
-	if !strings.Contains(cond.Message, "timeout exceeded") {
-		t.Fatalf("expected timeout message, got %q", cond.Message)
 	}
 }
 

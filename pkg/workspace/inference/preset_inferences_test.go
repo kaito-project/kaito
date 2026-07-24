@@ -446,6 +446,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			// expectation so each vLLM case doesn't need to list the flag explicitly.
 			if strings.Contains(tc.expectedCmd, "/workspace/vllm/inference_api.py") {
 				expectedParams["compilation-config.pass_config.fuse_allreduce_rms"] = "False"
+				expectedParams["kv-events-config"] = `'{"enable_kv_cache_events":true}'`
 			}
 
 			if mainCmd != expectedMaincmd {

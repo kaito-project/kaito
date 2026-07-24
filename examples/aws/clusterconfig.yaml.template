@@ -14,7 +14,12 @@ iam:
     serviceAccountName: karpenter
     roleName: ${AWS_CLUSTER_NAME}-karpenter
     permissionPolicyARNs:
-    - arn:${AWS_PARTITION}:iam::${AWS_ACCOUNT_ID}:policy/KarpenterControllerPolicy-${AWS_CLUSTER_NAME}
+    - arn:${AWS_PARTITION}:iam::${AWS_ACCOUNT_ID}:policy/KarpenterControllerNodeLifecyclePolicy-${AWS_CLUSTER_NAME}
+    - arn:${AWS_PARTITION}:iam::${AWS_ACCOUNT_ID}:policy/KarpenterControllerIAMIntegrationPolicy-${AWS_CLUSTER_NAME}
+    - arn:${AWS_PARTITION}:iam::${AWS_ACCOUNT_ID}:policy/KarpenterControllerEKSIntegrationPolicy-${AWS_CLUSTER_NAME}
+    - arn:${AWS_PARTITION}:iam::${AWS_ACCOUNT_ID}:policy/KarpenterControllerInterruptionPolicy-${AWS_CLUSTER_NAME}
+    - arn:${AWS_PARTITION}:iam::${AWS_ACCOUNT_ID}:policy/KarpenterControllerResourceDiscoveryPolicy-${AWS_CLUSTER_NAME}
+    - arn:${AWS_PARTITION}:iam::${AWS_ACCOUNT_ID}:policy/KarpenterControllerZonalShiftPolicy-${AWS_CLUSTER_NAME}
 
 iamIdentityMappings:
 - arn: "arn:${AWS_PARTITION}:iam::${AWS_ACCOUNT_ID}:role/KarpenterNodeRole-${AWS_CLUSTER_NAME}"
@@ -28,11 +33,14 @@ iamIdentityMappings:
 
 managedNodeGroups:
 - instanceType: m5.large
-  amiFamily: AmazonLinux2
+  amiFamily: AmazonLinux2023
   name: ${AWS_CLUSTER_NAME}-ng
   desiredCapacity: 2
   minSize: 1
   maxSize: 10
+
+zonalShiftConfig:
+  enabled: ${ENABLE_ZONAL_SHIFT}
 
 addons:
 - name: eks-pod-identity-agent

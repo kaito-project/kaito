@@ -58,9 +58,9 @@ AI_MODELS_REGISTRY_SECRET ?= modelregistry
 SUPPORTED_MODELS_YAML_PATH ?= $(ROOT_DIR)/presets/workspace/models/supported_models.yaml
 
 ## AWS parameters
-CLUSTER_CONFIG_FILE ?= ./docs/aws/clusterconfig.yaml.template
-RENDERED_CLUSTER_CONFIG_FILE ?= ./docs/aws/clusterconfig.yaml
-AWS_KARPENTER_VERSION ?=1.0.8
+CLUSTER_CONFIG_FILE ?= ./examples/aws/clusterconfig.yaml.template
+RENDERED_CLUSTER_CONFIG_FILE ?= ./examples/aws/clusterconfig.yaml
+AWS_KARPENTER_VERSION ?=1.13.0
 
 # Scripts
 GO_INSTALL := ./hack/go-install.sh
@@ -221,14 +221,6 @@ create-aks-cluster: ## Create an AKS cluster with MSI, OIDC, and workload identi
 	--location $(AZURE_LOCATION) --attach-acr $(AZURE_ACR_NAME) \
 	--kubernetes-version $(AKS_K8S_VERSION) --generate-ssh-keys  \
 	--enable-managed-identity --enable-workload-identity --enable-oidc-issuer --node-vm-size Standard_D4d_v4 -o none
-	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --overwrite-existing
-
-.PHONY: create-aks-cluster-with-kaito
-create-aks-cluster-with-kaito: ## Create an AKS cluster with MSI, OIDC, and KAITO enabled.
-	az aks create  --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) \
-	--location $(AZURE_LOCATION) --attach-acr $(AZURE_ACR_NAME) \
-	--kubernetes-version $(AKS_K8S_VERSION) --generate-ssh-keys  \
-	--enable-managed-identity --enable-workload-identity --enable-oidc-issuer -o none
 	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --overwrite-existing
 
 .PHONY: create-aks-cluster-for-karpenter
@@ -450,6 +442,7 @@ az-patch-install-helm: ## Install KAITO workspace Helm chart and set Azure clien
 
 	helm install kaito-workspace ./charts/kaito/workspace --namespace $(KAITO_NAMESPACE) --create-namespace $(HELM_INSTALL_EXTRA_ARGS)
 
+
 .PHONY: az-patch-install-ragengine-helm
 az-patch-install-ragengine-helm: ## Install KAITO RAG Engine Helm chart and set Azure client env vars and settings in Helm values.
 	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP)
@@ -536,6 +529,7 @@ aws-karpenter-helm: ## Install AWS Karpenter Helm chart and set AWS env vars and
 	--namespace "${KARPENTER_NAMESPACE}" --create-namespace \
 	--set "settings.clusterName=${AWS_CLUSTER_NAME}" \
 	--set "settings.interruptionQueue=${AWS_CLUSTER_NAME}" \
+	--set "settings.featureGates.staticCapacity=true" \
 	--set controller.resources.requests.cpu=1 \
 	--set controller.resources.requests.memory=1Gi \
 	--set controller.resources.limits.cpu=1 \

@@ -54,7 +54,6 @@ Not supported in streaming:
 
 - Content events are rebuilt with choice index `0`; original content-event metadata is not preserved.
 - Patterns longer than the 256-character holdback may cross the release boundary.
-- Multi-choice requires per-choice windows and defined partial-block semantics.
 
 ## Future Redaction
 

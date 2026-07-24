@@ -14,11 +14,15 @@
 package azure
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
@@ -31,60 +35,83 @@ func wsWithStreamAnnotations() *v1beta1.Workspace {
 			Name:      "ws1",
 			Namespace: "default",
 			Annotations: map[string]string{
-				modelstreaming.AnnotationStreamURI:              "az://c/model",
-				modelstreaming.AnnotationStreamAccount:          "acct",
-				modelstreaming.AnnotationStreamDatarefsURL:      "https://x/datarefs",
-				modelstreaming.AnnotationStreamAssetID:          "azureml://registries/r/models/m/versions/1",
-				modelstreaming.AnnotationStreamBlobURI:          "https://acct.blob.core.windows.net/c/prefix",
+				modelstreaming.AnnotationStreamDatarefsURL:      "https://x.services.ai.azure.com/api/projects/p/models/m/versions/1?api-version=2025-11-15-preview",
 				modelstreaming.AnnotationStreamIdentityClientID: "11111111-2222-3333-4444-555555555555",
-				modelstreaming.AnnotationStreamTokenAudience:    "https://ai.azure.com",
+				modelstreaming.AnnotationStreamSourceType:       modelstreaming.SourceTypeBYO,
 			},
 		},
 	}
 }
 
+func newSASTestContext(ws *v1beta1.Workspace) *generator.WorkspaceGeneratorContext {
+	scheme := runtime.NewScheme()
+	_ = v1beta1.AddToScheme(scheme)
+	_ = corev1.AddToScheme(scheme)
+	c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(ws).Build()
+	return &generator.WorkspaceGeneratorContext{Ctx: context.Background(), Workspace: ws, KubeClient: c}
+}
+
 func TestSASBlobProvider_GetStreamingConfig(t *testing.T) {
 	p := &SASBlobProvider{}
-	ctx := &generator.WorkspaceGeneratorContext{Workspace: wsWithStreamAnnotations()}
+	ws := wsWithStreamAnnotations()
+	ctx := newSASTestContext(ws)
 
 	cfg, err := p.GetStreamingConfig(ctx, "microsoft/phi-4")
 	assert.NoError(t, err)
-	assert.Equal(t, "az://c/model", cfg.ModelPath)
 
-	var accountVal string
-	for _, e := range cfg.ProviderEnvVars {
-		if e.Name == "AZURE_STORAGE_ACCOUNT_NAME" {
-			accountVal = e.Value
-		}
-	}
-	assert.Equal(t, "acct", accountVal)
+	// ModelPath is a runtime shell placeholder; the init container derives the real az:// URI.
+	assert.Equal(t, "$"+modelstreaming.SASModelURIEnvVar, cfg.ModelPath)
+	// AZURE_STORAGE_ACCOUNT_NAME is no longer a pod-spec env var (derived at runtime).
+	assert.Empty(t, cfg.ProviderEnvVars)
 	assert.Equal(t, "true", cfg.PodLabels["azure.workload.identity/use"])
 	assert.Len(t, cfg.InitContainers, 1)
-	assert.Len(t, cfg.Volumes, 1)
+	assert.Len(t, cfg.Volumes, 2) // shared emptyDir + script ConfigMap
 
 	envByName := map[string]string{}
 	for _, e := range cfg.InitContainers[0].Env {
 		envByName[e.Name] = e.Value
 	}
-	assert.Equal(t, "https://x/datarefs", envByName["STREAM_DATAREFS_URL"])
-	assert.Equal(t, "azureml://registries/r/models/m/versions/1", envByName["STREAM_ASSET_ID"])
-	assert.Equal(t, "https://acct.blob.core.windows.net/c/prefix", envByName["STREAM_BLOB_URI"])
+	// Only the three required inputs (+ env-file path) are passed; blob-derived values are gone.
+	assert.Equal(t, ws.Annotations[modelstreaming.AnnotationStreamDatarefsURL], envByName["STREAM_DATAREFS_URL"])
 	assert.Equal(t, "11111111-2222-3333-4444-555555555555", envByName["STREAM_IDENTITY_CLIENT_ID"])
-	assert.Equal(t, "https://ai.azure.com", envByName["STREAM_TOKEN_AUDIENCE"])
+	assert.Equal(t, modelstreaming.SourceTypeBYO, envByName["STREAM_SOURCE_TYPE"])
+	assert.NotContains(t, envByName, "STREAM_BLOB_URI")
+	assert.NotContains(t, envByName, "STREAM_ASSET_ID")
+	assert.NotContains(t, envByName, "STREAM_TOKEN_AUDIENCE")
+	assert.NotContains(t, envByName, "FETCH_SAS_SCRIPT") // script now via ConfigMap, not env
+	assert.Equal(t, modelstreaming.SASSharedMountPath+"/"+modelstreaming.SASEnvFileName, envByName[modelstreaming.SASEnvFileEnvVar])
 
 	ic := cfg.InitContainers[0]
 	assert.Equal(t, "fetch-sas", ic.Name)
-	// Slim-python init container: azure-identity is pip-installed at runtime and the
-	// fetch_sas.py script is passed as an argument (env var), NOT baked into the image.
 	assert.Equal(t, "python:3.12-slim", ic.Image)
 	assert.Equal(t, []string{"/bin/sh", "-c", initShellCommand}, ic.Command)
-	assert.Contains(t, envByName["FETCH_SAS_SCRIPT"], "WorkloadIdentityCredential",
-		"the embedded fetch_sas.py script must be passed via FETCH_SAS_SCRIPT")
-	assert.Equal(t, modelstreaming.SASSharedMountPath+"/"+modelstreaming.SASEnvFileName, envByName[modelstreaming.SASEnvFileEnvVar])
-	// init container mounts the shared volume at the shared mount path
-	assert.Len(t, ic.VolumeMounts, 1)
-	assert.Equal(t, modelstreaming.SASSharedMountPath, ic.VolumeMounts[0].MountPath)
+	// init container mounts both the shared volume and the script ConfigMap.
+	assert.Len(t, ic.VolumeMounts, 2)
+	mountByName := map[string]string{}
+	for _, m := range ic.VolumeMounts {
+		mountByName[m.Name] = m.MountPath
+	}
+	assert.Equal(t, modelstreaming.SASSharedMountPath, mountByName[modelstreaming.SASSharedVolumeName])
+	assert.Equal(t, modelstreaming.SASScriptMountPath, mountByName[modelstreaming.SASScriptVolumeName])
 
-	assert.NotNil(t, cfg.Volumes[0].EmptyDir)
-	assert.Equal(t, corev1.StorageMediumMemory, cfg.Volumes[0].EmptyDir.Medium)
+	// The shared volume is a memory-backed emptyDir.
+	var sharedVol *corev1.Volume
+	for i := range cfg.Volumes {
+		if cfg.Volumes[i].Name == modelstreaming.SASSharedVolumeName {
+			sharedVol = &cfg.Volumes[i]
+		}
+	}
+	assert.NotNil(t, sharedVol)
+	assert.NotNil(t, sharedVol.EmptyDir)
+	assert.Equal(t, corev1.StorageMediumMemory, sharedVol.EmptyDir.Medium)
+
+	// The script ConfigMap was created in the workspace namespace with the script content.
+	cm := &corev1.ConfigMap{}
+	err = ctx.KubeClient.Get(ctx.Ctx, types.NamespacedName{Name: scriptConfigMapName(ws.Name), Namespace: ws.Namespace}, cm)
+	assert.NoError(t, err)
+	assert.Contains(t, cm.Data[modelstreaming.SASScriptFileName], "WorkloadIdentityCredential")
+
+	// Idempotent: a second call updates rather than errors.
+	_, err = p.GetStreamingConfig(ctx, "microsoft/phi-4")
+	assert.NoError(t, err)
 }

@@ -419,6 +419,9 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	}
 	// Model source: streaming (az://) vs download-at-runtime (HF repo).
 	if rc.StreamingModelPath != "" {
+		// StreamingModelPath may be a runtime shell placeholder (e.g. "$STREAM_MODEL_URI" for the
+		// SAS path, where the init container derives the az:// URI and the entrypoint wrapper
+		// exports it).
 		p.VLLM.ModelRunParams["model"] = rc.StreamingModelPath
 		p.VLLM.ModelRunParams["load-format"] = rc.StreamingLoadFormat
 		// Some presets set load_format (underscore) in their default params

@@ -856,10 +856,21 @@ func SetDefaultModelWeightsVolume(ctx *generator.WorkspaceGeneratorContext, spec
 // created for this workspace. No-op when the provisioner returns no
 // requirements (BYO mode).
 func SetProvisionerNodeSelector(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
-	if ctx.NodeProvisioner == nil {
+	return ApplyProvisionerNodeSelector(ctx.Ctx, ctx.NodeProvisioner, ctx.Workspace, spec)
+}
+
+// ApplyProvisionerNodeSelector appends the provisioner's per-workspace node
+// selector requirements to spec's required node affinity, isolating pods to the
+// nodes provisioned for this workspace. This matters when several workspaces
+// share the same user-supplied label selector (e.g. InferenceSet replicas):
+// without these requirements a pod could schedule onto a sibling workspace's
+// node. It is a no-op when provisioner is nil or returns no requirements
+// (BYO mode, where nodes are matched purely via the user label selector).
+func ApplyProvisionerNodeSelector(ctx context.Context, provisioner nodeprovision.NodeProvisioner, ws *v1beta1.Workspace, spec *corev1.PodSpec) error {
+	if provisioner == nil {
 		return nil
 	}
-	extra := ctx.NodeProvisioner.BuildNodeSelector(ctx.Ctx, ctx.Workspace)
+	extra := provisioner.BuildNodeSelector(ctx, ws)
 	if len(extra) == 0 {
 		return nil
 	}

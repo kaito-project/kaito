@@ -16,8 +16,12 @@ package azure
 import (
 	"context"
 	_ "embed"
+	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
@@ -25,7 +29,8 @@ import (
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
 )
 
-// fetchSASScript is the SAS-minting script.
+// fetchSASScript is the SAS-minting script, delivered to the init container via a per-workspace
+// ConfigMap.
 //
 //go:embed fetch_sas.py
 var fetchSASScript string
@@ -39,22 +44,29 @@ const (
 	azureIdentityVersion = "1.19.0"
 )
 
-// initShellCommand pip-installs azure-identity and runs the embedded fetch_sas.py script,
-// which is provided via the FETCH_SAS_SCRIPT env var (not a file in the image).
+// initShellCommand pip-installs azure-identity and runs fetch_sas.py, which is mounted from a
+// per-workspace ConfigMap at SASScriptMountPath.
 const initShellCommand = "pip install --no-cache-dir -q azure-identity==" + azureIdentityVersion +
-	` && python3 -c "$FETCH_SAS_SCRIPT"`
+	" && python3 " + modelstreaming.SASScriptMountPath + "/" + modelstreaming.SASScriptFileName
 
 // SASBlobProvider streams weights from a pre-existing external blob using a short-lived
 // SAS token minted at pod start via Workload Identity. Configuration comes entirely from
 // Workspace annotations (not a PVC).
 type SASBlobProvider struct{}
 
-// GetStreamingConfig builds the streaming configuration from the five stream-* annotations
-// on the workspace: the az:// model path, the storage-account env var, the Workload Identity
-// pod label, a SAS-fetch init container (slim-python, script passed as an argument), and the
-// shared memory-backed volume the SAS env file is written to.
+// GetStreamingConfig builds the streaming configuration for the SAS path: it ensures the
+// per-workspace fetch_sas.py ConfigMap exists, then wires the Workload Identity pod label, a
+// SAS-fetch init container (slim-python, script mounted from the ConfigMap), and the shared
+// memory-backed volume the init container writes the SAS env file to. The init container derives
+// the blob URI, storage account, and model streaming URI at runtime (by resolving the model), writing
+// the account and model URI into the SAS env file, so ModelPath here is a runtime shell placeholder
+// the entrypoint wrapper resolves.
 func (s *SASBlobProvider) GetStreamingConfig(ctx *generator.WorkspaceGeneratorContext, modelID string) (*modelstreaming.StreamingConfig, error) {
 	ann := ctx.Workspace.Annotations
+
+	if err := s.ensureScriptConfigMap(ctx); err != nil {
+		return nil, err
+	}
 
 	envFilePath := modelstreaming.SASSharedMountPath + "/" + modelstreaming.SASEnvFileName
 	initContainer := corev1.Container{
@@ -62,29 +74,21 @@ func (s *SASBlobProvider) GetStreamingConfig(ctx *generator.WorkspaceGeneratorCo
 		Image:   sasInitImage,
 		Command: []string{"/bin/sh", "-c", initShellCommand},
 		Env: []corev1.EnvVar{
-			// FETCH_SAS_SCRIPT carries the ENTIRE fetch_sas.py source (embedded via //go:embed)
-			// as an env var, which the init container runs with `python3 -c "$FETCH_SAS_SCRIPT"`.
-			// This avoids baking the script (and its azure-identity dependency) into the base
-			// image. The Linux env block is capped (ARG_MAX, typically ~2 MiB total across argv +
-			// env); fetch_sas.py is a few KiB, so it fits comfortably with large headroom.
-			{Name: "FETCH_SAS_SCRIPT", Value: fetchSASScript},
 			{Name: "STREAM_DATAREFS_URL", Value: ann[modelstreaming.AnnotationStreamDatarefsURL]},
-			{Name: "STREAM_ASSET_ID", Value: ann[modelstreaming.AnnotationStreamAssetID]},
-			{Name: "STREAM_BLOB_URI", Value: ann[modelstreaming.AnnotationStreamBlobURI]},
 			{Name: "STREAM_IDENTITY_CLIENT_ID", Value: ann[modelstreaming.AnnotationStreamIdentityClientID]},
-			{Name: "STREAM_TOKEN_AUDIENCE", Value: ann[modelstreaming.AnnotationStreamTokenAudience]},
+			{Name: "STREAM_SOURCE_TYPE", Value: ann[modelstreaming.AnnotationStreamSourceType]},
 			{Name: modelstreaming.SASEnvFileEnvVar, Value: envFilePath},
 		},
 		VolumeMounts: []corev1.VolumeMount{
 			{Name: modelstreaming.SASSharedVolumeName, MountPath: modelstreaming.SASSharedMountPath},
+			{Name: modelstreaming.SASScriptVolumeName, MountPath: modelstreaming.SASScriptMountPath, ReadOnly: true},
 		},
 	}
 
 	return &modelstreaming.StreamingConfig{
-		ModelPath: ann[modelstreaming.AnnotationStreamURI],
-		ProviderEnvVars: []corev1.EnvVar{
-			{Name: "AZURE_STORAGE_ACCOUNT_NAME", Value: ann[modelstreaming.AnnotationStreamAccount]},
-		},
+		// The model streaming URI is derived at runtime by the init container and exported by the
+		// wrapper as STREAM_MODEL_URI; the command runs under /bin/sh -c so this expands at runtime.
+		ModelPath: "$" + modelstreaming.SASModelURIEnvVar,
 		PodLabels: map[string]string{
 			"azure.workload.identity/use": "true",
 		},
@@ -96,8 +100,58 @@ func (s *SASBlobProvider) GetStreamingConfig(ctx *generator.WorkspaceGeneratorCo
 					EmptyDir: &corev1.EmptyDirVolumeSource{Medium: corev1.StorageMediumMemory},
 				},
 			},
+			{
+				Name: modelstreaming.SASScriptVolumeName,
+				VolumeSource: corev1.VolumeSource{
+					ConfigMap: &corev1.ConfigMapVolumeSource{
+						LocalObjectReference: corev1.LocalObjectReference{Name: scriptConfigMapName(ctx.Workspace.Name)},
+					},
+				},
+			},
 		},
 	}, nil
+}
+
+// scriptConfigMapName derives the fetch_sas.py ConfigMap name for a workspace.
+func scriptConfigMapName(workspaceName string) string {
+	return workspaceName + "-fetch-sas-script"
+}
+
+// ensureScriptConfigMap creates (or updates) the per-workspace ConfigMap holding fetch_sas.py in
+// the workspace namespace, owned by the workspace so it is garbage-collected.
+func (s *SASBlobProvider) ensureScriptConfigMap(ctx *generator.WorkspaceGeneratorContext) error {
+	name := scriptConfigMapName(ctx.Workspace.Name)
+	desired := map[string]string{modelstreaming.SASScriptFileName: fetchSASScript}
+	ownerRef := *metav1.NewControllerRef(ctx.Workspace, v1beta1.GroupVersion.WithKind("Workspace"))
+
+	existing := &corev1.ConfigMap{}
+	err := ctx.KubeClient.Get(ctx.Ctx, types.NamespacedName{Name: name, Namespace: ctx.Workspace.Namespace}, existing)
+	if apierrors.IsNotFound(err) {
+		cm := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:            name,
+				Namespace:       ctx.Workspace.Namespace,
+				OwnerReferences: []metav1.OwnerReference{ownerRef},
+			},
+			Data: desired,
+		}
+		if createErr := ctx.KubeClient.Create(ctx.Ctx, cm); createErr != nil && !apierrors.IsAlreadyExists(createErr) {
+			return fmt.Errorf("failed to create fetch_sas.py ConfigMap: %w", createErr)
+		}
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("failed to get fetch_sas.py ConfigMap: %w", err)
+	}
+	// Update in place if the script content drifted.
+	if existing.Data[modelstreaming.SASScriptFileName] == fetchSASScript {
+		return nil
+	}
+	existing.Data = desired
+	if updateErr := ctx.KubeClient.Update(ctx.Ctx, existing); updateErr != nil {
+		return fmt.Errorf("failed to update fetch_sas.py ConfigMap: %w", updateErr)
+	}
+	return nil
 }
 
 // ValidateAuth enforces the static-mirror contract (all core SAS annotations present) and the

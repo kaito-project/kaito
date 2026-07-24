@@ -402,3 +402,61 @@ func IsNodeClaimReadyNotDeleting(nodeClaim *karpenterv1.NodeClaim) bool {
 
 	return nodeClaim.Status.NodeName != ""
 }
+
+// maxProvisioningErrorMessageLen caps the length of the message surfaced by
+// FirstProvisioningError so it stays readable in the workspace status.
+const maxProvisioningErrorMessageLen = 256
+
+// awaitingReconciliationReason is the reason the operatorpkg status library
+// (used by Karpenter core) stamps on freshly-initialized Unknown conditions
+// before any reconciliation has run. It marks a benign "not started / in
+// progress" state — not a provisioning failure — so it must be ignored when
+// looking for real errors.
+const awaitingReconciliationReason = "AwaitingReconciliation"
+
+// FirstProvisioningError scans NodeClaims for a provisioning failure that
+// Karpenter core surfaced on the standard lifecycle conditions
+// (Launched -> Registered -> Initialized) and returns the Reason and Message of
+// the earliest (root-cause) blocking condition.
+//
+// It is provider-agnostic: it reads only the Karpenter core condition types and
+// the generic Reason/Message fields (populated by the cloud provider via
+// cloudprovider.CreateError), so it works for any Karpenter provider (Azure,
+// AWS, gpu-provisioner, ...) and survives provider-specific reason changes.
+//
+// A blocking condition is one whose status is not True, that carries an
+// explanatory message, and whose reason is not the benign
+// "AwaitingReconciliation" initializer. A freshly created NodeClaim whose
+// conditions are still Unknown/AwaitingReconciliation (launch not yet attempted
+// or still in progress) is not an error and is skipped, as are NodeClaims that
+// are being deleted.
+func FirstProvisioningError(nodeClaims []*karpenterv1.NodeClaim) (reason, message string, found bool) {
+	// Earlier lifecycle stages are the root cause, so check them first.
+	for _, stage := range []string{
+		karpenterv1.ConditionTypeLaunched,
+		karpenterv1.ConditionTypeRegistered,
+		karpenterv1.ConditionTypeInitialized,
+	} {
+		for _, nc := range nodeClaims {
+			if nc == nil || !nc.DeletionTimestamp.IsZero() {
+				continue
+			}
+			for _, c := range nc.Status.Conditions {
+				if c.Type == stage &&
+					c.Status != metav1.ConditionTrue &&
+					c.Reason != awaitingReconciliationReason &&
+					c.Message != "" {
+					return c.Reason, truncateProvisioningMessage(c.Message), true
+				}
+			}
+		}
+	}
+	return "", "", false
+}
+
+func truncateProvisioningMessage(msg string) string {
+	if len(msg) <= maxProvisioningErrorMessageLen {
+		return msg
+	}
+	return msg[:maxProvisioningErrorMessageLen] + "..."
+}

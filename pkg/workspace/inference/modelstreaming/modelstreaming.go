@@ -46,6 +46,15 @@ const (
 	// SASEnvFileEnvVar is the env var (set on both the init and main containers) naming the
 	// SAS env file path: the init container writes it, the main container's wrapper sources it.
 	SASEnvFileEnvVar = "STREAM_ENV_FILE"
+	// SASScriptVolumeName is the ConfigMap-backed volume carrying fetch_sas.py into the init container.
+	SASScriptVolumeName = "fetch-sas-script"
+	// SASScriptMountPath is where the fetch_sas.py ConfigMap is mounted in the init container.
+	SASScriptMountPath = "/scripts"
+	// SASScriptFileName is the fetch_sas.py file name within the script ConfigMap and mount.
+	SASScriptFileName = "fetch_sas.py"
+	// SASModelURIEnvVar is the env var (written to the SAS env file by the init container and
+	// sourced by the wrapper) carrying the derived model streaming URI for vLLM --model.
+	SASModelURIEnvVar = "STREAM_MODEL_URI"
 	// sasTokenExportWrapper is the transparent entrypoint wrapper baked into the base image.
 	// It sources the SAS env file (STREAM_ENV_FILE) then exec's the original command.
 	sasTokenExportWrapper = "/workspace/vllm/export_sas_token_for_streaming.sh"

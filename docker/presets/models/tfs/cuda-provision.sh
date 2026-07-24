@@ -3,9 +3,9 @@
 #
 # Invoked by the cuda-toolkit-provisioner init container for models that require
 # DeepGEMM (e.g. FP8 models like DeepSeek-V4), which JIT-compile CUDA kernels with
-# nvcc that the slim base image does not ship. This installs cuda-toolkit-12-9 from
-# NVIDIA's apt repo into the target directory (a node hostPath the main container
-# uses as CUDA_HOME).
+# nvcc that the slim base image does not ship. This installs the JIT-only subset of
+# CUDA 12.9 (nvcc + runtime headers/libs + NVRTC + CCCL) from NVIDIA's apt repo into
+# the target directory (a node hostPath the main container uses as CUDA_HOME).
 #
 # The target dir is a node hostPath, so the install survives pod recreation and is
 # shared by all pods on the node — only cold nodes pay the install. It is idempotent
@@ -27,7 +27,7 @@ if [ -x "${TARGET}/bin/nvcc" ]; then
     exit 0
 fi
 
-echo "cuda-provision: installing cuda-toolkit-${CUDA_PKG_VERSION} ..."
+echo "cuda-provision: installing JIT-only CUDA ${CUDA_PKG_VERSION} packages (nvcc + cudart-dev + nvrtc-dev + cccl + cublas-dev + curand-dev) ..."
 export DEBIAN_FRONTEND=noninteractive
 
 ARCH="$(uname -m)"
@@ -47,9 +47,13 @@ dpkg -i /tmp/cuda-keyring.deb
 rm -f /tmp/cuda-keyring.deb
 
 apt-get update -y
-# cuda-toolkit-12-9 installs the compiler + libraries only (no driver); the GPU
-# driver comes from the host node.
-apt-get install --no-install-recommends -y "cuda-toolkit-${CUDA_PKG_VERSION}"
+apt-get install --no-install-recommends -y \
+    "cuda-nvcc-${CUDA_PKG_VERSION}" \
+    "cuda-cudart-dev-${CUDA_PKG_VERSION}" \
+    "cuda-nvrtc-dev-${CUDA_PKG_VERSION}" \
+    "cuda-cccl-${CUDA_PKG_VERSION}" \
+    "libcublas-dev-${CUDA_PKG_VERSION}" \
+    "libcurand-dev-${CUDA_PKG_VERSION}"
 
 if [ ! -d "${CUDA_HOME_SRC}" ]; then
     echo "cuda-provision: expected ${CUDA_HOME_SRC} after install but it is missing" >&2

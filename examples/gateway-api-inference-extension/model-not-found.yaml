@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-not-found
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: model-not-found
+  template:
+    metadata:
+      labels:
+        app: model-not-found
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        volumeMounts:
+        - name: conf
+          mountPath: /etc/nginx/conf.d
+      volumes:
+      - name: conf
+        configMap:
+          name: model-not-found-conf
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: model-not-found-conf
+data:
+  default.conf: |
+    server {
+      listen 80;
+      location / {
+        default_type application/json;
+        return 404 '{"error":{"message":"The model specified in the request does not exist. Please check the model name and try again.","type":"invalid_request_error","code":"model_not_found"}}';
+      }
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: model-not-found
+spec:
+  selector:
+    app: model-not-found
+  ports:
+  - port: 80

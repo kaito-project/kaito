@@ -1,0 +1,20 @@
+apiVersion: kaito.sh/v1alpha1
+kind: InferenceSet
+metadata:
+  name: falcon-7b-instruct
+  annotations:
+    scaledobject.kaito.sh/auto-provision: "true"
+    scaledobject.kaito.sh/metricName: "vllm:num_requests_waiting"
+    scaledobject.kaito.sh/threshold: "10"
+spec:
+  replicas: 1
+  nodeCountLimit: 3
+  labelSelector:
+    matchLabels:
+      apps: falcon-7b-instruct
+  template:
+    resource:
+      instanceType: "Standard_NV36ads_A10_v5"
+    inference:
+      preset:
+        name: falcon-7b-instruct

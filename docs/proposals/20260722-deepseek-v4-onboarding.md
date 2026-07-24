@@ -130,8 +130,8 @@ The slim runtime image ships no `nvcc`, but DeepGEMM JIT-compiles at runtime. Fo
 any model that `RequiresDeepGEMM()` (currently the V4 family) KAITO provisions a CUDA
 toolkit on the node and points `CUDA_HOME` at it:
 
-- The toolkit lives at a **node hostPath** (default `/opt/kaito/cuda/129`, override
-  with `kaito.sh/cuda-toolkit-hostpath`), mounted read-only into the main container.
+- The toolkit lives at a fixed **node hostPath** (`/opt/kaito/cuda/129`), mounted
+  read-only into the main container.
 - A `cuda-toolkit-provisioner` init container installs `cuda-toolkit-12-9` into that
   hostPath if `nvcc` is absent, serialized with `flock` and idempotent (skips when
   already present). Because it is node-scoped, the install **survives pod recreation
@@ -199,8 +199,6 @@ metadata:
   annotations:
     # weights baked into the node image
     kaito.sh/model-weights-hostpath: /opt/kaito/models/deepseekv4flash
-    # optional: reuse a baked CUDA toolkit instead of installing
-    kaito.sh/cuda-toolkit-hostpath: /opt/kaito/cuda/129
 resource:
   labelSelector:
     matchLabels:

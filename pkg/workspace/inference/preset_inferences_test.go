@@ -1816,9 +1816,9 @@ func TestSetProvisionerNodeSelector(t *testing.T) {
 
 // TestGeneratePresetInferenceNodeImageWeights verifies that when a workspace opts
 // into loading model weights from a custom GPU node image via the
-// kaito.sh/model-weights-hostpath / kaito.sh/cuda-toolkit-hostpath annotations, the
-// generated StatefulSet:
-//   - mounts the weights and CUDA toolkit host directories read-only,
+// kaito.sh/model-weights-hostpath annotation, the generated StatefulSet:
+//   - mounts the weights host directory read-only and the default CUDA toolkit
+//     host directory (for DeepGEMM models),
 //   - points vLLM at the local weights path via --model (no HF download),
 //   - does not add the default emptyDir weights volume or a model puller, and
 //   - sets CUDA_HOME to the mounted toolkit path.
@@ -1830,7 +1830,7 @@ func TestGeneratePresetInferenceNodeImageWeights(t *testing.T) {
 
 	const (
 		weightsPath = "/opt/kaito/models/deepseekv4flash"
-		cudaPath    = "/usr/local/cuda"
+		cudaPath    = defaultCudaHomePath
 	)
 
 	mockClient := test.NewClient()
@@ -1847,7 +1847,6 @@ func TestGeneratePresetInferenceNodeImageWeights(t *testing.T) {
 	workspace.Inference.Config = ""
 	workspace.Annotations = map[string]string{
 		v1beta1.AnnotationModelWeightsHostPath: weightsPath,
-		v1beta1.AnnotationCUDAToolkitHostPath:  cudaPath,
 	}
 
 	svc := &corev1.Service{
@@ -2051,10 +2050,8 @@ func TestGeneratePresetInferenceCUDAToolkitProvisioner(t *testing.T) {
 		}
 	})
 
-	t.Run("non-DeepGEMM model gets no CUDA toolkit even with the hostpath annotation", func(t *testing.T) {
-		podSpec := genPodSpec(t, "test-model", map[string]string{
-			v1beta1.AnnotationCUDAToolkitHostPath: "/usr/local/cuda",
-		})
+	t.Run("non-DeepGEMM model gets no CUDA toolkit", func(t *testing.T) {
+		podSpec := genPodSpec(t, "test-model", nil)
 		for _, ic := range podSpec.InitContainers {
 			if ic.Name == "cuda-toolkit-provisioner" {
 				t.Errorf("did not expect cuda-toolkit-provisioner for a non-DeepGEMM model")

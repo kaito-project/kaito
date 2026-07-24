@@ -97,17 +97,6 @@ const (
 	// read-only into the inference container at the same path and passes it to vLLM
 	// as --model, skipping the HuggingFace download entirely.
 	AnnotationModelWeightsHostPath = KAITOPrefix + "model-weights-hostpath"
-
-	// AnnotationCUDAToolkitHostPath selects where the CUDA toolkit lives on the node
-	// for models whose runtime kernels JIT-compile with nvcc (e.g. DeepGEMM for FP8
-	// models like DeepSeek-V4), which the slim base image does not ship. The value must
-	// be an absolute host directory. When a toolkit is already present there (e.g. baked
-	// into a custom GPU node image), KAITO uses it; otherwise KAITO installs
-	// cuda-toolkit-12-9 into it via an init container. Either way the directory is
-	// mounted into the container and CUDA_HOME is set to it. Because it lives on the
-	// node, the install survives pod recreation and is shared by all pods on the node.
-	// Optional: DeepGEMM models default to /opt/kaito/cuda/129 when this is unset.
-	AnnotationCUDAToolkitHostPath = KAITOPrefix + "cuda-toolkit-hostpath"
 )
 
 // Valid values for AnnotationPerformanceMode.
@@ -179,17 +168,6 @@ func GetModelWeightsHostPath(ws *Workspace) string {
 		return ""
 	}
 	return ws.Annotations[AnnotationModelWeightsHostPath]
-}
-
-// GetCUDAToolkitHostPath returns the value of AnnotationCUDAToolkitHostPath,
-// or an empty string when the annotation is absent. A non-empty value overrides
-// the node directory KAITO uses (and installs into when absent) for the CUDA
-// toolkit needed by nvcc-JIT runtimes such as DeepGEMM.
-func GetCUDAToolkitHostPath(ws *Workspace) string {
-	if ws == nil {
-		return ""
-	}
-	return ws.Annotations[AnnotationCUDAToolkitHostPath]
 }
 
 // reservedSelectorLabelKeys are labels that KAITO controllers apply to their

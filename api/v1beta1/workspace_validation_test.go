@@ -1976,11 +1976,6 @@ func TestWorkspaceValidatePerformanceModeAnnotation(t *testing.T) {
 			wantErr:     false,
 		},
 		{
-			name:        "cuda toolkit hostpath absolute is valid",
-			annotations: map[string]string{AnnotationCUDAToolkitHostPath: "/usr/local/cuda"},
-			wantErr:     false,
-		},
-		{
 			name:        "relative weights hostpath is invalid",
 			annotations: map[string]string{AnnotationModelWeightsHostPath: "opt/kaito/models"},
 			wantErr:     true,
@@ -1988,11 +1983,6 @@ func TestWorkspaceValidatePerformanceModeAnnotation(t *testing.T) {
 		{
 			name:        "weights hostpath with traversal is invalid",
 			annotations: map[string]string{AnnotationModelWeightsHostPath: "/opt/../etc/secrets"},
-			wantErr:     true,
-		},
-		{
-			name:        "empty cuda toolkit hostpath is invalid",
-			annotations: map[string]string{AnnotationCUDAToolkitHostPath: ""},
 			wantErr:     true,
 		},
 	}

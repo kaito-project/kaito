@@ -61,10 +61,9 @@ const (
 	// node lacks it.
 	cudaToolkitHostVolumeName = "cuda-toolkit-hostpath"
 
-	// defaultCUDAToolkitHostPath is the CUDA toolkit location on KAITO custom GPU node
-	// images. Used as CUDA_HOME (and the install target on nodes that lack it) when
-	// kaito.sh/cuda-toolkit-hostpath is not set.
-	defaultCUDAToolkitHostPath = "/opt/kaito/cuda/129"
+	// defaultCudaHomePath is the default location to install CUDA toolkit and used as
+	// CUDA_HOME.
+	defaultCudaHomePath = "/opt/kaito/cuda/129"
 )
 
 var (
@@ -519,7 +518,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			streamingModelPath, userProvidedLocalWeightsPath, volumes, volumeMounts)
 
 		volumes, volumeMounts, cudaHome := configureCUDAToolkitVolume(
-			ctx.Workspace, ctx.Model, volumes, volumeMounts)
+			ctx.Model, volumes, volumeMounts)
 
 		// add share memory for cross process communication
 		shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
@@ -680,24 +679,21 @@ func configureModelWeightsVolumes(streamingModelPath, userProvidedLocalWeightsPa
 // models whose FP8 GEMMs require DeepGEMM's nvcc JIT (e.g. DeepSeek-V4), and
 // returns cudaHome — the toolkit path — or "" for models that don't need it.
 //
-// Only DeepGEMM models get a toolkit. Its location comes from the
-// kaito.sh/cuda-toolkit-hostpath annotation or a default baked path, and is
-// mounted read-only (the main container only reads nvcc + headers/libs; the
-// cuda-toolkit-provisioner init container mounts it read-write to install).
-// Because it lives on the node (hostPath, DirectoryOrCreate so the pod still
-// starts on nodes that lack it), the install survives pod recreation and is
-// shared by all pods on the node — only nodes that lack it ever pay the install.
-func configureCUDAToolkitVolume(ws *v1beta1.Workspace, model pkgmodel.Model,
+// Only DeepGEMM models get a toolkit. It lives at a fixed node path
+// (defaultCudaHomePath) and is mounted read-only (the main container only
+// reads nvcc + headers/libs; the cuda-toolkit-provisioner init container mounts it
+// read-write to install). Because it lives on the node (hostPath, DirectoryOrCreate
+// so the pod still starts on nodes that lack it), the install survives pod
+// recreation and is shared by all pods on the node — only nodes that lack it ever
+// pay the install.
+func configureCUDAToolkitVolume(model pkgmodel.Model,
 	volumes []corev1.Volume, volumeMounts []corev1.VolumeMount,
 ) ([]corev1.Volume, []corev1.VolumeMount, string) {
 	if !model.GetInferenceParameters().RequiresDeepGEMM() {
 		return volumes, volumeMounts, ""
 	}
 
-	cudaHome := v1beta1.GetCUDAToolkitHostPath(ws)
-	if cudaHome == "" {
-		cudaHome = defaultCUDAToolkitHostPath
-	}
+	cudaHome := defaultCudaHomePath
 	hostPathType := corev1.HostPathDirectoryOrCreate
 	volumes = append(volumes, corev1.Volume{
 		Name: cudaToolkitHostVolumeName,

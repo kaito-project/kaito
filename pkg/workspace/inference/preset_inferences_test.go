@@ -444,12 +444,8 @@ func TestGeneratePresetInference(t *testing.T) {
 			// fusion pass (its TRT-LLM MNNVL kernel JIT-compiles at runtime and needs
 			// nvcc, which is absent from the runtime image). Inject it into the
 			// expectation so each vLLM case doesn't need to list the flag explicitly.
-			// Likewise, every vLLM preset pod mounts the conventional node weights
-			// directory and passes --kaito-local-weights-dir so the entrypoint can
-			// prefer node-local weights at runtime.
 			if strings.Contains(tc.expectedCmd, "/workspace/vllm/inference_api.py") {
 				expectedParams["compilation-config.pass_config.fuse_allreduce_rms"] = "False"
-				expectedParams["kaito-local-weights-dir"] = defaultLocalWeightsHostPath
 			}
 
 			if mainCmd != expectedMaincmd {

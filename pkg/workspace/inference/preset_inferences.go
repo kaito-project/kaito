@@ -65,15 +65,6 @@ const (
 	// images. Used as CUDA_HOME (and the install target on nodes that lack it) when
 	// kaito.sh/cuda-toolkit-hostpath is not set.
 	defaultCUDAToolkitHostPath = "/opt/kaito/cuda/129"
-
-	// defaultLocalWeightsVolumeName is the hostPath volume that exposes the
-	// conventional node-local model weights directory to vLLM preset pods.
-	defaultLocalWeightsVolumeName = "default-local-weights-hostpath"
-
-	// defaultLocalWeightsHostPath is the conventional node directory KAITO checks for
-	// baked model weights. When populated, vLLM loads from it instead of downloading
-	// from HuggingFace (resolved at runtime via --kaito-local-weights-dir).
-	defaultLocalWeightsHostPath = "/opt/kaito/weights"
 )
 
 var (
@@ -524,16 +515,8 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			cmVolumeMountRef = &cmVolumeMount
 		}
 
-		volumes, volumeMounts, shouldCheckDefaultLocalWeight := configureModelWeightsVolumes(
-			ctx.Workspace, streamingModelPath, userProvidedLocalWeightsPath, volumes, volumeMounts)
-
-		// When the conventional node-local weights directory is mounted, tell the vLLM
-		// entrypoint (via --kaito-local-weights-dir) to prefer baked weights there at
-		// runtime and otherwise fall back to the download source.
-		var defaultLocalWeightsDir string
-		if shouldCheckDefaultLocalWeight {
-			defaultLocalWeightsDir = defaultLocalWeightsHostPath
-		}
+		volumes, volumeMounts = configureModelWeightsVolumes(
+			streamingModelPath, userProvidedLocalWeightsPath, volumes, volumeMounts)
 
 		volumes, volumeMounts, cudaHome := configureCUDAToolkitVolume(
 			ctx.Workspace, ctx.Model, volumes, volumeMounts)
@@ -610,7 +593,6 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 				StreamingModelPath:                streamingModelPath,
 				StreamingLoadFormat:               streamingLoadFormat,
 				UserProvidedLocalModelWeightsPath: userProvidedLocalWeightsPath,
-				DefaultLocalWeightsDir:            defaultLocalWeightsDir,
 			},
 		})
 
@@ -667,21 +649,14 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 }
 
 // configureModelWeightsVolumes appends the model-weights volumes/mounts for a
-// preset inference pod based on the resolved weight source, and reports whether
-// the pod should also consult the conventional node-local weights directory
-// (/opt/kaito/weights) at runtime:
+// preset inference pod based on the resolved weight source:
 //   - The default download/cache mount is added when weights are neither streamed
 //     (az://) nor provided from an explicit node-image hostpath.
 //   - userProvidedLocalWeightsPath (the explicit node-image hostpath) is mounted read-only at
 //     the same path inside the container when set.
-//   - When neither streaming nor an explicit hostpath is used and the runtime is
-//     vLLM, the conventional /opt/kaito/weights directory is mounted read-only
-//     (DirectoryOrCreate so the pod still starts on nodes without it) and the
-//     returned shouldCheckDefaultLocalWeight is true, signaling the caller to pass
-//     --kaito-local-weights-dir so the entrypoint prefers baked weights at runtime.
-func configureModelWeightsVolumes(ws *v1beta1.Workspace, streamingModelPath, userProvidedLocalWeightsPath string,
+func configureModelWeightsVolumes(streamingModelPath, userProvidedLocalWeightsPath string,
 	volumes []corev1.Volume, volumeMounts []corev1.VolumeMount,
-) ([]corev1.Volume, []corev1.VolumeMount, bool) {
+) ([]corev1.Volume, []corev1.VolumeMount) {
 	// Download-at-runtime path: with no streaming source and no explicit node-image
 	// hostpath, weights are pulled from HuggingFace into /workspace/weights. Mount
 	// that directory so the download target is a real volume shared between the
@@ -698,25 +673,7 @@ func configureModelWeightsVolumes(ws *v1beta1.Workspace, streamingModelPath, use
 		volumeMounts = append(volumeMounts, mount)
 	}
 
-	shouldCheckDefaultLocalWeight := streamingModelPath == "" && userProvidedLocalWeightsPath == "" &&
-		v1beta1.GetWorkspaceRuntimeName(ws) == pkgmodel.RuntimeNameVLLM
-	if shouldCheckDefaultLocalWeight {
-		hostPathType := corev1.HostPathDirectoryOrCreate
-		volumes = append(volumes, corev1.Volume{
-			Name: defaultLocalWeightsVolumeName,
-			VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{
-				Path: defaultLocalWeightsHostPath,
-				Type: &hostPathType,
-			}},
-		})
-		volumeMounts = append(volumeMounts, corev1.VolumeMount{
-			Name:      defaultLocalWeightsVolumeName,
-			MountPath: defaultLocalWeightsHostPath,
-			ReadOnly:  true,
-		})
-	}
-
-	return volumes, volumeMounts, shouldCheckDefaultLocalWeight
+	return volumes, volumeMounts
 }
 
 // configureCUDAToolkitVolume mounts the node's CUDA toolkit into the pod for

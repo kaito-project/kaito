@@ -1,5 +1,5 @@
 ---
-title: DeepSeek-V4 Onboarding — Flash & Pro (S1 download-at-runtime & S2 node-image weights)
+title: DeepSeek-V4 Onboarding — Flash & Pro (S1 download-at-runtime & S2 pre-populated weights)
 authors:
   - "@zhehli688"
 reviewers:
@@ -18,9 +18,8 @@ define **two supported paths for delivering their weights to the inference pod**
 
 - **S1 — download-at-runtime**: pull the weights from HuggingFace at pod startup
   (the standard KAITO preset flow).
-- **S2 — node-image weights**: mount weights that are already present on the node
-  (baked into a custom GPU node image / VHD) and load them with the RunAI Model
-  Streamer.
+- **S2 — pre-populated weights**: mount weights that are already present on the node
+  and load them with the RunAI Model Streamer.
 
 ## Table of Contents
 
@@ -35,7 +34,7 @@ define **two supported paths for delivering their weights to the inference pod**
     - [DeepGEMM / CUDA toolkit](#deepgemm--cuda-toolkit)
     - [Weight delivery](#weight-delivery)
       - [S1 — Download-at-runtime](#s1--download-at-runtime)
-      - [S2 — Node-image weights](#s2--node-image-weights)
+      - [S2 — Pre-populated weights](#s2--pre-populated-weights)
     - [Startup-probe timeout](#startup-probe-timeout)
   - [Risks and Mitigations](#risks-and-mitigations)
   - [Alternatives](#alternatives)
@@ -45,7 +44,7 @@ define **two supported paths for delivering their weights to the inference pod**
 | Term | Meaning |
 | --- | --- |
 | **S1** | Weight delivery by **download-at-runtime** from HuggingFace (`downloadAtRuntime: true`). |
-| **S2** | Weight delivery from **node-image weights** baked into the GPU node image, loaded with `--load-format=runai_streamer`, enabled via the boolean `kaito.sh/use-local-weights` annotation. |
+| **S2** | Weight delivery from **pre-populated weights** already present on the node, loaded with `--load-format=runai_streamer`, enabled via the boolean `kaito.sh/use-local-weights` annotation. |
 | **DeepGEMM** | FP8 block-scaled GEMM library vLLM JIT-compiles with `nvcc` at runtime. |
 | **RunAI Model Streamer** | A concurrent, pread-based safetensors loader (`--load-format=runai_streamer`) that avoids the mmap read-ahead cliff on virtualized disks. |
 | **PP / TP** | Pipeline / tensor parallelism. |
@@ -83,7 +82,7 @@ Supporting them lets KAITO users self-host frontier-class models. But their size
 makes the default "download from HuggingFace every time" flow (S1) slow and
 bandwidth-hungry: pulling ~148 GiB (Flash) — or 865 GB (Pro) — per pod is expensive
 and couples startup latency to internet egress, and is impractical for Pro. Operators
-running dedicated GPU fleets prefer to bake weights into the node image once (S2) and
+running dedicated GPU fleets prefer to pre-populate the weights on the node once (S2) and
 load them locally in seconds. KAITO should support both without forking the model
 definition.
 
@@ -94,7 +93,7 @@ definition.
   DeepGEMM, 1M context, reasoning + tool parsing) across multi-node pipeline
   parallelism.
 - Support **S1** (download-at-runtime) as the zero-infrastructure default.
-- Support **S2** (node-image weights) as an opt-in for fast, network-free cold
+- Support **S2** (pre-populated weights) as an opt-in for fast, network-free cold
   starts, using `--load-format=runai_streamer` for concurrent local load.
 - Provide DeepGEMM's `nvcc` toolchain to the pod without bloating the base image,
   in a way that is shared across pods on a node and survives pod recreation.
@@ -109,8 +108,8 @@ definition.
 - Prefill/decode disaggregation for V4 (see
   [MultiRoleInference P/D](./20260424-multiroleinference-pd-disaggregation.md)) is
   future work.
-- Automatically baking weights into node images (VHD build pipeline) is out of
-  scope; S2 assumes the operator has produced such an image.
+- Automatically pre-populating the weights on nodes is out of scope; S2 assumes the
+  operator has already placed the weights on the node.
 
 ## Proposal
 ### Runtime Configuration
@@ -183,9 +182,9 @@ inference:
   impractical for Pro.
 - CUDA toolkit is still provisioned automatically (see above) on the target nodes.
 
-#### S2 — Node-image weights
+#### S2 — Pre-populated weights
 
-The operator bakes the weights into a custom GPU node image (VHD) under
+The operator pre-populates the weights on the node under
 `/opt/kaito/models/<sanitized preset name>` and labels the pool so the Workspace
 targets it. The Workspace opts in with `kaito.sh/use-local-weights: "true"`; KAITO
 derives that host directory from the preset name, mounts it read-only, points
@@ -198,13 +197,13 @@ kind: Workspace
 metadata:
   name: workspace-deepseek-v4-flash
   annotations:
-    # load weights baked into the node image at
+    # load weights pre-populated on the node at
     # /opt/kaito/models/deepseek-ai-deepseek-v4-flash (derived from the preset name)
     kaito.sh/use-local-weights: "true"
 resource:
   labelSelector:
     matchLabels:
-      kaito-workspace: deepseek-v4-flash   # BYO pool with the baked VHD
+      kaito-workspace: deepseek-v4-flash   # BYO pool with the pre-populated weights
 inference:
   preset:
     name: deepseek-ai/DeepSeek-V4-Flash
@@ -213,7 +212,7 @@ inference:
 - **Pros:** no network egress; concurrent local load. Validated at ~17 s to load all
   148 GiB shards on 3× H100 (PP=3) via the RunAI streamer, versus tens of minutes for
   a cold mmap read.
-- **Cons:** requires operating a custom node image; the mount uses
+- **Cons:** requires pre-populating the weights on the nodes; the mount uses
   `HostPathDirectory`, so a missing/empty directory fails the pod fast (the operator
   asserts the weights are present).
 
@@ -251,5 +250,5 @@ ceiling.
   once per node only when DeepGEMM is required.
 - **Blob-storage streaming (`az://` via ModelMirror).** Streams weights from object
   storage with the RunAI streamer. Complementary to S1/S2; deferred to the model-mirror
-  proposal. S2 was chosen here because dedicated fleets already bake node images and
-  want zero external dependency at pod start.
+  proposal. S2 was chosen here because dedicated fleets already pre-populate weights
+  on their nodes and want zero external dependency at pod start.

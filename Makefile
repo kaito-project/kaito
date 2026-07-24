@@ -165,6 +165,8 @@ tuning-metrics-server-test: ## Run Tuning Metrics Server tests with pytest.
 .PHONY: inference-api-e2e
 inference-api-e2e: ## Run inference API e2e tests with pytest.
 	pip install --no-cache-dir -r ./presets/workspace/dependencies/requirements-test.txt --upgrade
+	pip install --no-cache-dir --force-reinstall --no-deps huggingface-hub==1.11.0
+	python -c "import importlib.metadata; assert importlib.metadata.version('huggingface-hub') == '1.11.0'"
 	pip install pytest-cov
 	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/vllm
 	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/text-generation

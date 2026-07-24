@@ -187,6 +187,59 @@ See [examples/RAG/kaito_ragengine_qdrant.yaml](https://github.com/kaito-project/
 Since Qdrant persists data in its own storage, the RAGEngine pod can restart without losing indexed documents. On startup, the service automatically discovers existing Qdrant collections and restores them as indexes.
 :::
 
+#### Milvus
+
+[Milvus](https://milvus.io/) is a scalable, open-source vector database built for similarity search. When using Milvus as the backend, RAGEngine provides:
+
+- **COSINE similarity search** using dense embeddings from your configured embedding model
+- **Automatic index restore** on pod restart — existing Milvus collections are discovered and their documents are loaded back into the in-memory index
+- **All CRUD operations** (list, update, delete, document existence checks) operate directly against Milvus
+- **Scalable architecture** — Milvus supports standalone and distributed cluster deployments
+
+**Step 1: Deploy Milvus in your cluster**
+
+You can use the provided example manifest (deploys etcd, MinIO, and Milvus standalone):
+
+```bash
+kubectl apply -f examples/RAG/milvus-deployment.yaml
+```
+
+Verify it's ready:
+
+```bash
+kubectl wait --for=condition=available deployment/milvus --timeout=300s
+```
+
+**Step 2: Create the RAGEngine with Milvus backend**
+
+```yaml
+apiVersion: kaito.sh/v1beta1
+kind: RAGEngine
+metadata:
+  name: ragengine-milvus
+spec:
+  compute:
+    instanceType: "Standard_NV36ads_A10_v5"
+    labelSelector:
+      matchLabels:
+        apps: ragengine-milvus
+  storage:
+    vectorDB:
+      engine: "milvus"
+      url: "http://milvus.default.svc.cluster.local:19530"
+  embedding:
+    local:
+      modelID: "BAAI/bge-small-en-v1.5"
+  inferenceService:
+    contextWindowSize: 4096
+```
+
+See [examples/RAG/kaito_ragengine_milvus.yaml](https://github.com/kaito-project/kaito/blob/main/examples/RAG/kaito_ragengine_milvus.yaml) for the full example.
+
+:::tip
+Milvus persists data via its own storage layer (etcd + MinIO or local disk). On pod restart, RAGEngine automatically rediscovers existing Milvus collections and restores them as indexes.
+:::
+
 ### Persistent Storage (Optional)
 RAGEngine supports persistent storage for vector indexes using Kubernetes PersistentVolumeClaims (PVC). When configured, indexed documents are automatically saved to persistent storage and restored on pod restarts. Users can also manually persist and load indexes using the RAG service API endpoints (`/persist/{index_name}` and `/load/{index_name}`).
 

@@ -868,6 +868,31 @@ func TestReconcileSurge_NoCreateWhenAllUpToDate(t *testing.T) {
 	assert.Len(t, listWorkspacesInNamespace(t, cl, ns), 1)
 }
 
+// TestReconcileSurge_NoSurgeWhenDesiredImageButNotReady verifies that a Workspace already
+// running the desired base image but still doing its first-time model load (StatefulSet not
+// yet Ready) is NOT treated as drifted. Drift is determined by image mismatch only, so no
+// spurious surge is created during initial startup.
+func TestReconcileSurge_NoSurgeWhenDesiredImageButNotReady(t *testing.T) {
+	const (
+		ns     = "default"
+		isName = "bg-is"
+	)
+	desiredImage := setTestRegistry(t)
+
+	is := makeSurgeInferenceSet(isName, ns) // desired replicas defaults to 1
+	blue := makeWorkspace("blue-1", ns, isName, kaitov1beta1.WorkspaceStatePending, nil)
+	blueSS := makeStatefulSet("blue-1", ns, desiredImage)
+	blueSS.Status.ReadyReplicas = 0 // on the desired image, but not Ready yet (still loading)
+
+	cl := newFakeClient(is, blue, blueSS)
+	r := &AutoUpgradeRunner{Client: cl}
+
+	r.reconcileInferenceSet(context.Background(), is)
+
+	// Still exactly one workspace: the loading replica must not be surged/replaced.
+	assert.Len(t, listWorkspacesInNamespace(t, cl, ns), 1)
+}
+
 // TestReconcileSurge_OutsideMaintenanceWindow verifies no new Workspace is created
 // outside the maintenance window.
 func TestReconcileSurge_OutsideMaintenanceWindow(t *testing.T) {

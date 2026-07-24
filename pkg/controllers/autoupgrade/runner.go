@@ -353,7 +353,7 @@ func (r *AutoUpgradeRunner) reconcileSurge(ctx context.Context, inferenceSetObj 
 			klog.ErrorS(err, "AutoUpgradeRunner: failed to get StatefulSet", "workspace", klog.KObj(ws))
 			return
 		}
-		if !isWorkspaceInDesiredState(ss, desiredImage) {
+		if workspace.GetInferenceContainerImage(ss) != desiredImage {
 			driftCount++
 		}
 	}

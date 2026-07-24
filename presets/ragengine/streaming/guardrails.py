@@ -30,7 +30,9 @@ from ragengine.streaming.openai import (
 from ragengine.streaming.sse import iter_sse_events
 
 STREAMING_GUARDRAILS_HOLDBACK_LEN = 256
-STREAMING_GUARDRAILS_SUPPORTED_SCANNERS = frozenset({"ban_substrings"})
+STREAMING_GUARDRAILS_SUPPORTED_SCANNERS = frozenset(
+    {"ban_substrings", "invisible_text", "secrets", "sensitive"}
+)
 
 
 @dataclass(frozen=True)
@@ -58,8 +60,8 @@ def validate_streaming_guardrails(
                 supported=False,
                 detail=(
                     "stream=true with output guardrails only supports "
-                    "ban_substrings scanners. Unsupported scanner: "
-                    f"{scanner_config.type}."
+                    f"{sorted(STREAMING_GUARDRAILS_SUPPORTED_SCANNERS)} scanners. "
+                    f"Unsupported scanner: {scanner_config.type}."
                 ),
             )
 
@@ -96,6 +98,13 @@ async def apply_streaming_guardrails(
                 return
 
             if parse_result.status != OpenAIChatChunkParseStatus.PARSED:
+                async for chunk in _emit_refusal(guardrails):
+                    yield chunk
+                return
+
+            if len(parse_result.parsed_choices) > 1 or any(
+                choice.choice_index != 0 for choice in parse_result.parsed_choices
+            ):
                 async for chunk in _emit_refusal(guardrails):
                     yield chunk
                 return

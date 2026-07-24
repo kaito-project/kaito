@@ -18,7 +18,6 @@ stubbed via sys.modules so these tests run on any machine, including Mac
 dev environments without a GPU or vllm installed.
 """
 
-import argparse
 import sys
 from pathlib import Path
 from types import ModuleType
@@ -83,11 +82,9 @@ import inference_api  # noqa: E402
 from inference_api import (  # noqa: E402
     ModelDownloadMonitor,
     _download_in_progress,
-    _has_local_weights,
     _hf_model_total_bytes,
     _model_cache_size_bytes,
     _model_repo_path,
-    resolve_model_source,
 )
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -544,87 +541,3 @@ class TestGpuMemoryUtilization:
             pytest.raises(RuntimeError),
         ):
             inference_api._query_gpu_mem_info(0)
-
-
-# ── node-local weights resolution ─────────────────────────────────────────────
-class TestResolveModelSource:
-    def _weights_dir(self, tmp_path, *, config=True, weight_name="model.safetensors"):
-        if config:
-            (tmp_path / "config.json").write_text("{}")
-        if weight_name:
-            (tmp_path / weight_name).write_bytes(b"\x00")
-        return str(tmp_path)
-
-    def test_has_local_weights_true_for_populated_dir(self, tmp_path):
-        assert _has_local_weights(self._weights_dir(tmp_path)) is True
-
-    def test_has_local_weights_accepts_bin_and_pt(self, tmp_path):
-        assert (
-            _has_local_weights(
-                self._weights_dir(tmp_path, weight_name="pytorch_model.bin")
-            )
-            is True
-        )
-
-    def test_has_local_weights_false_without_config(self, tmp_path):
-        assert _has_local_weights(self._weights_dir(tmp_path, config=False)) is False
-
-    def test_has_local_weights_false_without_weight_files(self, tmp_path):
-        assert (
-            _has_local_weights(self._weights_dir(tmp_path, weight_name=None)) is False
-        )
-
-    def test_has_local_weights_false_for_missing_or_empty(self, tmp_path):
-        assert _has_local_weights("") is False
-        assert _has_local_weights(str(tmp_path / "does-not-exist")) is False
-
-    def test_resolve_uses_local_weights_and_drops_download_dir(self, tmp_path):
-        weights = self._weights_dir(tmp_path)
-        args = argparse.Namespace(
-            model="org/model",
-            kaito_local_weights_dir=weights,
-            download_dir="/workspace/weights",
-            load_format="auto",
-        )
-        resolve_model_source(args)
-        assert args.model == weights
-        assert args.download_dir is None
-        assert args.load_format == "runai_streamer"
-
-    def test_resolve_keeps_configured_source_when_dir_empty(self, tmp_path):
-        empty = str(tmp_path)  # DirectoryOrCreate mount with no weights
-        args = argparse.Namespace(
-            model="org/model",
-            kaito_local_weights_dir=empty,
-            download_dir="/workspace/weights",
-            load_format="auto",
-        )
-        resolve_model_source(args)
-        assert args.model == "org/model"
-        assert args.download_dir == "/workspace/weights"
-        assert args.load_format == "auto"
-
-    def test_resolve_noop_without_candidate(self):
-        args = argparse.Namespace(
-            model="org/model",
-            kaito_local_weights_dir="",
-            download_dir="/workspace/weights",
-            load_format="auto",
-        )
-        resolve_model_source(args)
-        assert args.model == "org/model"
-        assert args.download_dir == "/workspace/weights"
-        assert args.load_format == "auto"
-
-    def test_resolve_overrides_image_baked_default(self, tmp_path):
-        # Non-DAR models default --model to the image path; node weights win.
-        weights = self._weights_dir(tmp_path)
-        args = argparse.Namespace(
-            model="/workspace/vllm/weights",
-            kaito_local_weights_dir=weights,
-            download_dir=None,
-            load_format="auto",
-        )
-        resolve_model_source(args)
-        assert args.model == weights
-        assert args.load_format == "runai_streamer"

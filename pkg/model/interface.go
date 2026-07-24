@@ -340,14 +340,6 @@ type RuntimeContextExtraArguments struct {
 	// exist on local disk (e.g. mounted from a custom GPU node image) via --model.
 	// No HuggingFace download is performed. Mutually exclusive with StreamingModelPath.
 	UserProvidedLocalModelWeightsPath string // e.g. "/opt/kaito/models/deepseekv4flash"
-
-	// DefaultLocalWeightsDir, when set, is a candidate node-local weights directory
-	// (e.g. /opt/kaito/weights) mounted into the pod. Unlike UserProvidedLocalModelWeightsPath it
-	// is resolved at runtime by the entrypoint: weights there are used if present,
-	// otherwise the pod falls back to the model source below (HuggingFace download or
-	// image-baked weights). Ignored when StreamingModelPath or UserProvidedLocalModelWeightsPath
-	// is set.
-	DefaultLocalWeightsDir string // e.g. "/opt/kaito/weights"
 }
 
 func (p *PresetParam) GetInferenceCommand(rc RuntimeContext) []string {
@@ -453,14 +445,6 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 			p.VLLM.ModelRunParams["code-revision"] = revision
 		}
 		p.VLLM.ModelRunParams["download-dir"] = utils.DefaultWeightsVolumePath
-	}
-	// Node-local weights preference: when a candidate node weights directory is
-	// mounted (e.g. /opt/kaito/weights), pass it to the entrypoint, which prefers
-	// weights there at runtime and otherwise falls back to the model source resolved
-	// above. Not combined with streaming or an explicit local weights path (already
-	// resolved).
-	if rc.StreamingModelPath == "" && rc.UserProvidedLocalModelWeightsPath == "" && rc.DefaultLocalWeightsDir != "" {
-		p.VLLM.ModelRunParams["kaito-local-weights-dir"] = rc.DefaultLocalWeightsDir
 	}
 	if rc.ConfigVolume != nil {
 		p.VLLM.ModelRunParams["kaito-config-file"] = path.Join(rc.ConfigVolume.MountPath, ConfigfileNameVLLM)

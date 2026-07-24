@@ -45,7 +45,7 @@ define **two supported paths for delivering their weights to the inference pod**
 | Term | Meaning |
 | --- | --- |
 | **S1** | Weight delivery by **download-at-runtime** from HuggingFace (`downloadAtRuntime: true`). |
-| **S2** | Weight delivery from **node-image weights** baked into the GPU node image, loaded with `--load-format=runai_streamer`. Either explicit (via `kaito.sh/model-weights-hostpath`) or the auto-detected default path `/opt/kaito/weights`. |
+| **S2** | Weight delivery from **node-image weights** baked into the GPU node image, loaded with `--load-format=runai_streamer`, selected explicitly via the `kaito.sh/model-weights-hostpath` annotation. |
 | **DeepGEMM** | FP8 block-scaled GEMM library vLLM JIT-compiles with `nvcc` at runtime. |
 | **RunAI Model Streamer** | A concurrent, pread-based safetensors loader (`--load-format=runai_streamer`) that avoids the mmap read-ahead cliff on virtualized disks. |
 | **PP / TP** | Pipeline / tensor parallelism. |
@@ -144,17 +144,14 @@ toolkit on the node and points `CUDA_HOME` at it:
 
 The **weight source** is selected by Workspace
 configuration, resolved through KAITO's model-source logic
-(streaming → explicit local → default local → download):
+(streaming → explicit local → download):
 
 ```mermaid
 flowchart TD
     A[Workspace for a DeepSeek-V4 model<br/>Flash or Pro] --> B{kaito.sh/model-weights-hostpath set?}
     B -- "yes (S2 explicit)" --> C[Mount node hostPath RO<br/>--model=&lt;path&gt; --load-format=runai_streamer<br/>skip HF download]
-    B -- "no" --> G{/opt/kaito/weights populated?<br/>resolved on the node at runtime}
-    G -- "yes (S2 default)" --> H[Load node-local weights<br/>--load-format=runai_streamer]
-    G -- "no (S1)" --> D[--model=&lt;repo id&gt; --download-dir=/workspace/weights<br/>download from HuggingFace]
+    B -- "no (S1)" --> D[--model=&lt;repo id&gt; --download-dir=/workspace/weights<br/>download from HuggingFace]
     C --> E[vLLM engine: PP=N, FP8 KV, DeepGEMM]
-    H --> E
     D --> E
     E --> F[Serve /v1/chat/completions]
 ```
@@ -220,23 +217,11 @@ inference:
   `HostPathDirectory`, so a missing/empty directory fails the pod fast (the operator
   asserts the weights are present).
 
-**Zero-annotation default (`/opt/kaito/weights`).** S2 also works without any
-annotation. Every vLLM preset pod mounts the conventional node directory
-`/opt/kaito/weights` read-only (`DirectoryOrCreate`, so pods still start on nodes
-that lack it), and the entrypoint resolves the model source **at runtime**: if that
-directory holds a model (a `config.json` plus a safetensors/bin/pt file) it loads
-from there with `runai_streamer`; otherwise it falls back to the configured source
-(S1 download, or image-baked weights). This lets an operator bake weights at the
-well-known path and get S2 behavior with an **unmodified Workspace**, while any node
-lacking them degrades gracefully to S1.
-
-Precedence — resolved as streaming → explicit local → default local → download:
+Precedence — resolved as streaming → explicit local → download:
 
 1. `kaito.sh/model-weights-hostpath` (explicit): the controller sets `--model` to it
    directly and mounts `HostPathDirectory` (fail-fast if absent). No runtime check.
-2. `/opt/kaito/weights` (default): mounted on every vLLM pod and passed as
-   `--kaito-local-weights-dir`; the entrypoint uses it **only if populated**.
-3. Otherwise the model is downloaded from HuggingFace (S1).
+2. Otherwise the model is downloaded from HuggingFace (S1).
 
 ### Startup-probe timeout
 

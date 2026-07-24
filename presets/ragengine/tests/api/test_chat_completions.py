@@ -27,6 +27,7 @@ from ragengine.guardrails.scanner_schemas import (
     ParsedScannerConfig,
     RegexConfig,
 )
+from ragengine.streaming.guardrails import STREAMING_GUARDRAILS_SUPPORTED_SCANNERS
 
 
 @pytest.fixture(autouse=True)
@@ -325,8 +326,8 @@ async def test_chat_completions_stream_with_unsupported_output_guardrails_is_rej
 
     assert response.status_code == 400
     assert (
-        response.json()["detail"]
-        == "stream=true with output guardrails only supports ban_substrings scanners. "
+        response.json()["detail"] == "stream=true with output guardrails only supports "
+        f"{sorted(STREAMING_GUARDRAILS_SUPPORTED_SCANNERS)} scanners. "
         "Unsupported scanner: json."
     )
 
@@ -339,6 +340,7 @@ async def test_chat_completions_rejects_multi_choice(async_client):
             "model": "mock-model",
             "messages": [{"role": "user", "content": "Hello"}],
             "n": 2,
+            "stream": True,
         },
     )
 

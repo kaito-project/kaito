@@ -17,7 +17,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
@@ -136,14 +135,12 @@ func (w *Workspace) validateAnnotations() (errs *apis.FieldError) {
 			))
 		}
 	}
-	// The model-weights host-path annotation mounts a node directory into the
-	// inference container. Require a clean absolute path to avoid relative paths or
-	// traversal (e.g. "..").
-	if v, ok := annotations[AnnotationModelWeightsHostPath]; ok {
-		if v == "" || !filepath.IsAbs(v) || filepath.Clean(v) != v {
+	// use-local-weights is a boolean opt-in; accept only "true" or "false".
+	if v, ok := annotations[AnnotationUseLocalWeights]; ok {
+		if v != "true" && v != "false" {
 			errs = errs.Also(apis.ErrInvalidValue(
-				fmt.Sprintf("%q must be a clean absolute host path (e.g. /opt/kaito/models/mymodel)", v),
-				fmt.Sprintf("metadata.annotations[%s]", AnnotationModelWeightsHostPath),
+				fmt.Sprintf("%q must be \"true\" or \"false\"", v),
+				fmt.Sprintf("metadata.annotations[%s]", AnnotationUseLocalWeights),
 			))
 		}
 	}

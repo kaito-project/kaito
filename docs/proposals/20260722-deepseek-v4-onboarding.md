@@ -45,7 +45,7 @@ define **two supported paths for delivering their weights to the inference pod**
 | Term | Meaning |
 | --- | --- |
 | **S1** | Weight delivery by **download-at-runtime** from HuggingFace (`downloadAtRuntime: true`). |
-| **S2** | Weight delivery from **node-image weights** baked into the GPU node image, loaded with `--load-format=runai_streamer`, selected explicitly via the `kaito.sh/model-weights-hostpath` annotation. |
+| **S2** | Weight delivery from **node-image weights** baked into the GPU node image, loaded with `--load-format=runai_streamer`, enabled via the boolean `kaito.sh/use-local-weights` annotation. |
 | **DeepGEMM** | FP8 block-scaled GEMM library vLLM JIT-compiles with `nvcc` at runtime. |
 | **RunAI Model Streamer** | A concurrent, pread-based safetensors loader (`--load-format=runai_streamer`) that avoids the mmap read-ahead cliff on virtualized disks. |
 | **PP / TP** | Pipeline / tensor parallelism. |
@@ -148,8 +148,8 @@ configuration, resolved through KAITO's model-source logic
 
 ```mermaid
 flowchart TD
-    A[Workspace for a DeepSeek-V4 model<br/>Flash or Pro] --> B{kaito.sh/model-weights-hostpath set?}
-    B -- "yes (S2 explicit)" --> C[Mount node hostPath RO<br/>--model=&lt;path&gt; --load-format=runai_streamer<br/>skip HF download]
+    A[Workspace for a DeepSeek-V4 model<br/>Flash or Pro] --> B{kaito.sh/use-local-weights true?}
+    B -- "yes (S2)" --> C[Mount /opt/kaito/models/&lt;preset&gt; RO<br/>--model=&lt;path&gt; --load-format=runai_streamer<br/>skip HF download]
     B -- "no (S1)" --> D[--model=&lt;repo id&gt; --download-dir=/workspace/weights<br/>download from HuggingFace]
     C --> E[vLLM engine: PP=N, FP8 KV, DeepGEMM]
     D --> E
@@ -185,11 +185,12 @@ inference:
 
 #### S2 — Node-image weights
 
-The operator bakes the weights into a custom GPU node image (VHD) at a known
-directory and labels the pool so the Workspace targets it. The Workspace opts in
-with `kaito.sh/model-weights-hostpath`; KAITO mounts that host directory read-only,
-points `--model` at it, sets `--load-format=runai_streamer`, and **skips the
-HuggingFace download entirely**.
+The operator bakes the weights into a custom GPU node image (VHD) under
+`/opt/kaito/models/<sanitized preset name>` and labels the pool so the Workspace
+targets it. The Workspace opts in with `kaito.sh/use-local-weights: "true"`; KAITO
+derives that host directory from the preset name, mounts it read-only, points
+`--model` at it, sets `--load-format=runai_streamer`, and **skips the HuggingFace
+download entirely**.
 
 ```yaml
 apiVersion: kaito.sh/v1beta1
@@ -197,8 +198,9 @@ kind: Workspace
 metadata:
   name: workspace-deepseek-v4-flash
   annotations:
-    # weights baked into the node image
-    kaito.sh/model-weights-hostpath: /opt/kaito/models/deepseekv4flash
+    # load weights baked into the node image at
+    # /opt/kaito/models/deepseek-ai-deepseek-v4-flash (derived from the preset name)
+    kaito.sh/use-local-weights: "true"
 resource:
   labelSelector:
     matchLabels:
@@ -215,10 +217,11 @@ inference:
   `HostPathDirectory`, so a missing/empty directory fails the pod fast (the operator
   asserts the weights are present).
 
-Precedence — resolved as streaming → explicit local → download:
+Precedence — resolved as streaming → local weights → download:
 
-1. `kaito.sh/model-weights-hostpath` (explicit): the controller sets `--model` to it
-   directly and mounts `HostPathDirectory` (fail-fast if absent). No runtime check.
+1. `kaito.sh/use-local-weights: "true"`: the controller derives the node directory
+   from the preset name, sets `--model` to it, and mounts `HostPathDirectory`
+   (fail-fast if absent). No runtime check.
 2. Otherwise the model is downloaded from HuggingFace (S1).
 
 ### Startup-probe timeout

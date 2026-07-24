@@ -14,6 +14,9 @@
 package v1beta1
 
 import (
+	"path"
+	"strings"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/kaito-project/kaito/pkg/featuregates"
@@ -89,14 +92,19 @@ const (
 	// Only supported when the vLLM runtime is used.
 	AnnotationPerformanceMode = KAITOPrefix + "performance-mode"
 
-	// AnnotationModelWeightsHostPath points the inference workload at model weights
-	// that are already present on the node (e.g. baked into a custom GPU node image)
-	// instead of downloading them from HuggingFace at runtime. The value must be an
-	// absolute host directory that contains the model weights, for example
-	// "/opt/kaito/models/deepseekv4flash". When set, KAITO mounts that host directory
-	// read-only into the inference container at the same path and passes it to vLLM
-	// as --model, skipping the HuggingFace download entirely.
-	AnnotationModelWeightsHostPath = KAITOPrefix + "model-weights-hostpath"
+	// AnnotationUseLocalWeights makes the inference workload load model weights that
+	// are already present on the node instead of downloading them from HuggingFace at
+	// runtime. Set it to "true" to enable. When enabled, KAITO reads the weights from
+	// LocalWeightsHostPathPrefix/<sanitized preset name> (e.g.
+	// /opt/kaito/models/deepseek-ai-deepseek-v4-flash), mounts that host directory
+	// read-only into the inference container, and passes it to vLLM as --model,
+	// skipping the HuggingFace download entirely.
+	AnnotationUseLocalWeights = KAITOPrefix + "use-local-weights"
+
+	// LocalWeightsHostPathPrefix is the node directory under which baked model
+	// weights live, one subdirectory per preset (see GetLocalWeightsPath). Used
+	// when kaito.sh/use-local-weights is enabled.
+	LocalWeightsHostPathPrefix = "/opt/kaito/models"
 )
 
 // Valid values for AnnotationPerformanceMode.
@@ -159,15 +167,48 @@ func GetPerformanceMode(ws *Workspace) string {
 	return PerformanceModeBalanced
 }
 
-// GetModelWeightsHostPath returns the value of AnnotationModelWeightsHostPath,
-// or an empty string when the annotation is absent. A non-empty value indicates
-// the workspace should load model weights from a host directory (e.g. baked into
-// a custom GPU node image) instead of downloading them at runtime.
-func GetModelWeightsHostPath(ws *Workspace) string {
+// UseLocalWeights reports whether the workspace opts into loading model weights
+// from the node (kaito.sh/use-local-weights: "true") instead of downloading them
+// from HuggingFace at runtime.
+func UseLocalWeights(ws *Workspace) bool {
 	if ws == nil {
+		return false
+	}
+	return ws.Annotations[AnnotationUseLocalWeights] == "true"
+}
+
+// GetLocalWeightsPath returns the node directory holding baked model weights for
+// the workspace's preset when kaito.sh/use-local-weights is enabled, or "" when
+// it is disabled or the workspace has no preset. The path is
+// LocalWeightsHostPathPrefix/<sanitized preset name>, e.g.
+// /opt/kaito/models/deepseek-ai-deepseek-v4-flash.
+func GetLocalWeightsPath(ws *Workspace) string {
+	if !UseLocalWeights(ws) {
 		return ""
 	}
-	return ws.Annotations[AnnotationModelWeightsHostPath]
+	if ws.Inference == nil || ws.Inference.Preset == nil {
+		return ""
+	}
+	segment := sanitizePresetName(string(ws.Inference.Preset.Name))
+	if segment == "" {
+		return ""
+	}
+	return path.Join(LocalWeightsHostPathPrefix, segment)
+}
+
+// sanitizePresetName maps a preset model id to a single path segment: lowercased
+// with path separators replaced by dashes (e.g. "deepseek-ai/DeepSeek-V4-Flash"
+// -> "deepseek-ai-deepseek-v4-flash"). It returns "" for a name that would not be
+// a safe single directory segment, so the derived path cannot escape
+// LocalWeightsHostPathPrefix.
+func sanitizePresetName(name string) string {
+	s := strings.ToLower(strings.TrimSpace(name))
+	s = strings.ReplaceAll(s, "/", "-")
+	s = strings.ReplaceAll(s, "\\", "-")
+	if s == "" || s == "." || s == ".." {
+		return ""
+	}
+	return s
 }
 
 // reservedSelectorLabelKeys are labels that KAITO controllers apply to their

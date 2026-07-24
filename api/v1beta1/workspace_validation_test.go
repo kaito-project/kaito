@@ -1971,18 +1971,18 @@ func TestWorkspaceValidatePerformanceModeAnnotation(t *testing.T) {
 			wantErr:     true,
 		},
 		{
-			name:        "model weights hostpath absolute is valid",
-			annotations: map[string]string{AnnotationModelWeightsHostPath: "/opt/kaito/models/deepseekv4flash"},
+			name:        "use local weights true is valid",
+			annotations: map[string]string{AnnotationUseLocalWeights: "true"},
 			wantErr:     false,
 		},
 		{
-			name:        "relative weights hostpath is invalid",
-			annotations: map[string]string{AnnotationModelWeightsHostPath: "opt/kaito/models"},
-			wantErr:     true,
+			name:        "use local weights false is valid",
+			annotations: map[string]string{AnnotationUseLocalWeights: "false"},
+			wantErr:     false,
 		},
 		{
-			name:        "weights hostpath with traversal is invalid",
-			annotations: map[string]string{AnnotationModelWeightsHostPath: "/opt/../etc/secrets"},
+			name:        "use local weights non-boolean is invalid",
+			annotations: map[string]string{AnnotationUseLocalWeights: "yes"},
 			wantErr:     true,
 		},
 	}

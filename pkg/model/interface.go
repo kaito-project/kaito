@@ -336,10 +336,10 @@ type RuntimeContextExtraArguments struct {
 	StreamingModelPath  string // e.g. "az://container/modelID"
 	StreamingLoadFormat string // e.g. "runai_streamer"
 
-	// UserProvidedLocalModelWeightsPath, when set, points vLLM at model weights that already
+	// LocalModelWeightsPath, when set, points vLLM at model weights that already
 	// exist on local disk (e.g. mounted from a custom GPU node image) via --model.
 	// No HuggingFace download is performed. Mutually exclusive with StreamingModelPath.
-	UserProvidedLocalModelWeightsPath string // e.g. "/opt/kaito/models/deepseekv4flash"
+	LocalModelWeightsPath string // e.g. "/opt/kaito/models/deepseekv4flash"
 }
 
 func (p *PresetParam) GetInferenceCommand(rc RuntimeContext) []string {
@@ -426,13 +426,13 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		// (e.g. mistral sets load_format=mistral). Remove to avoid conflict
 		// with the hyphenated --load-format=runai_streamer we set above.
 		delete(p.VLLM.ModelRunParams, "load_format")
-	} else if rc.UserProvidedLocalModelWeightsPath != "" {
+	} else if rc.LocalModelWeightsPath != "" {
 		// Weights already exist on local disk (e.g. mounted from a custom GPU node
 		// image). Point vLLM at the local directory and load with the RunAI streamer,
 		// whose concurrent threaded reads avoid the mmap readahead cliff when loading
 		// large safetensors from a virtualized node disk. Skip the HuggingFace download
 		// (no --download-dir / --code-revision).
-		p.VLLM.ModelRunParams["model"] = rc.UserProvidedLocalModelWeightsPath
+		p.VLLM.ModelRunParams["model"] = rc.LocalModelWeightsPath
 		p.VLLM.ModelRunParams["load-format"] = "runai_streamer"
 		// Some presets set load_format (underscore) in their default params
 		// (e.g. mistral sets load_format=mistral); remove it to avoid conflicting

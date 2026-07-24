@@ -201,25 +201,26 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		streamingLoadFormat = "runai_streamer"
 	}
 
-	// Node-image weights: when the workspace opts in via annotation, model weights
-	// are read from a host directory (e.g. baked into a custom GPU node image)
+	// Node-image weights: when the workspace opts in via the kaito.sh/use-local-weights
+	// annotation, model weights are read from a node directory derived from the preset
+	// name (LocalWeightsHostPathPrefix/<preset>, e.g. baked into a custom GPU node image)
 	// instead of being downloaded from HuggingFace or streamed from blob storage.
-	userProvidedLocalWeightsPath := v1beta1.GetModelWeightsHostPath(workspaceObj)
+	localModelWeightsPath := v1beta1.GetLocalWeightsPath(workspaceObj)
 
 	podOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec]{
-		GenerateInferencePodSpec(gpuConfig, numNodes, streamingModelPath, streamingLoadFormat, userProvidedLocalWeightsPath),
+		GenerateInferencePodSpec(gpuConfig, numNodes, streamingModelPath, streamingLoadFormat, localModelWeightsPath),
 		SetProvisionerNodeSelector,
 		SetHFToken,
 	}
 
-	shouldDownloadWeightsFromHF := !streamingEnabled && userProvidedLocalWeightsPath == ""
+	shouldDownloadWeightsFromHF := !streamingEnabled && localModelWeightsPath == ""
 
 	// Model source (mutually exclusive): streaming (az://) > node-image weights
 	// (host path) > download-at-runtime (HF repo).
 	switch {
 	case streamingEnabled:
 		podOpts = append(podOpts, modelstreaming.SetStreamingConfig(streamingCfg, modelID, modelstreaming.StreamingDefaults.ServiceAccount))
-	case userProvidedLocalWeightsPath != "":
+	case localModelWeightsPath != "":
 		// Weights are mounted from the node (see GenerateInferencePodSpec); no
 		// puller/download setup is needed.
 	default:
@@ -498,7 +499,7 @@ func GetPresetQuantization(presetName string) string {
 	return m.QuantMethod
 }
 
-func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingModelPath, streamingLoadFormat, userProvidedLocalWeightsPath string) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
+func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingModelPath, streamingLoadFormat, localModelWeightsPath string) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 		// additional volume
 		var volumes []corev1.Volume
@@ -515,7 +516,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		}
 
 		volumes, volumeMounts = configureModelWeightsVolumes(
-			streamingModelPath, userProvidedLocalWeightsPath, volumes, volumeMounts)
+			streamingModelPath, localModelWeightsPath, volumes, volumeMounts)
 
 		volumes, volumeMounts, cudaHome := configureCUDAToolkitVolume(
 			ctx.Model, volumes, volumeMounts)
@@ -587,11 +588,11 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			MaxModelLen:          maxModelLen,
 			InferencePort:        vllmPort,
 			RuntimeContextExtraArguments: pkgmodel.RuntimeContextExtraArguments{
-				AdaptersEnabled:                   len(ctx.Workspace.Inference.Adapters) > 0,
-				PerformanceMode:                   v1beta1.GetPerformanceMode(ctx.Workspace),
-				StreamingModelPath:                streamingModelPath,
-				StreamingLoadFormat:               streamingLoadFormat,
-				UserProvidedLocalModelWeightsPath: userProvidedLocalWeightsPath,
+				AdaptersEnabled:       len(ctx.Workspace.Inference.Adapters) > 0,
+				PerformanceMode:       v1beta1.GetPerformanceMode(ctx.Workspace),
+				StreamingModelPath:    streamingModelPath,
+				StreamingLoadFormat:   streamingLoadFormat,
+				LocalModelWeightsPath: localModelWeightsPath,
 			},
 		})
 
@@ -619,7 +620,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			readinessTimeout = defaultStartupProbeTimeout
 		}
 
-		mainContainerEnv := buildMainContainerEnv(runtimeName, inferenceParam, cudaHome, userProvidedLocalWeightsPath)
+		mainContainerEnv := buildMainContainerEnv(runtimeName, inferenceParam, cudaHome, localModelWeightsPath)
 
 		setInferenceContainers(spec, ctx.Workspace.Name, commands, resourceReq,
 			volumeMounts, mainContainerEnv, readinessTimeout, vllmPort, cudaHome)
@@ -651,9 +652,9 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 // preset inference pod based on the resolved weight source:
 //   - The default download/cache mount is added when weights are neither streamed
 //     (az://) nor provided from an explicit node-image hostpath.
-//   - userProvidedLocalWeightsPath (the explicit node-image hostpath) is mounted read-only at
+//   - localModelWeightsPath (the explicit node-image hostpath) is mounted read-only at
 //     the same path inside the container when set.
-func configureModelWeightsVolumes(streamingModelPath, userProvidedLocalWeightsPath string,
+func configureModelWeightsVolumes(streamingModelPath, localModelWeightsPath string,
 	volumes []corev1.Volume, volumeMounts []corev1.VolumeMount,
 ) ([]corev1.Volume, []corev1.VolumeMount) {
 	// Download-at-runtime path: with no streaming source and no explicit node-image
@@ -662,12 +663,12 @@ func configureModelWeightsVolumes(streamingModelPath, userProvidedLocalWeightsPa
 	// model-puller init container and the main container (its backing volume — a
 	// PVC on NVMe or an emptyDir — is attached by the caller). Streaming reads from
 	// az:// and explicit hostpaths load from their own mount, so neither needs it.
-	if streamingModelPath == "" && userProvidedLocalWeightsPath == "" {
+	if streamingModelPath == "" && localModelWeightsPath == "" {
 		volumeMounts = append(volumeMounts, utils.DefaultModelWeightsVolumeMount)
 	}
 
-	if userProvidedLocalWeightsPath != "" {
-		vol, mount := utils.HostPathVolume("model-weights-hostpath", userProvidedLocalWeightsPath)
+	if localModelWeightsPath != "" {
+		vol, mount := utils.HostPathVolume("model-weights-hostpath", localModelWeightsPath)
 		volumes = append(volumes, vol)
 		volumeMounts = append(volumeMounts, mount)
 	}
@@ -711,10 +712,10 @@ func configureCUDAToolkitVolume(model pkgmodel.Model,
 }
 
 // buildMainContainerEnv builds the env vars for the main inference container.
-// runtimeName selects vLLM-specific vars; cudaHome and userProvidedLocalWeightsPath
+// runtimeName selects vLLM-specific vars; cudaHome and localModelWeightsPath
 // are "" when not applicable.
 func buildMainContainerEnv(runtimeName pkgmodel.RuntimeName, inferenceParam *pkgmodel.PresetParam,
-	cudaHome, userProvidedLocalWeightsPath string,
+	cudaHome, localModelWeightsPath string,
 ) []corev1.EnvVar {
 	var env []corev1.EnvVar
 
@@ -774,10 +775,10 @@ func buildMainContainerEnv(runtimeName pkgmodel.RuntimeName, inferenceParam *pkg
 	// tokenizer lives. Without this, the benchmark's processor resolution falls
 	// back to the served model name (a short catalog id, not a valid HF repo id
 	// or local path) and fails. The weights directory holds the tokenizer.
-	if userProvidedLocalWeightsPath != "" {
+	if localModelWeightsPath != "" {
 		env = append(env, corev1.EnvVar{
 			Name:  "KAITO_PROCESSOR",
-			Value: userProvidedLocalWeightsPath,
+			Value: localModelWeightsPath,
 		})
 	}
 

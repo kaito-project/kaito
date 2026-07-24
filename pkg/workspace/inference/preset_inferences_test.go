@@ -1816,9 +1816,9 @@ func TestSetProvisionerNodeSelector(t *testing.T) {
 
 // TestGeneratePresetInferenceNodeImageWeights verifies that when a workspace opts
 // into loading model weights from a custom GPU node image via the
-// kaito.sh/model-weights-hostpath annotation, the generated StatefulSet:
-//   - mounts the weights host directory read-only and the default CUDA toolkit
-//     host directory (for DeepGEMM models),
+// kaito.sh/use-local-weights annotation, the generated StatefulSet:
+//   - mounts the preset-derived weights host directory read-only and the default
+//     CUDA toolkit host directory (for DeepGEMM models),
 //   - points vLLM at the local weights path via --model (no HF download),
 //   - does not add the default emptyDir weights volume or a model puller, and
 //   - sets CUDA_HOME to the mounted toolkit path.
@@ -1828,10 +1828,7 @@ func TestGeneratePresetInferenceNodeImageWeights(t *testing.T) {
 	t.Setenv("PRESET_REGISTRY_NAME", "test-registry")
 	t.Setenv("RELEASE_NAMESPACE", "kaito")
 
-	const (
-		weightsPath = "/opt/kaito/models/deepseekv4flash"
-		cudaPath    = defaultCudaHomePath
-	)
+	const cudaPath = defaultCudaHomePath
 
 	mockClient := test.NewClient()
 	mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
@@ -1846,8 +1843,11 @@ func TestGeneratePresetInferenceNodeImageWeights(t *testing.T) {
 	workspace.Inference.Adapters = nil
 	workspace.Inference.Config = ""
 	workspace.Annotations = map[string]string{
-		v1beta1.AnnotationModelWeightsHostPath: weightsPath,
+		v1beta1.AnnotationUseLocalWeights: "true",
 	}
+	// Weights load from the preset-derived node directory
+	// (LocalWeightsHostPathPrefix/<sanitized preset name>).
+	weightsPath := v1beta1.GetLocalWeightsPath(workspace)
 
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{Name: workspace.Name, Namespace: workspace.Namespace},

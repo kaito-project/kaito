@@ -18,11 +18,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"strconv"
 	"testing"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	"github.com/go-logr/logr"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -31,6 +33,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
@@ -504,5 +507,49 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 			assert.Equal(t, tc.expectBenchmarkMsg,
 				fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, *tc.inferenceset.Spec.Replicas))
 		})
+	}
+}
+
+func TestAddOrUpdateInferenceSet_PropagatesCacheToWorkspace(t *testing.T) {
+	originalFeatureGate := featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension]
+	featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = false
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = originalFeatureGate
+	}()
+
+	replicas := int32(1)
+	iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
+	iObj.Spec.Replicas = &replicas
+	iObj.Spec.Selector = &v1.LabelSelector{MatchLabels: map[string]string{"app": "test"}}
+	expectedCache := &v1beta1.CacheSpec{
+		ModelCache: &v1beta1.ModelCacheSpec{
+			Provider: "example",
+			Mode:     v1beta1.CacheModeRequired,
+		},
+		KVCache: &v1beta1.KVCacheSpec{
+			Provider: "example",
+			Mode:     v1beta1.CacheModeOpportunistic,
+		},
+	}
+	iObj.Spec.Template.Cache = expectedCache
+
+	mockClient := test.NewClient()
+	mockClient.CreateOrUpdateObjectInMap(iObj)
+	mockClient.On("List", mock.Anything, mock.IsType(&v1beta1.WorkspaceList{}), mock.Anything).Return(nil)
+	mockClient.On("Create", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+	mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).Return(nil)
+	mockClient.StatusMock.On("Update", mock.Anything, mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).Return(nil)
+
+	reconciler := NewInferenceSetReconciler(mockClient, test.NewTestScheme(), logr.Discard(), record.NewFakeRecorder(4))
+	_, err := reconciler.addOrUpdateInferenceSet(context.Background(), iObj)
+	assert.NoError(t, err)
+
+	workspaceMap := mockClient.ObjectMap[reflect.TypeOf(&v1beta1.Workspace{})]
+	if len(workspaceMap) != 1 {
+		t.Fatalf("expected one workspace to be created, got %d", len(workspaceMap))
+	}
+	for _, obj := range workspaceMap {
+		workspace := obj.(*v1beta1.Workspace)
+		assert.Equal(t, expectedCache, workspace.Cache)
 	}
 }

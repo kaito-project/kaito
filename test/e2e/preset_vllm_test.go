@@ -471,6 +471,34 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
+
+	It("should serve a public preset GPU workspace with no cache mutations when no cache is installed", utils.GinkgoLabelFastCheck, func() {
+		numOfNode := 1
+		workspaceObj := createQwen3_5_2BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+
+		validateInferenceResource(workspaceObj, int32(numOfNode))
+
+		// Regression guard for the cache-enabled controller: a plain workspace
+		// (no cache spec) running against a cluster with no cache backend installed
+		// must be reconciled exactly as before, with no injected cache mutations.
+		validateNoCacheInjection(workspaceObj)
+
+		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
+		validateModelsEndpoint(workspaceObj)
+		validateChatCompletionsEndpoint(workspaceObj)
+	})
 })
 
 func createPhi4WorkspaceWithAdapterAndVLLM(numOfNode int, validAdapters []kaitov1beta1.AdapterSpec) *kaitov1beta1.Workspace {
@@ -919,6 +947,44 @@ func createQwen3_5_2BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
+}
+
+// validateNoCacheInjection asserts that no distributed-cache mutations were applied
+// to the workspace's StatefulSet. It is the regression guard for running the
+// cache-enabled controller against a cluster with no cache backend installed: a
+// plain workspace (no cache spec) must be reconciled exactly as before, with no
+// injected cache label, env, or volume. The checks are provider-agnostic — cache
+// providers mark injection with a "<provider>/inject" pod-template label and add
+// well-known cache env vars.
+func validateNoCacheInjection(workspaceObj *kaitov1beta1.Workspace) {
+	By("Verifying no cache mutations were injected into the workspace", func() {
+		sts := &appsv1.StatefulSet{}
+		Eventually(func() error {
+			return utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: workspaceObj.Namespace,
+				Name:      workspaceObj.Name,
+			}, sts)
+		}, utils.PollTimeout, utils.PollInterval).Should(Succeed(),
+			"expected StatefulSet %s/%s to exist", workspaceObj.Namespace, workspaceObj.Name)
+
+		for k := range sts.Spec.Template.Labels {
+			Expect(k).NotTo(HaveSuffix("/inject"),
+				fmt.Sprintf("unexpected cache-injection label %q on workspace %s", k, workspaceObj.Name))
+		}
+
+		cacheEnvMarkers := []string{
+			"CACHE_DISCOVERY_URL",
+			"CACHE_SERVER_PORT",
+			"VLLM_KV_TRANSFER_CONFIG",
+			"RUNAI_STREAMER_EXPERIMENTAL_AZURE_CACHE_LIB",
+		}
+		for _, c := range sts.Spec.Template.Spec.Containers {
+			for _, e := range c.Env {
+				Expect(cacheEnvMarkers).NotTo(ContainElement(e.Name),
+					fmt.Sprintf("unexpected cache env %q on container %s of workspace %s", e.Name, c.Name, workspaceObj.Name))
+			}
+		}
+	})
 }
 
 func validateInferenceSetNodePools(inferenceSetObj *kaitov1beta1.InferenceSet, numOfReplicas int) {

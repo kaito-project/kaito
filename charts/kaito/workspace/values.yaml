@@ -46,6 +46,7 @@ featureGates:
   ModelMirror: false
   ModelStreaming: false
   enableBaseImageAutoUpgrade: false
+  distributedCache: false
 defaultModelMirrorStorageClass: ""
 defaultStreamingServiceAccount: ""
 # CPU/memory request==limit for the ModelMirror download Job. Empty uses the controller
@@ -188,3 +189,10 @@ local-csi-driver:
 # See https://github.com/kaito-project/production-stack for more details
 productionstack:
   enabled: false
+
+# Distributed cache provider configuration.
+# Only active when featureGates.distributedCache is true.
+# Each cache provider is configured under cache.providers.<name>. No provider is
+# bundled with this framework; install a provider and add its config here.
+cache:
+  providers: {}

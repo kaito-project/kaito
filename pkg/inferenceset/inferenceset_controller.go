@@ -330,6 +330,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 				workspaceObj.Resource.InstanceType = iObj.Spec.Template.Resource.InstanceType
 			}
 			workspaceObj.Inference = &iObj.Spec.Template.Inference
+			workspaceObj.Cache = iObj.Spec.Template.Cache
 
 			klog.InfoS("creating workspace", "workspace", workspaceObj.Name, "index", i)
 			if err := c.Client.Create(ctx, workspaceObj); err != nil {

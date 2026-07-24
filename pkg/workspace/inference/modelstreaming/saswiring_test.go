@@ -26,28 +26,27 @@ import (
 )
 
 // sasCfg returns a StreamingConfig shaped like SASBlobProvider.GetStreamingConfig returns:
-// one slim-python init container, one memory-backed emptyDir volume, one provider env var.
+// one slim-python init container (script mounted from a ConfigMap), a memory-backed emptyDir plus
+// a script ConfigMap volume, and a runtime placeholder model path (account + URI derived at runtime).
 func sasCfg() *StreamingConfig {
 	return &StreamingConfig{
-		ModelPath: "az://container/model",
-		ProviderEnvVars: []corev1.EnvVar{
-			{Name: "AZURE_STORAGE_ACCOUNT_NAME", Value: "myacct"},
-		},
-		PodLabels: map[string]string{"azure.workload.identity/use": "true"},
+		ModelPath:       "$" + SASModelURIEnvVar,
+		ProviderEnvVars: nil,
+		PodLabels:       map[string]string{"azure.workload.identity/use": "true"},
 		InitContainers: []corev1.Container{
 			{
 				Name:    "fetch-sas",
 				Image:   "python:3.12-slim",
-				Command: []string{"/bin/sh", "-c", "pip install ... && python3 -c \"$FETCH_SAS_SCRIPT\""},
+				Command: []string{"/bin/sh", "-c", "pip install ... && python3 /scripts/fetch_sas.py"},
 				Env: []corev1.EnvVar{
-					{Name: "FETCH_SAS_SCRIPT", Value: "# embedded script"},
-					{Name: "STREAM_DATAREFS_URL", Value: "https://example.com/datarefs"},
-					{Name: "STREAM_ASSET_ID", Value: "azureml://registries/r/models/m/versions/1"},
-					{Name: "STREAM_BLOB_URI", Value: "https://myacct.blob.core.windows.net/c/prefix"},
+					{Name: "STREAM_DATAREFS_URL", Value: "https://example.com/models/m/versions/1"},
+					{Name: "STREAM_IDENTITY_CLIENT_ID", Value: "11111111-2222-3333-4444-555555555555"},
+					{Name: "STREAM_SOURCE_TYPE", Value: SourceTypeBYO},
 					{Name: SASEnvFileEnvVar, Value: SASSharedMountPath + "/" + SASEnvFileName},
 				},
 				VolumeMounts: []corev1.VolumeMount{
 					{Name: SASSharedVolumeName, MountPath: SASSharedMountPath},
+					{Name: SASScriptVolumeName, MountPath: SASScriptMountPath, ReadOnly: true},
 				},
 			},
 		},
@@ -56,6 +55,14 @@ func sasCfg() *StreamingConfig {
 				Name: SASSharedVolumeName,
 				VolumeSource: corev1.VolumeSource{
 					EmptyDir: &corev1.EmptyDirVolumeSource{Medium: corev1.StorageMediumMemory},
+				},
+			},
+			{
+				Name: SASScriptVolumeName,
+				VolumeSource: corev1.VolumeSource{
+					ConfigMap: &corev1.ConfigMapVolumeSource{
+						LocalObjectReference: corev1.LocalObjectReference{Name: "ws-fetch-sas-script"},
+					},
 				},
 			},
 		},
@@ -134,12 +141,13 @@ func TestSetStreamingConfig_SASWiring(t *testing.T) {
 	// 5. ServiceAccountName set
 	assert.Equal(t, defaultSA, spec.ServiceAccountName)
 
-	// 6. Provider env var + STREAM_ENV_FILE on the main container
+	// 6. STREAM_ENV_FILE on the main container (AZURE_STORAGE_ACCOUNT_NAME is derived at runtime,
+	//    written into the env file by the init container, so it is NOT a pod-spec env var here).
 	envByName := map[string]string{}
 	for _, e := range main.Env {
 		envByName[e.Name] = e.Value
 	}
-	assert.Equal(t, "myacct", envByName["AZURE_STORAGE_ACCOUNT_NAME"])
+	assert.NotContains(t, envByName, "AZURE_STORAGE_ACCOUNT_NAME")
 	assert.Equal(t, SASSharedMountPath+"/"+SASEnvFileName, envByName[SASEnvFileEnvVar],
 		"main container must know where to source the SAS env file")
 }

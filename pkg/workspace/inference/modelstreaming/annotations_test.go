@@ -20,32 +20,22 @@ import (
 )
 
 // coreShape returns a map with all CORE-required SAS annotations set (the minimal set that
-// activates the SAS path).
+// activates the SAS path). The blob-derived values are resolved at runtime, so they are not here.
 func coreShape() map[string]string {
 	return map[string]string{
-		AnnotationStreamURI:              "az://c/model",
-		AnnotationStreamAccount:          "acct",
-		AnnotationStreamDatarefsURL:      "https://x/datarefs",
-		AnnotationStreamBlobURI:          "https://acct.blob.core.windows.net/c/prefix",
+		AnnotationStreamDatarefsURL:      "https://x/models/m/versions/1",
 		AnnotationStreamIdentityClientID: "00000000-0000-0000-0000-000000000000",
+		AnnotationStreamSourceType:       SourceTypeBYO,
 	}
-}
-
-// publicShape returns coreShape plus the optional keys (assetId + audience).
-func publicShape() map[string]string {
-	m := coreShape()
-	m[AnnotationStreamAssetID] = "azureml://registries/r/models/m/versions/1"
-	m[AnnotationStreamTokenAudience] = "https://management.azure.com"
-	return m
 }
 
 func TestValidateStaticModelMirrorAnnotations(t *testing.T) {
 	// Static disabled -> never checks the SAS annotations, always nil (even with a partial set).
 	assert.NoError(t, ValidateStaticModelMirrorAnnotations(nil))
 	assert.NoError(t, ValidateStaticModelMirrorAnnotations(map[string]string{}))
-	assert.NoError(t, ValidateStaticModelMirrorAnnotations(publicShape())) // full SAS set but static off -> ignored
+	assert.NoError(t, ValidateStaticModelMirrorAnnotations(coreShape())) // full SAS set but static off -> ignored
 	partialNoStatic := coreShape()
-	delete(partialNoStatic, AnnotationStreamBlobURI)
+	delete(partialNoStatic, AnnotationStreamDatarefsURL)
 	assert.NoError(t, ValidateStaticModelMirrorAnnotations(partialNoStatic)) // partial + static off -> ignored
 
 	withStatic := func(m map[string]string) map[string]string {
@@ -60,15 +50,27 @@ func TestValidateStaticModelMirrorAnnotations(t *testing.T) {
 	errNone := ValidateStaticModelMirrorAnnotations(map[string]string{AnnotationStaticModelMirror: "true"})
 	assert.Error(t, errNone)
 	assert.Contains(t, errNone.Error(), AnnotationStaticModelMirror)
-	assert.Contains(t, errNone.Error(), AnnotationStreamURI)
+	assert.Contains(t, errNone.Error(), AnnotationStreamDatarefsURL)
 	assert.Contains(t, errNone.Error(), AnnotationStreamIdentityClientID)
 
 	// Static enabled + PARTIAL SAS set -> error (naming the missing one).
 	partial := coreShape()
-	delete(partial, AnnotationStreamBlobURI)
+	delete(partial, AnnotationStreamDatarefsURL)
 	errPartial := ValidateStaticModelMirrorAnnotations(withStatic(partial))
 	assert.Error(t, errPartial)
-	assert.Contains(t, errPartial.Error(), AnnotationStreamBlobURI)
+	assert.Contains(t, errPartial.Error(), AnnotationStreamDatarefsURL)
+
+	// Static enabled + all core present but invalid source type -> error.
+	badType := withStatic(coreShape())
+	badType[AnnotationStreamSourceType] = "bogus"
+	errType := ValidateStaticModelMirrorAnnotations(badType)
+	assert.Error(t, errType)
+	assert.Contains(t, errType.Error(), AnnotationStreamSourceType)
+
+	// public is a valid source type too.
+	pub := withStatic(coreShape())
+	pub[AnnotationStreamSourceType] = SourceTypePublic
+	assert.NoError(t, ValidateStaticModelMirrorAnnotations(pub))
 }
 
 func TestStaticModelMirrorEnabled(t *testing.T) {

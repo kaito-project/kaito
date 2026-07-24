@@ -46,11 +46,9 @@ func TestSelectModelStreamer(t *testing.T) {
 			Name:      "ws-sas-not-static",
 			Namespace: "default",
 			Annotations: map[string]string{
-				modelstreaming.AnnotationStreamURI:              "az://c/model",
-				modelstreaming.AnnotationStreamAccount:          "acct",
-				modelstreaming.AnnotationStreamDatarefsURL:      "https://x/datarefs",
-				modelstreaming.AnnotationStreamBlobURI:          "https://acct.blob.core.windows.net/c/prefix",
+				modelstreaming.AnnotationStreamDatarefsURL:      "https://x/models/m/versions/1",
 				modelstreaming.AnnotationStreamIdentityClientID: "11111111-2222-3333-4444-555555555555",
+				modelstreaming.AnnotationStreamSourceType:       modelstreaming.SourceTypeBYO,
 			},
 		},
 	}

@@ -31,22 +31,31 @@ import (
 )
 
 const (
-	// defaultReadinessTimeout is the startup probe timeout for typical preset models.
+	// defaultReadinessTimeout is the floor startup-probe timeout, used for small
+	// models and when the model weight size is unknown.
 	defaultReadinessTimeout = 30 * time.Minute
 
-	// largeModelReadinessTimeout is the startup probe timeout for large preset models
-	// whose runtime weight download and load exceed the default window.
-	largeModelReadinessTimeout = 60 * time.Minute
+	// maxReadinessTimeout caps the startup-probe timeout so a genuinely stuck pod is
+	// still detected within a bounded window, even for very large models.
+	maxReadinessTimeout = 180 * time.Minute
 
-	// largeModelSizeThreshold is the model weight size above which
-	// largeModelReadinessTimeout is used instead of defaultReadinessTimeout.
-	largeModelSizeThreshold = "300Gi"
+	// readinessTimeoutBase is the fixed startup overhead independent of weight size
+	// (CUDA init, graph capture, warmup, and the optional post-load benchmark).
+	readinessTimeoutBase = 15 * time.Minute
+
+	// readinessTimeoutPerGiB scales the timeout with model weight size. It is sized
+	// for the worst case of downloading weights from HuggingFace at runtime over a
+	// ~60 MB/s link; loading from local or baked weights is far faster, so this is a
+	// safe upper bound. With the 15m base this gives a 150Gi model ~60 minutes.
+	readinessTimeoutPerGiB = 18 * time.Second
 )
 
-// readinessTimeoutForModelSize returns the startup probe timeout for a preset model
-// based on its weight size (from model_catalog.yaml). Models larger than
-// largeModelSizeThreshold get a longer timeout to accommodate the extended
-// download/load time; all others use the default.
+// readinessTimeoutForModelSize returns the startup-probe timeout for a preset
+// model, scaled by its weight size (from model_catalog.yaml). The timeout grows
+// linearly with size to cover longer download/load times for larger models —
+// readinessTimeoutBase + size × readinessTimeoutPerGiB — clamped to
+// [defaultReadinessTimeout, maxReadinessTimeout]. When the size is unknown or
+// unparsable it falls back to the floor.
 func readinessTimeoutForModelSize(modelFileSize string) time.Duration {
 	if modelFileSize == "" {
 		return defaultReadinessTimeout
@@ -55,11 +64,15 @@ func readinessTimeoutForModelSize(modelFileSize string) time.Duration {
 	if err != nil {
 		return defaultReadinessTimeout
 	}
-	threshold := resource.MustParse(largeModelSizeThreshold)
-	if size.Cmp(threshold) > 0 {
-		return largeModelReadinessTimeout
+	sizeGiB := float64(size.Value()) / float64(1<<30)
+	timeout := readinessTimeoutBase + time.Duration(sizeGiB*float64(readinessTimeoutPerGiB))
+	if timeout < defaultReadinessTimeout {
+		return defaultReadinessTimeout
 	}
-	return defaultReadinessTimeout
+	if timeout > maxReadinessTimeout {
+		return maxReadinessTimeout
+	}
+	return timeout
 }
 
 var (

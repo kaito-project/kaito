@@ -67,6 +67,18 @@ func (*testModel) SupportDistributedInference() bool {
 	return false
 }
 
+type testDeepGEMMModel struct {
+	baseTestModel
+}
+
+// GetInferenceParameters marks the model as a DeepGEMM-requiring architecture so
+// tests can exercise the CUDA toolkit provisioning path.
+func (*testDeepGEMMModel) GetInferenceParameters() *model.PresetParam {
+	p := (&baseTestModel{}).GetInferenceParameters()
+	p.Metadata.Architectures = []string{"DeepseekV4ForCausalLM"}
+	return p
+}
+
 type testDistributedModel struct {
 	baseTestModel
 }
@@ -295,6 +307,11 @@ func RegisterTestModel() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-model",
 		Instance: &testModel{},
+	})
+
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     "test-deepgemm-model",
+		Instance: &testDeepGEMMModel{},
 	})
 
 	plugin.KaitoModelRegister.Register(&plugin.Registration{

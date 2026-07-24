@@ -738,3 +738,18 @@ models:
   configFormat: mistral
   tokenizerMode: mistral
   quantMethod: fp8
+- name: deepseek-ai/DeepSeek-V4-Flash
+  description: https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash
+  license: mit
+  pipelineTag: text-generation
+  modelFileSize: 148.66Gi
+  architectures:
+  - DeepseekV4ForCausalLM
+  modelTokenLimit: 1048576
+  hiddenSize: 4096
+  numHiddenLayers: 43
+  numAttentionHeads: 64
+  numKeyValueHeads: 1
+  headDim: 512
+  qkRopeHeadDim: 64
+  quantMethod: fp8

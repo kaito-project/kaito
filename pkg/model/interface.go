@@ -335,6 +335,11 @@ type RuntimeContextExtraArguments struct {
 	// inside buildVLLMInferenceCommand based on the resolved tensor-parallel-size.
 	StreamingModelPath  string // e.g. "az://container/modelID"
 	StreamingLoadFormat string // e.g. "runai_streamer"
+
+	// UserProvidedLocalModelWeightsPath, when set, points vLLM at model weights that already
+	// exist on local disk (e.g. mounted from a custom GPU node image) via --model.
+	// No HuggingFace download is performed. Mutually exclusive with StreamingModelPath.
+	UserProvidedLocalModelWeightsPath string // e.g. "/opt/kaito/models/deepseekv4flash"
 }
 
 func (p *PresetParam) GetInferenceCommand(rc RuntimeContext) []string {
@@ -407,13 +412,6 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	// anyway, so it is safe to turn off for all vLLM models.
 	p.VLLM.ModelRunParams["compilation-config.pass_config.fuse_allreduce_rms"] = "False"
 
-	// Dynamically determine dtype based on GPU compute capability.
-	// bfloat16 requires CUDA compute capability >= 8.0 (Ampere+).
-	// Fall back to float16 on older GPUs.
-	if rc.GPUConfig != nil && !rc.GPUConfig.SupportsBFloat16() {
-		p.VLLM.ModelRunParams["dtype"] = "float16"
-	}
-
 	if !p.VLLM.DisallowLoRA && rc.AdaptersEnabled {
 		p.VLLM.ModelRunParams["enable-lora"] = ""
 	}
@@ -427,6 +425,18 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		// Some presets set load_format (underscore) in their default params
 		// (e.g. mistral sets load_format=mistral). Remove to avoid conflict
 		// with the hyphenated --load-format=runai_streamer we set above.
+		delete(p.VLLM.ModelRunParams, "load_format")
+	} else if rc.UserProvidedLocalModelWeightsPath != "" {
+		// Weights already exist on local disk (e.g. mounted from a custom GPU node
+		// image). Point vLLM at the local directory and load with the RunAI streamer,
+		// whose concurrent threaded reads avoid the mmap readahead cliff when loading
+		// large safetensors from a virtualized node disk. Skip the HuggingFace download
+		// (no --download-dir / --code-revision).
+		p.VLLM.ModelRunParams["model"] = rc.UserProvidedLocalModelWeightsPath
+		p.VLLM.ModelRunParams["load-format"] = "runai_streamer"
+		// Some presets set load_format (underscore) in their default params
+		// (e.g. mistral sets load_format=mistral); remove it to avoid conflicting
+		// with the hyphenated --load-format we set here.
 		delete(p.VLLM.ModelRunParams, "load_format")
 	} else if p.DownloadAtRuntime {
 		repoId, revision, _ := utils.ParseHuggingFaceModelVersion(p.Version)
@@ -583,7 +593,8 @@ func (p *PresetParam) isVLLMHybridKVCacheManagerRequired() bool {
 		switch arch {
 		case "NemotronHForCausalLM", "NemotronH_Nano_VL_V2", "NemotronHMTPModel", "NemotronHPuzzleForCausalLM",
 			"Gemma4ForCausalLM", "Gemma4ForConditionalGeneration",
-			"Qwen3_5ForConditionalGeneration", "Qwen3_5MoeForConditionalGeneration":
+			"Qwen3_5ForConditionalGeneration", "Qwen3_5MoeForConditionalGeneration",
+			"DeepseekV4ForCausalLM":
 			return true
 		}
 	}
@@ -599,6 +610,18 @@ func (p *PresetParam) isLMCacheDisabled() bool {
 	for _, arch := range p.Architectures {
 		switch arch {
 		case "GptOssForCausalLM":
+			return true
+		}
+	}
+	return false
+}
+
+// RequiresDeepGEMM returns true for architectures that strictly require the
+// DeepGEMM library.
+func (p *PresetParam) RequiresDeepGEMM() bool {
+	for _, arch := range p.Architectures {
+		switch arch {
+		case "DeepseekV4ForCausalLM":
 			return true
 		}
 	}

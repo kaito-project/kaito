@@ -158,6 +158,29 @@ func ConfigSHMVolume() (corev1.Volume, corev1.VolumeMount) {
 	return volume, volumeMount
 }
 
+// HostPathVolume returns a read-only Volume/VolumeMount pair that mounts a
+// directory from the host node into the container at the same path. It is used
+// to expose data baked into a custom GPU node image (e.g. model weights or a
+// CUDA toolkit) to the inference container.
+func HostPathVolume(name, hostPath string) (corev1.Volume, corev1.VolumeMount) {
+	dirType := corev1.HostPathDirectory
+	volume := corev1.Volume{
+		Name: name,
+		VolumeSource: corev1.VolumeSource{
+			HostPath: &corev1.HostPathVolumeSource{
+				Path: hostPath,
+				Type: &dirType,
+			},
+		},
+	}
+	volumeMount := corev1.VolumeMount{
+		Name:      name,
+		MountPath: hostPath,
+		ReadOnly:  true,
+	}
+	return volume, volumeMount
+}
+
 func ConfigCMVolume(cmName string) (corev1.Volume, corev1.VolumeMount) {
 	volume := corev1.Volume{
 		Name: "config-volume",

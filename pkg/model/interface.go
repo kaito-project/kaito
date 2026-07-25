@@ -25,6 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -405,13 +406,21 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 
 	// Enable KV cache events by default so in-cluster subscribers can consume
 	// BlockStored / BlockRemoved / AllBlocksCleared events over ZMQ on the port
-	// defined by consts.PortKVCacheEvents. Passed from the operator side (rather than baked into the
-	// preset image) so we don't need an image rebuild to toggle it and users
-	// can still override via --kaito-config-file. JSON is single-quoted so the
-	// value survives shell interpolation in ShellCmd.
+	// defined by consts.PortKVCacheEvents. Passed from the operator side (rather
+	// than baked into the preset image) so we don't need an image rebuild to
+	// toggle it and users can still override via --kaito-config-file. JSON is
+	// single-quoted so the value survives shell interpolation in ShellCmd.
+	//
+	// Gated on FeatureFlagEnableMultiRoleInferenceController: the only in-cluster
+	// consumer today is the GAIE / llm-d-inference-scheduler EPP that KAITO wires
+	// up through the InferenceSet / MultiRoleInference controller. When that
+	// controller is disabled, nothing subscribes to port 5557, so keep the flag
+	// off to avoid running an idle ZMQ publisher (extra thread + open socket).
 	// See https://docs.vllm.ai/en/stable/api/vllm/config/kv_events/
-	if _, ok := p.VLLM.ModelRunParams["kv-events-config"]; !ok {
-		p.VLLM.ModelRunParams["kv-events-config"] = `'{"enable_kv_cache_events":true}'`
+	if featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] {
+		if _, ok := p.VLLM.ModelRunParams["kv-events-config"]; !ok {
+			p.VLLM.ModelRunParams["kv-events-config"] = `'{"enable_kv_cache_events":true}'`
+		}
 	}
 
 	// Disable the allreduce + RMSNorm fusion pass. Since vLLM 0.22.1 this pass is

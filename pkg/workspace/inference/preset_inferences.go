@@ -75,8 +75,11 @@ var (
 	}
 
 	// vllmKVEventsContainerPort is the KV cache events ZMQ port. It is only added
-	// to the pod spec for vLLM inference workspaces; other runtimes don't expose
-	// this endpoint, so advertising it there would be misleading.
+	// to the pod spec for vLLM inference workspaces (and only when the
+	// MultiRoleInference / InferenceSet controller is enabled, since that's what
+	// wires up the GAIE / llm-d-inference-scheduler EPP that actually subscribes
+	// to it). Other runtimes don't expose this endpoint, so advertising it there
+	// would be misleading.
 	vllmKVEventsContainerPort = corev1.ContainerPort{
 		Name:          "kv-events",
 		ContainerPort: int32(consts.PortKVCacheEvents),
@@ -634,7 +637,8 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		mainContainerEnv := buildMainContainerEnv(runtimeName, inferenceParam, cudaHome, localModelWeightsPath)
 
 		ports := append([]corev1.ContainerPort(nil), containerPorts...)
-		if runtimeName == pkgmodel.RuntimeNameVLLM {
+		if runtimeName == pkgmodel.RuntimeNameVLLM &&
+			featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] {
 			ports = append(ports, vllmKVEventsContainerPort)
 		}
 

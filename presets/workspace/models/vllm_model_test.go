@@ -725,6 +725,25 @@ func TestGetModelByName_DeepSeekV4Flash(t *testing.T) {
 	assert.Equal(t, "fp8", runParams["kv-cache-dtype"])
 }
 
+// TestGetModelByName_DeepSeekV4Pro verifies DeepSeek-V4-Pro resolves offline from
+// the embedded catalog and inherits the DeepSeek-V4 family wiring — including the
+// fp8 kv-cache-dtype, which the engine asserts on for the DeepseekV4 architecture.
+func TestGetModelByName_DeepSeekV4Pro(t *testing.T) {
+	m, err := GetModelByNameWithToken(context.Background(), "deepseek-ai/DeepSeek-V4-Pro", "")
+	assert.NoError(t, err)
+	if !assert.NotNil(t, m) {
+		return
+	}
+
+	params := m.GetInferenceParameters()
+	runParams := params.RuntimeParam.VLLM.ModelRunParams
+	assert.Equal(t, "deepseek_v4", runParams["reasoning-parser"])
+	assert.Equal(t, "deepseek_v4", runParams["tool-call-parser"])
+	assert.Equal(t, "", runParams["enable-auto-tool-choice"])
+	assert.Equal(t, "deepseek_v4", runParams["tokenizer_mode"])
+	assert.Equal(t, "fp8", runParams["kv-cache-dtype"])
+}
+
 func TestGetModelByName_BuiltinModels(t *testing.T) {
 	tests := []struct {
 		name          string

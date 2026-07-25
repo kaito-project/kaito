@@ -222,14 +222,14 @@ var (
 		"minimax-m2.7": "triton",
 	}
 
-	// vllmKVCacheDtypeOverride maps exact model names to their required vLLM
+	// vllmKVCacheDtypePrefixMap maps model name prefixes to their required vLLM
 	// kv-cache-dtype. Some architectures only support a specific KV cache format
 	// and assert at engine init otherwise.
 	// source: https://docs.vllm.ai/en/latest/configuration/engine_args/#-kv-cache-dtype
-	vllmKVCacheDtypeOverride = map[string]string{
-		// DeepSeek-V4 asserts "only supports fp8 kv-cache format for now" when the
-		// kv-cache-dtype is left at the default "auto".
-		"deepseek-v4-flash": "fp8",
+	vllmKVCacheDtypePrefixMap = map[string]string{
+		// DeepSeek-V4 (Flash, Pro, ...) asserts "only supports fp8 kv-cache format
+		// for now" when the kv-cache-dtype is left at the default "auto".
+		"deepseek-v4": "fp8",
 	}
 
 	// vllmGdnPrefillBackendPrefixMap maps model name prefixes to their vLLM GDN prefill backend.
@@ -714,9 +714,12 @@ func (g *Generator) FinalizeParams() {
 		g.Param.VLLM.ModelRunParams["moe-backend"] = backend
 	}
 
-	// Set kv-cache-dtype based on exact model name match
-	if dtype, ok := vllmKVCacheDtypeOverride[g.Param.Metadata.Name]; ok {
-		g.Param.VLLM.ModelRunParams["kv-cache-dtype"] = dtype
+	// Set kv-cache-dtype based on model name prefix
+	for prefix, dtype := range vllmKVCacheDtypePrefixMap {
+		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
+			g.Param.VLLM.ModelRunParams["kv-cache-dtype"] = dtype
+			break
+		}
 	}
 
 	// Set GDN prefill backend based on model name prefix

@@ -753,3 +753,18 @@ models:
   headDim: 512
   qkRopeHeadDim: 64
   quantMethod: fp8
+- name: deepseek-ai/DeepSeek-V4-Pro
+  description: https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro
+  license: mit
+  pipelineTag: text-generation
+  modelFileSize: 805.34Gi
+  architectures:
+  - DeepseekV4ForCausalLM
+  modelTokenLimit: 1048576
+  hiddenSize: 7168
+  numHiddenLayers: 61
+  numAttentionHeads: 128
+  numKeyValueHeads: 1
+  headDim: 512
+  qkRopeHeadDim: 64
+  quantMethod: fp8

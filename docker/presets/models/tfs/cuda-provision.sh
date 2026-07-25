@@ -62,7 +62,15 @@ fi
 
 echo "cuda-provision: staging toolkit into ${TARGET} ..."
 mkdir -p "${TARGET}"
-cp -a "${CUDA_HOME_SRC}/." "${TARGET}/"
+# Move (not copy) into the hostPath. TARGET is a different filesystem than
+# CUDA_HOME_SRC (the init container's writable layer), so mv is a cross-device
+# copy+unlink: it frees the ~1.2 GB source from the init container's overlay layer
+# instead of leaving a duplicate there for the pod's lifetime. TARGET is a mount
+# point, so move the directory's contents into it rather than the directory itself;
+# dotglob ensures any hidden entries are included.
+shopt -s dotglob
+mv "${CUDA_HOME_SRC}"/* "${TARGET}/"
+shopt -u dotglob
 
 "${TARGET}/bin/nvcc" --version
 echo "cuda-provision: done."

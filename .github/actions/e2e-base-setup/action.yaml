@@ -26,7 +26,7 @@ inputs:
   k8s_version:
     description: "Kubernetes version"
     required: false
-    default: "1.33.8"
+    default: "latest"
   build_kaito_base_image:
     description: "Whether to build kaito base image"
     required: false
@@ -220,6 +220,47 @@ runs:
       env:
         ARCH: amd64
 
+    - name: Resolve AKS Kubernetes version
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        requested_version="${{ inputs.k8s_version }}"
+        if [ -n "$requested_version" ] && [ "$requested_version" != "latest" ]; then
+          echo "AKS_K8S_VERSION=$requested_version" >> "$GITHUB_ENV"
+          exit 0
+        fi
+
+        resolved_version="$(
+          az aks get-versions --location "$AZURE_LOCATION" -o json |
+            jq -r '
+              def semver: split(".") | map(tonumber);
+              if has("values") then
+                [.values[]
+                 | select((.isPreview // false) != true)
+                 | (.patchVersions // {} | keys[]?)]
+              else
+                [.orchestrators[]
+                 | select((.isPreview // false) != true)
+                 | .orchestratorVersion]
+              end
+              | map(select(. != null))
+              | unique
+              | sort_by(semver)
+              | last // empty
+            '
+        )"
+
+        if [ -z "$resolved_version" ]; then
+          echo "::error::Failed to resolve a supported AKS Kubernetes version for $AZURE_LOCATION"
+          exit 1
+        fi
+
+        echo "AKS_K8S_VERSION=$resolved_version" >> "$GITHUB_ENV"
+        echo "Using AKS Kubernetes version $resolved_version in $AZURE_LOCATION"
+      env:
+        AZURE_LOCATION: ${{ inputs.region }}
+
     # TEMPORARY FIX (capacity issue): try the requested `inputs.region` first,
     # and fall back to polandcentral if that region has no capacity.
     # The RG/ACR created earlier stay in `inputs.region`; only the AKS cluster
@@ -254,7 +295,6 @@ runs:
         AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
         AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
         AZURE_LOCATION: ${{ inputs.region }}
-        AKS_K8S_VERSION: ${{ inputs.k8s_version }}
 
     - name: create cluster (gpu-provisioner)
       if: ${{ inputs.node_provisioner == 'gpuprovisioner' }}
@@ -285,7 +325,6 @@ runs:
         AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
         AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
         AZURE_LOCATION: ${{ inputs.region }}
-        AKS_K8S_VERSION: ${{ inputs.k8s_version }}
 
     - name: Provision model-streaming infra (blob CSI + StorageClass + role)
       shell: bash

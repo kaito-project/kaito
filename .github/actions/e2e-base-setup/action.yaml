@@ -299,7 +299,7 @@ runs:
         fi
 
         echo "AKS_K8S_VERSION=$resolved_version" >> "$GITHUB_ENV"
-        echo "Using AKS Kubernetes version $resolved_version in $AZURE_LOCATION"
+        echo "::notice::Using AKS Kubernetes version $resolved_version in $AZURE_LOCATION"
       env:
         AZURE_LOCATION: ${{ inputs.region }}
 

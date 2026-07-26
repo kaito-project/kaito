@@ -231,16 +231,17 @@ runs:
           exit 0
         fi
 
+        safe_location="$(printf '%s' "$AZURE_LOCATION" | tr '\r\n' '  ')"
         if ! versions_json="$(az aks get-versions --location "$AZURE_LOCATION" -o json 2>&1)"; then
-          echo "::error::az aks get-versions failed for $AZURE_LOCATION"
+          echo "::error::az aks get-versions failed for \"$safe_location\""
           echo "$versions_json" >&2
           exit 1
         fi
         resolved_version="$(
           printf '%s' "$versions_json" |
             jq -r '
-              # Normalize versions such as `1.30.0-rc.1+build` to `[1, 30, 0]`
-              # before sorting, so we compare stable patch numbers numerically.
+              # Stable `major.minor.patch` versions are sorted numerically after
+              # stripping any suffixes defensively in case the filter changes.
               def semver:
                 split("+")[0]
                 | split("-")[0]
@@ -261,7 +262,7 @@ runs:
               end
               # Intentionally permissive: Azure is the source of truth for valid
               # AKS versions, and we only need to exclude non-stable strings here.
-              | map(select(. != null and test("^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$")))
+              | map(select(. != null and test("^[0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{1,3}$")))
               | unique
               | sort_by(semver)
               | last // null
@@ -293,13 +294,13 @@ runs:
                 end
               '
           )"
-          echo "::error::Failed to resolve a supported non-preview AKS Kubernetes version for $AZURE_LOCATION; sanitized az aks get-versions response follows"
+          echo "::error::Failed to resolve a supported non-preview AKS Kubernetes version for \"$safe_location\"; sanitized az aks get-versions response follows"
           echo "$sanitized_versions_json" >&2
           exit 1
         fi
 
         echo "AKS_K8S_VERSION=$resolved_version" >> "$GITHUB_ENV"
-        echo "::notice::Using AKS Kubernetes version $resolved_version in $AZURE_LOCATION"
+        echo "::notice::Using AKS Kubernetes version $resolved_version in \"$safe_location\""
       env:
         AZURE_LOCATION: ${{ inputs.region }}
 

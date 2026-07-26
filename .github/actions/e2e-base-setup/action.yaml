@@ -226,15 +226,21 @@ runs:
         set -euo pipefail
 
         requested_version="${{ inputs.k8s_version }}"
-        if [ -n "$requested_version" ] && [ "$requested_version" != "latest" ]; then
+        if [ -z "$requested_version" ]; then
+          requested_version="latest"
+        fi
+        if [ "$requested_version" != "latest" ]; then
           echo "AKS_K8S_VERSION=$requested_version" >> "$GITHUB_ENV"
           exit 0
         fi
 
+        versions_json="$(az aks get-versions --location "$AZURE_LOCATION" -o json)"
         resolved_version="$(
-          az aks get-versions --location "$AZURE_LOCATION" -o json |
+          printf '%s' "$versions_json" |
             jq -r '
               def semver: split(".") | map(tonumber);
+              # Newer AKS CLI output returns `values[].patchVersions`, while older
+              # output uses `orchestrators[].orchestratorVersion`.
               if has("values") then
                 [.values[]
                  | select((.isPreview // false) != true)
@@ -252,7 +258,8 @@ runs:
         )"
 
         if [ -z "$resolved_version" ]; then
-          echo "::error::Failed to resolve a supported AKS Kubernetes version for $AZURE_LOCATION"
+          echo "::error::Failed to resolve a supported non-preview AKS Kubernetes version for $AZURE_LOCATION from az aks get-versions output"
+          echo "$versions_json"
           exit 1
         fi
 

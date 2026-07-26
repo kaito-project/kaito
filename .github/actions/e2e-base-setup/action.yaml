@@ -231,7 +231,10 @@ runs:
           exit 0
         fi
 
-        safe_location="$(printf '%s' "$AZURE_LOCATION" | tr '\r\n' '  ')"
+        safe_location="$(printf '%s' "$AZURE_LOCATION" | tr -cd '[:alnum:]._-')"
+        if [ -z "$safe_location" ]; then
+          safe_location="<invalid-region>"
+        fi
         if ! versions_json="$(az aks get-versions --location "$AZURE_LOCATION" -o json 2>&1)"; then
           echo "::error::az aks get-versions failed for \"$safe_location\""
           echo "$versions_json" >&2

@@ -239,8 +239,10 @@ runs:
           printf '%s' "$versions_json" |
             jq -r '
               def semver: split(".") | map(tonumber);
-              # Newer AKS CLI output returns `values[].patchVersions`, while older
-              # output uses `orchestrators[].orchestratorVersion`.
+              # Newer AKS CLI output returns minor versions under `values`, and the
+              # available patch versions are the keys of `patchVersions`.
+              # Older output lists full patch versions directly in
+              # `orchestrators[].orchestratorVersion`.
               if has("values") then
                 [.values[]
                  | select((.isPreview // false) != true)
@@ -258,7 +260,7 @@ runs:
         )"
 
         if [ -z "$resolved_version" ]; then
-          echo "::error::Failed to resolve a supported non-preview AKS Kubernetes version for $AZURE_LOCATION from az aks get-versions output"
+          echo "::error::Failed to resolve a supported non-preview AKS Kubernetes version for $AZURE_LOCATION; see raw az aks get-versions response below"
           echo "$versions_json"
           exit 1
         fi

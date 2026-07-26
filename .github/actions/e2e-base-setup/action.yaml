@@ -235,6 +235,8 @@ runs:
         resolved_version="$(
           printf '%s' "$versions_json" |
             jq -r '
+              # Normalize versions such as `1.30.0-rc.1+build` to `[1, 30, 0]`
+              # before sorting, so we compare stable patch numbers numerically.
               def semver:
                 split("+")[0]
                 | split("-")[0]
@@ -253,6 +255,8 @@ runs:
                  | select((.isPreview // false) != true)
                  | .orchestratorVersion]
               end
+              # Intentionally permissive: Azure is the source of truth for valid
+              # AKS versions, and we only need to exclude non-stable strings here.
               | map(select(. != null and test("^[0-9]+\\.[0-9]+\\.[0-9]+$")))
               | unique
               | sort_by(semver)
@@ -261,9 +265,32 @@ runs:
         )"
 
         if [ -z "$resolved_version" ] || [ "$resolved_version" = "null" ]; then
-          echo "::error::Failed to resolve a supported non-preview AKS Kubernetes version for $AZURE_LOCATION; see raw az aks get-versions response below"
-          echo "::error::Raw az aks get-versions response follows in the next log line"
-          echo "$versions_json"
+          sanitized_versions_json="$(
+            printf '%s' "$versions_json" |
+              jq -c '
+                if has("values") then
+                  {
+                    values: [
+                      .values[]?
+                      | {
+                          version,
+                          isPreview,
+                          patchVersions: ((.patchVersions // {}) | keys)
+                        }
+                    ]
+                  }
+                else
+                  {
+                    orchestrators: [
+                      .orchestrators[]?
+                      | {orchestratorVersion, isPreview}
+                    ]
+                  }
+                end
+              '
+          )"
+          echo "::error::Failed to resolve a supported non-preview AKS Kubernetes version for $AZURE_LOCATION; sanitized az aks get-versions response follows"
+          echo "$sanitized_versions_json"
           exit 1
         fi
 

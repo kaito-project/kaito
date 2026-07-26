@@ -231,7 +231,11 @@ runs:
           exit 0
         fi
 
-        versions_json="$(az aks get-versions --location "$AZURE_LOCATION" -o json)"
+        if ! versions_json="$(az aks get-versions --location "$AZURE_LOCATION" -o json 2>&1)"; then
+          echo "::error::az aks get-versions failed for $AZURE_LOCATION"
+          echo "$versions_json" >&2
+          exit 1
+        fi
         resolved_version="$(
           printf '%s' "$versions_json" |
             jq -r '
@@ -241,7 +245,7 @@ runs:
                 split("+")[0]
                 | split("-")[0]
                 | split(".")
-                | map(tonumber? // 0);
+                | map(tonumber);
               # Newer AKS CLI output returns minor versions under `values`, and the
               # available patch versions are the keys of `patchVersions`.
               # Older output lists full patch versions directly in
@@ -257,7 +261,7 @@ runs:
               end
               # Intentionally permissive: Azure is the source of truth for valid
               # AKS versions, and we only need to exclude non-stable strings here.
-              | map(select(. != null and test("^[0-9]+\\.[0-9]+\\.[0-9]+$")))
+              | map(select(. != null and test("^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$")))
               | unique
               | sort_by(semver)
               | last // null
@@ -290,7 +294,7 @@ runs:
               '
           )"
           echo "::error::Failed to resolve a supported non-preview AKS Kubernetes version for $AZURE_LOCATION; sanitized az aks get-versions response follows"
-          echo "$sanitized_versions_json"
+          echo "$sanitized_versions_json" >&2
           exit 1
         fi
 

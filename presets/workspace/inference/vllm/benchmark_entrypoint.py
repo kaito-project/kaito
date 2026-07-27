@@ -452,10 +452,8 @@ def _run_guidellm(processor: str, max_concurrency: int):
     is no process-spawn overhead and no need for the HTML-stub workaround.
     ``outputs=[]`` suppresses all report file generation.
 
-    guidellm lives in an isolated venv at ``/opt/guidellm-venv``.  Its
-    site-packages are injected into ``sys.path`` at module load time (before the
-    ``huggingface_hub`` import) so every import in this process uses the venv's
-    versions.
+    ``processor`` should be a tokenizer-loadable path/id; guidellm calls
+    ``AutoTokenizer.from_pretrained(processor)`` during synthetic data generation.
 
     Returns the ``GenerativeBenchmarksReport`` on success, ``None`` on failure.
     """

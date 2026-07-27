@@ -135,6 +135,15 @@ func (w *Workspace) validateAnnotations() (errs *apis.FieldError) {
 			))
 		}
 	}
+	// use-local-weights is a boolean opt-in; accept only "true" or "false".
+	if v, ok := annotations[AnnotationUseLocalWeights]; ok {
+		if v != "true" && v != "false" {
+			errs = errs.Also(apis.ErrInvalidValue(
+				fmt.Sprintf("%q must be \"true\" or \"false\"", v),
+				fmt.Sprintf("metadata.annotations[%s]", AnnotationUseLocalWeights),
+			))
+		}
+	}
 	return errs
 }
 

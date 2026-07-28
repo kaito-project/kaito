@@ -18,10 +18,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/robfig/cron/v3"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
+
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func (is *InferenceSet) SupportedVerbs() []admissionregistrationv1.OperationType {
@@ -51,13 +54,59 @@ func (is *InferenceSet) Validate(ctx context.Context) (errs *apis.FieldError) {
 }
 
 func (is *InferenceSet) validateCreate() (errs *apis.FieldError) {
-	// Validate replicas is at least 1
-	if is.Spec.Replicas < 1 {
-		errs = errs.Also(apis.ErrInvalidValue(is.Spec.Replicas, "replicas", "must be at least 1"))
+	// Validate replicas is non-negative
+	if is.Spec.Replicas != nil && *is.Spec.Replicas < 0 {
+		errs = errs.Also(apis.ErrInvalidValue(*is.Spec.Replicas, "replicas", "must be non-negative"))
 	}
+	errs = errs.Also(is.validateInstanceType().ViaField("template"))
+	errs = errs.Also(validateMaintenanceWindow(is.Spec.AutoUpgrade))
 	return errs
 }
 
 func (is *InferenceSet) validateUpdate(_ *InferenceSet) (errs *apis.FieldError) {
+	errs = errs.Also(is.validateInstanceType().ViaField("template"))
+	errs = errs.Also(validateMaintenanceWindow(is.Spec.AutoUpgrade))
+	return errs
+}
+
+func validateMaintenanceWindow(autoUpgrade *AutoUpgradePolicy) (errs *apis.FieldError) {
+	if autoUpgrade == nil || autoUpgrade.MaintenanceWindow == nil {
+		return nil
+	}
+	window := autoUpgrade.MaintenanceWindow
+	if window.Schedule == "" {
+		errs = errs.Also(apis.ErrMissingField("autoUpgrade.maintenanceWindow.schedule"))
+		return errs
+	}
+	if _, err := cron.ParseStandard(window.Schedule); err != nil {
+		errs = errs.Also(apis.ErrInvalidValue(window.Schedule, "autoUpgrade.maintenanceWindow.schedule",
+			fmt.Sprintf("invalid cron expression: %v", err)))
+	}
+	if window.Duration != nil && window.Duration.Duration <= 0 {
+		errs = errs.Also(apis.ErrInvalidValue(window.Duration.Duration.String(), "autoUpgrade.maintenanceWindow.duration",
+			"must be a positive duration"))
+	}
+	return errs
+}
+
+// validateInstanceType ensures instanceType is set when node auto-provisioning
+// is enabled, and is empty when using BYO (Bring Your Own) nodes.
+func (is *InferenceSet) validateInstanceType() (errs *apis.FieldError) {
+	instanceType := is.Spec.Template.Resource.InstanceType
+	switch consts.ActiveNodeProvisioner {
+	case consts.NodeProvisionerBYO:
+		// BYO mode: instanceType must be empty.
+		if instanceType != "" {
+			errs = errs.Also(apis.ErrInvalidValue(instanceType, "resource.instanceType",
+				"instanceType must be empty when nodeProvisioner is byo"))
+		}
+	case consts.NodeProvisionerKarpenter, consts.NodeProvisionerAzureGPU:
+		// Auto-provisioning modes: instanceType is required.
+		if instanceType == "" {
+			errs = errs.Also(apis.ErrMissingField("resource.instanceType"))
+		}
+	default:
+		// Unknown or unset provisioner: no validation (backward compat).
+	}
 	return errs
 }

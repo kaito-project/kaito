@@ -26,7 +26,7 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
-	"github.com/kaito-project/kaito/pkg/utils/resources"
+	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/workspace/resource"
 )
 
@@ -58,7 +58,7 @@ func (g *AzureGPUProvisioner) Start(ctx context.Context) error { return nil }
 
 // ProvisionNodes creates NodeClaims via the Azure gpu-provisioner backend.
 func (g *AzureGPUProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {
-	readyNodes, err := resources.GetReadyNodes(ctx, g.nodeClaimManager.Client, ws)
+	readyNodes, err := nodeprovision.GetReadyNodes(ctx, g.nodeClaimManager.Client, g, ws)
 	if err != nil {
 		return fmt.Errorf("failed to list ready nodes: %w", err)
 	}
@@ -108,7 +108,9 @@ func (g *AzureGPUProvisioner) DisableDriftRemediation(ctx context.Context, works
 func (g *AzureGPUProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.Workspace) (bool, bool, error) {
 	// List nodes once and derive both readyNodes (for NodeClaim check) and
 	// readyCount with correct instance type (for node readiness check).
-	nodeList, err := resources.ListNodes(ctx, g.nodeClaimManager.Client, ws.Resource.LabelSelector.MatchLabels)
+	// Scope to nodes owned by this workspace so sibling workspaces sharing the
+	// same label selector (e.g. InferenceSet replicas) are not counted.
+	nodeList, err := nodeprovision.ListWorkspaceNodes(ctx, g.nodeClaimManager.Client, g, ws)
 	if err != nil {
 		return false, false, fmt.Errorf("failed to list nodes: %w", err)
 	}
@@ -117,7 +119,7 @@ func (g *AzureGPUProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1b
 	readyWithInstanceType := 0
 	for i := range nodeList.Items {
 		node := &nodeList.Items[i]
-		if resources.NodeIsReadyAndNotDeleting(node) {
+		if nodes.NodeIsReadyAndNotDeleting(node) {
 			readyNodes = append(readyNodes, node)
 			if instanceType, ok := node.Labels[corev1.LabelInstanceTypeStable]; ok && instanceType == ws.Resource.InstanceType {
 				readyWithInstanceType++
@@ -180,7 +182,7 @@ func (g *AzureGPUProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kai
 		Reason: "workspaceResourceStatusNotReady", Message: "node claim or node status condition not ready",
 	}
 
-	nodeList, err := resources.ListNodes(ctx, g.nodeClaimManager.Client, ws.Resource.LabelSelector.MatchLabels)
+	nodeList, err := nodeprovision.ListWorkspaceNodes(ctx, g.nodeClaimManager.Client, g, ws)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list nodes: %w", err)
 	}
@@ -188,7 +190,7 @@ func (g *AzureGPUProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kai
 	readyWithInstanceType := 0
 	for i := range nodeList.Items {
 		node := &nodeList.Items[i]
-		if resources.NodeIsReadyAndNotDeleting(node) {
+		if nodes.NodeIsReadyAndNotDeleting(node) {
 			readyNodes = append(readyNodes, node)
 			if it, ok := node.Labels[corev1.LabelInstanceTypeStable]; ok && it == ws.Resource.InstanceType {
 				readyWithInstanceType++
@@ -216,6 +218,12 @@ func (g *AzureGPUProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kai
 		nodeClaimCond.Status = metav1.ConditionTrue
 		nodeClaimCond.Reason = "NodeClaimsReady"
 		nodeClaimCond.Message = "Enough NodeClaims are ready"
+	} else if reason, message, ok := nodeclaim.FirstProvisioningError(existingNodeClaims); ok {
+		// Surface the underlying cloud-provider provisioning error (e.g. quota
+		// exceeded, unauthorized) so users can see the root cause in the
+		// workspace/inferenceset status instead of a generic message.
+		nodeClaimCond.Reason = reason
+		nodeClaimCond.Message = message
 	}
 
 	// Node readiness.
@@ -250,4 +258,21 @@ func (g *AzureGPUProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kai
 	}
 
 	return []metav1.Condition{nodeCond, nodeClaimCond, resourceCond}, nil
+}
+
+// BuildNodeSelector returns requirements that pin pods to nodes provisioned
+// for this workspace. The labels are stamped on NodeClaims by gpu-provisioner.
+func (g *AzureGPUProvisioner) BuildNodeSelector(ctx context.Context, ws *kaitov1beta1.Workspace) []corev1.NodeSelectorRequirement {
+	return []corev1.NodeSelectorRequirement{
+		{
+			Key:      kaitov1beta1.LabelWorkspaceName,
+			Operator: corev1.NodeSelectorOpIn,
+			Values:   []string{ws.Name},
+		},
+		{
+			Key:      kaitov1beta1.LabelWorkspaceNamespace,
+			Operator: corev1.NodeSelectorOpIn,
+			Values:   []string{ws.Namespace},
+		},
+	}
 }

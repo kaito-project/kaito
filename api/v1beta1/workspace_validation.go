@@ -24,6 +24,8 @@ import (
 	"github.com/distribution/reference"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	corev1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
+	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
@@ -34,9 +36,11 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
+	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/mig"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/presets/workspace/models"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
@@ -86,6 +90,9 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 				w.Inference.validateCreate(ctx, runtime, w.Namespace).ViaField("inference"),
 				w.validateInferenceConfig(ctx),
 			)
+			if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+				errs = errs.Also(w.validateStreamingCSIDriver(ctx))
+			}
 		}
 		if w.Tuning != nil {
 			// TODO: Add validate resource based on Tuning Spec
@@ -99,6 +106,9 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 			w.validateUpdate(old).ViaField("spec"),
 			w.Resource.validateUpdate(&old.Resource).ViaField("resource"),
 		)
+		if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+			errs = errs.Also(w.validateModelStreamingAnnotationImmutable(old))
+		}
 		if w.Inference != nil {
 			errs = errs.Also(w.Inference.validateUpdate(old.Inference).ViaField("inference"))
 		}
@@ -122,6 +132,15 @@ func (w *Workspace) validateAnnotations() (errs *apis.FieldError) {
 			errs = errs.Also(apis.ErrInvalidValue(
 				fmt.Sprintf("%q is not a valid performance mode; choose one of: balanced, interactivity, throughput", v),
 				fmt.Sprintf("metadata.annotations[%s]", AnnotationPerformanceMode),
+			))
+		}
+	}
+	// use-local-weights is a boolean opt-in; accept only "true" or "false".
+	if v, ok := annotations[AnnotationUseLocalWeights]; ok {
+		if v != "true" && v != "false" {
+			errs = errs.Also(apis.ErrInvalidValue(
+				fmt.Sprintf("%q must be \"true\" or \"false\"", v),
+				fmt.Sprintf("metadata.annotations[%s]", AnnotationUseLocalWeights),
 			))
 		}
 	}
@@ -372,6 +391,9 @@ func (r *ResourceSpec) validateCreateWithTuning(tuning *TuningSpec) (errs *apis.
 	if *r.Count > 1 {
 		errs = errs.Also(apis.ErrInvalidValue("Tuning does not currently support multinode configurations. Please set the node count to 1. Future support with DeepSpeed will allow this.", "count"))
 	}
+	if r.Partition != nil {
+		errs = errs.Also(apis.ErrInvalidValue("GPU partitioning is not supported for tuning workloads", "partition"))
+	}
 	return errs
 }
 
@@ -414,17 +436,52 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 		return errs
 	}
 
+	// Warn (don't reject) when the user-provided selector includes labels
+	// reserved for KAITO-managed resources. These keys are silently ignored
+	// at runtime to avoid cross-workspace/RAGEngine targeting.
+	if r.LabelSelector != nil {
+		for k := range r.LabelSelector.MatchLabels {
+			if IsReservedSelectorLabel(k) {
+				klog.Warningf("labelSelector contains reserved KAITO label %q; it will be ignored", k)
+			}
+		}
+	}
+
+	// Reject when, after stripping KAITO-reserved keys, no usable matchLabels
+	// remain from a user-supplied set. An all-reserved selector would otherwise
+	// be silently dropped and end up matching every node in the cluster.
+	if r.LabelSelector != nil && len(r.LabelSelector.MatchLabels) > 0 &&
+		len(SanitizedMatchLabels(r.LabelSelector)) == 0 {
+		errs = errs.Also(apis.ErrInvalidValue(
+			"matchLabels must contain at least one non-reserved label",
+			"labelSelector.matchLabels"))
+		return errs
+	}
+
 	napDisabled := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 
 	if napDisabled {
+		// MIG uses a single non-shardable slice, so the node-label/multi-node GPU
+		// sizing below doesn't apply; validate the slice-specific fit instead.
+		if r.Partition != nil {
+			if pErr := r.validatePartition(); pErr != nil {
+				return errs.Also(pErr)
+			}
+			if r.Partition.Mode == PartitionModeMIG && presetName != "" {
+				errs = errs.Also(r.validateMIGModelFit(ctx, presetName, secretName, wsNamespace, bypassResourceChecks))
+			}
+			return errs
+		}
+
 		if presetName != "" { // If the user is using a custom pod template instead of a preset, we don't need to list the BYO nodes to get GPU info as we don't know the GPU requirements of a custom model.
 			// Note: for tests like aikit.yaml, it creates nodes with kind that do not have GPU labels, so we need to account for that case.
 			kClient := k8sclient.GetGlobalClient()
 
-			// List matching nodes
+			// List matching nodes (KAITO-reserved label keys are stripped to avoid
+			// matching nodes that belong to other Workspaces or RAGEngines).
 			ctx := context.TODO()
 			nodeList := &corev1.NodeList{}
-			labelSelector := client.MatchingLabels(r.LabelSelector.MatchLabels)
+			labelSelector := client.MatchingLabels(SanitizedMatchLabels(r.LabelSelector))
 
 			err := kClient.List(ctx, nodeList, labelSelector)
 			if err != nil {
@@ -440,7 +497,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 
 			for _, node := range nodeList.Items {
 				// Try to get GPU configuration from nvidia.com labels first
-				gpuConfig, err := utils.GetGPUConfigFromNodeLabels(&node)
+				gpuConfig, err := sku.GetGPUConfigFromNodeLabels(&node)
 				if err != nil {
 					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get GPU config from nvidia labels on node %s: %v", node.Name, err)))
 					return errs
@@ -471,8 +528,12 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 			}
 		}
 	} else { // NAP enabled
+		// GPU partitioning (MIG) is only supported on BYO nodes.
+		if r.Partition != nil {
+			return errs.Also(apis.ErrGeneric("MIG is only supported with BYO nodes (disableNodeAutoProvisioning=true)", "partition"))
+		}
 		// Regardless of if preset is empty or not, we do want to make sure the instance type is valid for NAP and can't skip node validation like BYO.
-		skuHandler, err := utils.GetSKUHandler()
+		skuHandler, err := sku.GetSKUHandler()
 		if err != nil {
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get SKU handler: %v", err), "instanceType"))
 			return errs
@@ -547,10 +608,84 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 	return errs
 }
 
+// validatePartition validates the GPU partitioning configuration for an inference
+// workload and dispatches on the partition mode. Callers should return early after
+// invoking this helper because partitioned workloads use a different resource type
+// and skip the standard GPU checks. It is only invoked on the BYO (NAP-disabled)
+// path; the caller enforces that MIG requires BYO nodes.
+func (r *ResourceSpec) validatePartition() (errs *apis.FieldError) {
+	switch r.Partition.Mode {
+	case PartitionModeMIG:
+		return r.validateMIGPartition()
+	default:
+		return apis.ErrInvalidValue(fmt.Sprintf("unsupported partition mode %q, only \"mig\" is supported", r.Partition.Mode), "partition.mode")
+	}
+}
+
+// validateMIGPartition validates a MIG partition. MIG is only supported behind the
+// enableMIG feature gate, and the requested profile must be a known MIG profile.
+// The BYO-node (NAP-disabled) requirement is enforced by the caller. Model-to-
+// partition fit is left to the lightweight webhook check and the node estimator.
+func (r *ResourceSpec) validateMIGPartition() (errs *apis.FieldError) {
+	if !featuregates.FeatureGates[consts.FeatureFlagEnableMIG] {
+		return apis.ErrGeneric("MIG support is not enabled, set feature gate enableMIG=true", "partition")
+	}
+	if err := mig.ValidateMIGProfile(r.Partition.Profile); err != nil {
+		return apis.ErrInvalidValue(err.Error(), "partition.profile")
+	}
+
+	return errs
+}
+
+// validateMIGModelFit is a lightweight admission-time check that a preset model's
+// weights can fit within a single MIG slice. It is intentionally coarse — it
+// compares the raw weight size against the slice's advertised memory and ignores
+// runtime overhead — so it only rejects models that can never fit. The node
+// estimator performs the authoritative, overhead-aware sizing at reconcile time.
+func (r *ResourceSpec) validateMIGModelFit(ctx context.Context, presetName, secretName, wsNamespace string, bypassResourceChecks bool) (errs *apis.FieldError) {
+	// The profile is already validated by validateMIGPartition before this runs,
+	// so this failure is defensive and should not occur in practice.
+	migConfig, err := utils.GetMIGGPUConfig(r.Partition.Profile)
+	if err != nil {
+		return apis.ErrInvalidValue(err.Error(), "partition.profile")
+	}
+	modelPreset, err := models.GetModelByName(ctx, presetName, secretName, wsNamespace, k8sclient.Client)
+	if err != nil {
+		return apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset")
+	}
+	params := modelPreset.GetInferenceParameters()
+	if params == nil || params.TotalSafeTensorFileSize == "" {
+		return errs
+	}
+	modelSize, err := resource.ParseQuantity(params.TotalSafeTensorFileSize)
+	if err != nil {
+		return apis.ErrInvalidValue(
+			fmt.Sprintf("invalid TotalSafeTensorFileSize %q for preset %s: %v", params.TotalSafeTensorFileSize, presetName, err),
+			"TotalSafeTensorFileSize")
+	}
+	if migConfig.GPUMem.Cmp(modelSize) < 0 {
+		if bypassResourceChecks {
+			klog.Warningf("Bypassing resource check: model %s weights (%s) exceed the %s MIG slice capacity (%s)",
+				presetName, params.TotalSafeTensorFileSize, r.Partition.Profile, migConfig.GPUMem.String())
+			return errs
+		}
+		return apis.ErrInvalidValue(
+			fmt.Sprintf("Model %s requires at least %s for weights, which exceeds the %s MIG slice capacity of %s",
+				presetName, params.TotalSafeTensorFileSize, r.Partition.Profile, migConfig.GPUMem.String()),
+			"partition")
+	}
+	return errs
+}
+
 func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError) {
 	// We disable changing node count for now.
 	if r.Count != nil && old.Count != nil && *r.Count != *old.Count {
 		errs = errs.Also(apis.ErrGeneric("field is immutable", "count"))
+	}
+
+	// Partition config is immutable once set
+	if !apiequality.Semantic.DeepEqual(r.Partition, old.Partition) {
+		errs = errs.Also(apis.ErrGeneric("field is immutable", "partition"))
 	}
 
 	// Check node auto-provisioning feature gate and validate instanceType accordingly
@@ -688,4 +823,52 @@ func validateDuplicateName(adapters []AdapterSpec, nameMap map[string]bool) (err
 		}
 	}
 	return errs
+}
+
+func (w *Workspace) validateModelStreamingAnnotationImmutable(old *Workspace) *apis.FieldError {
+	oldVal := old.GetAnnotations()[mmconsts.AnnotationModelStreaming]
+	newVal := w.GetAnnotations()[mmconsts.AnnotationModelStreaming]
+	if oldVal != newVal {
+		return apis.ErrGeneric(
+			fmt.Sprintf("annotation %s is immutable after creation", mmconsts.AnnotationModelStreaming),
+			fmt.Sprintf("metadata.annotations[%s]", mmconsts.AnnotationModelStreaming),
+		)
+	}
+	return nil
+}
+
+// validateStreamingCSIDriver validates that the required CSI driver for model streaming
+// is installed on the cluster. The CSI driver name is resolved from CLOUD_PROVIDER env
+// via consts.CSIDriverNameForCloud. To add a new cloud provider: add a constant and case
+// in pkg/utils/consts.
+func (w *Workspace) validateStreamingCSIDriver(ctx context.Context) *apis.FieldError {
+	if w.Inference == nil || w.Inference.Preset == nil {
+		return nil
+	}
+	if w.GetAnnotations()[mmconsts.AnnotationModelStreaming] == "disabled" {
+		return nil
+	}
+
+	if GetWorkspaceRuntimeName(w) != model.RuntimeNameVLLM {
+		return nil
+	}
+
+	expectedDriver := consts.CSIDriverNameForCloud(os.Getenv("CLOUD_PROVIDER"))
+	if expectedDriver == "" {
+		return apis.ErrGeneric(
+			fmt.Sprintf("unsupported cloud provider %q for model streaming", os.Getenv("CLOUD_PROVIDER")),
+			"metadata.annotations",
+		)
+	}
+
+	csiDriver := &storagev1.CSIDriver{}
+	if err := k8sclient.GetGlobalClient().Get(ctx, client.ObjectKey{Name: expectedDriver}, csiDriver); err != nil {
+		return apis.ErrGeneric(
+			fmt.Sprintf("CSI driver %s not found; required for model streaming. "+
+				"Ensure the CSI driver is enabled on your cluster",
+				expectedDriver),
+			"metadata.annotations",
+		)
+	}
+	return nil
 }

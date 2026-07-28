@@ -86,7 +86,7 @@ jobs:
           # Install via Helm
           # CSI Local Node cannot be configured to not deploy and it crashes on kind on github runners for unknown reasons
           # so we need to filter it out its components
-          helm template kaito-workspace ./charts/kaito/workspace --namespace ${{ env.KAITO_NAMESPACE }} --set featureGates.disableNodeAutoProvisioning="true" --set featureGates.enableInferenceSetController="true" --set featureGates.gatewayAPIInferenceExtension="true" --include-crds --debug --wait | awk '
+          helm template kaito-workspace ./charts/kaito/workspace --namespace ${{ env.KAITO_NAMESPACE }} --set nodeProvisioner="byo" --set featureGates.enableInferenceSetController="true" --set featureGates.gatewayAPIInferenceExtension="true" --include-crds --debug --wait | awk '
             BEGIN { RS="---\n"; ORS="---\n"; csi=0 }
             /kind: ServiceAccount/ && /name: csi-local-node/ { csi=1 }
             /kind: StorageClass/ && /name: kaito-local-nvme-disk/ { csi=1 }
@@ -109,8 +109,30 @@ jobs:
       - name: Deploy KEDA Kaito Scaler
         run: |
           helm repo add keda-kaito-scaler https://kaito-project.github.io/keda-kaito-scaler/charts/kaito-project
-          helm upgrade --install keda-kaito-scaler -n ${{ env.KAITO_NAMESPACE }} keda-kaito-scaler/keda-kaito-scaler
-          kubectl wait --for=condition=available --timeout=300s deployment/keda-kaito-scaler -n ${{ env.KAITO_NAMESPACE }}
+          helm repo update
+          # keda-kaito-scaler must be in the same namespace as KEDA (shares TLS secrets)
+          # Install the latest chart version so we always pick up the current
+          # annotation-driven auto-provision schema shipped by keda-kaito-scaler
+          # (see kaito-project/keda-kaito-scaler#129, which introduced the
+          # single YAML-list `scaledobject.kaito.sh/metrics` annotation used by
+          # the InferenceSet fixture below).
+          helm upgrade --install keda-kaito-scaler -n keda keda-kaito-scaler/keda-kaito-scaler
+          kubectl wait --for=condition=available --timeout=300s deployment/keda-kaito-scaler -n keda
+
+          # Wait for keda-kaito-scaler TLS certs to be fully provisioned before
+          # KEDA attempts its first gRPC connection (avoids pool poisoning).
+          echo "Waiting for keda-kaito-scaler TLS certs..."
+          for i in $(seq 1 30); do
+            if kubectl get secret keda-kaito-scaler-server-certs -n keda -o jsonpath='{.data.ca\.crt}' 2>/dev/null | grep -q .; then
+              echo "✓ TLS certs ready"
+              break
+            fi
+            sleep 2
+          done
+
+          # Restart KEDA operator to pick up certs with a clean gRPC pool
+          kubectl -n keda rollout restart deploy/keda-operator
+          kubectl -n keda rollout status deploy/keda-operator --timeout=120s
 
       - name: Create AIKit workspace
         run: |
@@ -143,9 +165,22 @@ jobs:
           metadata:
             name: inferenceset-aikit-test
             annotations:
+              # Annotation-driven auto-provision. The earlier v0.6.0 indexed
+              # keys (metricName/0, upthreshold/0, ...) were invalid Kubernetes
+              # annotation keys and were replaced in
+              # kaito-project/keda-kaito-scaler#129 with a single YAML-list
+              # `scaledobject.kaito.sh/metrics` annotation used below.
               scaledobject.kaito.sh/auto-provision: "true"
               scaledobject.kaito.sh/max-replicas: "5"
-              scaledobject.kaito.sh/threshold: "10"
+              # One entry per metric. AIKit does not emit vLLM metrics, so
+              # this trigger will never fire in the test — the goal is only
+              # to validate that the ScaledObject / HPA are created and
+              # reconciled correctly.
+              scaledobject.kaito.sh/metrics: |
+                - name: vllm:num_requests_waiting
+                  type: gauge
+                  upthreshold: 10
+                  downthreshold: 1
           spec:
             labelSelector:
               matchLabels:
@@ -475,6 +510,15 @@ jobs:
 
           echo "=== Controller logs ==="
           kubectl logs -l app.kubernetes.io/name=workspace -n ${{ env.KAITO_NAMESPACE }} --tail=-1
+
+          echo "=== Controller previous logs (if restarted) ==="
+          for pod in $(kubectl get pods -l app.kubernetes.io/name=workspace -n ${{ env.KAITO_NAMESPACE }} -o jsonpath='{.items[*].metadata.name}'); do
+            restarts=$(kubectl get pod "$pod" -n ${{ env.KAITO_NAMESPACE }} -o jsonpath='{.status.containerStatuses[0].restartCount}')
+            if [ "$restarts" -gt 0 ] 2>/dev/null; then
+              echo "--- Previous logs for $pod (restarts: $restarts) ---"
+              kubectl logs -n ${{ env.KAITO_NAMESPACE }} "$pod" -p || true
+            fi
+          done
 
           echo "=== Node information ==="
           kubectl describe nodes

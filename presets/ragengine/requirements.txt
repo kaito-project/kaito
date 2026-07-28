@@ -31,6 +31,7 @@ requests==2.32.4
 openai==1.108.1
 llm-guard==0.3.16
 PyYAML>=6.0.2
+watchfiles>=0.21.0
 
 tiktoken==0.11.0
 tree-sitter==0.23.2

@@ -73,7 +73,7 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 
 	It("should validate the workspace inference adapters at creation", func() {
 		By("Creating a vllm workspace with adapter strength", func() {
-			workspaceObj := utils.GenerateInferenceWorkspaceManifestWithVLLM(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV36ads_A10_v5",
+			workspaceObj := utils.GenerateInferenceWorkspaceManifestWithVLLM(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV72ads_A10_v5",
 				&metav1.LabelSelector{
 					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
 				}, nil, PresetPhi4MiniModel, nil, nil, testAdapters1, "", "")
@@ -86,7 +86,7 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 		})
 
 		By("Creating a vllm workspace without adapter strength", func() {
-			workspaceObj := utils.GenerateInferenceWorkspaceManifestWithVLLM(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV36ads_A10_v5",
+			workspaceObj := utils.GenerateInferenceWorkspaceManifestWithVLLM(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV72ads_A10_v5",
 				&metav1.LabelSelector{
 					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
 				}, nil, PresetPhi4MiniModel, nil, nil, phi4Adapter, "", "")
@@ -103,7 +103,7 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 		})
 
 		By("Creating a transformers workspace with adapter strength", func() {
-			workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV36ads_A10_v5",
+			workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV72ads_A10_v5",
 				&metav1.LabelSelector{
 					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
 				}, nil, PresetPhi3Mini128kModel, nil, nil, testAdapters1, "", "")
@@ -128,7 +128,7 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 					Strength: &DefaultStrength,
 				},
 			}
-			workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV36ads_A10_v5",
+			workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV72ads_A10_v5",
 				&metav1.LabelSelector{
 					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
 				}, nil, PresetPhi4Model, nil, nil, invalidAdapters, "", "")
@@ -143,7 +143,7 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 
 	It("should validate the workspace inference configfile", func() {
 		By("Creating a 2gpu transformers workspace without configfile", func() {
-			workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC12s_v3",
+			workspaceObj := utils.GenerateInferenceWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV72ads_A10_v5",
 				&metav1.LabelSelector{
 					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
 				}, nil, PresetPhi4Model, nil, nil, nil, "", "")
@@ -161,7 +161,7 @@ var _ = Describe("Workspace Validation Webhook", utils.GinkgoLabelFastCheck, fun
 		})
 
 		By("Creating a 2gpu workspace with correct configfile", func() {
-			workspaceObj := utils.GenerateInferenceWorkspaceManifestWithVLLM(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NC12s_v3",
+			workspaceObj := utils.GenerateInferenceWorkspaceManifestWithVLLM(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV72ads_A10_v5",
 				&metav1.LabelSelector{
 					MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
 				}, nil, PresetPhi4MiniModel, nil, nil, nil, "", "")
@@ -198,7 +198,7 @@ vllm:
 	})
 
 	It("should validate the workspace tuning spec at creation ", func() {
-		workspaceObj := utils.GenerateTuningWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV36ads_A10_v5",
+		workspaceObj := utils.GenerateTuningWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV72ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
 			}, nil, nil, testDataDestinationConfig, initialPresetSpec, initialTuningMethod)
@@ -213,7 +213,7 @@ vllm:
 	})
 
 	It("should validate the workspace tuning spec at creation ", func() {
-		workspaceObj := utils.GenerateTuningWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV36ads_A10_v5",
+		workspaceObj := utils.GenerateTuningWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV72ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
 			}, nil, testDataSourceConfig, nil, initialPresetSpec, initialTuningMethod)
@@ -228,7 +228,7 @@ vllm:
 	})
 
 	It("should validate the workspace tuning spec at creation ", func() {
-		workspaceObj := utils.GenerateTuningWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV36ads_A10_v5",
+		workspaceObj := utils.GenerateTuningWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV72ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
 			}, nil, testDataSourceConfig, testDataDestinationConfig, nil, initialTuningMethod)
@@ -246,7 +246,7 @@ vllm:
 	//TODO custom template
 
 	It("should validate the workspace resource spec at update ", func() {
-		workspaceObj := utils.GenerateInferenceWorkspaceManifestWithVLLM(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV36ads_A10_v5",
+		workspaceObj := utils.GenerateInferenceWorkspaceManifestWithVLLM(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV72ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
 			}, nil, PresetPhi4MiniModel, nil, nil, nil, "", "")
@@ -289,7 +289,7 @@ vllm:
 	})
 
 	It("should validate the workspace tuning spec at update ", func() {
-		workspaceObj := utils.GenerateTuningWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV36ads_A10_v5",
+		workspaceObj := utils.GenerateTuningWorkspaceManifest(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV72ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
 			}, nil, testDataSourceConfig, testDataDestinationConfig, initialPresetSpec, initialTuningMethod)
@@ -330,7 +330,7 @@ vllm:
 	})
 
 	It("should validate the workspace inference spec at update ", func() {
-		workspaceObj := utils.GenerateInferenceWorkspaceManifestWithVLLM(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV36ads_A10_v5",
+		workspaceObj := utils.GenerateInferenceWorkspaceManifestWithVLLM(fmt.Sprint("webhook-", rand.Intn(1000)), namespaceName, "", 1, "Standard_NV72ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "webhook-e2e-test"},
 			}, nil, PresetPhi4MiniModel, nil, nil, nil, "", "")

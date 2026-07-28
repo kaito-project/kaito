@@ -125,3 +125,12 @@ func IsValidPreset(preset string) bool {
 	}
 	return false
 }
+
+// ResolveHFModelID resolves a preset name to its HuggingFace model ID.
+func ResolveHFModelID(presetName string) string {
+	name := strings.ToLower(presetName)
+	if hfName, ok := LegacyBuiltinToCatalog[name]; ok {
+		return hfName
+	}
+	return presetName
+}

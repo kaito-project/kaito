@@ -42,17 +42,20 @@ var (
 	safetensorRegex = regexp.MustCompile(`.*\.safetensors`)
 	binRegex        = regexp.MustCompile(`.*\.bin`)
 	mistralRegex    = regexp.MustCompile(`consolidated.*\.safetensors`)
-	// source: https://github.com/vllm-project/vllm/blob/v0.17.1/vllm/reasoning/__init__.py
+	// source: https://github.com/vllm-project/vllm/blob/main/vllm/reasoning/__init__.py
 	reasoningParserModeNamePrefixMap = map[string]string{
 		"deepseek-r1":  "deepseek_r1",
 		"deepseek-v3":  "deepseek_v3",
+		"deepseek-v4":  "deepseek_v4",
 		"ernie-4.5":    "ernie45",
+		"gemma-4":      "gemma4",
 		"glm-4.5":      "glm45",
+		"granite-3.2":  "granite",
 		"holo2":        "holo2",
 		"hunyuan-a13b": "hunyuan_a13b",
-		"granite-3.2":  "granite",
 		"kimi-k2":      "kimi_k2",
 		"minimax-m2":   "minimax_m2_append_think",
+		"mistral":      "mistral",
 		"olmo-3":       "olmo3",
 		"qwen3":        "qwen3",
 		"qwq-32b":      "deepseek_r1",
@@ -62,22 +65,41 @@ var (
 		"DeepseekV3ForCausalLM":                  "deepseek_v3",
 		"Ernie4_5_VLMoeForConditionalGeneration": "ernie45",
 		"Ernie4_5_MoeForCausalLM":                "ernie45",
+		"Gemma4ForConditionalGeneration":         "gemma4",
 		"Glm4MoeForCausalLM":                     "glm45",
 		"HunYuanMoEV1ForCausalLM":                "hunyuan_a13b",
 		"GraniteForCausalLM":                     "granite",
 		"KimiK2ForCausalLM":                      "kimi_k2",
+		"KimiK25ForConditionalGeneration":        "kimi_k2",
 		"MiniMaxM2ForCausalLM":                   "minimax_m2_append_think",
+		"Mistral3ForConditionalGeneration":       "mistral",
 		"MistralForCausalLM":                     "mistral",
 		"NemotronForCausalLM":                    "nemotron_v3",
+		"NemotronHForCausalLM":                   "nemotron_v3",
+		"NemotronH_Nano_VL_V2":                   "nemotron_v3",
 		"OlmoForCausalLM":                        "olmo3",
 		"Qwen3ForCausalLM":                       "qwen3",
 		"Qwen3MoeForCausalLM":                    "qwen3",
+		"Qwen3_5ForConditionalGeneration":        "qwen3",
+		"Qwen3_5MoeForConditionalGeneration":     "qwen3",
 		"GptOssForCausalLM":                      "openai_gptoss",
 		"Step3TextForCausalLM":                   "step3",
 		"Step3VLForConditionalGeneration":        "step3",
 	}
 
-	// source: https://github.com/vllm-project/vllm/blob/main/docs/features/tool_calling.md
+	// nonReasoningModels lists models that are non-reasoning and the reasoning-parser parameter
+	// should not be passed to vLLM for these models. Passing the reasoning-parser parameter to vLLM
+	// may cause failures like https://github.com/mistralai/mistral-common/issues/247.
+	nonReasoningModels = map[string]bool{
+		"mistral-7b-v0.3":                    true,
+		"mistral-7b-instruct-v0.3":           true,
+		"ministral-3-3b-instruct-2512":       true,
+		"ministral-3-8b-instruct-2512":       true,
+		"ministral-3-14b-instruct-2512":      true,
+		"mistral-large-3-675b-instruct-2512": true,
+	}
+
+	// source: https://github.com/vllm-project/vllm/blob/main/vllm/tool_parsers/__init__.py
 	// key is model name prefix, value is ToolCallParser mode name
 	toolCallParserModeNamePrefixMap = map[string]string{
 		"hermes-2":      "hermes",
@@ -98,6 +120,7 @@ var (
 		"deepseek-v3":   "deepseek_v3",
 		"deepseek-v3.1": "deepseek_v31",
 		"deepseek-v3.2": "deepseek_v32",
+		"deepseek-v4":   "deepseek_v4",
 		"kimi_k2":       "kimi_k2",
 		"hunyuan-a13b":  "hunyuan_a13b",
 		"longcat":       "longcat",
@@ -105,6 +128,8 @@ var (
 		"glm-4.7":       "glm47",
 		"qwen3":         "hermes",
 		"qwen3-coder":   "qwen3_xml",
+		"qwen3.5":       "qwen3_coder",
+		"qwen3.6":       "qwen3_coder",
 		"olmo-3":        "olmo3",
 		"gigachat3":     "gigachat3",
 		"ernie-4.5":     "ernie45",
@@ -113,6 +138,7 @@ var (
 		"step3":         "step3",
 		"seed-oss":      "seed_oss",
 		"gemma-3":       "functiongemma",
+		"gemma-4":       "gemma4",
 	}
 
 	// key is model architecture name, value is ToolCallParser mode name
@@ -130,6 +156,8 @@ var (
 		"Qwen2ForCausalLM":                       "hermes",
 		"Qwen3ForCausalLM":                       "hermes",
 		"Qwen3MoeForCausalLM":                    "qwen3_xml",
+		"Qwen3_5ForConditionalGeneration":        "qwen3_coder",
+		"Qwen3_5MoeForConditionalGeneration":     "qwen3_coder",
 		"MiniMaxM1ForCausalLM":                   "minimax",
 		"MiniMaxM2ForCausalLM":                   "minimax_m2",
 		"DeepseekV3ForCausalLM":                  "deepseek_v3",
@@ -140,14 +168,18 @@ var (
 		"Glm4MoeForCausalLM":                     "glm45",
 		"Glm47MoeForCausalLM":                    "glm47",
 		"Gemma3ForCausalLM":                      "functiongemma",
+		"Gemma4ForConditionalGeneration":         "gemma4",
 		"Olmo3ForCausalLM":                       "olmo3",
 		"SeedOssForCausalLM":                     "seed_oss",
 		"Ernie4_5_VLMoeForConditionalGeneration": "ernie45",
 		"Ernie4_5_MoeForCausalLM":                "ernie45",
 		"Step3TextForCausalLM":                   "step3",
 		"Step3p5TextForCausalLM":                 "step3p5",
+		"NemotronHForCausalLM":                   "qwen3_coder",
+		"NemotronH_Nano_VL_V2":                   "qwen3_coder",
 		"Phi4MiniForCausalLM":                    "phi4_mini_json",
 		"KimiK2ForCausalLM":                      "kimi_k2",
+		"KimiK25ForConditionalGeneration":        "kimi_k2",
 		"GigaChat3ForCausalLM":                   "gigachat3",
 	}
 
@@ -162,11 +194,60 @@ var (
 		"qwen2.5":     "tool-chat-hermes.jinja",
 	}
 
-	// attentionBackendPrefixMap maps model name prefixes to their vLLM attention backend.
-	attentionBackendPrefixMap = map[string]string{
+	// tokenizerModePrefixMap maps model name prefixes to their vLLM tokenizer mode.
+	tokenizerModePrefixMap = map[string]string{
+		// Use deepseek_v32 tokenizer mode for both DeepSeek R1 and V3 models to avoid special token decoding issues:
+		// https://github.com/kaito-project/kaito/issues/1976
+		"deepseek-r1": "deepseek_v32",
+		"deepseek-v3": "deepseek_v32",
+		"deepseek-v4": "deepseek_v4",
+	}
+
+	// vllmAttentionBackendPrefixMap maps model name prefixes to their vLLM attention backend.
+	// source: https://docs.vllm.ai/en/latest/design/attention_backends/
+	vllmAttentionBackendPrefixMap = map[string]string{
 		// flashinfer attention backend is chosen by default for LLaMA 3 models, which requires the FlashInfer library to be installed lively.
 		// Pin to triton backend as a workaround.
 		"llama-3": "TRITON_ATTN",
+	}
+
+	// vllmMoeBackendOverride maps exact model names to their vLLM MoE backend.
+	// source: https://docs.vllm.ai/en/latest/configuration/engine_args/#-moe-backend
+	vllmMoeBackendOverride = map[string]string{
+		// Mistral Small 4 FP8 defaults to FlashInfer CUTLASS MoE backend which requires
+		// JIT compilation with CUDA dev headers (nvcc, cublasLt, nvrtc).
+		// Pin to triton backend to avoid the JIT dependency for now.
+		"mistral-small-4-119b-2603": "triton",
+		// MiniMax-M2.7 FP8 MoE also defaults to FlashInfer CUTLASS which needs nvcc.
+		"minimax-m2.7": "triton",
+	}
+
+	// vllmKVCacheDtypePrefixMap maps model name prefixes to their required vLLM
+	// kv-cache-dtype. Some architectures only support a specific KV cache format
+	// and assert at engine init otherwise.
+	// source: https://docs.vllm.ai/en/latest/configuration/engine_args/#-kv-cache-dtype
+	vllmKVCacheDtypePrefixMap = map[string]string{
+		// DeepSeek-V4 (Flash, Pro, ...) asserts "only supports fp8 kv-cache format
+		// for now" when the kv-cache-dtype is left at the default "auto".
+		"deepseek-v4": "fp8",
+	}
+
+	// vllmGdnPrefillBackendPrefixMap maps model name prefixes to their vLLM GDN prefill backend.
+	// Qwen3.5/3.6 models use hybrid GDN (Gated DeltaNet) attention which defaults to
+	// FlashInfer JIT compilation requiring nvcc. Pin to triton to avoid the dependency.
+	// source: https://docs.vllm.ai/en/latest/configuration/engine_args/#-gdn-prefill-backend
+	vllmGdnPrefillBackendPrefixMap = map[string]string{
+		"qwen3.5": "triton",
+		"qwen3.6": "triton",
+	}
+
+	// vllmExpertParallelEnabled maps model name prefixes to enable expert parallelism.
+	// Expert parallelism distributes MoE experts across TP ranks, which can avoid
+	// FP8 block quantization issues when expert weight dimensions are not divisible
+	// by the quantization block size.
+	// source: https://docs.vllm.ai/en/latest/configuration/engine_args/#-enable-expert-parallel
+	vllmExpertParallelEnabled = map[string]bool{
+		"minimax-m2": true,
 	}
 
 	// catalogOverrides provides hardcoded values for models whose HuggingFace
@@ -377,10 +458,28 @@ func (g *Generator) fetchAndParseConfig() error {
 		return fmt.Errorf("error fetching config: %v", err)
 	}
 
+	configBody = sanitizeJSON(configBody)
+
 	if err := json.Unmarshal(configBody, &g.ModelConfig); err != nil {
 		return fmt.Errorf("error parsing config: %v", err)
 	}
 	return nil
+}
+
+// vLLM delegates the loading of config.json to HuggingFace transformer library
+// (https://github.com/huggingface/transformers/blob/main/src/transformers/configuration_utils.py#L552).
+// The library uses Python's json.loads which accepts non-standard JSON literals (e.g. Infinity, NaN).
+// However, Go's standard library encoding/json only supports standard JSON values. sanitizeJSON replaces
+// non-standard JSON literals (Infinity, -Infinity, NaN) with null so the data can be parsed by encoding/json.
+func sanitizeJSON(data []byte) []byte {
+	// Replace standalone Infinity, -Infinity, NaN with null
+	re := regexp.MustCompile(`(?:(?:^|[,\[:\s])\s*)-?Infinity|(?:(?:^|[,\[:\s])\s*)NaN`)
+	return re.ReplaceAllFunc(data, func(match []byte) []byte {
+		// Preserve the prefix (comma, bracket, colon, whitespace) before the value
+		trimmed := strings.TrimLeft(string(match), " \t\n\r,[:") //nolint:gocritic
+		prefix := string(match[:len(match)-len(trimmed)])
+		return []byte(prefix + "null")
+	})
 }
 
 func (g *Generator) fetchConfigFile(name string) ([]byte, error) {
@@ -388,15 +487,21 @@ func (g *Generator) fetchConfigFile(name string) ([]byte, error) {
 	return g.fetchURL(url)
 }
 
-// mergeTextConfig promotes fields from a nested "text_config" object into the
-// top-level config. This is needed for multimodal models (e.g., Gemma-3,
-// Ministral-3) where architecture-specific parameters live under text_config.
+// mergeTextConfig promotes fields from a nested "text_config" or "llm_config"
+// object into the top-level config. This is needed for multimodal models
+// (e.g., Gemma-3, Ministral-3, Nemotron-VL) where architecture-specific
+// parameters live under a nested config key.
 func (g *Generator) mergeTextConfig() {
-	textConfig, ok := g.ModelConfig["text_config"].(map[string]interface{})
-	if !ok {
+	var nested map[string]interface{}
+	if tc, ok := g.ModelConfig["text_config"].(map[string]interface{}); ok {
+		nested = tc
+	} else if lc, ok := g.ModelConfig["llm_config"].(map[string]interface{}); ok {
+		nested = lc
+	}
+	if nested == nil {
 		return
 	}
-	for k, v := range textConfig {
+	for k, v := range nested {
 		if _, exists := g.ModelConfig[k]; !exists {
 			g.ModelConfig[k] = v
 		}
@@ -419,6 +524,17 @@ func getInt(config map[string]interface{}, keys []string, defaultVal int) int {
 		}
 	}
 	return defaultVal
+}
+
+// getString looks up the first matching key in config that has a non-empty
+// string value. Keys are tried in order; the first hit wins.
+func getString(config map[string]interface{}, keys []string) string {
+	for _, key := range keys {
+		if val, ok := config[key].(string); ok && val != "" {
+			return val
+		}
+	}
+	return ""
 }
 
 func (g *Generator) ParseModelMetadata() {
@@ -445,19 +561,21 @@ func (g *Generator) ParseModelMetadata() {
 	}
 
 	// set reasoning parser based on model name prefix
-	for prefix, parser := range reasoningParserModeNamePrefixMap {
-		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
-			g.Param.Metadata.ReasoningParser = parser
-			break
-		}
-	}
-
-	// set reasoning parser based on model architecture if not set by name prefix
-	if g.Param.Metadata.ReasoningParser == "" {
-		for _, arch := range g.Param.Metadata.Architectures {
-			if parser, ok := reasoningParserArchMap[arch]; ok {
+	if !nonReasoningModels[g.Param.Metadata.Name] {
+		for prefix, parser := range reasoningParserModeNamePrefixMap {
+			if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
 				g.Param.Metadata.ReasoningParser = parser
 				break
+			}
+		}
+
+		// set reasoning parser based on model architecture if not set by name prefix
+		if g.Param.Metadata.ReasoningParser == "" {
+			for _, arch := range g.Param.Metadata.Architectures {
+				if parser, ok := reasoningParserArchMap[arch]; ok {
+					g.Param.Metadata.ReasoningParser = parser
+					break
+				}
 			}
 		}
 	}
@@ -494,6 +612,14 @@ func (g *Generator) ParseModelMetadata() {
 			g.Param.Metadata.ChatTemplate = template
 			break
 		}
+	}
+
+	// Parse quantization config (e.g., AWQ, GPTQ) from HuggingFace config.json.
+	if qc, ok := g.ModelConfig["quantization_config"].(map[string]interface{}); ok {
+		if qm, ok := qc["quant_method"].(string); ok {
+			g.Param.Metadata.QuantMethod = qm
+		}
+		g.Param.Metadata.QuantBits = getInt(qc, []string{"bits"}, 0)
 	}
 }
 
@@ -549,6 +675,7 @@ func (g *Generator) calculateKVCacheTokenSize() (int, string) {
 	}
 
 	totalElements := elementsPerToken * hiddenLayers
+	// TODO: honor kv-cache quantization instead of hardcoding fp16
 	tokenSize := totalElements * 2 // fp16
 
 	return tokenSize, attnType
@@ -566,17 +693,54 @@ func (g *Generator) FinalizeParams() {
 	g.Param.VLLM.ModelRunParams["config_format"] = g.ConfigFormat
 	g.Param.VLLM.ModelRunParams["tokenizer_mode"] = g.TokenizerMode
 
+	// Override tokenizer mode based on model name prefix
+	for prefix, mode := range tokenizerModePrefixMap {
+		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
+			g.Param.VLLM.ModelRunParams["tokenizer_mode"] = mode
+			break
+		}
+	}
+
 	// Set attention backend based on model name prefix
-	for prefix, backend := range attentionBackendPrefixMap {
+	for prefix, backend := range vllmAttentionBackendPrefixMap {
 		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
 			g.Param.VLLM.ModelRunParams["attention-backend"] = backend
 			break
 		}
 	}
 
+	// Set MoE backend based on exact model name match
+	if backend, ok := vllmMoeBackendOverride[g.Param.Metadata.Name]; ok {
+		g.Param.VLLM.ModelRunParams["moe-backend"] = backend
+	}
+
+	// Set kv-cache-dtype based on model name prefix
+	for prefix, dtype := range vllmKVCacheDtypePrefixMap {
+		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
+			g.Param.VLLM.ModelRunParams["kv-cache-dtype"] = dtype
+			break
+		}
+	}
+
+	// Set GDN prefill backend based on model name prefix
+	for prefix, backend := range vllmGdnPrefillBackendPrefixMap {
+		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
+			g.Param.VLLM.ModelRunParams["gdn-prefill-backend"] = backend
+			break
+		}
+	}
+
+	// Enable expert parallelism based on model name prefix
+	for prefix, enabled := range vllmExpertParallelEnabled {
+		if strings.HasPrefix(g.Param.Metadata.Name, prefix) && enabled {
+			g.Param.VLLM.ModelRunParams["enable-expert-parallel"] = ""
+			break
+		}
+	}
+
 	bpt, attnType := g.calculateKVCacheTokenSize()
 	g.Param.Metadata.BytesPerToken = bpt
-	g.Param.AttnType = attnType
+	g.Param.Metadata.AttnType = attnType
 }
 
 // loadFromCatalog checks whether the model repo exists in the embedded catalog.
@@ -621,6 +785,14 @@ func (g *Generator) loadFromCatalog() bool {
 	}
 	if entry.QKRopeHeadDim > 0 {
 		g.ModelConfig["qk_rope_head_dim"] = entry.QKRopeHeadDim
+	}
+
+	// Restore quantization_config so ParseModelMetadata can pick it up.
+	if entry.QuantMethod != "" {
+		g.ModelConfig["quantization_config"] = map[string]interface{}{
+			"quant_method": entry.QuantMethod,
+			"bits":         entry.QuantBits,
+		}
 	}
 
 	// Set architectures in config for ParseModelMetadata to pick up

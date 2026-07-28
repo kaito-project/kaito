@@ -122,6 +122,20 @@ func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
 			},
 		},
 		{
+			name: "MLA model surfaces AttnType at the PresetParam level",
+			model: model.Metadata{
+				Name:          "mla-model",
+				Version:       "https://huggingface.co/test/model",
+				ModelFileSize: "2Gi",
+				AttnType:      "MLA",
+			},
+			expectedName:  "mla-model",
+			expectedDType: "bfloat16",
+			checkParams: func(t *testing.T, params *model.PresetParam) {
+				assert.Equal(t, "MLA", params.AttnType)
+			},
+		},
+		{
 			name: "model with reasoning parser",
 			model: model.Metadata{
 				Name:            "reasoning-model",
@@ -194,6 +208,61 @@ func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
 			assert.NotNil(t, params)
 			assert.Equal(t, tt.expectedName, params.RuntimeParam.VLLM.ModelName)
 			tt.checkParams(t, params)
+		})
+	}
+}
+
+func TestReadinessTimeoutForModelSize(t *testing.T) {
+	tests := []struct {
+		name          string
+		modelFileSize string
+		expected      time.Duration
+	}{
+		{
+			name:          "very large model is capped",
+			modelFileSize: "641.30Gi", // DeepSeek-R1-0528: 15m + 641.3*30s → capped
+			expected:      maxReadinessTimeout,
+		},
+		{
+			name:          "large model is capped",
+			modelFileSize: "554.32Gi", // Kimi-K2.5: 15m + 554.32*30s → capped
+			expected:      maxReadinessTimeout,
+		},
+		{
+			name:          "150GiB model gets one hour",
+			modelFileSize: "150Gi", // 15m + 150*18s = 60m
+			expected:      60 * time.Minute,
+		},
+		{
+			name:          "medium model scales linearly (integer GiB)",
+			modelFileSize: "100Gi", // 15m + 100*18s = 45m
+			expected:      45 * time.Minute,
+		},
+		{
+			name:          "small-medium model scales linearly (integer GiB)",
+			modelFileSize: "60Gi", // 15m + 60*18s = 33m
+			expected:      33 * time.Minute,
+		},
+		{
+			name:          "small model is floored",
+			modelFileSize: "7.15Gi", // 15m + 7.15*30s ≈ 18.6m → floored
+			expected:      defaultReadinessTimeout,
+		},
+		{
+			name:          "empty size uses floor",
+			modelFileSize: "",
+			expected:      defaultReadinessTimeout,
+		},
+		{
+			name:          "unparsable size uses floor",
+			modelFileSize: "not-a-size",
+			expected:      defaultReadinessTimeout,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, readinessTimeoutForModelSize(tt.modelFileSize))
 		})
 	}
 }
@@ -366,7 +435,6 @@ func TestVLLMCompatibleModel_GetTuningParameters(t *testing.T) {
 			assert.NotNil(t, params)
 			tc := TransformerTuningParameters["phi-4"]
 			assert.Equal(t, tc.DiskStorageRequirement, params.DiskStorageRequirement)
-			assert.Equal(t, tc.GPUCountRequirement, params.GPUCountRequirement)
 			assert.Equal(t, tc.TotalSafeTensorFileSize, params.TotalSafeTensorFileSize)
 			assert.Equal(t, tc.ModelTokenLimit, params.ModelTokenLimit)
 			assert.Equal(t, tc.BytesPerToken, params.BytesPerToken)
@@ -636,6 +704,44 @@ func TestGetModelByName(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestGetModelByName_DeepSeekV4Flash verifies DeepSeek-V4-Flash resolves offline
+// from the embedded catalog and wires the deepseek_v4 reasoning parser, tool-call
+// parser, and tokenizer mode.
+func TestGetModelByName_DeepSeekV4Flash(t *testing.T) {
+	m, err := GetModelByNameWithToken(context.Background(), "deepseek-ai/DeepSeek-V4-Flash", "")
+	assert.NoError(t, err)
+	if !assert.NotNil(t, m) {
+		return
+	}
+
+	params := m.GetInferenceParameters()
+	runParams := params.RuntimeParam.VLLM.ModelRunParams
+	assert.Equal(t, "deepseek_v4", runParams["reasoning-parser"])
+	assert.Equal(t, "deepseek_v4", runParams["tool-call-parser"])
+	assert.Equal(t, "", runParams["enable-auto-tool-choice"])
+	assert.Equal(t, "deepseek_v4", runParams["tokenizer_mode"])
+	assert.Equal(t, "fp8", runParams["kv-cache-dtype"])
+}
+
+// TestGetModelByName_DeepSeekV4Pro verifies DeepSeek-V4-Pro resolves offline from
+// the embedded catalog and inherits the DeepSeek-V4 family wiring — including the
+// fp8 kv-cache-dtype, which the engine asserts on for the DeepseekV4 architecture.
+func TestGetModelByName_DeepSeekV4Pro(t *testing.T) {
+	m, err := GetModelByNameWithToken(context.Background(), "deepseek-ai/DeepSeek-V4-Pro", "")
+	assert.NoError(t, err)
+	if !assert.NotNil(t, m) {
+		return
+	}
+
+	params := m.GetInferenceParameters()
+	runParams := params.RuntimeParam.VLLM.ModelRunParams
+	assert.Equal(t, "deepseek_v4", runParams["reasoning-parser"])
+	assert.Equal(t, "deepseek_v4", runParams["tool-call-parser"])
+	assert.Equal(t, "", runParams["enable-auto-tool-choice"])
+	assert.Equal(t, "deepseek_v4", runParams["tokenizer_mode"])
+	assert.Equal(t, "fp8", runParams["kv-cache-dtype"])
 }
 
 func TestGetModelByName_BuiltinModels(t *testing.T) {

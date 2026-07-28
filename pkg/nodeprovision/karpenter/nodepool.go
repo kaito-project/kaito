@@ -28,7 +28,6 @@ import (
 
 const (
 	maxNodePoolNameLen = 253
-	maxLabelValueLen   = 63
 	hashSuffixLen      = 9
 )
 
@@ -52,14 +51,6 @@ func NodePoolName(workspaceNamespace, workspaceName string) string {
 	return truncatedName(workspaceNamespace, workspaceName, maxNodePoolNameLen)
 }
 
-// WorkspaceLabelValue returns a deterministic, label-safe value (≤63 chars)
-// derived from the workspace namespace and name.
-// Used for labels, taints, tolerations, and nodeSelectors — all of which
-// enforce the Kubernetes 63-character label value limit.
-func WorkspaceLabelValue(workspaceNamespace, workspaceName string) string {
-	return truncatedName(workspaceNamespace, workspaceName, maxLabelValueLen)
-}
-
 // resolveNodeClassName determines the NodeClass resource name for a Workspace.
 // It checks for the node-class-name annotation on the workspace, then falls
 // back to the configured default.
@@ -76,10 +67,32 @@ func isInferenceSetWorkspace(ws *kaitov1beta1.Workspace) bool {
 	return ok
 }
 
+// nodePoolRequirements builds the NodePool requirements list.
+// The instance-type requirement is always included. Provider-specific
+// requirements (e.g. Azure placement scope) are added based on the
+// NodeClassConfig group.
+func nodePoolRequirements(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) []karpenterv1.NodeSelectorRequirementWithMinValues {
+	reqs := []karpenterv1.NodeSelectorRequirementWithMinValues{
+		{
+			Key:      corev1.LabelInstanceTypeStable,
+			Operator: corev1.NodeSelectorOpIn,
+			Values:   []string{ws.Resource.InstanceType},
+		},
+	}
+	// Azure Karpenter requires regional placement scope.
+	if cfg.Group == "karpenter.azure.com" {
+		reqs = append(reqs, karpenterv1.NodeSelectorRequirementWithMinValues{
+			Key:      consts.AzurePlacementScopeLabel,
+			Operator: corev1.NodeSelectorOpIn,
+			Values:   []string{consts.AzurePlacementRegional},
+		})
+	}
+	return reqs
+}
+
 // generateNodePool builds a karpenter NodePool manifest for the given Workspace.
 func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) *karpenterv1.NodePool {
 	nodePoolName := NodePoolName(ws.Namespace, ws.Name)
-	workspaceLabelVal := WorkspaceLabelValue(ws.Namespace, ws.Name)
 	nodeClassName := resolveNodeClassName(ws, cfg)
 
 	// Drift budget: InferenceSet workspaces start with "0" (blocked),
@@ -91,16 +104,14 @@ func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) *karpente
 
 	// Template labels propagated to NodeClaims and Nodes.
 	templateLabels := map[string]string{
-		consts.KarpenterWorkspaceKey:          workspaceLabelVal,
 		consts.KarpenterWorkspaceNameKey:      ws.Name,
 		consts.KarpenterWorkspaceNamespaceKey: ws.Namespace,
 	}
 	// Include the user's matchLabels so that inference pods' nodeAffinity
-	// (built from matchLabels) is satisfied.
-	if ws.Resource.LabelSelector != nil {
-		for k, v := range ws.Resource.LabelSelector.MatchLabels {
-			templateLabels[k] = v
-		}
+	// (built from matchLabels) is satisfied. KAITO-reserved keys are stripped
+	// to avoid clobbering controller-managed labels.
+	for k, v := range kaitov1beta1.SanitizedMatchLabels(ws.Resource.LabelSelector) {
+		templateLabels[k] = v
 	}
 	// InferenceSet workspaces get additional labels so the drift controller
 	// can map NodeClaim events back to the owning InferenceSet.
@@ -109,12 +120,23 @@ func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) *karpente
 		templateLabels[consts.KarpenterInferenceSetNamespaceKey] = ws.Namespace
 	}
 
+	// NodePool-level labels for management and lookup.
+	nodePoolLabels := map[string]string{
+		consts.KarpenterLabelManagedBy:        consts.KarpenterManagedByValue,
+		consts.KarpenterWorkspaceNameKey:      ws.Name,
+		consts.KarpenterWorkspaceNamespaceKey: ws.Namespace,
+	}
+	// InferenceSet workspaces get labels on NodePool ObjectMeta so the drift
+	// controller can List NodePools by InferenceSet directly.
+	if isInferenceSetWorkspace(ws) {
+		nodePoolLabels[consts.KarpenterInferenceSetKey] = ws.Labels[consts.WorkspaceCreatedByInferenceSetLabel]
+		nodePoolLabels[consts.KarpenterInferenceSetNamespaceKey] = ws.Namespace
+	}
+
 	np := &karpenterv1.NodePool{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: nodePoolName,
-			Labels: map[string]string{
-				consts.KarpenterLabelManagedBy: consts.KarpenterManagedByValue,
-			},
+			Name:   nodePoolName,
+			Labels: nodePoolLabels,
 		},
 		Spec: karpenterv1.NodePoolSpec{
 			Replicas: lo.ToPtr(int64(ws.Status.TargetNodeCount)),
@@ -128,17 +150,11 @@ func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) *karpente
 						Kind:  cfg.Kind,
 						Name:  nodeClassName,
 					},
-					Requirements: []karpenterv1.NodeSelectorRequirementWithMinValues{
-						{
-							Key:      corev1.LabelInstanceTypeStable,
-							Operator: corev1.NodeSelectorOpIn,
-							Values:   []string{ws.Resource.InstanceType},
-						},
-					},
+					Requirements: nodePoolRequirements(ws, cfg),
 					Taints: []corev1.Taint{
 						{
-							Key:    consts.KarpenterWorkspaceKey,
-							Value:  workspaceLabelVal,
+							Key:    consts.SKUString,
+							Value:  consts.GPUString,
 							Effect: corev1.TaintEffectNoSchedule,
 						},
 					},

@@ -132,19 +132,8 @@ runs:
         username: ${{ github.actor }}
         password: ${{ inputs.ghcr_token }}
 
-    - name: Check if Image exists in target registries
-      id: check_test_image
-      run: |
-        ACR_NAME=${{ inputs.acr_name }}
-        IMAGE_NAME=${{ inputs.image_name }}
-        TAG=${{ inputs.image_tag }}
-
-        # Check ACR (use original logic - always build for now)
-        echo "IMAGE_EXISTS=false" >> $GITHUB_OUTPUT
-      shell: bash
-
     - name: Build model image
-      if: steps.check_test_image.outputs.IMAGE_EXISTS == 'false' && inputs.model_name != 'base'
+      if: inputs.model_name != 'base'
       run: |
         PR_BRANCH=${{ inputs.branch_name }}
         ACR_NAME=${{ inputs.acr_name }}
@@ -183,7 +172,7 @@ runs:
       shell: bash
 
     - name: Build Base Model
-      if: steps.check_test_image.outputs.IMAGE_EXISTS == 'false' && inputs.model_name == 'base'
+      if: inputs.model_name == 'base'
       run: |
         PR_BRANCH=${{ inputs.branch_name }}
         ACR_NAME=${{ inputs.acr_name }}

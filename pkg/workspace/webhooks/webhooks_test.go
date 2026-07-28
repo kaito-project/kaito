@@ -28,30 +28,48 @@ func TestNewControllerWebhooks(t *testing.T) {
 	tests := []struct {
 		name                     string
 		enableInferenceSet       bool
+		enableMRI                bool
 		expectedConstructorCount int
 	}{
 		{
 			name:                     "InferenceSet controller disabled",
 			enableInferenceSet:       false,
+			enableMRI:                false,
 			expectedConstructorCount: 2,
 		},
 		{
-			name:                     "InferenceSet controller enabled",
+			name:                     "InferenceSet controller enabled without MRI",
 			enableInferenceSet:       true,
-			expectedConstructorCount: 3,
+			enableMRI:                false,
+			expectedConstructorCount: 3, // certificates + workspace + inferenceset
+		},
+		{
+			name:                     "InferenceSet and MRI controllers enabled",
+			enableInferenceSet:       true,
+			enableMRI:                true,
+			expectedConstructorCount: 4, // certificates + workspace + inferenceset + MRI
+		},
+		{
+			name:                     "MRI controller enabled without InferenceSet",
+			enableInferenceSet:       false,
+			enableMRI:                true,
+			expectedConstructorCount: 3, // certificates + workspace + MRI
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Save original feature gate state
-			originalValue := featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController]
+			originalIS := featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController]
+			originalMRI := featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController]
 			defer func() {
-				featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] = originalValue
+				featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] = originalIS
+				featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] = originalMRI
 			}()
 
-			// Set feature gate for test
+			// Set feature gates for test
 			featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] = tt.enableInferenceSet
+			featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] = tt.enableMRI
 
 			// Call the function
 			constructors := NewControllerWebhooks()
@@ -87,11 +105,16 @@ func TestWorkspaceResources(t *testing.T) {
 }
 
 func TestInferenceSetResources(t *testing.T) {
-	// Verify that InferenceSetResources contains the expected GVK
-	assert.Equal(t, 1, len(InferenceSetResources))
+	// Verify that InferenceSetResources contains the expected GVKs
+	assert.Equal(t, 2, len(InferenceSetResources))
 
-	// Check v1alpha1 InferenceSet
+	// Check v1alpha1 InferenceSet (registered for backward compatibility during transition)
 	v1alpha1GVK := kaitov1alpha1.GroupVersion.WithKind("InferenceSet")
 	assert.Contains(t, InferenceSetResources, v1alpha1GVK)
 	assert.IsType(t, &kaitov1alpha1.InferenceSet{}, InferenceSetResources[v1alpha1GVK])
+
+	// Check v1beta1 InferenceSet
+	v1beta1GVK := kaitov1beta1.GroupVersion.WithKind("InferenceSet")
+	assert.Contains(t, InferenceSetResources, v1beta1GVK)
+	assert.IsType(t, &kaitov1beta1.InferenceSet{}, InferenceSetResources[v1beta1GVK])
 }

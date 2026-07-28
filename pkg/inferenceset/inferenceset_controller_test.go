@@ -23,6 +23,7 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	appsv1 "k8s.io/api/apps/v1"
@@ -31,21 +32,22 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	"github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
+	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 )
 
 func TestInferenceSetSyncControllerRevision(t *testing.T) {
 	testcases := map[string]struct {
 		callMocks     func(c *test.MockClient)
-		inferenceset  v1alpha1.InferenceSet
+		inferenceset  v1beta1.InferenceSet
 		expectedError error
 		verifyCalls   func(c *test.MockClient)
 	}{
@@ -59,7 +61,7 @@ func TestInferenceSetSyncControllerRevision(t *testing.T) {
 						*dep = appsv1.ControllerRevision{
 							ObjectMeta: v1.ObjectMeta{
 								Annotations: map[string]string{
-									InferenceSetHashAnnotation: "05e6d3ba23ae871ac11ab7a93452f7e70fe02fb5a88827c6ff7a77f91e5d45bc",
+									InferenceSetHashAnnotation: "8b215f13847260f94d2debfebec7ee9540a7b2c08c0d5cabdfdded1ca133f6cc",
 								},
 							},
 							Revision: 1,
@@ -67,13 +69,13 @@ func TestInferenceSetSyncControllerRevision(t *testing.T) {
 					}).
 					Return(nil)
 				// Add mock for inferenceset retrieval in updateInferenceSetWithRetry
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha1.InferenceSet{}), mock.Anything).
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).
 					Run(func(args mock.Arguments) {
-						ws := args.Get(2).(*v1alpha1.InferenceSet)
+						ws := args.Get(2).(*v1beta1.InferenceSet)
 						*ws = test.MockInferenceSetWithComputeHash
 					}).
 					Return(nil)
-				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.InferenceSet{}), mock.Anything).
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).
 					Return(nil)
 			},
 			inferenceset:  test.MockInferenceSetWithComputeHash,
@@ -112,13 +114,13 @@ func TestInferenceSetSyncControllerRevision(t *testing.T) {
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
 					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), test.MockInferenceSetFailToCreateCR.Name))
 				// Add mock for inferenceset retrieval in updateInferenceSetWithRetry
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha1.InferenceSet{}), mock.Anything).
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).
 					Run(func(args mock.Arguments) {
-						ws := args.Get(2).(*v1alpha1.InferenceSet)
+						ws := args.Get(2).(*v1beta1.InferenceSet)
 						*ws = test.MockInferenceSetSuccessful
 					}).
 					Return(nil)
-				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.InferenceSet{}), mock.Anything).
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).
 					Return(nil)
 			},
 			inferenceset:  test.MockInferenceSetSuccessful,
@@ -160,13 +162,13 @@ func TestInferenceSetSyncControllerRevision(t *testing.T) {
 					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), test.MockInferenceSetFailToCreateCR.Name))
 				c.On("Delete", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(nil)
 				// Add mock for inferenceset retrieval in updateInferenceSetWithRetry
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha1.InferenceSet{}), mock.Anything).
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).
 					Run(func(args mock.Arguments) {
-						ws := args.Get(2).(*v1alpha1.InferenceSet)
+						ws := args.Get(2).(*v1beta1.InferenceSet)
 						*ws = test.MockInferenceSetWithDeleteOldCR
 					}).
 					Return(nil)
-				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.InferenceSet{}), mock.Anything).
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).
 					Return(nil)
 			},
 			inferenceset:  test.MockInferenceSetWithDeleteOldCR,
@@ -208,13 +210,13 @@ func TestInferenceSetSyncControllerRevision(t *testing.T) {
 					Return(apierrors.NewNotFound(appsv1.Resource("ControllerRevision"), test.MockInferenceSetFailToCreateCR.Name))
 				c.On("Delete", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).Return(nil)
 				// Add mock for inferenceset retrieval in updateInferenceSetWithRetry
-				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1alpha1.InferenceSet{}), mock.Anything).
+				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).
 					Run(func(args mock.Arguments) {
-						ws := args.Get(2).(*v1alpha1.InferenceSet)
+						ws := args.Get(2).(*v1beta1.InferenceSet)
 						*ws = test.MockInferenceSetUpdateCR
 					}).
 					Return(nil)
-				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1alpha1.InferenceSet{}), mock.Anything).
+				c.On("Update", mock.IsType(context.Background()), mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).
 					Return(fmt.Errorf("failed to update InferenceSet annotations"))
 			},
 			inferenceset:  test.MockInferenceSetUpdateCR,
@@ -388,14 +390,14 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 		return ws
 	}
 
-	makeInferenceSet := func(replicas int, withBenchmarkAnnotation bool) *v1alpha1.InferenceSet {
-		iObj := &v1alpha1.InferenceSet{
+	makeInferenceSet := func(replicas int, benchmarkOff bool) *v1beta1.InferenceSet {
+		iObj := &v1beta1.InferenceSet{
 			ObjectMeta: v1.ObjectMeta{Name: "phi-4-mini", Namespace: "default"},
-			Spec:       v1alpha1.InferenceSetSpec{Replicas: replicas},
+			Spec:       v1beta1.InferenceSetSpec{Replicas: lo.ToPtr(int32(replicas))},
 		}
-		if withBenchmarkAnnotation {
+		if benchmarkOff {
 			iObj.Annotations = map[string]string{
-				v1alpha1.AnnotationRunBenchmark: "true",
+				v1beta1.AnnotationDisableBenchmark: "true",
 			}
 		}
 		return iObj
@@ -403,7 +405,7 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 
 	tests := map[string]struct {
 		workspaces            []v1beta1.Workspace
-		inferenceset          *v1alpha1.InferenceSet
+		inferenceset          *v1beta1.InferenceSet
 		expectedTPM           string
 		expectBenchmarkCond   bool
 		expectBenchmarkStatus v1.ConditionStatus
@@ -414,7 +416,7 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 				makeWorkspace("ws-0", "100000"),
 				makeWorkspace("ws-1", "200000"),
 			},
-			inferenceset:          makeInferenceSet(2, true),
+			inferenceset:          makeInferenceSet(2, false),
 			expectedTPM:           "300000",
 			expectBenchmarkCond:   true,
 			expectBenchmarkStatus: v1.ConditionTrue,
@@ -425,7 +427,7 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 				makeWorkspace("ws-0", "100000"),
 				makeWorkspace("ws-1", ""), // no result yet
 			},
-			inferenceset:          makeInferenceSet(2, true),
+			inferenceset:          makeInferenceSet(2, false),
 			expectedTPM:           "100000",
 			expectBenchmarkCond:   true,
 			expectBenchmarkStatus: v1.ConditionFalse,
@@ -436,18 +438,18 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 				makeWorkspace("ws-0", ""),
 				makeWorkspace("ws-1", ""),
 			},
-			inferenceset:          makeInferenceSet(2, true),
+			inferenceset:          makeInferenceSet(2, false),
 			expectedTPM:           "",
 			expectBenchmarkCond:   true,
 			expectBenchmarkStatus: v1.ConditionFalse,
 			expectBenchmarkMsg:    "0/2 replicas benchmarked",
 		},
-		"benchmark annotation absent — no condition set, TPM not written": {
+		"benchmark explicitly disabled — no condition set, TPM not written": {
 			workspaces: []v1beta1.Workspace{
 				makeWorkspace("ws-0", "100000"),
 			},
-			inferenceset: makeInferenceSet(1, false),
-			// TPM is aggregated regardless, but not written to status without the annotation.
+			inferenceset: makeInferenceSet(1, true),
+			// TPM is aggregated regardless, but not written to status when benchmark is disabled.
 			// We verify only that the annotation gate works, not the aggregation itself.
 			expectedTPM:         "100000",
 			expectBenchmarkCond: false,
@@ -458,11 +460,19 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 				makeWorkspace("ws-0", "100000"),
 				makeWorkspace("ws-1", "200000"),
 			},
-			inferenceset:          makeInferenceSet(3, true),
+			inferenceset:          makeInferenceSet(3, false),
 			expectedTPM:           "300000",
 			expectBenchmarkCond:   true,
 			expectBenchmarkStatus: v1.ConditionFalse,
 			expectBenchmarkMsg:    "2/3 replicas benchmarked",
+		},
+		"zero replicas (scale-to-zero) — benchmark not applicable": {
+			workspaces:            []v1beta1.Workspace{},
+			inferenceset:          makeInferenceSet(0, false),
+			expectedTPM:           "",
+			expectBenchmarkCond:   true,
+			expectBenchmarkStatus: v1.ConditionFalse,
+			expectBenchmarkMsg:    "0/0 replicas benchmarked",
 		},
 	}
 
@@ -479,21 +489,216 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 			}
 
 			// Verify benchmark condition gate — annotation controls whether the condition is set.
+			benchmarkEnabled := v1beta1.IsInferenceSetBenchmarkEnabled(tc.inferenceset)
 			if !tc.expectBenchmarkCond {
-				assert.False(t, v1alpha1.IsRunBenchmarkEnabled(tc.inferenceset))
+				assert.False(t, benchmarkEnabled)
 				return
 			}
 
-			assert.True(t, v1alpha1.IsRunBenchmarkEnabled(tc.inferenceset))
+			assert.True(t, benchmarkEnabled)
 
-			allBenchmarked := benchmarkedReplicas == tc.inferenceset.Spec.Replicas && tc.inferenceset.Spec.Replicas > 0
+			allBenchmarked := tc.inferenceset.Spec.Replicas != nil && benchmarkedReplicas == int(*tc.inferenceset.Spec.Replicas) && *tc.inferenceset.Spec.Replicas > 0
 			if tc.expectBenchmarkStatus == v1.ConditionTrue {
 				assert.True(t, allBenchmarked)
 			} else {
 				assert.False(t, allBenchmarked)
 			}
 			assert.Equal(t, tc.expectBenchmarkMsg,
-				fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, tc.inferenceset.Spec.Replicas))
+				fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, *tc.inferenceset.Spec.Replicas))
+		})
+	}
+}
+
+func TestSelectWorkspacesToDelete(t *testing.T) {
+	ctx := context.Background()
+	const ns = "default"
+	desiredImage := inference.GetBaseImageName()
+	oldImage := desiredImage + "-old"
+
+	type wsSpec struct {
+		name        string
+		ready       bool
+		old         bool
+		terminating bool
+	}
+
+	build := func(specs []wsSpec) ([]v1beta1.Workspace, []client.Object) {
+		var wss []v1beta1.Workspace
+		var objs []client.Object
+		for _, s := range specs {
+			ws := v1beta1.Workspace{ObjectMeta: v1.ObjectMeta{Name: s.name, Namespace: ns}}
+			if s.terminating {
+				now := v1.Now()
+				ws.DeletionTimestamp = &now
+				ws.Finalizers = []string{"kaito.sh/test"}
+			}
+			if s.ready {
+				ws.Status.Conditions = []v1.Condition{{
+					Type:               string(v1beta1.WorkspaceConditionTypeSucceeded),
+					Status:             v1.ConditionTrue,
+					Reason:             "ready",
+					LastTransitionTime: v1.Now(),
+				}}
+			}
+			wss = append(wss, ws)
+
+			img := desiredImage
+			if s.old {
+				img = oldImage
+			}
+			objs = append(objs, &appsv1.StatefulSet{
+				ObjectMeta: v1.ObjectMeta{Name: s.name, Namespace: ns},
+				Spec: appsv1.StatefulSetSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: s.name, Image: img}}},
+					},
+				},
+			})
+		}
+		return wss, objs
+	}
+
+	oldByName := func(specs []wsSpec) map[string]bool {
+		m := make(map[string]bool)
+		for _, s := range specs {
+			m[s.name] = s.old
+		}
+		return m
+	}
+
+	tests := []struct {
+		name            string
+		specs           []wsSpec
+		desiredReplicas int
+		numToDelete     int
+		wantDeleted     int
+		wantOldDeleted  int
+		wantNewDeleted  int
+	}{
+		{
+			// Surge in flight: 3 old Ready + 1 new not-Ready. The controller must wait
+			// for the new replica to become Ready before retiring an old one.
+			name: "waits for new-image replica to become Ready",
+			specs: []wsSpec{
+				{name: "old-1", ready: true, old: true},
+				{name: "old-2", ready: true, old: true},
+				{name: "old-3", ready: true, old: true},
+				{name: "new-1", ready: false, old: false},
+			},
+			desiredReplicas: 3,
+			numToDelete:     1,
+			wantDeleted:     0,
+		},
+		{
+			// New replica is now Ready: retire exactly one old-image workspace.
+			name: "retires an old-image replica once the new one is Ready",
+			specs: []wsSpec{
+				{name: "old-1", ready: true, old: true},
+				{name: "old-2", ready: true, old: true},
+				{name: "old-3", ready: true, old: true},
+				{name: "new-1", ready: true, old: false},
+			},
+			desiredReplicas: 3,
+			numToDelete:     1,
+			wantDeleted:     1,
+			wantOldDeleted:  1,
+		},
+		{
+			// User scale-down during an upgrade: prefer removing old-image workspaces.
+			name: "scale down prefers old-image workspaces",
+			specs: []wsSpec{
+				{name: "old-1", ready: true, old: true},
+				{name: "old-2", ready: true, old: true},
+				{name: "new-1", ready: true, old: false},
+				{name: "new-2", ready: true, old: false},
+			},
+			desiredReplicas: 2,
+			numToDelete:     2,
+			wantDeleted:     2,
+			wantOldDeleted:  2,
+		},
+		{
+			// Hard scale-down: not enough old workspaces, so new ones must go too.
+			name: "deletes new-image workspaces when surplus exceeds old count",
+			specs: []wsSpec{
+				{name: "old-1", ready: true, old: true},
+				{name: "new-1", ready: true, old: false},
+				{name: "new-2", ready: true, old: false},
+				{name: "new-3", ready: true, old: false},
+			},
+			desiredReplicas: 1,
+			numToDelete:     3,
+			wantDeleted:     3,
+			wantOldDeleted:  1,
+			wantNewDeleted:  2,
+		},
+		{
+			// A workspace already terminating counts toward the target without a new delete.
+			name: "terminating workspace counts toward the target",
+			specs: []wsSpec{
+				{name: "old-1", terminating: true, old: true},
+				{name: "old-2", ready: true, old: true},
+				{name: "old-3", ready: true, old: true},
+			},
+			desiredReplicas: 2,
+			numToDelete:     1,
+			wantDeleted:     0,
+		},
+		{
+			// A not-ready old workspace is retired first (free: does not reduce Ready count).
+			name: "deletes not-ready old workspace first",
+			specs: []wsSpec{
+				{name: "old-1", ready: false, old: true},
+				{name: "new-1", ready: true, old: false},
+				{name: "new-2", ready: true, old: false},
+			},
+			desiredReplicas: 2,
+			numToDelete:     1,
+			wantDeleted:     1,
+			wantOldDeleted:  1,
+		},
+		{
+			// Scale-to-zero: no Ready floor to preserve, so every workspace is retired
+			// (old-image ones first), even Ready ones.
+			name: "scale to zero deletes all workspaces",
+			specs: []wsSpec{
+				{name: "old-1", ready: true, old: true},
+				{name: "new-1", ready: true, old: false},
+			},
+			desiredReplicas: 0,
+			numToDelete:     2,
+			wantDeleted:     2,
+			wantOldDeleted:  1,
+			wantNewDeleted:  1,
+		},
+	}
+
+	scheme := runtime.NewScheme()
+	_ = appsv1.AddToScheme(scheme)
+	_ = corev1.AddToScheme(scheme)
+	_ = v1beta1.AddToScheme(scheme)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			wss, objs := build(tt.specs)
+			cl := fake.NewClientBuilder().WithScheme(scheme).WithObjects(objs...).Build()
+			c := &InferenceSetReconciler{Client: cl}
+
+			toDelete, err := c.selectWorkspacesToDelete(ctx, wss, tt.desiredReplicas, tt.numToDelete)
+			assert.NoError(t, err)
+			assert.Len(t, toDelete, tt.wantDeleted)
+
+			isOld := oldByName(tt.specs)
+			oldDeleted, newDeleted := 0, 0
+			for _, ws := range toDelete {
+				if isOld[ws.Name] {
+					oldDeleted++
+				} else {
+					newDeleted++
+				}
+			}
+			assert.Equal(t, tt.wantOldDeleted, oldDeleted, "old workspaces deleted")
+			assert.Equal(t, tt.wantNewDeleted, newDeleted, "new workspaces deleted")
 		})
 	}
 }

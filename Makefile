@@ -2,8 +2,8 @@
 # Image URL to use all building/pushing image targets
 REGISTRY ?= YOUR_REGISTRY
 IMG_NAME ?= workspace
-VERSION ?= v0.10.0
-GPU_PROVISIONER_VERSION ?= 0.4.1
+VERSION ?= v0.11.0
+GPU_PROVISIONER_VERSION ?= 0.4.3
 RAGENGINE_IMG_NAME ?= ragengine
 IMG_TAG ?= $(subst v,,$(VERSION))
 
@@ -50,7 +50,7 @@ GPU_PROVISIONER_MSI_NAME ?= gpuprovisionerIdentity
 ## Azure Karpenter parameters
 KARPENTER_NAMESPACE ?= karpenter
 KARPENTER_SA_NAME ?= karpenter-sa
-KARPENTER_VERSION ?= 0.5.1
+KARPENTER_VERSION ?= 1.12.0
 AZURE_KARPENTER_MSI_NAME ?= azkarpenterIdentity
 
 AI_MODELS_REGISTRY ?= modelregistry.azurecr.io
@@ -139,7 +139,7 @@ generate-vllm-arch-list: ## Regenerate presets/workspace/models/vllm_model_arch_
 
 .PHONY: unit-test
 unit-test: ## Run unit tests.
-	go test -v $(shell go list ./pkg/... ./api/... | \
+	go test -v $(shell go list ./pkg/... ./api/... ./presets/... | \
 	grep -v -e /vendor -e /api/v1alpha1/zz_generated.deepcopy.go -e /api/v1beta1/zz_generated.deepcopy.go -e /pkg/utils/test/...) \
 	-race -coverprofile=coverage.txt -covermode=atomic
 	go tool cover -func=coverage.txt
@@ -164,12 +164,14 @@ tuning-metrics-server-test: ## Run Tuning Metrics Server tests with pytest.
 
 .PHONY: inference-api-e2e
 inference-api-e2e: ## Run inference API e2e tests with pytest.
-	pip install -r ./presets/workspace/dependencies/requirements-test.txt --upgrade
+	pip install --no-cache-dir -r ./presets/workspace/dependencies/requirements-test.txt --upgrade
+	pip install --no-cache-dir --force-reinstall --no-deps huggingface-hub==1.11.0
+	python -c "import importlib.metadata; assert importlib.metadata.version('huggingface-hub') == '1.11.0'"
 	pip install pytest-cov
 	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/vllm
 	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/text-generation
 
-	pip install -r ./presets/workspace/generator/requirements.txt --upgrade
+	pip install --no-cache-dir -r ./presets/workspace/generator/requirements.txt --upgrade
 	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/generator/
 
 # Ginkgo configurations
@@ -220,7 +222,7 @@ create-aks-cluster: ## Create an AKS cluster with MSI, OIDC, and workload identi
 	az aks create  --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) \
 	--location $(AZURE_LOCATION) --attach-acr $(AZURE_ACR_NAME) \
 	--kubernetes-version $(AKS_K8S_VERSION) --generate-ssh-keys  \
-	--enable-managed-identity --enable-workload-identity --enable-oidc-issuer --node-vm-size Standard_D2d_v4 -o none
+	--enable-managed-identity --enable-workload-identity --enable-oidc-issuer --node-vm-size Standard_D4d_v4 -o none
 	az aks get-credentials --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --overwrite-existing
 
 .PHONY: create-aks-cluster-with-kaito
@@ -234,7 +236,7 @@ create-aks-cluster-with-kaito: ## Create an AKS cluster with MSI, OIDC, and KAIT
 .PHONY: create-aks-cluster-for-karpenter
 create-aks-cluster-for-karpenter: ## Create an AKS cluster with MSI, Cillium, OIDC, and workload identity enabled.
 	az aks create --name $(AZURE_CLUSTER_NAME) --resource-group $(AZURE_RESOURCE_GROUP) \
-    --location $(AZURE_LOCATION) --attach-acr $(AZURE_ACR_NAME) --node-vm-size "Standard_D2d_v4" \
+    --location $(AZURE_LOCATION) --attach-acr $(AZURE_ACR_NAME) --node-vm-size "Standard_D4d_v4" \
     --kubernetes-version $(AKS_K8S_VERSION) --generate-ssh-keys \
     --network-plugin azure --network-plugin-mode overlay --network-dataplane cilium \
     --enable-managed-identity --enable-oidc-issuer --enable-workload-identity -o none
@@ -516,7 +518,7 @@ gpu-provisioner-helm: ## Install GPU provisioner Helm chart for Azure cluster an
 azure-karpenter-helm: ## Install Azure Karpenter Helm chart and set Azure client env vars and settings in Helm values.
 	curl -sO https://raw.githubusercontent.com/Azure/karpenter-provider-azure/main/hack/deploy/configure-values.sh
 	chmod +x ./configure-values.sh && ./configure-values.sh $(AZURE_CLUSTER_NAME) \
-	$(AZURE_RESOURCE_GROUP) $(KARPENTER_SA_NAME) $(AZURE_KARPENTER_MSI_NAME)
+	$(AZURE_RESOURCE_GROUP) $(KARPENTER_SA_NAME) $(AZURE_KARPENTER_MSI_NAME) false
 
 	helm upgrade --install karpenter oci://mcr.microsoft.com/aks/karpenter/karpenter \
 	--version "$(KARPENTER_VERSION)" \

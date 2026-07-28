@@ -9,7 +9,7 @@
 | ![notification](website/static/img/bell.svg) What is NEW!                                                                                                                                                                                                |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | ALL vLLM supported models can be run in KAITO now. |
-| Latest Release: Apr 15th, 2026. KAITO v0.10.0. |
+| Latest Release: Jul 1st, 2026. KAITO v0.11.0. |
 | First Release: Nov 15th, 2023. KAITO v0.1.0. |
 
 KAITO is an operator suite that automates LLM model inference, fine-tuning, and RAG (Retrieval Augmented Generation) engine deployment in a Kubernetes cluster.
@@ -59,6 +59,8 @@ The details of the service APIs can be found in this [document](https://kaito-pr
 - **BYO models using HuggingFace runtime**: If you plan to run any BYO models using the HuggingFace runtime, check this [doc](https://kaito-project.github.io/kaito/docs/custom-model). Note: KAITO only supports BYO models hosted in HuggingFace.
 - **CPU models**: Please check this [doc](https://kaito-project.github.io/kaito/docs/aikit) for running CPU models using [aikit](https://github.com/kaito-project/aikit/).
 - **RAGEngine**: Please check the installation guidance and usage documents [here](https://kaito-project.github.io/kaito/docs/rag).
+- **RAGEngine Output Guardrails**: Please check the current behavior, configuration, and limitations [here](https://kaito-project.github.io/kaito/docs/rag-output-guardrails).
+- **Prefill/Decode Disaggregation**: Please check this [doc](https://kaito-project.github.io/kaito/docs/prefill-decode-disaggregation) for deploying models with P/D disaggregation using MultiRoleInference and Gateway API Inference Extension.
 
 
 ## Contributing

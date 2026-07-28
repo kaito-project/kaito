@@ -41,9 +41,13 @@ const sidebars = {
             collapsed: false,
             items: [
                 'inference',
+                'workspace',
                 'multi-node-inference',
+                'model-mirror-streaming',
                 'memory-estimator',
                 'keda-autoscaler-inference',
+                'multi-gpu-instance',
+                'bring-your-own-weights',
                 'tuning',
                 'lora-adapters',
                 'custom-model',
@@ -72,6 +76,7 @@ const sidebars = {
             items: [
                 'aikit',
                 'gateway-api-inference-extension',
+                'prefill-decode-disaggregation',
             ],
         },
         {
@@ -81,8 +86,6 @@ const sidebars = {
             items: [
                 'monitoring',
                 'kaito-oom-prevention',
-                'kaito-on-byo-gpu-nodes',
-                'gpu-benchmarks'
             ],
         },
         {

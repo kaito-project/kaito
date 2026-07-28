@@ -19,11 +19,7 @@ import (
 
 // SetDefaults for the InferenceSet
 func (w *InferenceSet) SetDefaults(_ context.Context) {
-	// Default replicas to 1 if not set or explicitly set to 0.
-	// This ensures that InferenceSets always have at least one workspace.
-	// Note: Since Replicas is an int (not *int), the zero value (0) is
-	// indistinguishable from an omitted field after unmarshaling.
-	if w.Spec.Replicas == 0 {
-		w.Spec.Replicas = 1
-	}
+	// No-op: the CRD schema default (+kubebuilder:default:=1) handles
+	// the case where replicas is omitted. Explicit 0 is now valid
+	// for scale-to-zero scenarios (KEDA, manual drain, etc.).
 }

@@ -29,7 +29,7 @@ func TestAzureSKUHandler(t *testing.T) {
 	}
 
 	// Test GetGPUConfigs with a SKU that is supported
-	sku := "Standard_NC4as_T4_v3"
+	sku := "Standard_NV36ads_A10_v5"
 	gpuConfig1 := handler.GetGPUConfigBySKU(sku)
 	if gpuConfig1 == nil {
 		t.Fatalf("Supported SKU missing from GPUConfigs")
@@ -49,8 +49,8 @@ func TestAzureSKUHandler(t *testing.T) {
 func TestGetGPUConfigBySKUCaseInsensitive(t *testing.T) {
 	handler := NewAzureSKUHandler()
 
-	canonical := "Standard_NC4as_T4_v3"
-	cases := []string{canonical, "standard_nc4as_t4_v3", "STANDARD_NC4AS_T4_V3"}
+	canonical := "Standard_NV36ads_A10_v5"
+	cases := []string{canonical, "standard_nv36ads_a10_v5", "STANDARD_NV36ADS_A10_V5"}
 	for _, input := range cases {
 		config := handler.GetGPUConfigBySKU(input)
 		if config == nil {
@@ -69,15 +69,15 @@ func TestHasSKUNamePrefix(t *testing.T) {
 		prefixes []string
 		expected bool
 	}{
-		{"exact case match", "Standard_NC4as_T4_v3", []string{"Standard_N"}, true},
-		{"lowercase sku", "standard_nc4as_t4_v3", []string{"Standard_N"}, true},
-		{"uppercase sku", "STANDARD_NC4AS_T4_V3", []string{"Standard_N"}, true},
+		{"exact case match", "Standard_NV36ads_A10_v5", []string{"Standard_N"}, true},
+		{"lowercase sku", "standard_nv36ads_a10_v5", []string{"Standard_N"}, true},
+		{"uppercase sku", "STANDARD_NV36ADS_A10_V5", []string{"Standard_N"}, true},
 		{"d-series match", "standard_d2s_v6", []string{"Standard_D"}, true},
-		{"multiple prefixes first match", "Standard_NC4as_T4_v3", []string{"Standard_N", "Standard_D"}, true},
+		{"multiple prefixes first match", "Standard_NV36ads_A10_v5", []string{"Standard_N", "Standard_D"}, true},
 		{"multiple prefixes second match", "Standard_D2s_v6", []string{"Standard_N", "Standard_D"}, true},
 		{"no match", "Standard_E4s_v3", []string{"Standard_N", "Standard_D"}, false},
 		{"empty sku", "", []string{"Standard_N"}, false},
-		{"empty prefixes", "Standard_NC4as_T4_v3", []string{}, false},
+		{"empty prefixes", "Standard_NV36ads_A10_v5", []string{}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -99,7 +99,7 @@ func TestAwsSKUHandler(t *testing.T) {
 	}
 
 	// Test GetGPUConfigs with a SKU that is supported
-	sku := "p2.xlarge"
+	sku := "p4d.24xlarge"
 	gpuConfig1 := handler.GetGPUConfigBySKU(sku)
 	if gpuConfig1 == nil {
 		t.Fatalf("Supported SKU missing from GPUConfigs")
@@ -124,10 +124,10 @@ func TestGPUConfigMemoryIsQuantity(t *testing.T) {
 		expectedMemGiB string
 	}{
 		{
-			name:           "Azure Standard_NC4as_T4_v3",
+			name:           "Azure Standard_NV36ads_A10_v5",
 			handler:        NewAzureSKUHandler(),
-			sku:            "Standard_NC4as_T4_v3",
-			expectedMemGiB: "16Gi",
+			sku:            "Standard_NV36ads_A10_v5",
+			expectedMemGiB: "24Gi",
 		},
 		{
 			name:           "Azure Standard_NC24ads_A100_v4",
@@ -136,10 +136,10 @@ func TestGPUConfigMemoryIsQuantity(t *testing.T) {
 			expectedMemGiB: "80Gi",
 		},
 		{
-			name:           "AWS p2.xlarge",
+			name:           "AWS p4d.24xlarge",
 			handler:        NewAwsSKUHandler(),
-			sku:            "p2.xlarge",
-			expectedMemGiB: "12Gi",
+			sku:            "p4d.24xlarge",
+			expectedMemGiB: "320Gi",
 		},
 		{
 			name:           "AWS p5.48xlarge",
@@ -148,10 +148,10 @@ func TestGPUConfigMemoryIsQuantity(t *testing.T) {
 			expectedMemGiB: "640Gi",
 		},
 		{
-			name:           "Arc Standard_NK6",
+			name:           "Arc Standard_NC4_A2",
 			handler:        NewArcSKUHandler(),
-			sku:            "Standard_NK6",
-			expectedMemGiB: "8Gi",
+			sku:            "Standard_NC4_A2",
+			expectedMemGiB: "16Gi",
 		},
 	}
 

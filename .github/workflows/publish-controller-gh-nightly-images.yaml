@@ -57,9 +57,10 @@ jobs:
       - id: get-image-tag
         name: Compute nightly image tag
         run: |
-          short_sha="$(git rev-parse --short=12 HEAD)"
-          echo "short_sha=$short_sha" >> "$GITHUB_OUTPUT"
-          echo "img_tag=nightly-$short_sha" >> "$GITHUB_OUTPUT"
+          # Semver-compatible nightly tag: <base VERSION>-<UTC date>, e.g. 0.10.0-20260609.
+          base_version="$(grep -E '^VERSION \?=' Makefile | awk '{print $3}' | sed 's/^v//')"
+          date_tag="$(date -u +%Y%m%d)"
+          echo "img_tag=${base_version}-${date_tag}" >> "$GITHUB_OUTPUT"
 
       - name: Login to ${{ steps.get-registry.outputs.registry_repository }}
         uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef

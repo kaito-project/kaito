@@ -47,7 +47,8 @@ import (
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/ragengine/controllers"
 	"github.com/kaito-project/kaito/pkg/ragengine/webhooks"
-	kaitoutils "github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/sku"
+	karpenterutils "github.com/kaito-project/kaito/pkg/utils/karpenter"
 	"github.com/kaito-project/kaito/pkg/version"
 )
 
@@ -71,9 +72,9 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(kaitov1beta1.AddToScheme(scheme))
 	utilruntime.Must(kaitov1alpha1.AddToScheme(scheme))
-	utilruntime.Must(kaitoutils.KarpenterSchemeBuilder.AddToScheme(scheme))
+	utilruntime.Must(karpenterutils.KarpenterSchemeBuilder.AddToScheme(scheme))
 	utilruntime.Must(azurev1beta1.SchemeBuilder.AddToScheme(scheme))
-	utilruntime.Must(kaitoutils.AwsSchemeBuilder.AddToScheme(scheme))
+	utilruntime.Must(karpenterutils.AwsSchemeBuilder.AddToScheme(scheme))
 
 	//+kubebuilder:scaffold:scheme
 	klog.InitFlags(nil)
@@ -118,6 +119,13 @@ func main() {
 	cfg := ctrl.GetConfigOrDie()
 	cfg.UserAgent = ragengineController
 	setRestConfig(cfg, kubeClientQPS, kubeClientBurst)
+
+	skuHandler, err := sku.GetSKUHandler()
+	if err != nil {
+		klog.ErrorS(err, "unable to initialize SKU handler")
+		exitWithErrorFunc()
+	}
+	sku.DefaultSKUHandler = skuHandler
 
 	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme: scheme,

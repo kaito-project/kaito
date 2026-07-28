@@ -30,7 +30,7 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/utils/resources"
+	nodeutil "github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
@@ -57,7 +57,7 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC4as_T4_v3", // GPU instance type
+					InstanceType:  "Standard_NV36ads_A10_v5", // GPU instance type
 					LabelSelector: &metav1.LabelSelector{},
 				},
 				Status: kaitov1beta1.WorkspaceStatus{
@@ -81,8 +81,8 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "test-node",
 						Labels: map[string]string{
-							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
-							resources.LabelKeyNvidia:       resources.LabelValueNvidia,
+							corev1.LabelInstanceTypeStable: "Standard_NV36ads_A10_v5",
+							nodeutil.LabelKeyNvidia:        nodeutil.LabelValueNvidia,
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -93,7 +93,7 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 							},
 						},
 						Capacity: corev1.ResourceList{
-							resources.CapacityNvidiaGPU: resource.MustParse("1"),
+							nodeutil.CapacityNvidiaGPU: resource.MustParse("1"),
 						},
 					},
 				}
@@ -144,7 +144,7 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC4as_T4_v3", // GPU instance type
+					InstanceType:  "Standard_NV36ads_A10_v5", // GPU instance type
 					LabelSelector: &metav1.LabelSelector{},
 				},
 				Status: kaitov1beta1.WorkspaceStatus{
@@ -184,7 +184,7 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC4as_T4_v3", // GPU instance type
+					InstanceType:  "Standard_NV36ads_A10_v5", // GPU instance type
 					LabelSelector: &metav1.LabelSelector{},
 				},
 				Status: kaitov1beta1.WorkspaceStatus{
@@ -208,8 +208,8 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "test-node",
 						Labels: map[string]string{
-							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
-							resources.LabelKeyNvidia:       resources.LabelValueNvidia,
+							corev1.LabelInstanceTypeStable: "Standard_NV36ads_A10_v5",
+							nodeutil.LabelKeyNvidia:        nodeutil.LabelValueNvidia,
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -220,7 +220,7 @@ func TestSetNodePluginsReadyCondition_SetsToTrue(t *testing.T) {
 							},
 						},
 						Capacity: corev1.ResourceList{
-							resources.CapacityNvidiaGPU: resource.MustParse("0"),
+							nodeutil.CapacityNvidiaGPU: resource.MustParse("0"),
 						},
 					},
 				}
@@ -307,7 +307,7 @@ func TestSetNodePluginsReadyCondition_AdditionalCases(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC4as_T4_v3", // GPU instance type
+					InstanceType:  "Standard_NV36ads_A10_v5", // GPU instance type
 					LabelSelector: &metav1.LabelSelector{},
 				},
 				Status: kaitov1beta1.WorkspaceStatus{
@@ -331,8 +331,8 @@ func TestSetNodePluginsReadyCondition_AdditionalCases(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "test-node",
 						Labels: map[string]string{
-							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
-							resources.LabelKeyNvidia:       resources.LabelValueNvidia,
+							corev1.LabelInstanceTypeStable: "Standard_NV36ads_A10_v5",
+							nodeutil.LabelKeyNvidia:        nodeutil.LabelValueNvidia,
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -343,7 +343,7 @@ func TestSetNodePluginsReadyCondition_AdditionalCases(t *testing.T) {
 							},
 						},
 						Capacity: corev1.ResourceList{
-							resources.CapacityNvidiaGPU: resource.MustParse("1"),
+							nodeutil.CapacityNvidiaGPU: resource.MustParse("1"),
 						},
 					},
 				}
@@ -364,7 +364,7 @@ func TestSetNodePluginsReadyCondition_AdditionalCases(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC4as_T4_v3", // GPU instance type
+					InstanceType:  "Standard_NV36ads_A10_v5", // GPU instance type
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
@@ -424,7 +424,7 @@ func TestCheckNodePlugin(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC4as_T4_v3",
+					InstanceType:  "Standard_NV36ads_A10_v5",
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
@@ -451,7 +451,7 @@ func TestCheckNodePlugin(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC4as_T4_v3",
+					InstanceType:  "Standard_NV36ads_A10_v5",
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
@@ -469,7 +469,7 @@ func TestCheckNodePlugin(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "test-node",
 						Labels: map[string]string{
-							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
+							corev1.LabelInstanceTypeStable: "Standard_NV36ads_A10_v5",
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -480,7 +480,7 @@ func TestCheckNodePlugin(t *testing.T) {
 							},
 						},
 						Capacity: corev1.ResourceList{
-							resources.CapacityNvidiaGPU: resource.MustParse("1"),
+							nodeutil.CapacityNvidiaGPU: resource.MustParse("1"),
 						},
 					},
 				}
@@ -498,7 +498,7 @@ func TestCheckNodePlugin(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC4as_T4_v3",
+					InstanceType:  "Standard_NV36ads_A10_v5",
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
@@ -516,8 +516,8 @@ func TestCheckNodePlugin(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "test-node",
 						Labels: map[string]string{
-							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
-							resources.LabelKeyNvidia:       resources.LabelValueNvidia,
+							corev1.LabelInstanceTypeStable: "Standard_NV36ads_A10_v5",
+							nodeutil.LabelKeyNvidia:        nodeutil.LabelValueNvidia,
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -528,7 +528,7 @@ func TestCheckNodePlugin(t *testing.T) {
 							},
 						},
 						Capacity: corev1.ResourceList{
-							resources.CapacityNvidiaGPU: resource.MustParse("0"),
+							nodeutil.CapacityNvidiaGPU: resource.MustParse("0"),
 						},
 					},
 				}
@@ -552,7 +552,7 @@ func TestCheckNodePlugin(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC4as_T4_v3",
+					InstanceType:  "Standard_NV36ads_A10_v5",
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
@@ -571,7 +571,7 @@ func TestCheckNodePlugin(t *testing.T) {
 						Name: "test-node",
 						Labels: map[string]string{
 							corev1.LabelInstanceTypeStable: "Standard_NC12s_v2",
-							resources.LabelKeyNvidia:       resources.LabelValueNvidia,
+							nodeutil.LabelKeyNvidia:        nodeutil.LabelValueNvidia,
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -582,7 +582,7 @@ func TestCheckNodePlugin(t *testing.T) {
 							},
 						},
 						Capacity: corev1.ResourceList{
-							resources.CapacityNvidiaGPU: resource.MustParse("1"),
+							nodeutil.CapacityNvidiaGPU: resource.MustParse("1"),
 						},
 					},
 				}
@@ -597,7 +597,7 @@ func TestCheckNodePlugin(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC4as_T4_v3",
+					InstanceType:  "Standard_NV36ads_A10_v5",
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
@@ -615,8 +615,8 @@ func TestCheckNodePlugin(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "test-node",
 						Labels: map[string]string{
-							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
-							resources.LabelKeyNvidia:       resources.LabelValueNvidia,
+							corev1.LabelInstanceTypeStable: "Standard_NV36ads_A10_v5",
+							nodeutil.LabelKeyNvidia:        nodeutil.LabelValueNvidia,
 						},
 					},
 					Status: corev1.NodeStatus{
@@ -627,7 +627,7 @@ func TestCheckNodePlugin(t *testing.T) {
 							},
 						},
 						Capacity: corev1.ResourceList{
-							resources.CapacityNvidiaGPU: resource.MustParse("1"),
+							nodeutil.CapacityNvidiaGPU: resource.MustParse("1"),
 						},
 					},
 				}
@@ -642,7 +642,7 @@ func TestCheckNodePlugin(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC4as_T4_v3",
+					InstanceType:  "Standard_NV36ads_A10_v5",
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
@@ -660,12 +660,12 @@ func TestCheckNodePlugin(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "test-node",
 						Labels: map[string]string{
-							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
+							corev1.LabelInstanceTypeStable: "Standard_NV36ads_A10_v5",
 						},
 					},
 					Status: corev1.NodeStatus{
 						Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}},
-						Capacity:   corev1.ResourceList{resources.CapacityNvidiaGPU: resource.MustParse("1")},
+						Capacity:   corev1.ResourceList{nodeutil.CapacityNvidiaGPU: resource.MustParse("1")},
 					},
 				}
 				mockClient.CreateOrUpdateObjectInMap(node)
@@ -723,7 +723,7 @@ func TestGetReadyNodesFromNodeClaims(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC4as_T4_v3",
+					InstanceType:  "Standard_NV36ads_A10_v5",
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
@@ -746,7 +746,7 @@ func TestGetReadyNodesFromNodeClaims(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC4as_T4_v3",
+					InstanceType:  "Standard_NV36ads_A10_v5",
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
@@ -770,7 +770,7 @@ func TestGetReadyNodesFromNodeClaims(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC4as_T4_v3",
+					InstanceType:  "Standard_NV36ads_A10_v5",
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
@@ -808,7 +808,7 @@ func TestGetReadyNodesFromNodeClaims(t *testing.T) {
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Resource: kaitov1beta1.ResourceSpec{
-					InstanceType:  "Standard_NC4as_T4_v3",
+					InstanceType:  "Standard_NV36ads_A10_v5",
 					LabelSelector: &metav1.LabelSelector{},
 				},
 			},
@@ -826,7 +826,7 @@ func TestGetReadyNodesFromNodeClaims(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "test-node",
 						Labels: map[string]string{
-							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
+							corev1.LabelInstanceTypeStable: "Standard_NV36ads_A10_v5",
 						},
 					},
 					Status: corev1.NodeStatus{

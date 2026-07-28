@@ -16,13 +16,14 @@ package byoprovisioner
 import (
 	"context"
 
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
-	"github.com/kaito-project/kaito/pkg/utils/resources"
+	"github.com/kaito-project/kaito/pkg/utils/nodes"
 )
 
 // BYOProvisioner is a no-op NodeProvisioner for BYO (Bring Your Own) node
@@ -65,12 +66,7 @@ func (n *BYOProvisioner) DisableDriftRemediation(ctx context.Context, workspaceN
 // Workspace. In BYO mode there are no provisioning resources, so needRequeue
 // is always true when nodes are not ready.
 func (n *BYOProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.Workspace) (bool, bool, error) {
-	var matchLabels client.MatchingLabels
-	if ws.Resource.LabelSelector != nil {
-		matchLabels = ws.Resource.LabelSelector.MatchLabels
-	}
-
-	nodeList, err := resources.ListNodes(ctx, n.client, matchLabels)
+	nodeList, err := nodeprovision.ListWorkspaceNodes(ctx, n.client, n, ws)
 	if err != nil {
 		return false, true, err
 	}
@@ -78,7 +74,7 @@ func (n *BYOProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.
 	targetNodeCount := int(ws.Status.TargetNodeCount)
 	readyCount := 0
 	for i := range nodeList.Items {
-		if resources.NodeIsReadyAndNotDeleting(&nodeList.Items[i]) {
+		if nodes.NodeIsReadyAndNotDeleting(&nodeList.Items[i]) {
 			readyCount++
 		}
 	}
@@ -105,17 +101,13 @@ func (n *BYOProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kaitov1b
 		Reason: "workspaceResourceStatusNotReady", Message: "node status condition not ready",
 	}
 
-	var matchLabels client.MatchingLabels
-	if ws.Resource.LabelSelector != nil {
-		matchLabels = ws.Resource.LabelSelector.MatchLabels
-	}
-	nodeList, err := resources.ListNodes(ctx, n.client, matchLabels)
+	nodeList, err := nodeprovision.ListWorkspaceNodes(ctx, n.client, n, ws)
 	if err != nil {
 		return nil, err
 	}
 	readyCount := 0
 	for i := range nodeList.Items {
-		if resources.NodeIsReadyAndNotDeleting(&nodeList.Items[i]) {
+		if nodes.NodeIsReadyAndNotDeleting(&nodeList.Items[i]) {
 			readyCount++
 		}
 	}
@@ -130,4 +122,10 @@ func (n *BYOProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kaitov1b
 
 	// BYO mode: no NodeClaimStatus condition.
 	return []metav1.Condition{nodeCond, resourceCond}, nil
+}
+
+// BuildNodeSelector returns nil in BYO mode: nodes are matched purely via the
+// user-supplied label selector.
+func (n *BYOProvisioner) BuildNodeSelector(ctx context.Context, ws *kaitov1beta1.Workspace) []corev1.NodeSelectorRequirement {
+	return nil
 }

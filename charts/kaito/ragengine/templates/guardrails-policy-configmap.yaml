@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ragengine-guardrails-policy-template
+  namespace: {{ .Release.Namespace }}
+data:
+  guardrails.yaml: |
+    blockMessage: The model output was blocked by output guardrails.
+    scanners:
+      - type: regex
+        action: redact
+        patterns:
+          - '-----BEGIN (?:[A-Z ]+)?PRIVATE KEY-----'
+          - '\bAKIA[0-9A-Z]{16}\b'
+          - '\bAIza[0-9A-Za-z\-_]{35}\b'
+          - '\bgh[pousr]_[A-Za-z0-9_]{20,}\b'
+          - '(?i)\bsk-[A-Za-z0-9]{20,}\b'
+          - '(?i)\bbearer\s+[A-Za-z0-9._\-]{20,}\b'
+      - type: secrets
+        action: redact
+        redactMode: partial
+      - type: sensitive
+        action: redact
+        detectors:
+          - email
+          - phone
+          - credit_card
+          - ip_address

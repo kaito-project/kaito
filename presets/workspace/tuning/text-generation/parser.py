@@ -24,7 +24,8 @@ from cli import (
     ModelConfig,
     QuantizationConfig,
 )
-from transformers import HfArgumentParser, TrainingArguments
+from transformers import HfArgumentParser
+from trl import SFTConfig
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +34,7 @@ CONFIG_CLASS_MAP = {
     "ModelConfig": ModelConfig,
     "QuantizationConfig": QuantizationConfig,
     "LoraConfig": ExtLoraConfig,
-    "TrainingArguments": TrainingArguments,
+    "TrainingArguments": SFTConfig,
     "DatasetConfig": DatasetConfig,
     "DataCollator": ExtDataCollator,
 }

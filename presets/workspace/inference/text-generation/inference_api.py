@@ -16,12 +16,12 @@ KAITO inference server wrapping the HuggingFace ``transformers serve``
 OpenAI-compatible engine.
 
 The model (with any LoRA adapters merged) is loaded by KAITO and injected
-into a ``ServeCommand`` instance so the serve engine uses it directly
-without downloading or loading its own copy.
+into a ``ModelManager`` instance so the serve handlers use it directly
+without downloading or loading their own copy.
 
 Endpoints exposed:
-    POST /v1/chat/completions  - OpenAI-compatible chat completions (SSE)
-    POST /v1/responses         - OpenAI Responses API (SSE)
+    POST /v1/chat/completions  - OpenAI-compatible chat completions
+    POST /v1/responses         - OpenAI Responses API
     GET  /v1/models            - list the served model
     GET  /health               - liveness / readiness probe
     GET  /metrics              - GPU / CPU utilisation
@@ -34,6 +34,7 @@ import os
 import signal
 import sys
 import threading
+import uuid
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
@@ -42,8 +43,8 @@ import GPUtil
 import psutil
 import torch
 import uvicorn
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 from peft import PeftModel
 from pydantic import BaseModel
 from transformers import (
@@ -51,7 +52,10 @@ from transformers import (
     AutoTokenizer,
     HfArgumentParser,
 )
-from transformers.commands.serving import ServeArguments, ServeCommand, TimedModel
+from transformers.cli.serving.chat_completion import ChatCompletionHandler
+from transformers.cli.serving.model_manager import ModelManager, TimedModel
+from transformers.cli.serving.response import ResponseHandler
+from transformers.cli.serving.utils import GenerationState
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -98,14 +102,8 @@ class ModelConfig:
     cache_dir: str | None = field(
         default=None, metadata={"help": "Cache directory for the model"}
     )
-    from_tf: bool = field(
-        default=False, metadata={"help": "Load model from a TensorFlow checkpoint"}
-    )
     force_download: bool = field(
         default=False, metadata={"help": "Force the download of the model"}
-    )
-    resume_download: bool = field(
-        default=False, metadata={"help": "Resume an interrupted download"}
     )
     proxies: str | None = field(
         default=None, metadata={"help": "Proxy configuration for downloading the model"}
@@ -123,12 +121,6 @@ class ModelConfig:
     trust_remote_code: bool = field(
         default=False,
         metadata={"help": "Enable trusting remote code when loading the model"},
-    )
-    load_in_4bit: bool = field(
-        default=False, metadata={"help": "Load model in 4-bit mode"}
-    )
-    load_in_8bit: bool = field(
-        default=False, metadata={"help": "Load model in 8-bit mode"}
     )
     torch_dtype: str | None = field(
         default=None, metadata={"help": "The torch dtype for the pre-trained model"}
@@ -296,33 +288,49 @@ logger.info("Model: %s", model)
 # Set up transformers serve engine with pre-loaded model
 # ---------------------------------------------------------------------------
 
-# The internal model ID used by ServeCommand for model lookup/loading.
+# The internal model ID used by ModelManager for model lookup/loading.
 _internal_model_id = args.pretrained_model_name_or_path
 # The user-facing model name returned by /v1/models and accepted in requests.
 _served_model_name = served_model_name or _internal_model_id
-model_key = f"{_internal_model_id}@{args.revision}"
+# ModelManager keys models by ``<id>@<revision>``; we force this format so the
+# pre-loaded model is found regardless of what ``process_model_name`` would do.
+_force_model_id = f"{_internal_model_id}@{args.revision}"
+model_key = _force_model_id
 
-serve_args = ServeArguments(
-    host="0.0.0.0",
-    port=5000,
-    force_model=_internal_model_id,
-    model_timeout=_MODEL_TIMEOUT_SECONDS,
+# Create a ModelManager without ``force_model`` so it does not try to preload
+# the model from disk. We inject our already-loaded model below, then set
+# ``force_model`` to pin request routing to it.
+model_manager = ModelManager(
     device="auto",
+    model_timeout=-1,  # disables auto-unload; KAITO manages lifecycle
 )
-serve_command = ServeCommand(serve_args)
+
 # Inject the pre-loaded model (with adapters already merged) so the serve
-# engine uses it directly instead of downloading/loading its own copy.
+# handlers use it directly instead of downloading/loading their own copy.
 timed_model = TimedModel(
     model, timeout_seconds=_MODEL_TIMEOUT_SECONDS, processor=tokenizer
 )
 # Replace the auto-started timer with a daemon variant so it doesn't block
 # process shutdown (the original timer is non-daemon and starts in __init__).
 timed_model._timer.cancel()
-_daemon_timer = threading.Timer(_MODEL_TIMEOUT_SECONDS, timed_model.timeout_reached)
+_daemon_timer = threading.Timer(_MODEL_TIMEOUT_SECONDS, timed_model._timeout_reached)
 _daemon_timer.daemon = True
 _daemon_timer.start()
 timed_model._timer = _daemon_timer
-serve_command.loaded_models[model_key] = timed_model
+model_manager.loaded_models[model_key] = timed_model
+
+# Pin request routing to our pre-loaded model. Setting this after construction
+# avoids ModelManager's constructor-time preload of ``force_model``.
+model_manager.force_model = _force_model_id
+
+# Shared generation state + per-endpoint handlers.
+generation_state = GenerationState()
+chat_handler = ChatCompletionHandler(
+    model_manager=model_manager, generation_state=generation_state
+)
+response_handler = ResponseHandler(
+    model_manager=model_manager, generation_state=generation_state
+)
 
 # ---------------------------------------------------------------------------
 # FastAPI app with OpenAI-compatible + KAITO-specific endpoints
@@ -333,28 +341,26 @@ app = FastAPI()
 
 def _resolve_model_name(body: dict) -> dict:
     """If the request uses the served model name, swap it to the internal
-    model ID so ServeCommand can find the pre-loaded model."""
+    model ID so the pre-loaded model is found in ModelManager."""
     if body.get("model") == _served_model_name:
-        body = {**body, "model": _internal_model_id}
+        body = {**body, "model": _force_model_id}
     return body
 
 
 @app.post("/v1/chat/completions")
-def chat_completion(body: dict):
-    """OpenAI-compatible chat completions endpoint (SSE streamed)."""
+async def chat_completion(request: Request, body: dict):
+    """OpenAI-compatible chat completions endpoint."""
     body = _resolve_model_name(body)
-    serve_command.validate_chat_completion_request(request=body)
-    output = serve_command.generate_chat_completion(body)
-    return StreamingResponse(output, media_type="text/event-stream")
+    request_id = request.headers.get("x-request-id") or str(uuid.uuid4())
+    return await chat_handler.handle_request(body, request_id)
 
 
 @app.post("/v1/responses")
-def responses(body: dict):
-    """OpenAI Responses API endpoint (SSE streamed)."""
+async def responses(request: Request, body: dict):
+    """OpenAI Responses API endpoint."""
     body = _resolve_model_name(body)
-    serve_command.validate_response_request(request=body)
-    output = serve_command.generate_response(body)
-    return StreamingResponse(output, media_type="text/event-stream")
+    request_id = request.headers.get("x-request-id") or str(uuid.uuid4())
+    return await response_handler.handle_request(body, request_id)
 
 
 @app.get("/v1/models")
@@ -378,10 +384,10 @@ def list_models():
 @app.get("/health")
 def health_check():
     """Health check used by Kubernetes liveness/readiness probes."""
-    if model_key not in serve_command.loaded_models:
+    if model_key not in model_manager.loaded_models:
         logger.error("Model not loaded in serve engine")
         raise HTTPException(status_code=500, detail="Model not initialized")
-    if serve_command.loaded_models[model_key].is_deleted():
+    if model_manager.loaded_models[model_key].model is None:
         logger.error("Model was deleted from serve engine")
         raise HTTPException(status_code=500, detail="Model not initialized")
     return {"status": "Healthy"}

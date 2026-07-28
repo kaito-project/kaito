@@ -23,7 +23,6 @@ import (
 // for each model that supports tuning.
 type TuningConfig struct {
 	DiskStorageRequirement        string
-	GPUCountRequirement           string
 	TotalSafeTensorFileSize       string
 	ModelTokenLimit               int
 	BytesPerToken                 int
@@ -42,7 +41,6 @@ var TransformerTuningParameters = map[string]TuningConfig{
 	// Phi-4 family
 	"phi-4": {
 		DiskStorageRequirement:  "150Gi",
-		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "70Gi",
 		Transformers: model.HuggingfaceTransformersParam{
 			BaseCommand: defaultTuningBaseCommand,
@@ -52,7 +50,6 @@ var TransformerTuningParameters = map[string]TuningConfig{
 	},
 	"phi-4-mini-instruct": {
 		DiskStorageRequirement:  "70Gi",
-		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "72Gi",
 		Transformers: model.HuggingfaceTransformersParam{
 			BaseCommand: defaultTuningBaseCommand,
@@ -64,7 +61,6 @@ var TransformerTuningParameters = map[string]TuningConfig{
 	// Phi-3 family
 	"phi-3-mini-4k-instruct": {
 		DiskStorageRequirement:  "80Gi",
-		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "72Gi",
 		Transformers: model.HuggingfaceTransformersParam{
 			BaseCommand: defaultTuningBaseCommand,
@@ -74,7 +70,6 @@ var TransformerTuningParameters = map[string]TuningConfig{
 	},
 	"phi-3-mini-128k-instruct": {
 		DiskStorageRequirement:  "80Gi",
-		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "72Gi",
 		Transformers: model.HuggingfaceTransformersParam{
 			BaseCommand: defaultTuningBaseCommand,
@@ -84,7 +79,6 @@ var TransformerTuningParameters = map[string]TuningConfig{
 	},
 	"phi-3-medium-4k-instruct": {
 		DiskStorageRequirement:  "120Gi",
-		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "80Gi",
 		Transformers: model.HuggingfaceTransformersParam{
 			BaseCommand: defaultTuningBaseCommand,
@@ -94,7 +88,6 @@ var TransformerTuningParameters = map[string]TuningConfig{
 	},
 	"phi-3-medium-128k-instruct": {
 		DiskStorageRequirement:  "120Gi",
-		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "80Gi",
 		Transformers: model.HuggingfaceTransformersParam{
 			BaseCommand: defaultTuningBaseCommand,
@@ -104,7 +97,6 @@ var TransformerTuningParameters = map[string]TuningConfig{
 	},
 	"phi-3.5-mini-instruct": {
 		DiskStorageRequirement:  "70Gi",
-		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "72Gi",
 		Transformers: model.HuggingfaceTransformersParam{
 			BaseCommand: defaultTuningBaseCommand,
@@ -116,7 +108,6 @@ var TransformerTuningParameters = map[string]TuningConfig{
 	// Mistral family
 	"mistral-7b-v0.3": {
 		DiskStorageRequirement:  "90Gi",
-		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "16Gi",
 		Transformers: model.HuggingfaceTransformersParam{
 			BaseCommand: defaultTuningBaseCommand,
@@ -128,7 +119,6 @@ var TransformerTuningParameters = map[string]TuningConfig{
 	// Qwen family
 	"qwen2.5-coder-7b-instruct": {
 		DiskStorageRequirement:  "110Gi",
-		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "24Gi",
 		Transformers: model.HuggingfaceTransformersParam{
 			BaseCommand: defaultTuningBaseCommand,
@@ -138,7 +128,6 @@ var TransformerTuningParameters = map[string]TuningConfig{
 	},
 	"qwen2.5-coder-32b-instruct": {
 		DiskStorageRequirement:  "230Gi",
-		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "140Gi",
 		Transformers: model.HuggingfaceTransformersParam{
 			BaseCommand: defaultTuningBaseCommand,

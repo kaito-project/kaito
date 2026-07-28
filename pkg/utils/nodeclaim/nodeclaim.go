@@ -33,7 +33,6 @@ import (
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
 	"k8s.io/utils/clock"
-	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
@@ -41,8 +40,9 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/apis"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/resources"
+	"github.com/kaito-project/kaito/pkg/utils/nodes"
 )
 
 var (
@@ -57,7 +57,7 @@ var (
 
 	KarpenterWorkspaceSelector, _ = metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
 		MatchExpressions: []metav1.LabelSelectorRequirement{
-			{Key: consts.KarpenterWorkspaceKey, Operator: metav1.LabelSelectorOpExists},
+			{Key: consts.KarpenterWorkspaceNameKey, Operator: metav1.LabelSelectorOpExists},
 		},
 	})
 
@@ -134,7 +134,7 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 	klog.InfoS("GenerateNodeClaimManifest", "object", obj)
 
 	// Determine the type of the input object and extract relevant fields
-	instanceType, namespace, name, labelSelector, nameLabel, namespaceLabel, err := resources.ExtractObjFields(obj)
+	instanceType, namespace, name, labelSelector, nameLabel, namespaceLabel, err := nodes.ExtractObjFields(obj)
 	if err != nil {
 		klog.Error(err)
 		return nil
@@ -147,8 +147,8 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 		nameLabel:            name,
 		namespaceLabel:       namespace,
 	}
-	if labelSelector != nil && len(labelSelector.MatchLabels) != 0 {
-		nodeClaimLabels = lo.Assign(nodeClaimLabels, labelSelector.MatchLabels)
+	if sanitized := kaitov1beta1.SanitizedMatchLabels(labelSelector); len(sanitized) != 0 {
+		nodeClaimLabels = lo.Assign(nodeClaimLabels, sanitized)
 	}
 
 	nodeClaimAnnotations := map[string]string{
@@ -250,7 +250,7 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 // GenerateNodeClaimName generates a nodeClaim name from the given workspace or RAGEngine.
 func GenerateNodeClaimName(obj client.Object) string {
 	// Determine the type of the input object and extract relevant fields
-	_, namespace, name, _, _, _, err := resources.ExtractObjFields(obj)
+	_, namespace, name, _, _, _, err := nodes.ExtractObjFields(obj)
 	if err != nil {
 		return ""
 	}
@@ -270,7 +270,7 @@ func CreateNodeClaim(ctx context.Context, nodeClaimObj *karpenterv1.NodeClaim, k
 func WaitForPendingNodeClaims(ctx context.Context, obj client.Object, kubeClient client.Client) error {
 
 	// Determine the type of the input object and retrieve the InstanceType
-	instanceType, _, _, _, _, _, err := resources.ExtractObjFields(obj)
+	instanceType, _, _, _, _, _, err := nodes.ExtractObjFields(obj)
 	if err != nil {
 		return err
 	}
@@ -401,4 +401,62 @@ func IsNodeClaimReadyNotDeleting(nodeClaim *karpenterv1.NodeClaim) bool {
 	}
 
 	return nodeClaim.Status.NodeName != ""
+}
+
+// maxProvisioningErrorMessageLen caps the length of the message surfaced by
+// FirstProvisioningError so it stays readable in the workspace status.
+const maxProvisioningErrorMessageLen = 256
+
+// awaitingReconciliationReason is the reason the operatorpkg status library
+// (used by Karpenter core) stamps on freshly-initialized Unknown conditions
+// before any reconciliation has run. It marks a benign "not started / in
+// progress" state — not a provisioning failure — so it must be ignored when
+// looking for real errors.
+const awaitingReconciliationReason = "AwaitingReconciliation"
+
+// FirstProvisioningError scans NodeClaims for a provisioning failure that
+// Karpenter core surfaced on the standard lifecycle conditions
+// (Launched -> Registered -> Initialized) and returns the Reason and Message of
+// the earliest (root-cause) blocking condition.
+//
+// It is provider-agnostic: it reads only the Karpenter core condition types and
+// the generic Reason/Message fields (populated by the cloud provider via
+// cloudprovider.CreateError), so it works for any Karpenter provider (Azure,
+// AWS, gpu-provisioner, ...) and survives provider-specific reason changes.
+//
+// A blocking condition is one whose status is not True, that carries an
+// explanatory message, and whose reason is not the benign
+// "AwaitingReconciliation" initializer. A freshly created NodeClaim whose
+// conditions are still Unknown/AwaitingReconciliation (launch not yet attempted
+// or still in progress) is not an error and is skipped, as are NodeClaims that
+// are being deleted.
+func FirstProvisioningError(nodeClaims []*karpenterv1.NodeClaim) (reason, message string, found bool) {
+	// Earlier lifecycle stages are the root cause, so check them first.
+	for _, stage := range []string{
+		karpenterv1.ConditionTypeLaunched,
+		karpenterv1.ConditionTypeRegistered,
+		karpenterv1.ConditionTypeInitialized,
+	} {
+		for _, nc := range nodeClaims {
+			if nc == nil || !nc.DeletionTimestamp.IsZero() {
+				continue
+			}
+			for _, c := range nc.Status.Conditions {
+				if c.Type == stage &&
+					c.Status != metav1.ConditionTrue &&
+					c.Reason != awaitingReconciliationReason &&
+					c.Message != "" {
+					return c.Reason, truncateProvisioningMessage(c.Message), true
+				}
+			}
+		}
+	}
+	return "", "", false
+}
+
+func truncateProvisioningMessage(msg string) string {
+	if len(msg) <= maxProvisioningErrorMessageLen {
+		return msg
+	}
+	return msg[:maxProvisioningErrorMessageLen] + "..."
 }

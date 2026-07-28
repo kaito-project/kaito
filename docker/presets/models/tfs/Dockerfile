@@ -3,7 +3,7 @@
 # Debian trixie (glibc 2.41), whose C23 cospi/sinpi math declarations are
 # incompatible with CUDA 12.9's nvcc host-compile (used by the optional runtime
 # CUDA toolkit install for DeepGEMM). bookworm avoids that conflict.
-FROM python:3.12-slim-bookworm AS dependencies
+FROM python:3.14-slim-bookworm AS dependencies
 
 ARG MODEL_TYPE
 ARG VERSION

@@ -33,7 +33,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/workspace/inference"
+	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
 	models "github.com/kaito-project/kaito/presets/workspace/models"
 	"github.com/kaito-project/kaito/test/e2e/utils"
 )
@@ -75,7 +75,7 @@ func modelMirrorDownloadTimeout(modelID string) time.Duration {
 // validateModelMirrorCRReady asserts the cluster-scoped ModelMirror CR for modelID reaches
 // Ready (with StorageReady) and exposes the expected modelPath + lastDownloadTime.
 func validateModelMirrorCRReady(modelID string) {
-	crName := inference.ModelMirrorCRName(modelID)
+	crName := modelstreaming.ModelMirrorCRName(modelID)
 	By(fmt.Sprintf("Checking ModelMirror CR %s is Ready", crName), func() {
 		Eventually(func() bool {
 			mm := &kaitov1alpha1.ModelMirror{}
@@ -125,7 +125,7 @@ func validateModelMirrorReady(workspaceObj *kaitov1beta1.Workspace, modelID stri
 
 // validateModelMirrorResources asserts the PVC and download Job for the model exist in ns.
 func validateModelMirrorResources(modelID, namespace string) {
-	crName := inference.ModelMirrorCRName(modelID)
+	crName := modelstreaming.ModelMirrorCRName(modelID)
 	By(fmt.Sprintf("Checking ModelMirror PVC %s in %s", crName, namespace), func() {
 		Eventually(func() bool {
 			pvc := &corev1.PersistentVolumeClaim{}
@@ -271,7 +271,7 @@ func envVal(env []corev1.EnvVar, name string) string {
 // a later run on a reused cluster.
 func deleteStreamingModelMirrorCR(modelID string) {
 	By("Deleting the cluster-scoped ModelMirror CR", func() {
-		crName := inference.ModelMirrorCRName(modelID)
+		crName := modelstreaming.ModelMirrorCRName(modelID)
 		mm := &kaitov1alpha1.ModelMirror{ObjectMeta: metav1.ObjectMeta{Name: crName}}
 		delErr := utils.TestingCluster.KubeClient.Delete(ctx, mm)
 		Expect(delErr == nil || apierrors.IsNotFound(delErr)).To(BeTrue())

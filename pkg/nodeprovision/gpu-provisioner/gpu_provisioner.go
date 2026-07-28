@@ -108,7 +108,9 @@ func (g *AzureGPUProvisioner) DisableDriftRemediation(ctx context.Context, works
 func (g *AzureGPUProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.Workspace) (bool, bool, error) {
 	// List nodes once and derive both readyNodes (for NodeClaim check) and
 	// readyCount with correct instance type (for node readiness check).
-	nodeList, err := nodes.ListNodes(ctx, g.nodeClaimManager.Client, kaitov1beta1.SanitizedMatchLabels(ws.Resource.LabelSelector))
+	// Scope to nodes owned by this workspace so sibling workspaces sharing the
+	// same label selector (e.g. InferenceSet replicas) are not counted.
+	nodeList, err := nodeprovision.ListWorkspaceNodes(ctx, g.nodeClaimManager.Client, g, ws)
 	if err != nil {
 		return false, false, fmt.Errorf("failed to list nodes: %w", err)
 	}
@@ -180,7 +182,7 @@ func (g *AzureGPUProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kai
 		Reason: "workspaceResourceStatusNotReady", Message: "node claim or node status condition not ready",
 	}
 
-	nodeList, err := nodes.ListNodes(ctx, g.nodeClaimManager.Client, kaitov1beta1.SanitizedMatchLabels(ws.Resource.LabelSelector))
+	nodeList, err := nodeprovision.ListWorkspaceNodes(ctx, g.nodeClaimManager.Client, g, ws)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list nodes: %w", err)
 	}
@@ -216,6 +218,12 @@ func (g *AzureGPUProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kai
 		nodeClaimCond.Status = metav1.ConditionTrue
 		nodeClaimCond.Reason = "NodeClaimsReady"
 		nodeClaimCond.Message = "Enough NodeClaims are ready"
+	} else if reason, message, ok := nodeclaim.FirstProvisioningError(existingNodeClaims); ok {
+		// Surface the underlying cloud-provider provisioning error (e.g. quota
+		// exceeded, unauthorized) so users can see the root cause in the
+		// workspace/inferenceset status instead of a generic message.
+		nodeClaimCond.Reason = reason
+		nodeClaimCond.Message = message
 	}
 
 	// Node readiness.

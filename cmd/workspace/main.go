@@ -61,7 +61,8 @@ import (
 	karpenterutils "github.com/kaito-project/kaito/pkg/utils/karpenter"
 	"github.com/kaito-project/kaito/pkg/version"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
-	"github.com/kaito-project/kaito/pkg/workspace/inference"
+	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
+	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/registry"
 	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
 )
 
@@ -132,7 +133,7 @@ func main() {
 	flag.StringVar(&karpenterNodeClassVersion, "karpenter-node-class-version", "v1beta1", "Karpenter NodeClass API version. Only used when node-provisioner=karpenter.")
 	flag.StringVar(&karpenterNodeClassResourceName, "karpenter-node-class-resource-name", "aksnodeclasses", "Plural resource name for the NodeClass CRD (e.g. aksnodeclasses). Combined with --karpenter-node-class-group to form the full CRD name. Only used when node-provisioner=karpenter.")
 	flag.BoolVar(&printVersionAndExit, "version", false, "Print version and exit.")
-	flag.StringVar(&defaultModelMirrorStorageClass, "default-model-mirror-storage-class", "", "StorageClass for ModelMirror PVCs (required when ModelStreaming=true).")
+	flag.StringVar(&defaultModelMirrorStorageClass, "default-model-mirror-storage-class", "", "StorageClass for ModelMirror PVCs.")
 	flag.StringVar(&defaultStreamingServiceAccount, "default-streaming-service-account", "", "Default ServiceAccount for streaming inference pods.")
 	flag.StringVar(&modelMirrorDownloadCPU, "model-mirror-download-cpu", "", "CPU request==limit for the ModelMirror download Job container. Empty uses the built-in default (3).")
 	flag.StringVar(&modelMirrorDownloadMemory, "model-mirror-download-memory", "", "Memory request==limit for the ModelMirror download Job container. Empty uses the built-in default (8Gi).")
@@ -270,16 +271,16 @@ func main() {
 		exitWithErrorFunc()
 	}
 
-	// Set streaming defaults once at startup (read by inference package via StreamingDefaults).
+	// Set streaming defaults once at startup (read by the modelstreaming package via StreamingDefaults).
 	if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
-		streamer, streamerErr := inference.GetModelStreamer(os.Getenv("CLOUD_PROVIDER"))
+		streamer, streamerErr := registry.GetModelStreamer(os.Getenv("CLOUD_PROVIDER"))
 		if streamerErr != nil {
 			klog.ErrorS(streamerErr, "unable to resolve model streamer")
 			exitWithErrorFunc()
 		}
-		inference.StreamingDefaults.StorageClass = defaultModelMirrorStorageClass
-		inference.StreamingDefaults.ServiceAccount = defaultStreamingServiceAccount
-		inference.StreamingDefaults.ModelStreamer = streamer
+		modelstreaming.StreamingDefaults.StorageClass = defaultModelMirrorStorageClass
+		modelstreaming.StreamingDefaults.ServiceAccount = defaultStreamingServiceAccount
+		modelstreaming.StreamingDefaults.ModelStreamer = streamer
 	}
 
 	workspaceReconciler := controllers.NewWorkspaceReconciler(

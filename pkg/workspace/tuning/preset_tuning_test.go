@@ -677,15 +677,11 @@ func TestDefaultTolerations(t *testing.T) {
 type mockModel struct{}
 
 func (m *mockModel) GetInferenceParameters() *pkgmodel.PresetParam {
-	return &pkgmodel.PresetParam{
-		GPUCountRequirement: "1",
-	}
+	return &pkgmodel.PresetParam{}
 }
 
 func (m *mockModel) GetTuningParameters() *pkgmodel.PresetParam {
-	return &pkgmodel.PresetParam{
-		GPUCountRequirement: "1",
-	}
+	return &pkgmodel.PresetParam{}
 }
 
 func (m *mockModel) SupportDistributedInference() bool {
@@ -702,7 +698,6 @@ type mockModelDistinctParams struct{}
 
 func (m *mockModelDistinctParams) GetInferenceParameters() *pkgmodel.PresetParam {
 	return &pkgmodel.PresetParam{
-		GPUCountRequirement: "1",
 		RuntimeParam: pkgmodel.RuntimeParam{
 			Transformers: pkgmodel.HuggingfaceTransformersParam{
 				BaseCommand: "inference-command-should-not-appear",
@@ -713,7 +708,6 @@ func (m *mockModelDistinctParams) GetInferenceParameters() *pkgmodel.PresetParam
 
 func (m *mockModelDistinctParams) GetTuningParameters() *pkgmodel.PresetParam {
 	return &pkgmodel.PresetParam{
-		GPUCountRequirement: "1",
 		RuntimeParam: pkgmodel.RuntimeParam{
 			Transformers: pkgmodel.HuggingfaceTransformersParam{
 				BaseCommand: "tuning-base-command",

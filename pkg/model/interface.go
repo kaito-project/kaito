@@ -212,7 +212,6 @@ type PresetParam struct {
 	// Example: For a 14Gi model, calculation is: 14 × 2.5 + 48 = 83, rounded up to 90Gi.
 
 	ImageAccessMode               string         // Defines where the Image is Public or Private.
-	GPUCountRequirement           string         // Number of GPUs required for the Preset. Used for inference.
 	TotalSafeTensorFileSize       string         // Total SafeTensor file size for the Preset. Used for inference.
 	TuningPerGPUMemoryRequirement map[string]int // Min GPU memory per tuning method (batch size 1). Used for tuning.
 	BytesPerToken                 int            // Number of bytes per token for the model. It is calculated by 2 * hidden_layers * kv_heads * head_dim (hidden_size/num_attemtion_numbers) * dtype_size
@@ -234,8 +233,6 @@ type PresetParam struct {
 type RuntimeParam struct {
 	Transformers HuggingfaceTransformersParam
 	VLLM         VLLMParam
-	// Disable the tensor parallelism
-	DisableTensorParallelism bool
 }
 
 type HuggingfaceTransformersParam struct {
@@ -338,6 +335,11 @@ type RuntimeContextExtraArguments struct {
 	// inside buildVLLMInferenceCommand based on the resolved tensor-parallel-size.
 	StreamingModelPath  string // e.g. "az://container/modelID"
 	StreamingLoadFormat string // e.g. "runai_streamer"
+
+	// LocalModelWeightsPath, when set, points vLLM at model weights that already
+	// exist on local disk (e.g. mounted from a custom GPU node image) via --model.
+	// No HuggingFace download is performed. Mutually exclusive with StreamingModelPath.
+	LocalModelWeightsPath string // e.g. "/opt/kaito/models/deepseekv4flash"
 }
 
 func (p *PresetParam) GetInferenceCommand(rc RuntimeContext) []string {
@@ -410,23 +412,31 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	// anyway, so it is safe to turn off for all vLLM models.
 	p.VLLM.ModelRunParams["compilation-config.pass_config.fuse_allreduce_rms"] = "False"
 
-	// Dynamically determine dtype based on GPU compute capability.
-	// bfloat16 requires CUDA compute capability >= 8.0 (Ampere+).
-	// Fall back to float16 on older GPUs.
-	if rc.GPUConfig != nil && !rc.GPUConfig.SupportsBFloat16() {
-		p.VLLM.ModelRunParams["dtype"] = "float16"
-	}
-
 	if !p.VLLM.DisallowLoRA && rc.AdaptersEnabled {
 		p.VLLM.ModelRunParams["enable-lora"] = ""
 	}
 	// Model source: streaming (az://) vs download-at-runtime (HF repo).
 	if rc.StreamingModelPath != "" {
+		// StreamingModelPath may be a runtime shell placeholder (e.g. "$STREAM_MODEL_URI" for the
+		// SAS path, where the init container derives the az:// URI and the entrypoint wrapper
+		// exports it).
 		p.VLLM.ModelRunParams["model"] = rc.StreamingModelPath
 		p.VLLM.ModelRunParams["load-format"] = rc.StreamingLoadFormat
 		// Some presets set load_format (underscore) in their default params
 		// (e.g. mistral sets load_format=mistral). Remove to avoid conflict
 		// with the hyphenated --load-format=runai_streamer we set above.
+		delete(p.VLLM.ModelRunParams, "load_format")
+	} else if rc.LocalModelWeightsPath != "" {
+		// Weights already exist on local disk (e.g. mounted from a custom GPU node
+		// image). Point vLLM at the local directory and load with the RunAI streamer,
+		// whose concurrent threaded reads avoid the mmap readahead cliff when loading
+		// large safetensors from a virtualized node disk. Skip the HuggingFace download
+		// (no --download-dir / --code-revision).
+		p.VLLM.ModelRunParams["model"] = rc.LocalModelWeightsPath
+		p.VLLM.ModelRunParams["load-format"] = "runai_streamer"
+		// Some presets set load_format (underscore) in their default params
+		// (e.g. mistral sets load_format=mistral); remove it to avoid conflicting
+		// with the hyphenated --load-format we set here.
 		delete(p.VLLM.ModelRunParams, "load_format")
 	} else if p.DownloadAtRuntime {
 		repoId, revision, _ := utils.ParseHuggingFaceModelVersion(p.Version)
@@ -447,8 +457,10 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	// problematic, either because:
 	//   - the model needs vLLM's hybrid KV cache manager (incompatible with the
 	//     LMCache connector), or
-	//   - LMCache is disabled for this model (see isLMCacheDisabled).
-	if p.isVLLMHybridKVCacheManagerRequired() || p.isLMCacheDisabled() {
+	//   - LMCache is disabled for this model (see isLMCacheDisabled), or
+	//   - the workload runs on a MIG partition (TODO: support KV cache CPU offloading on MIG).
+	if p.isVLLMHybridKVCacheManagerRequired() || p.isLMCacheDisabled() ||
+		(rc.GPUConfig != nil && rc.GPUConfig.IsMIG) {
 		p.VLLM.ModelRunParams["kaito-kv-cache-cpu-memory-utilization"] = "0"
 	}
 
@@ -496,10 +508,6 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 //  3. Multi-node (PP + TP): If the model exceeds a single node's capacity, we use
 //     pipeline parallelism across nodes, with tensor parallelism within each node.
 func (p *PresetParam) configureParallelism(rc RuntimeContext) {
-	if p.DisableTensorParallelism {
-		return
-	}
-
 	multiNode := rc.DistributedInference && rc.NumNodes > 1
 
 	// Tier 1: Model fits on a single GPU → Data Parallelism.
@@ -585,7 +593,8 @@ func (p *PresetParam) isVLLMHybridKVCacheManagerRequired() bool {
 		switch arch {
 		case "NemotronHForCausalLM", "NemotronH_Nano_VL_V2", "NemotronHMTPModel", "NemotronHPuzzleForCausalLM",
 			"Gemma4ForCausalLM", "Gemma4ForConditionalGeneration",
-			"Qwen3_5ForConditionalGeneration", "Qwen3_5MoeForConditionalGeneration":
+			"Qwen3_5ForConditionalGeneration", "Qwen3_5MoeForConditionalGeneration",
+			"DeepseekV4ForCausalLM":
 			return true
 		}
 	}
@@ -601,6 +610,18 @@ func (p *PresetParam) isLMCacheDisabled() bool {
 	for _, arch := range p.Architectures {
 		switch arch {
 		case "GptOssForCausalLM":
+			return true
+		}
+	}
+	return false
+}
+
+// RequiresDeepGEMM returns true for architectures that strictly require the
+// DeepGEMM library.
+func (p *PresetParam) RequiresDeepGEMM() bool {
+	for _, arch := range p.Architectures {
+		switch arch {
+		case "DeepseekV4ForCausalLM":
 			return true
 		}
 	}

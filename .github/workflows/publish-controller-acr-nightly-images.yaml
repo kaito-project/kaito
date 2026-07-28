@@ -106,6 +106,30 @@ jobs:
           REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
           IMG_TAG: ${{ steps.get-image-tag.outputs.img_tag }}
 
+      - name: Pin productionstack subchart to latest ACR tag
+        if: ${{ matrix.image_name == 'workspace' }}
+        run: |
+          registry_name="${REGISTRY%%.*}"
+          productionstack_tag="$(az acr repository show-tags \
+            --name "${registry_name}" \
+            --repository 'helm/productionstack' \
+            --orderby time_desc \
+            --top 1 \
+            --output tsv)"
+          if [[ -z "${productionstack_tag}" ]]; then
+            echo 'No productionstack tags found in ACR' >&2
+            exit 1
+          fi
+
+          export PRODUCTIONSTACK_REPOSITORY="oci://${REGISTRY}/helm"
+          export PRODUCTIONSTACK_TAG="${productionstack_tag}"
+          yq -i '(.dependencies[] | select(.name == "productionstack") | .repository) = strenv(PRODUCTIONSTACK_REPOSITORY) |
+            (.dependencies[] | select(.name == "productionstack") | .version) = strenv(PRODUCTIONSTACK_TAG)' "${CHART_PATH}/Chart.yaml"
+          helm dependency update "${CHART_PATH}"
+        env:
+          CHART_PATH: ${{ matrix.chart_path }}
+          REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
+
       - name: Package and push chart ${{ matrix.image_name }}:${{ steps.get-image-tag.outputs.img_tag }}
         run: |
           make "${{ matrix.make_chart_target }}" \

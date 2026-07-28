@@ -44,6 +44,37 @@ type ResourceSpec struct {
 	// The controller will use the `InstanceType` to create the remaining nodes.
 	// +optional
 	PreferredNodes []string `json:"preferredNodes,omitempty"`
+
+	// Partition specifies GPU partitioning for the workload. When set, the workload
+	// is scheduled on a GPU partition (slice) instead of a full GPU.
+	// Requires the enableMIG feature gate and BYO nodes.
+	// +optional
+	Partition *PartitionSpec `json:"partition,omitempty"`
+}
+
+// PartitionMode identifies the GPU partitioning technology.
+// +kubebuilder:validation:Enum=mig
+type PartitionMode string
+
+const (
+	// PartitionModeMIG partitions the GPU using NVIDIA Multi-Instance GPU (MIG).
+	PartitionModeMIG PartitionMode = "mig"
+)
+
+// PartitionSpec describes GPU partitioning for a workload. Today only NVIDIA MIG
+// (mode "mig") is supported; the mode discriminator leaves room for other GPU
+// partitioning technologies in the future.
+type PartitionSpec struct {
+	// Mode selects the GPU partitioning technology. Currently only "mig" (NVIDIA
+	// Multi-Instance GPU) is supported.
+	// +kubebuilder:validation:Enum=mig
+	Mode PartitionMode `json:"mode"`
+
+	// Profile is the partition profile, interpreted according to Mode. For MIG this
+	// is a profile name like "1g.10gb", "2g.20gb", "3g.40gb". Each workload is
+	// scheduled on exactly one partition; tensor parallelism across partitions is
+	// not supported. Use multiple Workspaces or an InferenceSet to run replicas.
+	Profile string `json:"profile"`
 }
 
 type ModelName string

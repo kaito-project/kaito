@@ -36,7 +36,6 @@ var ValidStrength string = "0.5"
 var InvalidStrength1 string = "invalid"
 var InvalidStrength2 string = "1.5"
 
-var gpuCountRequirement string
 var totalSafeTensorFileSize string
 var perGPUMemoryRequirement string
 
@@ -53,7 +52,6 @@ type testModel struct{}
 
 func (*testModel) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement:     gpuCountRequirement,
 		TotalSafeTensorFileSize: totalSafeTensorFileSize,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
@@ -64,7 +62,6 @@ func (*testModel) GetInferenceParameters() *model.PresetParam {
 }
 func (*testModel) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement:     gpuCountRequirement,
 		TotalSafeTensorFileSize: totalSafeTensorFileSize,
 	}
 }
@@ -79,13 +76,11 @@ type testModelStatic struct{}
 
 func (*testModelStatic) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "16Gi",
 	}
 }
 func (*testModelStatic) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "16Gi",
 	}
 }
@@ -101,14 +96,12 @@ type testModelPrivate struct{}
 func (*testModelPrivate) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		ImageAccessMode:         string(ModelImageAccessModePrivate),
-		GPUCountRequirement:     gpuCountRequirement,
 		TotalSafeTensorFileSize: totalSafeTensorFileSize,
 	}
 }
 func (*testModelPrivate) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
 		ImageAccessMode:         string(ModelImageAccessModePrivate),
-		GPUCountRequirement:     gpuCountRequirement,
 		TotalSafeTensorFileSize: totalSafeTensorFileSize,
 	}
 }
@@ -253,7 +246,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 	tests := []struct {
 		name                    string
 		resourceSpec            *ResourceSpec
-		modelGPUCount           string
 		modelPerGPUMemory       string
 		totalSafeTensorFileSize string
 		preset                  bool
@@ -268,7 +260,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_ND96asr_v4",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:           "8",
 			modelPerGPUMemory:       "19Gi",
 			totalSafeTensorFileSize: "152Gi",
 			preset:                  true,
@@ -282,7 +273,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:           "1",
 			modelPerGPUMemory:       "16Gi",
 			totalSafeTensorFileSize: "16Gi",
 			preset:                  true,
@@ -296,7 +286,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:           "1",
 			modelPerGPUMemory:       "0",
 			totalSafeTensorFileSize: "32Gi",
 			preset:                  true,
@@ -311,7 +300,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_NC24ads_A100_v4",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:           "2",
 			modelPerGPUMemory:       "15Gi",
 			totalSafeTensorFileSize: "30Gi",
 			preset:                  true,
@@ -409,7 +397,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:           "1",
 			modelPerGPUMemory:       "0",
 			totalSafeTensorFileSize: "",
 			preset:                  true,
@@ -423,7 +410,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:           "1",
 			modelPerGPUMemory:       "0",
 			totalSafeTensorFileSize: "not-a-quantity",
 			preset:                  true,
@@ -437,7 +423,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:           "1",
 			modelPerGPUMemory:       "16Gi",
 			totalSafeTensorFileSize: "1Gi",
 			preset:                  true,
@@ -487,7 +472,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 					}
 				}
 
-				gpuCountRequirement = tc.modelGPUCount
 				totalSafeTensorFileSize = tc.totalSafeTensorFileSize
 				perGPUMemoryRequirement = tc.modelPerGPUMemory
 

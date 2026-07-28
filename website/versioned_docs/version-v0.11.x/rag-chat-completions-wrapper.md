@@ -202,7 +202,9 @@ if prompt_len > self.llm.metadata.context_window:
 ```python
 if max_tokens and max_tokens > context_window - prompt_len:
     # Automatically adjust max_tokens to fit available space
-    logger.warning(f"max_tokens ({max_tokens}) is greater than available context after prompt consideration. Setting to {context_window - prompt_len}.")
+    logger.warning(
+        f"max_tokens ({max_tokens}) is greater than available context after prompt consideration. Setting to {context_window - prompt_len}."
+    )
     max_tokens = context_window - prompt_len
 ```
 
@@ -260,7 +262,9 @@ Before retrieving documents, the system calculates how many documents to fetch f
 
 ```python
 # Calculate initial retrieval size based on available context window
-top_k = max(100, int((context_window - prompt_len) / RAG_DOCUMENT_NODE_TOKEN_APPROXIMATION))
+top_k = max(
+    100, int((context_window - prompt_len) / RAG_DOCUMENT_NODE_TOKEN_APPROXIMATION)
+)
 ```
 
 **Key Points:**
@@ -345,8 +349,8 @@ Finally, the system executes the RAG-enabled chat completion:
 ```python
 chat_engine = index.as_chat_engine(
     llm=self.llm,
-    similarity_top_k=top_k,           # Initial retrieval size
-    chat_mode=ChatMode.CONTEXT,      # Context-only mode (no query condensation)
+    similarity_top_k=top_k,  # Initial retrieval size
+    chat_mode=ChatMode.CONTEXT,  # Context-only mode (no query condensation)
     node_postprocessors=[
         ContextSelectionProcessor(
             rag_context_token_fill_ratio=context_token_ratio,

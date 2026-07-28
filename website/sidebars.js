@@ -46,6 +46,8 @@ const sidebars = {
                 'model-mirror-streaming',
                 'memory-estimator',
                 'keda-autoscaler-inference',
+                'multi-gpu-instance',
+                'bring-your-own-weights',
                 'tuning',
                 'lora-adapters',
                 'custom-model',

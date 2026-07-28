@@ -48,6 +48,8 @@ type ResourceProfile struct {
 	// DisableNodeAutoProvisioning indicates BYO (Bring Your Own) mode: no new nodes will be
 	// provisioned and the estimator must derive GPU config from existing ready nodes.
 	DisableNodeAutoProvisioning bool
+	// MIGProfile is the NVIDIA MIG partition profile (e.g. "1g.10gb"). Empty when MIG is not used.
+	MIGProfile string
 }
 
 // NodeEstimateRequest holds all inputs needed to estimate the required node count.

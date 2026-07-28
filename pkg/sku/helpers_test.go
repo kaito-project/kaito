@@ -119,6 +119,75 @@ func TestGetGPUConfigFromNvidiaLabels(t *testing.T) {
 			},
 		},
 		{
+			name: "MIG active (mixed/single) sets IsMIG",
+			node: &corev1.Node{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "gpu-node-mig",
+					Labels: map[string]string{
+						"nvidia.com/gpu.product":      "NVIDIA-H100-NVL",
+						"nvidia.com/gpu.count":        "3",
+						"nvidia.com/gpu.memory":       "24576",
+						"nvidia.com/mig.config":       "all-2g.24gb",
+						"nvidia.com/mig.config.state": "success",
+					},
+				},
+			},
+			wantErr: false,
+			expected: &GPUConfig{
+				SKU:      "unknown",
+				GPUCount: 3,
+				GPUModel: "NVIDIA-H100-NVL",
+				GPUMem:   resource.MustParse("72Gi"),
+				IsMIG:    true,
+			},
+		},
+		{
+			name: "MIG disabled does not set IsMIG",
+			node: &corev1.Node{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "gpu-node-mig-disabled",
+					Labels: map[string]string{
+						"nvidia.com/gpu.product":      "NVIDIA-H100-NVL",
+						"nvidia.com/gpu.count":        "1",
+						"nvidia.com/gpu.memory":       "96256",
+						"nvidia.com/mig.config":       "all-disabled",
+						"nvidia.com/mig.config.state": "success",
+					},
+				},
+			},
+			wantErr: false,
+			expected: &GPUConfig{
+				SKU:      "unknown",
+				GPUCount: 1,
+				GPUModel: "NVIDIA-H100-NVL",
+				GPUMem:   resource.MustParse("94Gi"),
+				IsMIG:    false,
+			},
+		},
+		{
+			name: "MIG config not yet applied (state != success) does not set IsMIG",
+			node: &corev1.Node{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "gpu-node-mig-pending",
+					Labels: map[string]string{
+						"nvidia.com/gpu.product":      "NVIDIA-H100-NVL",
+						"nvidia.com/gpu.count":        "3",
+						"nvidia.com/gpu.memory":       "24576",
+						"nvidia.com/mig.config":       "all-2g.24gb",
+						"nvidia.com/mig.config.state": "pending",
+					},
+				},
+			},
+			wantErr: false,
+			expected: &GPUConfig{
+				SKU:      "unknown",
+				GPUCount: 3,
+				GPUModel: "NVIDIA-H100-NVL",
+				GPUMem:   resource.MustParse("72Gi"),
+				IsMIG:    false,
+			},
+		},
+		{
 			name: "missing nvidia.com/gpu.product label",
 			node: &corev1.Node{
 				ObjectMeta: metav1.ObjectMeta{
@@ -200,6 +269,7 @@ func TestGetGPUConfigFromNvidiaLabels(t *testing.T) {
 				assert.Equal(t, tt.expected.GPUModel, got.GPUModel)
 				assert.True(t, tt.expected.GPUMem.Cmp(got.GPUMem) == 0, "expected GPUMem %s, got %s", tt.expected.GPUMem.String(), got.GPUMem.String())
 				assert.Equal(t, tt.expected.CUDAComputeCapability, got.CUDAComputeCapability)
+				assert.Equal(t, tt.expected.IsMIG, got.IsMIG)
 			}
 		})
 	}

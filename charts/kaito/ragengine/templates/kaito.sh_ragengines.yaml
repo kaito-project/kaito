@@ -406,6 +406,33 @@ spec:
                         type: object
                     type: object
                     x-kubernetes-map-type: atomic
+                  partition:
+                    description: |-
+                      Partition specifies GPU partitioning for the workload. When set, the workload
+                      is scheduled on a GPU partition (slice) instead of a full GPU.
+                      Requires the enableMIG feature gate and BYO nodes.
+                    properties:
+                      mode:
+                        allOf:
+                        - enum:
+                          - mig
+                        - enum:
+                          - mig
+                        description: |-
+                          Mode selects the GPU partitioning technology. Currently only "mig" (NVIDIA
+                          Multi-Instance GPU) is supported.
+                        type: string
+                      profile:
+                        description: |-
+                          Profile is the partition profile, interpreted according to Mode. For MIG this
+                          is a profile name like "1g.10gb", "2g.20gb", "3g.40gb". Each workload is
+                          scheduled on exactly one partition; tensor parallelism across partitions is
+                          not supported. Use multiple Workspaces or an InferenceSet to run replicas.
+                        type: string
+                    required:
+                    - mode
+                    - profile
+                    type: object
                   preferredNodes:
                     description: |-
                       Deprecated: PreferredNodes is deprecated in v1beta1 and will be removed in a future version.

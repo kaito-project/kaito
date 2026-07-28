@@ -27,7 +27,7 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/workspace/inference"
+	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
 )
 
 type nodeClaimEventHandler struct {
@@ -118,11 +118,11 @@ func enqueueWorkspacesForModelMirror(kubeClient client.Client) handler.EventHand
 				}
 				// Skip workspaces that opt out of streaming (or when the gate is off):
 				// they never consume a ModelMirror CR, so a CR change is irrelevant to them.
-				if !inference.ModelStreamingEnabled(ws) {
+				if !modelstreaming.ModelStreamingEnabled(ws) {
 					continue
 				}
 				// Derive the expected CR name from the workspace's preset
-				expectedCR := inference.ModelMirrorCRName(inference.ResolveHFModelID(ws))
+				expectedCR := modelstreaming.ModelMirrorCRName(modelstreaming.ResolveHFModelID(ws))
 				if expectedCR == crName {
 					requests = append(requests, reconcile.Request{
 						NamespacedName: client.ObjectKeyFromObject(ws),

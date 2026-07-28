@@ -19,15 +19,22 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/nodeprovision"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 )
 
-func CreateTemplateInference(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, kubeClient client.Client) (client.Object, error) {
-	depObj := manifests.GenerateManifestWithPodTemplate(workspaceObj, defaultTolerations(workspaceObj))
-	err := resources.CreateResource(ctx, client.Object(depObj), kubeClient)
+func CreateTemplateInference(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, kubeClient client.Client, provisioner nodeprovision.NodeProvisioner) (client.Object, error) {
+	ssObj := manifests.GenerateManifestWithPodTemplate(workspaceObj, defaultTolerations(workspaceObj))
+	// Pin the pod to nodes provisioned for this workspace. Without this, a
+	// custom-template pod could schedule onto a sibling workspace's node when
+	// they share the same user label selector (e.g. InferenceSet replicas).
+	if err := ApplyProvisionerNodeSelector(ctx, provisioner, workspaceObj, &ssObj.Spec.Template.Spec); err != nil {
+		return nil, err
+	}
+	err := resources.CreateResource(ctx, client.Object(ssObj), kubeClient)
 	if client.IgnoreAlreadyExists(err) != nil {
 		return nil, err
 	}
-	return depObj, nil
+	return ssObj, nil
 }

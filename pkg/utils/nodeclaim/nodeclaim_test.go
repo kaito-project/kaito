@@ -16,6 +16,7 @@ package nodeclaim
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 
 	azurev1beta1 "github.com/Azure/karpenter-provider-azure/pkg/apis/v1beta1"
@@ -299,4 +300,104 @@ func TestGenerateNodeClaimManifest(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestFirstProvisioningError(t *testing.T) {
+	nc := func(conds ...status.Condition) *karpenterv1.NodeClaim {
+		return &karpenterv1.NodeClaim{Status: karpenterv1.NodeClaimStatus{Conditions: conds}}
+	}
+	deleting := func(conds ...status.Condition) *karpenterv1.NodeClaim {
+		n := nc(conds...)
+		now := metav1.Now()
+		n.DeletionTimestamp = &now
+		n.Finalizers = []string{"karpenter.sh/termination"}
+		return n
+	}
+
+	testcases := map[string]struct {
+		nodeClaims      []*karpenterv1.NodeClaim
+		expectedFound   bool
+		expectedReason  string
+		expectedMessage string
+	}{
+		"no node claims": {
+			nodeClaims:    nil,
+			expectedFound: false,
+		},
+		"pending launched with no message is skipped": {
+			nodeClaims: []*karpenterv1.NodeClaim{
+				nc(status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionUnknown}),
+			},
+			expectedFound: false,
+		},
+		"initial AwaitingReconciliation state is not an error": {
+			// Freshly created NodeClaim: operatorpkg initializes conditions to
+			// Unknown/AwaitingReconciliation before launch is attempted.
+			nodeClaims: []*karpenterv1.NodeClaim{
+				nc(
+					status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionUnknown, Reason: "AwaitingReconciliation", Message: "object is awaiting reconciliation"},
+					status.Condition{Type: karpenterv1.ConditionTypeRegistered, Status: metav1.ConditionUnknown, Reason: "AwaitingReconciliation", Message: "object is awaiting reconciliation"},
+					status.Condition{Type: karpenterv1.ConditionTypeInitialized, Status: metav1.ConditionUnknown, Reason: "AwaitingReconciliation", Message: "object is awaiting reconciliation"},
+				),
+			},
+			expectedFound: false,
+		},
+		"ready node claim has no error": {
+			nodeClaims: []*karpenterv1.NodeClaim{
+				nc(status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionTrue}),
+			},
+			expectedFound: false,
+		},
+		"launched failure surfaced": {
+			nodeClaims: []*karpenterv1.NodeClaim{
+				nc(status.Condition{
+					Type:    karpenterv1.ConditionTypeLaunched,
+					Status:  metav1.ConditionUnknown,
+					Reason:  "SubscriptionQuotaReached",
+					Message: "Family Cores quota exceeded",
+				}),
+			},
+			expectedFound:   true,
+			expectedReason:  "SubscriptionQuotaReached",
+			expectedMessage: "Family Cores quota exceeded",
+		},
+		"launched takes priority over registered": {
+			nodeClaims: []*karpenterv1.NodeClaim{
+				nc(
+					status.Condition{Type: karpenterv1.ConditionTypeRegistered, Status: metav1.ConditionUnknown, Reason: "NotRegistered", Message: "node not registered"},
+					status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionUnknown, Reason: "Unauthorized", Message: "unauthorized to create VM"},
+				),
+			},
+			expectedFound:   true,
+			expectedReason:  "Unauthorized",
+			expectedMessage: "unauthorized to create VM",
+		},
+		"deleting node claim is skipped": {
+			nodeClaims: []*karpenterv1.NodeClaim{
+				deleting(status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionFalse, Reason: "Gone", Message: "gone"}),
+			},
+			expectedFound: false,
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			reason, message, found := FirstProvisioningError(tc.nodeClaims)
+			assert.Equal(t, found, tc.expectedFound)
+			assert.Equal(t, reason, tc.expectedReason)
+			assert.Equal(t, message, tc.expectedMessage)
+		})
+	}
+}
+
+func TestFirstProvisioningErrorTruncatesMessage(t *testing.T) {
+	long := strings.Repeat("a", maxProvisioningErrorMessageLen+50)
+	nodeClaims := []*karpenterv1.NodeClaim{
+		{Status: karpenterv1.NodeClaimStatus{Conditions: []status.Condition{
+			{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionUnknown, Reason: "LaunchFailed", Message: long},
+		}}},
+	}
+	_, message, found := FirstProvisioningError(nodeClaims)
+	assert.Check(t, found)
+	assert.Equal(t, len(message), maxProvisioningErrorMessageLen+len("..."))
 }

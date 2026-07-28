@@ -103,6 +103,7 @@ async def apply_streaming_guardrails(
                     yield chunk
                 if window.blocked:
                     return
+                _record_successful_redaction(window, guardrails)
                 yield build_sse_done_chunk()
                 return
 
@@ -136,6 +137,8 @@ async def apply_streaming_guardrails(
 
         async for chunk in _flush_window_or_block(window, guardrails):
             yield chunk
+        if not window.blocked:
+            _record_successful_redaction(window, guardrails)
     finally:
         await _aclose(upstream_chunks)
 
@@ -172,6 +175,17 @@ class _LLMGuardWindowScanner:
             if isinstance(scanner_output, str):
                 sanitized_text = scanner_output
 
+        for scanner_config, scanner in self._built_scanners:
+            scanner_action = scanner_config.action_on_hit or self._default_action_on_hit
+            if scanner_action != "block":
+                continue
+
+            _, results_valid, _ = scan_output(
+                [scanner], self._prompt, sanitized_text, fail_fast=False
+            )
+            if not all(results_valid.values()):
+                return WindowScanResult(blocked=True)
+
         if sanitized_text == text:
             return WindowScanResult()
         return WindowScanResult(sanitized_text=sanitized_text)
@@ -196,6 +210,14 @@ async def _emit_refusal(guardrails: OutputGuardrails) -> AsyncIterator[str]:
     yield build_openai_chat_delta_sse_chunk(guardrails.block_message)
     yield build_openai_chat_finish_reason_sse_chunk(finish_reason="content_filter")
     yield build_sse_done_chunk()
+
+
+def _record_successful_redaction(
+    window: StreamingBufferWindow,
+    guardrails: OutputGuardrails,
+) -> None:
+    if window.redacted:
+        guardrails._record_response_action("redact")
 
 
 async def _aclose(upstream_chunks: AsyncIterator[str]) -> None:

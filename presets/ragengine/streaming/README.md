@@ -43,7 +43,7 @@ The default holdback is 256 characters. The window keeps only the pending tail, 
 | `secrets` | `block` | Common credentials and secret formats |
 | `sensitive` | `block` | Email, phone, credit card, and IPv4 patterns |
 
-Scanners run in policy order. Each scanner receives the previous scanner's sanitized text, and the window recalculates its safe emission length after redaction. A redaction hit that does not return modified text fails closed.
+Scanners run in policy order. Each scanner receives the previous scanner's sanitized text, and every block scanner rechecks the final sanitized text. The window recalculates its safe emission length after redaction. A redaction hit that does not return modified text fails closed.
 
 Not supported in streaming:
 
@@ -56,6 +56,14 @@ Not supported in streaming:
 
 - Content events are rebuilt with choice index `0`; original content-event metadata is not preserved.
 - Patterns longer than the 256-character holdback may cross the release boundary.
+
+## Remaining Redaction Work
+
+Implement separately in this order:
+
+1. `sensitive`
+2. `secrets`
+3. `ban_substrings`
 
 ## Policy Example
 

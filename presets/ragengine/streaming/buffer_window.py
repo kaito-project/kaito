@@ -54,10 +54,15 @@ class StreamingBufferWindow:
         self._holdback_len = holdback_len
         self._pending_buffer = ""
         self._blocked = False
+        self._redacted = False
 
     @property
     def blocked(self) -> bool:
         return self._blocked
+
+    @property
+    def redacted(self) -> bool:
+        return self._redacted
 
     def feed(self, text: str) -> WindowEmitResult:
         if self._blocked:
@@ -103,6 +108,7 @@ class StreamingBufferWindow:
 
         if scan_result.sanitized_text is not None:
             self._pending_buffer = scan_result.sanitized_text
+            self._redacted = True
 
         emit_len = len(self._pending_buffer) if flush else self._calc_emit_len()
         if emit_len == 0:

@@ -407,6 +407,7 @@ async def test_apply_streaming_guardrails_redacts_invisible_text_during_flush(
         "data: [DONE]\n\n",
     ]
     assert "\u200b" not in "".join(chunks)
+    assert "\\u200b" not in "".join(chunks)
     assert "\u200c" not in "".join(chunks)
 
 
@@ -448,6 +449,203 @@ async def test_invisible_redaction_runs_before_ban_substrings_block():
         "data: [DONE]\n\n",
     ]
     assert "\u200b" not in "".join(chunks)
+    assert "\\u200b" not in "".join(chunks)
+
+
+@pytest.mark.asyncio
+async def test_ban_substrings_block_rechecks_text_after_invisible_redaction():
+    async def upstream_chunks():
+        yield 'data: {"choices":[{"index":0,"delta":{"content":"un\\u200bsafe"}}]}\n\n'
+        yield "data: [DONE]\n\n"
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        fail_open=False,
+        action_on_hit="block",
+        block_message="blocked-by-policy",
+        scanner_configs=(
+            ParsedScannerConfig(
+                type="ban_substrings",
+                action_on_hit="block",
+                config=BanSubstringsConfig(substrings=["unsafe"], match_type="str"),
+            ),
+            ParsedScannerConfig(
+                type="invisible_text",
+                action_on_hit="redact",
+                config=InvisibleTextConfig(),
+            ),
+        ),
+    )
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream_chunks(), guardrails, {"messages": []}
+        )
+    ]
+
+    assert chunks == [
+        'data: {"choices":[{"index":0,"delta":{"content":"blocked-by-policy"},"finish_reason":null}]}\n\n',
+        'data: {"choices":[{"index":0,"delta":{},"finish_reason":"content_filter"}]}\n\n',
+        "data: [DONE]\n\n",
+    ]
+    assert "\u200b" not in "".join(chunks)
+
+
+@pytest.mark.asyncio
+async def test_successful_redaction_records_final_action_once(monkeypatch):
+    async def upstream_chunks():
+        yield 'data: {"choices":[{"index":0,"delta":{"content":"hello\\u200bworld"}}]}\n\n'
+        yield "data: [DONE]\n\n"
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        fail_open=False,
+        action_on_hit="block",
+        scanner_configs=(
+            ParsedScannerConfig(
+                type="invisible_text",
+                action_on_hit="redact",
+                config=InvisibleTextConfig(),
+            ),
+        ),
+    )
+    recorded_actions = []
+    monkeypatch.setattr(
+        OutputGuardrails,
+        "_record_response_action",
+        lambda self, action: recorded_actions.append(action),
+    )
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream_chunks(), guardrails, {"messages": []}
+        )
+    ]
+
+    assert chunks[-1] == "data: [DONE]\n\n"
+    assert recorded_actions == ["redact"]
+
+
+@pytest.mark.asyncio
+async def test_redaction_before_block_records_only_block_final_action(monkeypatch):
+    async def upstream_chunks():
+        yield 'data: {"choices":[{"index":0,"delta":{"content":"un\\u200bsafe"}}]}\n\n'
+        yield "data: [DONE]\n\n"
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        fail_open=False,
+        action_on_hit="block",
+        scanner_configs=(
+            ParsedScannerConfig(
+                type="invisible_text",
+                action_on_hit="redact",
+                config=InvisibleTextConfig(),
+            ),
+            ParsedScannerConfig(
+                type="ban_substrings",
+                action_on_hit="block",
+                config=BanSubstringsConfig(substrings=["unsafe"], match_type="str"),
+            ),
+        ),
+    )
+    recorded_actions = []
+    monkeypatch.setattr(
+        OutputGuardrails,
+        "_record_response_action",
+        lambda self, action: recorded_actions.append(action),
+    )
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream_chunks(), guardrails, {"messages": []}
+        )
+    ]
+
+    assert chunks[-1] == "data: [DONE]\n\n"
+    assert recorded_actions == ["block"]
+
+
+@pytest.mark.asyncio
+async def test_invisible_redaction_emits_sanitized_text_before_stream_finishes():
+    unsafe_text = "a" * 300 + "\u200b" + "tail"
+    sanitized_text = "a" * 300 + "tail"
+
+    async def upstream_chunks():
+        yield f'data: {{"choices":[{{"index":0,"delta":{{"content":"{unsafe_text}"}}}}]}}\n\n'
+        yield "data: [DONE]\n\n"
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        fail_open=False,
+        action_on_hit="block",
+        scanner_configs=(
+            ParsedScannerConfig(
+                type="invisible_text",
+                action_on_hit="redact",
+                config=InvisibleTextConfig(),
+            ),
+        ),
+    )
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream_chunks(), guardrails, {"messages": []}
+        )
+    ]
+    emitted_text = "".join(
+        chunk.split('"content":"', 1)[1].split('"', 1)[0]
+        for chunk in chunks
+        if '"content":"' in chunk
+    )
+
+    assert len(chunks[0].split('"content":"', 1)[1].split('"', 1)[0]) == 48
+    assert emitted_text == sanitized_text
+    assert "\u200b" not in "".join(chunks)
+    assert "\\u200b" not in "".join(chunks)
+    assert chunks[-1] == "data: [DONE]\n\n"
+
+
+@pytest.mark.asyncio
+async def test_invisible_redaction_handles_sse_event_split_across_network_chunks():
+    event = (
+        'data: {"choices":[{"index":0,"delta":{"content":"hello\\u200bworld"}}]}\n\n'
+    )
+
+    async def upstream_chunks():
+        yield event[:17]
+        yield event[17:43]
+        yield event[43:]
+        yield "data: [DONE]\n\n"
+
+    guardrails = OutputGuardrails(
+        enabled=True,
+        fail_open=False,
+        action_on_hit="block",
+        scanner_configs=(
+            ParsedScannerConfig(
+                type="invisible_text",
+                action_on_hit="redact",
+                config=InvisibleTextConfig(),
+            ),
+        ),
+    )
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream_chunks(), guardrails, {"messages": []}
+        )
+    ]
+
+    assert '"content":"helloworld"' in "".join(chunks)
+    assert "\u200b" not in "".join(chunks)
+    assert "\\u200b" not in "".join(chunks)
+    assert chunks[-1] == "data: [DONE]\n\n"
 
 
 @pytest.mark.asyncio

@@ -1970,6 +1970,21 @@ func TestWorkspaceValidatePerformanceModeAnnotation(t *testing.T) {
 			annotations: map[string]string{AnnotationPerformanceMode: "fast"},
 			wantErr:     true,
 		},
+		{
+			name:        "use local weights true is valid",
+			annotations: map[string]string{AnnotationUseLocalWeights: "true"},
+			wantErr:     false,
+		},
+		{
+			name:        "use local weights false is valid",
+			annotations: map[string]string{AnnotationUseLocalWeights: "false"},
+			wantErr:     false,
+		},
+		{
+			name:        "use local weights non-boolean is invalid",
+			annotations: map[string]string{AnnotationUseLocalWeights: "yes"},
+			wantErr:     true,
+		},
 	}
 
 	for _, tt := range tests {

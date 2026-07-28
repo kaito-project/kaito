@@ -1,5 +1,9 @@
 # syntax=docker/dockerfile:1
-FROM python:3.12-slim AS dependencies
+# Pinned to Debian bookworm (glibc 2.36). The default python:3.12-slim floats to
+# Debian trixie (glibc 2.41), whose C23 cospi/sinpi math declarations are
+# incompatible with CUDA 12.9's nvcc host-compile (used by the optional runtime
+# CUDA toolkit install for DeepGEMM). bookworm avoids that conflict.
+FROM python:3.12-slim-bookworm AS dependencies
 
 ARG MODEL_TYPE
 ARG VERSION
@@ -21,7 +25,7 @@ RUN apt-get update -y && apt upgrade -y && \
     else \
         apt-get install --only-upgrade --no-install-recommends -y openssl; \
     fi && \
-    apt-get install --no-install-recommends -y curl gcc libc-dev perl libglib2.0-0 libgl1 libsm6 libxext6 libxrender1 && \
+    apt-get install --no-install-recommends -y curl gcc g++ libc-dev perl libglib2.0-0 libgl1 libsm6 libxext6 libxrender1 && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 FROM dependencies AS base
@@ -68,6 +72,12 @@ COPY presets/workspace/inference/vllm/inference_api.py \
     /workspace/vllm/
 
 RUN chmod +x /workspace/vllm/export_sas_token_for_streaming.sh
+
+# Runtime CUDA toolkit provisioner. Invoked by the cuda-toolkit-provisioner init
+# container for models that require DeepGEMM (nvcc JIT), to install cuda-toolkit-12-9
+# into a node hostPath for runtimes that JIT-compile with nvcc.
+COPY docker/presets/models/tfs/cuda-provision.sh /workspace/cuda-provision.sh
+RUN chmod +x /workspace/cuda-provision.sh
 
 RUN VLLM_VERSION=$(grep 'vllm==' /workspace/requirements.txt | cut -d'=' -f3) && \
     curl --fail -o /workspace/vllm/multi-node-serving.sh \

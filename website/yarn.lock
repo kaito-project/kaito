@@ -1722,12 +1722,12 @@
     vfile "^6.0.1"
     webpack "^5.88.1"
 
-"@docusaurus/module-type-aliases@3.10.0":
-  version "3.10.0"
-  resolved "https://registry.yarnpkg.com/@docusaurus/module-type-aliases/-/module-type-aliases-3.10.0.tgz#749928f104d563f11f046bf0c9ab6489a470c7c8"
-  integrity sha512-/1O0Zg8w3DFrYX/I6Fbss7OJrtZw1QoyjDhegiFNHVi9A9Y0gQ3jUAytVxF6ywpAWpLyLxch8nN8H/V3XfzdJQ==
+"@docusaurus/module-type-aliases@3.10.2":
+  version "3.10.2"
+  resolved "https://registry.yarnpkg.com/@docusaurus/module-type-aliases/-/module-type-aliases-3.10.2.tgz#7c3b940c77d72e71d33a1e76f0e003b418e6163a"
+  integrity sha512-h/I5e4jaAhDHW4vaLENi1i2hnOEnXY1t9R+nnRTbgUl7ymVRzN/HF7dDfj8rKYGj8gfIge+Ef+iYRAMtbGvsrQ==
   dependencies:
-    "@docusaurus/types" "3.10.0"
+    "@docusaurus/types" "3.10.2"
     "@types/history" "^4.7.11"
     "@types/react" "*"
     "@types/react-router-config" "*"
@@ -2008,10 +2008,10 @@
     fs-extra "^11.1.1"
     tslib "^2.6.0"
 
-"@docusaurus/types@3.10.0":
-  version "3.10.0"
-  resolved "https://registry.yarnpkg.com/@docusaurus/types/-/types-3.10.0.tgz#a69232bba74b738fcf4671fd5f0f079366dd3d13"
-  integrity sha512-F0dOt3FOoO20rRaFK7whGFQZ3ggyrWEdQc/c8/UiRuzhtg4y1w9FspXH5zpCT07uMnJKBPGh+qNazbNlCQqvSw==
+"@docusaurus/types@3.10.2":
+  version "3.10.2"
+  resolved "https://registry.yarnpkg.com/@docusaurus/types/-/types-3.10.2.tgz#9ffe35adfb4587e49158ee9e10d94b86419a5932"
+  integrity sha512-B6rvfwIFSapUqUJjMriZswX13K8l5Z7AcmVE6uTEJpYddQieSTR12DsGaFtcZAIDsQd4p+0WTl0Vc6jmZK0Trw==
   dependencies:
     "@mdx-js/mdx" "^3.0.0"
     "@types/history" "^4.7.11"

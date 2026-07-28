@@ -180,8 +180,8 @@ func TestGPUConfigLogic(t *testing.T) {
 				c.On("Create", mock.IsType(context.TODO()), mock.IsType(&appsv1.Deployment{}), mock.Anything).Return(nil)
 			},
 			ragEngine:        test.MockRAGEngineWithPreset,
-			expectedGPUReq:   int64(1), // Standard_NC4as_T4_v3 has 1 GPU
-			expectedLimitReq: int64(1), // Standard_NC4as_T4_v3 has 1 GPU
+			expectedGPUReq:   int64(1), // Standard_NV36ads_A10_v5 has 1 GPU
+			expectedLimitReq: int64(1), // Standard_NV36ads_A10_v5 has 1 GPU
 		},
 		"test-rag-preferred-nodes": {
 			callMocks: func(c *test.MockClient) {

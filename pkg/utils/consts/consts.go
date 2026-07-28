@@ -41,11 +41,25 @@ const (
 	NvidiaCUDAComputeCapMajor     = "nvidia.com/cuda.compute.major"
 	NvidiaCUDAComputeCapMinor     = "nvidia.com/cuda.compute.minor"
 
+	// MIG-related node labels set by the NVIDIA GPU Operator's mig-manager.
+	// NvidiaMIGConfig holds the requested/applied MIG partition layout (e.g.
+	// "all-2g.24gb" or "all-disabled"); NvidiaMIGConfigState is "success" once
+	// the layout has been applied.
+	NvidiaMIGConfig      = "nvidia.com/mig.config"
+	NvidiaMIGConfigState = "nvidia.com/mig.config.state"
+
+	// NvidiaMIGConfigDisabled is the mig.config value that means MIG is turned off.
+	NvidiaMIGConfigDisabled = "all-disabled"
+	// NvidiaMIGConfigStateSuccess is the mig.config.state value that means the
+	// requested MIG layout has been applied successfully.
+	NvidiaMIGConfigStateSuccess = "success"
+
 	// Feature flags
 	FeatureFlagVLLM                         = "vLLM"
 	FeatureFlagDisableNodeAutoProvisioning  = "disableNodeAutoProvisioning"
 	FeatureFlagGatewayAPIInferenceExtension = "gatewayAPIInferenceExtension"
 	FeatureFlagEnableInferenceSetController = "enableInferenceSetController"
+	FeatureFlagEnableMIG                    = "enableMIG"
 
 	FeatureFlagEnableMultiRoleInferenceController = "enableMultiRoleInferenceController"
 	FeatureFlagModelMirror                        = "ModelMirror"

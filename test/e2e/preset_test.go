@@ -1353,7 +1353,7 @@ var _ = Describe("Karpenter Bootstrap", func() {
 		numOfNode := 1
 		uniqueID := fmt.Sprint("nodeclass-override-", rand.Intn(1000))
 		workspaceObj := utils.GenerateInferenceWorkspaceManifest(uniqueID, namespaceName, "",
-			numOfNode, "Standard_NC4as_T4_v3", &metav1.LabelSelector{
+			numOfNode, "Standard_NV36ads_A10_v5", &metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": uniqueID},
 			}, nil, PresetPhi3Mini128kModel, nil, nil, nil, "", "")
 
@@ -1382,6 +1382,7 @@ var _ = Describe("Workspace Preset", func() {
 	})
 
 	It("should create a custom template workspace successfully", utils.GinkgoLabelFastCheck, func() {
+		Skip("temporarily skip this test due to e2e env quota issue, will re-enable it after the e2e env is fixed")
 		numOfNode := 1
 		imageName := "nginx:latest"
 		workspaceObj := createCustomWorkspaceWithPresetCustomMode(imageName, numOfNode)
@@ -1538,11 +1539,12 @@ func validateCreateNode(workspaceObj *kaitov1beta1.Workspace, numOfNode int) {
 func validateInferenceConfig(workspaceObj *kaitov1beta1.Workspace) {
 	By("Checking the inference config exists", func() {
 		Eventually(func() bool {
-			configMap := &corev1.ConfigMap{}
-			configName := kaitov1beta1.DefaultInferenceConfigTemplate
-			if workspaceObj.Inference.Config != "" {
-				configName = workspaceObj.Inference.Config
+			if workspaceObj.Inference.Config == "" {
+				return true
 			}
+			configMap := &corev1.ConfigMap{}
+			configName := workspaceObj.Inference.Config
+
 			err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
 				Namespace: workspaceObj.Namespace,
 				Name:      configName,

@@ -629,10 +629,11 @@ func TestEnsureNodesReady_DeletingNodeNotCounted(t *testing.T) {
 
 func TestCountCoveredNodes_NilLabelSelector(t *testing.T) {
 	c := newFakeClient()
+	p := NewKarpenterProvisioner(c, testConfig)
 	ws := newTestWorkspace("default", "ws1", "Standard_NC24ads_A100_v4", 1, nil, nil)
 	ws.Resource.LabelSelector = nil
 
-	covered, ready, err := countCoveredNodes(context.Background(), c, ws)
+	covered, ready, err := p.countCoveredNodes(context.Background(), ws)
 	require.NoError(t, err)
 	assert.Equal(t, 0, covered)
 	assert.Equal(t, 0, ready)
@@ -643,10 +644,11 @@ func TestCountCoveredNodes_LegacyNCCountedDespiteNodeNotReady(t *testing.T) {
 	// when its node is not ready (or doesn't exist at all).
 	legacyNC := makeLegacyNodeClaim("legacy-nc-1", "ws1", "default")
 	c := newFakeClient(legacyNC) // No ready nodes.
+	p := NewKarpenterProvisioner(c, testConfig)
 
 	ws := newTestWorkspace("default", "ws1", "Standard_NC24ads_A100_v4", 1, nil, nil)
 
-	covered, readyCount, err := countCoveredNodes(context.Background(), c, ws)
+	covered, readyCount, err := p.countCoveredNodes(context.Background(), ws)
 	require.NoError(t, err)
 	assert.Equal(t, 1, covered, "legacy NC should count as covered")
 	assert.Equal(t, 0, readyCount, "no ready nodes exist")
@@ -658,10 +660,11 @@ func TestCountCoveredNodes_DeletingLegacyNCExcluded(t *testing.T) {
 	legacyNC.DeletionTimestamp = &now
 	legacyNC.Finalizers = []string{"karpenter.sh/termination"}
 	c := newFakeClient(legacyNC)
+	p := NewKarpenterProvisioner(c, testConfig)
 
 	ws := newTestWorkspace("default", "ws1", "Standard_NC24ads_A100_v4", 1, nil, nil)
 
-	covered, _, err := countCoveredNodes(context.Background(), c, ws)
+	covered, _, err := p.countCoveredNodes(context.Background(), ws)
 	require.NoError(t, err)
 	assert.Equal(t, 0, covered, "deleting legacy NC should not count as covered")
 }
@@ -673,10 +676,11 @@ func TestCountCoveredNodes_LegacyNodeExcludedFromBYO(t *testing.T) {
 	})
 	legacyNC := makeLegacyNodeClaim("legacy-nc-1", "ws1", "default")
 	c := newFakeClient(legacyNode, legacyNC)
+	p := NewKarpenterProvisioner(c, testConfig)
 
 	ws := newTestWorkspace("default", "ws1", "Standard_NC24ads_A100_v4", 2, nil, nil)
 
-	covered, readyCount, err := countCoveredNodes(context.Background(), c, ws)
+	covered, readyCount, err := p.countCoveredNodes(context.Background(), ws)
 	require.NoError(t, err)
 	// coveredByNonKarpenter = 0 BYO + 1 legacy NC = 1
 	assert.Equal(t, 1, covered)
@@ -689,10 +693,11 @@ func TestCountCoveredNodes_BYOAndLegacyCombinedDelta(t *testing.T) {
 	byoNode := makeReadyNode("byo-1", "Standard_NC24ads_A100_v4", nil)
 	legacyNC := makeLegacyNodeClaim("legacy-nc-1", "ws1", "default")
 	c := newFakeClient(byoNode, legacyNC)
+	p := NewKarpenterProvisioner(c, testConfig)
 
 	ws := newTestWorkspace("default", "ws1", "Standard_NC24ads_A100_v4", 3, nil, nil)
 
-	covered, readyCount, err := countCoveredNodes(context.Background(), c, ws)
+	covered, readyCount, err := p.countCoveredNodes(context.Background(), ws)
 	require.NoError(t, err)
 	assert.Equal(t, 2, covered, "1 BYO + 1 legacy NC")
 	assert.Equal(t, 1, readyCount, "only the BYO node is ready")
@@ -702,10 +707,11 @@ func TestCountCoveredNodes_LegacyNCsForDifferentWorkspaceNotCounted(t *testing.T
 	// A legacy NodeClaim for a different workspace should not be counted.
 	otherNC := makeLegacyNodeClaim("other-nc", "other-ws", "default")
 	c := newFakeClient(otherNC)
+	p := NewKarpenterProvisioner(c, testConfig)
 
 	ws := newTestWorkspace("default", "ws1", "Standard_NC24ads_A100_v4", 1, nil, nil)
 
-	covered, _, err := countCoveredNodes(context.Background(), c, ws)
+	covered, _, err := p.countCoveredNodes(context.Background(), ws)
 	require.NoError(t, err)
 	assert.Equal(t, 0, covered, "NC for different workspace should not count")
 }
@@ -716,13 +722,36 @@ func TestCountCoveredNodes_KarpenterNodeNotCountedAsBYO(t *testing.T) {
 		consts.KarpenterWorkspaceNameKey: "ws1",
 	})
 	c := newFakeClient(karpNode)
+	p := NewKarpenterProvisioner(c, testConfig)
 
 	ws := newTestWorkspace("default", "ws1", "Standard_NC24ads_A100_v4", 1, nil, nil)
 
-	covered, readyCount, err := countCoveredNodes(context.Background(), c, ws)
+	covered, readyCount, err := p.countCoveredNodes(context.Background(), ws)
 	require.NoError(t, err)
 	assert.Equal(t, 0, covered, "karpenter node should not count as non-karpenter coverage")
 	assert.Equal(t, 1, readyCount, "karpenter node still counted in total ready")
+}
+
+func TestCountCoveredNodes_SiblingKarpenterNodeExcluded(t *testing.T) {
+	// A karpenter node provisioned for a sibling workspace (same InferenceSet,
+	// shared label selector) must NOT be counted for this workspace.
+	ownNode := makeReadyNode("ws1-node", "Standard_NC24ads_A100_v4", map[string]string{
+		consts.KarpenterWorkspaceNameKey:      "ws1",
+		consts.KarpenterWorkspaceNamespaceKey: "default",
+	})
+	siblingNode := makeReadyNode("ws2-node", "Standard_NC24ads_A100_v4", map[string]string{
+		consts.KarpenterWorkspaceNameKey:      "ws2",
+		consts.KarpenterWorkspaceNamespaceKey: "default",
+	})
+	c := newFakeClient(ownNode, siblingNode)
+	p := NewKarpenterProvisioner(c, testConfig)
+
+	ws := newTestWorkspace("default", "ws1", "Standard_NC24ads_A100_v4", 1, nil, nil)
+
+	covered, readyCount, err := p.countCoveredNodes(context.Background(), ws)
+	require.NoError(t, err)
+	assert.Equal(t, 0, covered, "no BYO/legacy coverage")
+	assert.Equal(t, 1, readyCount, "only this workspace's own karpenter node is counted, not the sibling's")
 }
 
 // --- ProvisionNodes delta with legacy NodeClaims ---
@@ -832,4 +861,40 @@ func TestCollectNodeStatusInfo_ConditionTypes(t *testing.T) {
 	assert.True(t, typeSet[string(kaitov1beta1.ConditionTypeNodeStatus)])
 	assert.True(t, typeSet[string(kaitov1beta1.ConditionTypeNodeClaimStatus)])
 	assert.True(t, typeSet[string(kaitov1beta1.ConditionTypeResourceStatus)])
+}
+
+func TestCollectNodeStatusInfo_SurfacesProvisioningError(t *testing.T) {
+	// A NodeClaim that failed to launch (e.g. quota exceeded) must surface its
+	// underlying reason/message on the NodeClaim and Resource conditions.
+	failedNC := makeKarpenterNodeClaim("nc-1", NodePoolName("default", "ws1"), false)
+	failedNC.Status.Conditions = []status.Condition{
+		{
+			Type:    karpenterv1.ConditionTypeLaunched,
+			Status:  metav1.ConditionUnknown,
+			Reason:  "SubscriptionQuotaReached",
+			Message: "Family Cores quota exceeded",
+		},
+	}
+	c := newFakeClient(failedNC) // No ready nodes.
+
+	p := NewKarpenterProvisioner(c, testConfig)
+	ws := newTestWorkspace("default", "ws1", "Standard_NC24ads_A100_v4", 1, nil, nil)
+
+	conditions, err := p.CollectNodeStatusInfo(context.Background(), ws)
+	require.NoError(t, err)
+
+	byType := map[string]metav1.Condition{}
+	for _, cond := range conditions {
+		byType[cond.Type] = cond
+	}
+
+	ncCond := byType[string(kaitov1beta1.ConditionTypeNodeClaimStatus)]
+	assert.Equal(t, metav1.ConditionFalse, ncCond.Status)
+	assert.Equal(t, "SubscriptionQuotaReached", ncCond.Reason)
+	assert.Equal(t, "Family Cores quota exceeded", ncCond.Message)
+
+	// The resource condition mirrors the NodeClaim failure cause.
+	resCond := byType[string(kaitov1beta1.ConditionTypeResourceStatus)]
+	assert.Equal(t, "SubscriptionQuotaReached", resCond.Reason)
+	assert.Equal(t, "Family Cores quota exceeded", resCond.Message)
 }

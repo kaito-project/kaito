@@ -39,7 +39,7 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 			ragEngine: &RAGEngine{
 				Spec: &RAGEngineSpec{
 					Compute: &ResourceSpec{
-						InstanceType: "Standard_NC4as_T4_v3",
+						InstanceType: "Standard_NV36ads_A10_v5",
 					},
 					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
 					Embedding: &EmbeddingSpec{
@@ -58,7 +58,7 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 			ragEngine: &RAGEngine{
 				Spec: &RAGEngineSpec{
 					Compute: &ResourceSpec{
-						InstanceType: "Standard_NC4as_T4_v3",
+						InstanceType: "Standard_NV36ads_A10_v5",
 					},
 					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
 				},
@@ -71,7 +71,7 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 			ragEngine: &RAGEngine{
 				Spec: &RAGEngineSpec{
 					Compute: &ResourceSpec{
-						InstanceType: "Standard_NC4as_T4_v3",
+						InstanceType: "Standard_NV36ads_A10_v5",
 					},
 					Embedding: &EmbeddingSpec{
 						Local: &LocalEmbeddingSpec{
@@ -103,7 +103,7 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 			ragEngine: &RAGEngine{
 				Spec: &RAGEngineSpec{
 					Compute: &ResourceSpec{
-						InstanceType: "Standard_NC4as_T4_v3",
+						InstanceType: "Standard_NV36ads_A10_v5",
 					},
 					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
 					Embedding:        &EmbeddingSpec{},
@@ -117,7 +117,7 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 			ragEngine: &RAGEngine{
 				Spec: &RAGEngineSpec{
 					Compute: &ResourceSpec{
-						InstanceType: "Standard_NC4as_T4_v3",
+						InstanceType: "Standard_NV36ads_A10_v5",
 					},
 					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
 					Embedding: &EmbeddingSpec{
@@ -134,7 +134,7 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 			ragEngine: &RAGEngine{
 				Spec: &RAGEngineSpec{
 					Compute: &ResourceSpec{
-						InstanceType: "Standard_NC4as_T4_v3",
+						InstanceType: "Standard_NV36ads_A10_v5",
 					},
 					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 512},
 					Embedding: &EmbeddingSpec{
@@ -149,7 +149,7 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 			ragEngine: &RAGEngine{
 				Spec: &RAGEngineSpec{
 					Compute: &ResourceSpec{
-						InstanceType: "Standard_NC4as_T4_v3",
+						InstanceType: "Standard_NV36ads_A10_v5",
 					},
 					InferenceService: &InferenceServiceSpec{URL: "http://example.com", ContextWindowSize: 0},
 					Embedding: &EmbeddingSpec{

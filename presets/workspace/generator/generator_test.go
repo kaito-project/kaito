@@ -225,7 +225,7 @@ func TestGeneratePreset(t *testing.T) {
 				ModelRunParams: map[string]string{
 					"load_format":    "auto",
 					"config_format":  "auto",
-					"tokenizer_mode": "auto",
+					"tokenizer_mode": "deepseek_v32",
 				},
 				DisallowLoRA: false,
 			},
@@ -255,7 +255,7 @@ func TestGeneratePreset(t *testing.T) {
 				ModelRunParams: map[string]string{
 					"load_format":    "auto",
 					"config_format":  "auto",
-					"tokenizer_mode": "auto",
+					"tokenizer_mode": "deepseek_v32",
 				},
 				DisallowLoRA: false,
 			},

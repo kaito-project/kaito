@@ -111,6 +111,9 @@ var _ = BeforeSuite(func() {
 	})
 	Expect(err).NotTo(HaveOccurred())
 
+	// Create the streaming SA in this process's namespace.
+	createStreamingServiceAccount(namespaceName)
+
 	loadTestEnvVars()
 
 	err = copySecretToNamespace(aiModelsRegistrySecret, namespaceName)
@@ -140,7 +143,6 @@ var _ = AfterSuite(func() {
 			},
 		}, &client.DeleteOptions{})
 	}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to delete namespace for e2e")
-
 })
 
 func RunE2ETests(t *testing.T) {

@@ -16,6 +16,8 @@ import collections
 import logging
 import os
 import socket
+import subprocess
+import sys
 import threading
 import time
 from dataclasses import dataclass
@@ -24,7 +26,7 @@ from pathlib import Path
 from typing import Any
 
 import psutil
-import pynvml
+import rate_limit
 import uvloop
 import vllm.entrypoints.openai.api_server as api_server
 import yaml
@@ -88,10 +90,19 @@ class KAITOArgumentParser(argparse.ArgumentParser):
             type=int,
             help="Maximum number of steps to find the max available seq len fitting in the GPU memory.",
         )
+        # Default is applied after file-config merging in parse_args so the
+        # YAML config can still override an unspecified CLI value.
         self.add_argument(
             "--kaito-kv-cache-cpu-memory-utilization",
             type=float,
-            help="KV cache CPU memory utilization.",
+            default=None,
+            help="KV cache CPU memory utilization. Defaults to 0.5 when neither this flag nor the kaito config file set it.",
+        )
+        self.add_argument(
+            "--kaito-disable-rate-limit",
+            action="store_true",
+            default=False,
+            help="Disable the queue-depth rate limit guard (which otherwise returns HTTP 429 when the waiting queue exceeds max-num-seqs).",
         )
 
     def _reset_vllm_defaults(self):
@@ -132,6 +143,11 @@ class KAITOArgumentParser(argparse.ArgumentParser):
             for key, value in file_config.vllm.items():
                 runtime_args.append(f"--{key}")
                 runtime_args.append(str(value))
+
+        # Apply CLI default only after file-config merging so the YAML can
+        # override an unspecified CLI value.
+        if kaito_args.kaito_kv_cache_cpu_memory_utilization is None:
+            kaito_args.kaito_kv_cache_cpu_memory_utilization = 0.5
 
         vllm_args = self.vllm_parser.parse_args(runtime_args, **kwargs)
         # Merge KAITO and vLLM args
@@ -413,20 +429,65 @@ def load_lora_adapters(adapters_dir: str) -> LoRAModulePath | None:
     return lora_list
 
 
+# Snippet executed in a throwaway subprocess to read GPU memory.
+# torch.cuda.mem_get_info reports per-slice memory correctly under MIG (unlike
+# NVML/pynvml, which fails with NVMLError_NoPermission or reports the parent
+# GPU), but the first CUDA call initializes a CUDA context that reserves
+# ~200-400MB and cannot be freed until the process exits. Running it in a
+# subprocess reclaims that memory immediately, instead of pinning it in the
+# long-lived launcher process, which never touches CUDA again after this.
+_GPU_MEM_INFO_SNIPPET = (
+    "import sys, torch; "
+    "free, total = torch.cuda.mem_get_info(int(sys.argv[1])); "
+    "print(f'KAITO_MEM_INFO {free} {total}')"
+)
+
+# Fallback gpu_memory_utilization used when the GPU memory probe fails.
+_DEFAULT_GPU_MEMORY_UTILIZATION = 0.84
+
+
+def _query_gpu_mem_info(device_index: int) -> tuple[int, int]:
+    """Return (free_bytes, total_bytes) for *device_index*.
+
+    Delegates to a short-lived subprocess so the CUDA context that
+    torch.cuda.mem_get_info creates is torn down on exit rather than lingering
+    in the caller for the process lifetime.
+    """
+    result = subprocess.run(
+        [sys.executable, "-c", _GPU_MEM_INFO_SNIPPET, str(device_index)],
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=True,
+    )
+    for line in result.stdout.splitlines():
+        if line.startswith("KAITO_MEM_INFO"):
+            _, free_str, total_str = line.split()
+            return int(free_str), int(total_str)
+    raise RuntimeError(f"unexpected GPU mem-info output: {result.stdout!r}")
+
+
 def get_max_gpu_memory_utilization(device_index: int = 0) -> float:
     # Calculate gpu_memory_utilization based on available GPU memory.
     # This ensures vLLM only uses currently free memory to avoid OOM errors.
     # See https://github.com/kaito-project/kaito/issues/1374.
-    pynvml.nvmlInit()
-    handle = pynvml.nvmlDeviceGetHandleByIndex(device_index)
-    info = pynvml.nvmlDeviceGetMemoryInfo(handle)
-    pynvml.nvmlShutdown()
+    try:
+        free_bytes, total_bytes = _query_gpu_mem_info(device_index)
+    except Exception as exc:
+        # Never fail startup (or leave a CUDA context in this process) over a
+        # best-effort measurement; fall back to a conservative default.
+        logger.warning(
+            "Could not query GPU memory (%s); falling back to gpu_memory_utilization=%s",
+            exc,
+            _DEFAULT_GPU_MEMORY_UTILIZATION,
+        )
+        return _DEFAULT_GPU_MEMORY_UTILIZATION
 
     # Reserve an additional 600MiB for pytorch memory fragments, calculated based on profiling
-    free_memory = info.free - 600 * 1024**2
+    free_memory = free_bytes - 600 * 1024**2
 
     # Floor to 2 decimal places
-    gpu_memory_utilization = (free_memory * 100 // info.total) / 100
+    gpu_memory_utilization = (free_memory * 100 // total_bytes) / 100
 
     # The value is capped at 0.95 to maintain compatibility with previous behavior
     gpu_memory_utilization = min(0.95, gpu_memory_utilization)
@@ -495,6 +556,22 @@ if __name__ == "__main__":
 
     logger.info(f"Starting server on port {args.port}")
 
+    def _wrap_build_and_serve(hook):
+        """Chain a pre-serve hook onto api_server.build_and_serve.
+
+        hook(engine_client) runs after the engine is built (so
+        engine_client.vllm_config is fully resolved) but before uvicorn
+        starts accepting requests. Multiple wraps compose in registration
+        order.
+        """
+        prev = api_server.build_and_serve
+
+        async def wrapped(engine_client, listen_address, sock, bargs, **kw):
+            hook(engine_client)
+            return await prev(engine_client, listen_address, sock, bargs, **kw)
+
+        api_server.build_and_serve = wrapped
+
     # Always start the download monitor so both metrics are always exposed.
     # For local model paths _run returns 0 immediately; for HF repo IDs it
     # tracks bandwidth throughout the download.
@@ -545,22 +622,40 @@ if __name__ == "__main__":
         # allocation, and model warmup are all complete. Stop the metrics
         # thread just before vLLM's app starts accepting connections, so
         # only one listener is active at a time.
-        _orig_build_and_serve = api_server.build_and_serve
-
-        async def _patched_build_and_serve(
-            engine_client, listen_address, sock, bargs, **kw
-        ):
+        def _stop_pre_download_metrics(_engine_client):
             pre_metrics.stop()
             monitor.stop()
             logger.info(
                 "Pre-download metrics server stopped; vLLM taking over port %d",
                 args.port,
             )
-            return await _orig_build_and_serve(
-                engine_client, listen_address, sock, bargs, **kw
-            )
 
-        api_server.build_and_serve = _patched_build_and_serve
+        _wrap_build_and_serve(_stop_pre_download_metrics)
+
+    # Install the queue-depth rate limit guard via vLLM's built-in --middleware
+    # extension point. vLLM imports the dotted path and registers it on its
+    # FastAPI app during build_app — no monkey-patching needed on our side.
+    #
+    # args.max_num_seqs is None here unless the user passed --max-num-seqs;
+    # vLLM resolves the real value from usage_context + model_config inside
+    # create_engine_config(). We read it off the built engine_client at the
+    # last possible moment — the pre-serve hook fires after that resolution
+    # but before uvicorn accepts any traffic. Until configure() is called
+    # the middleware is a safe no-op.
+    def _configure_rate_limit(engine_client):
+        max_num_seqs = engine_client.vllm_config.scheduler_config.max_num_seqs
+        rate_limit.configure(max_num_seqs)
+        logger.info(
+            "Rate limit guard active: threshold %d",
+            max_num_seqs,
+        )
+
+    if args.kaito_disable_rate_limit:
+        logger.info("Rate limit guard disabled (--kaito-disable-rate-limit set)")
+    else:
+        _wrap_build_and_serve(_configure_rate_limit)
+        args.middleware = list(args.middleware or [])
+        args.middleware.append("rate_limit.RateLimitMiddleware")
 
     # See https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html
     uvloop.run(api_server.run_server(args))

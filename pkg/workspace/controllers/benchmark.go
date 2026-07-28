@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"strconv"
 	"strings"
 
@@ -56,6 +57,18 @@ const (
 
 	// BenchmarkMetricUnit is the unit for TPM metrics.
 	BenchmarkMetricUnit = "tokens/min"
+
+	// ConfigKeyEngine is the Metric.Config key for the serving engine name
+	// (e.g. "vllm" or "transformers").
+	ConfigKeyEngine = "engine"
+
+	// ConfigKeyEngineVersion is the Metric.Config key for the serving engine version
+	// (e.g. "0.22.1").
+	ConfigKeyEngineVersion = "engineVersion"
+
+	// ConfigKeyQuantization is the Metric.Config key for the model weight
+	// quantization method (e.g. "awq", "gptq"; empty when not quantized).
+	ConfigKeyQuantization = "quantization"
 )
 
 // benchmarkResultPayload mirrors the JSON emitted by benchmark_entrypoint.py.
@@ -98,7 +111,7 @@ const maxLogReadBytes = 32 << 20 // 32 MiB
 // (exit 0 stops further probe ticks).
 //
 // r is read incrementally; the caller is responsible for closing it.
-func parseBenchmarkResult(r io.Reader) (*kaitov1beta1.Performance, error) {
+func parseBenchmarkResult(r io.Reader, runtimeConfig map[string]string) (*kaitov1beta1.Performance, error) {
 	var lastResultPayload string
 	var lastConfigPayload string
 
@@ -134,21 +147,27 @@ func parseBenchmarkResult(r io.Reader) (*kaitov1beta1.Performance, error) {
 		Metrics: map[string]kaitov1beta1.Metric{},
 	}
 
+	config := map[string]string{}
+	if lastConfigPayload != "" {
+		var cfgPayload benchmarkConfigPayload
+		if err := json.Unmarshal([]byte(lastConfigPayload), &cfgPayload); err == nil {
+			config["durationSec"] = strconv.Itoa(int(cfgPayload.DurationSec))
+			config["inputTokens"] = strconv.Itoa(int(cfgPayload.InputTokens))
+			config["outputTokens"] = strconv.Itoa(int(cfgPayload.OutputTokens))
+			config["maxConcurrency"] = strconv.Itoa(int(cfgPayload.MaxConcurrency))
+		}
+	}
+	// Runtime metadata (engine, engine version, quantization) is recorded as part
+	// of the benchmark metric so external systems can read it.
+	maps.Copy(config, runtimeConfig)
+
 	metric := kaitov1beta1.Metric{
 		Description: BenchmarkDesc,
 		Value:       strconv.FormatFloat(payload.VLLMTotalTPM, 'f', -1, 64),
 		Unit:        BenchmarkMetricUnit,
 	}
-	if lastConfigPayload != "" {
-		var cfgPayload benchmarkConfigPayload
-		if err := json.Unmarshal([]byte(lastConfigPayload), &cfgPayload); err == nil {
-			metric.Config = map[string]string{
-				"durationSec":    strconv.Itoa(int(cfgPayload.DurationSec)),
-				"inputTokens":    strconv.Itoa(int(cfgPayload.InputTokens)),
-				"outputTokens":   strconv.Itoa(int(cfgPayload.OutputTokens)),
-				"maxConcurrency": strconv.Itoa(int(cfgPayload.MaxConcurrency)),
-			}
-		}
+	if len(config) > 0 {
+		metric.Config = config
 	}
 	result.Metrics[BenchmarkMetricPeakTPM] = metric
 	return result, nil
@@ -186,7 +205,13 @@ func reconcileBenchmarkResult(ctx context.Context, wObj *kaitov1beta1.Workspace)
 	}
 	defer stream.Close()
 
-	result, err := parseBenchmarkResult(io.LimitReader(stream, maxLogReadBytes))
+	var presetName string
+	if wObj.Inference != nil && wObj.Inference.Preset != nil {
+		presetName = string(wObj.Inference.Preset.Name)
+	}
+	runtimeConfig := RuntimeMetadataConfig(kaitov1beta1.GetWorkspaceRuntimeName(wObj), presetName)
+
+	result, err := parseBenchmarkResult(io.LimitReader(stream, maxLogReadBytes), runtimeConfig)
 	if err != nil {
 		return nil, fmt.Errorf("pod %s/%s: %w", wObj.Namespace, podName, err)
 	}

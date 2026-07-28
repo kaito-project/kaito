@@ -27,7 +27,10 @@ import (
 )
 
 // BuildDownloadJob constructs the Job that downloads model files to the PVC.
-func BuildDownloadJob(cr *kaitov1alpha1.ModelMirror) *batchv1.Job {
+// resources sets the CPU/memory request==limit on the downloader container.
+// podLabels are applied to the Job pod template when a ServiceAccount is set (e.g. the
+// cloud workload-identity label); pass nil to add none.
+func BuildDownloadJob(cr *kaitov1alpha1.ModelMirror, resources mmconsts.DownloadJobResources, podLabels map[string]string) *batchv1.Job {
 	modelID := cr.Spec.Source.ModelID
 
 	// Build --exclude flags from DownloadExcludePatterns
@@ -45,10 +48,6 @@ export HF_HUB_ENABLE_HF_TRANSFER=1
 export HF_HUB_DOWNLOAD_TIMEOUT=300
 
 pip install -q "huggingface-hub==%s" hf_transfer
-
-if [ -n "${HF_TOKEN:-}" ]; then
-  hf auth login --token "$HF_TOKEN"
-fi
 
 hf download "${MODEL_ID}" \
   --max-workers 4 \%s
@@ -89,12 +88,12 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 		Env:     envVars,
 		Resources: corev1.ResourceRequirements{
 			Requests: corev1.ResourceList{
-				corev1.ResourceCPU:    resource.MustParse("3"),
-				corev1.ResourceMemory: resource.MustParse("8Gi"),
+				corev1.ResourceCPU:    resource.MustParse(resources.CPU),
+				corev1.ResourceMemory: resource.MustParse(resources.Memory),
 			},
 			Limits: corev1.ResourceList{
-				corev1.ResourceCPU:    resource.MustParse("3"),
-				corev1.ResourceMemory: resource.MustParse("8Gi"),
+				corev1.ResourceCPU:    resource.MustParse(resources.CPU),
+				corev1.ResourceMemory: resource.MustParse(resources.Memory),
 			},
 		},
 		VolumeMounts: []corev1.VolumeMount{
@@ -130,6 +129,19 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 				},
 			},
 		},
+	}
+
+	// When a ServiceAccount is set, run the Job under it and apply the provider-supplied pod
+	// labels (e.g. the cloud workload-identity label). Empty leaves the pod on the namespace
+	// default ServiceAccount with no extra labels.
+	if cr.Spec.ServiceAccountName != "" {
+		job.Spec.Template.Spec.ServiceAccountName = cr.Spec.ServiceAccountName
+		for k, v := range podLabels {
+			if job.Spec.Template.Labels == nil {
+				job.Spec.Template.Labels = map[string]string{}
+			}
+			job.Spec.Template.Labels[k] = v
+		}
 	}
 	return job
 }

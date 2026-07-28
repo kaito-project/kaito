@@ -67,3 +67,14 @@ func MustGet(name string) model.Metadata {
 
 	return *(m.(*model.Metadata))
 }
+
+// Get retrieves the model metadata for the given model name. The second return
+// value reports whether the model exists in the supported models catalog.
+func Get(name string) (model.Metadata, bool) {
+	m, ok := supportedModels.Load(name)
+	if !ok {
+		return model.Metadata{}, false
+	}
+
+	return *(m.(*model.Metadata)), true
+}

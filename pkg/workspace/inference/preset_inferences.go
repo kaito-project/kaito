@@ -35,13 +35,15 @@ import (
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/nodeprovision"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
+	"github.com/kaito-project/kaito/pkg/utils/mig"
 	"github.com/kaito-project/kaito/pkg/utils/nodes"
-	"github.com/kaito-project/kaito/pkg/utils/resources"
-	"github.com/kaito-project/kaito/pkg/workspace/estimator"
+	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
+	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/registry"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
@@ -52,6 +54,16 @@ const (
 	// defaultStartupProbeTimeout is the startup probe timeout for models that do not
 	// specify ReadinessTimeout. 30 minutes covers all current models.
 	defaultStartupProbeTimeout = 30 * time.Minute
+
+	// cudaToolkitHostVolumeName is the name of the hostPath volume that exposes the
+	// node's CUDA toolkit to the pod. The main container mounts it read-only; the
+	// provisioner init container mounts it read-write to install the toolkit when the
+	// node lacks it.
+	cudaToolkitHostVolumeName = "cuda-toolkit-hostpath"
+
+	// defaultCudaHomePath is the default location to install CUDA toolkit and used as
+	// CUDA_HOME.
+	defaultCudaHomePath = "/opt/kaito/cuda/129"
 )
 
 var (
@@ -154,13 +166,14 @@ func GenerateModelWeightsCacheVolume(ctx context.Context, workspaceObj *v1beta1.
 }
 
 func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace, revisionNum string,
-	model pkgmodel.Model, kubeClient client.Client) (client.Object, error) {
+	model pkgmodel.Model, kubeClient client.Client, provisioner nodeprovision.NodeProvisioner) (client.Object, error) {
 
 	gctx := &generator.WorkspaceGeneratorContext{
-		Ctx:        ctx,
-		KubeClient: kubeClient,
-		Workspace:  workspaceObj,
-		Model:      model,
+		Ctx:             ctx,
+		KubeClient:      kubeClient,
+		Workspace:       workspaceObj,
+		Model:           model,
+		NodeProvisioner: provisioner,
 	}
 
 	gpuConfig, err := getGPUConfig(gctx)
@@ -172,16 +185,15 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	numNodes := int(workspaceObj.Status.TargetNodeCount)
 
 	// Resolve streaming configuration
-	streamingEnabled := ModelStreamingEnabled(workspaceObj)
+	streamingEnabled := modelstreaming.ModelStreamingEnabled(workspaceObj)
 	var streamingModelPath, streamingLoadFormat string
-	var streamingCfg *StreamingConfig
+	var streamingCfg *modelstreaming.StreamingConfig
 	var modelID string
 
 	if streamingEnabled {
-		modelID = ResolveHFModelID(workspaceObj)
-		crName := ModelMirrorCRName(modelID)
-
-		streamingCfg, err = StreamingDefaults.ModelStreamer.GetStreamingConfig(gctx, crName, workspaceObj.Namespace, modelID)
+		modelID = modelstreaming.ResolveHFModelID(workspaceObj)
+		streamer := registry.SelectModelStreamer(workspaceObj)
+		streamingCfg, err = streamer.GetStreamingConfig(gctx, modelID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to resolve streaming config: %w", err)
 		}
@@ -189,15 +201,29 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		streamingLoadFormat = "runai_streamer"
 	}
 
+	// Node-image weights: when the workspace opts in via the kaito.sh/use-local-weights
+	// annotation, model weights are read from a node directory derived from the preset
+	// name (LocalWeightsHostPathPrefix/<preset>, e.g. baked into a custom GPU node image)
+	// instead of being downloaded from HuggingFace or streamed from blob storage.
+	localModelWeightsPath := v1beta1.GetLocalWeightsPath(workspaceObj)
+
 	podOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec]{
-		GenerateInferencePodSpec(gpuConfig, numNodes, streamingModelPath, streamingLoadFormat),
+		GenerateInferencePodSpec(gpuConfig, numNodes, streamingModelPath, streamingLoadFormat, localModelWeightsPath),
+		SetProvisionerNodeSelector,
 		SetHFToken,
 	}
 
-	// Model source: streaming (az://) vs local download. Mutually exclusive.
-	if streamingEnabled {
-		podOpts = append(podOpts, SetStreamingConfig(streamingCfg, modelID, StreamingDefaults.ServiceAccount))
-	} else {
+	shouldDownloadWeightsFromHF := !streamingEnabled && localModelWeightsPath == ""
+
+	// Model source (mutually exclusive): streaming (az://) > node-image weights
+	// (host path) > download-at-runtime (HF repo).
+	switch {
+	case streamingEnabled:
+		podOpts = append(podOpts, modelstreaming.SetStreamingConfig(streamingCfg, modelID, modelstreaming.StreamingDefaults.ServiceAccount))
+	case localModelWeightsPath != "":
+		// Weights are mounted from the node (see GenerateInferencePodSpec); no
+		// puller/download setup is needed.
+	default:
 		podOpts = append(podOpts, SetModelDownloadInfo)
 	}
 
@@ -219,8 +245,10 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 		manifests.GenerateStatefulSetManifest(revisionNum, numNodes),
 	}
 
-	// Volume handling: streaming skips weights volume (model is read from az:// directly).
-	if !streamingEnabled {
+	// Volume handling: streaming reads directly from az:// and node-image weights
+	// are mounted via hostPath (both handled in GenerateInferencePodSpec), so
+	// neither needs the default download/cache weights volume.
+	if shouldDownloadWeightsFromHF {
 		if checkIfNVMeAvailable(ctx, gpuConfig, kubeClient) {
 			ssOpts = append(ssOpts, manifests.AddStatefulSetVolumeClaimTemplates(GenerateModelWeightsCacheVolume(ctx, workspaceObj, model)))
 		} else {
@@ -253,10 +281,16 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 }
 
 func getGPUConfig(ctx *generator.WorkspaceGeneratorContext) (*sku.GPUConfig, error) {
+	// Partition path: build GPU config from the partition spec (MIG mode).
+	if featuregates.FeatureGates[consts.FeatureFlagEnableMIG] && ctx.Workspace.Resource.Partition != nil &&
+		ctx.Workspace.Resource.Partition.Mode == v1beta1.PartitionModeMIG {
+		return utils.GetMIGGPUConfig(ctx.Workspace.Resource.Partition.Profile)
+	}
+
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		// NAP is disabled (BYO scenario) - prefer to get GPU config from matching nodes with nvidia.com labels
 		// Only try to find matching nodes if we have a labelSelector and if WorkerNodes is not already populated
-		readyNodes, err := nodes.GetReadyNodes(ctx.Ctx, ctx.KubeClient, ctx.Workspace)
+		readyNodes, err := nodeprovision.GetReadyNodes(ctx.Ctx, ctx.KubeClient, ctx.NodeProvisioner, ctx.Workspace)
 		if err != nil {
 			return nil, fmt.Errorf("failed to list ready nodes: %w", err)
 		}
@@ -436,38 +470,56 @@ func GetBaseImageTag() string {
 	return presetObj.Tag
 }
 
-func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingModelPath, streamingLoadFormat string) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
+// GetBaseRuntimeVersion returns the inference engine version baked into the base
+// image for the given runtime, sourced from the base model metadata. It returns
+// an empty string when the runtime is unrecognized or the version is not set.
+func GetBaseRuntimeVersion(runtimeName pkgmodel.RuntimeName) string {
+	rv := metadata.MustGet("base").RuntimeVersion
+	switch runtimeName {
+	case pkgmodel.RuntimeNameVLLM:
+		return rv.VLLM
+	case pkgmodel.RuntimeNameHuggingfaceTransformers:
+		return rv.Transformers
+	default:
+		return ""
+	}
+}
+
+// GetPresetQuantization returns the weight quantization method for a preset model
+// (e.g. "awq", "gptq"). It returns an empty string when the preset name is empty,
+// the model is not in the supported catalog, or the model is not quantized.
+func GetPresetQuantization(presetName string) string {
+	if presetName == "" {
+		return ""
+	}
+	m, ok := metadata.Get(presetName)
+	if !ok {
+		return ""
+	}
+	return m.QuantMethod
+}
+
+func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingModelPath, streamingLoadFormat, localModelWeightsPath string) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
-		configVolume, err := resources.EnsureConfigOrCopyFromDefault(ctx.Ctx, ctx.KubeClient,
-			client.ObjectKey{
-				Name:      ctx.Workspace.Inference.Config,
-				Namespace: ctx.Workspace.Namespace,
-			},
-			client.ObjectKey{
-				Name: v1beta1.DefaultInferenceConfigTemplate,
-			},
-			false,
-		)
-		if err != nil {
-			return err
-		}
-
-		// debug print of configVolume (requested)
-		klog.Infof("[debug] configVolume name=%s keys=%v", configVolume.Name, lo.Keys(configVolume.Data))
-
 		// additional volume
 		var volumes []corev1.Volume
 		var volumeMounts []corev1.VolumeMount
 
-		// Add config volume mount
-		cmVolume, cmVolumeMount := utils.ConfigCMVolume(configVolume.Name)
-		volumes = append(volumes, cmVolume)
-		volumeMounts = append(volumeMounts, cmVolumeMount)
-
-		// add model weights volume mount (skip when streaming — weights come from az://)
-		if streamingModelPath == "" {
-			volumeMounts = append(volumeMounts, utils.DefaultModelWeightsVolumeMount)
+		// Mount the user-provided inference config ConfigMap when set. When empty,
+		// no config volume is mounted and the runtime falls back to its built-in defaults.
+		var cmVolumeMountRef *corev1.VolumeMount
+		if userConfig := ctx.Workspace.Inference.Config; userConfig != "" {
+			cmVolume, cmVolumeMount := utils.ConfigCMVolume(userConfig)
+			volumes = append(volumes, cmVolume)
+			volumeMounts = append(volumeMounts, cmVolumeMount)
+			cmVolumeMountRef = &cmVolumeMount
 		}
+
+		volumes, volumeMounts = configureModelWeightsVolumes(
+			streamingModelPath, localModelWeightsPath, volumes, volumeMounts)
+
+		volumes, volumeMounts, cudaHome := configureCUDAToolkitVolume(
+			ctx.Model, volumes, volumeMounts)
 
 		// add share memory for cross process communication
 		shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
@@ -484,14 +536,21 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 				Values:   []string{value},
 			})
 		}
-
 		// resource requirements
+		gpuResourceName := corev1.ResourceName(nodes.CapacityNvidiaGPU)
+		// Under the "mixed" MIG strategy each profile is its own extended resource
+		// (nvidia.com/mig-<profile>). The requested profile is a workload property,
+		// so it is read from the spec. Node-detected MIG under the "single" strategy
+		// has no spec profile and keeps requesting nvidia.com/gpu.
+		if p := ctx.Workspace.Resource.Partition; p != nil && p.Mode == v1beta1.PartitionModeMIG && p.Profile != "" {
+			gpuResourceName = corev1.ResourceName(mig.MIGResourceName(p.Profile))
+		}
 		resourceReq := corev1.ResourceRequirements{
 			Requests: corev1.ResourceList{
-				corev1.ResourceName(nodes.CapacityNvidiaGPU): *resource.NewQuantity(int64(gpuConfig.GPUCount), resource.DecimalSI),
+				gpuResourceName: *resource.NewQuantity(int64(gpuConfig.GPUCount), resource.DecimalSI),
 			},
 			Limits: corev1.ResourceList{
-				corev1.ResourceName(nodes.CapacityNvidiaGPU): *resource.NewQuantity(int64(gpuConfig.GPUCount), resource.DecimalSI),
+				gpuResourceName: *resource.NewQuantity(int64(gpuConfig.GPUCount), resource.DecimalSI),
 			},
 		}
 
@@ -499,46 +558,15 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		inferenceParam := ctx.Model.GetInferenceParameters().DeepCopy()
 		runtimeName := v1beta1.GetWorkspaceRuntimeName(ctx.Workspace)
 
-		// Calculate max-model-len for runtime context
-		maxModelLen := 2048 // Default value
-		if ctx.Workspace.Inference != nil {
-			if runtimeName == pkgmodel.RuntimeNameVLLM {
-				presetParams := ctx.Model.GetInferenceParameters()
-				if presetParams != nil {
-					if raw, ok := configVolume.Data["inference_config.yaml"]; ok && raw != "" {
-						// First check if user provided explicit value in ConfigMap
-						//if v, ok2 := utils.ParseExplicitMaxModelLen(raw); ok2 {
-						//maxModelLen = v
-						//klog.Infof("[RuntimeContext] workspace=%s using user explicit max-model-len=%d", ctx.Workspace.Name, maxModelLen)
-						//} else {
-						// If no user value, compute planned value
-						computedMaxModelLen := estimator.ComputeMaxModelLen(estimator.MaxModelLenInput{
-							ModelTokenLimit:          presetParams.ModelTokenLimit,
-							BytesPerToken:            presetParams.BytesPerToken,
-							TotalModelWeightSize:     presetParams.TotalSafeTensorFileSize,
-							DisableTensorParallelism: presetParams.DisableTensorParallelism,
-							MLAReplicatedKVCache:     presetParams.AttnType == "MLA",
-							GPUMemoryBytes:           gpuConfig.GPUMem.Value(),
-							GPUCount:                 gpuConfig.GPUCount,
-							NumRequiredNodes:         numNodes,
-						})
-						// A zero result with valid sizing inputs means the model
-						// weights plus runtime overhead leave no room for the KV
-						// cache. Fail fast with an actionable error instead of
-						// omitting --max-model-len, which would let vLLM fall back to
-						// the model's full context and crash-loop at startup.
-						if computedMaxModelLen <= 0 && presetParams.BytesPerToken > 0 && gpuConfig.GPUMem.Value() > 0 {
-							return fmt.Errorf("unable to fit model %q on the requested resources: weights (%s) plus runtime overhead exceed the available GPU memory (gpuConfig=%s, nodes=%d). Use a larger GPU SKU, add nodes, or set an explicit max-model-len in the inference config",
-								presetParams.Name, presetParams.TotalSafeTensorFileSize, gpuConfig.String(), numNodes)
-						}
-						if computedMaxModelLen > 0 {
-							maxModelLen = computedMaxModelLen
-						}
-						klog.Infof("[RuntimeContext] workspace=%s using computed max-model-len=%d (gpuConfig=%s, numNodes=%d)", ctx.Workspace.Name, maxModelLen, gpuConfig.String(), numNodes)
-						//}
-					}
-				}
-			}
+		// Context-length sizing is delegated to vLLM's native auto-fit logic by
+		// passing --max-model-len=auto (https://docs.vllm.ai/en/latest/configuration/engine_args/#-max-model-len).
+		// vLLM measures the real KV-cache budget at startup and selects the largest
+		// context that fits. An explicit max-model-len in the user's inference
+		// config still takes precedence: it is appended after this flag on the
+		// vLLM command line (see inference_api.py).
+		maxModelLen := 2048 // Default for non-vLLM runtimes.
+		if runtimeName == pkgmodel.RuntimeNameVLLM {
+			maxModelLen = pkgmodel.MaxModelLenAuto
 		}
 
 		// When the routing sidecar is needed, vLLM moves to PortDecodeVLLM (5001)
@@ -552,7 +580,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		commands := inferenceParam.GetInferenceCommand(pkgmodel.RuntimeContext{
 			RuntimeName:          runtimeName,
 			GPUConfig:            gpuConfig,
-			ConfigVolume:         &cmVolumeMount,
+			ConfigVolume:         cmVolumeMountRef,
 			SKUNumGPUs:           gpuConfig.GPUCount,
 			NumNodes:             numNodes,
 			WorkspaceMetadata:    ctx.Workspace.ObjectMeta,
@@ -560,10 +588,11 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			MaxModelLen:          maxModelLen,
 			InferencePort:        vllmPort,
 			RuntimeContextExtraArguments: pkgmodel.RuntimeContextExtraArguments{
-				AdaptersEnabled:     len(ctx.Workspace.Inference.Adapters) > 0,
-				PerformanceMode:     v1beta1.GetPerformanceMode(ctx.Workspace),
-				StreamingModelPath:  streamingModelPath,
-				StreamingLoadFormat: streamingLoadFormat,
+				AdaptersEnabled:       len(ctx.Workspace.Inference.Adapters) > 0,
+				PerformanceMode:       v1beta1.GetPerformanceMode(ctx.Workspace),
+				StreamingModelPath:    streamingModelPath,
+				StreamingLoadFormat:   streamingLoadFormat,
+				LocalModelWeightsPath: localModelWeightsPath,
 			},
 		})
 
@@ -591,56 +620,10 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			readinessTimeout = defaultStartupProbeTimeout
 		}
 
-		// KAITO does not support FlashInfer. Disable vLLM's FlashInfer sampler so it
-		// stays on the Torch-native sampling path instead of JIT-compiling kernels at
-		// runtime (the base image ships no CUDA toolchain/nvcc).
-		var mainContainerEnv []corev1.EnvVar
-		if runtimeName == pkgmodel.RuntimeNameVLLM {
-			mainContainerEnv = append(mainContainerEnv, corev1.EnvVar{
-				Name:  consts.VLLMUseFlashInferSamplerEnvName,
-				Value: "0",
-			})
-			// Disable vLLM's DeepGEMM FP8 kernels. vLLM 0.22.1 enables them by default
-			// and reports DeepGEMM as available, but the native backend is absent from
-			// the base image, so the FP8 warmup hard-fails at engine init.
-			mainContainerEnv = append(mainContainerEnv, corev1.EnvVar{
-				Name:  consts.VLLMUseDeepGEMMEnvName,
-				Value: "0",
-			})
-			// Disable vLLM's FlashInfer MoE backends across all precisions. For MoE
-			// models vLLM auto-selects a FlashInfer (TRTLLM/CUTLASS) expert kernel,
-			// which JIT-compiles at runtime via nvcc (absent from the base image) and
-			// crashes the engine at startup. Setting each per-precision toggle to "0"
-			// forces the Triton MoE fallback, which needs no nvcc JIT.
-			for _, name := range []string{
-				consts.VLLMUseFlashInferMoeFP16EnvName,
-				consts.VLLMUseFlashInferMoeFP8EnvName,
-				consts.VLLMUseFlashInferMoeFP4EnvName,
-				consts.VLLMUseFlashInferMoeMXFP4BF16EnvName,
-				consts.VLLMUseFlashInferMoeMXFP4MXFP8EnvName,
-				consts.VLLMUseFlashInferMoeMXFP4MXFP8CutlassEnvName,
-			} {
-				mainContainerEnv = append(mainContainerEnv, corev1.EnvVar{
-					Name:  name,
-					Value: "0",
-				})
-			}
-		}
+		mainContainerEnv := buildMainContainerEnv(runtimeName, inferenceParam, cudaHome, localModelWeightsPath)
 
-		spec.Containers = []corev1.Container{
-			{
-				Name:           ctx.Workspace.Name,
-				Image:          GetBaseImageName(),
-				Command:        commands,
-				Resources:      resourceReq,
-				Ports:          append([]corev1.ContainerPort(nil), containerPorts...),
-				StartupProbe:   buildStartupProbe(readinessTimeout, vllmPort),
-				LivenessProbe:  buildProbeWithPort(defaultLivenessProbe, vllmPort),
-				ReadinessProbe: buildProbeWithPort(defaultReadinessProbe, vllmPort),
-				VolumeMounts:   volumeMounts,
-				Env:            mainContainerEnv,
-			},
-		}
+		setInferenceContainers(spec, ctx.Workspace.Name, commands, resourceReq,
+			volumeMounts, mainContainerEnv, readinessTimeout, vllmPort, cudaHome)
 
 		applyInferenceRoleEnv(ctx.Workspace.Labels, ctx.Workspace.Name, spec)
 
@@ -649,9 +632,203 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		}
 
 		spec.Tolerations = defaultTolerations(ctx.Workspace)
+		// Add MIG-specific toleration so pods can schedule onto MIG-tainted nodes
+		// if the cluster operator taints them (the NVIDIA device plugin does not by default).
+		// Only the spec-driven "mixed" path has a per-profile taint key.
+		if p := ctx.Workspace.Resource.Partition; p != nil && p.Mode == v1beta1.PartitionModeMIG && p.Profile != "" {
+			spec.Tolerations = append(spec.Tolerations, corev1.Toleration{
+				Effect:   corev1.TaintEffectNoSchedule,
+				Operator: corev1.TolerationOpExists,
+				Key:      mig.MIGResourceName(p.Profile),
+			})
+		}
 		spec.Volumes = volumes
 
 		return nil
+	}
+}
+
+// configureModelWeightsVolumes appends the model-weights volumes/mounts for a
+// preset inference pod based on the resolved weight source:
+//   - The default download/cache mount is added when weights are neither streamed
+//     (az://) nor provided from an explicit node-image hostpath.
+//   - localModelWeightsPath (the explicit node-image hostpath) is mounted read-only at
+//     the same path inside the container when set.
+func configureModelWeightsVolumes(streamingModelPath, localModelWeightsPath string,
+	volumes []corev1.Volume, volumeMounts []corev1.VolumeMount,
+) ([]corev1.Volume, []corev1.VolumeMount) {
+	// Download-at-runtime path: with no streaming source and no explicit node-image
+	// hostpath, weights are pulled from HuggingFace into /workspace/weights. Mount
+	// that directory so the download target is a real volume shared between the
+	// model-puller init container and the main container (its backing volume — a
+	// PVC on NVMe or an emptyDir — is attached by the caller). Streaming reads from
+	// az:// and explicit hostpaths load from their own mount, so neither needs it.
+	if streamingModelPath == "" && localModelWeightsPath == "" {
+		volumeMounts = append(volumeMounts, utils.DefaultModelWeightsVolumeMount)
+	}
+
+	if localModelWeightsPath != "" {
+		vol, mount := utils.HostPathVolume("model-weights-hostpath", localModelWeightsPath)
+		volumes = append(volumes, vol)
+		volumeMounts = append(volumeMounts, mount)
+	}
+
+	return volumes, volumeMounts
+}
+
+// configureCUDAToolkitVolume mounts the node's CUDA toolkit into the pod for
+// models whose FP8 GEMMs require DeepGEMM's nvcc JIT (e.g. DeepSeek-V4), and
+// returns cudaHome — the toolkit path — or "" for models that don't need it.
+//
+// Only DeepGEMM models get a toolkit. It lives at a fixed node path
+// (defaultCudaHomePath) and is mounted read-only (the main container only
+// reads nvcc + headers/libs; the cuda-toolkit-provisioner init container mounts it
+// read-write to install). Because it lives on the node (hostPath, DirectoryOrCreate
+// so the pod still starts on nodes that lack it), the install survives pod
+// recreation and is shared by all pods on the node — only nodes that lack it ever
+// pay the install.
+func configureCUDAToolkitVolume(model pkgmodel.Model,
+	volumes []corev1.Volume, volumeMounts []corev1.VolumeMount,
+) ([]corev1.Volume, []corev1.VolumeMount, string) {
+	if !model.GetInferenceParameters().RequiresDeepGEMM() {
+		return volumes, volumeMounts, ""
+	}
+
+	cudaHome := defaultCudaHomePath
+	hostPathType := corev1.HostPathDirectoryOrCreate
+	volumes = append(volumes, corev1.Volume{
+		Name: cudaToolkitHostVolumeName,
+		VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{
+			Path: cudaHome,
+			Type: &hostPathType,
+		}},
+	})
+	volumeMounts = append(volumeMounts, corev1.VolumeMount{
+		Name:      cudaToolkitHostVolumeName,
+		MountPath: cudaHome,
+		ReadOnly:  true,
+	})
+	return volumes, volumeMounts, cudaHome
+}
+
+// buildMainContainerEnv builds the env vars for the main inference container.
+// runtimeName selects vLLM-specific vars; cudaHome and localModelWeightsPath
+// are "" when not applicable.
+func buildMainContainerEnv(runtimeName pkgmodel.RuntimeName, inferenceParam *pkgmodel.PresetParam,
+	cudaHome, localModelWeightsPath string,
+) []corev1.EnvVar {
+	var env []corev1.EnvVar
+
+	// KAITO does not support FlashInfer. Disable vLLM's FlashInfer sampler so it
+	// stays on the Torch-native sampling path instead of JIT-compiling kernels at
+	// runtime (the base image ships no CUDA toolchain/nvcc).
+	if runtimeName == pkgmodel.RuntimeNameVLLM {
+		env = append(env, corev1.EnvVar{
+			Name:  consts.VLLMUseFlashInferSamplerEnvName,
+			Value: "0",
+		})
+		// Disable vLLM's DeepGEMM FP8 kernels by default. vLLM 0.22.1 enables them
+		// and reports DeepGEMM as available, but the native backend JIT-compiles
+		// with nvcc, which the slim base image does not ship, so the FP8 warmup
+		// hard-fails at engine init. Models whose FP8 GEMMs *require* DeepGEMM
+		// (see RequiresDeepGEMM) instead enable it — they must run with a CUDA
+		// toolkit in the container for the JIT.
+		deepGEMMValue := "0"
+		if inferenceParam.RequiresDeepGEMM() {
+			deepGEMMValue = "1"
+		}
+		env = append(env, corev1.EnvVar{
+			Name:  consts.VLLMUseDeepGEMMEnvName,
+			Value: deepGEMMValue,
+		})
+		// Disable vLLM's FlashInfer MoE backends across all precisions. For MoE
+		// models vLLM auto-selects a FlashInfer (TRTLLM/CUTLASS) expert kernel,
+		// which JIT-compiles at runtime via nvcc (absent from the base image) and
+		// crashes the engine at startup. Setting each per-precision toggle to "0"
+		// forces the Triton MoE fallback, which needs no nvcc JIT.
+		for _, name := range []string{
+			consts.VLLMUseFlashInferMoeFP16EnvName,
+			consts.VLLMUseFlashInferMoeFP8EnvName,
+			consts.VLLMUseFlashInferMoeFP4EnvName,
+			consts.VLLMUseFlashInferMoeMXFP4BF16EnvName,
+			consts.VLLMUseFlashInferMoeMXFP4MXFP8EnvName,
+			consts.VLLMUseFlashInferMoeMXFP4MXFP8CutlassEnvName,
+		} {
+			env = append(env, corev1.EnvVar{
+				Name:  name,
+				Value: "0",
+			})
+		}
+	}
+
+	// When a CUDA toolkit is provided (installed via init container or mounted
+	// from the node), point CUDA_HOME at it so runtime JIT compilers (e.g.
+	// DeepGEMM's nvcc backend) can find nvcc and the CUDA headers.
+	if cudaHome != "" {
+		env = append(env, corev1.EnvVar{
+			Name:  "CUDA_HOME",
+			Value: cudaHome,
+		})
+	}
+
+	// For node-image weights, tell the startup benchmark (guidellm) where the
+	// tokenizer lives. Without this, the benchmark's processor resolution falls
+	// back to the served model name (a short catalog id, not a valid HF repo id
+	// or local path) and fails. The weights directory holds the tokenizer.
+	if localModelWeightsPath != "" {
+		env = append(env, corev1.EnvVar{
+			Name:  "KAITO_PROCESSOR",
+			Value: localModelWeightsPath,
+		})
+	}
+
+	return env
+}
+
+// setInferenceContainers sets the pod's main inference container and, for models
+// that require the CUDA toolkit (cudaHome != ""), prepends the
+// cuda-toolkit-provisioner init container.
+//
+// The init container ensures the CUDA toolkit is present at CUDA_HOME on the node:
+// cuda-provision.sh installs cuda-toolkit-12-9 there when nvcc is missing and is
+// idempotent (skips when the toolkit is already baked or was installed by an earlier
+// pod). It mounts the hostPath read-write and serializes with flock so concurrent
+// pods on the same node don't install at once. It reuses the base image (which ships
+// the provision script + apt) and needs no GPU. The path is passed as a positional
+// arg ($1), never interpolated, so a path with shell metacharacters cannot inject
+// commands.
+func setInferenceContainers(spec *corev1.PodSpec, containerName string, commands []string,
+	resourceReq corev1.ResourceRequirements, volumeMounts []corev1.VolumeMount, env []corev1.EnvVar,
+	readinessTimeout time.Duration, vllmPort int32, cudaHome string,
+) {
+	spec.Containers = []corev1.Container{
+		{
+			Name:           containerName,
+			Image:          GetBaseImageName(),
+			Command:        commands,
+			Resources:      resourceReq,
+			Ports:          append([]corev1.ContainerPort(nil), containerPorts...),
+			StartupProbe:   buildStartupProbe(readinessTimeout, vllmPort),
+			LivenessProbe:  buildProbeWithPort(defaultLivenessProbe, vllmPort),
+			ReadinessProbe: buildProbeWithPort(defaultReadinessProbe, vllmPort),
+			VolumeMounts:   volumeMounts,
+			Env:            env,
+		},
+	}
+
+	if cudaHome != "" {
+		spec.InitContainers = append([]corev1.Container{{
+			Name:  "cuda-toolkit-provisioner",
+			Image: GetBaseImageName(),
+			Command: []string{
+				"/bin/sh", "-c",
+				`flock "$1" /workspace/cuda-provision.sh "$1"`,
+				"sh", cudaHome,
+			},
+			VolumeMounts: []corev1.VolumeMount{
+				{Name: cudaToolkitHostVolumeName, MountPath: cudaHome},
+			},
+		}}, spec.InitContainers...)
 	}
 }
 
@@ -835,6 +1012,51 @@ func SetDistributedInferenceProbe(ctx *generator.WorkspaceGeneratorContext, spec
 
 func SetDefaultModelWeightsVolume(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 	spec.Volumes = append(spec.Volumes, utils.DefaultModelWeightsVolume)
+	return nil
+}
+
+// SetProvisionerNodeSelector appends provisioner-specific node selector
+// requirements (e.g. kaito.sh/workspace, kaito.sh/workspacenamespace) to the
+// pod's required node affinity, isolating pods to the nodes the provisioner
+// created for this workspace. No-op when the provisioner returns no
+// requirements (BYO mode).
+func SetProvisionerNodeSelector(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+	return ApplyProvisionerNodeSelector(ctx.Ctx, ctx.NodeProvisioner, ctx.Workspace, spec)
+}
+
+// ApplyProvisionerNodeSelector appends the provisioner's per-workspace node
+// selector requirements to spec's required node affinity, isolating pods to the
+// nodes provisioned for this workspace. This matters when several workspaces
+// share the same user-supplied label selector (e.g. InferenceSet replicas):
+// without these requirements a pod could schedule onto a sibling workspace's
+// node. It is a no-op when provisioner is nil or returns no requirements
+// (BYO mode, where nodes are matched purely via the user label selector).
+func ApplyProvisionerNodeSelector(ctx context.Context, provisioner nodeprovision.NodeProvisioner, ws *v1beta1.Workspace, spec *corev1.PodSpec) error {
+	if provisioner == nil {
+		return nil
+	}
+	extra := provisioner.BuildNodeSelector(ctx, ws)
+	if len(extra) == 0 {
+		return nil
+	}
+
+	if spec.Affinity == nil {
+		spec.Affinity = &corev1.Affinity{}
+	}
+	if spec.Affinity.NodeAffinity == nil {
+		spec.Affinity.NodeAffinity = &corev1.NodeAffinity{}
+	}
+	nodeSel := spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution
+	if nodeSel == nil {
+		nodeSel = &corev1.NodeSelector{
+			NodeSelectorTerms: []corev1.NodeSelectorTerm{{}},
+		}
+		spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution = nodeSel
+	}
+	if len(nodeSel.NodeSelectorTerms) == 0 {
+		nodeSel.NodeSelectorTerms = []corev1.NodeSelectorTerm{{}}
+	}
+	nodeSel.NodeSelectorTerms[0].MatchExpressions = append(nodeSel.NodeSelectorTerms[0].MatchExpressions, extra...)
 	return nil
 }
 

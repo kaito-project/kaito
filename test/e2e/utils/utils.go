@@ -39,6 +39,7 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/model"
+	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 )
 
 var (
@@ -331,6 +332,16 @@ func GenerateInferenceSetManifestWithVLLM(name, namespace, imageName string, rep
 	}
 	inferenceSet.Annotations[kaitov1beta1.AnnotationWorkspaceRuntime] = string(model.RuntimeNameVLLM)
 	return inferenceSet
+}
+
+// DisableModelStreaming sets the opt-out annotation on a Workspace's annotations map so
+// the workspace uses the download-at-runtime path even when the ModelStreaming gate is on.
+func DisableModelStreaming(annotations map[string]string) map[string]string {
+	if annotations == nil {
+		annotations = map[string]string{}
+	}
+	annotations[mmconsts.AnnotationModelStreaming] = "disabled"
+	return annotations
 }
 
 func GenerateInferenceSetManifest(name, namespace, imageName string, replicas int, instanceType string,

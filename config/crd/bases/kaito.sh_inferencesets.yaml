@@ -93,6 +93,17 @@ spec:
                     required:
                     - schedule
                     type: object
+                  strategy:
+                    default: InPlace
+                    description: |-
+                      Strategy selects how Workspaces are replaced during an upgrade.
+                      "InPlace" (default) rolls the existing Workspace's StatefulSet, incurring
+                      downtime. "Surge" creates a new Workspace, waits for it to become
+                      ready, then deletes the old one, avoiding downtime.
+                    enum:
+                    - InPlace
+                    - Surge
+                    type: string
                 type: object
               labelSelector:
                 description: workspace created by InferenceSet controller would use
@@ -263,10 +274,11 @@ spec:
                   resource:
                     properties:
                       instanceType:
-                        description: InstanceType specifies the GPU node SKU.
+                        description: |-
+                          InstanceType specifies the GPU node SKU.
+                          This field is required when node auto-provisioning is enabled.
+                          This field must be empty when node auto-provisioning is disabled (BYO scenario).
                         type: string
-                    required:
-                    - instanceType
                     type: object
                 required:
                 - inference
@@ -369,12 +381,6 @@ spec:
                       description: Metric holds an aggregated benchmark measurement
                         across workspace replicas.
                       properties:
-                        config:
-                          additionalProperties:
-                            type: string
-                          description: Config holds the benchmark parameters used
-                            to produce this metric as free-form key/value pairs.
-                          type: object
                         description:
                           description: Description describes the benchmark type and
                             load pattern, e.g. "stress/high-concurrency".
@@ -493,6 +499,17 @@ spec:
                     required:
                     - schedule
                     type: object
+                  strategy:
+                    default: InPlace
+                    description: |-
+                      Strategy selects how Workspaces are replaced during an upgrade.
+                      "InPlace" (default) rolls the existing Workspace's StatefulSet, incurring
+                      downtime. "Surge" creates a new Workspace, waits for it to become
+                      ready, then deletes the old one, avoiding downtime.
+                    enum:
+                    - InPlace
+                    - Surge
+                    type: string
                 type: object
               labelSelector:
                 description: workspace created by InferenceSet controller would use
@@ -663,10 +680,38 @@ spec:
                   resource:
                     properties:
                       instanceType:
-                        description: InstanceType specifies the GPU node SKU.
+                        description: |-
+                          InstanceType specifies the GPU node SKU.
+                          Required when node auto-provisioning is enabled; must be empty for BYO nodes.
                         type: string
-                    required:
-                    - instanceType
+                      partition:
+                        description: |-
+                          Partition specifies GPU partitioning applied to each replica. When set, each
+                          replica is scheduled on a GPU partition (slice) instead of a full GPU.
+                          Requires the enableMIG feature gate and BYO nodes.
+                          Propagated verbatim to each child Workspace.
+                        properties:
+                          mode:
+                            allOf:
+                            - enum:
+                              - mig
+                            - enum:
+                              - mig
+                            description: |-
+                              Mode selects the GPU partitioning technology. Currently only "mig" (NVIDIA
+                              Multi-Instance GPU) is supported.
+                            type: string
+                          profile:
+                            description: |-
+                              Profile is the partition profile, interpreted according to Mode. For MIG this
+                              is a profile name like "1g.10gb", "2g.20gb", "3g.40gb". Each workload is
+                              scheduled on exactly one partition; tensor parallelism across partitions is
+                              not supported. Use multiple Workspaces or an InferenceSet to run replicas.
+                            type: string
+                        required:
+                        - mode
+                        - profile
+                        type: object
                     type: object
                 required:
                 - inference
@@ -766,8 +811,8 @@ spec:
                 properties:
                   metrics:
                     additionalProperties:
-                      description: Metric holds an aggregated benchmark measurement
-                        across workspace replicas.
+                      description: Metric holds a single benchmark measurement along
+                        with its description and config.
                       properties:
                         config:
                           additionalProperties:
@@ -784,7 +829,7 @@ spec:
                             "tokens/min").
                           type: string
                         value:
-                          description: Value is the aggregated metric value, formatted
+                          description: Value is the measured metric value, formatted
                             as a string.
                           type: string
                       required:

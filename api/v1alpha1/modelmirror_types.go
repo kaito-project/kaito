@@ -34,17 +34,55 @@ type ModelMirror struct {
 }
 
 type ModelMirrorSpec struct {
-	// +kubebuilder:validation:Required
-	Source ModelMirrorSource `json:"source"`
-	// +kubebuilder:validation:Required
-	Storage ModelMirrorStorage `json:"storage"`
-	// JobNamespace is the namespace where the PVC and download Job will be created.
-	// +kubebuilder:validation:Required
-	JobNamespace string `json:"jobNamespace"`
+	// Mode selects how the model weights are made available:
+	//   - "Managed" (default): the controller downloads the model to a PVC via a download Job.
+	//   - "Static": the model weights already exist in a pre-existing (BYO) storage location;
+	//     the controller creates no PVC and no download Job, and the weights location is
+	//     reported in status.modelPath.
+	// +kubebuilder:validation:Enum=Managed;Static
+	// +kubebuilder:default=Managed
+	// +optional
+	Mode ModelMirrorMode `json:"mode,omitempty"`
+	// Source describes where to download the model weights from. Required for a Managed
+	// mirror; omit entirely for a Static mirror.
+	// +optional
+	Source *ModelMirrorSource `json:"source,omitempty"`
+	// Storage describes the PVC to download the model weights into. Required for a Managed
+	// mirror; omit entirely for a Static mirror.
+	// +optional
+	Storage *ModelMirrorStorage `json:"storage,omitempty"`
+	// JobNamespace is the namespace where the PVC and download Job will be created;
+	// omit entirely for static mirrors.
+	// +optional
+	JobNamespace string `json:"jobNamespace,omitempty"`
+	// ServiceAccountName is the ServiceAccount used by the workload identity that the download
+	// Job pod runs as. Empty (the default) runs the Job under the namespace default ServiceAccount.
+	// +optional
+	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 }
 
+// ModelMirrorMode describes how a ModelMirror provisions the model weights.
+type ModelMirrorMode string
+
+const (
+	// ModelMirrorModeManaged downloads the model to a PVC via a download Job.
+	ModelMirrorModeManaged ModelMirrorMode = "Managed"
+	// ModelMirrorModeStatic maps to an existing (BYO) storage location where the model
+	// weights are already available. No PVC or download Job is created, the weights
+	// location is reported in status.modelPath.
+	ModelMirrorModeStatic ModelMirrorMode = "Static"
+)
+
+// Supported ModelMirror source registries.
+const (
+	RegistryHuggingFace = "huggingface"
+)
+
+// SupportedRegistries is the set of accepted ModelMirrorSource.Registry values.
+var SupportedRegistries = []string{RegistryHuggingFace}
+
 type ModelMirrorSource struct {
-	// Registry is the source registry type. Currently only "huggingface" is supported.
+	// Registry is the source registry to download the model weights from.
 	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:Enum=huggingface
 	Registry string `json:"registry"`
@@ -57,12 +95,12 @@ type ModelMirrorSource struct {
 }
 
 type ModelMirrorStorage struct {
-	// Size is the PVC size (e.g. "20Gi").
+	// Size is the PVC size for managed mirrors.
 	// +kubebuilder:validation:Required
 	Size string `json:"size"`
 	// StorageClassName is the StorageClass to use for the PVC.
-	// +kubebuilder:validation:Required
-	StorageClassName string `json:"storageClassName"`
+	// +optional
+	StorageClassName *string `json:"storageClassName,omitempty"`
 }
 
 type ModelMirrorPhase string

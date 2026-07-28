@@ -36,7 +36,6 @@ var ValidStrength string = "0.5"
 var InvalidStrength1 string = "invalid"
 var InvalidStrength2 string = "1.5"
 
-var gpuCountRequirement string
 var totalSafeTensorFileSize string
 var perGPUMemoryRequirement string
 
@@ -53,7 +52,6 @@ type testModel struct{}
 
 func (*testModel) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement:     gpuCountRequirement,
 		TotalSafeTensorFileSize: totalSafeTensorFileSize,
 		RuntimeParam: model.RuntimeParam{
 			Transformers: model.HuggingfaceTransformersParam{
@@ -64,7 +62,6 @@ func (*testModel) GetInferenceParameters() *model.PresetParam {
 }
 func (*testModel) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement:     gpuCountRequirement,
 		TotalSafeTensorFileSize: totalSafeTensorFileSize,
 	}
 }
@@ -79,13 +76,11 @@ type testModelStatic struct{}
 
 func (*testModelStatic) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "16Gi",
 	}
 }
 func (*testModelStatic) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "16Gi",
 	}
 }
@@ -101,14 +96,12 @@ type testModelPrivate struct{}
 func (*testModelPrivate) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		ImageAccessMode:         string(ModelImageAccessModePrivate),
-		GPUCountRequirement:     gpuCountRequirement,
 		TotalSafeTensorFileSize: totalSafeTensorFileSize,
 	}
 }
 func (*testModelPrivate) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
 		ImageAccessMode:         string(ModelImageAccessModePrivate),
-		GPUCountRequirement:     gpuCountRequirement,
 		TotalSafeTensorFileSize: totalSafeTensorFileSize,
 	}
 }
@@ -253,7 +246,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 	tests := []struct {
 		name                    string
 		resourceSpec            *ResourceSpec
-		modelGPUCount           string
 		modelPerGPUMemory       string
 		totalSafeTensorFileSize string
 		preset                  bool
@@ -268,7 +260,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_ND96asr_v4",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:           "8",
 			modelPerGPUMemory:       "19Gi",
 			totalSafeTensorFileSize: "152Gi",
 			preset:                  true,
@@ -279,10 +270,9 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Valid Resource - SKU Capacity == Model Requirement",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:           "1",
 			modelPerGPUMemory:       "16Gi",
 			totalSafeTensorFileSize: "16Gi",
 			preset:                  true,
@@ -293,12 +283,11 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Insufficient total GPU memory",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NV12s_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:           "1",
 			modelPerGPUMemory:       "0",
-			totalSafeTensorFileSize: "14Gi",
+			totalSafeTensorFileSize: "32Gi",
 			preset:                  true,
 			errContent:              "Insufficient total GPU memory",
 			expectErrs:              true,
@@ -311,7 +300,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_NC24ads_A100_v4",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:           "2",
 			modelPerGPUMemory:       "15Gi",
 			totalSafeTensorFileSize: "30Gi",
 			preset:                  true,
@@ -332,7 +320,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Only Template set",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NV12s_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
 			preset:         false,
@@ -364,7 +352,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Tuning validation with single node",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
 			errContent:     "",
@@ -374,7 +362,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Tuning validation with multinode",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(2),
 			},
 			errContent:     "Tuning does not currently support multinode configurations",
@@ -384,7 +372,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Invalid Preset Name",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(2),
 			},
 			errContent:         "",
@@ -395,7 +383,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Deprecated Model",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
 			preset:             true,
@@ -406,10 +394,9 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Empty TotalSafeTensorFileSize skips GPU memory validation",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:           "1",
 			modelPerGPUMemory:       "0",
 			totalSafeTensorFileSize: "",
 			preset:                  true,
@@ -420,10 +407,9 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Malformed TotalSafeTensorFileSize returns validation error",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:           "1",
 			modelPerGPUMemory:       "0",
 			totalSafeTensorFileSize: "not-a-quantity",
 			preset:                  true,
@@ -434,10 +420,9 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Valid TotalSafeTensorFileSize with sufficient memory passes",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:           "1",
 			modelPerGPUMemory:       "16Gi",
 			totalSafeTensorFileSize: "1Gi",
 			preset:                  true,
@@ -487,7 +472,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 					}
 				}
 
-				gpuCountRequirement = tc.modelGPUCount
 				totalSafeTensorFileSize = tc.totalSafeTensorFileSize
 				perGPUMemoryRequirement = tc.modelPerGPUMemory
 
@@ -1222,7 +1206,7 @@ func TestWorkspaceValidateName(t *testing.T) {
 			Namespace: "kaito",
 		},
 		Resource: ResourceSpec{
-			InstanceType: "Standard_NC4as_T4_v3",
+			InstanceType: "Standard_NV36ads_A10_v5",
 			Count:        pointerToInt(1),
 		},
 		Inference: &InferenceSpec{
@@ -1926,7 +1910,7 @@ other_field: value
 		expectErrs bool
 	}{
 		{
-			name: "Single Instance, Multi-GPU with <20GB per GPU and max-model-len set",
+			name: "Single Instance, Multi-GPU with >=20GB per GPU and max-model-len set (no error)",
 			workspace: &Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: DefaultReleaseNamespace,
@@ -1940,78 +1924,12 @@ other_field: value
 					Config: "valid-config-with-max-model-len",
 				},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NV24s_v3", // 2 GPUs with 8GB each (16GB total)
+					InstanceType: "Standard_NV72ads_A10_v5", // 2 GPUs with 24GB each (48GB total)
 					Count:        pointerToInt(1),
 				},
 			},
 			errContent: "",
 			expectErrs: false,
-		},
-		{
-			name: "Single Instance, Multi-GPU with <20GB per GPU and max-model-len missing",
-			workspace: &Workspace{
-				ObjectMeta: metav1.ObjectMeta{
-					Namespace: DefaultReleaseNamespace,
-				},
-				Inference: &InferenceSpec{
-					Preset: &PresetSpec{
-						PresetMeta: PresetMeta{
-							Name: ModelName("test-validation"),
-						},
-					},
-					Config: "invalid-config-without-max-model-len",
-				},
-				Resource: ResourceSpec{
-					InstanceType: "Standard_NV24s_v3", // 2 GPUs with 8GB each (16GB total)
-					Count:        pointerToInt(1),
-				},
-			},
-			errContent: "max-model-len is required in the vllm section of inference_config.yaml when using multi-GPU instances with <20GB of memory per GPU",
-			expectErrs: true,
-		},
-		{
-			name: "Single Instance, Multi-GPU with <20GB per GPU and empty vllm section",
-			workspace: &Workspace{
-				ObjectMeta: metav1.ObjectMeta{
-					Namespace: DefaultReleaseNamespace,
-				},
-				Inference: &InferenceSpec{
-					Preset: &PresetSpec{
-						PresetMeta: PresetMeta{
-							Name: ModelName("test-validation"),
-						},
-					},
-					Config: "invalid-config-empty-vllm",
-				},
-				Resource: ResourceSpec{
-					InstanceType: "Standard_NV24s_v3", // 2 GPUs with 8GB each (16GB total)
-					Count:        pointerToInt(1),
-				},
-			},
-			errContent: "max-model-len is required in the vllm section of inference_config.yaml when using multi-GPU instances with <20GB of memory per GPU",
-			expectErrs: true,
-		},
-		{
-			name: "Single Instance, Multi-GPU with <20GB per GPU and vllm section missing",
-			workspace: &Workspace{
-				ObjectMeta: metav1.ObjectMeta{
-					Namespace: DefaultReleaseNamespace,
-				},
-				Inference: &InferenceSpec{
-					Preset: &PresetSpec{
-						PresetMeta: PresetMeta{
-							Name: ModelName("test-validation"),
-						},
-					},
-					Config: "invalid-config-no-vllm",
-				},
-				Resource: ResourceSpec{
-					InstanceType: "Standard_NV24s_v3", // 2 GPUs with 8GB each (16GB total)
-					Count:        pointerToInt(1),
-				},
-			},
-			errContent: "max-model-len is required in the vllm section of inference_config.yaml when using multi-GPU instances with <20GB of memory per GPU",
-			expectErrs: true,
 		},
 		{
 			name: "Single Instance, Single-GPU (no max-model-len required)",
@@ -2028,7 +1946,7 @@ other_field: value
 					Config: "invalid-config-without-max-model-len",
 				},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NV12s_v3", // 1 GPU with 8GB
+					InstanceType: "Standard_NV36ads_A10_v5", // 1 GPU with 24GB
 					Count:        pointerToInt(1),
 				},
 			},
@@ -2058,7 +1976,7 @@ other_field: value
 			expectErrs: false,
 		},
 		{
-			name: "Multi Instances, GPU with <20GB per instance and max-model-len missing",
+			name: "Multi Instances, distributed inference and max-model-len missing",
 			workspace: &Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: DefaultReleaseNamespace,
@@ -2072,7 +1990,7 @@ other_field: value
 					Config: "invalid-config-without-max-model-len",
 				},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NC4as_T4_v3", // 1 GPUs with 16GB
+					InstanceType: "Standard_NV36ads_A10_v5", // 1 GPU with 24GB
 					Count:        pointerToInt(2),
 				},
 			},
@@ -2080,7 +1998,7 @@ other_field: value
 			expectErrs: true,
 		},
 		{
-			name: "Multi Instances, GPU with <20GB per instance and max-model-len set",
+			name: "Multi Instances, distributed inference and max-model-len set",
 			workspace: &Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: DefaultReleaseNamespace,
@@ -2094,7 +2012,7 @@ other_field: value
 					Config: "valid-config-with-max-model-len",
 				},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NC4as_T4_v3", // 1 GPUs with 16GB
+					InstanceType: "Standard_NV36ads_A10_v5", // 1 GPU with 24GB
 					Count:        pointerToInt(2),
 				},
 			},

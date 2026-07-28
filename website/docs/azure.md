@@ -29,7 +29,7 @@ Choose auto-provisioning when:
 - You prefer to specify exact Azure instance types in your workspaces
 
 :::note
-Alternative: If you already have GPU nodes or manage them separately, use the [preferred nodes approach](quick-start#option-1-using-preferred-nodes-existing-gpu-nodes) instead.
+Alternative: If you already have GPU nodes or manage them separately, use the [bring your own GPU nodes approach](./installation.md#option-2-bring-your-own-gpu-nodes) instead.
 :::
 
 ## Set Up Auto-Provisioning
@@ -77,7 +77,7 @@ az role assignment create \
 Install the Azure GPU Provisioner using Helm:
 
 ```bash
-export GPU_PROVISIONER_VERSION=0.4.2
+export GPU_PROVISIONER_VERSION=0.4.3
 
 # Download and configure Helm values
 curl -sO https://raw.githubusercontent.com/Azure/gpu-provisioner/main/hack/deploy/configure-helm-values.sh
@@ -140,7 +140,7 @@ kind: Workspace
 metadata:
   name: workspace-phi-4-mini
 resource:
-  instanceType: "Standard_NC6s_v3"  # Will trigger node creation
+  instanceType: "Standard_NC24ads_A100_v4"  # Will trigger node creation
   labelSelector:
     matchLabels:
       apps: phi-4-mini
@@ -158,6 +158,10 @@ kubectl apply -f phi-4-workspace.yaml
 ## Supported Azure GPU Instance Types
 
 The GPU provisioner supports various Azure GPU SKUs, see [supported options here](https://github.com/kaito-project/kaito/blob/main/pkg/sku/azure_sku_handler.go).
+
+:::note
+KAITO only supports NVIDIA GPUs with CUDA compute capability **>= 8.0** (Ampere and newer, such as A10, A100, H100, H200). Older architectures such as **NVIDIA T4** (Turing, 7.5), **NVIDIA V100** (Volta, 7.0), and **NVIDIA M60** (Maxwell, 5.2) are **not supported**. This means SKUs such as `Standard_NC*_T4_v3`, `Standard_NC*s_v3` (V100), and `Standard_NV*s_v3` (M60) cannot be used with KAITO.
+:::
 
 For the complete list and specifications, see the [Azure GPU-optimized VM sizes documentation](https://learn.microsoft.com/en-us/azure/virtual-machines/sizes-gpu).
 

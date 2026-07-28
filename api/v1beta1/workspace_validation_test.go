@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	v1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"knative.dev/pkg/apis"
@@ -28,6 +29,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
+	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
@@ -38,7 +40,6 @@ var ValidStrength string = "0.5"
 var InvalidStrength1 string = "invalid"
 var InvalidStrength2 string = "1.5"
 
-var gpuCountRequirement string
 var totalSafeTensorFileSize string
 var perGPUMemoryRequirement string
 
@@ -55,7 +56,6 @@ type testModel struct{}
 
 func (*testModel) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement:     gpuCountRequirement,
 		TotalSafeTensorFileSize: totalSafeTensorFileSize,
 		ModelTokenLimit:         4096, // Add ModelTokenLimit for validation testing
 		RuntimeParam: model.RuntimeParam{
@@ -67,7 +67,6 @@ func (*testModel) GetInferenceParameters() *model.PresetParam {
 }
 func (*testModel) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement:     gpuCountRequirement,
 		TotalSafeTensorFileSize: totalSafeTensorFileSize,
 	}
 }
@@ -82,13 +81,11 @@ type testModelStatic struct{}
 
 func (*testModelStatic) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "16Gi",
 	}
 }
 func (*testModelStatic) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement:     "1",
 		TotalSafeTensorFileSize: "16Gi",
 	}
 }
@@ -108,7 +105,6 @@ func (*testModelDownload) GetInferenceParameters() *model.PresetParam {
 			DownloadAtRuntime:    true,
 			DownloadAuthRequired: true,
 		},
-		GPUCountRequirement:     "2",
 		TotalSafeTensorFileSize: "32Gi",
 	}
 }
@@ -127,7 +123,6 @@ type testModelLarge struct{}
 
 func (*testModelLarge) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement:     "8",     // Requires 8 GPUs
 		TotalSafeTensorFileSize: "131Gi", // Approximately 131GB total memory requirement
 	}
 }
@@ -146,7 +141,6 @@ type testModelSmallA10 struct{}
 
 func (*testModelSmallA10) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
-		GPUCountRequirement:     "1",   // Requires 1 GPU
 		TotalSafeTensorFileSize: "7Gi", // Small model that fits on A10
 	}
 }
@@ -304,7 +298,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 	tests := []struct {
 		name                    string
 		resourceSpec            *ResourceSpec
-		modelGPUCount           string
 		modelPerGPUMemory       string
 		totalSafeTensorFileSize string
 		preset                  bool
@@ -322,7 +315,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				InstanceType: "Standard_ND96asr_v4",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:           "8",
 			modelPerGPUMemory:       "19Gi",
 			totalSafeTensorFileSize: "152Gi",
 			preset:                  true,
@@ -334,10 +326,9 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Valid Resource - SKU Capacity == Model Requirement",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:           "1",
 			modelPerGPUMemory:       "16Gi",
 			totalSafeTensorFileSize: "16Gi",
 			preset:                  true,
@@ -360,7 +351,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Only Template set",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NV12s_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
 			preset:         false,
@@ -395,7 +386,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Tuning validation with single node",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
 			runtime:        model.RuntimeNameVLLM,
@@ -406,7 +397,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Tuning validation with multinode",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(2),
 			},
 			runtime:        model.RuntimeNameVLLM,
@@ -417,7 +408,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Invalid Preset Name",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(2),
 			},
 			errContent:         "",
@@ -429,7 +420,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "vLLM + Distributed Inference",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(4),
 			},
 			preset:             true,
@@ -775,7 +766,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Deprecated Model",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
 			preset:             true,
@@ -787,10 +778,9 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Empty TotalSafeTensorFileSize skips GPU memory validation",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:           "1",
 			modelPerGPUMemory:       "0",
 			totalSafeTensorFileSize: "",
 			preset:                  true,
@@ -802,10 +792,9 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Malformed TotalSafeTensorFileSize returns validation error",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:           "1",
 			modelPerGPUMemory:       "0",
 			totalSafeTensorFileSize: "not-a-quantity",
 			preset:                  true,
@@ -817,10 +806,9 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 		{
 			name: "Valid TotalSafeTensorFileSize with sufficient memory passes",
 			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
-			modelGPUCount:           "1",
 			modelPerGPUMemory:       "16Gi",
 			totalSafeTensorFileSize: "1Gi",
 			preset:                  true,
@@ -897,7 +885,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 					}
 				}
 
-				gpuCountRequirement = tc.modelGPUCount
 				totalSafeTensorFileSize = tc.totalSafeTensorFileSize
 				perGPUMemoryRequirement = tc.modelPerGPUMemory
 
@@ -914,6 +901,80 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 						t.Errorf("validateCreate() error message = %v, expected to contain = %v", errMsg, tc.errContent)
 					}
 				}
+			}
+		})
+	}
+}
+
+func TestValidateMIGModelFit(t *testing.T) {
+	RegisterValidationTestModels()
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+	origMIG := featuregates.FeatureGates[consts.FeatureFlagEnableMIG]
+	origNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = true
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = origMIG
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = origNAP
+	}()
+
+	scheme := runtime.NewScheme()
+	_ = v1.AddToScheme(scheme)
+	k8sclient.SetGlobalClient(fake.NewClientBuilder().WithScheme(scheme).Build())
+
+	tests := []struct {
+		name                    string
+		presetName              string
+		profile                 string
+		totalSafeTensorFileSize string // only used by the "test-validation" preset
+		bypass                  bool
+		expectErrs              bool
+		errContent              string
+	}{
+		{
+			name:                    "model fits within the MIG slice",
+			presetName:              "test-validation",
+			profile:                 "2g.24gb",
+			totalSafeTensorFileSize: "8Gi",
+			expectErrs:              false,
+		},
+		{
+			name:       "model exceeds the MIG slice",
+			presetName: "test-large-model", // 131Gi weights
+			profile:    "1g.10gb",
+			expectErrs: true,
+			errContent: "exceeds the 1g.10gb MIG slice",
+		},
+		{
+			name:       "bypass annotation allows an oversized model",
+			presetName: "test-large-model",
+			profile:    "1g.10gb",
+			bypass:     true,
+			expectErrs: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			totalSafeTensorFileSize = tc.totalSafeTensorFileSize
+
+			resourceSpec := &ResourceSpec{
+				InstanceType: "", // BYO
+				Count:        pointerToInt(1),
+				Partition:    &PartitionSpec{Mode: PartitionModeMIG, Profile: tc.profile},
+			}
+			spec := &InferenceSpec{
+				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName(tc.presetName)}},
+			}
+
+			errs := resourceSpec.validateCreateWithInference(context.TODO(), spec, tc.bypass, model.RuntimeNameVLLM, "")
+			hasErrs := errs != nil
+			if hasErrs != tc.expectErrs {
+				t.Errorf("validateCreateWithInference() errors = %v, expectErrs %v", errs, tc.expectErrs)
+			}
+			if hasErrs && tc.errContent != "" && !strings.Contains(errs.Error(), tc.errContent) {
+				t.Errorf("validateCreateWithInference() error = %v, expected to contain %q", errs, tc.errContent)
 			}
 		})
 	}
@@ -962,7 +1023,7 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 				Count:        pointerToInt(1),
 			},
 			oldResource: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3",
+				InstanceType: "Standard_NV36ads_A10_v5",
 				Count:        pointerToInt(1),
 			},
 			disableNAP: false, // NAP enabled
@@ -972,7 +1033,7 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 		{
 			name: "NAP enabled - set instanceType initially (valid)",
 			newResource: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3", // Setting for first time
+				InstanceType: "Standard_NV36ads_A10_v5", // Setting for first time
 				Count:        pointerToInt(1),
 			},
 			oldResource: &ResourceSpec{
@@ -1008,7 +1069,7 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 				},
 			},
 			oldResource: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3", // Had instanceType from v0.7
+				InstanceType: "Standard_NV36ads_A10_v5", // Had instanceType from v0.7
 				Count:        pointerToInt(1),
 				LabelSelector: &metav1.LabelSelector{
 					MatchLabels: map[string]string{"gpu": "v100"}, // Same labelSelector
@@ -1021,11 +1082,11 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 		{
 			name: "NAP disabled - keep instanceType set (backward compatibility)",
 			newResource: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3", // Still has instanceType
+				InstanceType: "Standard_NV36ads_A10_v5", // Still has instanceType
 				Count:        pointerToInt(1),
 			},
 			oldResource: &ResourceSpec{
-				InstanceType: "Standard_NC4as_T4_v3", // Had instanceType from v0.7
+				InstanceType: "Standard_NV36ads_A10_v5", // Had instanceType from v0.7
 				Count:        pointerToInt(1),
 			},
 			disableNAP: true, // NAP disabled (BYO mode)
@@ -1699,7 +1760,7 @@ func TestWorkspaceValidateCreate(t *testing.T) {
 			name: "Neither Inference nor Tuning specified",
 			workspace: &Workspace{
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NC4as_T4_v3",
+					InstanceType: "Standard_NV36ads_A10_v5",
 					Count:        pointerToInt(1),
 				},
 			},
@@ -1712,7 +1773,7 @@ func TestWorkspaceValidateCreate(t *testing.T) {
 				Inference: &InferenceSpec{},
 				Tuning:    &TuningSpec{},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NC4as_T4_v3",
+					InstanceType: "Standard_NV36ads_A10_v5",
 					Count:        pointerToInt(1),
 				},
 			},
@@ -1724,7 +1785,7 @@ func TestWorkspaceValidateCreate(t *testing.T) {
 			workspace: &Workspace{
 				Inference: &InferenceSpec{},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NC4as_T4_v3",
+					InstanceType: "Standard_NV36ads_A10_v5",
 					Count:        pointerToInt(1),
 				},
 			},
@@ -1736,7 +1797,7 @@ func TestWorkspaceValidateCreate(t *testing.T) {
 			workspace: &Workspace{
 				Tuning: &TuningSpec{Input: &DataSource{}},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NC4as_T4_v3",
+					InstanceType: "Standard_NV36ads_A10_v5",
 					Count:        pointerToInt(1),
 				},
 			},
@@ -1753,7 +1814,7 @@ func TestWorkspaceValidateCreate(t *testing.T) {
 				},
 				Inference: &InferenceSpec{},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NC4as_T4_v3",
+					InstanceType: "Standard_NV36ads_A10_v5",
 					Count:        pointerToInt(1),
 				},
 			},
@@ -1796,7 +1857,7 @@ func TestWorkspaceValidateName(t *testing.T) {
 			Namespace: "kaito",
 		},
 		Resource: ResourceSpec{
-			InstanceType: "Standard_NC4as_T4_v3",
+			InstanceType: "Standard_NV36ads_A10_v5",
 			Count:        pointerToInt(1),
 		},
 		Inference: &InferenceSpec{
@@ -1867,7 +1928,7 @@ func TestWorkspaceValidatePerformanceModeAnnotation(t *testing.T) {
 			Namespace: "kaito",
 		},
 		Resource: ResourceSpec{
-			InstanceType: "Standard_NC4as_T4_v3",
+			InstanceType: "Standard_NV36ads_A10_v5",
 			Count:        pointerToInt(1),
 		},
 		Inference: &InferenceSpec{
@@ -1907,6 +1968,21 @@ func TestWorkspaceValidatePerformanceModeAnnotation(t *testing.T) {
 		{
 			name:        "unknown value is invalid",
 			annotations: map[string]string{AnnotationPerformanceMode: "fast"},
+			wantErr:     true,
+		},
+		{
+			name:        "use local weights true is valid",
+			annotations: map[string]string{AnnotationUseLocalWeights: "true"},
+			wantErr:     false,
+		},
+		{
+			name:        "use local weights false is valid",
+			annotations: map[string]string{AnnotationUseLocalWeights: "false"},
+			wantErr:     false,
+		},
+		{
+			name:        "use local weights non-boolean is invalid",
+			annotations: map[string]string{AnnotationUseLocalWeights: "yes"},
 			wantErr:     true,
 		},
 	}
@@ -1976,7 +2052,7 @@ func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 					Namespace: "kaito",
 				},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NC4as_T4_v3", // Valid instanceType when NAP enabled
+					InstanceType: "Standard_NV36ads_A10_v5", // Valid instanceType when NAP enabled
 					Count:        pointerToInt(1),
 				},
 				Inference: &InferenceSpec{
@@ -1999,7 +2075,7 @@ func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 					Namespace: "kaito",
 				},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NC4as_T4_v3", // Invalid: instanceType provided when NAP disabled
+					InstanceType: "Standard_NV36ads_A10_v5", // Invalid: instanceType provided when NAP disabled
 					Count:        pointerToInt(1),
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
@@ -2169,7 +2245,7 @@ func TestWorkspaceValidateUpdate(t *testing.T) {
 				},
 				Tuning: &TuningSpec{Input: &DataSource{}, Output: &DataDestination{Image: "test-image:latest", ImagePushSecret: "secret"}},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NC4as_T4_v3",
+					InstanceType: "Standard_NV36ads_A10_v5",
 					Count:        pointerToInt(1),
 				},
 			},
@@ -2180,7 +2256,7 @@ func TestWorkspaceValidateUpdate(t *testing.T) {
 				},
 				Tuning: &TuningSpec{Input: &DataSource{}, Output: &DataDestination{Image: "test-image:latest", ImagePushSecret: "secret"}},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NC4as_T4_v3",
+					InstanceType: "Standard_NV36ads_A10_v5",
 					Count:        pointerToInt(1),
 				},
 			},
@@ -2194,7 +2270,7 @@ func TestWorkspaceValidateUpdate(t *testing.T) {
 					Namespace: "kaito",
 				},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NC4as_T4_v3", // Created in v0.7 with instanceType
+					InstanceType: "Standard_NV36ads_A10_v5", // Created in v0.7 with instanceType
 					Count:        pointerToInt(1),
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
@@ -2836,7 +2912,7 @@ vllm:
 					Config: "valid-config-with-max-model-len",
 				},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NV24s_v3", // 2 GPUs with 8GB each (16GB total)
+					InstanceType: "Standard_NV72ads_A10_v5", // 2 GPUs with 24GB each (48GB total)
 					Count:        pointerToInt(1),
 				},
 			},
@@ -2858,7 +2934,7 @@ vllm:
 					Config: "invalid-config-exceeds-token-limit",
 				},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NV24s_v3", // 2 GPUs with 8GB each (16GB total)
+					InstanceType: "Standard_NV72ads_A10_v5", // 2 GPUs with 24GB each (48GB total)
 					Count:        pointerToInt(1),
 				},
 			},
@@ -2882,6 +2958,57 @@ vllm:
 				if !strings.Contains(errMsg, tc.errContent) {
 					t.Errorf("validateInferenceConfig() error message = %v, expected to contain = %v", errMsg, tc.errContent)
 				}
+			}
+		})
+	}
+}
+
+func TestWorkspaceValidateStreamingCSIDriver(t *testing.T) {
+	RegisterValidationTestModels()
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+	// Force gates: ModelStreaming on (so the check runs), vLLM on (so runtime resolves to vllm by default).
+	origStream := featuregates.FeatureGates[consts.FeatureFlagModelStreaming]
+	origVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+	featuregates.FeatureGates[consts.FeatureFlagModelStreaming] = true
+	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagModelStreaming] = origStream
+		featuregates.FeatureGates[consts.FeatureFlagVLLM] = origVLLM
+	}()
+
+	// Fake client with NO CSIDriver object -> streaming (vllm) workspaces should be rejected,
+	// transformers/disabled workspaces should pass (they short-circuit before the lookup).
+	scheme := runtime.NewScheme()
+	_ = storagev1.AddToScheme(scheme)
+	cl := fake.NewClientBuilder().WithScheme(scheme).Build()
+	k8sclient.SetGlobalClient(cl)
+
+	presetSpec := &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-validation")}}}
+
+	tests := []struct {
+		name         string
+		runtimeAnn   string // value for kaito.sh/runtime
+		streamingAnn string // value for kaito.sh/model-streaming ("" = unset)
+		wantErr      bool
+	}{
+		{"vllm streaming, no CSI driver -> reject", "vllm", "", true},
+		{"transformers -> skip (no reject)", "transformers", "", false},
+		{"disabled annotation -> skip (no reject)", "vllm", "disabled", false},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			anns := map[string]string{AnnotationWorkspaceRuntime: tc.runtimeAnn}
+			if tc.streamingAnn != "" {
+				anns[mmconsts.AnnotationModelStreaming] = tc.streamingAnn
+			}
+			w := &Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "ws", Namespace: "default", Annotations: anns},
+				Inference:  presetSpec,
+			}
+			err := w.validateStreamingCSIDriver(context.Background())
+			if (err != nil) != tc.wantErr {
+				t.Errorf("validateStreamingCSIDriver() err=%v wantErr=%v", err, tc.wantErr)
 			}
 		})
 	}

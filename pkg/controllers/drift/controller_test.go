@@ -20,6 +20,7 @@ import (
 	"github.com/awslabs/operatorpkg/status"
 	"github.com/stretchr/testify/mock"
 	"gotest.tools/assert"
+	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -65,6 +66,9 @@ func (m *mockProvisioner) EnableDriftRemediation(ctx context.Context, ns, name s
 func (m *mockProvisioner) DisableDriftRemediation(ctx context.Context, ns, name string) error {
 	args := m.Called(ctx, ns, name)
 	return args.Error(0)
+}
+func (m *mockProvisioner) BuildNodeSelector(_ context.Context, _ *kaitov1beta1.Workspace) []corev1.NodeSelectorRequirement {
+	return nil
 }
 
 func newNodePoolWithDriftBudget(name, nodes, wsName, wsNamespace, infSetName, infSetNamespace string) *karpenterv1.NodePool {

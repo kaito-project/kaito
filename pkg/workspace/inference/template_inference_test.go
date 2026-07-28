@@ -55,7 +55,7 @@ func TestCreateTemplateInference(t *testing.T) {
 			mockClient := test.NewClient()
 			tc.callMocks(mockClient)
 
-			obj, err := CreateTemplateInference(context.Background(), test.MockWorkspaceWithInferenceTemplate, mockClient)
+			obj, err := CreateTemplateInference(context.Background(), test.MockWorkspaceWithInferenceTemplate, mockClient, nil)
 			if tc.expectedError == nil {
 				assert.Check(t, err == nil, "Not expected to return error")
 				assert.Check(t, obj != nil, "Return object should not be nil")

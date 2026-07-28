@@ -45,6 +45,12 @@ spec:
             {{- if .Values.defaultStreamingServiceAccount }}
             - --default-streaming-service-account={{ .Values.defaultStreamingServiceAccount }}
             {{- end }}
+            {{- if .Values.modelMirrorDownloadCPU }}
+            - --model-mirror-download-cpu={{ .Values.modelMirrorDownloadCPU }}
+            {{- end }}
+            {{- if .Values.modelMirrorDownloadMemory }}
+            - --model-mirror-download-memory={{ .Values.modelMirrorDownloadMemory }}
+            {{- end }}
             {{- if .Values.defaultNodeImageFamily }}
             - --default-node-image-family={{ .Values.defaultNodeImageFamily }}
             {{- end }}

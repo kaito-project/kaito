@@ -245,7 +245,7 @@ func TestGetAllQualifiedNodesforRAGEngine(t *testing.T) {
 					ObjectMeta: v1.ObjectMeta{
 						Name: "node4",
 						Labels: map[string]string{
-							corev1.LabelInstanceTypeStable: "Standard_NC4as_T4_v3",
+							corev1.LabelInstanceTypeStable: "Standard_NV36ads_A10_v5",
 						},
 						DeletionTimestamp: &v1.Time{Time: time.Now()},
 					},
@@ -392,7 +392,7 @@ func TestUpdateControllerRevision1(t *testing.T) {
 						*dep = appsv1.ControllerRevision{
 							ObjectMeta: v1.ObjectMeta{
 								Annotations: map[string]string{
-									RAGEngineHashAnnotation: "01d86e3f2e4fe40da099e879d9af1881169b9468d4c44e2512d616b9a4e07641",
+									RAGEngineHashAnnotation: "f9e0ee8d79842f43edf3d9edfe7a6130cda56d0dff37d614ded22d9e2675dda5",
 								},
 							},
 						}
@@ -1319,7 +1319,7 @@ func TestComputeHash(t *testing.T) {
 			ragengine1: &v1beta1.RAGEngine{
 				Spec: &v1beta1.RAGEngineSpec{
 					Compute: &v1beta1.ResourceSpec{
-						InstanceType: "Standard_NC4as_T4_v3",
+						InstanceType: "Standard_NV36ads_A10_v5",
 						Count:        &[]int{1}[0],
 					},
 				},
@@ -1327,7 +1327,7 @@ func TestComputeHash(t *testing.T) {
 			ragengine2: &v1beta1.RAGEngine{
 				Spec: &v1beta1.RAGEngineSpec{
 					Compute: &v1beta1.ResourceSpec{
-						InstanceType: "Standard_NC4as_T4_v3",
+						InstanceType: "Standard_NV36ads_A10_v5",
 						Count:        &[]int{1}[0],
 					},
 				},
@@ -1338,7 +1338,7 @@ func TestComputeHash(t *testing.T) {
 			ragengine1: &v1beta1.RAGEngine{
 				Spec: &v1beta1.RAGEngineSpec{
 					Compute: &v1beta1.ResourceSpec{
-						InstanceType: "Standard_NC4as_T4_v3",
+						InstanceType: "Standard_NV36ads_A10_v5",
 						Count:        &[]int{1}[0],
 					},
 				},
@@ -1346,7 +1346,7 @@ func TestComputeHash(t *testing.T) {
 			ragengine2: &v1beta1.RAGEngine{
 				Spec: &v1beta1.RAGEngineSpec{
 					Compute: &v1beta1.ResourceSpec{
-						InstanceType: "Standard_NC64as_T4_v3",
+						InstanceType: "Standard_NC96ads_A100_v4",
 						Count:        &[]int{1}[0],
 					},
 				},
@@ -1357,7 +1357,7 @@ func TestComputeHash(t *testing.T) {
 			ragengine1: &v1beta1.RAGEngine{
 				Spec: &v1beta1.RAGEngineSpec{
 					Compute: &v1beta1.ResourceSpec{
-						InstanceType: "Standard_NC4as_T4_v3",
+						InstanceType: "Standard_NV36ads_A10_v5",
 						Count:        &[]int{1}[0],
 					},
 				},
@@ -1365,7 +1365,7 @@ func TestComputeHash(t *testing.T) {
 			ragengine2: &v1beta1.RAGEngine{
 				Spec: &v1beta1.RAGEngineSpec{
 					Compute: &v1beta1.ResourceSpec{
-						InstanceType: "Standard_NC4as_T4_v3",
+						InstanceType: "Standard_NV36ads_A10_v5",
 						Count:        &[]int{2}[0],
 					},
 				},

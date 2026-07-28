@@ -11,17 +11,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package inference
+package modelstreaming
 
 import (
 	"context"
-	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 )
 
@@ -37,6 +35,12 @@ type StreamingConfig struct {
 	// PodLabels are provider-specific labels to add to the pod template
 	// (e.g. azure.workload.identity/use for Azure WI; empty for AWS/GCP).
 	PodLabels map[string]string
+	// InitContainers are provider-contributed init containers (e.g. a SAS-token
+	// fetcher for the SAS blob path). Empty for the PVC/mirror path.
+	InitContainers []corev1.Container
+	// Volumes are provider-contributed pod volumes (e.g. the shared emptyDir the
+	// SAS token is written to). Empty for the PVC/mirror path.
+	Volumes []corev1.Volume
 }
 
 // ModelStreamer abstracts provider-specific logic for resolving streaming configuration
@@ -45,24 +49,14 @@ type StreamingConfig struct {
 //  2. Implement the ModelStreamer interface
 //  3. Add a case to GetModelStreamer() and consts.CSIDriverNameForCloud()
 type ModelStreamer interface {
-	// GetStreamingConfig reads the PVC and its backing PV to resolve
-	// the full streaming model path, provider-specific env vars, and pod labels.
-	GetStreamingConfig(ctx *generator.WorkspaceGeneratorContext, pvcName, pvcNamespace, modelID string) (*StreamingConfig, error)
+	// GetStreamingConfig resolves the full streaming model path, provider-specific
+	// env vars, pod labels, init containers, and volumes for the given modelID.
+	// Provider implementations may read from PVC/PV (WIBlobProvider) or from
+	// Workspace annotations (SASBlobProvider).
+	GetStreamingConfig(ctx *generator.WorkspaceGeneratorContext, modelID string) (*StreamingConfig, error)
 
 	// ValidateAuth resolves the streaming identity (e.g. ServiceAccount), verifies it exists,
 	// and checks provider-specific auth configuration (e.g. Azure WI annotation, AWS IAM role).
 	// Returns nil if valid, error with actionable message if not.
 	ValidateAuth(ctx context.Context, ws *v1beta1.Workspace, kubeClient client.Client, defaultSA string) error
-}
-
-// GetModelStreamer returns the ModelStreamer implementation for the given cloud.
-// Currently only Azure is supported. To add a new provider, add a case here
-// and in consts.CSIDriverNameForCloud().
-func GetModelStreamer(cloudName string) (ModelStreamer, error) {
-	switch cloudName {
-	case consts.AzureCloudName:
-		return &AzureBlobProvider{}, nil
-	default:
-		return nil, fmt.Errorf("unsupported cloud provider %q for model streaming; supported: azure", cloudName)
-	}
 }

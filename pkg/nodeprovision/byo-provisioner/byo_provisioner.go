@@ -16,6 +16,7 @@ package byoprovisioner
 import (
 	"context"
 
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -65,9 +66,7 @@ func (n *BYOProvisioner) DisableDriftRemediation(ctx context.Context, workspaceN
 // Workspace. In BYO mode there are no provisioning resources, so needRequeue
 // is always true when nodes are not ready.
 func (n *BYOProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.Workspace) (bool, bool, error) {
-	matchLabels := client.MatchingLabels(kaitov1beta1.SanitizedMatchLabels(ws.Resource.LabelSelector))
-
-	nodeList, err := nodes.ListNodes(ctx, n.client, matchLabels)
+	nodeList, err := nodeprovision.ListWorkspaceNodes(ctx, n.client, n, ws)
 	if err != nil {
 		return false, true, err
 	}
@@ -102,8 +101,7 @@ func (n *BYOProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kaitov1b
 		Reason: "workspaceResourceStatusNotReady", Message: "node status condition not ready",
 	}
 
-	matchLabels := client.MatchingLabels(kaitov1beta1.SanitizedMatchLabels(ws.Resource.LabelSelector))
-	nodeList, err := nodes.ListNodes(ctx, n.client, matchLabels)
+	nodeList, err := nodeprovision.ListWorkspaceNodes(ctx, n.client, n, ws)
 	if err != nil {
 		return nil, err
 	}
@@ -124,4 +122,10 @@ func (n *BYOProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kaitov1b
 
 	// BYO mode: no NodeClaimStatus condition.
 	return []metav1.Condition{nodeCond, resourceCond}, nil
+}
+
+// BuildNodeSelector returns nil in BYO mode: nodes are matched purely via the
+// user-supplied label selector.
+func (n *BYOProvisioner) BuildNodeSelector(ctx context.Context, ws *kaitov1beta1.Workspace) []corev1.NodeSelectorRequirement {
+	return nil
 }

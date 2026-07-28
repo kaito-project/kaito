@@ -16,4 +16,4 @@ data:
       # num-scheduler-steps: 1
       # enable-chunked-prefill: false
       # max-model-len: 2048
-      # see https://docs.vllm.ai/en/stable/serving/engine_args.html for more options.
+      # see https://docs.vllm.ai/en/stable/cli/serve/ for more options.

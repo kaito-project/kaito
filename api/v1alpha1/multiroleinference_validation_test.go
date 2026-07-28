@@ -21,6 +21,8 @@ import (
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/pkg/apis"
+
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func int32Ptr(v int32) *int32 { return &v }
@@ -79,6 +81,11 @@ func TestMultiRoleInference_SetDefaults(t *testing.T) {
 }
 
 func TestMultiRoleInference_Validate(t *testing.T) {
+	// Existing tests assume the default (required) behavior for instanceType,
+	// which corresponds to auto-provisioning (Karpenter/AzureGPU).
+	orig := consts.ActiveNodeProvisioner
+	consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
+	defer func() { consts.ActiveNodeProvisioner = orig }()
 	validMRI := func() *MultiRoleInference {
 		return &MultiRoleInference{
 			ObjectMeta: metav1.ObjectMeta{
@@ -195,6 +202,11 @@ func TestMultiRoleInference_Validate(t *testing.T) {
 }
 
 func TestMultiRoleInference_validateUpdate(t *testing.T) {
+	// Existing tests assume the default (required) behavior for instanceType,
+	// which corresponds to auto-provisioning (Karpenter/AzureGPU).
+	orig := consts.ActiveNodeProvisioner
+	consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
+	defer func() { consts.ActiveNodeProvisioner = orig }()
 	validMRI := func() *MultiRoleInference {
 		return &MultiRoleInference{
 			ObjectMeta: metav1.ObjectMeta{

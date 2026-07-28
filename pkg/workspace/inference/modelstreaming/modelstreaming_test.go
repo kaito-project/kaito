@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package inference
+package modelstreaming
 
 import (
 	"testing"
@@ -28,24 +28,41 @@ import (
 
 func TestModelStreamingEnabled(t *testing.T) {
 	tests := []struct {
-		name          string
-		featureGateOn bool
-		annotations   map[string]string // nil = no annotations
-		expected      bool
+		name              string
+		featureGateOn     bool
+		annotations       map[string]string // nil = no annotations
+		runtimeAnnotation string            // "" = leave unset (defaults to vLLM when gate on)
+		expected          bool
 	}{
-		{"feature gate off", false, nil, false},
-		{"feature gate on, nil annotations", true, nil, true},
-		{"feature gate on, empty annotations", true, map[string]string{}, true},
-		{"feature gate on, annotation disabled", true, map[string]string{mmconsts.AnnotationModelStreaming: "disabled"}, false},
-		{"feature gate on, annotation empty", true, map[string]string{mmconsts.AnnotationModelStreaming: ""}, true},
+		{"feature gate off", false, nil, "", false},
+		{"feature gate on, nil annotations, vllm default", true, nil, "", true},
+		{"feature gate on, empty annotations", true, map[string]string{}, "", true},
+		{"feature gate on, annotation disabled", true, map[string]string{mmconsts.AnnotationModelStreaming: "disabled"}, "", false},
+		{"feature gate on, annotation empty", true, map[string]string{mmconsts.AnnotationModelStreaming: ""}, "", true},
+		{"feature gate on, explicit vllm runtime", true, nil, "vllm", true},
+		{"feature gate on, transformers runtime", true, nil, "transformers", false},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			orig := featuregates.FeatureGates[consts.FeatureFlagModelStreaming]
+			origStream := featuregates.FeatureGates[consts.FeatureFlagModelStreaming]
 			featuregates.FeatureGates[consts.FeatureFlagModelStreaming] = tc.featureGateOn
-			t.Cleanup(func() { featuregates.FeatureGates[consts.FeatureFlagModelStreaming] = orig })
+			// GetWorkspaceRuntimeName returns transformers when the vLLM gate is OFF,
+			// so this test must force the vLLM gate ON to exercise the runtime annotation.
+			origVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+			featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
+			t.Cleanup(func() {
+				featuregates.FeatureGates[consts.FeatureFlagModelStreaming] = origStream
+				featuregates.FeatureGates[consts.FeatureFlagVLLM] = origVLLM
+			})
 
-			ws := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Annotations: tc.annotations}}
+			anns := tc.annotations
+			if tc.runtimeAnnotation != "" {
+				if anns == nil {
+					anns = map[string]string{}
+				}
+				anns[v1beta1.AnnotationWorkspaceRuntime] = tc.runtimeAnnotation
+			}
+			ws := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Annotations: anns}}
 			assert.Equal(t, tc.expected, ModelStreamingEnabled(ws))
 		})
 	}
@@ -140,11 +157,12 @@ func TestResolveStorageClass(t *testing.T) {
 		annotation string
 		defaultSC  string
 		expected   string
+		wantErr    bool
 	}{
-		{"annotation set", "my-sc", "", "my-sc"},
-		{"default flag set", "", "default-sc", "default-sc"},
-		{"annotation overrides default", "my-sc", "default-sc", "my-sc"},
-		{"neither set", "", "", ""},
+		{"annotation set", "my-sc", "", "my-sc", false},
+		{"default flag set", "", "default-sc", "default-sc", false},
+		{"annotation overrides default", "my-sc", "default-sc", "my-sc", false},
+		{"neither set", "", "", "", true},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -152,12 +170,18 @@ func TestResolveStorageClass(t *testing.T) {
 			if tc.annotation != "" {
 				ws.Annotations[mmconsts.AnnotationModelMirrorStorageClass] = tc.annotation
 			}
-			assert.Equal(t, tc.expected, ResolveStorageClass(ws, tc.defaultSC))
+			got, err := ResolveStorageClass(ws, tc.defaultSC)
+			if tc.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expected, got)
 		})
 	}
 }
 
-func TestAzureBlobProvider_ResolveStreamingConfig_ModelPathAndEnvVars(t *testing.T) {
+func TestWIBlobProvider_ResolveStreamingConfig_ModelPathAndEnvVars(t *testing.T) {
 	// Test that ResolveStreamingConfig produces the correct model path and env vars.
 	// Full PVC→PV mock tests would use test.MockClient; here we verify the output
 	// structure by testing BuildModelPath and env vars logic via a known config.

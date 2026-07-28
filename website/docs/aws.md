@@ -67,6 +67,10 @@ The GPU provisioner supports various AWS GPU SKUs, see [supported options here](
 
 For the complete list and specifications, see the [AWS GPU instance documentation](https://docs.aws.amazon.com/dlami/latest/devguide/gpu.html).
 
+:::note
+KAITO only supports NVIDIA GPUs with CUDA compute capability **>= 8.0** (Ampere and newer, such as A10G, A100, L4, H100, H200). Older architectures such as **NVIDIA T4** (Turing, 7.5), **NVIDIA V100** (Volta, 7.0), **NVIDIA M60** (Maxwell, 5.2), and **NVIDIA K80** (Kepler, 3.7) are **not supported**. This means instance families such as `g4dn.*`, `g5g.*` (T4), `p3.*`, `p3dn.*` (V100), `g3s.*` (M60), and `p2.*` (K80) cannot be used with KAITO.
+:::
+
 ## Clean Up
 
 See the Karpenter documentation for instructions on how to clean up your EKS cluster and remove Karpenter [here](https://karpenter.sh/docs/getting-started/getting-started-with-karpenter/#9-delete-the-cluster).

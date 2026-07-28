@@ -20,6 +20,7 @@ dev environments without a GPU or vllm installed.
 
 import sys
 from pathlib import Path
+from types import ModuleType
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -28,6 +29,26 @@ import pytest
 # Use setdefault so we don't replace already-loaded real modules when the
 # full test suite runs in a GPU environment.
 _HF_MOCK = MagicMock(name="huggingface_hub")
+
+
+# starlette needs real classes because rate_limit.RateLimitMiddleware
+# subclasses BaseHTTPMiddleware — a MagicMock can't be a base class.
+class _StubBaseHTTPMiddleware:
+    def __init__(self, app=None):
+        self.app = app
+
+
+class _StubJSONResponse:
+    def __init__(self, status_code, content):
+        self.status_code = status_code
+        self.content = content
+
+
+_starlette_base = ModuleType("starlette.middleware.base")
+_starlette_base.BaseHTTPMiddleware = _StubBaseHTTPMiddleware
+_starlette_responses = ModuleType("starlette.responses")
+_starlette_responses.JSONResponse = _StubJSONResponse
+
 _STUBS = {
     "vllm": MagicMock(),
     "vllm.entrypoints": MagicMock(),
@@ -40,12 +61,15 @@ _STUBS = {
     "vllm.v1": MagicMock(),
     "vllm.v1.metrics": MagicMock(),
     "vllm.v1.metrics.prometheus": MagicMock(),
-    "pynvml": MagicMock(),
+    "torch": MagicMock(),
     "uvloop": MagicMock(),
     "psutil": MagicMock(),
-    "prometheus_client": MagicMock(),
     "yaml": MagicMock(),
     "huggingface_hub": _HF_MOCK,
+    "starlette": ModuleType("starlette"),
+    "starlette.middleware": ModuleType("starlette.middleware"),
+    "starlette.middleware.base": _starlette_base,
+    "starlette.responses": _starlette_responses,
 }
 for _name, _mock in _STUBS.items():
     sys.modules.setdefault(_name, _mock)
@@ -460,3 +484,60 @@ class TestModelCacheSizeBytes:
 
         # 1000 (blob) + 200 (incomplete); symlink ignored
         assert _model_cache_size_bytes(str(tmp_path)) == 1200
+
+
+# ── get_max_gpu_memory_utilization / _query_gpu_mem_info ──────────────────────
+class TestGpuMemoryUtilization:
+    GiB = 1024**3
+
+    def test_computes_utilization_from_free_memory(self):
+        # 24 GiB total, 20 GiB free → (20GiB - 600MiB) / 24GiB, floored to 2dp.
+        free = 20 * self.GiB
+        total = 24 * self.GiB
+        with patch.object(
+            inference_api, "_query_gpu_mem_info", return_value=(free, total)
+        ):
+            util = inference_api.get_max_gpu_memory_utilization(0)
+        expected = (((free - 600 * MB) * 100) // total) / 100
+        assert util == expected
+        assert util <= 0.95
+
+    def test_caps_at_0_95(self):
+        # A fully free GPU would exceed 0.95 → capped.
+        free = total = 80 * self.GiB
+        with patch.object(
+            inference_api, "_query_gpu_mem_info", return_value=(free, total)
+        ):
+            assert inference_api.get_max_gpu_memory_utilization(0) == 0.95
+
+    def test_falls_back_to_default_on_error(self):
+        # A query failure must not crash startup (or initialize CUDA in this
+        # process); fall back to the default utilization.
+        with patch.object(
+            inference_api, "_query_gpu_mem_info", side_effect=RuntimeError("boom")
+        ):
+            assert (
+                inference_api.get_max_gpu_memory_utilization(0)
+                == inference_api._DEFAULT_GPU_MEMORY_UTILIZATION
+            )
+
+    def test_query_parses_sentinel_line_from_subprocess(self):
+        # _query_gpu_mem_info runs torch in a subprocess; verify it parses the
+        # sentinel line (ignoring stray stdout) without spawning a real one.
+        completed = MagicMock()
+        completed.stdout = "some torch warning\nKAITO_MEM_INFO 123 456\n"
+        with patch.object(
+            inference_api.subprocess, "run", return_value=completed
+        ) as mock_run:
+            assert inference_api._query_gpu_mem_info(3) == (123, 456)
+        # The device index is forwarded to the child process.
+        assert mock_run.call_args[0][0][-1] == "3"
+
+    def test_query_raises_on_unexpected_output(self):
+        completed = MagicMock()
+        completed.stdout = "no sentinel here\n"
+        with (
+            patch.object(inference_api.subprocess, "run", return_value=completed),
+            pytest.raises(RuntimeError),
+        ):
+            inference_api._query_gpu_mem_info(0)

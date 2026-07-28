@@ -24,13 +24,15 @@ import (
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/nodeprovision"
 )
 
 type WorkspaceGeneratorContext struct {
-	Ctx        context.Context
-	Workspace  *v1beta1.Workspace
-	Model      pkgmodel.Model
-	KubeClient client.Client
+	Ctx             context.Context
+	Workspace       *v1beta1.Workspace
+	Model           pkgmodel.Model
+	KubeClient      client.Client
+	NodeProvisioner nodeprovision.NodeProvisioner
 }
 
 type GeneratorContext interface {

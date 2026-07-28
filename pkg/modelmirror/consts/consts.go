@@ -35,7 +35,26 @@ const (
 
 	// huggingface-hub version
 	HuggingFaceHubVersion = "1.18.0"
+
+	// Default CPU/memory request==limit for the download Job container. Sized for fast
+	// parallel HF downloads in production
+	DefaultDownloadJobCPU    = "3"
+	DefaultDownloadJobMemory = "8Gi"
 )
 
 // DownloadExcludePatterns is the list of glob patterns to exclude from HF downloads.
 var DownloadExcludePatterns = []string{"original/*"}
+
+// DownloadJobResources holds the CPU/memory applied to the download Job container as both
+// request and limit.
+type DownloadJobResources struct {
+	CPU    string
+	Memory string
+}
+
+func DefaultDownloadJobResources() DownloadJobResources {
+	return DownloadJobResources{
+		CPU:    DefaultDownloadJobCPU,
+		Memory: DefaultDownloadJobMemory,
+	}
+}

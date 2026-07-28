@@ -16,11 +16,9 @@ package sku
 import "k8s.io/apimachinery/pkg/api/resource"
 
 func NewAzureSKUHandler() CloudSKUHandler {
+	// KAITO only supports GPUs with CUDA compute capability >= 8.0 (Ampere and newer).
+	// Older architectures (Turing T4, Maxwell M60, etc.) have been removed.
 	supportedSKUs := []GPUConfig{
-		{SKU: "Standard_NC4as_T4_v3", GPUCount: 1, GPUMem: resource.MustParse("16Gi"), GPUModel: "NVIDIA T4", CUDAComputeCapability: 7.5},
-		{SKU: "Standard_NC8as_T4_v3", GPUCount: 1, GPUMem: resource.MustParse("16Gi"), GPUModel: "NVIDIA T4", CUDAComputeCapability: 7.5},
-		{SKU: "Standard_NC16as_T4_v3", GPUCount: 1, GPUMem: resource.MustParse("16Gi"), GPUModel: "NVIDIA T4", CUDAComputeCapability: 7.5},
-		{SKU: "Standard_NC64as_T4_v3", GPUCount: 4, GPUMem: resource.MustParse("64Gi"), GPUModel: "NVIDIA T4", CUDAComputeCapability: 7.5},
 		{SKU: "Standard_NV36ads_A10_v5", GPUCount: 1, GPUMem: resource.MustParse("24Gi"), GPUModel: "NVIDIA A10", CUDAComputeCapability: 8.6},
 		{SKU: "Standard_NV72ads_A10_v5", GPUCount: 2, GPUMem: resource.MustParse("48Gi"), GPUModel: "NVIDIA A10", CUDAComputeCapability: 8.6},
 		{SKU: "Standard_NC24ads_A100_v4", GPUCount: 1, GPUMem: resource.MustParse("80Gi"), GPUModel: "NVIDIA A100", NVMeDiskEnabled: true, CUDAComputeCapability: 8.0},
@@ -39,9 +37,6 @@ func NewAzureSKUHandler() CloudSKUHandler {
 		{SKU: "Standard_ND96isr_H200_v5", GPUCount: 8, GPUMem: resource.MustParse("1128Gi"), GPUModel: "NVIDIA H200", NVMeDiskEnabled: true, CUDAComputeCapability: 9.0},
 		{SKU: "Standard_NG32ads_V620_v1", GPUCount: 1, GPUMem: resource.MustParse("32Gi"), GPUModel: "AMD Radeon PRO V620"},
 		{SKU: "Standard_NG32adms_V620_v1", GPUCount: 1, GPUMem: resource.MustParse("32Gi"), GPUModel: "AMD Radeon PRO V620"},
-		{SKU: "Standard_NV12s_v3", GPUCount: 1, GPUMem: resource.MustParse("8Gi"), GPUModel: "NVIDIA M60", CUDAComputeCapability: 5.2},
-		{SKU: "Standard_NV24s_v3", GPUCount: 2, GPUMem: resource.MustParse("16Gi"), GPUModel: "NVIDIA M60", CUDAComputeCapability: 5.2},
-		{SKU: "Standard_NV48s_v3", GPUCount: 4, GPUMem: resource.MustParse("32Gi"), GPUModel: "NVIDIA M60", CUDAComputeCapability: 5.2},
 
 		// Not supporting partial gpu skus for now
 		// {SKU: "Standard_NG8ads_V620_v1", GPUCount: 1.0 / 4.0, GPUMem: 8, GPUModel: "AMD Radeon PRO V620"},

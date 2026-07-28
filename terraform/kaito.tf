@@ -15,12 +15,11 @@ resource "azurerm_role_assignment" "kaito_aks_contributor" {
 
 # Create a federated identity credential for the managed identity to be used by the gpu-provisioner via workload identity
 resource "azurerm_federated_identity_credential" "kaito" {
-  resource_group_name = azurerm_resource_group.example.name
-  parent_id           = azurerm_user_assigned_identity.kaito.id
-  name                = "kaitoprovisioner"
-  issuer              = azurerm_kubernetes_cluster.example.oidc_issuer_url
-  audience            = ["api://AzureADTokenExchange"]
-  subject             = "system:serviceaccount:gpu-provisioner:gpu-provisioner"
+  user_assigned_identity_id = azurerm_user_assigned_identity.kaito.id
+  name                      = "kaitoprovisioner"
+  issuer                    = azurerm_kubernetes_cluster.example.oidc_issuer_url
+  audience                  = ["api://AzureADTokenExchange"]
+  subject                   = "system:serviceaccount:gpu-provisioner:gpu-provisioner"
 }
 
 # Install the gpu-provisioner chart
@@ -52,16 +51,29 @@ resource "helm_release" "kaito_workspace" {
   namespace        = "kaito-workspace"
   create_namespace = true
 
-  set = [
-    for feature in var.kaito_workspace_features : {
-      name  = "featureGates.${feature}"
-      value = "true"
-    }
-  ]
+  set = concat(
+    # [
+    #   {
+    #     name  = "image.repository"
+    #     value = "ghcr.io/kaito-project/kaito/workspace"
+    #   },
+    #   {
+    #     name  = "image.tag"
+    #     value = "nightly-latest"
+    #   }
+    # ],
+    [
+      for feature in var.kaito_workspace_features : {
+        name  = "featureGates.${feature}"
+        value = "true"
+      }
+    ]
+  )
+
 }
 
 # Create a secret to store the Azure Container Registry credentials for the workspace to refer to when pushing and pulling images from the registry
-resource "kubernetes_secret" "example" {
+resource "kubernetes_secret_v1" "example" {
   metadata {
     name = "myregistrysecret"
   }

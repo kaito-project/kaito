@@ -18,10 +18,17 @@ import json
 import sys
 import uuid
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
+from fastapi.responses import StreamingResponse
 from fastapi.testclient import TestClient
+
+
+def _sse_streaming_response(chunks):
+    """Wrap a list of SSE chunk strings as a StreamingResponse."""
+    return StreamingResponse(iter(chunks), media_type="text/event-stream")
+
 
 # Get the parent directory of the current file
 parent_dir = str(Path(__file__).resolve().parent.parent)
@@ -65,7 +72,7 @@ def configured_app(request):
     yield app
 
     # Cancel the TimedModel timer to prevent leaked threads blocking exit
-    for timed_model in inference_api.serve_command.loaded_models.values():
+    for timed_model in inference_api.model_manager.loaded_models.values():
         timed_model._timer.cancel()
     sys.argv = original_argv
 
@@ -95,7 +102,7 @@ def _make_sse_chunk(role="assistant", content="Hello", finish_reason=None):
 
 def test_chat_completions(configured_app):
     """POST /v1/chat/completions returns an OpenAI-format SSE-streamed response."""
-    fake_sse = iter([_make_sse_chunk(content="Hi"), "data: [DONE]\n\n"])
+    fake_chunks = [_make_sse_chunk(content="Hi"), "data: [DONE]\n\n"]
 
     client = TestClient(configured_app)
     request_data = {
@@ -104,12 +111,9 @@ def test_chat_completions(configured_app):
         "max_tokens": 10,
         "temperature": 0.0,
     }
-    with (
-        patch("inference_api.serve_command.validate_chat_completion_request"),
-        patch(
-            "inference_api.serve_command.generate_chat_completion",
-            return_value=fake_sse,
-        ),
+    with patch(
+        "inference_api.chat_handler.handle_request",
+        new=AsyncMock(return_value=_sse_streaming_response(fake_chunks)),
     ):
         response = client.post("/v1/chat/completions", json=request_data)
     assert response.status_code == 200
@@ -129,7 +133,7 @@ def test_chat_completions(configured_app):
 
 def test_chat_completions_multi_turn(configured_app):
     """POST /v1/chat/completions works with multi-turn conversations."""
-    fake_sse = iter([_make_sse_chunk(content="Sure!"), "data: [DONE]\n\n"])
+    fake_chunks = [_make_sse_chunk(content="Sure!"), "data: [DONE]\n\n"]
 
     client = TestClient(configured_app)
     messages = [
@@ -146,12 +150,9 @@ def test_chat_completions_multi_turn(configured_app):
         "max_tokens": 20,
         "temperature": 0.0,
     }
-    with (
-        patch("inference_api.serve_command.validate_chat_completion_request"),
-        patch(
-            "inference_api.serve_command.generate_chat_completion",
-            return_value=fake_sse,
-        ),
+    with patch(
+        "inference_api.chat_handler.handle_request",
+        new=AsyncMock(return_value=_sse_streaming_response(fake_chunks)),
     ):
         response = client.post("/v1/chat/completions", json=request_data)
     assert response.status_code == 200
@@ -175,19 +176,16 @@ def test_chat_completions_multi_turn(configured_app):
 
 def test_responses(configured_app):
     """POST /v1/responses returns an SSE-streamed response."""
-    fake_sse = iter(["data: {}\n\n", "data: [DONE]\n\n"])
+    fake_chunks = ["data: {}\n\n", "data: [DONE]\n\n"]
 
     client = TestClient(configured_app)
     request_data = {
         "model": configured_app.test_config["model_path"],
         "input": "Hello",
     }
-    with (
-        patch("inference_api.serve_command.validate_response_request"),
-        patch(
-            "inference_api.serve_command.generate_response",
-            return_value=fake_sse,
-        ),
+    with patch(
+        "inference_api.response_handler.handle_request",
+        new=AsyncMock(return_value=_sse_streaming_response(fake_chunks)),
     ):
         response = client.post("/v1/responses", json=request_data)
     assert response.status_code == 200
@@ -343,7 +341,7 @@ def local_model_app(tmp_path_factory):
     app.test_config = {"model_path": local_dir, "served_name": "smollm2"}
     yield app
 
-    for timed_model in inference_api.serve_command.loaded_models.values():
+    for timed_model in inference_api.model_manager.loaded_models.values():
         timed_model._timer.cancel()
     sys.argv = original_argv
 
@@ -359,7 +357,7 @@ def test_served_model_name_in_models_endpoint(local_model_app):
 
 def test_served_model_name_in_chat_completions(local_model_app):
     """POST /v1/chat/completions works with the served model name."""
-    fake_sse = iter([_make_sse_chunk(content="Hi"), "data: [DONE]\n\n"])
+    fake_chunks = [_make_sse_chunk(content="Hi"), "data: [DONE]\n\n"]
 
     client = TestClient(local_model_app)
     request_data = {
@@ -367,12 +365,9 @@ def test_served_model_name_in_chat_completions(local_model_app):
         "messages": [{"role": "user", "content": "Hi"}],
         "max_tokens": 5,
     }
-    with (
-        patch("inference_api.serve_command.validate_chat_completion_request"),
-        patch(
-            "inference_api.serve_command.generate_chat_completion",
-            return_value=fake_sse,
-        ),
+    with patch(
+        "inference_api.chat_handler.handle_request",
+        new=AsyncMock(return_value=_sse_streaming_response(fake_chunks)),
     ):
         response = client.post("/v1/chat/completions", json=request_data)
     assert response.status_code == 200

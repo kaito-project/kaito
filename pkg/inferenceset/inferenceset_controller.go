@@ -16,8 +16,6 @@ package inferenceset
 import (
 	"context"
 	"fmt"
-	"maps"
-	"slices"
 	"sort"
 	"strconv"
 	"time"
@@ -52,6 +50,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
+	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 )
 
@@ -84,7 +83,7 @@ func NewInferenceSetReconciler(client client.Client, scheme *runtime.Scheme, log
 }
 
 func (c *InferenceSetReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
-	iObj := &kaitov1alpha1.InferenceSet{}
+	iObj := &kaitov1beta1.InferenceSet{}
 	if err := c.Client.Get(ctx, req.NamespacedName, iObj); err != nil {
 		if apierrors.IsNotFound(err) {
 			c.expectations.DeleteExpectations(c.klogger, req.String())
@@ -112,7 +111,7 @@ func (c *InferenceSetReconciler) Reconcile(ctx context.Context, req reconcile.Re
 	return c.addOrUpdateInferenceSet(ctx, iObj)
 }
 
-func (c *InferenceSetReconciler) ensureFinalizer(ctx context.Context, iObj *kaitov1alpha1.InferenceSet) error {
+func (c *InferenceSetReconciler) ensureFinalizer(ctx context.Context, iObj *kaitov1beta1.InferenceSet) error {
 	if !controllerutil.ContainsFinalizer(iObj, consts.InferenceSetFinalizer) {
 		patch := client.MergeFrom(iObj.DeepCopy())
 		controllerutil.AddFinalizer(iObj, consts.InferenceSetFinalizer)
@@ -124,9 +123,9 @@ func (c *InferenceSetReconciler) ensureFinalizer(ctx context.Context, iObj *kait
 	return nil
 }
 
-func (c *InferenceSetReconciler) deleteInferenceSet(ctx context.Context, iObj *kaitov1alpha1.InferenceSet) (reconcile.Result, error) {
+func (c *InferenceSetReconciler) deleteInferenceSet(ctx context.Context, iObj *kaitov1beta1.InferenceSet) (reconcile.Result, error) {
 	klog.InfoS("deleteInferenceSet", "inferenceset", klog.KObj(iObj))
-	err := inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1alpha1.InferenceSetConditionTypeDeleting, metav1.ConditionTrue, "inferencesetDeleted", "inferenceset is being deleted")
+	err := inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1beta1.InferenceSetConditionTypeDeleting, metav1.ConditionTrue, "inferencesetDeleted", "inferenceset is being deleted")
 	if err != nil {
 		klog.ErrorS(err, "failed to update inferenceset status", "inferenceset", klog.KObj(iObj))
 		return reconcile.Result{}, err
@@ -136,7 +135,7 @@ func (c *InferenceSetReconciler) deleteInferenceSet(ctx context.Context, iObj *k
 }
 
 // garbageCollectInferenceSet remove finalizer associated with inferenceset object.
-func (c *InferenceSetReconciler) garbageCollectInferenceSet(ctx context.Context, iObj *kaitov1alpha1.InferenceSet) (ctrl.Result, error) {
+func (c *InferenceSetReconciler) garbageCollectInferenceSet(ctx context.Context, iObj *kaitov1beta1.InferenceSet) (ctrl.Result, error) {
 	klog.InfoS("garbageCollectInferenceSet", "inferenceset", klog.KObj(iObj))
 	// Check if there are any workspaces associated with this inferenceset.
 	wsList, err := inferenceset.ListWorkspaces(ctx, iObj, c.Client)
@@ -154,7 +153,7 @@ func (c *InferenceSetReconciler) garbageCollectInferenceSet(ctx context.Context,
 		}
 	}
 
-	updateErr := inferenceset.UpdateInferenceSetWithRetry(ctx, c.Client, iObj, func(ws *kaitov1alpha1.InferenceSet) error {
+	updateErr := inferenceset.UpdateInferenceSetWithRetry(ctx, c.Client, iObj, func(ws *kaitov1beta1.InferenceSet) error {
 		controllerutil.RemoveFinalizer(ws, consts.InferenceSetFinalizer)
 		return nil
 	})
@@ -193,7 +192,114 @@ func aggregateBenchmarkResults(workspaces []kaitov1beta1.Workspace) (totalTPM fl
 	return
 }
 
-func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iObj *kaitov1alpha1.InferenceSet) (reconcile.Result, error) {
+// isWorkspaceOnOldImage reports whether the Workspace's StatefulSet is running a base
+// image other than the controller's current desired image. A Workspace whose StatefulSet
+// does not exist yet is treated as new (not old), so a freshly created incoming replica
+// is never preferentially deleted during a scale-down.
+func (c *InferenceSetReconciler) isWorkspaceOnOldImage(ctx context.Context, ws *kaitov1beta1.Workspace, desiredImage string) (bool, error) {
+	ss := &appsv1.StatefulSet{}
+	if err := resources.GetResource(ctx, ws.Name, ws.Namespace, c.Client, ss); err != nil {
+		if apierrors.IsNotFound(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return workspace.GetInferenceContainerImage(ss) != desiredImage, nil
+}
+
+// selectWorkspacesToDelete chooses which Workspaces to remove when the InferenceSet is over
+// its desired replica count. It balances two goals:
+//
+//   - Zero-downtime auto-upgrade: prefer deleting Workspaces running an OLD base image so
+//     that freshly created new-image Workspaces survive the scale-down. A Ready old Workspace
+//     is only retired while enough Ready replicas remain (see below), which makes the
+//     controller wait for a new-image surge Workspace to become Ready before cutting over.
+//   - Availability: never delete a Ready Workspace if doing so would drop the number of Ready
+//     replicas below desiredReplicas.
+//
+// New-image Workspaces are deleted only as a last resort — when the surplus exceeds the
+// number of old Workspaces (e.g. the user genuinely scaled the InferenceSet down) — so a
+// normal upgrade surge never deletes the incoming replica.
+//
+// Workspaces already being deleted count toward the target without issuing a new delete.
+func (c *InferenceSetReconciler) selectWorkspacesToDelete(ctx context.Context, workspaces []kaitov1beta1.Workspace, desiredReplicas, numToDelete int) ([]*kaitov1beta1.Workspace, error) {
+	desiredImage := inference.GetBaseImageName()
+
+	// Classify each live Workspace once, recording whether it is Ready and whether it is
+	// running an old base image. Workspaces already terminating count toward the target.
+	type candidate struct {
+		ws    *kaitov1beta1.Workspace
+		ready bool
+		old   bool
+	}
+	candidates := make([]candidate, 0, len(workspaces))
+	readyCount, oldCount := 0, 0
+	for i := range workspaces {
+		ws := &workspaces[i]
+		if !ws.DeletionTimestamp.IsZero() {
+			numToDelete--
+			klog.InfoS("Skipping workspace that is already being deleted...", "workspace", klog.KObj(ws))
+			continue
+		}
+		ready := controllers.DetermineWorkspacePhase(ws) == "succeeded"
+		old, err := c.isWorkspaceOnOldImage(ctx, ws, desiredImage)
+		if err != nil {
+			return nil, err
+		}
+		if ready {
+			readyCount++
+		}
+		if old {
+			oldCount++
+		}
+		candidates = append(candidates, candidate{ws: ws, ready: ready, old: old})
+	}
+	if numToDelete <= 0 {
+		return nil, nil
+	}
+
+	// Delete in priority order: old before new, and within each, not-ready before ready.
+	sort.SliceStable(candidates, func(i, j int) bool {
+		if candidates[i].old != candidates[j].old {
+			return candidates[i].old // old-image workspaces first
+		}
+		return !candidates[i].ready && candidates[j].ready // not-ready first
+	})
+
+	// Two budgets bound the selection:
+	//   - readyBudget: how many Ready workspaces may be deleted without dropping the Ready
+	//     count below desiredReplicas. This makes the controller wait for a new-image surge
+	//     workspace to become Ready before retiring the old one it replaces.
+	//   - newBudget: new-image workspaces are retired only when the surplus exceeds the number
+	//     of old workspaces (a genuine scale-down), so a normal upgrade never deletes the
+	//     incoming replica.
+	readyBudget := readyCount - desiredReplicas
+	newBudget := numToDelete - oldCount
+
+	toDelete := make([]*kaitov1beta1.Workspace, 0, numToDelete)
+	for _, cand := range candidates {
+		if len(toDelete) >= numToDelete {
+			break
+		}
+		if cand.ready && readyBudget <= 0 {
+			continue // would drop Ready below desiredReplicas
+		}
+		if !cand.old && newBudget <= 0 {
+			continue // keep new-image replicas unless genuinely over-provisioned
+		}
+		toDelete = append(toDelete, cand.ws)
+		if cand.ready {
+			readyBudget--
+		}
+		if !cand.old {
+			newBudget--
+		}
+	}
+
+	return toDelete, nil
+}
+
+func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iObj *kaitov1beta1.InferenceSet) (reconcile.Result, error) {
 	if iObj == nil {
 		return reconcile.Result{}, nil
 	}
@@ -209,53 +315,43 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	klog.InfoS("Found workspaces for inference set", "name", iObj.Name, "current", len(wsList.Items), "desired", iObj.Spec.Replicas)
+	desiredReplicas := int32(1)
+	if iObj.Spec.Replicas != nil {
+		desiredReplicas = *iObj.Spec.Replicas
+	}
 
-	replicaNumToDelete := len(wsList.Items) - iObj.Spec.Replicas
-	var deletingWorkspaces []string
+	klog.InfoS("Found workspaces for inference set", "name", iObj.Name,
+		"current", len(wsList.Items), "desired", desiredReplicas)
+
+	replicaNumToDelete := len(wsList.Items) - int(desiredReplicas)
 	if replicaNumToDelete > 0 {
-		klog.InfoS("Found extra workspaces, deleting...", "current", len(wsList.Items), "desired", iObj.Spec.Replicas)
-		// first delete workspace that is not in ready state
-		for _, ws := range wsList.Items {
-			if !ws.DeletionTimestamp.IsZero() {
-				deletingWorkspaces = append(deletingWorkspaces, ws.Name)
-				replicaNumToDelete--
-				klog.InfoS("Skipping workspace that is already being deleted...", "workspace", klog.KObj(&ws))
-			} else if controllers.DetermineWorkspacePhase(&ws) != "succeeded" {
-				klog.InfoS("Deleting non-ready workspace...", "workspace", klog.KObj(&ws))
-				if err := c.Client.Delete(ctx, &ws, &client.DeleteOptions{}); err != nil {
-					klog.ErrorS(err, "failed to delete non-ready workspace", "workspace", klog.KObj(&ws))
-					return ctrl.Result{}, err
-				}
-				deletingWorkspaces = append(deletingWorkspaces, ws.Name)
-				replicaNumToDelete--
-			}
-			if replicaNumToDelete <= 0 {
-				break
-			}
+		klog.InfoS("Found extra workspaces, deleting...", "current", len(wsList.Items), "desired", desiredReplicas)
+
+		toDelete, err := c.selectWorkspacesToDelete(ctx, wsList.Items, int(desiredReplicas), replicaNumToDelete)
+		if err != nil {
+			return ctrl.Result{}, err
 		}
 
-		// delete rest of extra workspaces
-		if replicaNumToDelete > 0 {
-			for _, ws := range wsList.Items {
-				// check whether ws.Name is already in deletingWorkspaces
-				if slices.Contains(deletingWorkspaces, ws.Name) {
-					continue
-				}
-
-				if !ws.DeletionTimestamp.IsZero() {
-					replicaNumToDelete--
-					klog.InfoS("Skipping workspace that is already being deleted...", "workspace", klog.KObj(&ws))
-				} else {
-					klog.InfoS("Deleting extra workspace...", "workspace", klog.KObj(&ws))
-					if err := c.Client.Delete(ctx, &ws, &client.DeleteOptions{}); err != nil {
-						klog.ErrorS(err, "failed to delete extra workspace", "workspace", klog.KObj(&ws))
+		if len(toDelete) > 0 {
+			// Set deletion expectations before issuing any delete so that stale
+			// cache reads in subsequent reconciles do not over-delete workspaces.
+			// The expectation is lowered when the delete event is observed by the
+			// workspace event handler, or here if the delete call does not result
+			// in an eventual delete event (already-gone or failed).
+			if err := c.expectations.ExpectDeletions(c.klogger, isKey, len(toDelete)); err != nil {
+				klog.ErrorS(err, "failed to set deletion expectations", "inferenceset", isKey)
+				return ctrl.Result{}, err
+			}
+			for _, ws := range toDelete {
+				klog.InfoS("Deleting extra workspace...", "workspace", klog.KObj(ws))
+				if err := c.Client.Delete(ctx, ws, &client.DeleteOptions{}); err != nil {
+					// No delete event will be observed for this workspace, so lower
+					// the expectation to avoid stalling until it expires.
+					c.expectations.DeletionObserved(c.klogger, isKey)
+					if !apierrors.IsNotFound(err) {
+						klog.ErrorS(err, "failed to delete extra workspace", "workspace", klog.KObj(ws))
 						return ctrl.Result{}, err
 					}
-					replicaNumToDelete--
-				}
-				if replicaNumToDelete <= 0 {
-					break
 				}
 			}
 		}
@@ -266,46 +362,65 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 		}
 	}
 
-	replicaNumToCreate := iObj.Spec.Replicas - len(wsList.Items)
+	replicaNumToCreate := int(desiredReplicas) - len(wsList.Items)
 	if replicaNumToCreate > 0 {
-		klog.InfoS("Need to create more workspaces...", "current", len(wsList.Items), "desired", iObj.Spec.Replicas)
+		klog.InfoS("Need to create more workspaces...", "current", len(wsList.Items), "desired", desiredReplicas)
+		// Set creation expectations before issuing any create so that a stale
+		// cache read in a subsequent reconcile does not create duplicate
+		// workspaces. The expectation is lowered when the create event is
+		// observed by the workspace event handler, or here if the create fails.
+		if err := c.expectations.ExpectCreations(c.klogger, isKey, replicaNumToCreate); err != nil {
+			klog.ErrorS(err, "failed to set creation expectations", "inferenceset", isKey)
+			return reconcile.Result{}, err
+		}
 		for i := range replicaNumToCreate {
-			workspaceObj := &kaitov1beta1.Workspace{}
-			workspaceObj.GenerateName = iObj.Name + "-"
-			workspaceObj.Namespace = iObj.Namespace
-
-			// Start with labels from the template metadata, then add controller labels.
-			workspaceLabels := maps.Clone(iObj.Spec.Template.Labels)
-			if workspaceLabels == nil {
-				workspaceLabels = make(map[string]string)
-			}
-			workspaceLabels[consts.WorkspaceCreatedByInferenceSetLabel] = iObj.Name
-			workspaceObj.Labels = workspaceLabels
-
-			// Start with annotations from the template metadata.
-			workspaceAnnotations := maps.Clone(iObj.Spec.Template.Annotations)
-			// Propagate the run-benchmark annotation so each workspace runs the
-			// post-load benchmark and the InferenceSet can aggregate the TPM results.
-			if kaitov1alpha1.IsRunBenchmarkEnabled(iObj) {
-				if workspaceAnnotations == nil {
-					workspaceAnnotations = make(map[string]string)
-				}
-				workspaceAnnotations[kaitov1beta1.AnnotationRunBenchmark] = "true"
-			}
-			workspaceObj.Annotations = workspaceAnnotations
-			workspaceObj.OwnerReferences = []metav1.OwnerReference{
-				*metav1.NewControllerRef(iObj, kaitov1alpha1.GroupVersion.WithKind("InferenceSet")),
-			}
-			workspaceObj.Resource = kaitov1beta1.ResourceSpec{
-				InstanceType:  iObj.Spec.Template.Resource.InstanceType,
-				LabelSelector: iObj.Spec.Selector,
-			}
-			workspaceObj.Inference = &iObj.Spec.Template.Inference
-
+			workspaceObj := inferenceset.NewWorkspaceForInferenceSet(iObj)
 			klog.InfoS("creating workspace", "workspace", workspaceObj.Name, "index", i)
 			if err := c.Client.Create(ctx, workspaceObj); err != nil {
+				// The create failed, so no create event will be observed for it;
+				// lower the expectation to avoid stalling until it expires.
+				c.expectations.CreationObserved(c.klogger, isKey)
 				klog.ErrorS(err, "failed to create workspace", "workspace", workspaceObj.Name)
 				return reconcile.Result{}, err
+			}
+		}
+	}
+
+	// Reconcile labels on existing workspaces by additively propagating InferenceSet metadata labels.
+	// Note: this only adds/updates desired labels; it does not remove stale labels to avoid
+	// conflicting with labels managed by other controllers.
+	// This ensures label changes (e.g., adding kaito.sh/inference-role) propagate
+	// to workspaces that were created before the label was set.
+	desiredLabels := make(map[string]string)
+	for k, v := range iObj.Spec.Template.Labels {
+		desiredLabels[k] = v
+	}
+	// Propagate inference-role from InferenceSet metadata (reliable even if template labels are pruned).
+	if role, ok := iObj.Labels[kaitov1beta1.LabelInferenceRole]; ok {
+		desiredLabels[kaitov1beta1.LabelInferenceRole] = role
+	}
+	if mriParent, ok := iObj.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent]; ok {
+		desiredLabels[kaitov1alpha1.LabelMultiRoleInferenceParent] = mriParent
+	}
+	if len(desiredLabels) > 0 {
+		for i := range wsList.Items {
+			ws := &wsList.Items[i]
+			needsUpdate := false
+			if ws.Labels == nil {
+				ws.Labels = make(map[string]string)
+			}
+			for k, v := range desiredLabels {
+				if ws.Labels[k] != v {
+					ws.Labels[k] = v
+					needsUpdate = true
+				}
+			}
+			if needsUpdate {
+				klog.InfoS("Reconciling workspace labels", "workspace", klog.KObj(ws))
+				if err := c.Client.Update(ctx, ws); err != nil {
+					klog.ErrorS(err, "failed to update workspace labels", "workspace", klog.KObj(ws))
+					return ctrl.Result{}, err
+				}
 			}
 		}
 	}
@@ -314,23 +429,30 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	totalTPM, readyReplicas, benchmarkedReplicas, hasBenchmarkTPMResult := aggregateBenchmarkResults(wsList.Items)
 
 	// update the replicas in the status
-	if err = inferenceset.UpdateInferenceSetStatus(ctx, c.Client, &client.ObjectKey{Name: iObj.Name, Namespace: iObj.Namespace}, func(status *kaitov1alpha1.InferenceSetStatus) error {
-		status.Replicas = iObj.Spec.Replicas
+	if err = inferenceset.UpdateInferenceSetStatus(ctx, c.Client, &client.ObjectKey{Name: iObj.Name, Namespace: iObj.Namespace}, func(status *kaitov1beta1.InferenceSetStatus) error {
+		status.Replicas = int(desiredReplicas)
 		status.ReadyReplicas = readyReplicas
 		// set selector for HPA/VPA
 		status.Selector = fmt.Sprintf("%s=%s", consts.WorkspaceCreatedByInferenceSetLabel, iObj.Name)
-		if kaitov1alpha1.IsRunBenchmarkEnabled(iObj) {
+		runtimeName := kaitov1beta1.GetInferenceSetRuntimeName(iObj)
+		var presetName string
+		if iObj.Spec.Template.Inference.Preset != nil {
+			presetName = string(iObj.Spec.Template.Inference.Preset.Name)
+		}
+
+		if kaitov1beta1.ShouldRunInferenceSetBenchmark(iObj) {
 			if hasBenchmarkTPMResult {
 				if status.Performance == nil {
-					status.Performance = &kaitov1alpha1.Performance{}
+					status.Performance = &kaitov1beta1.Performance{}
 				}
 				if status.Performance.Metrics == nil {
-					status.Performance.Metrics = make(map[string]kaitov1alpha1.Metric)
+					status.Performance.Metrics = make(map[string]kaitov1beta1.Metric)
 				}
-				status.Performance.Metrics[controllers.BenchmarkMetricAggregatedPeakTPM] = kaitov1alpha1.Metric{
+				status.Performance.Metrics[controllers.BenchmarkMetricAggregatedPeakTPM] = kaitov1beta1.Metric{
 					Description: controllers.BenchmarkDesc,
 					Value:       strconv.FormatFloat(totalTPM, 'f', 2, 64),
 					Unit:        controllers.BenchmarkMetricUnit,
+					Config:      controllers.RuntimeMetadataConfig(runtimeName, presetName),
 				}
 			} else {
 				// No ready replica has a TPM result — clear the TPM key so the profile
@@ -353,37 +475,38 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 				}
 			}
 		}
+
 		return nil
 	}); err != nil {
 		klog.ErrorS(err, "failed to update inferenceset replicas", "inferenceset", klog.KObj(iObj))
 		return reconcile.Result{}, err
 	}
 
-	if readyReplicas == iObj.Spec.Replicas {
-		if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1alpha1.InferenceSetConditionTypeReady, metav1.ConditionTrue,
+	if readyReplicas == int(desiredReplicas) {
+		if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1beta1.InferenceSetConditionTypeReady, metav1.ConditionTrue,
 			"inferencesetReady", "inferenceset is ready"); err != nil {
 			klog.ErrorS(err, "failed to update inferenceset status", "inferenceset", klog.KObj(iObj))
 			return reconcile.Result{}, err
 		}
 	} else {
-		if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1alpha1.InferenceSetConditionTypeReady, metav1.ConditionFalse,
-			"inferencesetNotReady", fmt.Sprintf("inferenceset is not ready, %d/%d replicas are ready", readyReplicas, iObj.Spec.Replicas)); err != nil {
+		if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1beta1.InferenceSetConditionTypeReady, metav1.ConditionFalse,
+			"inferencesetNotReady", fmt.Sprintf("inferenceset is not ready, %d/%d replicas are ready", readyReplicas, desiredReplicas)); err != nil {
 			klog.ErrorS(err, "failed to update inferenceset status", "inferenceset", klog.KObj(iObj))
 			return reconcile.Result{}, err
 		}
 	}
 
 	// Surface benchmark progress when the annotation is set.
-	if kaitov1alpha1.IsRunBenchmarkEnabled(iObj) {
-		if benchmarkedReplicas == iObj.Spec.Replicas && iObj.Spec.Replicas > 0 {
-			if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1alpha1.InferenceSetConditionTypeBenchmarkCompleted, metav1.ConditionTrue,
-				"BenchmarkCompleted", fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, iObj.Spec.Replicas)); err != nil {
+	if kaitov1beta1.ShouldRunInferenceSetBenchmark(iObj) {
+		if benchmarkedReplicas == int(desiredReplicas) && desiredReplicas > 0 {
+			if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1beta1.InferenceSetConditionTypeBenchmarkCompleted, metav1.ConditionTrue,
+				"BenchmarkCompleted", fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, desiredReplicas)); err != nil {
 				klog.ErrorS(err, "failed to update inferenceset benchmark status", "inferenceset", klog.KObj(iObj))
 				return reconcile.Result{}, err
 			}
 		} else {
-			if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1alpha1.InferenceSetConditionTypeBenchmarkCompleted, metav1.ConditionFalse,
-				"BenchmarkPending", fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, iObj.Spec.Replicas)); err != nil {
+			if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1beta1.InferenceSetConditionTypeBenchmarkCompleted, metav1.ConditionFalse,
+				"BenchmarkPending", fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, desiredReplicas)); err != nil {
 				klog.ErrorS(err, "failed to update inferenceset benchmark status", "inferenceset", klog.KObj(iObj))
 				return reconcile.Result{}, err
 			}
@@ -391,7 +514,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	}
 
 	if err = c.ensureGatewayAPIInferenceExtension(ctx, iObj); err != nil {
-		if updateErr := inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1alpha1.InferenceSetConditionTypeReady, metav1.ConditionFalse,
+		if updateErr := inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1beta1.InferenceSetConditionTypeReady, metav1.ConditionFalse,
 			"inferencesetFailed", err.Error()); updateErr != nil {
 			klog.ErrorS(updateErr, "failed to update inferenceset status", "inferenceset", klog.KObj(iObj))
 			return reconcile.Result{}, updateErr
@@ -411,11 +534,24 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 // 5) Aggregates and returns any errors.
 //
 // Idempotent and safe to call on every reconcile; no-op if preconditions are not met.
-func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.Context, iObj *kaitov1alpha1.InferenceSet) error {
+func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.Context, iObj *kaitov1beta1.InferenceSet) error {
 	if iObj == nil {
 		return fmt.Errorf("InferenceSet object is nil")
 	}
-	runtimeName := kaitov1alpha1.GetInferenceSetRuntimeName(iObj)
+
+	// Skip GWIE for child InferenceSets managed by MultiRoleInference.
+	// The MRI controller creates a shared InferencePool + EPP for all child InferenceSets.
+	// Use OwnerReferences (controller-managed) instead of labels (easily user-modifiable)
+	// to prevent accidental GWIE bypass on standalone InferenceSets.
+	for _, owner := range iObj.OwnerReferences {
+		if owner.Controller != nil && *owner.Controller &&
+			owner.Kind == "MultiRoleInference" &&
+			owner.APIVersion == kaitov1alpha1.GroupVersion.String() {
+			return nil
+		}
+	}
+
+	runtimeName := kaitov1beta1.GetInferenceSetRuntimeName(iObj)
 	isPresetInference := iObj.Spec.Template.Inference.Preset != nil
 
 	// Gateway API Inference Extension is specifically designed to work with vLLM and preset-based inference workloads.
@@ -494,7 +630,7 @@ func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.
 	return nil
 }
 
-func (c *InferenceSetReconciler) syncControllerRevision(ctx context.Context, iObj *kaitov1alpha1.InferenceSet) error {
+func (c *InferenceSetReconciler) syncControllerRevision(ctx context.Context, iObj *kaitov1beta1.InferenceSet) error {
 	currentHash := inferenceset.ComputeInferenceSetHash(iObj)
 	annotations := iObj.GetAnnotations()
 	if annotations == nil {
@@ -533,7 +669,7 @@ func (c *InferenceSetReconciler) syncControllerRevision(ctx context.Context, iOb
 				InferenceSetNameLabel: iObj.Name,
 			},
 			OwnerReferences: []metav1.OwnerReference{
-				*metav1.NewControllerRef(iObj, kaitov1alpha1.GroupVersion.WithKind("InferenceSet")),
+				*metav1.NewControllerRef(iObj, kaitov1beta1.GroupVersion.WithKind("InferenceSet")),
 			},
 		},
 		Revision: revisionNum,
@@ -551,7 +687,7 @@ func (c *InferenceSetReconciler) syncControllerRevision(ctx context.Context, iOb
 			if err := c.Create(ctx, newRevision); err != nil {
 				return fmt.Errorf("failed to create new ControllerRevision: %w", err)
 			} else {
-				annotations[kaitov1alpha1.InferenceSetRevisionAnnotation] = strconv.FormatInt(revisionNum, 10)
+				annotations[kaitov1beta1.InferenceSetRevisionAnnotation] = strconv.FormatInt(revisionNum, 10)
 			}
 
 			if len(revisions.Items) > consts.MaxRevisionHistoryLimit {
@@ -566,11 +702,11 @@ func (c *InferenceSetReconciler) syncControllerRevision(ctx context.Context, iOb
 		if controllerRevision.Annotations[InferenceSetHashAnnotation] != newRevision.Annotations[InferenceSetHashAnnotation] {
 			return fmt.Errorf("revision name conflicts, the hash values are different, old hash: %s, new hash: %s", controllerRevision.Annotations[InferenceSetHashAnnotation], newRevision.Annotations[InferenceSetHashAnnotation])
 		}
-		annotations[kaitov1alpha1.InferenceSetRevisionAnnotation] = strconv.FormatInt(controllerRevision.Revision, 10)
+		annotations[kaitov1beta1.InferenceSetRevisionAnnotation] = strconv.FormatInt(controllerRevision.Revision, 10)
 	}
 	annotations[InferenceSetHashAnnotation] = currentHash
 
-	err = inferenceset.UpdateInferenceSetWithRetry(ctx, c.Client, iObj, func(ws *kaitov1alpha1.InferenceSet) error {
+	err = inferenceset.UpdateInferenceSetWithRetry(ctx, c.Client, iObj, func(ws *kaitov1beta1.InferenceSet) error {
 		ws.SetAnnotations(annotations)
 		return nil
 	})
@@ -585,7 +721,7 @@ func (c *InferenceSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	c.Recorder = mgr.GetEventRecorderFor("InferenceSet")
 
 	builder := ctrl.NewControllerManagedBy(mgr).
-		For(&kaitov1alpha1.InferenceSet{}).
+		For(&kaitov1beta1.InferenceSet{}).
 		Owns(&appsv1.ControllerRevision{}).
 		Watches(&kaitov1beta1.Workspace{},
 			&workspaceEventHandler{

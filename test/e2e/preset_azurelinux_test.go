@@ -56,6 +56,7 @@ var _ = Describe("Workspace Preset AzureLinux", utils.GinkgoLabelAzureLinux, fun
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
 		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
@@ -73,6 +74,7 @@ func createPhi4WorkspaceWithVLLMOnAzureLinux(numOfNode int) *kaitov1beta1.Worksp
 			workspaceObj.Annotations = make(map[string]string)
 		}
 		workspaceObj.Annotations[kaitov1beta1.AnnotationNodeImageFamily] = "AzureLinux"
+		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj

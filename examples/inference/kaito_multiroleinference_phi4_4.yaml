@@ -1,0 +1,19 @@
+---
+apiVersion: kaito.sh/v1alpha1
+kind: MultiRoleInference
+metadata:
+  name: phi-4-mini
+  namespace: default
+spec:
+  labelSelector:
+    matchLabels:
+      apps: phi-4-mini
+  model:
+    name: phi-4-mini-instruct
+  roles:
+    - type: prefill
+      replicas: 1
+      instanceType: Standard_NC24ads_A100_v4
+    - type: decode
+      replicas: 1
+      instanceType: Standard_NC24ads_A100_v4

@@ -1,8 +1,12 @@
-FROM python:3.12-slim AS dependencies
+# syntax=docker/dockerfile:1
+# Pinned to Debian bookworm (glibc 2.36). The default python:3.12-slim floats to
+# Debian trixie (glibc 2.41), whose C23 cospi/sinpi math declarations are
+# incompatible with CUDA 12.9's nvcc host-compile (used by the optional runtime
+# CUDA toolkit install for DeepGEMM). bookworm avoids that conflict.
+FROM python:3.12-slim-bookworm AS dependencies
 
 ARG MODEL_TYPE
 ARG VERSION
-ARG UV_VERSION=0.10.10
 
 # https://docs.ray.io/en/latest/cluster/usage-stats.html
 ENV RAY_USAGE_STATS_ENABLED="1"
@@ -21,16 +25,33 @@ RUN apt-get update -y && apt upgrade -y && \
     else \
         apt-get install --only-upgrade --no-install-recommends -y openssl; \
     fi && \
-    apt-get install --no-install-recommends -y curl gcc libc-dev perl libglib2.0-0 libgl1 libsm6 libxext6 libxrender1 && \
+    apt-get install --no-install-recommends -y curl gcc g++ libc-dev perl libglib2.0-0 libgl1 libsm6 libxext6 libxrender1 && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 FROM dependencies AS base
 
+ARG UV_VERSION=0.10.10
+
 COPY presets/workspace/dependencies/requirements.txt /workspace/requirements.txt
 
+# Install the CUDA 12.9 build of the stack (vLLM, torch, LMCache) instead of the
+# default CUDA 13 wheels, because CUDA 13 requires 580+ Nvidia GPU drivers.
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip3 install --no-cache-dir "uv==${UV_VERSION}" && \
-    uv pip install --system -q -r /workspace/requirements.txt
+    VLLM_VERSION=$(grep 'vllm==' /workspace/requirements.txt | cut -d'=' -f3 | tr -d ' ') && \
+    LMCACHE_VERSION=$(grep 'lmcache==' /workspace/requirements.txt | cut -d'=' -f3 | tr -d ' ') && \
+    uv pip install --system -q -r /workspace/requirements.txt \
+        --torch-backend=cu129 \
+        --index-strategy unsafe-best-match \
+        --extra-index-url "https://wheels.vllm.ai/${VLLM_VERSION}/cu129" \
+        --extra-index-url https://download.pytorch.org/whl/cu129 \
+        --find-links "https://github.com/LMCache/LMCache/releases/expanded_assets/v${LMCACHE_VERSION}-cu129" && \
+    : "LMCache depends on the 'nixl' meta package which installs BOTH nixl-cu12 and" \
+      "nixl-cu13; they ship the same nixl_ep_cpp .so (last writer wins) and nixl-cu13" \
+      "links libcudart.so.13 which is absent on this CUDA 12.9 image. Reinstall nixl-cu12" \
+      "last so its cu12 .so wins, otherwise 'import nixl_ep' fails with libcudart.so.13 not found." && \
+    uv pip install --system -q --reinstall-package nixl-cu12 nixl-cu12 && \
+    pip3 uninstall -y uv
 
 # 1. Huggingface transformers
 COPY presets/workspace/inference/${MODEL_TYPE}/inference_api.py \
@@ -46,21 +67,21 @@ COPY presets/workspace/inference/vllm/inference_api.py \
     presets/workspace/inference/vllm/multi-node-health-check.py \
     presets/workspace/inference/vllm/list_supported_llm_archs.py \
     presets/workspace/inference/vllm/benchmark_entrypoint.py \
+    presets/workspace/inference/vllm/rate_limit.py \
+    presets/workspace/inference/vllm/export_sas_token_for_streaming.sh \
     /workspace/vllm/
 
-# Guidellm runs in an isolated venv so it can use transformers>=5.0.0 (required
-# for Mistral tekken tokenizers and future models) without conflicting with
-# vLLM's transformers<5 requirement.  benchmark_entrypoint.py injects
-# /opt/guidellm-venv/lib/python*/site-packages into sys.path at runtime.
-RUN uv venv /opt/guidellm-venv --system-site-packages && \
-    uv pip install --python /opt/guidellm-venv/bin/python \
-        "guidellm==0.5.3" \
-        "transformers==5.3.0" && \
-    pip3 uninstall -y uv
+RUN chmod +x /workspace/vllm/export_sas_token_for_streaming.sh
+
+# Runtime CUDA toolkit provisioner. Invoked by the cuda-toolkit-provisioner init
+# container for models that require DeepGEMM (nvcc JIT), to install cuda-toolkit-12-9
+# into a node hostPath for runtimes that JIT-compile with nvcc.
+COPY docker/presets/models/tfs/cuda-provision.sh /workspace/cuda-provision.sh
+RUN chmod +x /workspace/cuda-provision.sh
 
 RUN VLLM_VERSION=$(grep 'vllm==' /workspace/requirements.txt | cut -d'=' -f3) && \
-    curl -o /workspace/vllm/multi-node-serving.sh \
-    https://raw.githubusercontent.com/vllm-project/vllm/refs/tags/v${VLLM_VERSION}/examples/online_serving/multi-node-serving.sh && \
+    curl --fail -o /workspace/vllm/multi-node-serving.sh \
+    https://raw.githubusercontent.com/vllm-project/vllm/refs/tags/v${VLLM_VERSION}/examples/ray_serving/multi-node-serving.sh && \
     chmod +x /workspace/vllm/multi-node-serving.sh
 
 # Chat template

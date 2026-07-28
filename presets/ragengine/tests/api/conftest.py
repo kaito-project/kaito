@@ -25,6 +25,7 @@ os.environ["LLM_INFERENCE_URL"] = "http://localhost:5000/v1/chat/completions"
 
 import asyncio
 
+import aiorwlock
 import httpx
 import nest_asyncio
 import pytest_asyncio
@@ -51,3 +52,5 @@ def event_loop():
 @pytest_asyncio.fixture(autouse=True)
 def clear_index():
     vector_store_handler.index_map.clear()
+    if vector_store_handler.use_rwlock:
+        vector_store_handler.rwlock = aiorwlock.RWLock()

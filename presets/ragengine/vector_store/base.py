@@ -235,13 +235,27 @@ class BaseVectorStore(ABC):
             logger.info(
                 "Request does not specify an index, passing through to LLM directly."
             )
+            if request.get("stream") is True:
+                return await self.llm.chat_completions_stream_passthrough(
+                    openai_request
+                )
             return await self.llm.chat_completions_passthrough(openai_request)
 
         if request.get("tools") or request.get("functions"):
             logger.info(
                 "Request contains tools or functions, passing through to LLM directly."
             )
+            if request.get("stream") is True:
+                return await self.llm.chat_completions_stream_passthrough(
+                    openai_request
+                )
             return await self.llm.chat_completions_passthrough(openai_request)
+
+        if request.get("stream") is True:
+            raise HTTPException(
+                status_code=400,
+                detail="stream=true is only supported for passthrough chat completions.",
+            )
 
         # Only support RAG usage on user/system/developer roles in messages and only text content
         for message in request.get("messages", []):

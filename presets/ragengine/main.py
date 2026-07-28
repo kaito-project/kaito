@@ -21,7 +21,7 @@ from urllib.parse import unquote
 import nest_asyncio
 from fastapi import FastAPI, HTTPException, Query, Request  # noqa: E402
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # noqa: E402
-from starlette.responses import Response  # noqa: E402
+from starlette.responses import Response, StreamingResponse  # noqa: E402
 
 nest_asyncio.apply()  # Allow nested event loops (LlamaIndex sync internals inside FastAPI async)
 
@@ -48,13 +48,18 @@ from ragengine.config import (  # noqa: E402
     DEFAULT_VECTOR_DB_PERSIST_DIR,
     EMBEDDING_SOURCE_TYPE,
     LOCAL_EMBEDDING_MODEL_ID,
+    OUTPUT_GUARDRAILS_HOT_RELOAD_ENABLED,
+    OUTPUT_GUARDRAILS_POLICY_PATH,
     REMOTE_EMBEDDING_ACCESS_SECRET,
     REMOTE_EMBEDDING_URL,
     VECTOR_DB_ACCESS_SECRET,
     VECTOR_DB_TYPE,
     VECTOR_DB_URL,
 )
-from ragengine.guardrails import OutputGuardrails  # noqa: E402
+from ragengine.guardrails import (  # noqa: E402
+    GuardrailsReloader,
+    OutputGuardrailsError,
+)
 from ragengine.metrics.prometheus_metrics import (  # noqa: E402
     MODE_LOCAL,
     MODE_REMOTE,
@@ -83,6 +88,10 @@ from ragengine.metrics.prometheus_metrics import (  # noqa: E402
     rag_load_requests_total,
     rag_persist_latency,
     rag_persist_requests_total,
+)
+from ragengine.streaming.guardrails import (  # noqa: E402
+    apply_streaming_guardrails,
+    raise_if_streaming_guardrails_unsupported,
 )
 
 # Import Prometheus client for metrics collection
@@ -159,7 +168,20 @@ else:
 
 # Initialize RAG operations
 rag_ops = VectorStoreManager(vector_store_handler)
-output_guardrails = OutputGuardrails.from_config()
+guardrails_reloader = GuardrailsReloader(
+    policy_path=OUTPUT_GUARDRAILS_POLICY_PATH,
+)
+
+
+@app.on_event("startup")
+async def _start_guardrails_reloader() -> None:
+    if OUTPUT_GUARDRAILS_HOT_RELOAD_ENABLED:
+        guardrails_reloader.start()
+
+
+@app.on_event("shutdown")
+async def _stop_guardrails_reloader() -> None:
+    await guardrails_reloader.stop()
 
 
 @app.get("/metrics", operation_id="get_metrics", tags=["Monitoring"])
@@ -334,13 +356,45 @@ async def chat_completions(request: dict):
                 detail="InferenceService not configured. This RAGEngine instance only supports document retrieve via /retrieve API. To use chat completions, configure an InferenceService in the RAGEngine spec.",
             )
 
+        guardrails = guardrails_reloader.get_current()
+        if request.get("tools") or request.get("functions"):
+            raise HTTPException(
+                status_code=400,
+                detail="tools and functions are not supported.",
+            )
+        if request.get("n", 1) > 1:
+            raise HTTPException(
+                status_code=400,
+                detail="n > 1 is not supported.",
+            )
+        if request.get("stream") is True:
+            if guardrails.enabled:
+                raise_if_streaming_guardrails_unsupported(guardrails)
+            response = await rag_ops.chat_completion(request)
+            if guardrails.enabled:
+                response = apply_streaming_guardrails(
+                    response,
+                    guardrails,
+                    request,
+                )
+            status = STATUS_SUCCESS
+            return StreamingResponse(
+                response,
+                media_type="text/event-stream",
+                headers={
+                    "Cache-Control": "no-cache",
+                    "X-Accel-Buffering": "no",
+                },
+            )
         response = await rag_ops.chat_completion(request)
-        response = output_guardrails.guard_response(response, request)
+        response = guardrails.guard_response(response, request)
         status = STATUS_SUCCESS
         return response
     except HTTPException as http_exc:
         # Preserve HTTP exceptions like 422 from reranker
         raise http_exc
+    except OutputGuardrailsError as guardrails_exc:
+        raise HTTPException(status_code=500, detail=str(guardrails_exc))
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))  # Validation issue
     except Exception as e:

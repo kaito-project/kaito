@@ -5,19 +5,15 @@ metadata:
   namespace: {{ .Release.Namespace }}
 data:
   inference_config.yaml: |
-    # Maximum number of steps to find the max available seq len fitting in the GPU memory.
-    max_probe_steps: 6
-
     # Optional: CPU memory utilization for the vllm engine in kv cache offload mode. (default: 0.5, set to 0 to disable)
     kv_cache_cpu_memory_utilization: 0.5
 
     vllm:
       cpu-offload-gb: 0
-      swap-space: 4
 
       # gpu-memory-utilization: 0.9
       # max-seq-len-to-capture: 8192
       # num-scheduler-steps: 1
       # enable-chunked-prefill: false
       # max-model-len: 2048
-      # see https://docs.vllm.ai/en/stable/serving/engine_args.html for more options.
+      # see https://docs.vllm.ai/en/stable/cli/serve/ for more options.

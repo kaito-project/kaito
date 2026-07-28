@@ -27,6 +27,7 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 type Model interface {
@@ -128,6 +129,11 @@ type Metadata struct {
 	// +optional
 	BytesPerToken int `yaml:"bytesPerToken,omitempty"`
 
+	// AttnType specifies the attention implementation (e.g., MHA, GQA, MQA, MLA),
+	// computed by the preset generator from the model config.
+	// +optional
+	AttnType string `yaml:"attnType,omitempty"`
+
 	// ModelTokenLimit is the maximum number of tokens (context window) supported by the model.
 	// This field is only for best effort supported vLLM models.
 	// +optional
@@ -152,6 +158,35 @@ type Metadata struct {
 	// This field is only for best effort supported vLLM models.
 	// +optional
 	AllowRemoteFiles bool `yaml:"allowRemoteFiles,omitempty"`
+
+	// QuantMethod specifies the weight quantization method used by the model
+	// (e.g., "awq", "gptq"). Maps to quantization_config.quant_method in the
+	// model's HuggingFace config.json.
+	// +optional
+	QuantMethod string `yaml:"quantMethod,omitempty"`
+
+	// QuantBits specifies the number of bits used for weight quantization
+	// (e.g., 4 for 4-bit AWQ). Maps to quantization_config.bits in the
+	// model's HuggingFace config.json.
+	// +optional
+	QuantBits int `yaml:"quantBits,omitempty"`
+
+	// RuntimeVersion records the inference engine versions baked into the image.
+	// It is primarily meaningful on the "base" model entry and is used to surface
+	// the serving engine version in the workspace/inferenceset status.
+	// +optional
+	RuntimeVersion RuntimeVersion `yaml:"runtimeVersion,omitempty"`
+}
+
+// RuntimeVersion holds the versions of the inference engines shipped in the base image.
+type RuntimeVersion struct {
+	// VLLM is the vLLM engine version (e.g. "0.22.1").
+	// +optional
+	VLLM string `yaml:"vllm,omitempty"`
+
+	// Transformers is the Hugging Face Transformers version (e.g. "5.6.0").
+	// +optional
+	Transformers string `yaml:"transformers,omitempty"`
 }
 
 // Validate checks if the Metadata is valid.
@@ -177,7 +212,6 @@ type PresetParam struct {
 	// Example: For a 14Gi model, calculation is: 14 × 2.5 + 48 = 83, rounded up to 90Gi.
 
 	ImageAccessMode               string         // Defines where the Image is Public or Private.
-	GPUCountRequirement           string         // Number of GPUs required for the Preset. Used for inference.
 	TotalSafeTensorFileSize       string         // Total SafeTensor file size for the Preset. Used for inference.
 	TuningPerGPUMemoryRequirement map[string]int // Min GPU memory per tuning method (batch size 1). Used for tuning.
 	BytesPerToken                 int            // Number of bytes per token for the model. It is calculated by 2 * hidden_layers * kv_heads * head_dim (hidden_size/num_attemtion_numbers) * dtype_size
@@ -186,10 +220,6 @@ type PresetParam struct {
 	// To determine TotalSafeTensorFileSize and BytesPerToken values for a new model,
 	// run the presets/workspace/generator/preset_generator.py script
 	// with the model's Hugging Face repository ID as an argument.
-
-	// AttnType specifies the attention implementation (e.g., MHA, GQA, MLA).
-	// Calculated by the preset generator based on model config.
-	AttnType string `yaml:"attn_type,omitempty"`
 
 	RuntimeParam
 
@@ -203,8 +233,6 @@ type PresetParam struct {
 type RuntimeParam struct {
 	Transformers HuggingfaceTransformersParam
 	VLLM         VLLMParam
-	// Disable the tensor parallelism
-	DisableTensorParallelism bool
 }
 
 type HuggingfaceTransformersParam struct {
@@ -277,6 +305,12 @@ func (v *VLLMParam) DeepCopy() VLLMParam {
 	return out
 }
 
+// MaxModelLenAuto is the sentinel value for RuntimeContext.MaxModelLen that makes
+// KAITO pass `--max-model-len=auto` to vLLM, delegating context-length sizing to
+// vLLM's native auto-fit logic instead of estimating it.
+// https://docs.vllm.ai/en/latest/configuration/engine_args/#-max-model-len
+const MaxModelLenAuto = -1
+
 // RuntimeContext defines the runtime context for a model.
 type RuntimeContext struct {
 	RuntimeName          RuntimeName
@@ -286,7 +320,8 @@ type RuntimeContext struct {
 	NumNodes             int
 	WorkspaceMetadata    metav1.ObjectMeta
 	DistributedInference bool
-	MaxModelLen          int // max-model-len parameter for vLLM
+	MaxModelLen          int   // max-model-len for vLLM; MaxModelLenAuto means "auto"
+	InferencePort        int32 // port vLLM listens on; 0 means default (5000)
 	RuntimeContextExtraArguments
 }
 
@@ -294,6 +329,17 @@ type RuntimeContextExtraArguments struct {
 	AdaptersEnabled        bool
 	AdapterStrengthEnabled bool
 	PerformanceMode        string // vLLM --performance-mode; defaults to "balanced"
+
+	// When set, streaming fields override --model and --load-format.
+	// Distributed streaming (--model-loader-extra-config) is handled automatically
+	// inside buildVLLMInferenceCommand based on the resolved tensor-parallel-size.
+	StreamingModelPath  string // e.g. "az://container/modelID"
+	StreamingLoadFormat string // e.g. "runai_streamer"
+
+	// LocalModelWeightsPath, when set, points vLLM at model weights that already
+	// exist on local disk (e.g. mounted from a custom GPU node image) via --model.
+	// No HuggingFace download is performed. Mutually exclusive with StreamingModelPath.
+	LocalModelWeightsPath string // e.g. "/opt/kaito/models/deepseekv4flash"
 }
 
 func (p *PresetParam) GetInferenceCommand(rc RuntimeContext) []string {
@@ -331,25 +377,68 @@ func (p *PresetParam) buildHuggingfaceInferenceCommand() []string {
 }
 
 func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
-	if p.VLLM.ModelName != "" {
+	// Determine served-model-name priority:
+	// 1. MRI workspaces: use VLLM.ModelName so all roles share a single model
+	//    identifier for EPP routing.
+	// 2. Standalone InferenceSet workspaces: use the InferenceSet name.
+	// 3. Fallback: use VLLM.ModelName if available.
+	//
+	// Note: string literal used to avoid import cycle with api/v1alpha1 package.
+	// Matches v1alpha1.LabelMultiRoleInferenceParent.
+	_, isMRI := rc.WorkspaceMetadata.Labels["multiroleinference.kaito.sh/created-by"]
+	isName := rc.WorkspaceMetadata.Labels[consts.WorkspaceCreatedByInferenceSetLabel]
+
+	switch {
+	case isMRI && p.VLLM.ModelName != "":
+		p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
+	case isName != "":
+		p.VLLM.ModelRunParams["served-model-name"] = isName
+	case p.VLLM.ModelName != "":
 		p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
 	}
-	if rc.MaxModelLen > 0 {
+	if rc.MaxModelLen == MaxModelLenAuto {
+		p.VLLM.ModelRunParams["max-model-len"] = "auto"
+	} else if rc.MaxModelLen > 0 {
 		p.VLLM.ModelRunParams["max-model-len"] = strconv.Itoa(rc.MaxModelLen)
 	}
 	p.VLLM.ModelRunParams["gpu-memory-utilization"] = "0.84"
 
-	// Dynamically determine dtype based on GPU compute capability.
-	// bfloat16 requires CUDA compute capability >= 8.0 (Ampere+).
-	// Fall back to float16 on older GPUs.
-	if rc.GPUConfig != nil && !rc.GPUConfig.SupportsBFloat16() {
-		p.VLLM.ModelRunParams["dtype"] = "float16"
-	}
+	// Disable the allreduce + RMSNorm fusion pass. Since vLLM 0.22.1 this pass is
+	// enabled by default and routes through FlashInfer's TRT-LLM MNNVL kernel, which
+	// is JIT-compiled at runtime and requires the CUDA toolkit (nvcc). The slim
+	// runtime image does not ship nvcc, so engine initialization crashes during CUDA
+	// graph capture with "Could not find nvcc". The fusion is only a performance
+	// optimization and the MNNVL (multi-node NVLink) path is not usable on our SKUs
+	// anyway, so it is safe to turn off for all vLLM models.
+	p.VLLM.ModelRunParams["compilation-config.pass_config.fuse_allreduce_rms"] = "False"
 
 	if !p.VLLM.DisallowLoRA && rc.AdaptersEnabled {
 		p.VLLM.ModelRunParams["enable-lora"] = ""
 	}
-	if p.DownloadAtRuntime {
+	// Model source: streaming (az://) vs download-at-runtime (HF repo).
+	if rc.StreamingModelPath != "" {
+		// StreamingModelPath may be a runtime shell placeholder (e.g. "$STREAM_MODEL_URI" for the
+		// SAS path, where the init container derives the az:// URI and the entrypoint wrapper
+		// exports it).
+		p.VLLM.ModelRunParams["model"] = rc.StreamingModelPath
+		p.VLLM.ModelRunParams["load-format"] = rc.StreamingLoadFormat
+		// Some presets set load_format (underscore) in their default params
+		// (e.g. mistral sets load_format=mistral). Remove to avoid conflict
+		// with the hyphenated --load-format=runai_streamer we set above.
+		delete(p.VLLM.ModelRunParams, "load_format")
+	} else if rc.LocalModelWeightsPath != "" {
+		// Weights already exist on local disk (e.g. mounted from a custom GPU node
+		// image). Point vLLM at the local directory and load with the RunAI streamer,
+		// whose concurrent threaded reads avoid the mmap readahead cliff when loading
+		// large safetensors from a virtualized node disk. Skip the HuggingFace download
+		// (no --download-dir / --code-revision).
+		p.VLLM.ModelRunParams["model"] = rc.LocalModelWeightsPath
+		p.VLLM.ModelRunParams["load-format"] = "runai_streamer"
+		// Some presets set load_format (underscore) in their default params
+		// (e.g. mistral sets load_format=mistral); remove it to avoid conflicting
+		// with the hyphenated --load-format we set here.
+		delete(p.VLLM.ModelRunParams, "load_format")
+	} else if p.DownloadAtRuntime {
 		repoId, revision, _ := utils.ParseHuggingFaceModelVersion(p.Version)
 		p.VLLM.ModelRunParams["model"] = repoId
 		if revision != "" {
@@ -364,11 +453,36 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		p.VLLM.ModelRunParams["performance-mode"] = rc.PerformanceMode
 	}
 
+	// Disable LMCache KV cache CPU offloading for models where it is known to be
+	// problematic, either because:
+	//   - the model needs vLLM's hybrid KV cache manager (incompatible with the
+	//     LMCache connector), or
+	//   - LMCache is disabled for this model (see isLMCacheDisabled), or
+	//   - the workload runs on a MIG partition (TODO: support KV cache CPU offloading on MIG).
+	if p.isVLLMHybridKVCacheManagerRequired() || p.isLMCacheDisabled() ||
+		(rc.GPUConfig != nil && rc.GPUConfig.IsMIG) {
+		p.VLLM.ModelRunParams["kaito-kv-cache-cpu-memory-utilization"] = "0"
+	}
+
 	// Parallelism strategy follows a 3-tier hierarchy (see configureParallelism):
 	//  1. Data Parallelism (DP)   – model fits on a single GPU
 	//  2. Tensor Parallelism (TP) – model fits on a single node (multiple GPUs)
 	//  3. Pipeline Parallelism (PP) + TP – model requires multiple nodes
 	p.configureParallelism(rc)
+
+	// Set explicit port if specified (e.g., decode pods use 5001 to make room
+	// for the routing sidecar on 5000).
+	if rc.InferencePort > 0 {
+		p.VLLM.ModelRunParams["port"] = strconv.Itoa(int(rc.InferencePort))
+	}
+
+	// Distributed streaming: only set when streaming is active AND tensor-parallel-size > 1.
+	// This must happen AFTER configureParallelism, which resolves the actual TP value.
+	if rc.StreamingModelPath != "" {
+		if tp, ok := p.VLLM.ModelRunParams["tensor-parallel-size"]; ok && tp != "" && tp != "1" {
+			p.VLLM.ModelRunParams["model-loader-extra-config"] = `'{"distributed": true}'`
+		}
+	}
 
 	// Single-node path: no Ray cluster needed.
 	if !rc.DistributedInference || rc.NumNodes == 1 {
@@ -394,10 +508,6 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 //  3. Multi-node (PP + TP): If the model exceeds a single node's capacity, we use
 //     pipeline parallelism across nodes, with tensor parallelism within each node.
 func (p *PresetParam) configureParallelism(rc RuntimeContext) {
-	if p.DisableTensorParallelism {
-		return
-	}
-
 	multiNode := rc.DistributedInference && rc.NumNodes > 1
 
 	// Tier 1: Model fits on a single GPU → Data Parallelism.
@@ -473,6 +583,49 @@ func (p *PresetParam) getModelFileSize() *resource.Quantity {
 		}
 	}
 	return nil
+}
+
+// isVLLMHybridKVCacheManagerRequired returns true if the model uses a hybrid
+// architecture (e.g., Mamba/Attention) that requires vLLM's hybrid KV cache manager
+// (https://docs.vllm.ai/en/latest/design/hybrid_kv_cache_manager/)
+func (p *PresetParam) isVLLMHybridKVCacheManagerRequired() bool {
+	for _, arch := range p.Architectures {
+		switch arch {
+		case "NemotronHForCausalLM", "NemotronH_Nano_VL_V2", "NemotronHMTPModel", "NemotronHPuzzleForCausalLM",
+			"Gemma4ForCausalLM", "Gemma4ForConditionalGeneration",
+			"Qwen3_5ForConditionalGeneration", "Qwen3_5MoeForConditionalGeneration",
+			"DeepseekV4ForCausalLM":
+			return true
+		}
+	}
+	return false
+}
+
+// isLMCacheDisabled returns true for architectures where LMCache needs to be disabled.
+// There is a known bug in LMCache that causes vLLM crashes on request abortion:
+// https://github.com/LMCache/LMCache/issues/3688
+// This bug will crash the vLLM engine during the TPM phase for certain models in KAITO.
+// TODO: remove this once the issue is resolved.
+func (p *PresetParam) isLMCacheDisabled() bool {
+	for _, arch := range p.Architectures {
+		switch arch {
+		case "GptOssForCausalLM":
+			return true
+		}
+	}
+	return false
+}
+
+// RequiresDeepGEMM returns true for architectures that strictly require the
+// DeepGEMM library.
+func (p *PresetParam) RequiresDeepGEMM() bool {
+	for _, arch := range p.Architectures {
+		switch arch {
+		case "DeepseekV4ForCausalLM":
+			return true
+		}
+	}
+	return false
 }
 
 // modelFitsOnSingleGPU returns true when the model file size is smaller than

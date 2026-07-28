@@ -17,20 +17,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type ConfigMapReference struct {
-	// Name is the name of the ConfigMap in the same namespace as the RAGEngine.
-	Name string `json:"name"`
-}
-
-type GuardrailsSpec struct {
-	// Enabled turns response guardrails on for chat completions.
-	// +optional
-	Enabled bool `json:"enabled,omitempty"`
-	// ConfigMapRef points to a ConfigMap that contains a guardrails.yaml policy document.
-	// +optional
-	ConfigMapRef *ConfigMapReference `json:"configMapRef,omitempty"`
-}
-
 type StorageSpec struct {
 	// PersistentVolumeClaim specifies the PVC to use for persisting vector database data.
 	// If not specified, an emptyDir will be used (data will be lost on pod restart).
@@ -122,9 +108,6 @@ type RAGEngineSpec struct {
 	// to generate embeddings. If not specified, a default service name will be created by the RAG engine.
 	// +optional
 	IndexServiceName string `json:"indexServiceName,omitempty"`
-	// Guardrails configures output guardrails for chat completions.
-	// +optional
-	Guardrails *GuardrailsSpec `json:"guardrails,omitempty"`
 }
 
 // RAGEngineStatus defines the observed state of RAGEngine

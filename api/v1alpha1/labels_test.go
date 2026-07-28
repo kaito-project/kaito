@@ -172,3 +172,15 @@ func TestGetInferenceSetRuntimeName(t *testing.T) {
 		})
 	}
 }
+
+func TestInferenceSetBenchmarkHelpers(t *testing.T) {
+	is := &InferenceSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{},
+		},
+	}
+	// Verify both helpers are callable (prevents deadcode false positives
+	// during v1alpha1 → v1beta1 transition).
+	_ = IsRunBenchmarkEnabled(is)
+	_ = ShouldRunBenchmark(is)
+}

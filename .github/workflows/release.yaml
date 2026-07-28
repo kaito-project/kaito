@@ -1,0 +1,68 @@
+name: Release
+
+# Push a semver tag (e.g. v0.8.0 or v0.8.0-rc.1) on a release branch and
+# this workflow will:
+#   1. Build, scan and publish all GH container images (workspace,
+#      rag-controller, rag-service) in parallel. Each of those then
+#      cascades, via repository_dispatch, to the matching MCR build job
+#      and helm-chart publish job (existing chain, unchanged).
+#   2. Once all GH image jobs succeed, run goreleaser to create the
+#      GitHub Release with auto-generated changelog.
+#
+# Manual fallback: the individual publish-*-gh-image.yaml and
+# github-release.yaml workflows still expose workflow_dispatch so they
+# can be re-run individually if a step needs to be retried.
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+'
+
+permissions:
+  id-token: write
+  contents: write
+  packages: write
+
+jobs:
+  resolve-version:
+    runs-on: ubuntu-latest
+    outputs:
+      release_version: ${{ steps.resolve.outputs.release_version }}
+    steps:
+      - id: resolve
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          echo "release_version=${TAG}" >> "$GITHUB_OUTPUT"
+
+  publish-workspace:
+    needs: resolve-version
+    uses: ./.github/workflows/publish-workspace-gh-image.yaml
+    with:
+      release_version: ${{ needs.resolve-version.outputs.release_version }}
+    secrets: inherit
+
+  publish-rag-controller:
+    needs: resolve-version
+    uses: ./.github/workflows/publish-rag-controller-gh-image.yaml
+    with:
+      release_version: ${{ needs.resolve-version.outputs.release_version }}
+    secrets: inherit
+
+  publish-rag-service:
+    needs: resolve-version
+    uses: ./.github/workflows/publish-rag-service-gh-image.yaml
+    with:
+      release_version: ${{ needs.resolve-version.outputs.release_version }}
+    secrets: inherit
+
+  create-release:
+    needs:
+      - resolve-version
+      - publish-workspace
+      - publish-rag-controller
+      - publish-rag-service
+    uses: ./.github/workflows/github-release.yaml
+    with:
+      release_version: ${{ needs.resolve-version.outputs.release_version }}
+    secrets: inherit

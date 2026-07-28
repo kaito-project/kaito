@@ -14,6 +14,11 @@
 package v1beta1
 
 import (
+	"path"
+	"strings"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -61,10 +66,21 @@ const (
 	// as the NodeClassRef name instead of the configured default.
 	AnnotationNodeClassName = KAITOPrefix + "node-class-name"
 
-	// AnnotationRunBenchmark enables the post-load throughput benchmark stage.
-	// When set to "true" on a Workspace, the inference container runs a guidellm
-	// benchmark after the model loads before marking the container as ready.
-	AnnotationRunBenchmark = KAITOPrefix + "run-benchmark"
+	// AnnotationDisableBenchmark disables the post-load throughput benchmark stage.
+	// The benchmark is enabled by default. Set to "true" on a Workspace to
+	// disable it; when absent or any other value, the benchmark runs.
+	AnnotationDisableBenchmark = KAITOPrefix + "disable-benchmark"
+
+	// InferenceSetRevisionAnnotation is the Annotations for revision number
+	InferenceSetRevisionAnnotation = "inferenceset.kaito.io/revision"
+
+	// LabelInferenceRole indicates the inference role of a workspace in P/D disaggregated serving.
+	// Propagated from InferenceSet.Spec.Template.Metadata.Labels onto child workspaces by the InferenceSet controller.
+	// Valid values: "prefill", "decode".
+	LabelInferenceRole = KAITOPrefix + "inference-role"
+
+	// InferenceRoleDecode is the decode role value for token generation in P/D disaggregated serving.
+	InferenceRoleDecode = "decode"
 
 	// AnnotationPerformanceMode selects the vLLM performance preset.
 	// Valid values are "balanced" (default), "interactivity", and "throughput".
@@ -75,6 +91,20 @@ const (
 	//     aggressive batching, throughput-oriented kernels).
 	// Only supported when the vLLM runtime is used.
 	AnnotationPerformanceMode = KAITOPrefix + "performance-mode"
+
+	// AnnotationUseLocalWeights makes the inference workload load model weights that
+	// are already present on the node instead of downloading them from HuggingFace at
+	// runtime. Set it to "true" to enable. When enabled, KAITO reads the weights from
+	// LocalWeightsHostPathPrefix/<sanitized preset name> (e.g.
+	// /opt/kaito/models/deepseek-ai-deepseek-v4-flash), mounts that host directory
+	// read-only into the inference container, and passes it to vLLM as --model,
+	// skipping the HuggingFace download entirely.
+	AnnotationUseLocalWeights = KAITOPrefix + "use-local-weights"
+
+	// LocalWeightsHostPathPrefix is the node directory under which baked model
+	// weights live, one subdirectory per preset (see GetLocalWeightsPath). Used
+	// when kaito.sh/use-local-weights is enabled.
+	LocalWeightsHostPathPrefix = "/opt/kaito/models"
 )
 
 // Valid values for AnnotationPerformanceMode.
@@ -106,10 +136,23 @@ func GetWorkspaceRuntimeName(ws *Workspace) model.RuntimeName {
 	return runtime
 }
 
-// IsRunBenchmarkEnabled reports whether the workspace has the benchmark
-// annotation set to "true".
+// IsRunBenchmarkEnabled reports whether the workspace benchmark is enabled.
+// The benchmark is on by default; it is only disabled when the annotation
+// kaito.sh/disable-benchmark is explicitly set to "true".
 func IsRunBenchmarkEnabled(ws *Workspace) bool {
-	return ws.Annotations[AnnotationRunBenchmark] == "true"
+	return ws.Annotations[AnnotationDisableBenchmark] != "true"
+}
+
+// ShouldRunBenchmark reports whether the workspace should run the post-load
+// benchmark. The benchmark requires all of the following:
+//  1. The benchmark is not disabled via annotation.
+//  2. The workspace uses the vLLM runtime (benchmark_entrypoint.py is vLLM-only).
+//  3. The workspace uses a preset inference config (template workspaces use
+//     custom containers that do not include the benchmark entrypoint).
+func ShouldRunBenchmark(ws *Workspace) bool {
+	return IsRunBenchmarkEnabled(ws) &&
+		GetWorkspaceRuntimeName(ws) == model.RuntimeNameVLLM &&
+		ws.Inference != nil && ws.Inference.Preset != nil
 }
 
 // GetPerformanceMode returns the performance mode annotation value, defaulting to
@@ -122,4 +165,130 @@ func GetPerformanceMode(ws *Workspace) string {
 		return v
 	}
 	return PerformanceModeBalanced
+}
+
+// UseLocalWeights reports whether the workspace opts into loading model weights
+// from the node (kaito.sh/use-local-weights: "true") instead of downloading them
+// from HuggingFace at runtime.
+func UseLocalWeights(ws *Workspace) bool {
+	if ws == nil {
+		return false
+	}
+	return ws.Annotations[AnnotationUseLocalWeights] == "true"
+}
+
+// GetLocalWeightsPath returns the node directory holding baked model weights for
+// the workspace's preset when kaito.sh/use-local-weights is enabled, or "" when
+// it is disabled or the workspace has no preset. The path is
+// LocalWeightsHostPathPrefix/<sanitized preset name>, e.g.
+// /opt/kaito/models/deepseek-ai-deepseek-v4-flash.
+func GetLocalWeightsPath(ws *Workspace) string {
+	if !UseLocalWeights(ws) {
+		return ""
+	}
+	if ws.Inference == nil || ws.Inference.Preset == nil {
+		return ""
+	}
+	segment := sanitizePresetName(string(ws.Inference.Preset.Name))
+	if segment == "" {
+		return ""
+	}
+	return path.Join(LocalWeightsHostPathPrefix, segment)
+}
+
+// sanitizePresetName maps a preset model id to a single path segment: lowercased
+// with path separators replaced by dashes (e.g. "deepseek-ai/DeepSeek-V4-Flash"
+// -> "deepseek-ai-deepseek-v4-flash"). It returns "" for a name that would not be
+// a safe single directory segment, so the derived path cannot escape
+// LocalWeightsHostPathPrefix.
+func sanitizePresetName(name string) string {
+	s := strings.ToLower(strings.TrimSpace(name))
+	s = strings.ReplaceAll(s, "/", "-")
+	s = strings.ReplaceAll(s, "\\", "-")
+	if s == "" || s == "." || s == ".." {
+		return ""
+	}
+	return s
+}
+
+// reservedSelectorLabelKeys are labels that KAITO controllers apply to their
+// own NodeClaims/Nodes/NodePools. Users must not include them in resource
+// label selectors; if they do, the values are silently ignored to prevent
+// cross-resource targeting (e.g. matching another Workspace's nodes).
+var reservedSelectorLabelKeys = map[string]struct{}{
+	// KAITO workspace/ragengine identity labels.
+	LabelWorkspaceName:      {},
+	LabelRAGEngineName:      {},
+	LabelWorkspaceNamespace: {},
+	LabelRAGEngineNamespace: {},
+
+	// Karpenter NodePool management labels.
+	consts.KarpenterWorkspaceNameKey:         {},
+	consts.KarpenterWorkspaceNamespaceKey:    {},
+	consts.KarpenterInferenceSetKey:          {},
+	consts.KarpenterInferenceSetNamespaceKey: {},
+}
+
+// IsReservedSelectorLabel reports whether the given label key is reserved by
+// KAITO and must not be honored when supplied via a user-defined selector.
+func IsReservedSelectorLabel(key string) bool {
+	_, ok := reservedSelectorLabelKeys[key]
+	return ok
+}
+
+// SanitizedMatchLabels returns the MatchLabels of selector with any
+// KAITO-reserved keys removed. Returns nil when selector is nil or has no
+// non-reserved entries. The returned map is always a fresh copy when at
+// least one entry is preserved; callers must not assume identity with the
+// input map.
+func SanitizedMatchLabels(selector *metav1.LabelSelector) map[string]string {
+	if selector == nil || len(selector.MatchLabels) == 0 {
+		return nil
+	}
+	out := make(map[string]string, len(selector.MatchLabels))
+	for k, v := range selector.MatchLabels {
+		if IsReservedSelectorLabel(k) {
+			continue
+		}
+		out[k] = v
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
+}
+
+// GetInferenceSetRuntimeName returns the runtime name for an InferenceSet.
+func GetInferenceSetRuntimeName(iObj *InferenceSet) model.RuntimeName {
+	if iObj == nil {
+		panic("inferenceset is nil")
+	}
+
+	if !featuregates.FeatureGates[consts.FeatureFlagVLLM] {
+		return model.RuntimeNameHuggingfaceTransformers
+	}
+
+	runtime := model.RuntimeNameVLLM
+	name := iObj.Annotations[AnnotationWorkspaceRuntime]
+	switch name {
+	case string(model.RuntimeNameHuggingfaceTransformers):
+		runtime = model.RuntimeNameHuggingfaceTransformers
+	case string(model.RuntimeNameVLLM):
+		runtime = model.RuntimeNameVLLM
+	}
+
+	return runtime
+}
+
+// IsInferenceSetBenchmarkEnabled reports whether the InferenceSet benchmark is enabled.
+func IsInferenceSetBenchmarkEnabled(iObj *InferenceSet) bool {
+	return iObj.Annotations[AnnotationDisableBenchmark] != "true"
+}
+
+// ShouldRunInferenceSetBenchmark reports whether the InferenceSet's child workspaces should
+// run the post-load benchmark.
+func ShouldRunInferenceSetBenchmark(iObj *InferenceSet) bool {
+	return IsInferenceSetBenchmarkEnabled(iObj) &&
+		GetInferenceSetRuntimeName(iObj) == model.RuntimeNameVLLM &&
+		iObj.Spec.Template.Inference.Preset != nil
 }

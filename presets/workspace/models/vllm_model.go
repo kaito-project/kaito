@@ -21,6 +21,7 @@ import (
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -28,6 +29,51 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/presets/workspace/generator"
 )
+
+const (
+	// defaultReadinessTimeout is the floor startup-probe timeout, used for small
+	// models and when the model weight size is unknown.
+	defaultReadinessTimeout = 30 * time.Minute
+
+	// maxReadinessTimeout caps the startup-probe timeout so a genuinely stuck pod is
+	// still detected within a bounded window, even for very large models.
+	maxReadinessTimeout = 180 * time.Minute
+
+	// readinessTimeoutBase is the fixed startup overhead independent of weight size
+	// (CUDA init, graph capture, warmup, and the optional post-load benchmark).
+	readinessTimeoutBase = 15 * time.Minute
+
+	// readinessTimeoutPerGiB scales the timeout with model weight size. It is sized
+	// for the worst case of downloading weights from HuggingFace at runtime over a
+	// ~60 MB/s link; loading from local or baked weights is far faster, so this is a
+	// safe upper bound. With the 15m base this gives a 150Gi model ~60 minutes.
+	readinessTimeoutPerGiB = 18 * time.Second
+)
+
+// readinessTimeoutForModelSize returns the startup-probe timeout for a preset
+// model, scaled by its weight size (from model_catalog.yaml). The timeout grows
+// linearly with size to cover longer download/load times for larger models —
+// readinessTimeoutBase + size × readinessTimeoutPerGiB — clamped to
+// [defaultReadinessTimeout, maxReadinessTimeout]. When the size is unknown or
+// unparsable it falls back to the floor.
+func readinessTimeoutForModelSize(modelFileSize string) time.Duration {
+	if modelFileSize == "" {
+		return defaultReadinessTimeout
+	}
+	size, err := resource.ParseQuantity(modelFileSize)
+	if err != nil {
+		return defaultReadinessTimeout
+	}
+	sizeGiB := float64(size.Value()) / float64(1<<30)
+	timeout := readinessTimeoutBase + time.Duration(sizeGiB*float64(readinessTimeoutPerGiB))
+	if timeout < defaultReadinessTimeout {
+		return defaultReadinessTimeout
+	}
+	if timeout > maxReadinessTimeout {
+		return maxReadinessTimeout
+	}
+	return timeout
+}
 
 var (
 	//go:embed model_catalog.yaml
@@ -137,6 +183,10 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		Runtime:              "tfs",
 		DownloadAtRuntime:    true,
 		DownloadAuthRequired: m.model.DownloadAuthRequired,
+		Architectures:        m.model.Architectures,
+		QuantMethod:          m.model.QuantMethod,
+		QuantBits:            m.model.QuantBits,
+		AttnType:             m.model.AttnType,
 	}
 
 	runParamsVLLM := make(map[string]string)
@@ -147,8 +197,13 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 	if _, ok := runParamsVLLM["trust-remote-code"]; !ok {
 		runParamsVLLM["trust-remote-code"] = ""
 	}
+
+	// For quantized models, let vLLM auto-detect the optimal dtype
+	// TODO: test if we can always set dtype to "auto"
 	if _, ok := runParamsVLLM["dtype"]; !ok {
-		if m.model.DType != "" {
+		if m.model.QuantMethod != "" {
+			runParamsVLLM["dtype"] = "auto"
+		} else if m.model.DType != "" {
 			runParamsVLLM["dtype"] = m.model.DType
 		} else {
 			runParamsVLLM["dtype"] = "bfloat16"
@@ -190,7 +245,7 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 			Transformers: tfsParam,
 			VLLM:         vllmParam,
 		},
-		ReadinessTimeout: time.Duration(30) * time.Minute,
+		ReadinessTimeout: readinessTimeoutForModelSize(m.model.ModelFileSize),
 	}
 
 	return presetParam
@@ -204,7 +259,6 @@ func (m *vLLMCompatibleModel) GetTuningParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata:                      MustGet(m.model.Name),
 		DiskStorageRequirement:        tc.DiskStorageRequirement,
-		GPUCountRequirement:           tc.GPUCountRequirement,
 		TotalSafeTensorFileSize:       tc.TotalSafeTensorFileSize,
 		ModelTokenLimit:               tc.ModelTokenLimit,
 		BytesPerToken:                 tc.BytesPerToken,

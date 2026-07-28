@@ -125,6 +125,12 @@ func catalogFields(e *generator.CatalogEntry) map[string]string {
 	if e.QKRopeHeadDim > 0 {
 		m["qkRopeHeadDim"] = fmt.Sprintf("%d", e.QKRopeHeadDim)
 	}
+	if e.QuantMethod != "" {
+		m["quantMethod"] = e.QuantMethod
+	}
+	if e.QuantBits > 0 {
+		m["quantBits"] = fmt.Sprintf("%d", e.QuantBits)
+	}
 	if e.LoadFormat != "" {
 		m["loadFormat"] = e.LoadFormat
 	}
@@ -183,6 +189,20 @@ func updateModelCatalog(repos []string, dryRun bool, token, catalogPath string) 
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "  ERROR: %v\n", err)
 			continue
+		}
+
+		// Infer missing architectures from base model on HuggingFace.
+		if len(newEntry.Architectures) == 0 && len(newEntry.BaseModel) > 0 {
+			for _, bm := range newEntry.BaseModel {
+				baseEntry, err := generator.FetchCatalogEntry(bm, token)
+				if err != nil {
+					continue
+				}
+				if len(baseEntry.Architectures) > 0 {
+					newEntry.Architectures = baseEntry.Architectures
+					break
+				}
+			}
 		}
 
 		idx, exists := existingByRepo[strings.ToLower(repo)]

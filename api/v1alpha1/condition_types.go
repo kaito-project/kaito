@@ -47,7 +47,7 @@ const (
 	// InferenceSetConditionTypeReady is the InferenceSet state when starts to get ready.
 	InferenceSetConditionTypeReady = ConditionType("InferenceSetReady")
 
-	// InferenceSetConditionTypeBenchmarkCompleted is set when benchmark annotation is present.
+	// InferenceSetConditionTypeBenchmarkCompleted is set when benchmark is enabled (default).
 	// True means all desired replicas have a benchmark result; False means some are still pending.
 	InferenceSetConditionTypeBenchmarkCompleted = ConditionType("BenchmarkCompleted")
 
@@ -57,4 +57,16 @@ const (
 	WorkspaceConditionTypeSucceeded ConditionType = ConditionType("WorkspaceSucceeded")
 
 	RAGEngineConditionTypeSucceeded ConditionType = ConditionType("RAGEngineSucceeded")
+
+	// MultiRoleInferenceConditionTypePrefillReady indicates the prefill InferenceSet is ready.
+	MultiRoleInferenceConditionTypePrefillReady = ConditionType("PrefillReady")
+
+	// MultiRoleInferenceConditionTypeDecodeReady indicates the decode InferenceSet is ready.
+	MultiRoleInferenceConditionTypeDecodeReady = ConditionType("DecodeReady")
+
+	// MultiRoleInferenceConditionTypeInferencePoolReady indicates the shared InferencePool is ready.
+	MultiRoleInferenceConditionTypeInferencePoolReady = ConditionType("InferencePoolReady")
+
+	// MultiRoleInferenceConditionTypeReady indicates the overall MultiRoleInference is ready.
+	MultiRoleInferenceConditionTypeReady = ConditionType("Ready")
 )

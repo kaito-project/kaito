@@ -22,12 +22,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/kaito-project/kaito/pkg/sku"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestPresetParamDeepCopy(t *testing.T) {
 	original := &PresetParam{
-		Metadata:            Metadata{Name: "test-model"},
-		GPUCountRequirement: "2",
+		Metadata: Metadata{Name: "test-model"},
 		TuningPerGPUMemoryRequirement: map[string]int{
 			"lora": 16000,
 		},
@@ -47,7 +47,6 @@ func TestPresetParamDeepCopy(t *testing.T) {
 	copied := original.DeepCopy()
 	require.NotNil(t, copied)
 	assert.Equal(t, original.Metadata.Name, copied.Metadata.Name)
-	assert.Equal(t, original.GPUCountRequirement, copied.GPUCountRequirement)
 	assert.Equal(t, original.TuningPerGPUMemoryRequirement, copied.TuningPerGPUMemoryRequirement)
 
 	// Mutations on the copy must not affect the original.
@@ -188,6 +187,39 @@ func TestGetInferenceCommandHuggingfaceDownloadAtRuntimeWithRevision(t *testing.
 	assert.Contains(t, cmd[2], "allow_remote_files")
 }
 
+func TestGetInferenceCommandVLLMLocalModelWeightsPath(t *testing.T) {
+	// A model that would normally download from HuggingFace, but is instead
+	// served from weights already present on local disk (e.g. mounted from a
+	// custom GPU node image). The command should point --model at the local path
+	// and omit --download-dir / --code-revision.
+	p := &PresetParam{
+		Metadata: Metadata{
+			Version:           "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash/commit/abc123",
+			DownloadAtRuntime: true,
+		},
+		RuntimeParam: RuntimeParam{
+			VLLM: VLLMParam{
+				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
+				ModelRunParams: map[string]string{},
+			},
+		},
+	}
+	rc := RuntimeContext{
+		RuntimeName: RuntimeNameVLLM,
+		SKUNumGPUs:  1,
+		NumNodes:    1,
+		RuntimeContextExtraArguments: RuntimeContextExtraArguments{
+			LocalModelWeightsPath: "/opt/kaito/models/deepseekv4flash",
+		},
+	}
+	cmd := p.GetInferenceCommand(rc)
+	require.Len(t, cmd, 3)
+	assert.Contains(t, cmd[2], "--model=/opt/kaito/models/deepseekv4flash")
+	assert.Contains(t, cmd[2], "--load-format=runai_streamer")
+	assert.NotContains(t, cmd[2], "download-dir")
+	assert.NotContains(t, cmd[2], "code-revision")
+}
+
 func TestGetInferenceCommandVLLMSingleNode(t *testing.T) {
 	p := &PresetParam{
 		RuntimeParam: RuntimeParam{
@@ -207,6 +239,123 @@ func TestGetInferenceCommandVLLMSingleNode(t *testing.T) {
 	require.Len(t, cmd, 3)
 	assert.Contains(t, cmd[2], "vllm serve")
 	assert.Contains(t, cmd[2], "tensor-parallel-size=2")
+}
+
+func TestGetInferenceCommandVLLMInferencePort(t *testing.T) {
+	p := &PresetParam{
+		RuntimeParam: RuntimeParam{
+			VLLM: VLLMParam{
+				BaseCommand:    "vllm serve",
+				ModelRunParams: map[string]string{},
+			},
+		},
+	}
+	rc := RuntimeContext{
+		RuntimeName:          RuntimeNameVLLM,
+		SKUNumGPUs:           1,
+		NumNodes:             1,
+		DistributedInference: false,
+		InferencePort:        5001,
+	}
+	cmd := p.GetInferenceCommand(rc)
+	require.Len(t, cmd, 3)
+	assert.Contains(t, cmd[2], "--port=5001")
+
+	// Without InferencePort, no --port flag should be present
+	p2 := &PresetParam{
+		RuntimeParam: RuntimeParam{
+			VLLM: VLLMParam{
+				BaseCommand:    "vllm serve",
+				ModelRunParams: map[string]string{},
+			},
+		},
+	}
+	rc2 := RuntimeContext{
+		RuntimeName:          RuntimeNameVLLM,
+		SKUNumGPUs:           1,
+		NumNodes:             1,
+		DistributedInference: false,
+	}
+	cmd2 := p2.GetInferenceCommand(rc2)
+	require.Len(t, cmd2, 3)
+	assert.NotContains(t, cmd2[2], "--port=")
+}
+
+func TestGetInferenceCommandVLLMServedModelName(t *testing.T) {
+	tests := []struct {
+		name              string
+		vllmModelName     string
+		workspaceLabels   map[string]string
+		expectedServed    string
+		notExpectedServed string
+	}{
+		{
+			name:           "standalone workspace uses VLLM.ModelName",
+			vllmModelName:  "default-model",
+			expectedServed: "served-model-name=default-model",
+		},
+		{
+			name:          "InferenceSet workspace uses InferenceSet name",
+			vllmModelName: "default-model",
+			workspaceLabels: map[string]string{
+				consts.WorkspaceCreatedByInferenceSetLabel: "my-inferenceset",
+			},
+			expectedServed:    "served-model-name=my-inferenceset",
+			notExpectedServed: "served-model-name=default-model",
+		},
+		{
+			name: "InferenceSet workspace overrides even when VLLM.ModelName is empty",
+			workspaceLabels: map[string]string{
+				consts.WorkspaceCreatedByInferenceSetLabel: "my-inferenceset",
+			},
+			expectedServed: "served-model-name=my-inferenceset",
+		},
+		{
+			name:          "MRI workspace uses model name over InferenceSet name",
+			vllmModelName: "phi-4-mini-instruct",
+			workspaceLabels: map[string]string{
+				consts.WorkspaceCreatedByInferenceSetLabel: "phi-4-decode",
+				"multiroleinference.kaito.sh/created-by":   "phi-4",
+			},
+			expectedServed:    "served-model-name=phi-4-mini-instruct",
+			notExpectedServed: "served-model-name=phi-4-decode",
+		},
+		{
+			name:          "InferenceSet label with empty value falls back to VLLM.ModelName",
+			vllmModelName: "default-model",
+			workspaceLabels: map[string]string{
+				consts.WorkspaceCreatedByInferenceSetLabel: "",
+			},
+			expectedServed: "served-model-name=default-model",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := &PresetParam{
+				RuntimeParam: RuntimeParam{
+					VLLM: VLLMParam{
+						BaseCommand:    "vllm serve",
+						ModelName:      tt.vllmModelName,
+						ModelRunParams: map[string]string{},
+					},
+				},
+			}
+			rc := RuntimeContext{
+				RuntimeName:          RuntimeNameVLLM,
+				SKUNumGPUs:           1,
+				NumNodes:             1,
+				DistributedInference: false,
+				WorkspaceMetadata:    metav1.ObjectMeta{Name: "ws", Namespace: "default", Labels: tt.workspaceLabels},
+			}
+			cmd := p.GetInferenceCommand(rc)
+			require.Len(t, cmd, 3)
+			assert.Contains(t, cmd[2], tt.expectedServed)
+			if tt.notExpectedServed != "" {
+				assert.NotContains(t, cmd[2], tt.notExpectedServed)
+			}
+		})
+	}
 }
 
 func TestGetInferenceCommandVLLMMultiNode(t *testing.T) {
@@ -471,6 +620,29 @@ func TestGetInferenceCommandVLLMDataParallelism(t *testing.T) {
 	assert.Contains(t, cmd[2], "kaito-kv-cache-cpu-memory-utilization=0")
 }
 
+func TestGetInferenceCommandVLLMMIGDisablesCPUOffload(t *testing.T) {
+	// On a MIG partition, CPU KV-cache offload must be disabled: it sizes itself
+	// from host RAM (cgroup-unaware), so co-located MIG pods would OOM the node.
+	p := &PresetParam{
+		TotalSafeTensorFileSize: "8Gi",
+		RuntimeParam: RuntimeParam{
+			VLLM: VLLMParam{
+				BaseCommand:    "vllm serve",
+				ModelRunParams: map[string]string{},
+			},
+		},
+	}
+	rc := RuntimeContext{
+		RuntimeName: RuntimeNameVLLM,
+		GPUConfig:   &sku.GPUConfig{GPUMem: resource.MustParse("24Gi"), GPUCount: 1, IsMIG: true},
+		SKUNumGPUs:  1,
+		NumNodes:    1,
+	}
+	cmd := p.GetInferenceCommand(rc)
+	require.Len(t, cmd, 3)
+	assert.Contains(t, cmd[2], "kaito-kv-cache-cpu-memory-utilization=0")
+}
+
 func TestGetInferenceCommandVLLMTensorParallelismWhenModelLarge(t *testing.T) {
 	p := &PresetParam{
 		TotalSafeTensorFileSize: "64Gi",
@@ -554,85 +726,46 @@ func TestGetInferenceCommandVLLMSmallModelOnMultiNodeUsesTP(t *testing.T) {
 	assert.NotContains(t, cmd[2], "data-parallel-size")
 }
 
-func TestBuildVLLMInferenceCommandDTypeDynamic(t *testing.T) {
-	t.Run("bfloat16 downgraded to float16 on older GPU", func(t *testing.T) {
-		p := &PresetParam{
-			RuntimeParam: RuntimeParam{
-				VLLM: VLLMParam{
-					BaseCommand:    "vllm serve",
-					ModelRunParams: map[string]string{"dtype": "bfloat16"},
-				},
+func TestBuildVLLMInferenceCommandDisablesKVCacheForHybridModels(t *testing.T) {
+	p := &PresetParam{
+		Metadata: Metadata{
+			Architectures: []string{"NemotronHForCausalLM"},
+		},
+		RuntimeParam: RuntimeParam{
+			VLLM: VLLMParam{
+				BaseCommand:    "vllm serve",
+				ModelRunParams: map[string]string{},
 			},
-		}
-		rc := RuntimeContext{
-			RuntimeName: RuntimeNameVLLM,
-			SKUNumGPUs:  1,
-			NumNodes:    1,
-			GPUConfig:   &sku.GPUConfig{SKU: "test-t4", CUDAComputeCapability: 7.5},
-		}
-		cmd := p.GetInferenceCommand(rc)
-		require.Len(t, cmd, 3)
-		assert.Contains(t, cmd[2], "dtype=float16")
-		assert.NotContains(t, cmd[2], "dtype=bfloat16")
-	})
+		},
+	}
+	rc := RuntimeContext{
+		RuntimeName: RuntimeNameVLLM,
+		SKUNumGPUs:  2,
+		NumNodes:    1,
+	}
+	cmd := p.GetInferenceCommand(rc)
+	require.Len(t, cmd, 3)
+	assert.Contains(t, cmd[2], "kaito-kv-cache-cpu-memory-utilization=0")
+}
 
-	t.Run("bfloat16 preserved on Ampere GPU", func(t *testing.T) {
-		p := &PresetParam{
-			RuntimeParam: RuntimeParam{
-				VLLM: VLLMParam{
-					BaseCommand:    "vllm serve",
-					ModelRunParams: map[string]string{"dtype": "bfloat16"},
-				},
+func TestBuildVLLMInferenceCommandNoKVCacheOverrideForNonHybrid(t *testing.T) {
+	p := &PresetParam{
+		Metadata: Metadata{
+			Architectures: []string{"LlamaForCausalLM"},
+		},
+		RuntimeParam: RuntimeParam{
+			VLLM: VLLMParam{
+				BaseCommand:    "vllm serve",
+				ModelRunParams: map[string]string{},
 			},
-		}
-		rc := RuntimeContext{
-			RuntimeName: RuntimeNameVLLM,
-			SKUNumGPUs:  1,
-			NumNodes:    1,
-			GPUConfig:   &sku.GPUConfig{SKU: "test-a100", CUDAComputeCapability: 8.0},
-		}
-		cmd := p.GetInferenceCommand(rc)
-		require.Len(t, cmd, 3)
-		assert.Contains(t, cmd[2], "dtype=bfloat16")
-	})
-
-	t.Run("float16 unchanged on older GPU", func(t *testing.T) {
-		p := &PresetParam{
-			RuntimeParam: RuntimeParam{
-				VLLM: VLLMParam{
-					BaseCommand:    "vllm serve",
-					ModelRunParams: map[string]string{"dtype": "float16"},
-				},
-			},
-		}
-		rc := RuntimeContext{
-			RuntimeName: RuntimeNameVLLM,
-			SKUNumGPUs:  1,
-			NumNodes:    1,
-			GPUConfig:   &sku.GPUConfig{SKU: "test-t4", CUDAComputeCapability: 7.5},
-		}
-		cmd := p.GetInferenceCommand(rc)
-		require.Len(t, cmd, 3)
-		assert.Contains(t, cmd[2], "dtype=float16")
-	})
-
-	t.Run("nil GPUConfig does not modify dtype", func(t *testing.T) {
-		p := &PresetParam{
-			RuntimeParam: RuntimeParam{
-				VLLM: VLLMParam{
-					BaseCommand:    "vllm serve",
-					ModelRunParams: map[string]string{"dtype": "bfloat16"},
-				},
-			},
-		}
-		rc := RuntimeContext{
-			RuntimeName: RuntimeNameVLLM,
-			SKUNumGPUs:  1,
-			NumNodes:    1,
-			GPUConfig:   nil,
-		}
-		cmd := p.GetInferenceCommand(rc)
-		require.Len(t, cmd, 3)
-		assert.Contains(t, cmd[2], "dtype=bfloat16")
-	})
+		},
+	}
+	rc := RuntimeContext{
+		RuntimeName: RuntimeNameVLLM,
+		SKUNumGPUs:  2,
+		NumNodes:    1,
+	}
+	cmd := p.GetInferenceCommand(rc)
+	require.Len(t, cmd, 3)
+	assert.NotContains(t, cmd[2], "kaito-kv-cache-cpu-memory-utilization")
 }

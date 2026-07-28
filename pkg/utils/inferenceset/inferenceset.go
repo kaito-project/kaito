@@ -19,6 +19,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"maps"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -34,7 +35,7 @@ import (
 )
 
 // UpdateStatusConditionIfNotMatch updates the inferenceset status condition if it doesn't match the current values
-func UpdateStatusConditionIfNotMatch(ctx context.Context, c client.Client, iObj *kaitov1alpha1.InferenceSet, cType kaitov1alpha1.ConditionType,
+func UpdateStatusConditionIfNotMatch(ctx context.Context, c client.Client, iObj *kaitov1beta1.InferenceSet, cType kaitov1beta1.ConditionType,
 	cStatus metav1.ConditionStatus, cReason, cMessage string) error {
 	if curCondition := meta.FindStatusCondition(iObj.Status.Conditions, string(cType)); curCondition != nil {
 		if curCondition.Status == cStatus && curCondition.Reason == cReason && curCondition.Message == cMessage {
@@ -51,21 +52,21 @@ func UpdateStatusConditionIfNotMatch(ctx context.Context, c client.Client, iObj 
 		Message:            cMessage,
 		LastTransitionTime: metav1.Now(),
 	}
-	return UpdateInferenceSetStatus(ctx, c, &client.ObjectKey{Name: iObj.Name, Namespace: iObj.Namespace}, func(status *kaitov1alpha1.InferenceSetStatus) error {
+	return UpdateInferenceSetStatus(ctx, c, &client.ObjectKey{Name: iObj.Name, Namespace: iObj.Namespace}, func(status *kaitov1beta1.InferenceSetStatus) error {
 		meta.SetStatusCondition(&status.Conditions, condition)
 		return nil
 	})
 }
 
 // UpdateInferenceSetStatus updates the inferenceset status with the provided condition
-func UpdateInferenceSetStatus(ctx context.Context, c client.Client, name *client.ObjectKey, modifyFn func(*kaitov1alpha1.InferenceSetStatus) error) error {
+func UpdateInferenceSetStatus(ctx context.Context, c client.Client, name *client.ObjectKey, modifyFn func(*kaitov1beta1.InferenceSetStatus) error) error {
 	return retry.OnError(retry.DefaultRetry,
 		func(err error) bool {
 			return apierrors.IsServiceUnavailable(err) || apierrors.IsServerTimeout(err) || apierrors.IsTooManyRequests(err) || apierrors.IsConflict(err)
 		},
 		func() error {
 			// Read the latest version to avoid update conflict.
-			iObj := &kaitov1alpha1.InferenceSet{}
+			iObj := &kaitov1beta1.InferenceSet{}
 			if err := c.Get(ctx, *name, iObj); err != nil {
 				if !apierrors.IsNotFound(err) {
 					return err
@@ -82,9 +83,9 @@ func UpdateInferenceSetStatus(ctx context.Context, c client.Client, name *client
 }
 
 // UpdateInferenceSetWithRetry gets the latest inferenceset object, applies the modify function, and retries on conflict
-func UpdateInferenceSetWithRetry(ctx context.Context, c client.Client, iObj *kaitov1alpha1.InferenceSet, modifyFn func(*kaitov1alpha1.InferenceSet) error) error {
+func UpdateInferenceSetWithRetry(ctx context.Context, c client.Client, iObj *kaitov1beta1.InferenceSet, modifyFn func(*kaitov1beta1.InferenceSet) error) error {
 	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		latestInferenceSet := &kaitov1alpha1.InferenceSet{}
+		latestInferenceSet := &kaitov1beta1.InferenceSet{}
 		if err := c.Get(ctx, client.ObjectKeyFromObject(iObj), latestInferenceSet); err != nil {
 			return err
 		}
@@ -95,14 +96,14 @@ func UpdateInferenceSetWithRetry(ctx context.Context, c client.Client, iObj *kai
 	})
 }
 
-// ListWorkspaces lists all workspace objects in the cluster that are created by the given InferenceSet.
-func ListWorkspaces(ctx context.Context, iObj *kaitov1alpha1.InferenceSet, kubeClient client.Client) (*kaitov1beta1.WorkspaceList, error) {
+// ListWorkspaces lists all workspace objects in the InferenceSet's namespace that are created by the given InferenceSet.
+func ListWorkspaces(ctx context.Context, iObj *kaitov1beta1.InferenceSet, kubeClient client.Client) (*kaitov1beta1.WorkspaceList, error) {
 	if iObj == nil {
 		return nil, fmt.Errorf("InferenceSet object is nil")
 	}
 	workspaceList := &kaitov1beta1.WorkspaceList{}
 
-	// List all the workspaces that are created by this inferenceset.
+	// List all the workspaces in iObj.Namespace that are created by this inferenceset.
 	// We use label selector to find the workspaces.
 	// The label is "inferenceset.kaito.sh/created-by": <inferenceset-name>
 	ls := labels.Set{
@@ -112,12 +113,71 @@ func ListWorkspaces(ctx context.Context, iObj *kaitov1alpha1.InferenceSet, kubeC
 	err := retry.OnError(retry.DefaultBackoff, func(err error) bool {
 		return true
 	}, func() error {
-		return kubeClient.List(ctx, workspaceList, &client.MatchingLabelsSelector{Selector: ls.AsSelector()})
+		return kubeClient.List(ctx, workspaceList,
+			client.InNamespace(iObj.Namespace),
+			&client.MatchingLabelsSelector{Selector: ls.AsSelector()},
+		)
 	})
 	return workspaceList, err
 }
 
-func ComputeInferenceSetHash(iObj *kaitov1alpha1.InferenceSet) string {
+// NewWorkspaceForInferenceSet builds a child Workspace object owned by the given
+// InferenceSet, applying the InferenceSet's template labels/annotations, owner
+// reference, resource spec, and inference spec. The returned Workspace uses
+// GenerateName so the API server assigns a unique name on creation.
+//
+// It is shared by the InferenceSet controller (replica scale-up) and the
+// AutoUpgradeRunner (surge-based upgrade) so both construct identical Workspaces.
+func NewWorkspaceForInferenceSet(iObj *kaitov1beta1.InferenceSet) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
+	workspaceObj.GenerateName = iObj.Name + "-"
+	workspaceObj.Namespace = iObj.Namespace
+
+	// Start with labels from the template metadata, then add controller labels.
+	workspaceLabels := maps.Clone(iObj.Spec.Template.Labels)
+	if workspaceLabels == nil {
+		workspaceLabels = make(map[string]string)
+	}
+	// Also propagate select labels from the InferenceSet's own metadata,
+	// in case template.metadata.labels was pruned by the API server.
+	if role, ok := iObj.Labels[kaitov1beta1.LabelInferenceRole]; ok {
+		workspaceLabels[kaitov1beta1.LabelInferenceRole] = role
+	}
+	if mriParent, ok := iObj.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent]; ok {
+		workspaceLabels[kaitov1alpha1.LabelMultiRoleInferenceParent] = mriParent
+	}
+	workspaceLabels[consts.WorkspaceCreatedByInferenceSetLabel] = iObj.Name
+	workspaceObj.Labels = workspaceLabels
+
+	// Start with annotations from the template metadata.
+	workspaceAnnotations := maps.Clone(iObj.Spec.Template.Annotations)
+	// Propagate the disable-benchmark opt-out so each child workspace inherits it.
+	// Benchmark is on by default; only propagate when explicitly disabled.
+	if !kaitov1beta1.IsInferenceSetBenchmarkEnabled(iObj) {
+		if workspaceAnnotations == nil {
+			workspaceAnnotations = make(map[string]string)
+		}
+		workspaceAnnotations[kaitov1beta1.AnnotationDisableBenchmark] = "true"
+	}
+	workspaceObj.Annotations = workspaceAnnotations
+	workspaceObj.OwnerReferences = []metav1.OwnerReference{
+		*metav1.NewControllerRef(iObj, kaitov1beta1.GroupVersion.WithKind("InferenceSet")),
+	}
+	workspaceObj.Resource = kaitov1beta1.ResourceSpec{
+		LabelSelector: iObj.Spec.Selector,
+		Partition:     iObj.Spec.Template.Resource.Partition,
+	}
+	// Only set InstanceType when node auto-provisioning is enabled.
+	// In BYO mode, the Workspace webhook rejects instanceType.
+	if consts.ActiveNodeProvisioner != consts.NodeProvisionerBYO {
+		workspaceObj.Resource.InstanceType = iObj.Spec.Template.Resource.InstanceType
+	}
+	workspaceObj.Inference = &iObj.Spec.Template.Inference
+
+	return workspaceObj
+}
+
+func ComputeInferenceSetHash(iObj *kaitov1beta1.InferenceSet) string {
 	if iObj == nil {
 		return ""
 	}
@@ -128,7 +188,7 @@ func ComputeInferenceSetHash(iObj *kaitov1alpha1.InferenceSet) string {
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-func MarshalInferenceSetFields(iObj *kaitov1alpha1.InferenceSet) ([]byte, error) {
+func MarshalInferenceSetFields(iObj *kaitov1beta1.InferenceSet) ([]byte, error) {
 	if iObj == nil {
 		return nil, fmt.Errorf("InferenceSet object is nil")
 	}

@@ -47,10 +47,6 @@ func TestRAGEngineConversion(t *testing.T) {
 						URL:               "http://inference-service/v1/chat",
 						ContextWindowSize: 4096,
 					},
-					Guardrails: &GuardrailsSpec{
-						Enabled:      true,
-						ConfigMapRef: &ConfigMapReference{Name: "guardrails-policy"},
-					},
 				},
 			},
 		},
@@ -88,17 +84,6 @@ func TestRAGEngineConversion(t *testing.T) {
 			// Verify basic fields
 			if v1beta1Rag.Name != tt.v1alpha1.Name {
 				t.Errorf("Name mismatch: got %s, want %s", v1beta1Rag.Name, tt.v1alpha1.Name)
-			}
-			if tt.v1alpha1.Spec.Guardrails != nil {
-				if v1beta1Rag.Spec.Guardrails == nil {
-					t.Fatal("Guardrails should not be nil after conversion")
-				}
-				if v1beta1Rag.Spec.Guardrails.Enabled != tt.v1alpha1.Spec.Guardrails.Enabled {
-					t.Errorf("Guardrails enabled mismatch: got %t, want %t", v1beta1Rag.Spec.Guardrails.Enabled, tt.v1alpha1.Spec.Guardrails.Enabled)
-				}
-				if v1beta1Rag.Spec.Guardrails.ConfigMapRef == nil || v1beta1Rag.Spec.Guardrails.ConfigMapRef.Name != tt.v1alpha1.Spec.Guardrails.ConfigMapRef.Name {
-					t.Errorf("Guardrails ConfigMapRef mismatch: got %#v, want %s", v1beta1Rag.Spec.Guardrails.ConfigMapRef, tt.v1alpha1.Spec.Guardrails.ConfigMapRef.Name)
-				}
 			}
 
 			// Verify storage conversion (flat -> nested)
@@ -148,14 +133,6 @@ func TestRAGEngineConversion(t *testing.T) {
 				t.Errorf("ContextWindowSize mismatch: got %d, want %d",
 					roundTrip.Spec.InferenceService.ContextWindowSize,
 					tt.v1alpha1.Spec.InferenceService.ContextWindowSize)
-			}
-			if tt.v1alpha1.Spec.Guardrails != nil {
-				if roundTrip.Spec.Guardrails == nil {
-					t.Fatal("Guardrails should not be nil after round-trip")
-				}
-				if roundTrip.Spec.Guardrails.ConfigMapRef == nil || roundTrip.Spec.Guardrails.ConfigMapRef.Name != tt.v1alpha1.Spec.Guardrails.ConfigMapRef.Name {
-					t.Errorf("Round-trip Guardrails ConfigMapRef mismatch: got %#v, want %s", roundTrip.Spec.Guardrails.ConfigMapRef, tt.v1alpha1.Spec.Guardrails.ConfigMapRef.Name)
-				}
 			}
 		})
 	}

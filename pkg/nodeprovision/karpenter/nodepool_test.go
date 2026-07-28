@@ -141,6 +141,11 @@ func newTestWorkspace(ns, name, instanceType string, targetNodeCount int32, labe
 		},
 		Resource: kaitov1beta1.ResourceSpec{
 			InstanceType: instanceType,
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"apps": "llm",
+				},
+			},
 		},
 		Status: kaitov1beta1.WorkspaceStatus{
 			TargetNodeCount: targetNodeCount,
@@ -160,7 +165,6 @@ func TestGenerateNodePool_Standalone(t *testing.T) {
 	assert.Equal(t, consts.KarpenterManagedByValue, np.Labels[consts.KarpenterLabelManagedBy])
 
 	// Template labels
-	assert.Equal(t, "default-llama-serve", np.Spec.Template.Labels[consts.KarpenterWorkspaceKey])
 	assert.Equal(t, "llama-serve", np.Spec.Template.Labels[consts.KarpenterWorkspaceNameKey])
 	assert.Equal(t, "default", np.Spec.Template.Labels[consts.KarpenterWorkspaceNamespaceKey])
 
@@ -175,17 +179,21 @@ func TestGenerateNodePool_Standalone(t *testing.T) {
 	assert.Equal(t, testConfig.DefaultName, ref.Name)
 
 	// Requirements
-	assert.Equal(t, 1, len(np.Spec.Template.Spec.Requirements))
+	assert.Equal(t, 2, len(np.Spec.Template.Spec.Requirements))
 	req := np.Spec.Template.Spec.Requirements[0]
 	assert.Equal(t, corev1.LabelInstanceTypeStable, req.Key)
 	assert.Equal(t, corev1.NodeSelectorOpIn, req.Operator)
 	assert.Equal(t, "Standard_NC24ads_A100_v4", req.Values[0])
+	placementReq := np.Spec.Template.Spec.Requirements[1]
+	assert.Equal(t, consts.AzurePlacementScopeLabel, placementReq.Key)
+	assert.Equal(t, corev1.NodeSelectorOpIn, placementReq.Operator)
+	assert.Equal(t, consts.AzurePlacementRegional, placementReq.Values[0])
 
 	// Taints
 	assert.Equal(t, 1, len(np.Spec.Template.Spec.Taints))
 	taint := np.Spec.Template.Spec.Taints[0]
-	assert.Equal(t, consts.KarpenterWorkspaceKey, taint.Key)
-	assert.Equal(t, "default-llama-serve", taint.Value)
+	assert.Equal(t, consts.SKUString, taint.Key)
+	assert.Equal(t, consts.GPUString, taint.Value)
 	assert.Equal(t, corev1.TaintEffectNoSchedule, taint.Effect)
 
 	// Disruption — standalone gets budget "1"
@@ -240,4 +248,8 @@ func TestGenerateNodePool_CustomCloudConfig(t *testing.T) {
 	assert.Equal(t, "karpenter.k8s.aws", ref.Group)
 	assert.Equal(t, "EC2NodeClass", ref.Kind)
 	assert.Equal(t, "default-ec2", ref.Name)
+
+	// Non-Azure providers should only have instance-type requirement (no placement scope).
+	assert.Equal(t, 1, len(np.Spec.Template.Spec.Requirements))
+	assert.Equal(t, corev1.LabelInstanceTypeStable, np.Spec.Template.Spec.Requirements[0].Key)
 }

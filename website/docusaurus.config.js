@@ -132,7 +132,7 @@ const config = {
                         ],
                     },
                 ],
-                copyright: `Copyright © ${new Date().getFullYear()} KAITO Project, Built with Docusaurus.`,
+                copyright: `Copyright © ${new Date().getFullYear()} KAITO Project, a Series of LF Projects, LLC For website terms of use, trademark policy and other project policies please see lfprojects.org/policies/.`,
             },
             prism: {
                 theme: prismThemes.github,

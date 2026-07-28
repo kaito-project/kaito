@@ -42,16 +42,24 @@ rules:
   - apiGroups: ["apiextensions.k8s.io"]
     resources: ["customresourcedefinitions"]
     verbs: ["get", "list"]
+  {{- if or (eq .Values.nodeProvisioner "karpenter") (eq .Values.nodeProvisioner "azure-gpu-provisioner") }}
   - apiGroups: ["karpenter.sh"]
-    resources: ["machines", "machines/status", "nodeclaims", "nodeclaims/status", "nodepools", "nodepools/status"]
+    resources: ["machines", "machines/status", "nodeclaims", "nodeclaims/status"]
     verbs: ["get","list","watch","create", "delete", "update", "patch"]
-  {{- if eq .Values.cloudProviderName "azure" }}
-  - apiGroups: [ "karpenter.azure.com" ]
-    resources: [ "aksnodeclasses"]
-    verbs: [ "get","list","watch","create", "delete", "update", "patch" ]
-  {{- else if eq .Values.cloudProviderName "aws" }}
-  - apiGroups: [ "karpenter.k8s.aws" ]
-    resources: [ "ec2nodeclasses"]
+  {{- end }}
+  {{- if eq .Values.nodeProvisioner "karpenter" }}
+  - apiGroups: ["karpenter.sh"]
+    resources: ["nodepools", "nodepools/status"]
+    verbs: ["get","list","watch","create", "delete", "update", "patch"]
+  {{- $provider := index .Values.karpenterProviders .Values.karpenterProvider }}
+  {{- if not $provider }}
+  {{- fail (printf "karpenterProviders.%s is not defined in values.yaml" .Values.karpenterProvider) }}
+  {{- end }}
+  {{- if or (not $provider.group) (not $provider.resourceName) }}
+  {{- fail (printf "karpenterProviders.%s must define both 'group' and 'resourceName'" .Values.karpenterProvider) }}
+  {{- end }}
+  - apiGroups: [ "{{ $provider.group }}" ]
+    resources: [ "{{ $provider.resourceName }}" ]
     verbs: [ "get","list","watch","create", "delete", "update", "patch" ]
   {{- end }}
   - apiGroups: ["admissionregistration.k8s.io"]
@@ -87,3 +95,17 @@ rules:
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["get", "list", "watch"]
+  {{- if .Values.featureGates.ModelStreaming }}
+  - apiGroups: ["kaito.sh"]
+    resources: ["modelmirrors"]
+    verbs: ["get", "list", "watch", "create"]
+  - apiGroups: ["kaito.sh"]
+    resources: ["modelmirrors/status"]
+    verbs: ["get"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["csidrivers"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["serviceaccounts"]
+    verbs: ["get", "list", "watch"]
+  {{- end }}

@@ -146,14 +146,8 @@ class ModelConfig:
     cache_dir: str | None = field(
         default=None, metadata={"help": "Cache directory for the model"}
     )
-    from_tf: bool = field(
-        default=False, metadata={"help": "Load model from a TensorFlow checkpoint"}
-    )
     force_download: bool = field(
         default=False, metadata={"help": "Force the download of the model"}
-    )
-    resume_download: bool = field(
-        default=False, metadata={"help": "Resume an interrupted download"}
     )
     proxies: str | None = field(
         default=None, metadata={"help": "Proxy configuration for downloading the model"}
@@ -171,12 +165,6 @@ class ModelConfig:
     trust_remote_code: bool = field(
         default=False,
         metadata={"help": "Enable trusting remote code when loading the model"},
-    )
-    load_in_4bit: bool = field(
-        default=False, metadata={"help": "Load model in 4-bit mode"}
-    )
-    load_in_8bit: bool = field(
-        default=False, metadata={"help": "Load model in 8-bit mode"}
     )
     torch_dtype: str | None = field(
         default=None, metadata={"help": "The torch dtype for the pre-trained model"}

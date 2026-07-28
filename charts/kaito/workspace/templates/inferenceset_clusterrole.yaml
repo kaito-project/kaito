@@ -15,7 +15,7 @@ rules:
     verbs: ["update", "patch","get","list","watch"]
   - apiGroups: ["kaito.sh"]
     resources: ["inferencesets"]
-    verbs: ["update", "patch","get","list","watch"]
+    verbs: ["update", "patch","get","list","watch","create","delete"]
   - apiGroups: ["kaito.sh"]
     resources: ["inferencesets/status"]
     verbs: ["update", "patch","get","list","watch"]

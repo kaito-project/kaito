@@ -15,6 +15,7 @@ package manifests
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
@@ -25,6 +26,13 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
+const (
+	GuardrailsPolicyVolumeName = "guardrails-policy"
+	GuardrailsPolicyMountPath  = "/etc/ragengine/guardrails"
+	GuardrailsPolicyFileName   = kaitov1beta1.GuardrailsPolicyFileName
+	GuardrailsPolicyFilePath   = GuardrailsPolicyMountPath + "/" + GuardrailsPolicyFileName
+)
+
 func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1beta1.RAGEngine, revisionNum string, imageName string,
 	imagePullSecretRefs []corev1.LocalObjectReference, commands []string, containerPorts []corev1.ContainerPort,
 	livenessProbe, readinessProbe *corev1.Probe, resourceRequirements corev1.ResourceRequirements,
@@ -32,8 +40,9 @@ func GenerateRAGDeploymentManifest(ragEngineObj *kaitov1beta1.RAGEngine, revisio
 
 	var affinity *corev1.Affinity
 	if ragEngineObj.Spec.Compute != nil && ragEngineObj.Spec.Compute.LabelSelector != nil {
-		nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(ragEngineObj.Spec.Compute.LabelSelector.MatchLabels))
-		for key, value := range ragEngineObj.Spec.Compute.LabelSelector.MatchLabels {
+		selectorLabels := kaitov1beta1.SanitizedMatchLabels(ragEngineObj.Spec.Compute.LabelSelector)
+		nodeRequirements := make([]corev1.NodeSelectorRequirement, 0, len(selectorLabels))
+		for key, value := range selectorLabels {
 			nodeRequirements = append(nodeRequirements, corev1.NodeSelectorRequirement{
 				Key:      key,
 				Operator: corev1.NodeSelectorOpIn,
@@ -272,6 +281,19 @@ func RAGSetEnv(ragEngineObj *kaitov1beta1.RAGEngine) []corev1.EnvVar {
 				}
 				envs = append(envs, accessSecretEnv)
 			}
+		}
+	}
+
+	if g := ragEngineObj.Spec.Guardrails; g != nil {
+		envs = append(envs, corev1.EnvVar{
+			Name:  "OUTPUT_GUARDRAILS_ENABLED",
+			Value: strconv.FormatBool(g.Enabled),
+		})
+		if g.Enabled {
+			envs = append(envs, corev1.EnvVar{
+				Name:  "OUTPUT_GUARDRAILS_POLICY_PATH",
+				Value: GuardrailsPolicyFilePath,
+			})
 		}
 	}
 

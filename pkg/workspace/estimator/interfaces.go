@@ -39,7 +39,7 @@ type ModelProfile struct {
 
 // ResourceProfile describes the compute resources available for the workload.
 type ResourceProfile struct {
-	// InstanceType is the GPU SKU identifier (e.g. "Standard_NC4as_T4_v3").
+	// InstanceType is the GPU SKU identifier (e.g. "Standard_NV36ads_A10_v5").
 	InstanceType string
 	// RequestedNodeCount is the caller-preferred node count; 0 means unspecified.
 	RequestedNodeCount int
@@ -48,6 +48,8 @@ type ResourceProfile struct {
 	// DisableNodeAutoProvisioning indicates BYO (Bring Your Own) mode: no new nodes will be
 	// provisioned and the estimator must derive GPU config from existing ready nodes.
 	DisableNodeAutoProvisioning bool
+	// MIGProfile is the NVIDIA MIG partition profile (e.g. "1g.10gb"). Empty when MIG is not used.
+	MIGProfile string
 }
 
 // NodeEstimateRequest holds all inputs needed to estimate the required node count.

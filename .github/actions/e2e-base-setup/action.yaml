@@ -26,7 +26,7 @@ inputs:
   k8s_version:
     description: "Kubernetes version"
     required: false
-    default: "latest"
+    default: "1.35"
   build_kaito_base_image:
     description: "Whether to build kaito base image"
     required: false
@@ -220,92 +220,10 @@ runs:
       env:
         ARCH: amd64
 
-    - name: Resolve AKS Kubernetes version
+    - name: Set AKS Kubernetes version
       shell: bash
       run: |
-        set -euo pipefail
-
-        requested_version="${{ inputs.k8s_version }}"
-        if [ "$requested_version" != "latest" ]; then
-          echo "AKS_K8S_VERSION=$requested_version" >> "$GITHUB_ENV"
-          exit 0
-        fi
-
-        safe_location="$(printf '%s' "$AZURE_LOCATION" | tr -cd '[:alnum:]._-')"
-        if [ -z "$safe_location" ]; then
-          safe_location="<invalid-region>"
-        fi
-        if ! versions_json="$(az aks get-versions --location "$AZURE_LOCATION" -o json 2>&1)"; then
-          echo "::error::az aks get-versions failed for \"$safe_location\""
-          echo "$versions_json" >&2
-          exit 1
-        fi
-        resolved_version="$(
-          printf '%s' "$versions_json" |
-            jq -r '
-              # Stable `major.minor.patch` versions are sorted numerically after
-              # stripping any suffixes defensively in case the filter changes.
-              def semver:
-                split("+")[0]
-                | split("-")[0]
-                | split(".")
-                | map(tonumber);
-              # Newer AKS CLI output returns minor versions under `values`, and the
-              # available patch versions are the keys of `patchVersions`.
-              # Older output lists full patch versions directly in
-              # `orchestrators[].orchestratorVersion`.
-              if has("values") then
-                [.values[]
-                 | select((.isPreview // false) != true)
-                 | (.patchVersions // {} | keys[]?)]
-              else
-                [.orchestrators[]
-                 | select((.isPreview // false) != true)
-                 | .orchestratorVersion]
-              end
-              # Intentionally permissive: Azure is the source of truth for valid
-              # AKS versions, and we only need to exclude non-stable strings here.
-              | map(select(. != null and test("^[0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]{1,3}$")))
-              | unique
-              | sort_by(semver)
-              | last // null
-            '
-        )"
-
-        if [ -z "$resolved_version" ] || [ "$resolved_version" = "null" ]; then
-          sanitized_versions_json="$(
-            printf '%s' "$versions_json" |
-              jq -c '
-                if has("values") then
-                  {
-                    values: [
-                      .values[]?
-                      | {
-                          version,
-                          isPreview,
-                          patchVersions: ((.patchVersions // {}) | keys)
-                        }
-                    ]
-                  }
-                else
-                  {
-                    orchestrators: [
-                      .orchestrators[]?
-                      | {orchestratorVersion, isPreview}
-                    ]
-                  }
-                end
-              '
-          )"
-          echo "::error::Failed to resolve a supported non-preview AKS Kubernetes version for \"$safe_location\"; sanitized az aks get-versions response follows"
-          echo "$sanitized_versions_json" >&2
-          exit 1
-        fi
-
-        echo "AKS_K8S_VERSION=$resolved_version" >> "$GITHUB_ENV"
-        echo "::notice::Using AKS Kubernetes version $resolved_version in \"$safe_location\""
-      env:
-        AZURE_LOCATION: ${{ inputs.region }}
+        echo "AKS_K8S_VERSION=${{ inputs.k8s_version }}" >> "$GITHUB_ENV"
 
     # TEMPORARY FIX (capacity issue): try the requested `inputs.region` first,
     # and fall back to polandcentral if that region has no capacity.

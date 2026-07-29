@@ -18,7 +18,7 @@ upstream chunks
   -> SSE framing
   -> OpenAI event parsing
   -> holdback window
-  -> policy-ordered output scanners
+  -> redaction phase followed by block validation
   -> sanitized pending text
   -> safe deltas OR block message + content_filter + [DONE]
 ```

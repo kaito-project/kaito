@@ -60,6 +60,7 @@ const (
 	FeatureFlagGatewayAPIInferenceExtension = "gatewayAPIInferenceExtension"
 	FeatureFlagEnableInferenceSetController = "enableInferenceSetController"
 	FeatureFlagEnableMIG                    = "enableMIG"
+	FeatureFlagEnableAccelerator            = "enableAccelerator"
 
 	FeatureFlagEnableMultiRoleInferenceController = "enableMultiRoleInferenceController"
 	FeatureFlagModelMirror                        = "ModelMirror"

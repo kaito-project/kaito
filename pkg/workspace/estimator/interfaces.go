@@ -50,6 +50,9 @@ type ResourceProfile struct {
 	DisableNodeAutoProvisioning bool
 	// MIGProfile is the NVIDIA MIG partition profile (e.g. "1g.10gb"). Empty when MIG is not used.
 	MIGProfile string
+	// AcceleratorCount is the number of whole GPUs for an accelerator partition;
+	// zero when the accelerator partition mode is not used.
+	AcceleratorCount int
 }
 
 // NodeEstimateRequest holds all inputs needed to estimate the required node count.

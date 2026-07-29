@@ -1,0 +1,19 @@
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-accelerator-llama-3-1-8b-instruct
+resource:
+  # Accelerator partition requires the enableAccelerator feature gate and BYO nodes
+  # (disableNodeAutoProvisioning=true), so instanceType must be empty and matching
+  # GPU nodes must already exist.
+  labelSelector:
+    matchLabels:
+      apps: accelerator-llama-3-1-8b-instruct
+  partition:
+    mode: accelerator
+    count: 2
+inference:
+  preset:
+    name: llama-3.1-8b-instruct
+    presetOptions:
+      modelAccessSecret: hf-token

@@ -36,6 +36,7 @@ var (
 		consts.FeatureFlagModelStreaming:                     false,
 		consts.FeatureFlagEnableBaseImageAutoUpgrade:         false,
 		consts.FeatureFlagEnableEPPFlowControl:               false,
+		consts.FeatureFlagDistributedCache:                   false,
 		//	Add more feature gates here
 	}
 )

@@ -170,6 +170,7 @@ func NewWorkspaceForInferenceSet(iObj *kaitov1beta1.InferenceSet) *kaitov1beta1.
 			Partition:     iObj.Spec.Template.Resource.Partition,
 		},
 		Inference: iObj.Spec.Template.Inference.DeepCopy(),
+		Cache:     iObj.Spec.Template.Cache.DeepCopy(),
 	}
 	// Only set InstanceType when node auto-provisioning is enabled.
 	// In BYO mode, the Workspace webhook rejects instanceType.

@@ -43,7 +43,7 @@ The default holdback is 256 characters. The window keeps only the pending tail, 
 | `secrets` | `block` | Common credentials and secret formats |
 | `sensitive` | `block` | Email, phone, credit card, and IPv4 patterns |
 
-Scanners run in policy order. Each scanner receives the previous scanner's sanitized text, and every block scanner rechecks the final sanitized text. The window recalculates its safe emission length after redaction. A redaction hit that does not return modified text fails closed.
+Redaction scanners sanitize held text before block scanners validate the final text. Each scanner runs once per window. The window recalculates its safe emission length after redaction. A redaction hit that does not return modified text fails closed.
 
 Not supported in streaming:
 

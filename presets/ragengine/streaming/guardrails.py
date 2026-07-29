@@ -158,21 +158,19 @@ class _LLMGuardWindowScanner:
     def scan(self, text: str) -> WindowScanResult:
         sanitized_text = text
         for scanner_config, scanner in self._built_scanners:
+            scanner_action = scanner_config.action_on_hit or self._default_action_on_hit
+            if scanner_action != "redact":
+                continue
+
             scanner_output, results_valid, _ = scan_output(
                 [scanner], self._prompt, sanitized_text, fail_fast=False
             )
             if not all(results_valid.values()):
-                scanner_action = (
-                    scanner_config.action_on_hit or self._default_action_on_hit
-                )
-                if scanner_action == "block":
-                    return WindowScanResult(blocked=True)
                 if (
                     not isinstance(scanner_output, str)
                     or scanner_output == sanitized_text
                 ):
                     return WindowScanResult(blocked=True)
-            if isinstance(scanner_output, str):
                 sanitized_text = scanner_output
 
         for scanner_config, scanner in self._built_scanners:

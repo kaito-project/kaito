@@ -26,7 +26,7 @@ inputs:
   k8s_version:
     description: "Kubernetes version"
     required: false
-    default: "1.33.8"
+    default: "1.35"
   build_kaito_base_image:
     description: "Whether to build kaito base image"
     required: false
@@ -220,6 +220,11 @@ runs:
       env:
         ARCH: amd64
 
+    - name: Set AKS Kubernetes version
+      shell: bash
+      run: |
+        echo "AKS_K8S_VERSION=${{ inputs.k8s_version }}" >> "$GITHUB_ENV"
+
     # TEMPORARY FIX (capacity issue): try the requested `inputs.region` first,
     # and fall back to polandcentral if that region has no capacity.
     # The RG/ACR created earlier stay in `inputs.region`; only the AKS cluster
@@ -254,7 +259,6 @@ runs:
         AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
         AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
         AZURE_LOCATION: ${{ inputs.region }}
-        AKS_K8S_VERSION: ${{ inputs.k8s_version }}
 
     - name: create cluster (gpu-provisioner)
       if: ${{ inputs.node_provisioner == 'gpuprovisioner' }}
@@ -285,7 +289,6 @@ runs:
         AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
         AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
         AZURE_LOCATION: ${{ inputs.region }}
-        AKS_K8S_VERSION: ${{ inputs.k8s_version }}
 
     - name: Provision model-streaming infra (blob CSI + StorageClass + role)
       shell: bash

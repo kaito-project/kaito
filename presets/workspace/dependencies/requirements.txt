@@ -28,14 +28,9 @@ bitsandbytes==0.46.1
 
 # Less critical, can be latest
 gputil
-setuptools>=83.0.0  # CVE-2025-47273 (>=78.1.1), CVE-2026-59890 (>=83.0.0)
 psutil
 trl>=1.0.0
 nvidia-ml-py3
-
-# Transitive dependency of ray[default]; pinned explicitly to pick up the fix
-# for GHSA-6v7p-g79w-8964 (Unpacker reuse OOB read).
-msgpack>=1.2.1
 
 # RunAI Model Streamer for model streaming from cloud blob storage (az://, s3://, gs://)
 runai-model-streamer==0.16.0

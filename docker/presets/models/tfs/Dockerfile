@@ -41,6 +41,7 @@ RUN pip3 install --no-cache-dir --upgrade "setuptools>=83.0.0" "msgpack>=1.2.1" 
            /usr/local/lib/python3.12/site-packages/pip/_vendor/setuptools* \
            /usr/local/lib/python3.12/site-packages/pip/_vendor/pkg_resources* \
            /usr/local/lib/python3.12/site-packages/pip/_vendor/vendor.txt \
+           /usr/local/lib/python3.12/site-packages/pip/_vendor/bom.cdx.json \
            /root/.cache/pip && \
     find / -type d \( \
         -name 'setuptools-6*.dist-info' -o \

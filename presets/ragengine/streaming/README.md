@@ -56,6 +56,14 @@ Not supported in streaming:
 - Content events are rebuilt with choice index `0`; original content-event metadata is not preserved.
 - Patterns longer than the 256-character holdback may cross the release boundary.
 
+## Remaining Redaction Work
+
+Implement separately in this order:
+
+1. `sensitive`
+2. `secrets`
+3. `ban_substrings`
+
 ## Policy Example
 
 ```yaml

@@ -21,7 +21,22 @@ RUN pip3 install --upgrade pip
 #     Trivy flags GHSA-6v7p-g79w-8964 (HIGH, fixed 1.2.1).
 # We upgrade in this dependencies stage so 'docker build --target dependencies'
 # (used by the trivy scan CI job) also picks up the fix.
-RUN pip3 install --no-cache-dir --upgrade "setuptools>=83.0.0" "msgpack>=1.2.1"
+RUN pip3 install --no-cache-dir --upgrade "setuptools>=83.0.0" "msgpack>=1.2.1" && \
+    rm -rf /usr/local/lib/python3.12/ensurepip/_bundled/*.whl \
+           /usr/local/lib/python3.12/site-packages/pip/_vendor/msgpack \
+           /root/.cache/pip && \
+    find / -type d \( \
+        -name 'setuptools-6*.dist-info' -o \
+        -name 'setuptools-7*.dist-info' -o \
+        -name 'msgpack-1.0*.dist-info' -o \
+        -name 'msgpack-1.1*.dist-info' \
+    \) -prune -exec rm -rf {} + 2>/dev/null || true
+
+# NOTE: 'pip install --upgrade' only touches packages under
+# /usr/local/lib/python3.12/site-packages. Trivy also scans stale bundled
+# wheels shipped by CPython's ensurepip module and vendored copies inside pip
+# itself, which do not participate in pip's dependency resolver, so we scrub
+# any pre-fix leftovers explicitly above.
 
 FROM dependencies AS base
 

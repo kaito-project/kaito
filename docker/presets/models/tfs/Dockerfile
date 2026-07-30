@@ -11,7 +11,8 @@ ARG VERSION
 # https://docs.ray.io/en/latest/cluster/usage-stats.html
 ENV RAY_USAGE_STATS_ENABLED="1"
 
-RUN pip3 install --no-cache-dir --upgrade pip
+RUN pip3 install --no-cache-dir --upgrade pip && \
+    rm -f /usr/local/lib/python3.12/site-packages/pip/_vendor/bom.cdx.json
 
 # Set the working directory
 WORKDIR /workspace

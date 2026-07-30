@@ -35,13 +35,14 @@ The default holdback is 256 characters. The window keeps only the pending tail, 
 
 ## Scanner Support
 
-| Scanner | Supported actions | Detects |
-| --- | --- | --- |
-| `ban_substrings` | `block` | Configured prohibited strings |
-| `invisible_text` | `block`, `redact` | Invisible or non-printable Unicode characters |
-| `secrets` | `block` | Common credentials and secret formats |
-| `sensitive` | `block` | Email, phone, credit card, and IPv4 patterns |
+| Scanner | Detects |
+| --- | --- |
+| `ban_substrings` | Configured prohibited strings |
+| `invisible_text` | Invisible or non-printable Unicode characters |
+| `secrets` | Common credentials and secret formats |
+| `sensitive` | Email, phone, credit card, and IPv4 patterns |
 
+Streaming supports `block` for all listed scanners and `redact` for `invisible_text` only.
 Redaction scanners sanitize held text before block scanners validate the final text.
 
 Not supported in streaming:

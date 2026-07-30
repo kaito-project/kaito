@@ -11,7 +11,9 @@ RUN apt-get update && apt-get upgrade -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --upgrade pip
+RUN pip3 install --upgrade pip \
+    'setuptools>=83.0.0' \
+    'msgpack>=1.2.1'
 
 FROM dependencies AS base
 

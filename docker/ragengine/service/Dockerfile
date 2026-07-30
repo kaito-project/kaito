@@ -22,9 +22,19 @@ RUN pip3 install --upgrade pip
 # We upgrade in this dependencies stage so 'docker build --target dependencies'
 # (used by the trivy scan CI job) also picks up the fix.
 RUN pip3 install --no-cache-dir --upgrade "setuptools>=83.0.0" "msgpack>=1.2.1" && \
+    # 'pip install --upgrade' only touches packages tracked by pip in
+    # site-packages. Trivy additionally scans bundled wheels and vendored
+    # dist-info METADATA inside pip itself; those do NOT participate in pip's
+    # dep resolver and were left behind by the previous fix (removing the
+    # vendored msgpack package directory did not remove its dist-info, so
+    # trivy still reported msgpack 1.1.2 from pip/_vendor/msgpack-1.1.2.dist-info).
+    # Scrub every bundled/vendored copy AND its dist-info.
     rm -rf /usr/local/lib/python3.12/ensurepip/_bundled/*.whl \
-           /usr/local/lib/python3.12/site-packages/pip/_vendor/msgpack \
+           /usr/local/lib/python3.12/site-packages/pip/_vendor/msgpack* \
+           /usr/local/lib/python3.12/site-packages/pip/_vendor/setuptools* \
+           /usr/local/lib/python3.12/site-packages/pip/_vendor/pkg_resources* \
            /root/.cache/pip && \
+    # Belt-and-braces: catch any other stale dist-info anywhere on disk.
     find / -type d \( \
         -name 'setuptools-6*.dist-info' -o \
         -name 'setuptools-7*.dist-info' -o \

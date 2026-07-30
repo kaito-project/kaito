@@ -37,7 +37,9 @@ RUN apt-get update -y && apt upgrade -y && \
 # (used by the trivy scan CI job for kaito-base) also picks up the fix.
 RUN pip3 install --no-cache-dir --upgrade "setuptools>=83.0.0" "msgpack>=1.2.1" && \
     rm -rf /usr/local/lib/python3.12/ensurepip/_bundled/*.whl \
-           /usr/local/lib/python3.12/site-packages/pip/_vendor/msgpack \
+           /usr/local/lib/python3.12/site-packages/pip/_vendor/msgpack* \
+           /usr/local/lib/python3.12/site-packages/pip/_vendor/setuptools* \
+           /usr/local/lib/python3.12/site-packages/pip/_vendor/pkg_resources* \
            /root/.cache/pip && \
     find / -type d \( \
         -name 'setuptools-6*.dist-info' -o \

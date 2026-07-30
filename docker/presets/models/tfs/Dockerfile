@@ -28,6 +28,15 @@ RUN apt-get update -y && apt upgrade -y && \
     apt-get install --no-install-recommends -y curl gcc g++ libc-dev perl libglib2.0-0 libgl1 libsm6 libxext6 libxrender1 && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Force-upgrade CVE-flagged Python packages that the base image ships with:
+#   - setuptools: python:3.12-slim-bookworm pre-installs 70.3.0. Trivy flags
+#     CVE-2025-47273 (HIGH, fixed 78.1.1) and CVE-2026-59890 (MEDIUM, fixed 83.0.0).
+#   - msgpack: base image / pip's deps chain resolve to 1.1.2. Trivy flags
+#     GHSA-6v7p-g79w-8964 (HIGH, fixed 1.2.1).
+# We upgrade in this dependencies stage so 'docker build --target dependencies'
+# (used by the trivy scan CI job for kaito-base) also picks up the fix.
+RUN pip3 install --no-cache-dir --upgrade "setuptools>=83.0.0" "msgpack>=1.2.1"
+
 FROM dependencies AS base
 
 ARG UV_VERSION=0.10.10
@@ -52,17 +61,6 @@ RUN --mount=type=cache,target=/root/.cache/pip \
       "last so its cu12 .so wins, otherwise 'import nixl_ep' fails with libcudart.so.13 not found." && \
     uv pip install --system -q --reinstall-package nixl-cu12 nixl-cu12 && \
     pip3 uninstall -y uv
-
-# Force-upgrade CVE-flagged packages that the resolver above leaves at
-# vulnerable versions:
-#   - setuptools: base image ships 70.3.0 pre-installed; nothing in requirements.txt
-#     forces an upgrade path so uv leaves it alone. Trivy flags CVE-2025-47273 (HIGH,
-#     fixed in 78.1.1) and CVE-2026-59890 (MEDIUM, fixed in 83.0.0).
-#   - msgpack: pulled transitively by ray[default]==2.55.0 which pins msgpack~=1.0,
-#     so uv resolves to 1.1.2. Trivy flags GHSA-6v7p-g79w-8964 (HIGH, fixed in 1.2.1).
-# Both floors are compatible with every direct/transitive requirement in this image,
-# so we override them here as a final step.
-RUN pip3 install --no-cache-dir --upgrade "setuptools>=83.0.0" "msgpack>=1.2.1"
 
 # 1. Huggingface transformers
 COPY presets/workspace/inference/${MODEL_TYPE}/inference_api.py \

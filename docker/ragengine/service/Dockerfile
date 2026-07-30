@@ -13,6 +13,16 @@ RUN apt-get update && apt-get upgrade -y \
 
 RUN pip3 install --upgrade pip
 
+# Force-upgrade CVE-flagged packages that the base image ships with:
+#   - setuptools 70.3.0 pre-installed by the python:3.12-slim base image.
+#     Trivy flags CVE-2025-47273 (HIGH, fixed 78.1.1) and CVE-2026-59890
+#     (MEDIUM, fixed 83.0.0).
+#   - msgpack 1.1.2 pulled in via the base image / pip's own deps chain.
+#     Trivy flags GHSA-6v7p-g79w-8964 (HIGH, fixed 1.2.1).
+# We upgrade in this dependencies stage so 'docker build --target dependencies'
+# (used by the trivy scan CI job) also picks up the fix.
+RUN pip3 install --no-cache-dir --upgrade "setuptools>=83.0.0" "msgpack>=1.2.1"
+
 FROM dependencies AS base
 
 ARG VERSION

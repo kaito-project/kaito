@@ -768,3 +768,18 @@ models:
   headDim: 512
   qkRopeHeadDim: 64
   quantMethod: fp8
+- name: google/gemma-4-12B-it
+  description: https://huggingface.co/google/gemma-4-12B-it
+  license: apache-2.0
+  pipelineTag: any-to-any
+  baseModel:
+  - google/gemma-4-12B
+  modelFileSize: 22.28Gi
+  architectures:
+  - Gemma4UnifiedForConditionalGeneration
+  modelTokenLimit: 262144
+  hiddenSize: 3840
+  numHiddenLayers: 48
+  numAttentionHeads: 16
+  numKeyValueHeads: 8
+  headDim: 256

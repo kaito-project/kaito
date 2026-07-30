@@ -18,8 +18,7 @@ upstream chunks
   -> SSE framing
   -> OpenAI event parsing
   -> holdback window
-  -> redaction phase followed by block validation
-  -> sanitized pending text
+  -> output scanners
   -> safe deltas OR block message + content_filter + [DONE]
 ```
 
@@ -43,7 +42,7 @@ The default holdback is 256 characters. The window keeps only the pending tail, 
 | `secrets` | `block` | Common credentials and secret formats |
 | `sensitive` | `block` | Email, phone, credit card, and IPv4 patterns |
 
-Redaction scanners sanitize held text before block scanners validate the final text. Each scanner runs once per window. The window recalculates its safe emission length after redaction. A redaction hit that does not return modified text fails closed.
+Redaction scanners sanitize held text before block scanners validate the final text.
 
 Not supported in streaming:
 
@@ -56,14 +55,6 @@ Not supported in streaming:
 
 - Content events are rebuilt with choice index `0`; original content-event metadata is not preserved.
 - Patterns longer than the 256-character holdback may cross the release boundary.
-
-## Remaining Redaction Work
-
-Implement separately in this order:
-
-1. `sensitive`
-2. `secrets`
-3. `ban_substrings`
 
 ## Policy Example
 

@@ -66,6 +66,7 @@ var (
 		"Ernie4_5_VLMoeForConditionalGeneration": "ernie45",
 		"Ernie4_5_MoeForCausalLM":                "ernie45",
 		"Gemma4ForConditionalGeneration":         "gemma4",
+		"Gemma4UnifiedForConditionalGeneration":  "gemma4",
 		"Glm4MoeForCausalLM":                     "glm45",
 		"HunYuanMoEV1ForCausalLM":                "hunyuan_a13b",
 		"GraniteForCausalLM":                     "granite",
@@ -169,6 +170,7 @@ var (
 		"Glm47MoeForCausalLM":                    "glm47",
 		"Gemma3ForCausalLM":                      "functiongemma",
 		"Gemma4ForConditionalGeneration":         "gemma4",
+		"Gemma4UnifiedForConditionalGeneration":  "gemma4",
 		"Olmo3ForCausalLM":                       "olmo3",
 		"SeedOssForCausalLM":                     "seed_oss",
 		"Ernie4_5_VLMoeForConditionalGeneration": "ernie45",
@@ -189,6 +191,7 @@ var (
 	chatTemplatePrefixMap = map[string]string{
 		"deepseek-r1": "tool-chat-deepseekr1.jinja",
 		"deepseek-v3": "tool-chat-deepseekv3.jinja",
+		"gemma-4":     "tool-chat-gemma4.jinja",
 		"llama-3":     "tool-chat-llama3.1-json.jinja",
 		"phi-4-mini":  "tool-chat-phi4-mini.jinja",
 		"qwen2.5":     "tool-chat-hermes.jinja",

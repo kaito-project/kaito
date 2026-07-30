@@ -53,6 +53,17 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     uv pip install --system -q --reinstall-package nixl-cu12 nixl-cu12 && \
     pip3 uninstall -y uv
 
+# Force-upgrade CVE-flagged packages that the resolver above leaves at
+# vulnerable versions:
+#   - setuptools: base image ships 70.3.0 pre-installed; nothing in requirements.txt
+#     forces an upgrade path so uv leaves it alone. Trivy flags CVE-2025-47273 (HIGH,
+#     fixed in 78.1.1) and CVE-2026-59890 (MEDIUM, fixed in 83.0.0).
+#   - msgpack: pulled transitively by ray[default]==2.55.0 which pins msgpack~=1.0,
+#     so uv resolves to 1.1.2. Trivy flags GHSA-6v7p-g79w-8964 (HIGH, fixed in 1.2.1).
+# Both floors are compatible with every direct/transitive requirement in this image,
+# so we override them here as a final step.
+RUN pip3 install --no-cache-dir --upgrade "setuptools>=83.0.0" "msgpack>=1.2.1"
+
 # 1. Huggingface transformers
 COPY presets/workspace/inference/${MODEL_TYPE}/inference_api.py \
     presets/workspace/tuning/${MODEL_TYPE}/cli.py \

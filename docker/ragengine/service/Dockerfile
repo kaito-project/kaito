@@ -8,10 +8,12 @@ RUN apt-get update && apt-get upgrade -y \
     g++ \
     make \
     perl \
+    && apt-get purge -y --auto-remove python3-msgpack python3-setuptools \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --upgrade pip \
+RUN pip3 uninstall -y setuptools msgpack || true \
+    && pip3 install --upgrade pip \
     'setuptools>=83.0.0' \
     'msgpack>=1.2.1'
 

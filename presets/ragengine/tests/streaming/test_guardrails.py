@@ -51,6 +51,14 @@ def _sensitive_scanner(detectors):
     )
 
 
+def _secrets_scanner(redact_mode="all"):
+    return ParsedScannerConfig(
+        type="secrets",
+        action_on_hit="redact",
+        config=SecretsConfig(redact_mode=redact_mode),
+    )
+
+
 def _ban_substrings_scanner(substring="unsafe"):
     return ParsedScannerConfig(
         type="ban_substrings",
@@ -238,18 +246,26 @@ def test_validate_streaming_guardrails_accepts_sensitive_redaction():
     assert support.detail is None
 
 
-def test_validate_streaming_guardrails_rejects_secrets_redaction():
+def test_validate_streaming_guardrails_accepts_secrets_all_redaction():
+    support = validate_streaming_guardrails(_streaming_guardrails(_secrets_scanner()))
+
+    assert support.supported is True
+    assert support.detail is None
+
+
+@pytest.mark.parametrize("redact_mode", ["partial", "hash"])
+def test_validate_streaming_guardrails_rejects_non_all_secrets_redaction(
+    redact_mode,
+):
     support = validate_streaming_guardrails(
-        _streaming_guardrails(
-            ParsedScannerConfig(
-                type="secrets",
-                action_on_hit="redact",
-                config=SecretsConfig(),
-            )
-        )
+        _streaming_guardrails(_secrets_scanner(redact_mode))
     )
 
     assert support.supported is False
+    assert support.detail == (
+        "stream=true with action=redact for scanner=secrets only supports "
+        "redact_mode=all."
+    )
 
 
 @pytest.mark.asyncio
@@ -644,3 +660,70 @@ async def test_sensitive_redaction_runs_before_block_scanner():
 
     assert _emitted_text(chunks) == "blocked-by-policy"
     assert "alice@example.com" not in "".join(chunks)
+
+
+@pytest.mark.asyncio
+async def test_secrets_all_redacts_aws_access_key_split_across_content_chunks():
+    secret = "AKIA1234567890ABCDEF"
+
+    chunks = await _apply_content_chunks(
+        ["AWS key: AKIA1234", "567890ABCDEF"],
+        _streaming_guardrails(_secrets_scanner()),
+    )
+
+    assert _emitted_text(chunks) == "AWS key: ******"
+    assert secret not in "".join(chunks)
+
+
+@pytest.mark.asyncio
+async def test_secrets_all_redacts_multiple_secrets():
+    first_secret = "AKIA1234567890ABCDEF"
+    second_secret = "AKIAZYXWVUTSRQPONMLK"
+    first_prefix = "a" * 300
+    second_prefix = "b" * 300
+
+    chunks = await _apply_content_chunks(
+        [
+            f"{first_prefix} first {first_secret}",
+            f"{second_prefix} second {second_secret}",
+        ],
+        _streaming_guardrails(_secrets_scanner()),
+    )
+
+    assert _emitted_text(chunks) == (
+        f"{first_prefix} first ******{second_prefix} second ******"
+    )
+    assert first_secret not in "".join(chunks)
+    assert second_secret not in "".join(chunks)
+
+
+@pytest.mark.asyncio
+async def test_secrets_all_handles_multiple_same_type_without_leaking():
+    first_secret = "AKIA1234567890ABCDEF"
+    second_secret = "AKIAZYXWVUTSRQPONMLK"
+
+    chunks = await _apply_text(
+        f"Keys: {first_secret} and {second_secret}",
+        _streaming_guardrails(_secrets_scanner()),
+    )
+
+    assert _emitted_text(chunks) in {
+        "Keys: ****** and ******",
+        "blocked-by-policy",
+    }
+    assert first_secret not in "".join(chunks)
+    assert second_secret not in "".join(chunks)
+
+
+@pytest.mark.asyncio
+async def test_secrets_all_redaction_is_stable_when_window_is_rescanned():
+    secret = "AKIA1234567890ABCDEF"
+    prefix = "a" * 300
+
+    chunks = await _apply_content_chunks(
+        [f"{prefix} token = {secret}", " tail"],
+        _streaming_guardrails(_secrets_scanner()),
+    )
+
+    assert _emitted_text(chunks) == f"{prefix} token = ****** tail"
+    assert secret not in "".join(chunks)

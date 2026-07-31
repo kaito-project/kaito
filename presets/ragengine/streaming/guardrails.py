@@ -33,7 +33,7 @@ STREAMING_GUARDRAILS_HOLDBACK_LEN = 256
 STREAMING_GUARDRAILS_CAPABILITIES = {
     "ban_substrings": frozenset({"block"}),
     "invisible_text": frozenset({"block", "redact"}),
-    "secrets": frozenset({"block"}),
+    "secrets": frozenset({"block", "redact"}),
     "sensitive": frozenset({"block", "redact"}),
 }
 STREAMING_GUARDRAILS_SUPPORTED_SCANNERS = frozenset(STREAMING_GUARDRAILS_CAPABILITIES)
@@ -67,6 +67,18 @@ def validate_streaming_guardrails(
                     f"stream=true does not support action={scanner_action} for "
                     f"scanner={scanner_config.type}. Supported actions: "
                     f"{sorted(supported_actions)}."
+                ),
+            )
+        if (
+            scanner_config.type == "secrets"
+            and scanner_action == "redact"
+            and scanner_config.config.redact_mode != "all"
+        ):
+            return StreamingGuardrailsSupport(
+                supported=False,
+                detail=(
+                    "stream=true with action=redact for scanner=secrets only "
+                    "supports redact_mode=all."
                 ),
             )
 
@@ -172,6 +184,15 @@ class _LLMGuardWindowScanner:
                 ):
                     return WindowScanResult(blocked=True)
                 sanitized_text = scanner_output
+                if scanner_config.type == "secrets":
+                    verified_output, verified_results_valid, _ = scan_output(
+                        [scanner], self._prompt, sanitized_text, fail_fast=False
+                    )
+                    if (
+                        not all(verified_results_valid.values())
+                        or verified_output != sanitized_text
+                    ):
+                        return WindowScanResult(blocked=True)
 
         for scanner_config, scanner in self._built_scanners:
             scanner_action = scanner_config.action_on_hit or self._default_action_on_hit

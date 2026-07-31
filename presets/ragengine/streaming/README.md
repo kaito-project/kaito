@@ -42,7 +42,8 @@ The default holdback is 256 characters. The window keeps only the pending tail, 
 | `secrets` | Common credentials and secret formats |
 | `sensitive` | Email, phone, credit card, and IPv4 patterns |
 
-Streaming supports `block` for all listed scanners and `redact` for `invisible_text` and `sensitive`.
+Streaming supports `block` for all listed scanners and `redact` for `invisible_text`,
+`sensitive`, and `secrets` with `redactMode: all`.
 Redaction scanners sanitize held text before block scanners validate the final text.
 
 Not supported in streaming:
@@ -61,8 +62,7 @@ Not supported in streaming:
 
 Implement separately in this order:
 
-1. `secrets`
-2. `ban_substrings`
+1. `ban_substrings`
 
 ## Policy Example
 
@@ -73,6 +73,8 @@ scanners:
   - type: invisible_text
     action: redact
   - type: secrets
+    action: redact
+    redactMode: all
   - type: sensitive
     detectors: [email, phone, credit_card, ip_address]
   - type: ban_substrings

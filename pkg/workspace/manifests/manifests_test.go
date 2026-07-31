@@ -324,3 +324,52 @@ func TestGeneratePullerContainers(t *testing.T) {
 		})
 	}
 }
+
+func TestGenerateServiceManifest_KVEventsPort(t *testing.T) {
+	// Deterministically pin the vLLM feature gate for this test. Other packages'
+	// tests mutate featuregates.FeatureGates (sometimes flipping FeatureFlagVLLM
+	// to false or replacing the whole map) without restoring it, which would
+	// otherwise make kaitov1beta1.GetWorkspaceRuntimeName here flaky under
+	// parallel `go test` runs.
+	origVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
+	defer func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = origVLLM }()
+
+	newWS := func(runtime string) *kaitov1beta1.Workspace {
+		ws := &kaitov1beta1.Workspace{}
+		ws.Name = "ws"
+		ws.Namespace = "kaito"
+		if runtime != "" {
+			ws.Annotations = map[string]string{
+				kaitov1beta1.AnnotationWorkspaceRuntime: runtime,
+			}
+		}
+		return ws
+	}
+
+	hasKVEvents := func(svc *corev1.Service) bool {
+		for _, p := range svc.Spec.Ports {
+			if p.Name == "kv-events" {
+				if p.Port != consts.PortKVCacheEvents {
+					t.Fatalf("kv-events port = %d, want %d", p.Port, consts.PortKVCacheEvents)
+				}
+				return true
+			}
+		}
+		return false
+	}
+
+	// vLLM + ClusterIP: kv-events must be exposed for in-cluster consumers.
+	vllm := newWS(string(pkgmodel.RuntimeNameVLLM))
+	cip := GenerateServiceManifest(vllm, corev1.ServiceTypeClusterIP)
+	assert.True(t, hasKVEvents(cip), "vLLM ClusterIP Service should expose kv-events port")
+
+	// vLLM + LoadBalancer: kv-events must NOT be exposed (unauthenticated ZMQ stream).
+	lb := GenerateServiceManifest(vllm, corev1.ServiceTypeLoadBalancer)
+	assert.False(t, hasKVEvents(lb), "vLLM LoadBalancer Service must not expose kv-events port")
+
+	// Non-vLLM runtime (HuggingFace transformers) + ClusterIP: kv-events must NOT be exposed.
+	hf := newWS(string(pkgmodel.RuntimeNameHuggingfaceTransformers))
+	hfCIP := GenerateServiceManifest(hf, corev1.ServiceTypeClusterIP)
+	assert.False(t, hasKVEvents(hfCIP), "non-vLLM ClusterIP Service must not expose kv-events port")
+}

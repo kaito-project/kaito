@@ -21,7 +21,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
@@ -243,15 +242,6 @@ func TestGetInferenceCommandVLLMSingleNode(t *testing.T) {
 }
 
 func TestGetInferenceCommandVLLMKVCacheEventsDefault(t *testing.T) {
-	// KV cache events are only auto-injected when the MultiRoleInference /
-	// InferenceSet controller is enabled (that's what wires the EPP that
-	// actually subscribes). Pin the gate to true for these tests.
-	origMRI := featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController]
-	featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] = true
-	defer func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] = origMRI
-	}()
-
 	// Default: --kv-events-config is injected so downstream ZMQ subscribers
 	// can consume BlockStored / BlockRemoved / AllBlocksCleared events.
 	p := &PresetParam{
@@ -289,34 +279,6 @@ func TestGetInferenceCommandVLLMKVCacheEventsDefault(t *testing.T) {
 	require.Len(t, cmd2, 3)
 	assert.Contains(t, cmd2[2], `--kv-events-config='{"enable_kv_cache_events":false}'`)
 	assert.NotContains(t, cmd2[2], `"enable_kv_cache_events":true`)
-}
-
-func TestGetInferenceCommandVLLMKVCacheEventsDisabledWithoutMRI(t *testing.T) {
-	// When the MultiRoleInference controller feature gate is off, no in-cluster
-	// consumer exists (the GAIE / llm-d EPP is not wired up), so the operator
-	// must NOT inject --kv-events-config; otherwise vLLM would spawn a ZMQ
-	// publisher thread and hold an idle socket for no reason.
-	origMRI := featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController]
-	featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] = false
-	defer func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] = origMRI
-	}()
-
-	p := &PresetParam{
-		RuntimeParam: RuntimeParam{
-			VLLM: VLLMParam{
-				BaseCommand:    "vllm serve",
-				ModelRunParams: map[string]string{},
-			},
-		},
-	}
-	cmd := p.GetInferenceCommand(RuntimeContext{
-		RuntimeName: RuntimeNameVLLM,
-		SKUNumGPUs:  1,
-		NumNodes:    1,
-	})
-	require.Len(t, cmd, 3)
-	assert.NotContains(t, cmd[2], "--kv-events-config")
 }
 
 func TestGetInferenceCommandVLLMInferencePort(t *testing.T) {

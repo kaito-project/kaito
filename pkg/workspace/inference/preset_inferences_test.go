@@ -323,14 +323,6 @@ func TestGeneratePresetInference(t *testing.T) {
 	}
 
 	estimator := &nodesestimator.NodeEstimator{}
-	// Pin MultiRoleInferenceController feature gate ON for these tests so the
-	// kv-events flag is injected into the vLLM command line (matches the
-	// expectedParams below).
-	origMRI := featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController]
-	featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] = true
-	defer func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] = origMRI
-	}()
 	for k, tc := range testcases {
 		t.Run(k, func(t *testing.T) {
 			t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)

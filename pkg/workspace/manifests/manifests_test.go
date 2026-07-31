@@ -334,11 +334,6 @@ func TestGenerateServiceManifest_KVEventsPort(t *testing.T) {
 	origVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
 	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
 	defer func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = origVLLM }()
-	origMRI := featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController]
-	featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] = true
-	defer func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] = origMRI
-	}()
 
 	newWS := func(runtime string) *kaitov1beta1.Workspace {
 		ws := &kaitov1beta1.Workspace{}
@@ -377,11 +372,4 @@ func TestGenerateServiceManifest_KVEventsPort(t *testing.T) {
 	hf := newWS(string(pkgmodel.RuntimeNameHuggingfaceTransformers))
 	hfCIP := GenerateServiceManifest(hf, corev1.ServiceTypeClusterIP)
 	assert.False(t, hasKVEvents(hfCIP), "non-vLLM ClusterIP Service must not expose kv-events port")
-
-	// MRI feature gate off: kv-events must NOT be exposed even for vLLM ClusterIP,
-	// because nothing in the cluster is wired up to subscribe.
-	featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] = false
-	vllmNoMRI := GenerateServiceManifest(vllm, corev1.ServiceTypeClusterIP)
-	assert.False(t, hasKVEvents(vllmNoMRI),
-		"vLLM ClusterIP Service must not expose kv-events port when MultiRoleInferenceController is disabled")
 }

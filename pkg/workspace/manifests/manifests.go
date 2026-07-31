@@ -33,7 +33,6 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -101,16 +100,11 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 
 	// KV cache events ZMQ stream is unauthenticated/unencrypted and is only
 	// produced by the vLLM runtime. Add the Service port only for vLLM
-	// workspaces, only on in-cluster (ClusterIP) Services so we don't
-	// accidentally publish it to the internet on a LoadBalancer, and only
-	// when the MultiRoleInference / InferenceSet controller is enabled
-	// (that's what wires up the GAIE / llm-d-inference-scheduler EPP that
-	// actually subscribes to this port; without it the Service port would
-	// point at nothing). Users who need external access should create their
-	// own Service + NetworkPolicy.
+	// workspaces, and only on in-cluster (ClusterIP) Services so we don't
+	// accidentally publish it to the internet on a LoadBalancer. Users who
+	// need external access should create their own Service + NetworkPolicy.
 	if serviceType == corev1.ServiceTypeClusterIP &&
-		kaitov1beta1.GetWorkspaceRuntimeName(workspaceObj) == pkgmodel.RuntimeNameVLLM &&
-		featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] {
+		kaitov1beta1.GetWorkspaceRuntimeName(workspaceObj) == pkgmodel.RuntimeNameVLLM {
 		ports = append(ports, corev1.ServicePort{
 			Name:       "kv-events",
 			Protocol:   corev1.ProtocolTCP,

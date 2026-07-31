@@ -30,9 +30,13 @@ from ragengine.streaming.openai import (
 from ragengine.streaming.sse import iter_sse_events
 
 STREAMING_GUARDRAILS_HOLDBACK_LEN = 256
-STREAMING_GUARDRAILS_SUPPORTED_SCANNERS = frozenset(
-    {"ban_substrings", "invisible_text", "secrets", "sensitive"}
-)
+STREAMING_GUARDRAILS_CAPABILITIES = {
+    "ban_substrings": frozenset({"block"}),
+    "invisible_text": frozenset({"block", "redact"}),
+    "secrets": frozenset({"block"}),
+    "sensitive": frozenset({"block"}),
+}
+STREAMING_GUARDRAILS_SUPPORTED_SCANNERS = frozenset(STREAMING_GUARDRAILS_CAPABILITIES)
 
 
 @dataclass(frozen=True)
@@ -46,22 +50,23 @@ def validate_streaming_guardrails(
 ) -> StreamingGuardrailsSupport:
     for scanner_config in guardrails.scanner_configs:
         scanner_action = scanner_config.action_on_hit or guardrails.action_on_hit
-        if scanner_action != "block":
-            return StreamingGuardrailsSupport(
-                supported=False,
-                detail=(
-                    "stream=true with output guardrails only supports "
-                    "action=block. Unsupported action: "
-                    f"{scanner_action}."
-                ),
-            )
-        if scanner_config.type not in STREAMING_GUARDRAILS_SUPPORTED_SCANNERS:
+        supported_actions = STREAMING_GUARDRAILS_CAPABILITIES.get(scanner_config.type)
+        if supported_actions is None:
             return StreamingGuardrailsSupport(
                 supported=False,
                 detail=(
                     "stream=true with output guardrails only supports "
                     f"{sorted(STREAMING_GUARDRAILS_SUPPORTED_SCANNERS)} scanners. "
                     f"Unsupported scanner: {scanner_config.type}."
+                ),
+            )
+        if scanner_action not in supported_actions:
+            return StreamingGuardrailsSupport(
+                supported=False,
+                detail=(
+                    f"stream=true does not support action={scanner_action} for "
+                    f"scanner={scanner_config.type}. Supported actions: "
+                    f"{sorted(supported_actions)}."
                 ),
             )
 
@@ -81,7 +86,11 @@ async def apply_streaming_guardrails(
             return
 
         prompt = guardrails._extract_prompt(request)
-        scanner = _LLMGuardWindowScanner(prompt=prompt, built_scanners=built_scanners)
+        scanner = _LLMGuardWindowScanner(
+            prompt=prompt,
+            built_scanners=built_scanners,
+            default_action_on_hit=guardrails.action_on_hit,
+        )
         window = StreamingBufferWindow(
             scanner,
             holdback_len=STREAMING_GUARDRAILS_HOLDBACK_LEN,
@@ -94,6 +103,7 @@ async def apply_streaming_guardrails(
                     yield chunk
                 if window.blocked:
                     return
+                _record_successful_redaction(window, guardrails)
                 yield build_sse_done_chunk()
                 return
 
@@ -127,23 +137,56 @@ async def apply_streaming_guardrails(
 
         async for chunk in _flush_window_or_block(window, guardrails):
             yield chunk
+        if not window.blocked:
+            _record_successful_redaction(window, guardrails)
     finally:
         await _aclose(upstream_chunks)
 
 
 class _LLMGuardWindowScanner:
-    def __init__(self, *, prompt: str, built_scanners: list[tuple[Any, Any]]) -> None:
+    def __init__(
+        self,
+        *,
+        prompt: str,
+        built_scanners: list[tuple[Any, Any]],
+        default_action_on_hit: str,
+    ) -> None:
         self._prompt = prompt
         self._built_scanners = built_scanners
+        self._default_action_on_hit = default_action_on_hit
 
     def scan(self, text: str) -> WindowScanResult:
-        for _, scanner in self._built_scanners:
+        sanitized_text = text
+        for scanner_config, scanner in self._built_scanners:
+            scanner_action = scanner_config.action_on_hit or self._default_action_on_hit
+            if scanner_action != "redact":
+                continue
+
+            scanner_output, results_valid, _ = scan_output(
+                [scanner], self._prompt, sanitized_text, fail_fast=False
+            )
+            if not all(results_valid.values()):
+                if (
+                    not isinstance(scanner_output, str)
+                    or scanner_output == sanitized_text
+                ):
+                    return WindowScanResult(blocked=True)
+                sanitized_text = scanner_output
+
+        for scanner_config, scanner in self._built_scanners:
+            scanner_action = scanner_config.action_on_hit or self._default_action_on_hit
+            if scanner_action != "block":
+                continue
+
             _, results_valid, _ = scan_output(
-                [scanner], self._prompt, text, fail_fast=False
+                [scanner], self._prompt, sanitized_text, fail_fast=False
             )
             if not all(results_valid.values()):
                 return WindowScanResult(blocked=True)
-        return WindowScanResult()
+
+        if sanitized_text == text:
+            return WindowScanResult()
+        return WindowScanResult(sanitized_text=sanitized_text)
 
 
 async def _flush_window_or_block(
@@ -165,6 +208,14 @@ async def _emit_refusal(guardrails: OutputGuardrails) -> AsyncIterator[str]:
     yield build_openai_chat_delta_sse_chunk(guardrails.block_message)
     yield build_openai_chat_finish_reason_sse_chunk(finish_reason="content_filter")
     yield build_sse_done_chunk()
+
+
+def _record_successful_redaction(
+    window: StreamingBufferWindow,
+    guardrails: OutputGuardrails,
+) -> None:
+    if window.redacted:
+        guardrails._record_response_action("redact")
 
 
 async def _aclose(upstream_chunks: AsyncIterator[str]) -> None:

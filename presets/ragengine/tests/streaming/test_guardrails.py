@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import os
 import sys
 
@@ -32,6 +33,52 @@ from ragengine.streaming.guardrails import (  # noqa: E402
     apply_streaming_guardrails,
     validate_streaming_guardrails,
 )
+
+
+def _invisible_text_scanner(action="redact"):
+    return ParsedScannerConfig(
+        type="invisible_text",
+        action_on_hit=action,
+        config=InvisibleTextConfig(),
+    )
+
+
+def _ban_substrings_scanner():
+    return ParsedScannerConfig(
+        type="ban_substrings",
+        action_on_hit="block",
+        config=BanSubstringsConfig(substrings=["unsafe"], match_type="str"),
+    )
+
+
+def _streaming_guardrails(*scanner_configs):
+    return OutputGuardrails(
+        enabled=True,
+        fail_open=False,
+        action_on_hit="block",
+        block_message="blocked-by-policy",
+        scanner_configs=scanner_configs,
+    )
+
+
+async def _apply_text(text, guardrails, *, finish_reason=None):
+    payload = {"choices": [{"index": 0, "delta": {"content": text}}]}
+
+    async def upstream_chunks():
+        yield f"data: {json.dumps(payload, separators=(',', ':'))}\n\n"
+        if finish_reason is not None:
+            yield (
+                'data: {"choices":[{"index":0,"delta":{},'
+                f'"finish_reason":"{finish_reason}"}}]}}\n\n'
+            )
+        yield "data: [DONE]\n\n"
+
+    return [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream_chunks(), guardrails, {"messages": []}
+        )
+    ]
 
 
 def test_validate_streaming_guardrails_accepts_block_ban_substrings_policy():
@@ -70,8 +117,8 @@ def test_validate_streaming_guardrails_rejects_scanner_action_override():
 
     assert support.supported is False
     assert support.detail == (
-        "stream=true with output guardrails only supports action=block. "
-        "Unsupported action: mask."
+        "stream=true does not support action=mask for scanner=ban_substrings. "
+        "Supported actions: ['block']."
     )
 
 
@@ -125,6 +172,43 @@ def test_validate_streaming_guardrails_accepts_newly_supported_scanners(
 
     assert support.supported is True
     assert support.detail is None
+
+
+def test_validate_streaming_guardrails_accepts_invisible_text_redaction():
+    support = validate_streaming_guardrails(
+        OutputGuardrails(
+            enabled=True,
+            action_on_hit="block",
+            scanner_configs=(
+                ParsedScannerConfig(
+                    type="invisible_text",
+                    action_on_hit="redact",
+                    config=InvisibleTextConfig(),
+                ),
+            ),
+        )
+    )
+
+    assert support.supported is True
+    assert support.detail is None
+
+
+def test_validate_streaming_guardrails_rejects_sensitive_redaction():
+    support = validate_streaming_guardrails(
+        OutputGuardrails(
+            enabled=True,
+            action_on_hit="block",
+            scanner_configs=(
+                ParsedScannerConfig(
+                    type="sensitive",
+                    action_on_hit="redact",
+                    config=SensitiveConfig(detectors=["email"]),
+                ),
+            ),
+        )
+    )
+
+    assert support.supported is False
 
 
 @pytest.mark.asyncio
@@ -325,36 +409,117 @@ async def test_apply_streaming_guardrails_blocks_invisible_text_scanner_hit():
 
 
 @pytest.mark.asyncio
-async def test_apply_streaming_guardrails_passes_through_safe_invisible_text_content():
-    async def upstream_chunks():
-        yield 'data: {"choices":[{"index":0,"delta":{"content":"hello "}}]}\n\n'
-        yield 'data: {"choices":[{"index":0,"delta":{"content":"world"}}]}\n\n'
-        yield 'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n'
-        yield "data: [DONE]\n\n"
-
-    guardrails = OutputGuardrails(
-        enabled=True,
-        fail_open=False,
-        action_on_hit="block",
-        scanner_configs=(
-            ParsedScannerConfig(
-                type="invisible_text",
-                action_on_hit="block",
-                config=InvisibleTextConfig(),
-            ),
-        ),
+@pytest.mark.parametrize(
+    ("input_text", "safe_text"),
+    [
+        ("hello\u200bworld", "helloworld"),
+        ("hello\u200b\u200cworld", "helloworld"),
+        ("hello world", "hello world"),
+    ],
+)
+async def test_apply_streaming_guardrails_preserves_or_redacts_text_during_flush(
+    input_text, safe_text
+):
+    chunks = await _apply_text(
+        input_text,
+        _streaming_guardrails(_invisible_text_scanner()),
+        finish_reason="stop",
     )
 
-    chunks = [
-        chunk
-        async for chunk in apply_streaming_guardrails(
-            upstream_chunks(), guardrails, {"messages": []}
-        )
+    assert chunks == [
+        f'data: {{"choices":[{{"index":0,"delta":{{"content":"{safe_text}"}},'
+        '"finish_reason":null}]}\n\n',
+        'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n',
+        "data: [DONE]\n\n",
     ]
+    assert "\u200b" not in "".join(chunks)
+    assert "\\u200b" not in "".join(chunks)
+    assert "\u200c" not in "".join(chunks)
 
-    assert "".join(chunks) == (
-        'data: {"choices":[{"index":0,"delta":{"content":"hello world"},'
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "scanner_configs",
+    [
+        (_invisible_text_scanner(), _ban_substrings_scanner()),
+        (_ban_substrings_scanner(), _invisible_text_scanner()),
+    ],
+)
+async def test_block_scanner_checks_final_redacted_text(scanner_configs):
+    chunks = await _apply_text("un\u200bsafe", _streaming_guardrails(*scanner_configs))
+
+    assert chunks == [
+        'data: {"choices":[{"index":0,"delta":{"content":"blocked-by-policy"},"finish_reason":null}]}\n\n',
+        'data: {"choices":[{"index":0,"delta":{},"finish_reason":"content_filter"}]}\n\n',
+        "data: [DONE]\n\n",
+    ]
+    assert "\u200b" not in "".join(chunks)
+    assert "\\u200b" not in "".join(chunks)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("text", "scanner_configs", "expected_action"),
+    [
+        ("hello\u200bworld", (_invisible_text_scanner(),), "redact"),
+        (
+            "un\u200bsafe",
+            (_invisible_text_scanner(), _ban_substrings_scanner()),
+            "block",
+        ),
+    ],
+)
+async def test_records_only_final_response_action(
+    monkeypatch, text, scanner_configs, expected_action
+):
+    recorded_actions = []
+    monkeypatch.setattr(
+        OutputGuardrails,
+        "_record_response_action",
+        lambda self, action: recorded_actions.append(action),
+    )
+
+    chunks = await _apply_text(text, _streaming_guardrails(*scanner_configs))
+
+    assert chunks[-1] == "data: [DONE]\n\n"
+    assert recorded_actions == [expected_action]
+
+
+@pytest.mark.asyncio
+async def test_invisible_redaction_emits_sanitized_text_before_stream_finishes():
+    unsafe_text = "a" * 300 + "\u200b" + "tail"
+    sanitized_text = "a" * 300 + "tail"
+
+    chunks = await _apply_text(
+        unsafe_text, _streaming_guardrails(_invisible_text_scanner())
+    )
+    emitted_text = "".join(
+        chunk.split('"content":"', 1)[1].split('"', 1)[0]
+        for chunk in chunks
+        if '"content":"' in chunk
+    )
+
+    assert len(chunks[0].split('"content":"', 1)[1].split('"', 1)[0]) == 48
+    assert emitted_text == sanitized_text
+    assert "\u200b" not in "".join(chunks)
+    assert "\\u200b" not in "".join(chunks)
+    assert chunks[-1] == "data: [DONE]\n\n"
+
+
+@pytest.mark.asyncio
+async def test_invisible_redaction_without_modified_text_fails_closed(monkeypatch):
+    def scan_without_redaction(scanners, prompt, output, fail_fast):
+        return output, {"invisible_text": False}, {"invisible_text": 1.0}
+
+    monkeypatch.setattr(
+        "ragengine.streaming.guardrails.scan_output", scan_without_redaction
+    )
+
+    chunks = await _apply_text(
+        "hello\u200bworld", _streaming_guardrails(_invisible_text_scanner())
+    )
+
+    assert chunks[0] == (
+        'data: {"choices":[{"index":0,"delta":{"content":"blocked-by-policy"},'
         '"finish_reason":null}]}\n\n'
-        'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n'
-        "data: [DONE]\n\n"
     )

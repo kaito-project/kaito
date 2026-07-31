@@ -140,9 +140,9 @@ const (
 	// Using llm-d router endpoint picker which provides advanced scheduling plugins
 	// (KV cache-aware routing, P/D disaggregation, pluggable filters/scorers).
 	// See: https://github.com/llm-d/llm-d-router
-	EPPImageRegistry   = "ghcr.io/llm-d"
+	EPPImageRegistry   = "mcr.microsoft.com/oss/v2/llm-d"
 	EPPImageRepository = "llm-d-router-endpoint-picker"
-	EPPImageTag        = "v0.9.1"
+	EPPImageTag        = "v0.9.0"
 
 	// TokenizerSidecar runs a GPU-less vLLM render process for tokenization.
 	// It exposes /v1/completions/render and /v1/chat/completions/render on port 8100.

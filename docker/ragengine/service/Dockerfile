@@ -12,11 +12,6 @@ RUN apt-get update && apt-get upgrade -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 uninstall -y setuptools msgpack || true \
-    && pip3 install --upgrade pip \
-    'setuptools>=83.0.0' \
-    'msgpack>=1.2.1'
-
 FROM dependencies AS base
 
 ARG VERSION
@@ -26,6 +21,10 @@ WORKDIR /app
 
 # Set the PYTHONPATH environment variable
 ENV PYTHONPATH=/app
+
+RUN pip3 install --upgrade pip \
+    'setuptools>=83.0.0' \
+    'msgpack>=1.2.1'
 
 # Copy requirements.txt first to leverage Docker layer caching
 COPY presets/ragengine/requirements.txt ragengine/requirements.txt

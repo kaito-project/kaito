@@ -41,6 +41,14 @@ class BadSubstringScanner:
         return WindowScanResult()
 
 
+class InvisibleTextRedactScanner:
+    def scan(self, text: str) -> WindowScanResult:
+        sanitized_text = text.replace("\u200b", "").replace("\u200c", "")
+        if sanitized_text == text:
+            return WindowScanResult()
+        return WindowScanResult(sanitized_text=sanitized_text)
+
+
 def test_safe_text_emits_as_single_confirmed_chunk():
     window = StreamingBufferWindow(AllowScanner(), holdback_len=0)
 
@@ -49,6 +57,34 @@ def test_safe_text_emits_as_single_confirmed_chunk():
 
     assert result.chunks == ("abcdefgh",)
     assert result.blocked is False
+    assert flush_result.chunks == ()
+
+
+def test_redaction_replaces_pending_text_before_emission():
+    window = StreamingBufferWindow(InvisibleTextRedactScanner(), holdback_len=0)
+
+    result = window.feed("hello\u200bworld")
+
+    assert result.chunks == ("helloworld",)
+
+
+def test_redaction_recalculates_emit_length_after_text_shrinks():
+    window = StreamingBufferWindow(InvisibleTextRedactScanner(), holdback_len=5)
+
+    result = window.feed("abc\u200b\u200cdef")
+    flush_result = window.flush()
+
+    assert result.chunks == ("a",)
+    assert flush_result.chunks == ("bcdef",)
+
+
+def test_redaction_can_remove_all_text_during_flush():
+    window = StreamingBufferWindow(InvisibleTextRedactScanner(), holdback_len=5)
+
+    result = window.feed("\u200b\u200c")
+    flush_result = window.flush()
+
+    assert result.chunks == ()
     assert flush_result.chunks == ()
 
 

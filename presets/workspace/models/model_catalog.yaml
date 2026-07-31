@@ -563,6 +563,7 @@ models:
   numHiddenLayers: 24
   numAttentionHeads: 8
   numKeyValueHeads: 2
+  mambaStateBytesPerSeq: 19537920
 - name: Qwen/Qwen3.5-4B
   description: https://huggingface.co/Qwen/Qwen3.5-4B
   license: apache-2.0
@@ -578,6 +579,7 @@ models:
   numAttentionHeads: 16
   numKeyValueHeads: 4
   headDim: 256
+  mambaStateBytesPerSeq: 51511296
 - name: Qwen/Qwen3.5-9B
   description: https://huggingface.co/Qwen/Qwen3.5-9B
   license: apache-2.0
@@ -592,6 +594,7 @@ models:
   numHiddenLayers: 32
   numAttentionHeads: 16
   numKeyValueHeads: 4
+  mambaStateBytesPerSeq: 51511296
 - name: Qwen/Qwen3.5-122B-A10B-GPTQ-Int4
   description: https://huggingface.co/Qwen/Qwen3.5-122B-A10B-GPTQ-Int4
   license: apache-2.0
@@ -607,6 +610,7 @@ models:
   headDim: 256
   quantMethod: gptq
   quantBits: 4
+  mambaStateBytesPerSeq: 153649152
 - name: Qwen/Qwen3.5-122B-A10B
   description: https://huggingface.co/Qwen/Qwen3.5-122B-A10B
   license: apache-2.0
@@ -620,6 +624,7 @@ models:
   numAttentionHeads: 32
   numKeyValueHeads: 2
   headDim: 256
+  mambaStateBytesPerSeq: 153649152
 - name: Qwen/Qwen3.6-35B-A3B-FP8
   description: https://huggingface.co/Qwen/Qwen3.6-35B-A3B-FP8
   license: apache-2.0
@@ -636,6 +641,7 @@ models:
   numKeyValueHeads: 2
   headDim: 256
   quantMethod: fp8
+  mambaStateBytesPerSeq: 64389120
 - name: Qwen/Qwen3.6-35B-A3B
   description: https://huggingface.co/Qwen/Qwen3.6-35B-A3B
   license: apache-2.0
@@ -649,6 +655,7 @@ models:
   numAttentionHeads: 16
   numKeyValueHeads: 2
   headDim: 256
+  mambaStateBytesPerSeq: 64389120
 - name: Qwen/Qwen3.6-27B
   description: https://huggingface.co/Qwen/Qwen3.6-27B
   license: apache-2.0
@@ -662,6 +669,7 @@ models:
   numAttentionHeads: 24
   numKeyValueHeads: 4
   headDim: 256
+  mambaStateBytesPerSeq: 153944064
 - name: Qwen/Qwen3.5-397B-A17B-GPTQ-Int4
   description: https://huggingface.co/Qwen/Qwen3.5-397B-A17B-GPTQ-Int4
   license: apache-2.0
@@ -679,6 +687,7 @@ models:
   headDim: 256
   quantMethod: gptq
   quantBits: 4
+  mambaStateBytesPerSeq: 192061440
 - name: moonshotai/Kimi-K2.5
   description: https://huggingface.co/moonshotai/Kimi-K2.5
   license: modified-mit

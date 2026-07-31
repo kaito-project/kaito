@@ -134,6 +134,13 @@ type Metadata struct {
 	// +optional
 	AttnType string `yaml:"attnType,omitempty"`
 
+	// MambaStateBytesPerSeq is the per-sequence recurrent-state cache size (in
+	// bytes, at tensor-parallel size 1) for GDN/Mamba hybrid models. vLLM
+	// allocates one such state block per concurrent sequence (max_num_seqs), so
+	// the node estimator reserves it. Zero for pure-attention models.
+	// +optional
+	MambaStateBytesPerSeq int64 `yaml:"mambaStateBytesPerSeq,omitempty"`
+
 	// ModelTokenLimit is the maximum number of tokens (context window) supported by the model.
 	// This field is only for best effort supported vLLM models.
 	// +optional

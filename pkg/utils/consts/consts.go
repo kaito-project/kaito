@@ -142,7 +142,7 @@ const (
 	// See: https://github.com/llm-d/llm-d-router
 	EPPImageRegistry   = "mcr.microsoft.com/oss/v2/llm-d"
 	EPPImageRepository = "llm-d-router-endpoint-picker"
-	EPPImageTag        = "v0.9.0"
+	EPPImageTag        = "v0.9.1"
 
 	// TokenizerSidecar runs a GPU-less vLLM render process for tokenization.
 	// It exposes /v1/completions/render and /v1/chat/completions/render on port 8100.

@@ -606,6 +606,18 @@ async def test_sensitive_redaction_detects_match_split_across_content_chunks():
 
 
 @pytest.mark.asyncio
+async def test_sensitive_redaction_holds_split_match_across_release_boundary():
+    prefix = "a" * 250
+    chunks = await _apply_content_chunks(
+        [prefix + " alice@", "example.com now"],
+        _streaming_guardrails(_sensitive_scanner(["email"])),
+    )
+
+    assert all("alice@" not in chunk for chunk in chunks)
+    assert _emitted_text(chunks) == prefix + " <EMAIL> now"
+
+
+@pytest.mark.asyncio
 async def test_sensitive_redaction_redacts_multiple_pii_values():
     original = (
         "Email alice@example.com, call +1 (206) 555-0100, "

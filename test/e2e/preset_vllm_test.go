@@ -89,6 +89,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateMultiRoleInferenceEPPReady(mriObj)
 		validateMultiRoleInferenceDestinationRule(mriObj)
 		validateMultiRoleInferenceChatCompletions(mriObj)
+		validateMultiRoleInferenceKVEvents(mriObj)
 		validateMultiRoleInferencePDDisaggregation(mriObj)
 	})
 
@@ -750,6 +751,153 @@ func validateMultiRoleInferenceChatCompletions(mriObj *kaitov1alpha1.MultiRoleIn
 			return true
 		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(),
 			"Failed to validate /v1/chat/completions endpoint on MRI decode pod")
+	})
+}
+
+// validateMultiRoleInferenceKVEvents validates that vLLM KV cache events are
+// correctly enabled + exposed for every child Workspace of a MultiRoleInference
+// (both prefill and decode roles).
+//
+// This is the producer half of the KV-cache-aware routing story: the
+// llm-d-inference-scheduler EPP (that KAITO's GAIE / InferenceSet path wires
+// up) subscribes to tcp://<pod>:5557. If any of these checks regress, the EPP
+// KVCache scorer silently starves.
+//
+// The whole feature is gated in the operator on
+// FeatureFlagEnableMultiRoleInferenceController, so by construction any MRI
+// workspace must satisfy all of the following:
+//
+//  1. StatefulSet pod spec has containerPort/kv-events=consts.PortKVCacheEvents.
+//  2. StatefulSet pod command contains --kv-events-config='{"enable_kv_cache_events":true}'.
+//  3. The child Workspace ClusterIP Service exposes a Service port named
+//     kv-events on consts.PortKVCacheEvents.
+//  4. vLLM logs contain the ZMQ publisher startup line, proving the process
+//     actually opened the socket (not just that the flag was passed).
+func validateMultiRoleInferenceKVEvents(mriObj *kaitov1alpha1.MultiRoleInference) {
+	By("Validating vLLM KV cache events are enabled + exposed for all MRI child workspaces", func() {
+		coreClient, err := utils.GetK8sClientset()
+		Expect(err).NotTo(HaveOccurred(), "Failed to create core client")
+
+		kvEventsFlag := `--kv-events-config='{"enable_kv_cache_events":true}'`
+		kvEventsPort := int32(consts.PortKVCacheEvents)
+
+		// Look up all child Workspaces (prefill + decode) via the MRI parent label.
+		var childWorkspaces []kaitov1beta1.Workspace
+		Eventually(func() bool {
+			wsList := &kaitov1beta1.WorkspaceList{}
+			if err := utils.TestingCluster.KubeClient.List(ctx, wsList,
+				client.InNamespace(mriObj.Namespace),
+				client.MatchingLabels{kaitov1alpha1.LabelMultiRoleInferenceParent: mriObj.Name},
+			); err != nil {
+				GinkgoWriter.Printf("Failed to list MRI child workspaces: %v\n", err)
+				return false
+			}
+			if len(wsList.Items) == 0 {
+				return false
+			}
+			childWorkspaces = wsList.Items
+			return true
+		}, 2*time.Minute, utils.PollInterval).Should(BeTrue(),
+			"Expected at least one child Workspace for MRI %s", mriObj.Name)
+
+		Expect(len(childWorkspaces)).To(BeNumerically(">=", 2),
+			"Expected prefill + decode child workspaces for MRI %s", mriObj.Name)
+
+		for i := range childWorkspaces {
+			ws := &childWorkspaces[i]
+			roleName := ws.Labels[kaitov1alpha1.LabelInferenceRole]
+			GinkgoWriter.Printf("Validating KV events for MRI child workspace %s/%s (role=%s)\n",
+				ws.Namespace, ws.Name, roleName)
+
+			// (1) + (2): StatefulSet pod spec must declare kv-events container port
+			// and the vLLM command must carry --kv-events-config.
+			Eventually(func() error {
+				sts := &appsv1.StatefulSet{}
+				if err := utils.TestingCluster.KubeClient.Get(ctx,
+					client.ObjectKey{Namespace: ws.Namespace, Name: ws.Name}, sts); err != nil {
+					return fmt.Errorf("get StatefulSet %s/%s: %w", ws.Namespace, ws.Name, err)
+				}
+				var mainContainer *corev1.Container
+				for idx := range sts.Spec.Template.Spec.Containers {
+					c := &sts.Spec.Template.Spec.Containers[idx]
+					if c.Name == ws.Name {
+						mainContainer = c
+						break
+					}
+				}
+				if mainContainer == nil {
+					return fmt.Errorf("StatefulSet %s/%s missing main container %s",
+						ws.Namespace, ws.Name, ws.Name)
+				}
+				foundPort := false
+				for _, p := range mainContainer.Ports {
+					if p.Name == "kv-events" {
+						if p.ContainerPort != kvEventsPort {
+							return fmt.Errorf("container port kv-events = %d, want %d",
+								p.ContainerPort, kvEventsPort)
+						}
+						foundPort = true
+						break
+					}
+				}
+				if !foundPort {
+					return fmt.Errorf("StatefulSet %s/%s main container missing kv-events container port",
+						ws.Namespace, ws.Name)
+				}
+				cmd := strings.Join(mainContainer.Command, " ")
+				if !strings.Contains(cmd, kvEventsFlag) {
+					return fmt.Errorf("StatefulSet %s/%s vLLM command missing %s; got: %s",
+						ws.Namespace, ws.Name, kvEventsFlag, cmd)
+				}
+				return nil
+			}, 2*time.Minute, utils.PollInterval).Should(Succeed(),
+				"MRI child workspace %s/%s must expose KV events on its pod spec",
+				ws.Namespace, ws.Name)
+
+			// (3): child Workspace ClusterIP Service must expose kv-events port.
+			Eventually(func() error {
+				svc := &corev1.Service{}
+				if err := utils.TestingCluster.KubeClient.Get(ctx,
+					client.ObjectKey{Namespace: ws.Namespace, Name: ws.Name}, svc); err != nil {
+					return fmt.Errorf("get Service %s/%s: %w", ws.Namespace, ws.Name, err)
+				}
+				if svc.Spec.Type != corev1.ServiceTypeClusterIP {
+					return fmt.Errorf("Service %s/%s is %s, expected ClusterIP",
+						ws.Namespace, ws.Name, svc.Spec.Type)
+				}
+				for _, p := range svc.Spec.Ports {
+					if p.Name == "kv-events" {
+						if p.Port != kvEventsPort {
+							return fmt.Errorf("Service %s/%s kv-events port = %d, want %d",
+								ws.Namespace, ws.Name, p.Port, kvEventsPort)
+						}
+						return nil
+					}
+				}
+				return fmt.Errorf("Service %s/%s missing kv-events port", ws.Namespace, ws.Name)
+			}, 2*time.Minute, utils.PollInterval).Should(Succeed(),
+				"MRI child workspace %s/%s Service must expose kv-events port",
+				ws.Namespace, ws.Name)
+
+			// (4): vLLM must actually have started the ZMQ publisher (log signal).
+			podName := ws.Name + "-0"
+			Eventually(func() error {
+				logs, err := utils.GetPodLogs(coreClient, ws.Namespace, podName, ws.Name)
+				if err != nil {
+					return fmt.Errorf("get logs for pod %s/%s: %w", ws.Namespace, podName, err)
+				}
+				// vLLM's kv_events.py logs "Starting ZMQ publisher thread" when the
+				// publisher actually boots. Match on the phrase to stay resilient
+				// against log-format tweaks (log level / module path).
+				if !strings.Contains(logs, "Starting ZMQ publisher thread") {
+					return fmt.Errorf("pod %s/%s logs missing 'Starting ZMQ publisher thread'",
+						ws.Namespace, podName)
+				}
+				return nil
+			}, 5*time.Minute, utils.PollInterval).Should(Succeed(),
+				"MRI child workspace %s/%s pod %s vLLM logs must show KV events ZMQ publisher startup",
+				ws.Namespace, ws.Name, podName)
+		}
 	})
 }
 

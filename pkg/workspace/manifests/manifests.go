@@ -430,7 +430,7 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1beta1.InferenceSet
 	// since only the leader pod is capable of serving traffic.
 	matchLabels[appsv1.PodIndexLabel] = "0"
 
-	// Based on https://github.com/llm-d/llm-d-router/blob/v0.9.1/config/charts/routerlib/values.yaml
+	// Based on https://github.com/llm-d/llm-d-router/blob/v0.9.0/config/charts/routerlib/values.yaml
 	helmValues := map[string]any{
 		"router": map[string]any{
 			"epp": map[string]any{

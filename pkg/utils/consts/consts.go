@@ -133,7 +133,7 @@ const (
 	InferencePoolChartURL = "oci://ghcr.io/llm-d/charts/llm-d-router-gateway"
 
 	// InferencePoolChartVersion is the tag/version of the llm-d-router-gateway chart to deploy.
-	InferencePoolChartVersion = "v0.9.1"
+	InferencePoolChartVersion = "v0.9.0"
 
 	// EPP (Endpoint Picker) image configuration.
 	// The llm-d-router chart composes the image as: {registry}/{repository}:{tag}

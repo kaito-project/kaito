@@ -518,6 +518,8 @@ const (
 // defaultPDPluginsConfigTemplate is the default EPP plugins YAML template for P/D disaggregated serving.
 // Uses the llm-d EndpointPickerConfig format with schedulingProfiles for prefill and decode.
 // approx-prefix-cache-producer is used for prefix cache awareness (no tokenizer sidecar needed).
+// kv-cache-utilization-scorer leverages vLLM KV cache events (enabled by default on vLLM pods)
+// to score endpoints by available KV cache capacity, spreading traffic away from high-pressure pods.
 const defaultPDPluginsConfigTemplate = `apiVersion: inference.networking.x-k8s.io/v1alpha1
 kind: EndpointPickerConfig
 plugins:
@@ -546,6 +548,7 @@ plugins:
   - type: load-aware-scorer
     parameters:
       threshold: 10
+  - type: kv-cache-utilization-scorer
   - type: max-score-picker
 schedulingProfiles:
   - name: prefill
@@ -553,12 +556,16 @@ schedulingProfiles:
       - pluginRef: prefill-filter
       - pluginRef: load-aware-scorer
         weight: 10
+      - pluginRef: kv-cache-utilization-scorer
+        weight: 5
       - pluginRef: max-score-picker
   - name: decode
     plugins:
       - pluginRef: decode-filter
       - pluginRef: load-aware-scorer
         weight: 10
+      - pluginRef: kv-cache-utilization-scorer
+        weight: 5
       - pluginRef: max-score-picker
 `
 

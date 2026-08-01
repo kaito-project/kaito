@@ -632,7 +632,7 @@ func (p *PresetParam) isLMCacheDisabled() bool {
 func (p *PresetParam) RequiresDeepGEMM() bool {
 	for _, arch := range p.Architectures {
 		switch arch {
-		case "DeepseekV4ForCausalLM":
+		case "DeepseekV4ForCausalLM", "GlmMoeDsaForCausalLM":
 			return true
 		}
 	}

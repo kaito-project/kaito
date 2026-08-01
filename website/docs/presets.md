@@ -62,6 +62,7 @@ The following HuggingFace models are curated by the KAITO team with first-class 
 | Qwen/Qwen3.6-27B | https://huggingface.co/Qwen/Qwen3.6-27B | Apache-2.0 |
 | Qwen/Qwen3.6-35B-A3B | https://huggingface.co/Qwen/Qwen3.6-35B-A3B | Apache-2.0 |
 | Qwen/Qwen3.6-35B-A3B-FP8 | https://huggingface.co/Qwen/Qwen3.6-35B-A3B-FP8 | Apache-2.0 |
+| zai-org/GLM-5.2-FP8 | https://huggingface.co/zai-org/GLM-5.2-FP8 | MIT |
 
 
 ## Generic HuggingFace Models

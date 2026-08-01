@@ -783,3 +783,19 @@ models:
   numAttentionHeads: 16
   numKeyValueHeads: 8
   headDim: 256
+- name: zai-org/GLM-5.2-FP8
+  description: https://huggingface.co/zai-org/GLM-5.2-FP8
+  license: mit
+  pipelineTag: text-generation
+  modelFileSize: 703.75Gi
+  architectures:
+  - GlmMoeDsaForCausalLM
+  modelTokenLimit: 1048576
+  hiddenSize: 6144
+  numHiddenLayers: 78
+  numAttentionHeads: 64
+  numKeyValueHeads: 64
+  headDim: 192
+  kvLoraRank: 512
+  qkRopeHeadDim: 64
+  quantMethod: fp8

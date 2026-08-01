@@ -134,10 +134,17 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 		nodeCountPerReplica = req.ResourceProfile.RequestedNodeCount
 	}
 
-	// maxModelLen: use the value resolved by the caller (RuntimeProfile.ContextSize), falling back to 2048.
+	// maxModelLen: prefer an explicitly configured context size
+	// (RuntimeProfile.ContextSize, parsed from the inference ConfigMap's
+	// max-model-len). When the user has not capped it, vLLM defaults
+	// --max-model-len to the model's full context window at runtime, so size the
+	// KV cache against the model's token limit to avoid under-provisioning nodes.
+	// Fall back to 2048 only if the token limit is unknown.
 	maxModelLen := 2048
 	if req.RuntimeProfile.ContextSize > 0 {
 		maxModelLen = req.RuntimeProfile.ContextSize
+	} else if limit := model.GetInferenceParameters().ModelTokenLimit; limit > 0 {
+		maxModelLen = limit
 	}
 
 	klog.Infof("[NodeEstimator] workspace=%s maxModelLen=%d", req.WorkspaceName, maxModelLen)

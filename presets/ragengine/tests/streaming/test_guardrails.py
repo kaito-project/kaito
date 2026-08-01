@@ -43,11 +43,19 @@ def _invisible_text_scanner(action="redact"):
     )
 
 
-def _ban_substrings_scanner():
+def _sensitive_scanner(detectors):
+    return ParsedScannerConfig(
+        type="sensitive",
+        action_on_hit="redact",
+        config=SensitiveConfig(detectors=list(detectors)),
+    )
+
+
+def _ban_substrings_scanner(substring="unsafe"):
     return ParsedScannerConfig(
         type="ban_substrings",
         action_on_hit="block",
-        config=BanSubstringsConfig(substrings=["unsafe"], match_type="str"),
+        config=BanSubstringsConfig(substrings=[substring], match_type="str"),
     )
 
 
@@ -62,10 +70,18 @@ def _streaming_guardrails(*scanner_configs):
 
 
 async def _apply_text(text, guardrails, *, finish_reason=None):
-    payload = {"choices": [{"index": 0, "delta": {"content": text}}]}
+    return await _apply_content_chunks([text], guardrails, finish_reason=finish_reason)
+
+
+async def _apply_content_chunks(contents, guardrails, *, finish_reason=None):
+    payloads = [
+        {"choices": [{"index": 0, "delta": {"content": content}}]}
+        for content in contents
+    ]
 
     async def upstream_chunks():
-        yield f"data: {json.dumps(payload, separators=(',', ':'))}\n\n"
+        for payload in payloads:
+            yield f"data: {json.dumps(payload, separators=(',', ':'))}\n\n"
         if finish_reason is not None:
             yield (
                 'data: {"choices":[{"index":0,"delta":{},'
@@ -79,6 +95,16 @@ async def _apply_text(text, guardrails, *, finish_reason=None):
             upstream_chunks(), guardrails, {"messages": []}
         )
     ]
+
+
+def _emitted_text(chunks):
+    text = ""
+    for chunk in chunks:
+        if not chunk.startswith("data: {"):
+            continue
+        payload = json.loads(chunk.removeprefix("data: ").strip())
+        text += payload["choices"][0].get("delta", {}).get("content", "")
+    return text
 
 
 def test_validate_streaming_guardrails_accepts_block_ban_substrings_policy():
@@ -193,7 +219,7 @@ def test_validate_streaming_guardrails_accepts_invisible_text_redaction():
     assert support.detail is None
 
 
-def test_validate_streaming_guardrails_rejects_sensitive_redaction():
+def test_validate_streaming_guardrails_accepts_sensitive_redaction():
     support = validate_streaming_guardrails(
         OutputGuardrails(
             enabled=True,
@@ -205,6 +231,21 @@ def test_validate_streaming_guardrails_rejects_sensitive_redaction():
                     config=SensitiveConfig(detectors=["email"]),
                 ),
             ),
+        )
+    )
+
+    assert support.supported is True
+    assert support.detail is None
+
+
+def test_validate_streaming_guardrails_rejects_secrets_redaction():
+    support = validate_streaming_guardrails(
+        _streaming_guardrails(
+            ParsedScannerConfig(
+                type="secrets",
+                action_on_hit="redact",
+                config=SecretsConfig(),
+            )
         )
     )
 
@@ -523,3 +564,95 @@ async def test_invisible_redaction_without_modified_text_fails_closed(monkeypatc
         'data: {"choices":[{"index":0,"delta":{"content":"blocked-by-policy"},'
         '"finish_reason":null}]}\n\n'
     )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("detector", "pii", "replacement", "safe_text"),
+    [
+        ("email", "alice@example.com", "<EMAIL>", "alice at example dot com"),
+        ("phone", "+1 (206) 555-0100", "<PHONE>", "extension 42"),
+        (
+            "credit_card",
+            "4111 1111 1111 1111",
+            "<CREDIT_CARD>",
+            "order 123456789012",
+        ),
+        ("ip_address", "10.0.0.1", "<IP_ADDRESS>", "version 10.0.0"),
+    ],
+)
+async def test_sensitive_redaction_detector_and_safe_cases(
+    detector, pii, replacement, safe_text
+):
+    guardrails = _streaming_guardrails(_sensitive_scanner([detector]))
+
+    redacted_chunks = await _apply_text(f"Value: {pii}", guardrails)
+    safe_chunks = await _apply_text(f"Value: {safe_text}", guardrails)
+
+    assert _emitted_text(redacted_chunks) == f"Value: {replacement}"
+    assert pii not in "".join(redacted_chunks)
+    assert _emitted_text(safe_chunks) == f"Value: {safe_text}"
+
+
+@pytest.mark.asyncio
+async def test_sensitive_redaction_detects_match_split_across_content_chunks():
+    chunks = await _apply_content_chunks(
+        ["Contact alice@", "example.com now"],
+        _streaming_guardrails(_sensitive_scanner(["email"])),
+    )
+
+    assert _emitted_text(chunks) == "Contact <EMAIL> now"
+    assert "alice@example.com" not in "".join(chunks)
+
+
+@pytest.mark.asyncio
+async def test_sensitive_redaction_holds_split_match_across_release_boundary():
+    prefix = "a" * 250
+    chunks = await _apply_content_chunks(
+        [prefix + " alice@", "example.com now"],
+        _streaming_guardrails(_sensitive_scanner(["email"])),
+    )
+
+    assert all("alice@" not in chunk for chunk in chunks)
+    assert _emitted_text(chunks) == prefix + " <EMAIL> now"
+
+
+@pytest.mark.asyncio
+async def test_sensitive_redaction_redacts_multiple_pii_values():
+    original = (
+        "Email alice@example.com, call +1 (206) 555-0100, "
+        "use 4111 1111 1111 1111 from 10.0.0.1"
+    )
+    chunks = await _apply_text(
+        original,
+        _streaming_guardrails(
+            _sensitive_scanner(["email", "phone", "credit_card", "ip_address"])
+        ),
+    )
+
+    assert _emitted_text(chunks) == (
+        "Email <EMAIL>, call <PHONE>, use <CREDIT_CARD> from <IP_ADDRESS>"
+    )
+    assert all(
+        pii not in "".join(chunks)
+        for pii in (
+            "alice@example.com",
+            "+1 (206) 555-0100",
+            "4111 1111 1111 1111",
+            "10.0.0.1",
+        )
+    )
+
+
+@pytest.mark.asyncio
+async def test_sensitive_redaction_runs_before_block_scanner():
+    chunks = await _apply_text(
+        "Contact alice@example.com",
+        _streaming_guardrails(
+            _sensitive_scanner(["email"]),
+            _ban_substrings_scanner("<EMAIL>"),
+        ),
+    )
+
+    assert _emitted_text(chunks) == "blocked-by-policy"
+    assert "alice@example.com" not in "".join(chunks)

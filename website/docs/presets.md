@@ -42,6 +42,7 @@ The following HuggingFace models are curated by the KAITO team with first-class 
 | mistralai/Mistral-Small-4-119B-2603-NVFP4 | https://huggingface.co/mistralai/Mistral-Small-4-119B-2603-NVFP4 | Apache-2.0 |
 | moonshotai/Kimi-K2.5 | https://huggingface.co/moonshotai/Kimi-K2.5 | Modified MIT |
 | moonshotai/Kimi-K2.6 | https://huggingface.co/moonshotai/Kimi-K2.6 | Modified MIT |
+| moonshotai/Kimi-K2.7-Code | https://huggingface.co/moonshotai/Kimi-K2.7-Code | Modified MIT |
 | nvidia/Nemotron-Cascade-2-30B-A3B | https://huggingface.co/nvidia/Nemotron-Cascade-2-30B-A3B | NVIDIA Open |
 | nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16 | https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16 | NVIDIA Nemotron |
 | nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16 | https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16 | NVIDIA Nemotron |

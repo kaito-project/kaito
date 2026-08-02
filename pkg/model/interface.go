@@ -606,7 +606,7 @@ func (p *PresetParam) isVLLMHybridKVCacheManagerRequired() bool {
 			"Gemma4ForCausalLM", "Gemma4ForConditionalGeneration", "Gemma4UnifiedForConditionalGeneration",
 			"Qwen3_5ForConditionalGeneration", "Qwen3_5MoeForConditionalGeneration",
 			"InklingForConditionalGeneration", "InklingForCausalLM",
-			"DeepseekV4ForCausalLM":
+			"DeepseekV4ForCausalLM", "DeepseekV32ForCausalLM":
 			return true
 		}
 	}
@@ -633,7 +633,7 @@ func (p *PresetParam) isLMCacheDisabled() bool {
 func (p *PresetParam) RequiresDeepGEMM() bool {
 	for _, arch := range p.Architectures {
 		switch arch {
-		case "DeepseekV4ForCausalLM", "GlmMoeDsaForCausalLM":
+		case "DeepseekV4ForCausalLM", "DeepseekV32ForCausalLM", "GlmMoeDsaForCausalLM":
 			return true
 		}
 	}

@@ -265,6 +265,9 @@ var (
 		// Inkling's recipe requires disabling it explicitly.
 		// source: https://recipes.vllm.ai/thinkingmachines/Inkling
 		"inkling": true,
+		// DeepSeek-V3.2's recipe requires disabling it explicitly.
+		// source: https://recipes.vllm.ai/deepseek-ai/DeepSeek-V3.2
+		"deepseek-v3.2": true,
 	}
 
 	// catalogOverrides provides hardcoded values for models whose HuggingFace

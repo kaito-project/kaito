@@ -856,3 +856,20 @@ models:
   numAttentionHeads: 64
   numKeyValueHeads: 2
   quantMethod: MIXED_PRECISION
+- name: deepseek-ai/DeepSeek-V3.2
+  description: https://huggingface.co/deepseek-ai/DeepSeek-V3.2
+  license: mit
+  pipelineTag: text-generation
+  baseModel:
+  - deepseek-ai/DeepSeek-V3.2-Exp-Base
+  modelFileSize: 642.14Gi
+  architectures:
+  - DeepseekV32ForCausalLM
+  modelTokenLimit: 163840
+  hiddenSize: 7168
+  numHiddenLayers: 61
+  numAttentionHeads: 128
+  numKeyValueHeads: 128
+  kvLoraRank: 512
+  qkRopeHeadDim: 64
+  quantMethod: fp8

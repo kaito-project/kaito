@@ -240,6 +240,10 @@ var (
 		// DeepSeek-V4 (Flash, Pro, ...) asserts "only supports fp8 kv-cache format
 		// for now" when the kv-cache-dtype is left at the default "auto".
 		"deepseek-v4": "fp8",
+		// GLM-5.2-FP8's recipe serves with an fp8 kv-cache to roughly halve the KV
+		// footprint (enabling its full context window).
+		// source: https://recipes.vllm.ai/zai-org/GLM-5.2
+		"glm-5.2-fp8": "fp8",
 	}
 
 	// vllmGdnPrefillBackendPrefixMap maps model name prefixes to their vLLM GDN prefill backend.

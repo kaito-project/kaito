@@ -70,3 +70,4 @@ All models were deployed as KAITO Workspace CRs on AKS and evaluated using the v
 | thinkingmachines/Inkling-Small-NVFP4 | vllm | 8.82 | 8.55 | 8.7 | 8.35 | 10.0 | 9.0 | 9.05 | 8.2 | 8.7 | 2026-08-01 |
 | nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4 | vllm | 8.64 | 8.55 | 8.65 | 8.9 | 9.1 | 8.55 | 8.25 | 8.2 | 8.9 | 2026-08-01 |
 | deepseek-ai/DeepSeek-V3.2 | vllm | 8.61 | 8.55 | 8.45 | 8.7 | 9.85 | 7.9 | 8.4 | 8.5 | 8.55 | 2026-08-02 |
+| ibm-granite/granite-4.1-8b | vllm | 7.55 | 7.8 | 7.4 | 5.9 | 9.6 | 6.7 | 8.6 | 7.0 | 7.4 | 2026-08-02 |

@@ -873,3 +873,15 @@ models:
   kvLoraRank: 512
   qkRopeHeadDim: 64
   quantMethod: fp8
+- name: ibm-granite/granite-4.1-8b
+  description: https://huggingface.co/ibm-granite/granite-4.1-8b
+  license: apache-2.0
+  pipelineTag: text-generation
+  modelFileSize: 16.38Gi
+  architectures:
+  - GraniteForCausalLM
+  modelTokenLimit: 131072
+  hiddenSize: 4096
+  numHiddenLayers: 40
+  numAttentionHeads: 32
+  numKeyValueHeads: 8

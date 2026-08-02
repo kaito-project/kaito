@@ -605,6 +605,7 @@ func (p *PresetParam) isVLLMHybridKVCacheManagerRequired() bool {
 		case "NemotronHForCausalLM", "NemotronH_Nano_VL_V2", "NemotronHMTPModel", "NemotronHPuzzleForCausalLM",
 			"Gemma4ForCausalLM", "Gemma4ForConditionalGeneration", "Gemma4UnifiedForConditionalGeneration",
 			"Qwen3_5ForConditionalGeneration", "Qwen3_5MoeForConditionalGeneration",
+			"InklingForConditionalGeneration", "InklingForCausalLM",
 			"DeepseekV4ForCausalLM":
 			return true
 		}

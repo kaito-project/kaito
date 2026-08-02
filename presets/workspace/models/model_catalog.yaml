@@ -829,3 +829,17 @@ models:
   numAttentionHeads: 64
   numKeyValueHeads: 8
   headDim: 128
+- name: thinkingmachines/Inkling-Small-NVFP4
+  description: https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4
+  license: apache-2.0
+  pipelineTag: image-text-to-text
+  baseModel:
+  - thinkingmachines/Inkling-Small
+  modelFileSize: 159.01Gi
+  architectures:
+  - InklingForConditionalGeneration
+  modelTokenLimit: 1048576
+  hiddenSize: 4096
+  numHiddenLayers: 42
+  numAttentionHeads: 32
+  numKeyValueHeads: 8

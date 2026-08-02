@@ -843,3 +843,16 @@ models:
   numHiddenLayers: 42
   numAttentionHeads: 32
   numKeyValueHeads: 8
+- name: nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4
+  description: https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4
+  license: openmdw-1.1
+  pipelineTag: text-generation
+  modelFileSize: 328.13Gi
+  architectures:
+  - NemotronHForCausalLM
+  modelTokenLimit: 262144
+  hiddenSize: 8192
+  numHiddenLayers: 108
+  numAttentionHeads: 64
+  numKeyValueHeads: 2
+  quantMethod: MIXED_PRECISION

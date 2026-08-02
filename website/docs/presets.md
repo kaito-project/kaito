@@ -22,6 +22,7 @@ The following HuggingFace models are curated by the KAITO team with first-class 
 | google/gemma-4-31B-it | https://huggingface.co/google/gemma-4-31B-it | Apache-2.0 |
 | google/gemma-4-E2B-it | https://huggingface.co/google/gemma-4-E2B-it | Apache-2.0 |
 | google/gemma-4-E4B-it | https://huggingface.co/google/gemma-4-E4B-it | Apache-2.0 |
+| ibm-granite/granite-4.1-8b | https://huggingface.co/ibm-granite/granite-4.1-8b | Apache-2.0 |
 | meta-llama/Llama-3.1-8B-Instruct | https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct | Llama 3.1 |
 | meta-llama/Llama-3.3-70B-Instruct | https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct | Llama 3.3 |
 | microsoft/Phi-3-medium-4k-instruct | https://huggingface.co/microsoft/Phi-3-medium-4k-instruct | MIT |

@@ -159,6 +159,14 @@ func FetchCatalogEntry(repo, token string) (*CatalogEntry, error) {
 	entry.ModelTokenLimit = getInt(config, configKeyMap["modelTokenLimit"], 0)
 	entry.HiddenSize = getInt(config, configKeyMap["hiddenSize"], 0)
 	entry.NumHiddenLayers = getInt(config, configKeyMap["numHiddenLayers"], 0)
+	// Hybrid Mamba/Attention models (e.g. Nemotron-H) omit num_hidden_layers and
+	// instead enumerate their blocks in layers_block_type. Fall back to that
+	// length so KV-cache sizing has a layer count to work with.
+	if entry.NumHiddenLayers == 0 {
+		if lbt, ok := config["layers_block_type"].([]interface{}); ok {
+			entry.NumHiddenLayers = len(lbt)
+		}
+	}
 	entry.NumAttentionHeads = getInt(config, configKeyMap["numAttentionHeads"], 0)
 	entry.NumKeyValueHeads = getInt(config, configKeyMap["numKeyValueHeads"], 0)
 

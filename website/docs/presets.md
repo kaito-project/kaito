@@ -47,6 +47,7 @@ The following HuggingFace models are curated by the KAITO team with first-class 
 | nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16 | https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16 | NVIDIA Nemotron |
 | nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16 | https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16 | NVIDIA Nemotron |
 | nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16 | https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16 | NVIDIA Nemotron |
+| nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4 | https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4 | OpenMDW-1.1 |
 | nvidia/NVIDIA-Nemotron-Nano-9B-v2 | https://huggingface.co/nvidia/NVIDIA-Nemotron-Nano-9B-v2 | NVIDIA Open |
 | nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-BF16 | https://huggingface.co/nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-BF16 | NVIDIA Open |
 | openai/gpt-oss-20b | https://huggingface.co/openai/gpt-oss-20b | Apache-2.0 |

@@ -639,6 +639,31 @@ func (p *PresetParam) RequiresDeepGEMM() bool {
 	return false
 }
 
+// RequiresVllmModelRunnerV2 returns true for architectures that require vLLM's
+// v2 model runner (VLLM_USE_V2_MODEL_RUNNER=1).
+func (p *PresetParam) RequiresVllmModelRunnerV2() bool {
+	for _, arch := range p.Architectures {
+		switch arch {
+		case "InklingForConditionalGeneration", "InklingForCausalLM":
+			return true
+		}
+	}
+	return false
+}
+
+// RequiresVllmFlashAttentionCuteDslCache returns true for architectures that
+// require the FlashAttention CuTe DSL kernel cache
+// (FLASH_ATTENTION_CUTE_DSL_CACHE_ENABLED=1).
+func (p *PresetParam) RequiresVllmFlashAttentionCuteDslCache() bool {
+	for _, arch := range p.Architectures {
+		switch arch {
+		case "InklingForConditionalGeneration", "InklingForCausalLM":
+			return true
+		}
+	}
+	return false
+}
+
 // modelFitsOnSingleGPU returns true when the model file size is smaller than
 // 50% of a single GPU's memory, meaning the entire model can be loaded onto
 // one GPU with headroom to spare.

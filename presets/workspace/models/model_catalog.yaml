@@ -814,3 +814,18 @@ models:
   kvLoraRank: 512
   qkRopeHeadDim: 64
   quantMethod: pack-quantized
+- name: thinkingmachines/Inkling-NVFP4
+  description: https://huggingface.co/thinkingmachines/Inkling-NVFP4
+  license: apache-2.0
+  pipelineTag: image-text-to-text
+  baseModel:
+  - thinkingmachines/Inkling
+  modelFileSize: 551.35Gi
+  architectures:
+  - InklingForConditionalGeneration
+  modelTokenLimit: 1048576
+  hiddenSize: 6144
+  numHiddenLayers: 66
+  numAttentionHeads: 64
+  numKeyValueHeads: 8
+  headDim: 128

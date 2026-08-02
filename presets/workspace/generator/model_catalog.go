@@ -56,7 +56,7 @@ type ModelCatalog struct {
 // configKeyMap maps catalog field names to the ordered list of HuggingFace
 // config keys to try, mirroring the getInt lookup order.
 var configKeyMap = map[string][]string{
-	"modelTokenLimit":   {"max_position_embeddings", "n_ctx", "seq_length", "max_seq_len", "max_sequence_length"},
+	"modelTokenLimit":   {"max_position_embeddings", "n_ctx", "seq_length", "max_seq_len", "max_sequence_length", "model_max_length"},
 	"hiddenSize":        {"hidden_size", "n_embd", "d_model", "dim"},
 	"numHiddenLayers":   {"num_hidden_layers", "n_layer", "n_layers"},
 	"numAttentionHeads": {"num_attention_heads", "n_head", "n_heads"},

@@ -53,6 +53,7 @@ var (
 		"granite-3.2":  "granite",
 		"holo2":        "holo2",
 		"hunyuan-a13b": "hunyuan_a13b",
+		"inkling":      "inkling",
 		"kimi-k2":      "kimi_k2",
 		"minimax-m2":   "minimax_m2_append_think",
 		"mistral":      "mistral",
@@ -70,6 +71,7 @@ var (
 		"Glm4MoeForCausalLM":                     "glm45",
 		"GlmMoeDsaForCausalLM":                   "glm45",
 		"HunYuanMoEV1ForCausalLM":                "hunyuan_a13b",
+		"InklingForConditionalGeneration":        "inkling",
 		"GraniteForCausalLM":                     "granite",
 		"KimiK2ForCausalLM":                      "kimi_k2",
 		"KimiK25ForConditionalGeneration":        "kimi_k2",
@@ -117,6 +119,7 @@ var (
 		"xlam":          "xlam",
 		"qwq-32b":       "hermes",
 		"qwen2.5":       "hermes",
+		"inkling":       "inkling",
 		"minimax":       "minimax",
 		"deepseek-r1":   "deepseek_v3",
 		"deepseek-v3":   "deepseek_v3",
@@ -154,6 +157,7 @@ var (
 		"GraniteMoeHybridForCausalLM":            "hermes",
 		"GPTBigCodeForCausalLM":                  "granite-20b-fc",
 		"InternLM2ForCausalLM":                   "internlm",
+		"InklingForConditionalGeneration":        "inkling",
 		"JambaForCausalLM":                       "jamba",
 		"Qwen2ForCausalLM":                       "hermes",
 		"Qwen3ForCausalLM":                       "hermes",
@@ -206,6 +210,7 @@ var (
 		"deepseek-r1": "deepseek_v32",
 		"deepseek-v3": "deepseek_v32",
 		"deepseek-v4": "deepseek_v4",
+		"inkling":     "inkling",
 	}
 
 	// vllmAttentionBackendPrefixMap maps model name prefixes to their vLLM attention backend.
@@ -253,6 +258,13 @@ var (
 	// source: https://docs.vllm.ai/en/latest/configuration/engine_args/#-enable-expert-parallel
 	vllmExpertParallelEnabled = map[string]bool{
 		"minimax-m2": true,
+	}
+
+	// vllmDisableFlashInferAutotunePrefixMap disables vLLM's FlashInfer kernel autotuning
+	vllmDisableFlashInferAutotunePrefixMap = map[string]bool{
+		// Inkling's recipe requires disabling it explicitly.
+		// source: https://recipes.vllm.ai/thinkingmachines/Inkling
+		"inkling": true,
 	}
 
 	// catalogOverrides provides hardcoded values for models whose HuggingFace
@@ -739,6 +751,15 @@ func (g *Generator) FinalizeParams() {
 	for prefix, enabled := range vllmExpertParallelEnabled {
 		if strings.HasPrefix(g.Param.Metadata.Name, prefix) && enabled {
 			g.Param.VLLM.ModelRunParams["enable-expert-parallel"] = ""
+			break
+		}
+	}
+
+	// Disable FlashInfer kernel autotuning for models that explicitly require it.
+	// Emitted as --kernel-config.enable_flashinfer_autotune=False.
+	for prefix, disable := range vllmDisableFlashInferAutotunePrefixMap {
+		if strings.HasPrefix(g.Param.Metadata.Name, prefix) && disable {
+			g.Param.VLLM.ModelRunParams["kernel-config.enable_flashinfer_autotune"] = "False"
 			break
 		}
 	}

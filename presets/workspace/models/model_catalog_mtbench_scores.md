@@ -66,3 +66,4 @@ All models were deployed as KAITO Workspace CRs on AKS and evaluated using the v
 | deepseek-ai/DeepSeek-V4-Pro | vllm | 8.33 | 8.45 | 8.25 | 8.80 | 9.90 | 7.60 | 8.65 | 8.00 | 7.00 | 2026-07-24 |
 | zai-org/GLM-5.2-FP8 | vllm | 8.61 | 8.15 | 8.3 | 8.95 | 10.0 | 7.8 | 8.65 | 8.45 | 8.55 | 2026-07-31 |
 | moonshotai/Kimi-K2.7-Code | vllm | 8.74 | 8.25 | 8.15 | 9.0 | 9.75 | 8.5 | 8.5 | 8.95 | 8.8 | 2026-07-31 |
+| thinkingmachines/Inkling-NVFP4 | vllm | 8.89 | 8.55 | 8.55 | 9.15 | 9.95 | 8.55 | 8.5 | 8.85 | 9.0 | 2026-08-01 |

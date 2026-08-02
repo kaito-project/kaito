@@ -762,6 +762,25 @@ func TestGetModelByName_GLM52FP8(t *testing.T) {
 	assert.True(t, params.RequiresDeepGEMM())
 }
 
+// TestGetModelByName_InklingNVFP4 verifies Inkling-NVFP4 resolves offline from
+// the embedded catalog, wires the inkling tokenizer mode and reasoning/tool-call
+// parsers, and disables FlashInfer autotune (its recipe requires it to avoid the
+// nvcc JIT the slim base image lacks).
+func TestGetModelByName_InklingNVFP4(t *testing.T) {
+	m, err := GetModelByNameWithToken(context.Background(), "thinkingmachines/Inkling-NVFP4", "")
+	assert.NoError(t, err)
+	if !assert.NotNil(t, m) {
+		return
+	}
+
+	params := m.GetInferenceParameters()
+	runParams := params.RuntimeParam.VLLM.ModelRunParams
+	assert.Equal(t, "inkling", runParams["tokenizer_mode"])
+	assert.Equal(t, "inkling", runParams["reasoning-parser"])
+	assert.Equal(t, "inkling", runParams["tool-call-parser"])
+	assert.Equal(t, "False", runParams["kernel-config.enable_flashinfer_autotune"])
+}
+
 func TestGetModelByName_BuiltinModels(t *testing.T) {
 	tests := []struct {
 		name          string

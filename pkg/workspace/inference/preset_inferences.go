@@ -766,6 +766,14 @@ func buildMainContainerEnv(runtimeName pkgmodel.RuntimeName, inferenceParam *pkg
 			Name:  consts.VLLMUseDeepGEMMEnvName,
 			Value: deepGEMMValue,
 		})
+
+		if inferenceParam.RequiresVllmModelRunnerV2() {
+			env = append(env, corev1.EnvVar{Name: "VLLM_USE_V2_MODEL_RUNNER", Value: "1"})
+		}
+
+		if inferenceParam.RequiresVllmFlashAttentionCuteDslCache() {
+			env = append(env, corev1.EnvVar{Name: "FLASH_ATTENTION_CUTE_DSL_CACHE_ENABLED", Value: "1"})
+		}
 	}
 
 	// When a CUDA toolkit is provided (installed via init container or mounted

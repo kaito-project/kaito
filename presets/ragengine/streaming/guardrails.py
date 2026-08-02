@@ -34,7 +34,7 @@ STREAMING_GUARDRAILS_CAPABILITIES = {
     "ban_substrings": frozenset({"block"}),
     "invisible_text": frozenset({"block", "redact"}),
     "secrets": frozenset({"block", "redact"}),
-    "sensitive": frozenset({"block"}),
+    "sensitive": frozenset({"block", "redact"}),
 }
 STREAMING_GUARDRAILS_SUPPORTED_SCANNERS = frozenset(STREAMING_GUARDRAILS_CAPABILITIES)
 

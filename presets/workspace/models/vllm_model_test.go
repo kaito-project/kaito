@@ -764,7 +764,7 @@ func TestGetModelByName_DeepSeekV4Pro(t *testing.T) {
 
 // TestGetModelByName_GLM52FP8 verifies GLM-5.2-FP8 resolves offline from the
 // embedded catalog, wires the glm45 reasoning parser and glm47 tool-call parser,
-// and is flagged as requiring DeepGEMM (its FP8 block-quant kernels need it).
+// uses an fp8 kv-cache per its recipe, and is flagged as requiring DeepGEMM.
 func TestGetModelByName_GLM52FP8(t *testing.T) {
 	m, err := GetModelByNameWithToken(context.Background(), "zai-org/GLM-5.2-FP8", "")
 	assert.NoError(t, err)
@@ -777,6 +777,7 @@ func TestGetModelByName_GLM52FP8(t *testing.T) {
 	assert.Equal(t, "glm45", runParams["reasoning-parser"])
 	assert.Equal(t, "glm47", runParams["tool-call-parser"])
 	assert.Equal(t, "", runParams["enable-auto-tool-choice"])
+	assert.Equal(t, "fp8", runParams["kv-cache-dtype"])
 	assert.True(t, params.RequiresDeepGEMM())
 }
 

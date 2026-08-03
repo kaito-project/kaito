@@ -581,7 +581,7 @@ func validateBBRRouting(inferenceSetObj *kaitov1beta1.InferenceSet, modelName, i
 
 		installCmd := `helm upgrade --install body-based-routing ` +
 			`oci://registry.k8s.io/gateway-api-inference-extension/charts/body-based-routing ` +
-			`--version v1.3.0 --set provider.name=istio --namespace default --wait --timeout 3m`
+			`--version v1.3.0 --set provider.name=istio --namespace default --wait --timeout 3m 2>&1`
 
 		execOption := corev1.PodExecOptions{
 			Command:   []string{"sh", "-c", installCmd},

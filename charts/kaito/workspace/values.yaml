@@ -75,7 +75,7 @@ karpenterProviders:
 nvidiaDevicePlugin:
   enabled: true
   daemonsetName: "nvidia-device-plugin-daemonset"
-  image: "mcr.microsoft.com/oss/v2/nvidia/k8s-device-plugin:v0.18.2-1"
+  image: "mcr.microsoft.com/oss/v2/nvidia/k8s-device-plugin:v0.18.2-12"
   imagePullPolicy: "IfNotPresent"
 
 # Spot instance support for Azure GPU node pools.

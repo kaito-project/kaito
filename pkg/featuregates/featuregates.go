@@ -30,6 +30,7 @@ var (
 		consts.FeatureFlagGatewayAPIInferenceExtension:       false,
 		consts.FeatureFlagEnableInferenceSetController:       true,
 		consts.FeatureFlagEnableMIG:                          false,
+		consts.FeatureFlagEnableAccelerator:                  false,
 		consts.FeatureFlagEnableMultiRoleInferenceController: false,
 		consts.FeatureFlagModelMirror:                        false,
 		consts.FeatureFlagModelStreaming:                     false,

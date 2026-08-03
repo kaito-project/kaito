@@ -412,26 +412,33 @@ spec:
                       is scheduled on a GPU partition (slice) instead of a full GPU.
                       Requires the enableMIG feature gate and BYO nodes.
                     properties:
+                      count:
+                        description: |-
+                          Count is the number of whole GPUs to allocate to the workload. Required and
+                          used only when Mode is "accelerator"; must be >= 1. Not valid for "mig".
+                        minimum: 1
+                        type: integer
                       mode:
                         allOf:
                         - enum:
                           - mig
+                          - accelerator
                         - enum:
                           - mig
+                          - accelerator
                         description: |-
-                          Mode selects the GPU partitioning technology. Currently only "mig" (NVIDIA
-                          Multi-Instance GPU) is supported.
+                          Mode selects the GPU partitioning technology: "mig" (NVIDIA Multi-Instance
+                          GPU) or "accelerator" (multiple whole GPUs).
                         type: string
                       profile:
                         description: |-
-                          Profile is the partition profile, interpreted according to Mode. For MIG this
-                          is a profile name like "1g.10gb", "2g.20gb", "3g.40gb". Each workload is
-                          scheduled on exactly one partition; tensor parallelism across partitions is
-                          not supported. Use multiple Workspaces or an InferenceSet to run replicas.
+                          Profile is the MIG partition profile, e.g. "1g.10gb", "2g.20gb", "3g.40gb".
+                          Required and used only when Mode is "mig". Each workload is scheduled on
+                          exactly one partition; tensor parallelism across partitions is not supported.
+                          Use multiple Workspaces or an InferenceSet to run replicas.
                         type: string
                     required:
                     - mode
-                    - profile
                     type: object
                   preferredNodes:
                     description: |-

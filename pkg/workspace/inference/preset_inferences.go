@@ -292,33 +292,42 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 }
 
 func getGPUConfig(ctx *generator.WorkspaceGeneratorContext) (*sku.GPUConfig, error) {
+	partition := ctx.Workspace.Resource.Partition
+
 	// Partition path: build GPU config from the partition spec (MIG mode).
-	if featuregates.FeatureGates[consts.FeatureFlagEnableMIG] && ctx.Workspace.Resource.Partition != nil &&
-		ctx.Workspace.Resource.Partition.Mode == v1beta1.PartitionModeMIG {
-		return utils.GetMIGGPUConfig(ctx.Workspace.Resource.Partition.Profile)
+	if featuregates.FeatureGates[consts.FeatureFlagEnableMIG] && partition != nil &&
+		partition.Mode == v1beta1.PartitionModeMIG {
+		return utils.GetMIGGPUConfig(partition.Profile)
 	}
 
-	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		// NAP is disabled (BYO scenario) - prefer to get GPU config from matching nodes with nvidia.com labels
-		// Only try to find matching nodes if we have a labelSelector and if WorkerNodes is not already populated
-		readyNodes, err := nodeprovision.GetReadyNodes(ctx.Ctx, ctx.KubeClient, ctx.NodeProvisioner, ctx.Workspace)
-		if err != nil {
-			return nil, fmt.Errorf("failed to list ready nodes: %w", err)
-		}
-		if len(readyNodes) == 0 {
-			return nil, fmt.Errorf("no ready nodes found matching the workspace's label selector")
-		}
-
-		return sku.GetGPUConfigFromNodeLabels(readyNodes[0])
-	} else {
-		// NAP is enabled - try to get GPU config from known SKU
-		gpuConfig, err := sku.GetGPUConfigBySKU(ctx.Workspace.Resource.InstanceType)
-		if err != nil {
-			return nil, err
-		}
-
-		return gpuConfig, nil
+	// NAP is enabled - try to get GPU config from known SKU
+	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		return sku.GetGPUConfigBySKU(ctx.Workspace.Resource.InstanceType)
 	}
+
+	// NAP is disabled (BYO scenario) - prefer to get GPU config from matching nodes with nvidia.com labels
+	// Only try to find matching nodes if we have a labelSelector and if WorkerNodes is not already populated
+	readyNodes, err := nodeprovision.GetReadyNodes(ctx.Ctx, ctx.KubeClient, ctx.NodeProvisioner, ctx.Workspace)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list ready nodes: %w", err)
+	}
+	if len(readyNodes) == 0 {
+		return nil, fmt.Errorf("no ready nodes found matching the workspace's label selector")
+	}
+	gpuConfig, err := sku.GetGPUConfigFromNodeLabels(readyNodes[0])
+	if err != nil {
+		return nil, err
+	}
+
+	// Accelerator partition: rescale the node's config down to Count whole GPUs so
+	// resource requests, vLLM parallelism, and node sizing reflect the partition
+	// rather than the full node.
+	if featuregates.FeatureGates[consts.FeatureFlagEnableAccelerator] && partition != nil &&
+		partition.Mode == v1beta1.PartitionModeAccelerator {
+		return sku.ScaleGPUConfigToCount(gpuConfig, *partition.Count)
+	}
+
+	return gpuConfig, nil
 }
 
 func shouldUseDistributedInference(ctx *generator.WorkspaceGeneratorContext, numNodes int) bool {

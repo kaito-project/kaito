@@ -30,6 +30,7 @@ import (
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -531,6 +532,40 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 			coreClient, err := utils.GetK8sClientset()
 			Expect(err).NotTo(HaveOccurred())
 
+			// Create a ServiceAccount + ClusterRoleBinding so the tool pod can install helm charts
+			sa := &corev1.ServiceAccount{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "bbr-helm-installer",
+					Namespace: "default",
+				},
+			}
+			_, err = coreClient.CoreV1().ServiceAccounts("default").Create(ctx, sa, metav1.CreateOptions{})
+			Expect(err).NotTo(HaveOccurred(), "Failed to create service account")
+
+			crb := &rbacv1.ClusterRoleBinding{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "bbr-helm-installer-admin",
+				},
+				RoleRef: rbacv1.RoleRef{
+					APIGroup: "rbac.authorization.k8s.io",
+					Kind:     "ClusterRole",
+					Name:     "cluster-admin",
+				},
+				Subjects: []rbacv1.Subject{{
+					Kind:      "ServiceAccount",
+					Name:      "bbr-helm-installer",
+					Namespace: "default",
+				}},
+			}
+			_, err = coreClient.RbacV1().ClusterRoleBindings().Create(ctx, crb, metav1.CreateOptions{})
+			Expect(err).NotTo(HaveOccurred(), "Failed to create ClusterRoleBinding")
+
+			DeferCleanup(func() {
+				_ = coreClient.RbacV1().ClusterRoleBindings().Delete(ctx, crb.Name, metav1.DeleteOptions{})
+				_ = coreClient.CoreV1().ServiceAccounts("default").Delete(ctx, sa.Name, metav1.DeleteOptions{})
+				GinkgoWriter.Printf("Deleted helm RBAC resources\n")
+			})
+
 			// Create a short-lived tool pod with helm pre-installed
 			toolPod := &corev1.Pod{
 				ObjectMeta: metav1.ObjectMeta{
@@ -539,7 +574,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 				},
 				Spec: corev1.PodSpec{
 					RestartPolicy:      corev1.RestartPolicyNever,
-					ServiceAccountName: "default",
+					ServiceAccountName: "bbr-helm-installer",
 					Containers: []corev1.Container{{
 						Name:    "helm",
 						Image:   "alpine/helm:3.17.3",

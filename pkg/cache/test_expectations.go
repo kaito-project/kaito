@@ -77,71 +77,12 @@ type Expectations struct {
 	// PodMutations should wire a nil/fake client here.
 	NewForConformance func() Provider
 
-	// E2EExempt opts the provider OUT of the online (in-cluster) e2e conformance
-	// suite. It defaults to false, so every registered provider is exercised by the
-	// shared, provider-agnostic e2e contract specs by default. A provider must
-	// explicitly set this to true — e.g. the noop dummy, or a provider whose cache
-	// backend cannot run in CI — to be excluded. Making e2e the safe default ensures
-	// any future provider is tested unless it deliberately opts out.
-	E2EExempt bool
-
 	// ModelWeights declares the expected mutations for the model weights concern.
 	ModelWeights MutationExpectation
 
 	// KVCache declares the expected mutations for the KV cache concern.
 	KVCache MutationExpectation
-
-	// E2EScenarios are provider-specific end-to-end scenarios (e.g. backend
-	// discovery, CR deletion, data-plane counters) that the e2e conformance suite
-	// discovers and runs for this provider. Contract-level behaviour shared by all
-	// providers is exercised by the parameterized agnostic specs instead; these are
-	// only for behaviour unique to the provider.
-	E2EScenarios []E2EScenario
-
-	// CacheWarm returns the provider's cache warm/hit test configuration after
-	// checking all prerequisites (env vars, patterns, etc.). Nil means the
-	// provider does not support the cache-hit scenario. A non-nil result with
-	// a non-empty SkipReason means the test should be skipped. All validation
-	// logic lives in the provider — the e2e runner simply calls and acts on
-	// the result.
-	CacheWarm func() *CacheWarmConfig
 }
-
-// CacheWarmConfig is returned by a provider's CacheWarm function. It carries
-// everything the e2e runner needs to execute the warm/hit data-plane scenario.
-// The runner orchestrates workspace lifecycle; the provider owns validation.
-type CacheWarmConfig struct {
-	// SkipReason is non-empty when the provider determined the test cannot
-	// run (e.g. missing env vars). The e2e runner skips with this message.
-	SkipReason string
-
-	// Namespace overrides the default test namespace for cache-hit workspaces.
-	// Providers that rely on workload identity federation should set this to a
-	// fixed, pre-configured namespace (read from an env var) so that the SA
-	// federation works across randomly-named e2e namespaces.
-	// Empty means use the default e2e test namespace.
-	Namespace string
-
-	// WorkspaceCustomizer applies provider-specific overrides to a workspace
-	// before it is created (e.g. model URL, storage account, vLLM args).
-	// Nil means no customization is needed.
-	WorkspaceCustomizer func(ws *kaitov1beta1.Workspace)
-
-	// ValidatePreWarm is called after the first (cold) model load reaches
-	// InferenceReady. The provider validates warm-up behaviour (e.g. log
-	// patterns indicating blob reads). Nil means no pre-warm validation.
-	ValidatePreWarm func(h E2EHarness, ws *kaitov1beta1.Workspace) error
-
-	// ValidatePostWarm is called after the second (warm) model load reaches
-	// InferenceReady. The provider validates cache-hit behaviour (e.g. log
-	// patterns indicating remote cache reads). Must not be nil.
-	ValidatePostWarm func(h E2EHarness, ws *kaitov1beta1.Workspace) error
-}
-
-// RunsE2E reports whether the provider participates in the online (in-cluster)
-// e2e conformance suite. It is the inverse of E2EExempt, so e2e coverage is the
-// default for every registered provider.
-func (e Expectations) RunsE2E() bool { return !e.E2EExempt }
 
 // ForConcern returns the MutationExpectation for the given cache concern.
 func (e Expectations) ForConcern(concern CacheConcern) MutationExpectation {

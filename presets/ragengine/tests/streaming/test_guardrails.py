@@ -636,6 +636,19 @@ async def test_secrets_all_handles_multiple_same_type_without_leaking():
 
 
 @pytest.mark.asyncio
+async def test_secrets_all_blocks_repeated_identical_secret():
+    secret = "AKIA1234567890ABCDEF"
+
+    chunks = await _apply_text(
+        f"Keys: {secret} and {secret}",
+        _streaming_guardrails(_secrets_scanner()),
+    )
+
+    assert _emitted_text(chunks) == "blocked-by-policy"
+    assert secret not in "".join(chunks)
+
+
+@pytest.mark.asyncio
 async def test_secrets_all_redaction_is_stable_when_window_is_rescanned():
     secret = "AKIA1234567890ABCDEF"
     prefix = "a" * 300

@@ -460,7 +460,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 				podList := &corev1.PodList{}
 				err = utils.TestingCluster.KubeClient.List(ctx, podList,
 					client.InNamespace(ws.Namespace),
-					client.MatchingLabels{"app": ws.Name})
+					client.MatchingLabels{kaitov1beta1.LabelWorkspaceName: ws.Name})
 				if err != nil || len(podList.Items) == 0 {
 					return false
 				}

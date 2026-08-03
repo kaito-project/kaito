@@ -441,7 +441,13 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateGatewayAPIInferenceExtensionResources(inferenceSetObj)
 
 		// --- BBR (Body-Based Routing) validation ---
-		modelName := getModelName(string(PresetGemma3_4BInstructModel))
+		// vLLM serves the InferenceSet name as the OpenAI-compatible model id
+		// (see pkg/model/interface.go buildVLLMInferenceCommand: when the
+		// workspace has WorkspaceCreatedByInferenceSetLabel, served-model-name
+		// is set to the InferenceSet name). BBR mirrors the request body's
+		// "model" field into the X-Gateway-Model-Name header, so both the
+		// HTTPRoute header match and the request payload must use this name.
+		modelName := inferenceSetObj.Name
 		inferencePoolName := kaitoutils.InferencePoolName(inferenceSetObj.Name)
 
 		// findWorkspacePod locates a running pod belonging to a child Workspace
@@ -758,9 +764,15 @@ func validateBBRRouting(inferenceSetObj *kaitov1beta1.InferenceSet, modelName, i
 		execPodName, execContainer, execNamespace := findWorkspacePod()
 		gatewayEndpoint := "http://inference-gateway-istio.default.svc.cluster.local/v1/chat/completions"
 
+		// Use `curl -s -w` to capture BOTH the response body and the HTTP status
+		// code, and drop `-f` so we don't blindly exit with 22 on 4xx/5xx. This
+		// makes failure logs actionable (previously curl exit 22 with an empty
+		// stderr told us nothing).
 		curlCmd := fmt.Sprintf(
-			`curl -sf --max-time 120 -X POST -H "Content-Type: application/json" `+
-				`-d '{"model":"%s","messages":[{"role":"user","content":"Hello"}],"max_tokens":10}' %s && echo ''`,
+			`curl -s --max-time 120 -o /tmp/bbr-body -w "HTTP_STATUS=%%{http_code}\n" `+
+				`-X POST -H "Content-Type: application/json" `+
+				`-d '{"model":"%s","messages":[{"role":"user","content":"Hello"}],"max_tokens":10}' %s; `+
+				`echo '---body---'; cat /tmp/bbr-body 2>/dev/null | head -c 4096; echo`,
 			modelName, gatewayEndpoint)
 
 		var stdout string
@@ -770,12 +782,16 @@ func validateBBRRouting(inferenceSetObj *kaitov1beta1.InferenceSet, modelName, i
 			stdout, err = utils.ExecSync(execCtx, k8sConfig, coreClient, execNamespace, execPodName, execOption)
 			cancel()
 			if err != nil {
-				GinkgoWriter.Printf("BBR request failed: %v\n", err)
+				GinkgoWriter.Printf("BBR request exec failed (model=%s, endpoint=%s): %v\nstdout: %s\n", modelName, gatewayEndpoint, err, stdout)
 				return false
 			}
-			return strings.Contains(stdout, "choices")
+			if !strings.Contains(stdout, "HTTP_STATUS=200") || !strings.Contains(stdout, "choices") {
+				GinkgoWriter.Printf("BBR request not yet successful (model=%s):\n%s\n", modelName, stdout)
+				return false
+			}
+			return true
 		}, 5*time.Minute, 15*time.Second).Should(BeTrue(), "BBR should route correct model to inference pool")
-		GinkgoWriter.Printf("BBR routing succeeded: %s\n", stdout[:min(len(stdout), 200)])
+		GinkgoWriter.Printf("BBR routing succeeded: %s\n", stdout[:min(len(stdout), 400)])
 	})
 
 	// Negative: non-existent model → error

@@ -478,7 +478,11 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 		numOfReplicas := 1
 		inferenceSetObj := createGemma3InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
-		defer cleanupResourcesForInferenceSet(inferenceSetObj)
+		// Use DeferCleanup (LIFO) instead of defer so that the InferenceSet is
+		// cleaned up after BBR chart uninstall and HTTPRoute deletion.
+		DeferCleanup(func() {
+			cleanupResourcesForInferenceSet(inferenceSetObj)
+		})
 		time.Sleep(120 * time.Second)
 
 		validateInferenceSetStatus(inferenceSetObj)
@@ -487,40 +491,93 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		modelName := getModelName(string(PresetGemma3_4BInstructModel))
 		inferencePoolName := kaitoutils.InferencePoolName(inferenceSetObj.Name)
 
-		// Install BBR helm chart
+		// findWorkspacePod locates a running pod belonging to a child Workspace
+		// created by the InferenceSet, using the correct label selector.
+		findWorkspacePod := func() (string, string, string) {
+			wsList := &kaitov1beta1.WorkspaceList{}
+			var podName, containerName, namespace string
+			Eventually(func() bool {
+				err := utils.TestingCluster.KubeClient.List(ctx, wsList,
+					client.InNamespace(inferenceSetObj.Namespace),
+					client.MatchingLabels{consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name})
+				if err != nil || len(wsList.Items) == 0 {
+					return false
+				}
+				ws := &wsList.Items[0]
+				podList := &corev1.PodList{}
+				err = utils.TestingCluster.KubeClient.List(ctx, podList,
+					client.InNamespace(ws.Namespace),
+					client.MatchingLabels{"app": ws.Name})
+				if err != nil || len(podList.Items) == 0 {
+					return false
+				}
+				for _, pod := range podList.Items {
+					if pod.Status.Phase == corev1.PodRunning {
+						podName = pod.Name
+						containerName = pod.Spec.Containers[0].Name
+						namespace = pod.Namespace
+						return true
+					}
+				}
+				return false
+			}, 5*time.Minute, utils.PollInterval).Should(BeTrue(),
+				"Should find a running workspace pod for InferenceSet %s", inferenceSetObj.Name)
+			return podName, containerName, namespace
+		}
+
+		// Install BBR helm chart using a dedicated tool pod (alpine/helm) to
+		// avoid fragile curl|bash inside the inference workload pod.
 		By("Installing Body-Based Routing (BBR) helm chart", func() {
 			coreClient, err := utils.GetK8sClientset()
 			Expect(err).NotTo(HaveOccurred())
 
+			// Create a short-lived tool pod with helm pre-installed
+			toolPod := &corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "bbr-helm-installer",
+					Namespace: "default",
+				},
+				Spec: corev1.PodSpec{
+					RestartPolicy:      corev1.RestartPolicyNever,
+					ServiceAccountName: "default",
+					Containers: []corev1.Container{{
+						Name:    "helm",
+						Image:   "alpine/helm:3.17.3",
+						Command: []string{"sleep", "600"},
+					}},
+				},
+			}
+
+			_, err = coreClient.CoreV1().Pods("default").Create(ctx, toolPod, metav1.CreateOptions{})
+			Expect(err).NotTo(HaveOccurred(), "Failed to create helm tool pod")
+
+			DeferCleanup(func() {
+				_ = coreClient.CoreV1().Pods("default").Delete(ctx, toolPod.Name, metav1.DeleteOptions{})
+				GinkgoWriter.Printf("Deleted helm tool pod\n")
+			})
+
+			// Wait for the tool pod to be running
+			Eventually(func() bool {
+				p, err := coreClient.CoreV1().Pods("default").Get(ctx, toolPod.Name, metav1.GetOptions{})
+				return err == nil && p.Status.Phase == corev1.PodRunning
+			}, 3*time.Minute, utils.PollInterval).Should(BeTrue(), "Helm tool pod should be running")
+
 			k8sConfig, err := utils.GetK8sConfig()
 			Expect(err).NotTo(HaveOccurred())
 
-			// Find a pod to exec helm install from (use inference pod)
-			podList := &corev1.PodList{}
-			Eventually(func() bool {
-				err = utils.TestingCluster.KubeClient.List(ctx, podList,
-					client.InNamespace(inferenceSetObj.Namespace),
-					client.MatchingLabels{"app": inferenceSetObj.Name})
-				return err == nil && len(podList.Items) > 0
-			}, 5*time.Minute, utils.PollInterval).Should(BeTrue())
-
-			execPodName := podList.Items[0].Name
-			execContainer := podList.Items[0].Spec.Containers[0].Name
-
-			// Install helm and BBR chart in the pod
-			installCmd := `command -v helm > /dev/null 2>&1 || (curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash > /dev/null 2>&1); ` +
-				`helm upgrade --install body-based-routing oci://registry.k8s.io/gateway-api-inference-extension/charts/body-based-routing ` +
+			installCmd := `helm upgrade --install body-based-routing ` +
+				`oci://registry.k8s.io/gateway-api-inference-extension/charts/body-based-routing ` +
 				`--version v1.3.0 --set provider.name=istio --namespace default --wait --timeout 3m`
 
 			execOption := corev1.PodExecOptions{
 				Command:   []string{"sh", "-c", installCmd},
-				Container: execContainer,
+				Container: "helm",
 				Stdout:    true,
 				Stderr:    true,
 			}
 
 			execCtx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-			stdout, execErr := utils.ExecSync(execCtx, k8sConfig, coreClient, inferenceSetObj.Namespace, execPodName, execOption)
+			stdout, execErr := utils.ExecSync(execCtx, k8sConfig, coreClient, "default", toolPod.Name, execOption)
 			cancel()
 			GinkgoWriter.Printf("BBR helm install output: %s\n", stdout)
 			Expect(execErr).NotTo(HaveOccurred(), "Failed to install BBR helm chart")
@@ -529,14 +586,110 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 				uninstallCmd := `helm uninstall body-based-routing --namespace default 2>/dev/null || true`
 				uninstallOption := corev1.PodExecOptions{
 					Command:   []string{"sh", "-c", uninstallCmd},
-					Container: execContainer,
+					Container: "helm",
 					Stdout:    true,
 					Stderr:    true,
 				}
 				uninstallCtx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-				utils.ExecSync(uninstallCtx, k8sConfig, coreClient, inferenceSetObj.Namespace, execPodName, uninstallOption)
+				utils.ExecSync(uninstallCtx, k8sConfig, coreClient, "default", toolPod.Name, uninstallOption)
 				cancel()
 				GinkgoWriter.Printf("Uninstalled BBR helm chart\n")
+			})
+		})
+
+		// Patch Gateway BEFORE creating HTTPRoute so cross-namespace routes are admitted.
+		// Without this, the Gateway rejects the HTTPRoute and it never becomes Accepted.
+		By("Patching Gateway to allow routes from test namespace", func() {
+			var originalListeners []interface{}
+			originalCaptured := false
+
+			gw := &unstructured.Unstructured{}
+			gw.SetGroupVersionKind(schema.GroupVersionKind{
+				Group:   "gateway.networking.k8s.io",
+				Version: "v1",
+				Kind:    "Gateway",
+			})
+			Eventually(func() error {
+				if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+					Namespace: "default",
+					Name:      "inference-gateway",
+				}, gw); err != nil {
+					return err
+				}
+				spec, ok := gw.Object["spec"].(map[string]interface{})
+				if !ok || spec == nil {
+					spec = map[string]interface{}{}
+					gw.Object["spec"] = spec
+				}
+				// Snapshot the original listeners exactly once for restoration.
+				if !originalCaptured {
+					if existing, ok := spec["listeners"].([]interface{}); ok {
+						if b, err := json.Marshal(existing); err == nil {
+							var cloned []interface{}
+							if err := json.Unmarshal(b, &cloned); err == nil {
+								originalListeners = cloned
+							}
+						}
+					}
+					originalCaptured = true
+				}
+				existingListeners, _ := spec["listeners"].([]interface{})
+				updatedListeners := make([]interface{}, 0, len(existingListeners))
+				httpListenerFound := false
+				for _, l := range existingListeners {
+					listener, ok := l.(map[string]interface{})
+					if !ok {
+						updatedListeners = append(updatedListeners, l)
+						continue
+					}
+					if proto, _ := listener["protocol"].(string); proto == "HTTP" {
+						listener["allowedRoutes"] = map[string]interface{}{
+							"namespaces": map[string]interface{}{"from": "All"},
+						}
+						httpListenerFound = true
+					}
+					updatedListeners = append(updatedListeners, listener)
+				}
+				if !httpListenerFound {
+					updatedListeners = append(updatedListeners, map[string]interface{}{
+						"name":     "http",
+						"port":     int64(80),
+						"protocol": "HTTP",
+						"allowedRoutes": map[string]interface{}{
+							"namespaces": map[string]interface{}{"from": "All"},
+						},
+					})
+				}
+				spec["listeners"] = updatedListeners
+				return utils.TestingCluster.KubeClient.Update(ctx, gw)
+			}, 2*time.Minute, utils.PollInterval).Should(Succeed(), "Failed to patch Gateway")
+			GinkgoWriter.Printf("Patched Gateway inference-gateway to allow routes from namespace %s\n", inferenceSetObj.Namespace)
+
+			// Restore original listeners after the test.
+			DeferCleanup(func() {
+				restoreGW := &unstructured.Unstructured{}
+				restoreGW.SetGroupVersionKind(schema.GroupVersionKind{
+					Group:   "gateway.networking.k8s.io",
+					Version: "v1",
+					Kind:    "Gateway",
+				})
+				if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+					Namespace: "default",
+					Name:      "inference-gateway",
+				}, restoreGW); err != nil {
+					GinkgoWriter.Printf("WARNING: could not restore Gateway: %v\n", err)
+					return
+				}
+				if originalListeners != nil {
+					spec, _ := restoreGW.Object["spec"].(map[string]interface{})
+					if spec != nil {
+						spec["listeners"] = originalListeners
+						if err := utils.TestingCluster.KubeClient.Update(ctx, restoreGW); err != nil {
+							GinkgoWriter.Printf("WARNING: could not restore Gateway listeners: %v\n", err)
+						}
+					}
+				}
+				GinkgoWriter.Printf("Restored Gateway listeners\n")
 			})
 		})
 
@@ -672,46 +825,6 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 			}, 2*time.Minute, 5*time.Second).Should(BeTrue(), "BBR HTTPRoute should be accepted by the gateway")
 		})
 
-		// Patch Gateway to allow routes from test namespace
-		By("Patching Gateway to allow routes from test namespace", func() {
-			gw := &unstructured.Unstructured{}
-			gw.SetGroupVersionKind(schema.GroupVersionKind{
-				Group:   "gateway.networking.k8s.io",
-				Version: "v1",
-				Kind:    "Gateway",
-			})
-			Eventually(func() error {
-				if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
-					Namespace: "default",
-					Name:      "inference-gateway",
-				}, gw); err != nil {
-					return err
-				}
-				spec, ok := gw.Object["spec"].(map[string]interface{})
-				if !ok || spec == nil {
-					spec = map[string]interface{}{}
-					gw.Object["spec"] = spec
-				}
-				existingListeners, _ := spec["listeners"].([]interface{})
-				updatedListeners := make([]interface{}, 0, len(existingListeners))
-				for _, l := range existingListeners {
-					listener, ok := l.(map[string]interface{})
-					if !ok {
-						updatedListeners = append(updatedListeners, l)
-						continue
-					}
-					if proto, _ := listener["protocol"].(string); proto == "HTTP" {
-						listener["allowedRoutes"] = map[string]interface{}{
-							"namespaces": map[string]interface{}{"from": "All"},
-						}
-					}
-					updatedListeners = append(updatedListeners, listener)
-				}
-				spec["listeners"] = updatedListeners
-				return utils.TestingCluster.KubeClient.Update(ctx, gw)
-			}, 2*time.Minute, utils.PollInterval).Should(Succeed(), "Failed to patch Gateway")
-		})
-
 		// Send request with correct model name - should succeed
 		By("Sending request with correct model name through BBR gateway", func() {
 			coreClient, err := utils.GetK8sClientset()
@@ -720,22 +833,12 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 			k8sConfig, err := utils.GetK8sConfig()
 			Expect(err).NotTo(HaveOccurred())
 
-			podList := &corev1.PodList{}
-			Eventually(func() bool {
-				err = utils.TestingCluster.KubeClient.List(ctx, podList,
-					client.InNamespace(inferenceSetObj.Namespace),
-					client.MatchingLabels{"app": inferenceSetObj.Name})
-				return err == nil && len(podList.Items) > 0
-			}, 5*time.Minute, utils.PollInterval).Should(BeTrue())
-
-			execPodName := podList.Items[0].Name
-			execContainer := podList.Items[0].Spec.Containers[0].Name
+			execPodName, execContainer, execNamespace := findWorkspacePod()
 			gatewayEndpoint := "http://inference-gateway-istio.default.svc.cluster.local/v1/chat/completions"
 
 			// Request with correct model name - BBR should extract from body and set X-Gateway-Model-Name header
 			curlCmd := fmt.Sprintf(
-				`command -v curl > /dev/null 2>&1 || (apt-get update -qq > /dev/null 2>&1 && apt-get install -y -qq curl > /dev/null 2>&1); `+
-					`curl -sf --max-time 120 -X POST -H "Content-Type: application/json" `+
+				`curl -sf --max-time 120 -X POST -H "Content-Type: application/json" `+
 					`-d '{"model":"%s","messages":[{"role":"user","content":"Hello"}],"max_tokens":10}' `+
 					`%s && echo ''`,
 				modelName, gatewayEndpoint)
@@ -749,7 +852,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 					Stderr:    true,
 				}
 				execCtx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
-				stdout, err = utils.ExecSync(execCtx, k8sConfig, coreClient, inferenceSetObj.Namespace, execPodName, execOption)
+				stdout, err = utils.ExecSync(execCtx, k8sConfig, coreClient, execNamespace, execPodName, execOption)
 				cancel()
 				if err != nil {
 					GinkgoWriter.Printf("BBR request failed: %v\n", err)
@@ -769,22 +872,13 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 			k8sConfig, err := utils.GetK8sConfig()
 			Expect(err).NotTo(HaveOccurred())
 
-			podList := &corev1.PodList{}
-			Eventually(func() bool {
-				err = utils.TestingCluster.KubeClient.List(ctx, podList,
-					client.InNamespace(inferenceSetObj.Namespace),
-					client.MatchingLabels{"app": inferenceSetObj.Name})
-				return err == nil && len(podList.Items) > 0
-			}, 5*time.Minute, utils.PollInterval).Should(BeTrue())
-
-			execPodName := podList.Items[0].Name
-			execContainer := podList.Items[0].Spec.Containers[0].Name
+			execPodName, execContainer, execNamespace := findWorkspacePod()
 			gatewayEndpoint := "http://inference-gateway-istio.default.svc.cluster.local/v1/chat/completions"
 
-			// Request with wrong model name - BBR should extract "nonexistent-model-xyz" and route to nonexistent pool
+			// Request with wrong model name - BBR should extract "nonexistent-model-xyz" and route to nonexistent pool.
+			// Use -w to capture the HTTP status code; -o /dev/null discards the body.
 			curlCmd := fmt.Sprintf(
-				`command -v curl > /dev/null 2>&1 || (apt-get update -qq > /dev/null 2>&1 && apt-get install -y -qq curl > /dev/null 2>&1); `+
-					`curl -s --max-time 30 -o /dev/null -w "%%{http_code}" -X POST -H "Content-Type: application/json" `+
+				`curl -s --max-time 30 -o /dev/null -w "%%{http_code}" -X POST -H "Content-Type: application/json" `+
 					`-d '{"model":"nonexistent-model-xyz","messages":[{"role":"user","content":"Hello"}],"max_tokens":10}' `+
 					`%s`,
 				gatewayEndpoint)
@@ -797,16 +891,20 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 					Stderr:    true,
 				}
 				execCtx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
-				stdout, execErr := utils.ExecSync(execCtx, k8sConfig, coreClient, inferenceSetObj.Namespace, execPodName, execOption)
+				stdout, execErr := utils.ExecSync(execCtx, k8sConfig, coreClient, execNamespace, execPodName, execOption)
 				cancel()
 				if execErr != nil {
-					// Connection error is expected - nonexistent pool has no backends
-					GinkgoWriter.Printf("Request with wrong model failed as expected: %v\n", execErr)
-					return true
+					// Exec failure (e.g., DNS, network) — retry rather than treating as success
+					GinkgoWriter.Printf("Request with wrong model exec failed (retrying): %v\n", execErr)
+					return false
 				}
-				// HTTP error codes (404, 503, etc.) indicate the request was not routed successfully
+				// Only pass when the gateway actually responds with a non-200 HTTP code
 				httpCode := strings.TrimSpace(stdout)
 				GinkgoWriter.Printf("Request with wrong model returned HTTP %s\n", httpCode)
+				// Codes like 000 (curl connection failure) should also retry
+				if httpCode == "000" || httpCode == "" {
+					return false
+				}
 				return httpCode != "200"
 			}, 2*time.Minute, 10*time.Second).Should(BeTrue(),
 				"BBR should not successfully route request with non-existent model name")

@@ -472,6 +472,346 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
+
+	It("should route requests via Body-Based Routing (BBR) based on model name in request body", Serial, utils.GinkgoLabelFastCheck, func() {
+		Expect(isIstioCRDAvailable()).To(BeTrue(), "Istio CRDs must be available for BBR routing validation")
+
+		numOfReplicas := 1
+		inferenceSetObj := createGemma3InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
+		defer cleanupResourcesForInferenceSet(inferenceSetObj)
+		time.Sleep(120 * time.Second)
+
+		validateInferenceSetStatus(inferenceSetObj)
+		validateGatewayAPIInferenceExtensionResources(inferenceSetObj)
+
+		modelName := getModelName(string(PresetGemma3_4BInstructModel))
+		inferencePoolName := kaitoutils.InferencePoolName(inferenceSetObj.Name)
+
+		// Install BBR helm chart
+		By("Installing Body-Based Routing (BBR) helm chart", func() {
+			coreClient, err := utils.GetK8sClientset()
+			Expect(err).NotTo(HaveOccurred())
+
+			k8sConfig, err := utils.GetK8sConfig()
+			Expect(err).NotTo(HaveOccurred())
+
+			// Find a pod to exec helm install from (use inference pod)
+			podList := &corev1.PodList{}
+			Eventually(func() bool {
+				err = utils.TestingCluster.KubeClient.List(ctx, podList,
+					client.InNamespace(inferenceSetObj.Namespace),
+					client.MatchingLabels{"app": inferenceSetObj.Name})
+				return err == nil && len(podList.Items) > 0
+			}, 5*time.Minute, utils.PollInterval).Should(BeTrue())
+
+			execPodName := podList.Items[0].Name
+			execContainer := podList.Items[0].Spec.Containers[0].Name
+
+			// Install helm and BBR chart in the pod
+			installCmd := `command -v helm > /dev/null 2>&1 || (curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash > /dev/null 2>&1); ` +
+				`helm upgrade --install body-based-routing oci://registry.k8s.io/gateway-api-inference-extension/charts/body-based-routing ` +
+				`--version v1.3.0 --set provider.name=istio --namespace default --wait --timeout 3m`
+
+			execOption := corev1.PodExecOptions{
+				Command:   []string{"sh", "-c", installCmd},
+				Container: execContainer,
+				Stdout:    true,
+				Stderr:    true,
+			}
+
+			execCtx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+			stdout, execErr := utils.ExecSync(execCtx, k8sConfig, coreClient, inferenceSetObj.Namespace, execPodName, execOption)
+			cancel()
+			GinkgoWriter.Printf("BBR helm install output: %s\n", stdout)
+			Expect(execErr).NotTo(HaveOccurred(), "Failed to install BBR helm chart")
+
+			DeferCleanup(func() {
+				uninstallCmd := `helm uninstall body-based-routing --namespace default 2>/dev/null || true`
+				uninstallOption := corev1.PodExecOptions{
+					Command:   []string{"sh", "-c", uninstallCmd},
+					Container: execContainer,
+					Stdout:    true,
+					Stderr:    true,
+				}
+				uninstallCtx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+				utils.ExecSync(uninstallCtx, k8sConfig, coreClient, inferenceSetObj.Namespace, execPodName, uninstallOption)
+				cancel()
+				GinkgoWriter.Printf("Uninstalled BBR helm chart\n")
+			})
+		})
+
+		// Create HTTPRoute with X-Gateway-Model-Name header matching
+		By("Creating HTTPRoute with BBR model-name header matching", func() {
+			httpRoute := &unstructured.Unstructured{}
+			httpRoute.SetGroupVersionKind(schema.GroupVersionKind{
+				Group:   "gateway.networking.k8s.io",
+				Version: "v1",
+				Kind:    "HTTPRoute",
+			})
+			httpRoute.SetName(inferenceSetObj.Name + "-bbr-route")
+			httpRoute.SetNamespace(inferenceSetObj.Namespace)
+			httpRoute.Object["spec"] = map[string]interface{}{
+				"parentRefs": []interface{}{
+					map[string]interface{}{
+						"group":     "gateway.networking.k8s.io",
+						"kind":      "Gateway",
+						"name":      "inference-gateway",
+						"namespace": "default",
+					},
+				},
+				"rules": []interface{}{
+					map[string]interface{}{
+						"matches": []interface{}{
+							map[string]interface{}{
+								"headers": []interface{}{
+									map[string]interface{}{
+										"type":  "Exact",
+										"name":  "X-Gateway-Model-Name",
+										"value": modelName,
+									},
+								},
+								"path": map[string]interface{}{
+									"type":  "PathPrefix",
+									"value": "/",
+								},
+							},
+						},
+						"backendRefs": []interface{}{
+							map[string]interface{}{
+								"group": "inference.networking.k8s.io",
+								"kind":  "InferencePool",
+								"name":  inferencePoolName,
+							},
+						},
+					},
+					// Rule for non-existent model - should fail routing
+					map[string]interface{}{
+						"matches": []interface{}{
+							map[string]interface{}{
+								"headers": []interface{}{
+									map[string]interface{}{
+										"type":  "Exact",
+										"name":  "X-Gateway-Model-Name",
+										"value": "nonexistent-model-xyz",
+									},
+								},
+								"path": map[string]interface{}{
+									"type":  "PathPrefix",
+									"value": "/",
+								},
+							},
+						},
+						"backendRefs": []interface{}{
+							map[string]interface{}{
+								"group": "inference.networking.k8s.io",
+								"kind":  "InferencePool",
+								"name":  "nonexistent-pool",
+							},
+						},
+					},
+				},
+			}
+
+			Eventually(func() error {
+				err := utils.TestingCluster.KubeClient.Create(ctx, httpRoute)
+				if err != nil && apierrors.IsAlreadyExists(err) {
+					existing := &unstructured.Unstructured{}
+					existing.SetGroupVersionKind(httpRoute.GroupVersionKind())
+					if getErr := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+						Namespace: httpRoute.GetNamespace(),
+						Name:      httpRoute.GetName(),
+					}, existing); getErr != nil {
+						return getErr
+					}
+					httpRoute.SetResourceVersion(existing.GetResourceVersion())
+					return utils.TestingCluster.KubeClient.Update(ctx, httpRoute)
+				}
+				return err
+			}, 2*time.Minute, utils.PollInterval).Should(Succeed(), "Failed to create BBR HTTPRoute")
+
+			DeferCleanup(func() {
+				cleanup := &unstructured.Unstructured{}
+				cleanup.SetGroupVersionKind(httpRoute.GroupVersionKind())
+				cleanup.SetName(httpRoute.GetName())
+				cleanup.SetNamespace(httpRoute.GetNamespace())
+				_ = utils.TestingCluster.KubeClient.Delete(ctx, cleanup)
+			})
+			GinkgoWriter.Printf("Created BBR HTTPRoute %s\n", httpRoute.GetName())
+
+			// Wait for HTTPRoute to be accepted
+			Eventually(func() bool {
+				route := &unstructured.Unstructured{}
+				route.SetGroupVersionKind(httpRoute.GroupVersionKind())
+				if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+					Namespace: httpRoute.GetNamespace(),
+					Name:      httpRoute.GetName(),
+				}, route); err != nil {
+					return false
+				}
+				status, _ := route.Object["status"].(map[string]interface{})
+				parents, _ := status["parents"].([]interface{})
+				for _, p := range parents {
+					parent, ok := p.(map[string]interface{})
+					if !ok {
+						continue
+					}
+					conditions, _ := parent["conditions"].([]interface{})
+					for _, c := range conditions {
+						cond, ok := c.(map[string]interface{})
+						if !ok {
+							continue
+						}
+						ctype, _ := cond["type"].(string)
+						cstatus, _ := cond["status"].(string)
+						if ctype == "Accepted" && cstatus == "True" {
+							return true
+						}
+					}
+				}
+				return false
+			}, 2*time.Minute, 5*time.Second).Should(BeTrue(), "BBR HTTPRoute should be accepted by the gateway")
+		})
+
+		// Patch Gateway to allow routes from test namespace
+		By("Patching Gateway to allow routes from test namespace", func() {
+			gw := &unstructured.Unstructured{}
+			gw.SetGroupVersionKind(schema.GroupVersionKind{
+				Group:   "gateway.networking.k8s.io",
+				Version: "v1",
+				Kind:    "Gateway",
+			})
+			Eventually(func() error {
+				if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+					Namespace: "default",
+					Name:      "inference-gateway",
+				}, gw); err != nil {
+					return err
+				}
+				spec, ok := gw.Object["spec"].(map[string]interface{})
+				if !ok || spec == nil {
+					spec = map[string]interface{}{}
+					gw.Object["spec"] = spec
+				}
+				existingListeners, _ := spec["listeners"].([]interface{})
+				updatedListeners := make([]interface{}, 0, len(existingListeners))
+				for _, l := range existingListeners {
+					listener, ok := l.(map[string]interface{})
+					if !ok {
+						updatedListeners = append(updatedListeners, l)
+						continue
+					}
+					if proto, _ := listener["protocol"].(string); proto == "HTTP" {
+						listener["allowedRoutes"] = map[string]interface{}{
+							"namespaces": map[string]interface{}{"from": "All"},
+						}
+					}
+					updatedListeners = append(updatedListeners, listener)
+				}
+				spec["listeners"] = updatedListeners
+				return utils.TestingCluster.KubeClient.Update(ctx, gw)
+			}, 2*time.Minute, utils.PollInterval).Should(Succeed(), "Failed to patch Gateway")
+		})
+
+		// Send request with correct model name - should succeed
+		By("Sending request with correct model name through BBR gateway", func() {
+			coreClient, err := utils.GetK8sClientset()
+			Expect(err).NotTo(HaveOccurred())
+
+			k8sConfig, err := utils.GetK8sConfig()
+			Expect(err).NotTo(HaveOccurred())
+
+			podList := &corev1.PodList{}
+			Eventually(func() bool {
+				err = utils.TestingCluster.KubeClient.List(ctx, podList,
+					client.InNamespace(inferenceSetObj.Namespace),
+					client.MatchingLabels{"app": inferenceSetObj.Name})
+				return err == nil && len(podList.Items) > 0
+			}, 5*time.Minute, utils.PollInterval).Should(BeTrue())
+
+			execPodName := podList.Items[0].Name
+			execContainer := podList.Items[0].Spec.Containers[0].Name
+			gatewayEndpoint := "http://inference-gateway-istio.default.svc.cluster.local/v1/chat/completions"
+
+			// Request with correct model name - BBR should extract from body and set X-Gateway-Model-Name header
+			curlCmd := fmt.Sprintf(
+				`command -v curl > /dev/null 2>&1 || (apt-get update -qq > /dev/null 2>&1 && apt-get install -y -qq curl > /dev/null 2>&1); `+
+					`curl -sf --max-time 120 -X POST -H "Content-Type: application/json" `+
+					`-d '{"model":"%s","messages":[{"role":"user","content":"Hello"}],"max_tokens":10}' `+
+					`%s && echo ''`,
+				modelName, gatewayEndpoint)
+
+			var stdout string
+			Eventually(func() bool {
+				execOption := corev1.PodExecOptions{
+					Command:   []string{"sh", "-c", curlCmd},
+					Container: execContainer,
+					Stdout:    true,
+					Stderr:    true,
+				}
+				execCtx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+				stdout, err = utils.ExecSync(execCtx, k8sConfig, coreClient, inferenceSetObj.Namespace, execPodName, execOption)
+				cancel()
+				if err != nil {
+					GinkgoWriter.Printf("BBR request failed: %v\n", err)
+					return false
+				}
+				return strings.Contains(stdout, "choices")
+			}, 5*time.Minute, 15*time.Second).Should(BeTrue(),
+				"BBR should route request with correct model name to inference pool")
+			GinkgoWriter.Printf("BBR routing with correct model succeeded: %s\n", stdout[:min(len(stdout), 200)])
+		})
+
+		// Send request with non-existent model name - should fail (no matching route/pool)
+		By("Sending request with non-existent model name through BBR gateway", func() {
+			coreClient, err := utils.GetK8sClientset()
+			Expect(err).NotTo(HaveOccurred())
+
+			k8sConfig, err := utils.GetK8sConfig()
+			Expect(err).NotTo(HaveOccurred())
+
+			podList := &corev1.PodList{}
+			Eventually(func() bool {
+				err = utils.TestingCluster.KubeClient.List(ctx, podList,
+					client.InNamespace(inferenceSetObj.Namespace),
+					client.MatchingLabels{"app": inferenceSetObj.Name})
+				return err == nil && len(podList.Items) > 0
+			}, 5*time.Minute, utils.PollInterval).Should(BeTrue())
+
+			execPodName := podList.Items[0].Name
+			execContainer := podList.Items[0].Spec.Containers[0].Name
+			gatewayEndpoint := "http://inference-gateway-istio.default.svc.cluster.local/v1/chat/completions"
+
+			// Request with wrong model name - BBR should extract "nonexistent-model-xyz" and route to nonexistent pool
+			curlCmd := fmt.Sprintf(
+				`command -v curl > /dev/null 2>&1 || (apt-get update -qq > /dev/null 2>&1 && apt-get install -y -qq curl > /dev/null 2>&1); `+
+					`curl -s --max-time 30 -o /dev/null -w "%%{http_code}" -X POST -H "Content-Type: application/json" `+
+					`-d '{"model":"nonexistent-model-xyz","messages":[{"role":"user","content":"Hello"}],"max_tokens":10}' `+
+					`%s`,
+				gatewayEndpoint)
+
+			Eventually(func() bool {
+				execOption := corev1.PodExecOptions{
+					Command:   []string{"sh", "-c", curlCmd},
+					Container: execContainer,
+					Stdout:    true,
+					Stderr:    true,
+				}
+				execCtx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+				stdout, execErr := utils.ExecSync(execCtx, k8sConfig, coreClient, inferenceSetObj.Namespace, execPodName, execOption)
+				cancel()
+				if execErr != nil {
+					// Connection error is expected - nonexistent pool has no backends
+					GinkgoWriter.Printf("Request with wrong model failed as expected: %v\n", execErr)
+					return true
+				}
+				// HTTP error codes (404, 503, etc.) indicate the request was not routed successfully
+				httpCode := strings.TrimSpace(stdout)
+				GinkgoWriter.Printf("Request with wrong model returned HTTP %s\n", httpCode)
+				return httpCode != "200"
+			}, 2*time.Minute, 10*time.Second).Should(BeTrue(),
+				"BBR should not successfully route request with non-existent model name")
+		})
+	})
 })
 
 func createPhi4WorkspaceWithAdapterAndVLLM(numOfNode int, validAdapters []kaitov1beta1.AdapterSpec) *kaitov1beta1.Workspace {

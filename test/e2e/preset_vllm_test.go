@@ -776,6 +776,75 @@ func validateBBRRouting(inferenceSetObj *kaitov1beta1.InferenceSet, modelName, i
 			modelName, gatewayEndpoint)
 
 		var stdout string
+		diagDumped := false
+		dumpDiag := func(reason string) {
+			if diagDumped {
+				return
+			}
+			diagDumped = true
+			GinkgoWriter.Printf("\n===== BBR diagnostics (%s) =====\n", reason)
+			diagCtx, diagCancel := context.WithTimeout(context.Background(), 90*time.Second)
+			defer diagCancel()
+
+			dumpPodLogs := func(ns, selector string, tail int64) {
+				pods, listErr := coreClient.CoreV1().Pods(ns).List(diagCtx, metav1.ListOptions{LabelSelector: selector})
+				if listErr != nil {
+					GinkgoWriter.Printf("diag: list ns=%s selector=%q failed: %v\n", ns, selector, listErr)
+					return
+				}
+				if len(pods.Items) == 0 {
+					GinkgoWriter.Printf("diag: no pods matched ns=%s selector=%q\n", ns, selector)
+					return
+				}
+				for _, p := range pods.Items {
+					GinkgoWriter.Printf("diag: pod %s/%s phase=%s\n", p.Namespace, p.Name, p.Status.Phase)
+					for _, cs := range p.Status.ContainerStatuses {
+						GinkgoWriter.Printf("diag:   container %s ready=%v restarts=%d state=%+v\n", cs.Name, cs.Ready, cs.RestartCount, cs.State)
+					}
+					for _, c := range p.Spec.Containers {
+						tailLines := tail
+						req := coreClient.CoreV1().Pods(p.Namespace).GetLogs(p.Name, &corev1.PodLogOptions{Container: c.Name, TailLines: &tailLines})
+						if logs, lerr := req.DoRaw(diagCtx); lerr == nil {
+							GinkgoWriter.Printf("diag: logs %s/%s/%s:\n%s\n", p.Namespace, p.Name, c.Name, string(logs))
+						} else {
+							GinkgoWriter.Printf("diag: logs %s/%s/%s fetch failed: %v\n", p.Namespace, p.Name, c.Name, lerr)
+						}
+					}
+				}
+			}
+
+			dumpPodLogs("default", "app.kubernetes.io/name=body-based-routing", 200)
+			dumpPodLogs("default", "gateway.networking.k8s.io/gateway-name=inference-gateway", 150)
+			dumpPodLogs(inferenceSetObj.Namespace, "app="+inferencePoolName+"-epp", 200)
+			dumpPodLogs(inferenceSetObj.Namespace, "inferencepool="+inferencePoolName, 200)
+
+			// HTTPRoute status/spec
+			route := &unstructured.Unstructured{}
+			route.SetGroupVersionKind(schema.GroupVersionKind{Group: "gateway.networking.k8s.io", Version: "v1", Kind: "HTTPRoute"})
+			if getErr := utils.TestingCluster.KubeClient.Get(diagCtx, client.ObjectKey{Namespace: inferenceSetObj.Namespace, Name: inferenceSetObj.Name + "-bbr-route"}, route); getErr == nil {
+				if b, mErr := json.MarshalIndent(route.Object["spec"], "", "  "); mErr == nil {
+					GinkgoWriter.Printf("diag: HTTPRoute spec:\n%s\n", string(b))
+				}
+				if b, mErr := json.MarshalIndent(route.Object["status"], "", "  "); mErr == nil {
+					GinkgoWriter.Printf("diag: HTTPRoute status:\n%s\n", string(b))
+				}
+			} else {
+				GinkgoWriter.Printf("diag: HTTPRoute get failed: %v\n", getErr)
+			}
+
+			// InferencePool status
+			pool := &unstructured.Unstructured{}
+			pool.SetGroupVersionKind(schema.GroupVersionKind{Group: "inference.networking.k8s.io", Version: "v1", Kind: "InferencePool"})
+			if getErr := utils.TestingCluster.KubeClient.Get(diagCtx, client.ObjectKey{Namespace: inferenceSetObj.Namespace, Name: inferencePoolName}, pool); getErr == nil {
+				if b, mErr := json.MarshalIndent(pool.Object["status"], "", "  "); mErr == nil {
+					GinkgoWriter.Printf("diag: InferencePool %s/%s status:\n%s\n", inferenceSetObj.Namespace, inferencePoolName, string(b))
+				}
+			} else {
+				GinkgoWriter.Printf("diag: InferencePool get failed: %v\n", getErr)
+			}
+			GinkgoWriter.Printf("===== end BBR diagnostics =====\n\n")
+		}
+
 		Eventually(func() bool {
 			execOption := corev1.PodExecOptions{Command: []string{"sh", "-c", curlCmd}, Container: execContainer, Stdout: true, Stderr: true}
 			execCtx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
@@ -787,6 +856,10 @@ func validateBBRRouting(inferenceSetObj *kaitov1beta1.InferenceSet, modelName, i
 			}
 			if !strings.Contains(stdout, "HTTP_STATUS=200") || !strings.Contains(stdout, "choices") {
 				GinkgoWriter.Printf("BBR request not yet successful (model=%s):\n%s\n", modelName, stdout)
+				// On the very first non-2xx, dump BBR/gateway/EPP diagnostics so
+				// we can see why (empty 500 body from Envoy usually means the EPP
+				// ExtProc gRPC failed or the InferencePool has no ready endpoints).
+				dumpDiag("non-2xx response")
 				return false
 			}
 			return true

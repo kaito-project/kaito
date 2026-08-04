@@ -980,6 +980,73 @@ func TestValidateMIGModelFit(t *testing.T) {
 	}
 }
 
+func TestValidatePartition(t *testing.T) {
+	origMIG := featuregates.FeatureGates[consts.FeatureFlagEnableMIG]
+	origAccel := featuregates.FeatureGates[consts.FeatureFlagEnableAccelerator]
+	featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = true
+	featuregates.FeatureGates[consts.FeatureFlagEnableAccelerator] = true
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableMIG] = origMIG
+		featuregates.FeatureGates[consts.FeatureFlagEnableAccelerator] = origAccel
+	}()
+
+	tests := []struct {
+		name       string
+		partition  *PartitionSpec
+		expectErrs bool
+		errContent string
+	}{
+		{
+			name:       "accelerator with valid count",
+			partition:  &PartitionSpec{Mode: PartitionModeAccelerator, Count: pointerToInt(2)},
+			expectErrs: false,
+		},
+		{
+			name:       "accelerator missing count",
+			partition:  &PartitionSpec{Mode: PartitionModeAccelerator},
+			expectErrs: true,
+			errContent: "partition.count",
+		},
+		{
+			name:       "accelerator with profile set",
+			partition:  &PartitionSpec{Mode: PartitionModeAccelerator, Count: pointerToInt(2), Profile: "1g.10gb"},
+			expectErrs: true,
+			errContent: "profile is not valid for accelerator mode",
+		},
+		{
+			name:       "mig with valid profile",
+			partition:  &PartitionSpec{Mode: PartitionModeMIG, Profile: "1g.10gb"},
+			expectErrs: false,
+		},
+		{
+			name:       "mig with count set",
+			partition:  &PartitionSpec{Mode: PartitionModeMIG, Profile: "1g.10gb", Count: pointerToInt(2)},
+			expectErrs: true,
+			errContent: "count is only valid for accelerator mode",
+		},
+		{
+			name:       "unsupported mode",
+			partition:  &PartitionSpec{Mode: PartitionMode("bogus")},
+			expectErrs: true,
+			errContent: "unsupported partition mode",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			r := &ResourceSpec{Partition: tc.partition}
+			errs := r.validatePartition()
+			hasErrs := errs != nil
+			if hasErrs != tc.expectErrs {
+				t.Errorf("validatePartition() errors = %v, expectErrs %v", errs, tc.expectErrs)
+			}
+			if hasErrs && tc.errContent != "" && !strings.Contains(errs.Error(), tc.errContent) {
+				t.Errorf("validatePartition() error = %v, expected to contain %q", errs, tc.errContent)
+			}
+		})
+	}
+}
+
 func TestResourceSpecValidateUpdate(t *testing.T) {
 
 	tests := []struct {

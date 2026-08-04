@@ -84,6 +84,9 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 								"memory": "16Gi",
 							},
 						},
+						"flags": map[string]any{
+							"secure-serving": false,
+						},
 					},
 					"modelServers": map[string]any{
 						"targetPorts": []any{
@@ -129,6 +132,9 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 								"memory": "16Gi",
 							},
 						},
+						"flags": map[string]any{
+							"secure-serving": false,
+						},
 					},
 					"modelServers": map[string]any{
 						"targetPorts": []any{
@@ -173,6 +179,9 @@ func TestGenerateInferencePoolHelmRelease(t *testing.T) {
 							"limits": map[string]any{
 								"memory": "16Gi",
 							},
+						},
+						"flags": map[string]any{
+							"secure-serving": false,
 						},
 					},
 					"modelServers": map[string]any{

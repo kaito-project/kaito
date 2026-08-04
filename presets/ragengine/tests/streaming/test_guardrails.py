@@ -30,6 +30,7 @@ from ragengine.guardrails.scanner_schemas import (  # noqa: E402
 )
 from ragengine.streaming.guardrails import (  # noqa: E402
     STREAMING_GUARDRAILS_SUPPORTED_SCANNERS,
+    _redact_secrets_until_clean,
     apply_streaming_guardrails,
     validate_streaming_guardrails,
 )
@@ -266,6 +267,47 @@ def test_validate_streaming_guardrails_rejects_non_all_secrets_redaction(
         "stream=true with action=redact for scanner=secrets only supports "
         "redact_mode=all."
     )
+
+
+@pytest.mark.parametrize(
+    ("scanner_output", "results_valid"),
+    [
+        ("secret", {"secrets": False}),
+        (object(), {"secrets": False}),
+        ("secret unexpectedly expanded", {"secrets": False}),
+        ("unexpected mutation", {"secrets": True}),
+    ],
+)
+def test_redact_secrets_until_clean_fails_closed_on_invalid_result(
+    monkeypatch, scanner_output, results_valid
+):
+    monkeypatch.setattr(
+        "ragengine.streaming.guardrails.scan_output",
+        lambda scanners, prompt, output, fail_fast: (
+            scanner_output,
+            results_valid,
+            {"secrets": 1.0},
+        ),
+    )
+
+    assert _redact_secrets_until_clean(object(), "prompt", "secret") is None
+
+
+def test_redact_secrets_until_clean_stops_after_maximum_passes(monkeypatch):
+    scan_count = 0
+
+    def redact_one_secret(scanners, prompt, output, fail_fast):
+        nonlocal scan_count
+        scan_count += 1
+        return output.replace("secret", "******", 1), {"secrets": False}, {}
+
+    monkeypatch.setattr("ragengine.streaming.guardrails.scan_output", redact_one_secret)
+
+    assert (
+        _redact_secrets_until_clean(object(), "prompt", " ".join(["secret"] * 9))
+        is None
+    )
+    assert scan_count == 8
 
 
 @pytest.mark.asyncio
@@ -636,7 +678,7 @@ async def test_secrets_all_redacts_or_fails_closed_for_multiple_secrets():
 
 
 @pytest.mark.asyncio
-async def test_secrets_all_blocks_repeated_identical_secret():
+async def test_secrets_all_redacts_repeated_identical_secret():
     secret = "AKIA1234567890ABCDEF"
 
     chunks = await _apply_text(
@@ -644,7 +686,7 @@ async def test_secrets_all_blocks_repeated_identical_secret():
         _streaming_guardrails(_secrets_scanner()),
     )
 
-    assert _emitted_text(chunks) == "blocked-by-policy"
+    assert _emitted_text(chunks) == "Keys: ****** and ******"
     assert secret not in "".join(chunks)
 
 

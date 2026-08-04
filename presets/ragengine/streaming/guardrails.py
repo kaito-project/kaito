@@ -30,6 +30,7 @@ from ragengine.streaming.openai import (
 from ragengine.streaming.sse import iter_sse_events
 
 STREAMING_GUARDRAILS_HOLDBACK_LEN = 256
+_MAX_SECRETS_REDACTION_PASSES = 8
 STREAMING_GUARDRAILS_CAPABILITIES = {
     "ban_substrings": frozenset({"block"}),
     "invisible_text": frozenset({"block", "redact"}),
@@ -174,6 +175,17 @@ class _LLMGuardWindowScanner:
             if scanner_action != "redact":
                 continue
 
+            if scanner_config.type == "secrets":
+                redacted_text = _redact_secrets_until_clean(
+                    scanner,
+                    self._prompt,
+                    sanitized_text,
+                )
+                if redacted_text is None:
+                    return WindowScanResult(blocked=True)
+                sanitized_text = redacted_text
+                continue
+
             scanner_output, results_valid, _ = scan_output(
                 [scanner], self._prompt, sanitized_text, fail_fast=False
             )
@@ -184,15 +196,6 @@ class _LLMGuardWindowScanner:
                 ):
                     return WindowScanResult(blocked=True)
                 sanitized_text = scanner_output
-                if scanner_config.type == "secrets":
-                    verified_output, verified_results_valid, _ = scan_output(
-                        [scanner], self._prompt, sanitized_text, fail_fast=False
-                    )
-                    if (
-                        not all(verified_results_valid.values())
-                        or verified_output != sanitized_text
-                    ):
-                        return WindowScanResult(blocked=True)
 
         for scanner_config, scanner in self._built_scanners:
             scanner_action = scanner_config.action_on_hit or self._default_action_on_hit
@@ -208,6 +211,26 @@ class _LLMGuardWindowScanner:
         if sanitized_text == text:
             return WindowScanResult()
         return WindowScanResult(sanitized_text=sanitized_text)
+
+
+def _redact_secrets_until_clean(scanner: Any, prompt: str, text: str) -> str | None:
+    candidate = text
+
+    for _ in range(_MAX_SECRETS_REDACTION_PASSES):
+        scanner_output, results_valid, _ = scan_output(
+            [scanner], prompt, candidate, fail_fast=False
+        )
+        if not isinstance(scanner_output, str) or len(scanner_output) > len(candidate):
+            return None
+        if all(results_valid.values()):
+            if scanner_output != candidate:
+                return None
+            return candidate
+        if scanner_output == candidate:
+            return None
+        candidate = scanner_output
+
+    return None
 
 
 async def _flush_window_or_block(

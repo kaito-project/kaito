@@ -16,6 +16,7 @@ package nodes
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -342,5 +343,50 @@ func TestNodeIsReadyAndNotDeleting(t *testing.T) {
 		result := NodeIsReadyAndNotDeleting(node)
 		// The function uses lo.Find which returns true if ANY condition matches, so it will find the true condition
 		assert.Check(t, result == true, "Expected node with mixed ready conditions to return true (finds any true condition)")
+	})
+}
+
+func TestNodePressureWarning(t *testing.T) {
+	node := func(name string, pressures ...corev1.NodeConditionType) corev1.Node {
+		n := corev1.Node{ObjectMeta: metav1.ObjectMeta{Name: name}}
+		for _, p := range pressures {
+			n.Status.Conditions = append(n.Status.Conditions, corev1.NodeCondition{Type: p, Status: corev1.ConditionTrue})
+		}
+		return n
+	}
+
+	t.Run("nil list", func(t *testing.T) {
+		assert.Equal(t, "", NodePressureWarning(nil))
+	})
+
+	t.Run("no pressure", func(t *testing.T) {
+		list := &corev1.NodeList{Items: []corev1.Node{node("n1"), node("n2", corev1.NodeReady)}}
+		assert.Equal(t, "", NodePressureWarning(list))
+	})
+
+	t.Run("disk pressure", func(t *testing.T) {
+		list := &corev1.NodeList{Items: []corev1.Node{node("n1", corev1.NodeDiskPressure)}}
+		out := NodePressureWarning(list)
+		assert.Check(t, strings.Contains(out, "n1"))
+		assert.Check(t, strings.Contains(out, "DiskPressure"))
+	})
+
+	t.Run("multiple nodes and pressures", func(t *testing.T) {
+		list := &corev1.NodeList{Items: []corev1.Node{
+			node("n1", corev1.NodeMemoryPressure, corev1.NodeDiskPressure),
+			node("n2", corev1.NodePIDPressure),
+		}}
+		out := NodePressureWarning(list)
+		assert.Check(t, strings.Contains(out, "n1"))
+		assert.Check(t, strings.Contains(out, "n2"))
+		assert.Check(t, strings.Contains(out, "DiskPressure"))
+		assert.Check(t, strings.Contains(out, "MemoryPressure"))
+		assert.Check(t, strings.Contains(out, "PIDPressure"))
+	})
+
+	t.Run("pressure condition that is not True is ignored", func(t *testing.T) {
+		n := corev1.Node{ObjectMeta: metav1.ObjectMeta{Name: "n1"}}
+		n.Status.Conditions = []corev1.NodeCondition{{Type: corev1.NodeDiskPressure, Status: corev1.ConditionFalse}}
+		assert.Equal(t, "", NodePressureWarning(&corev1.NodeList{Items: []corev1.Node{n}}))
 	})
 }

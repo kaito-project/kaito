@@ -303,47 +303,6 @@ func (*testQwen25Coder32BModel) SupportTuning() bool {
 	return false
 }
 
-// testLargeContextModel models a large-context model (131072-token window) whose
-// per-token KV footprint is big enough that sizing the KV cache against the full
-// context window — the estimator's default when max-model-len is not explicitly
-// capped — needs an extra node compared to the legacy 2048-token default. Used to
-// exercise the ModelTokenLimit fallback in the node estimator.
-type testLargeContextModel struct {
-	baseTestModel
-}
-
-func (*testLargeContextModel) GetInferenceParameters() *model.PresetParam {
-	return &model.PresetParam{
-		Metadata: model.Metadata{
-			Name: "test-large-context-model",
-			Tag:  "1.0.0",
-		},
-		DiskStorageRequirement:  "100Gi",
-		TotalSafeTensorFileSize: "55Gi",
-		BytesPerToken:           163840,
-		ModelTokenLimit:         131072,
-		RuntimeParam: model.RuntimeParam{
-			VLLM: model.VLLMParam{
-				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
-				ModelRunParams: emptyParams,
-			},
-			Transformers: model.HuggingfaceTransformersParam{
-				BaseCommand:       "accelerate launch",
-				InferenceMainFile: "/workspace/tfs/inference_api.py",
-			},
-		},
-		ReadinessTimeout: time.Duration(30) * time.Minute,
-	}
-}
-
-func (*testLargeContextModel) GetTuningParameters() *model.PresetParam {
-	return nil
-}
-
-func (*testLargeContextModel) SupportTuning() bool {
-	return false
-}
-
 func RegisterTestModel() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-model",
@@ -388,10 +347,5 @@ func RegisterTestModel() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-qwen2.5-coder-32b-instruct",
 		Instance: &testQwen25Coder32BModel{},
-	})
-
-	plugin.KaitoModelRegister.Register(&plugin.Registration{
-		Name:     "test-large-context-model",
-		Instance: &testLargeContextModel{},
 	})
 }

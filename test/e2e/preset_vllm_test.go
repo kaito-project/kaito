@@ -514,6 +514,61 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 // validateBBRRouting installs BBR, creates an HTTPRoute with model-name header matching,
 // and validates both positive (correct model → success) and negative (wrong model → error) routing.
 func validateBBRRouting(inferenceSetObj *kaitov1beta1.InferenceSet, modelName, inferencePoolName string, findWorkspacePod func() (string, string, string)) {
+	// Ensure a DestinationRule exists for the EPP service so Istio Gateway's
+	// ext_proc gRPC uses the right TLS mode. Current EPP image is
+	// llm-d-inference-scheduler:v0.8.0 which listens on TLS by default
+	// (--secure-serving=true). Without SIMPLE + insecureSkipVerify=true, Envoy
+	// sends plaintext and the connection is terminated -> Gateway returns
+	// HTTP 500 empty body on every BBR request. When we bump EPP to v0.9.x
+	// (plaintext by default), switch this to mode: DISABLE.
+	By("Ensuring DestinationRule for EPP service (BBR)", func() {
+		eppServiceName := inferencePoolName + "-epp"
+		dr := &unstructured.Unstructured{}
+		dr.SetGroupVersionKind(schema.GroupVersionKind{
+			Group:   "networking.istio.io",
+			Version: "v1",
+			Kind:    "DestinationRule",
+		})
+		dr.SetName(eppServiceName)
+		dr.SetNamespace(inferenceSetObj.Namespace)
+		dr.Object["spec"] = map[string]interface{}{
+			"host": eppServiceName,
+			"trafficPolicy": map[string]interface{}{
+				"tls": map[string]interface{}{
+					"mode":               "SIMPLE",
+					"insecureSkipVerify": true,
+				},
+			},
+		}
+		Eventually(func() error {
+			err := utils.TestingCluster.KubeClient.Create(ctx, dr)
+			if err != nil && apierrors.IsAlreadyExists(err) {
+				existing := &unstructured.Unstructured{}
+				existing.SetGroupVersionKind(dr.GroupVersionKind())
+				if getErr := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+					Namespace: dr.GetNamespace(), Name: dr.GetName(),
+				}, existing); getErr != nil {
+					return getErr
+				}
+				dr.SetResourceVersion(existing.GetResourceVersion())
+				return utils.TestingCluster.KubeClient.Update(ctx, dr)
+			}
+			return err
+		}, 2*time.Minute, utils.PollInterval).Should(Succeed(),
+			"Failed to create DestinationRule for EPP service %s", eppServiceName)
+		GinkgoWriter.Printf("Created/updated DestinationRule (mode=SIMPLE) for EPP service %s\n", eppServiceName)
+
+		DeferCleanup(func() {
+			cleanupDR := &unstructured.Unstructured{}
+			cleanupDR.SetGroupVersionKind(schema.GroupVersionKind{
+				Group: "networking.istio.io", Version: "v1", Kind: "DestinationRule",
+			})
+			cleanupDR.SetName(eppServiceName)
+			cleanupDR.SetNamespace(inferenceSetObj.Namespace)
+			_ = utils.TestingCluster.KubeClient.Delete(ctx, cleanupDR)
+		})
+	})
+
 	// Install BBR helm chart using a dedicated tool pod (alpine/helm)
 	By("Installing Body-Based Routing (BBR) helm chart", func() {
 		coreClient, err := utils.GetK8sClientset()

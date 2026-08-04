@@ -2002,3 +2002,132 @@ func TestShouldUpgradeBaseImage(t *testing.T) {
 		})
 	}
 }
+
+func TestDetectInferencePodFailure(t *testing.T) {
+	podList := func(pods ...corev1.Pod) *corev1.PodList {
+		return &corev1.PodList{Items: pods}
+	}
+	waitingContainer := func(name, reason string) corev1.ContainerStatus {
+		return corev1.ContainerStatus{Name: name, State: corev1.ContainerState{Waiting: &corev1.ContainerStateWaiting{Reason: reason, Message: reason + " message"}}}
+	}
+	oomContainer := func(name string) corev1.ContainerStatus {
+		return corev1.ContainerStatus{Name: name, LastTerminationState: corev1.ContainerState{Terminated: &corev1.ContainerStateTerminated{Reason: "OOMKilled", ExitCode: 137}}}
+	}
+
+	t.Run("container-level failures", func(t *testing.T) {
+		testcases := map[string]struct {
+			pods           *corev1.PodList
+			expectedReason string
+		}{
+			"image pull backoff": {
+				pods:           podList(corev1.Pod{Status: corev1.PodStatus{ContainerStatuses: []corev1.ContainerStatus{waitingContainer("infer", "ImagePullBackOff")}}}),
+				expectedReason: inferenceReasonImagePullError,
+			},
+			"err image pull": {
+				pods:           podList(corev1.Pod{Status: corev1.PodStatus{ContainerStatuses: []corev1.ContainerStatus{waitingContainer("infer", "ErrImagePull")}}}),
+				expectedReason: inferenceReasonImagePullError,
+			},
+			"crash loop backoff": {
+				pods:           podList(corev1.Pod{Status: corev1.PodStatus{ContainerStatuses: []corev1.ContainerStatus{waitingContainer("infer", "CrashLoopBackOff")}}}),
+				expectedReason: inferenceReasonCrashLoopBackOff,
+			},
+			"oom killed": {
+				pods:           podList(corev1.Pod{Status: corev1.PodStatus{ContainerStatuses: []corev1.ContainerStatus{oomContainer("infer")}}}),
+				expectedReason: inferenceReasonOOMKilled,
+			},
+			"container start config error": {
+				pods:           podList(corev1.Pod{Status: corev1.PodStatus{ContainerStatuses: []corev1.ContainerStatus{waitingContainer("infer", "CreateContainerConfigError")}}}),
+				expectedReason: inferenceReasonContainerStartError,
+			},
+			"init container image pull failure is caught": {
+				pods:           podList(corev1.Pod{Status: corev1.PodStatus{InitContainerStatuses: []corev1.ContainerStatus{waitingContainer("init", "ImagePullBackOff")}}}),
+				expectedReason: inferenceReasonImagePullError,
+			},
+			"oom takes precedence over crash loop": {
+				pods: podList(corev1.Pod{Status: corev1.PodStatus{ContainerStatuses: []corev1.ContainerStatus{
+					waitingContainer("infer", "CrashLoopBackOff"),
+					oomContainer("sidecar"),
+				}}}),
+				expectedReason: inferenceReasonOOMKilled,
+			},
+			"no failure": {
+				pods:           podList(corev1.Pod{Status: corev1.PodStatus{ContainerStatuses: []corev1.ContainerStatus{{Name: "infer", Ready: true}}}}),
+				expectedReason: "",
+			},
+		}
+		for name, tc := range testcases {
+			t.Run(name, func(t *testing.T) {
+				reason, _ := detectContainerFailure(tc.pods)
+				assert.Equal(t, tc.expectedReason, reason)
+			})
+		}
+	})
+
+	t.Run("evicted pod", func(t *testing.T) {
+		testcases := map[string]struct {
+			message        string
+			expectedReason string
+		}{
+			"disk pressure": {
+				message:        "The node was low on resource: ephemeral-storage.",
+				expectedReason: inferenceReasonNodeDiskPressure,
+			},
+			"memory pressure": {
+				message:        "The node was low on resource: memory.",
+				expectedReason: inferenceReasonNodeMemoryPressure,
+			},
+			"generic eviction": {
+				message:        "evicted for an unspecified reason",
+				expectedReason: inferenceReasonEvicted,
+			},
+		}
+		for name, tc := range testcases {
+			t.Run(name, func(t *testing.T) {
+				pods := podList(corev1.Pod{
+					ObjectMeta: v1.ObjectMeta{Name: "pod-a"},
+					Status:     corev1.PodStatus{Phase: corev1.PodFailed, Reason: "Evicted", Message: tc.message},
+				})
+				reason, message := detectEvictedPod(pods)
+				assert.Equal(t, tc.expectedReason, reason)
+				assert.Contains(t, message, "pod-a")
+			})
+		}
+	})
+
+	t.Run("unschedulable pod", func(t *testing.T) {
+		pods := podList(corev1.Pod{
+			ObjectMeta: v1.ObjectMeta{Name: "pod-b"},
+			Status: corev1.PodStatus{
+				Phase: corev1.PodPending,
+				Conditions: []corev1.PodCondition{{
+					Type:    corev1.PodScheduled,
+					Status:  corev1.ConditionFalse,
+					Reason:  corev1.PodReasonUnschedulable,
+					Message: "0/3 nodes are available: insufficient nvidia.com/gpu.",
+				}},
+			},
+		})
+		reason, message := detectUnschedulablePod(pods)
+		assert.Equal(t, inferenceReasonUnschedulable, reason)
+		assert.Contains(t, message, "pod-b")
+	})
+
+	t.Run("sas init failure", func(t *testing.T) {
+		pods := podList(corev1.Pod{Status: corev1.PodStatus{InitContainerStatuses: []corev1.ContainerStatus{{
+			Name:                 modelstreaming.SASFetchInitContainerName,
+			LastTerminationState: corev1.ContainerState{Terminated: &corev1.ContainerStateTerminated{ExitCode: 1}},
+		}}}})
+		reason, message := detectSASInitFailure(pods)
+		assert.Equal(t, inferenceReasonSASTokenFetchFailed, reason)
+		assert.Contains(t, message, "SAS token fetch failed")
+	})
+
+	t.Run("truncate long message", func(t *testing.T) {
+		long := ""
+		for range make([]struct{}, maxInferenceMessageLen+50) {
+			long += "a"
+		}
+		out := utils.TruncateMessage(long, maxInferenceMessageLen)
+		assert.Equal(t, maxInferenceMessageLen+len("..."), len(out))
+	})
+}

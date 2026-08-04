@@ -302,7 +302,7 @@ func TestGenerateNodeClaimManifest(t *testing.T) {
 	}
 }
 
-func TestFirstProvisioningError(t *testing.T) {
+func TestFirstNodeClaimProvisioningState(t *testing.T) {
 	nc := func(conds ...status.Condition) *karpenterv1.NodeClaim {
 		return &karpenterv1.NodeClaim{Status: karpenterv1.NodeClaimStatus{Conditions: conds}}
 	}
@@ -330,9 +330,10 @@ func TestFirstProvisioningError(t *testing.T) {
 			},
 			expectedFound: false,
 		},
-		"initial AwaitingReconciliation state is not an error": {
+		"initial AwaitingReconciliation state is surfaced as in-progress": {
 			// Freshly created NodeClaim: operatorpkg initializes conditions to
-			// Unknown/AwaitingReconciliation before launch is attempted.
+			// Unknown/AwaitingReconciliation before launch is attempted. With no
+			// real error present, this in-progress state is surfaced.
 			nodeClaims: []*karpenterv1.NodeClaim{
 				nc(
 					status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionUnknown, Reason: "AwaitingReconciliation", Message: "object is awaiting reconciliation"},
@@ -340,9 +341,11 @@ func TestFirstProvisioningError(t *testing.T) {
 					status.Condition{Type: karpenterv1.ConditionTypeInitialized, Status: metav1.ConditionUnknown, Reason: "AwaitingReconciliation", Message: "object is awaiting reconciliation"},
 				),
 			},
-			expectedFound: false,
+			expectedFound:   true,
+			expectedReason:  "AwaitingReconciliation",
+			expectedMessage: "object is awaiting reconciliation",
 		},
-		"ready node claim has no error": {
+		"ready node claim has no state": {
 			nodeClaims: []*karpenterv1.NodeClaim{
 				nc(status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionTrue}),
 			},
@@ -372,6 +375,23 @@ func TestFirstProvisioningError(t *testing.T) {
 			expectedReason:  "Unauthorized",
 			expectedMessage: "unauthorized to create VM",
 		},
+		"real error takes priority over AwaitingReconciliation across node claims": {
+			// nc1 is still awaiting reconciliation, nc2 has a real error on the
+			// same (Launched) stage. The real error must win regardless of order.
+			nodeClaims: []*karpenterv1.NodeClaim{
+				nc(status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionUnknown, Reason: "AwaitingReconciliation", Message: "object is awaiting reconciliation"}),
+				nc(status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionUnknown, Reason: "SubscriptionQuotaReached", Message: "Family Cores quota exceeded"}),
+			},
+			expectedFound:   true,
+			expectedReason:  "SubscriptionQuotaReached",
+			expectedMessage: "Family Cores quota exceeded",
+		},
+		"empty message is skipped": {
+			nodeClaims: []*karpenterv1.NodeClaim{
+				nc(status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionUnknown, Reason: "AwaitingReconciliation", Message: ""}),
+			},
+			expectedFound: false,
+		},
 		"deleting node claim is skipped": {
 			nodeClaims: []*karpenterv1.NodeClaim{
 				deleting(status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionFalse, Reason: "Gone", Message: "gone"}),
@@ -382,7 +402,7 @@ func TestFirstProvisioningError(t *testing.T) {
 
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
-			reason, message, found := FirstProvisioningError(tc.nodeClaims)
+			reason, message, found := FirstNodeClaimProvisioningState(tc.nodeClaims)
 			assert.Equal(t, found, tc.expectedFound)
 			assert.Equal(t, reason, tc.expectedReason)
 			assert.Equal(t, message, tc.expectedMessage)
@@ -390,14 +410,14 @@ func TestFirstProvisioningError(t *testing.T) {
 	}
 }
 
-func TestFirstProvisioningErrorTruncatesMessage(t *testing.T) {
+func TestFirstNodeClaimProvisioningStateTruncatesMessage(t *testing.T) {
 	long := strings.Repeat("a", maxProvisioningErrorMessageLen+50)
 	nodeClaims := []*karpenterv1.NodeClaim{
 		{Status: karpenterv1.NodeClaimStatus{Conditions: []status.Condition{
 			{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionUnknown, Reason: "LaunchFailed", Message: long},
 		}}},
 	}
-	_, message, found := FirstProvisioningError(nodeClaims)
+	_, message, found := FirstNodeClaimProvisioningState(nodeClaims)
 	assert.Check(t, found)
 	assert.Equal(t, len(message), maxProvisioningErrorMessageLen+len("..."))
 }

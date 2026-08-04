@@ -120,6 +120,11 @@ func (n *BYOProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kaitov1b
 		resourceCond.Message = "workspace resource is ready"
 	}
 
+	// Enrich NodesReady with a node-pressure warning (diagnostic only; status unchanged).
+	if w := nodes.NodePressureWarning(nodeList); w != "" {
+		nodeCond.Message = nodeCond.Message + "; warning: " + w
+	}
+
 	// BYO mode: no NodeClaimStatus condition.
 	return []metav1.Condition{nodeCond, resourceCond}, nil
 }

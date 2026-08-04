@@ -618,7 +618,7 @@ async def test_secrets_all_redacts_multiple_secrets():
 
 
 @pytest.mark.asyncio
-async def test_secrets_all_handles_multiple_same_type_without_leaking():
+async def test_secrets_all_redacts_or_fails_closed_for_multiple_secrets():
     first_secret = "AKIA1234567890ABCDEF"
     second_secret = "AKIAZYXWVUTSRQPONMLK"
 

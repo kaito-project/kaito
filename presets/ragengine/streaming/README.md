@@ -45,6 +45,8 @@ The default holdback is 256 characters. The window keeps only the pending tail, 
 Streaming supports `block` for all listed scanners and `redact` for `invisible_text`
 and `sensitive`, plus `secrets` with `redactMode: all`.
 Redaction scanners sanitize held text before block scanners validate the final text.
+If secrets redaction is incomplete or changes when verified, streaming fails closed
+and emits the configured block response instead of partially sanitized content.
 
 Not supported in streaming:
 

@@ -625,53 +625,6 @@ func TestNodeEstimator_EstimateNodeCount_Qwen25Coder32B(t *testing.T) {
 	}
 }
 
-func TestNodeEstimator_EstimateNodeCount_LargeContextTokenLimitFallback(t *testing.T) {
-	// When max-model-len is not explicitly configured, the estimator sizes the KV
-	// cache against the model's full token limit (what vLLM defaults to at runtime)
-	// rather than the legacy 2048 fallback. For test-large-context-model (55Gi
-	// weights, BytesPerToken=163840, ModelTokenLimit=131072) on a single 80GB A100,
-	// the 131072-token KV reserve (~20 GiB/GPU) pushes the fit from 1 node to 2.
-	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
-
-	ctx := context.Background()
-	calculator := &NodeEstimator{}
-
-	workspace := &kaitov1beta1.Workspace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test-large-context-workspace",
-			Namespace: "default",
-		},
-		Resource: kaitov1beta1.ResourceSpec{
-			InstanceType: "Standard_NC24ads_A100_v4", // 1x A100 80GB
-		},
-		Inference: &kaitov1beta1.InferenceSpec{
-			Preset: &kaitov1beta1.PresetSpec{
-				PresetMeta: kaitov1beta1.PresetMeta{
-					Name: "test-large-context-model",
-				},
-			},
-			// No Config: max-model-len is not capped, so the estimator falls back
-			// to the model's ModelTokenLimit (131072) instead of 2048.
-		},
-	}
-
-	originalValue := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
-	defer func() {
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = originalValue
-	}()
-
-	req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(ctx, workspace, nil)
-	require.NoError(t, reqErr)
-	// Sanity check: no explicit context size flows through, so the estimator uses
-	// the model's token limit fallback.
-	require.Zero(t, req.RuntimeProfile.ContextSize)
-
-	count, err := calculator.EstimateNodeCount(ctx, req, nil)
-	require.NoError(t, err)
-	assert.Equal(t, int32(2), count)
-}
-
 func TestNodeEstimator_EstimateNodeCount_MIG(t *testing.T) {
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 

@@ -30,7 +30,6 @@ from ragengine.streaming.openai import (
 from ragengine.streaming.sse import iter_sse_events
 
 STREAMING_GUARDRAILS_HOLDBACK_LEN = 256
-_MAX_SECRETS_REDACTION_PASSES = 8
 STREAMING_GUARDRAILS_CAPABILITIES = {
     "ban_substrings": frozenset({"block"}),
     "invisible_text": frozenset({"block", "redact"}),
@@ -176,7 +175,7 @@ class _LLMGuardWindowScanner:
                 continue
 
             if scanner_config.type == "secrets":
-                redacted_text = _redact_secrets_until_clean(
+                redacted_text = _redact_secrets_and_verify(
                     scanner,
                     self._prompt,
                     sanitized_text,
@@ -213,24 +212,26 @@ class _LLMGuardWindowScanner:
         return WindowScanResult(sanitized_text=sanitized_text)
 
 
-def _redact_secrets_until_clean(scanner: Any, prompt: str, text: str) -> str | None:
-    candidate = text
+def _redact_secrets_and_verify(scanner: Any, prompt: str, text: str) -> str | None:
+    sanitized, results_valid, _ = scan_output([scanner], prompt, text, fail_fast=False)
+    if not isinstance(sanitized, str):
+        return None
+    if all(results_valid.values()):
+        return text if sanitized == text else None
+    if sanitized == text or len(sanitized) > len(text):
+        return None
 
-    for pass_index in range(_MAX_SECRETS_REDACTION_PASSES + 1):
-        scanner_output, results_valid, _ = scan_output(
-            [scanner], prompt, candidate, fail_fast=False
-        )
-        if not isinstance(scanner_output, str) or len(scanner_output) > len(candidate):
-            return None
-        if all(results_valid.values()):
-            if scanner_output != candidate:
-                return None
-            return candidate
-        if pass_index == _MAX_SECRETS_REDACTION_PASSES or scanner_output == candidate:
-            return None
-        candidate = scanner_output
+    verified, verified_valid, _ = scan_output(
+        [scanner], prompt, sanitized, fail_fast=False
+    )
+    if (
+        not isinstance(verified, str)
+        or verified != sanitized
+        or not all(verified_valid.values())
+    ):
+        return None
 
-    return None
+    return sanitized
 
 
 async def _flush_window_or_block(

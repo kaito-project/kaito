@@ -30,7 +30,7 @@ from ragengine.guardrails.scanner_schemas import (  # noqa: E402
 )
 from ragengine.streaming.guardrails import (  # noqa: E402
     STREAMING_GUARDRAILS_SUPPORTED_SCANNERS,
-    _redact_secrets_until_clean,
+    _redact_secrets_and_verify,
     apply_streaming_guardrails,
     validate_streaming_guardrails,
 )
@@ -278,7 +278,7 @@ def test_validate_streaming_guardrails_rejects_non_all_secrets_redaction(
         ("unexpected mutation", {"secrets": True}),
     ],
 )
-def test_redact_secrets_until_clean_fails_closed_on_invalid_result(
+def test_redact_secrets_and_verify_fails_closed_on_invalid_result(
     monkeypatch, scanner_output, results_valid
 ):
     monkeypatch.setattr(
@@ -290,48 +290,29 @@ def test_redact_secrets_until_clean_fails_closed_on_invalid_result(
         ),
     )
 
-    assert _redact_secrets_until_clean(object(), "prompt", "secret") is None
+    assert _redact_secrets_and_verify(object(), "prompt", "secret") is None
 
 
-def test_redact_secrets_until_clean_redacts_eight_passes_then_verifies_clean(
-    monkeypatch,
-):
+def test_redact_secrets_and_verify_scans_once_then_verifies_clean(monkeypatch):
+    scan_results = iter(
+        [
+            ("******", {"secrets": False}, {"secrets": 1.0}),
+            ("******", {"secrets": True}, {"secrets": -1.0}),
+        ]
+    )
     scan_count = 0
 
-    def redact_one_secret(scanners, prompt, output, fail_fast):
+    def scan_once_then_verify(scanners, prompt, output, fail_fast):
         nonlocal scan_count
         scan_count += 1
-        if "secret" not in output:
-            return output, {"secrets": True}, {}
-        return output.replace("secret", "******", 1), {"secrets": False}, {}
+        return next(scan_results)
 
-    monkeypatch.setattr("ragengine.streaming.guardrails.scan_output", redact_one_secret)
-
-    expected = " ".join(["******"] * 8)
-    assert (
-        _redact_secrets_until_clean(object(), "prompt", " ".join(["secret"] * 8))
-        == expected
+    monkeypatch.setattr(
+        "ragengine.streaming.guardrails.scan_output", scan_once_then_verify
     )
-    assert scan_count == 9
 
-
-def test_redact_secrets_until_clean_fails_when_more_than_eight_passes_are_required(
-    monkeypatch,
-):
-    scan_count = 0
-
-    def redact_one_secret(scanners, prompt, output, fail_fast):
-        nonlocal scan_count
-        scan_count += 1
-        return output.replace("secret", "******", 1), {"secrets": False}, {}
-
-    monkeypatch.setattr("ragengine.streaming.guardrails.scan_output", redact_one_secret)
-
-    assert (
-        _redact_secrets_until_clean(object(), "prompt", " ".join(["secret"] * 9))
-        is None
-    )
-    assert scan_count == 9
+    assert _redact_secrets_and_verify(object(), "prompt", "secret") == "******"
+    assert scan_count == 2
 
 
 @pytest.mark.asyncio
@@ -684,33 +665,32 @@ async def test_secrets_all_redacts_multiple_secrets():
 
 
 @pytest.mark.asyncio
-async def test_secrets_all_redacts_or_fails_closed_for_multiple_secrets():
-    first_secret = "AKIA1234567890ABCDEF"
-    second_secret = "AKIAZYXWVUTSRQPONMLK"
+async def test_secrets_all_redacts_multiple_secret_types():
+    aws_key = "AKIA1234567890ABCDEF"
+    github_token = "ghp_abcdefghijklmnopqrstuvwxyzABCDEFGHIJ"
+    gcp_key = "AIza" + "A" * 35
 
     chunks = await _apply_text(
-        f"Keys: {first_secret} and {second_secret}",
+        f"Keys: {aws_key}, {github_token}, {gcp_key}",
         _streaming_guardrails(_secrets_scanner()),
     )
 
-    assert _emitted_text(chunks) in {
-        "Keys: ****** and ******",
-        "blocked-by-policy",
-    }
-    assert first_secret not in "".join(chunks)
-    assert second_secret not in "".join(chunks)
+    assert _emitted_text(chunks) == "Keys: ******, ******, ******"
+    assert aws_key not in "".join(chunks)
+    assert github_token not in "".join(chunks)
+    assert gcp_key not in "".join(chunks)
 
 
 @pytest.mark.asyncio
-async def test_secrets_all_redacts_repeated_identical_secret():
+async def test_secrets_all_redacts_twenty_repeated_identical_secrets():
     secret = "AKIA1234567890ABCDEF"
 
     chunks = await _apply_text(
-        f"Keys: {secret} and {secret}",
+        "Keys: " + ", ".join([secret] * 20),
         _streaming_guardrails(_secrets_scanner()),
     )
 
-    assert _emitted_text(chunks) == "Keys: ****** and ******"
+    assert _emitted_text(chunks) == "Keys: " + ", ".join(["******"] * 20)
     assert secret not in "".join(chunks)
 
 

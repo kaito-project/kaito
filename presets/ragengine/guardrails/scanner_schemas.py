@@ -25,12 +25,16 @@ logged and skipped so the rest of the chain still runs.
 """
 
 import ipaddress
+import os
 import re
+import tempfile
 from dataclasses import dataclass
 from typing import Any, ClassVar
 
 import llm_guard.input_scanners as llm_guard_input_scanners
 import llm_guard.output_scanners as llm_guard_output_scanners
+from detect_secrets.core.secrets_collection import SecretsCollection
+from detect_secrets.settings import transient_settings
 from llm_guard.input_scanners.ban_substrings import (
     MatchType as BanSubstringsMatchType,
 )
@@ -58,12 +62,56 @@ class _SensitiveMatch:
 
 
 class _OutputSecretsScanner:
-    def __init__(self, scanner: Any) -> None:
+    def __init__(self, scanner: Any, redact_mode: str) -> None:
         self._scanner = scanner
+        self._redact_mode = redact_mode
 
     def scan(self, prompt: str, output: str) -> tuple[str, bool, float]:
         del prompt
-        return self._scanner.scan(output)
+        if output.strip() == "":
+            return output, True, -1.0
+
+        secret_values = self._detect_secret_values(output)
+        if not secret_values:
+            return output, True, -1.0
+
+        sanitized_output = output
+        for secret_value in sorted(
+            secret_values,
+            key=lambda value: (-len(value), value),
+        ):
+            replacement = self._scanner.redact_value(
+                secret_value,
+                self._redact_mode,
+            )
+            sanitized_output = sanitized_output.replace(secret_value, replacement)
+
+        return sanitized_output, False, 1.0
+
+    def _detect_secret_values(self, text: str) -> set[str]:
+        secrets = SecretsCollection()
+
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            delete=False,
+        ) as temp_file:
+            temp_file.write(text)
+            temp_path = temp_file.name
+
+        try:
+            # llm-guard 0.3.16 stores its detect-secrets settings in this field.
+            with transient_settings(self._scanner._detect_secrets_config):
+                secrets.scan_file(temp_path)
+        finally:
+            os.remove(temp_path)
+
+        return {
+            found_secret.secret_value
+            for file_path in secrets.files
+            for found_secret in secrets[file_path]
+            if found_secret.secret_value
+        }
 
 
 class _PatternPIIScanner:
@@ -103,8 +151,11 @@ class SecretsConfig:
         return cls(redact_mode=redact_mode)
 
     def build(self, action_on_hit: str) -> Any:
+        del action_on_hit
+        scanner = llm_guard_input_scanners.Secrets(redact_mode=self.redact_mode)
         return _OutputSecretsScanner(
-            llm_guard_input_scanners.Secrets(redact_mode=self.redact_mode)
+            scanner,
+            redact_mode=self.redact_mode,
         )
 
 

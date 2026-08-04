@@ -1003,8 +1003,9 @@ def test_build_scanners_supports_secrets_type(monkeypatch):
         def __init__(self, *, redact_mode="all"):
             self.redact_mode = redact_mode
 
-        def scan(self, output):
-            return f"{self.redact_mode}:{output}", False, 1.0
+        @staticmethod
+        def redact_value(value, mode):
+            return f"{mode}:{value}"
 
     monkeypatch.setattr(
         scanner_schemas_module.llm_guard_input_scanners,
@@ -1020,6 +1021,9 @@ def test_build_scanners_supports_secrets_type(monkeypatch):
     guardrails = OutputGuardrails(enabled=True, scanner_configs=parsed)
 
     scanners = guardrails._build_scanners()
+    monkeypatch.setattr(
+        scanners[0], "_detect_secret_values", lambda output: {"secret-value"}
+    )
 
     assert parsed == (_secrets_cfg(redact_mode="partial"),)
     assert scanners[0].scan("ignored", "secret-value") == (
@@ -1043,6 +1047,50 @@ def test_secrets_config_build_works_with_scan_output_end_to_end():
     assert sanitized_output != original_output
     assert any(valid is False for valid in results_valid.values())
     assert results_score
+
+
+def test_output_secrets_scanner_deduplicates_detector_hits(monkeypatch):
+    secret = "AKIA1234567890ABCDEF"
+
+    class FoundSecret:
+        secret_value = secret
+
+    class FakeSecretsCollection:
+        def __init__(self):
+            self.files = {"detected": [FoundSecret(), FoundSecret()]}
+
+        def __getitem__(self, file_path):
+            return self.files[file_path]
+
+        def scan_file(self, path):
+            pass
+
+    monkeypatch.setattr(
+        scanner_schemas_module, "SecretsCollection", FakeSecretsCollection
+    )
+    scanner = SecretsConfig(redact_mode="all").build("redact")
+
+    sanitized, is_valid, risk_score = scanner.scan("", f"{secret} and {secret}")
+
+    assert sanitized == "****** and ******"
+    assert "************" not in sanitized
+    assert is_valid is False
+    assert risk_score == 1.0
+
+
+def test_guard_response_redacts_repeated_secrets_end_to_end():
+    secret = "AKIA1234567890ABCDEF"
+    guardrails = OutputGuardrails(
+        enabled=True,
+        scanner_configs=(_secrets_cfg(redact_mode="all"),),
+    )
+
+    out = guardrails.guard_response(
+        _make_response("Keys: " + ", ".join([secret] * 20)),
+        {"messages": []},
+    )
+
+    assert out.choices[0].message.content == "Keys: " + ", ".join(["******"] * 20)
 
 
 def test_sensitive_config_build_redacts_requested_detectors_only():

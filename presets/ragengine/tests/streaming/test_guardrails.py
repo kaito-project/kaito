@@ -293,7 +293,31 @@ def test_redact_secrets_until_clean_fails_closed_on_invalid_result(
     assert _redact_secrets_until_clean(object(), "prompt", "secret") is None
 
 
-def test_redact_secrets_until_clean_stops_after_maximum_passes(monkeypatch):
+def test_redact_secrets_until_clean_redacts_eight_passes_then_verifies_clean(
+    monkeypatch,
+):
+    scan_count = 0
+
+    def redact_one_secret(scanners, prompt, output, fail_fast):
+        nonlocal scan_count
+        scan_count += 1
+        if "secret" not in output:
+            return output, {"secrets": True}, {}
+        return output.replace("secret", "******", 1), {"secrets": False}, {}
+
+    monkeypatch.setattr("ragengine.streaming.guardrails.scan_output", redact_one_secret)
+
+    expected = " ".join(["******"] * 8)
+    assert (
+        _redact_secrets_until_clean(object(), "prompt", " ".join(["secret"] * 8))
+        == expected
+    )
+    assert scan_count == 9
+
+
+def test_redact_secrets_until_clean_fails_when_more_than_eight_passes_are_required(
+    monkeypatch,
+):
     scan_count = 0
 
     def redact_one_secret(scanners, prompt, output, fail_fast):
@@ -307,7 +331,7 @@ def test_redact_secrets_until_clean_stops_after_maximum_passes(monkeypatch):
         _redact_secrets_until_clean(object(), "prompt", " ".join(["secret"] * 9))
         is None
     )
-    assert scan_count == 8
+    assert scan_count == 9
 
 
 @pytest.mark.asyncio

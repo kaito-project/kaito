@@ -216,7 +216,7 @@ class _LLMGuardWindowScanner:
 def _redact_secrets_until_clean(scanner: Any, prompt: str, text: str) -> str | None:
     candidate = text
 
-    for _ in range(_MAX_SECRETS_REDACTION_PASSES):
+    for pass_index in range(_MAX_SECRETS_REDACTION_PASSES + 1):
         scanner_output, results_valid, _ = scan_output(
             [scanner], prompt, candidate, fail_fast=False
         )
@@ -226,7 +226,7 @@ def _redact_secrets_until_clean(scanner: Any, prompt: str, text: str) -> str | N
             if scanner_output != candidate:
                 return None
             return candidate
-        if scanner_output == candidate:
+        if pass_index == _MAX_SECRETS_REDACTION_PASSES or scanner_output == candidate:
             return None
         candidate = scanner_output
 

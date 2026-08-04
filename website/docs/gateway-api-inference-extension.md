@@ -2,14 +2,14 @@
 title: Gateway API Inference Extension
 ---
 
-KAITO integrates with [Gateway API Inference Extension](https://gateway-api-inference-extension.sigs.k8s.io/) (GWIE) and [llm-d](https://github.com/llm-d/llm-d-inference-scheduler) to provide model-aware routing and optimal endpoint selection for inference. This page covers what it is, prerequisites, how to enable it in KAITO, how it's wired, and a quickstart.
+KAITO integrates with [Gateway API Inference Extension](https://gateway-api-inference-extension.sigs.k8s.io/) (GWIE) and the [llm-d Router](https://github.com/llm-d/llm-d-router) EPP to provide model-aware routing and optimal endpoint selection for inference. This page covers what it is, prerequisites, how to enable it in KAITO, how it's wired, and a quickstart.
 
 ## What is it
 
 Gateway API Inference Extension extends [Gateway API](https://gateway-api.sigs.k8s.io/) with inference-focused backends and behaviors. It adds:
 
 - [InferencePool](https://gateway-api-inference-extension.sigs.k8s.io/api-types/inferencepool/) CRD to represent model-serving backends
-- A reference Endpoint Picker Plugin (EPP) that uses inference server metrics and policies to pick the best backend. In KAITO, the EPP image is overridden to use the [llm-d inference scheduler](https://github.com/llm-d/llm-d-inference-scheduler), which builds on the GWIE EPP with advanced scheduling plugins including KV cache-aware routing, prefill/decode (P/D) disaggregation, and pluggable filters/scorers.
+- A reference Endpoint Picker Plugin (EPP) that uses inference server metrics and policies to pick the best backend. In KAITO, the EPP is provided by the [llm-d Router](https://github.com/llm-d/llm-d-router) project, which builds on the GWIE EPP with advanced scheduling plugins including KV cache-aware routing, prefill/decode (P/D) disaggregation, and pluggable filters/scorers.
 - Optional [Body-Based Routing](https://github.com/kubernetes-sigs/gateway-api-inference-extension/tree/main/pkg/bbr) (BBR) that extracts model names from OpenAI-style requests and injects a header for routing purposes
 
 KAITO uses GWIE to route requests for models to the right Workspace pods, improving latency and GPU utilization.
@@ -61,15 +61,15 @@ helm upgrade --install kaito-workspace kaito/workspace \
 
 ## How KAITO wires it
 
-When the feature gate is enabled, [Flux](https://fluxcd.io/) will be installed in the same namespace as the InferenceSet controller as a Helm dependency. It is used to deploy and manage the GWIE InferencePool Helm chart for each InferenceSet.
+When the feature gate is enabled, [Flux](https://fluxcd.io/) will be installed in the same namespace as the InferenceSet controller as a Helm dependency. It is used to deploy and manage the [llm-d-router-gateway](https://github.com/llm-d/llm-d-router) Helm chart (which packages the InferencePool + EPP together) for each InferenceSet.
 
 When you create an InferenceSet, the KAITO InferenceSet controller will:
 
 1) Create or update two Flux resources in the InferenceSet namespace:
-   - [OCIRepository](https://fluxcd.io/flux/components/source/ocirepositories/): points to the upstream GWIE inferencepool Helm chart
-     - URL: oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool
-     - Tag/Version: https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/latest
-   - [HelmRelease](https://fluxcd.io/flux/components/helm/helmreleases/): references the OCIRepository and applies values to deploy the InferencePool and EPP. The EPP image is overridden to use the [llm-d inference scheduler](https://github.com/llm-d/llm-d-inference-scheduler) (`mcr.microsoft.com/oss/v2/llm-d/llm-d-inference-scheduler:v0.7.1`) instead of the default GWIE EPP. This tag is pinned by KAITO and may be updated or made configurable in future releases.
+   - [OCIRepository](https://fluxcd.io/flux/components/source/ocirepositories/): points to the llm-d-router-gateway Helm chart
+     - URL: `oci://ghcr.io/llm-d/charts/llm-d-router-gateway`
+     - Version: `v0.9.0` (pinned by KAITO; may be updated or made configurable in future releases)
+   - [HelmRelease](https://fluxcd.io/flux/components/helm/helmreleases/): references the OCIRepository and applies values to deploy the InferencePool and EPP. The EPP image is pinned to [`mcr.microsoft.com/oss/v2/llm-d/llm-d-router-endpoint-picker:v0.9.0`](https://github.com/llm-d/llm-d-router) to match the chart version.
 2) Wait for Flux resources to become Ready
 
 You can inspect these resources with kubectl in the InferenceSet namespace. Updates to the InferenceSet will reconcile these resources.
@@ -116,10 +116,10 @@ Once the InferenceSet is created, verify that Flux's OCIRepository and HelmRelea
 ```bash
 kubectl get ocirepository,helmrelease
 
-NAME                                                              URL                                                                          READY   STATUS                                                                                                        AGE
-ocirepository.source.toolkit.fluxcd.io/phi-4-mini-inferencepool   oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool   True    stored artifact for digest 'v1.0.1@sha256:301b913dbff1d75017db0962b621e6780777dcb658475df60d1c6b5b84ee1635'   33s
+NAME                                                              URL                                                            READY   STATUS                                                                                                        AGE
+ocirepository.source.toolkit.fluxcd.io/phi-4-mini-inferencepool   oci://ghcr.io/llm-d/charts/llm-d-router-gateway                True    stored artifact for digest 'v0.9.0@sha256:...'                                                                33s
 
-helmrelease.helm.toolkit.fluxcd.io/phi-4-mini-inferencepool   32s   True    Helm install succeeded for release default/phi-4-mini-inferencepool.v1 with chart inferencepool@1.0.1+301b913dbff1
+helmrelease.helm.toolkit.fluxcd.io/phi-4-mini-inferencepool   32s   True    Helm install succeeded for release default/phi-4-mini-inferencepool.v1 with chart llm-d-router-gateway@0.9.0
 ```
 
 Verify that the InferencePool resource is created:
@@ -140,16 +140,16 @@ NAME                                           READY   STATUS    RESTARTS   AGE
 phi-4-mini-inferencepool-epp-b74f8994b-s9kkt   1/1     Running   0          87s
 ```
 
-Confirm the EPP is using the llm-d inference scheduler image:
+Confirm the EPP is using the llm-d Router EPP image:
 
 ```bash
 kubectl get pod -l inferencepool=phi-4-mini-inferencepool-epp -o jsonpath='{.items[0].spec.containers[0].image}'
-# Expected: mcr.microsoft.com/oss/v2/llm-d/llm-d-inference-scheduler:v0.7.1
+# Expected: mcr.microsoft.com/oss/v2/llm-d/llm-d-router-endpoint-picker:v0.9.0
 ```
 
 ### 3. Deploy DestinationRule and HTTPRoute
 
-Apply an Istio DestinationRule. Since EPP runs with `--secure-serving=true` by default using a self-signed certificate, and Istio doesn't trust self-signed certificates, this DestinationRule bypasses TLS verification as a temporary workaround:
+Apply an Istio DestinationRule for the EPP service. Starting with the llm-d-router-gateway chart v0.9.0, the KAITO-managed EPP (`llm-d-router-endpoint-picker:v0.9.0`) listens on **plaintext** gRPC by default, so the DestinationRule sets `tls.mode: DISABLE` for the Istio Gateway → EPP ext_proc connection:
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/destinationrule-phi-4-mini-instruct.yaml

@@ -516,12 +516,14 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 // and validates both positive (correct model → success) and negative (wrong model → error) routing.
 func validateBBRRouting(inferenceSetObj *kaitov1beta1.InferenceSet, modelName, inferencePoolName string, findWorkspacePod func() (string, string, string)) {
 	// Ensure a DestinationRule exists for the EPP service so Istio Gateway's
-	// ext_proc gRPC uses the right TLS mode. Current EPP image is
-	// llm-d-inference-scheduler:v0.8.0 which listens on TLS by default
-	// (--secure-serving=true). Without SIMPLE + insecureSkipVerify=true, Envoy
-	// sends plaintext and the connection is terminated -> Gateway returns
-	// HTTP 500 empty body on every BBR request. When we bump EPP to v0.9.x
-	// (plaintext by default), switch this to mode: DISABLE.
+	// ext_proc gRPC uses the right TLS mode. After migrating to the
+	// llm-d-router-gateway chart v0.9.0, EPP
+	// (mcr.microsoft.com/oss/v2/llm-d/llm-d-router-endpoint-picker:v0.9.0)
+	// listens on plaintext gRPC by default, so we use mode: DISABLE for the
+	// Istio Gateway -> EPP ext_proc connection. (The previous SIMPLE +
+	// insecureSkipVerify=true workaround was required by the older
+	// llm-d-inference-scheduler:v0.8.0 EPP which defaulted to
+	// --secure-serving=true with a self-signed cert.)
 	By("Ensuring DestinationRule for EPP service (BBR)", func() {
 		eppServiceName := inferencePoolName + "-epp"
 		dr := &unstructured.Unstructured{}
@@ -536,8 +538,7 @@ func validateBBRRouting(inferenceSetObj *kaitov1beta1.InferenceSet, modelName, i
 			"host": eppServiceName,
 			"trafficPolicy": map[string]interface{}{
 				"tls": map[string]interface{}{
-					"mode":               "SIMPLE",
-					"insecureSkipVerify": true,
+					"mode": "DISABLE",
 				},
 			},
 		}
@@ -557,7 +558,7 @@ func validateBBRRouting(inferenceSetObj *kaitov1beta1.InferenceSet, modelName, i
 			return err
 		}, 2*time.Minute, utils.PollInterval).Should(Succeed(),
 			"Failed to create DestinationRule for EPP service %s", eppServiceName)
-		GinkgoWriter.Printf("Created/updated DestinationRule (mode=SIMPLE) for EPP service %s\n", eppServiceName)
+		GinkgoWriter.Printf("Created/updated DestinationRule (mode=DISABLE) for EPP service %s\n", eppServiceName)
 
 		DeferCleanup(func() {
 			cleanupDR := &unstructured.Unstructured{}

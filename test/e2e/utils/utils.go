@@ -130,7 +130,18 @@ func GetK8sClientset() (*kubernetes.Clientset, error) {
 }
 
 func GetPodLogs(coreClient *kubernetes.Clientset, namespace, podName, containerName string) (string, error) {
-	options := &corev1.PodLogOptions{}
+	return getPodLogs(coreClient, namespace, podName, containerName, false)
+}
+
+// GetPreviousPodLogs returns the logs of the previous (pre-restart) incarnation
+// of a container. When a container crash-loops, the current logs only show the
+// post-restart re-initialization; the previous logs capture the actual failure.
+func GetPreviousPodLogs(coreClient *kubernetes.Clientset, namespace, podName, containerName string) (string, error) {
+	return getPodLogs(coreClient, namespace, podName, containerName, true)
+}
+
+func getPodLogs(coreClient *kubernetes.Clientset, namespace, podName, containerName string, previous bool) (string, error) {
+	options := &corev1.PodLogOptions{Previous: previous}
 	if containerName != "" {
 		options.Container = containerName
 	}

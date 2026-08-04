@@ -449,6 +449,16 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1beta1.InferenceSet
 						"memory": "16Gi",
 					},
 				},
+				// Disable EPP's built-in TLS on the ext_proc gRPC port so the
+				// Istio Gateway can connect in plaintext. The llm-d-router-gateway
+				// chart's EPP binary defaults to --secure-serving=true, but our
+				// Istio DestinationRule for the EPP service is configured with
+				// tls.mode: DISABLE. Without turning this off, Envoy's ext_proc
+				// filter fails with "Connection refused" / "no healthy upstream"
+				// during TLS handshake against a plaintext client.
+				"flags": map[string]any{
+					"secure-serving": false,
+				},
 			},
 			"modelServers": map[string]any{
 				"matchLabels": matchLabels,

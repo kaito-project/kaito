@@ -872,8 +872,13 @@ func validateBBRRouting(inferenceSetObj *kaitov1beta1.InferenceSet, modelName, i
 
 			dumpPodLogs("default", "app.kubernetes.io/name=body-based-routing", 200)
 			dumpPodLogs("default", "gateway.networking.k8s.io/gateway-name=inference-gateway", 150)
-			dumpPodLogs(inferenceSetObj.Namespace, "app="+inferencePoolName+"-epp", 200)
-			dumpPodLogs(inferenceSetObj.Namespace, "inferencepool="+inferencePoolName, 200)
+			// llm-d-router-gateway v0.9.0 labels EPP pods with
+			// app.kubernetes.io/name=<release>-epp and
+			// llm-d-router-gateway=<release>-epp (see routerlib templates/_helpers.tpl).
+			// The legacy "app=<name>-epp" / "inferencepool=<name>" selectors from the
+			// GWIE inferencepool chart no longer match.
+			dumpPodLogs(inferenceSetObj.Namespace, "app.kubernetes.io/name="+inferencePoolName+"-epp", 200)
+			dumpPodLogs(inferenceSetObj.Namespace, "llm-d-router-gateway="+inferencePoolName+"-epp", 200)
 
 			// HTTPRoute status/spec
 			route := &unstructured.Unstructured{}

@@ -30,6 +30,7 @@ from ragengine.guardrails.scanner_schemas import (  # noqa: E402
 )
 from ragengine.streaming.guardrails import (  # noqa: E402
     STREAMING_GUARDRAILS_SUPPORTED_SCANNERS,
+    _redact_secrets_and_verify,
     apply_streaming_guardrails,
     validate_streaming_guardrails,
 )
@@ -40,6 +41,14 @@ def _invisible_text_scanner(action="redact"):
         type="invisible_text",
         action_on_hit=action,
         config=InvisibleTextConfig(),
+    )
+
+
+def _secrets_scanner(redact_mode="all"):
+    return ParsedScannerConfig(
+        type="secrets",
+        action_on_hit="redact",
+        config=SecretsConfig(redact_mode=redact_mode),
     )
 
 
@@ -238,18 +247,72 @@ def test_validate_streaming_guardrails_accepts_sensitive_redaction():
     assert support.detail is None
 
 
-def test_validate_streaming_guardrails_rejects_secrets_redaction():
+def test_validate_streaming_guardrails_accepts_secrets_all_redaction():
+    support = validate_streaming_guardrails(_streaming_guardrails(_secrets_scanner()))
+
+    assert support.supported is True
+    assert support.detail is None
+
+
+@pytest.mark.parametrize("redact_mode", ["partial", "hash"])
+def test_validate_streaming_guardrails_rejects_non_all_secrets_redaction(
+    redact_mode,
+):
     support = validate_streaming_guardrails(
-        _streaming_guardrails(
-            ParsedScannerConfig(
-                type="secrets",
-                action_on_hit="redact",
-                config=SecretsConfig(),
-            )
-        )
+        _streaming_guardrails(_secrets_scanner(redact_mode))
     )
 
     assert support.supported is False
+    assert support.detail == (
+        "stream=true with action=redact for scanner=secrets only supports "
+        "redact_mode=all."
+    )
+
+
+@pytest.mark.parametrize(
+    ("scanner_output", "results_valid"),
+    [
+        ("secret", {"secrets": False}),
+        (object(), {"secrets": False}),
+        ("secret unexpectedly expanded", {"secrets": False}),
+        ("unexpected mutation", {"secrets": True}),
+    ],
+)
+def test_redact_secrets_and_verify_fails_closed_on_invalid_result(
+    monkeypatch, scanner_output, results_valid
+):
+    monkeypatch.setattr(
+        "ragengine.streaming.guardrails.scan_output",
+        lambda scanners, prompt, output, fail_fast: (
+            scanner_output,
+            results_valid,
+            {"secrets": 1.0},
+        ),
+    )
+
+    assert _redact_secrets_and_verify(object(), "prompt", "secret") is None
+
+
+def test_redact_secrets_and_verify_scans_once_then_verifies_clean(monkeypatch):
+    scan_results = iter(
+        [
+            ("******", {"secrets": False}, {"secrets": 1.0}),
+            ("******", {"secrets": True}, {"secrets": -1.0}),
+        ]
+    )
+    scan_count = 0
+
+    def scan_once_then_verify(scanners, prompt, output, fail_fast):
+        nonlocal scan_count
+        scan_count += 1
+        return next(scan_results)
+
+    monkeypatch.setattr(
+        "ragengine.streaming.guardrails.scan_output", scan_once_then_verify
+    )
+
+    assert _redact_secrets_and_verify(object(), "prompt", "secret") == "******"
+    assert scan_count == 2
 
 
 @pytest.mark.asyncio
@@ -564,6 +627,85 @@ async def test_invisible_redaction_without_modified_text_fails_closed(monkeypatc
         'data: {"choices":[{"index":0,"delta":{"content":"blocked-by-policy"},'
         '"finish_reason":null}]}\n\n'
     )
+
+
+@pytest.mark.asyncio
+async def test_secrets_all_redacts_aws_access_key_split_across_content_chunks():
+    secret = "AKIA1234567890ABCDEF"
+
+    chunks = await _apply_content_chunks(
+        ["AWS key: AKIA1234", "567890ABCDEF"],
+        _streaming_guardrails(_secrets_scanner()),
+    )
+
+    assert _emitted_text(chunks) == "AWS key: ******"
+    assert secret not in "".join(chunks)
+
+
+@pytest.mark.asyncio
+async def test_secrets_all_redacts_multiple_secrets():
+    first_secret = "AKIA1234567890ABCDEF"
+    second_secret = "AKIAZYXWVUTSRQPONMLK"
+    first_prefix = "a" * 300
+    second_prefix = "b" * 300
+
+    chunks = await _apply_content_chunks(
+        [
+            f"{first_prefix} first {first_secret}",
+            f"{second_prefix} second {second_secret}",
+        ],
+        _streaming_guardrails(_secrets_scanner()),
+    )
+
+    assert _emitted_text(chunks) == (
+        f"{first_prefix} first ******{second_prefix} second ******"
+    )
+    assert first_secret not in "".join(chunks)
+    assert second_secret not in "".join(chunks)
+
+
+@pytest.mark.asyncio
+async def test_secrets_all_redacts_multiple_secret_types():
+    aws_key = "AKIA1234567890ABCDEF"
+    github_token = "ghp_abcdefghijklmnopqrstuvwxyzABCDEFGHIJ"
+    gcp_key = "AIza" + "A" * 35
+
+    chunks = await _apply_text(
+        f"Keys: {aws_key}, {github_token}, {gcp_key}",
+        _streaming_guardrails(_secrets_scanner()),
+    )
+
+    assert _emitted_text(chunks) == "Keys: ******, ******, ******"
+    assert aws_key not in "".join(chunks)
+    assert github_token not in "".join(chunks)
+    assert gcp_key not in "".join(chunks)
+
+
+@pytest.mark.asyncio
+async def test_secrets_all_redacts_twenty_repeated_identical_secrets():
+    secret = "AKIA1234567890ABCDEF"
+
+    chunks = await _apply_text(
+        "Keys: " + ", ".join([secret] * 20),
+        _streaming_guardrails(_secrets_scanner()),
+    )
+
+    assert _emitted_text(chunks) == "Keys: " + ", ".join(["******"] * 20)
+    assert secret not in "".join(chunks)
+
+
+@pytest.mark.asyncio
+async def test_secrets_all_redaction_is_stable_when_window_is_rescanned():
+    secret = "AKIA1234567890ABCDEF"
+    prefix = "a" * 300
+
+    chunks = await _apply_content_chunks(
+        [f"{prefix} token = {secret}", " tail"],
+        _streaming_guardrails(_secrets_scanner()),
+    )
+
+    assert _emitted_text(chunks) == f"{prefix} token = ****** tail"
+    assert secret not in "".join(chunks)
 
 
 @pytest.mark.asyncio

@@ -33,7 +33,7 @@ STREAMING_GUARDRAILS_HOLDBACK_LEN = 256
 STREAMING_GUARDRAILS_CAPABILITIES = {
     "ban_substrings": frozenset({"block"}),
     "invisible_text": frozenset({"block", "redact"}),
-    "secrets": frozenset({"block"}),
+    "secrets": frozenset({"block", "redact"}),
     "sensitive": frozenset({"block", "redact"}),
 }
 STREAMING_GUARDRAILS_SUPPORTED_SCANNERS = frozenset(STREAMING_GUARDRAILS_CAPABILITIES)
@@ -67,6 +67,18 @@ def validate_streaming_guardrails(
                     f"stream=true does not support action={scanner_action} for "
                     f"scanner={scanner_config.type}. Supported actions: "
                     f"{sorted(supported_actions)}."
+                ),
+            )
+        if (
+            scanner_config.type == "secrets"
+            and scanner_action == "redact"
+            and scanner_config.config.redact_mode != "all"
+        ):
+            return StreamingGuardrailsSupport(
+                supported=False,
+                detail=(
+                    "stream=true with action=redact for scanner=secrets only "
+                    "supports redact_mode=all."
                 ),
             )
 
@@ -162,6 +174,17 @@ class _LLMGuardWindowScanner:
             if scanner_action != "redact":
                 continue
 
+            if scanner_config.type == "secrets":
+                redacted_text = _redact_secrets_and_verify(
+                    scanner,
+                    self._prompt,
+                    sanitized_text,
+                )
+                if redacted_text is None:
+                    return WindowScanResult(blocked=True)
+                sanitized_text = redacted_text
+                continue
+
             scanner_output, results_valid, _ = scan_output(
                 [scanner], self._prompt, sanitized_text, fail_fast=False
             )
@@ -187,6 +210,28 @@ class _LLMGuardWindowScanner:
         if sanitized_text == text:
             return WindowScanResult()
         return WindowScanResult(sanitized_text=sanitized_text)
+
+
+def _redact_secrets_and_verify(scanner: Any, prompt: str, text: str) -> str | None:
+    sanitized, results_valid, _ = scan_output([scanner], prompt, text, fail_fast=False)
+    if not isinstance(sanitized, str):
+        return None
+    if all(results_valid.values()):
+        return text if sanitized == text else None
+    if sanitized == text or len(sanitized) > len(text):
+        return None
+
+    verified, verified_valid, _ = scan_output(
+        [scanner], prompt, sanitized, fail_fast=False
+    )
+    if (
+        not isinstance(verified, str)
+        or verified != sanitized
+        or not all(verified_valid.values())
+    ):
+        return None
+
+    return sanitized
 
 
 async def _flush_window_or_block(

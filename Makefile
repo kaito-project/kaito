@@ -131,6 +131,12 @@ compare-model-configs: ## Compare supported_models.yaml with ConfigMap template 
 generate-vllm-arch-list: ## Regenerate presets/workspace/models/vllm_model_arch_list.txt.
 	@./hack/generate_vllm_arch_list.sh
 
+.PHONY: generate-chunksizes
+generate-chunksizes: ## Regenerate pkg/cache/dacs/chunksize/chunksizes_generated.go from models.yaml (fetches safetensors headers from HuggingFace).
+	go run ./hack/gen-chunksizes/main.go \
+		-models pkg/cache/dacs/chunksize/models.yaml \
+		-out pkg/cache/dacs/chunksize/chunksizes_generated.go
+
 ## --------------------------------------
 ## Unit Tests
 ## --------------------------------------

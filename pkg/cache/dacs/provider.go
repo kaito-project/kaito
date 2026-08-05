@@ -25,6 +25,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
+	"strconv"
 	"strings"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -39,6 +41,7 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/cache"
+	"github.com/kaito-project/kaito/pkg/cache/dacs/chunksize"
 )
 
 const (
@@ -64,6 +67,30 @@ const (
 	InjectLabelKey = "dacs.azure.com/inject"
 	// InjectLabelValue is the value that enables injection.
 	InjectLabelValue = "true"
+
+	// dacsEnvPrefix marks operator env vars whose values are passed through to
+	// cache-enabled inference pods. An operator env var DACS_ENV_<NAME>=<value>
+	// is injected into the pod as <NAME>=<value>, allowing run:ai streamer and
+	// DACS cache-server tuning (e.g. chunk sizes) without code changes.
+	dacsEnvPrefix = "DACS_ENV_"
+
+	// dacsDefaultChunkByteSize is the DACS cache-server's default chunk size
+	// (32 MiB). The run:ai streamer reads model weights in chunks and stores/
+	// looks them up in the DACS cache keyed by chunk; using a different chunk
+	// size on the streamer than the cache-server stores would defeat cache
+	// hits. RUNAI_STREAMER_CHUNK_BYTESIZE therefore defaults to the DACS default
+	// so the two stay aligned out of the box. Operators can still override it via
+	// DACS_ENV_RUNAI_STREAMER_CHUNK_BYTESIZE if the cache-server is retuned.
+	dacsDefaultChunkByteSize = 32 * 1024 * 1024 // 33554432
+
+	// runaiChunkEnv (run:ai streamer read chunk size) and siChunkEnv (DACS
+	// StorageIntercept streaming chunk size) MUST hold the same value: the
+	// streamer reads model weights in runaiChunkEnv-sized chunks while the
+	// cache-server stores/looks them up in siChunkEnv-sized chunks, so a
+	// mismatch defeats cache hits. They are always emitted together, and an
+	// override of either (via DACS_ENV_) is applied to both.
+	runaiChunkEnv = "RUNAI_STREAMER_CHUNK_BYTESIZE"
+	siChunkEnv    = "SI_streamingChunkSize"
 )
 
 var cacheGVR = schema.GroupVersionResource{
@@ -91,6 +118,14 @@ type Config struct {
 
 	// KVConnectorProtocol is the transport protocol for KV cache (e.g., "rdma", "tcp").
 	KVConnectorProtocol string
+
+	// StreamerEnv is a free-form map of environment variables injected into
+	// cache-enabled inference pods on the model-weights path. It tunes the run:ai
+	// streamer and the DACS cache-server (e.g. RUNAI_STREAMER_CHUNK_BYTESIZE and
+	// the cache-server chunk size) without requiring code changes. Populated once
+	// at bootstrap from operator env vars prefixed with DACS_ENV_ (see
+	// ConfigFromEnv); the prefix is stripped before injection.
+	StreamerEnv map[string]string
 }
 
 // DefaultConfig returns sensible defaults for DACS integration.
@@ -100,6 +135,7 @@ func DefaultConfig() Config {
 		ClientImage:         os.Getenv("DACS_CLIENT_IMAGE"),
 		KVCacheEnabled:      true,
 		KVConnectorProtocol: "tcp",
+		StreamerEnv:         map[string]string{},
 	}
 }
 
@@ -326,13 +362,42 @@ func (p *Provider) PodMutations(ctx context.Context, concern cache.CacheConcern,
 
 		// Tell run:ai model streamer to load the cache library from the ImageVolume.
 		discoveryEndpoint := p.resolveDiscoveryEndpoint(cacheName)
-		mutations.EnvVars = append(mutations.EnvVars,
-			corev1.EnvVar{Name: "RUNAI_STREAMER_EXPERIMENTAL_AZURE_CACHE_ENABLED", Value: "true"},
-			corev1.EnvVar{Name: "RUNAI_STREAMER_EXPERIMENTAL_AZURE_CACHE_LIB", Value: ClientLibPath},
-			corev1.EnvVar{Name: "RUNAI_STREAMER_CACHE_ENABLED", Value: "true"},
-			corev1.EnvVar{Name: "CACHE_DISCOVERY_URL", Value: discoveryEndpoint},
-			corev1.EnvVar{Name: "CACHE_SERVER_PORT", Value: fmt.Sprintf("%d", defaultDiscoveryPort)},
-		)
+
+		// Resolve the chunk size once. The default is a per-model recommendation
+		// derived offline from the model's safetensors tensor layout (the modal
+		// per-tensor byte size; see pkg/cache/dacs/chunksize) when the model is
+		// known, otherwise the DACS cache-server default. It is overridable via
+		// either paired DACS_ENV_ var. The run:ai streamer and the StorageIntercept
+		// must use the same value, so an override of either one is applied to both
+		// (runaiChunkEnv takes precedence if both are provided).
+		chunkDefault := dacsDefaultChunkByteSize
+		if rec, ok := chunksize.Recommended(modelName); ok {
+			chunkDefault = rec
+		}
+		chunkVal := strconv.Itoa(chunkDefault)
+		if v, ok := p.config.StreamerEnv[runaiChunkEnv]; ok {
+			chunkVal = v
+		} else if v, ok := p.config.StreamerEnv[siChunkEnv]; ok {
+			chunkVal = v
+		}
+
+		// Fixed defaults for the model-weights path.
+		fixedEnv := []corev1.EnvVar{
+			{Name: "RUNAI_STREAMER_EXPERIMENTAL_AZURE_CACHE_ENABLED", Value: "1"},
+			{Name: "RUNAI_STREAMER_EXPERIMENTAL_AZURE_CACHE_LIB", Value: ClientLibPath},
+			{Name: "CACHE_DISCOVERY_URL", Value: discoveryEndpoint},
+			{Name: "CACHE_SERVER_PORT", Value: fmt.Sprintf("%d", defaultDiscoveryPort)},
+		}
+
+		// Overlay DACS_ENV_ passthrough vars: they override same-named fixed
+		// defaults in place and append any new names (sorted). Then force the
+		// linked chunk-size pair to the single resolved value so both env vars
+		// always match, regardless of which one (if any) was overridden. Pod-level
+		// precedence remains user container env > DACS_ENV_ override > fixed
+		// default (see applyMutations first-wins dedup).
+		env := upsertEnv(fixedEnv, p.config.StreamerEnv)
+		env = upsertEnv(env, map[string]string{runaiChunkEnv: chunkVal, siChunkEnv: chunkVal})
+		mutations.EnvVars = append(mutations.EnvVars, env...)
 
 	case cache.CacheConcernKVCache:
 		if !p.config.KVCacheEnabled {
@@ -481,5 +546,52 @@ func ConfigFromEnv() Config {
 		cfg.ClientImage = v
 	}
 
+	// Load DACS_ENV_<NAME> passthrough vars once at bootstrap. Each is stripped of
+	// the DACS_ENV_ prefix and injected into cache-enabled inference pods as
+	// <NAME>=<value>, overriding any built-in default of the same name.
+	if cfg.StreamerEnv == nil {
+		cfg.StreamerEnv = map[string]string{}
+	}
+	for _, kv := range os.Environ() {
+		name, value, ok := strings.Cut(kv, "=")
+		if !ok {
+			continue
+		}
+		if stripped, found := strings.CutPrefix(name, dacsEnvPrefix); found && stripped != "" {
+			cfg.StreamerEnv[stripped] = value
+		}
+	}
+
 	return cfg
+}
+
+// upsertEnv overlays passthrough vars onto base. A passthrough entry whose name
+// matches a base entry replaces that entry's value in place (preserving base
+// order); names not present in base are appended in sorted order.
+func upsertEnv(base []corev1.EnvVar, passthrough map[string]string) []corev1.EnvVar {
+	out := make([]corev1.EnvVar, len(base))
+	copy(out, base)
+	idx := make(map[string]int, len(out))
+	for i, e := range out {
+		idx[e.Name] = i
+	}
+	for _, name := range sortedKeys(passthrough) {
+		if i, ok := idx[name]; ok {
+			out[i].Value = passthrough[name]
+			continue
+		}
+		out = append(out, corev1.EnvVar{Name: name, Value: passthrough[name]})
+		idx[name] = len(out) - 1
+	}
+	return out
+}
+
+// sortedKeys returns the keys of m in ascending order for deterministic output.
+func sortedKeys(m map[string]string) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }

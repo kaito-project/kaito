@@ -533,10 +533,10 @@ jobs:
           kubectl get inferencepool -A -o yaml || true
 
           echo "=== GWIE: EPP Deployment ==="
-          kubectl get deployment -l app=inferenceset-aikit-test-inferencepool-epp -o yaml || true
+          kubectl get deployment -l app.kubernetes.io/name=inferenceset-aikit-test-inferencepool-epp -o yaml || true
 
           echo "=== GWIE: EPP Pod Logs ==="
-          kubectl logs -l app=inferenceset-aikit-test-inferencepool-epp --tail=50 || true
+          kubectl logs -l app.kubernetes.io/name=inferenceset-aikit-test-inferencepool-epp --tail=50 || true
 
           echo "=== Preset GWIE Test: InferenceSet Status ==="
           kubectl get inferenceset inferenceset-preset-gwie-test -o yaml || true

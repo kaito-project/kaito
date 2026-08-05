@@ -200,6 +200,169 @@ func TestConfigFromEnv(t *testing.T) {
 	}
 }
 
+func TestConfigFromEnv_DacsEnvPrefix(t *testing.T) {
+	// DACS_ENV_<NAME> vars are stripped of the prefix and land in StreamerEnv.
+	t.Setenv("DACS_ENV_RUNAI_STREAMER_CHUNK_BYTESIZE", "16777216")
+	t.Setenv("DACS_ENV_CACHE_SERVER_CHUNK_BYTESIZE", "67108864")
+
+	cfg := ConfigFromEnv()
+	if got := cfg.StreamerEnv["RUNAI_STREAMER_CHUNK_BYTESIZE"]; got != "16777216" {
+		t.Errorf("RUNAI_STREAMER_CHUNK_BYTESIZE: got %q, want 16777216", got)
+	}
+	if got := cfg.StreamerEnv["CACHE_SERVER_CHUNK_BYTESIZE"]; got != "67108864" {
+		t.Errorf("CACHE_SERVER_CHUNK_BYTESIZE: got %q, want 67108864", got)
+	}
+}
+
+func TestConfigFromEnv_NoDacsEnv(t *testing.T) {
+	// Without any DACS_ENV_ var set, StreamerEnv is empty.
+	cfg := ConfigFromEnv()
+	if len(cfg.StreamerEnv) != 0 {
+		t.Errorf("expected empty StreamerEnv, got %v", cfg.StreamerEnv)
+	}
+}
+
+func TestPodMutations_ModelWeightsStreamerEnvOverride(t *testing.T) {
+	cfg := DefaultConfig()
+	cfg.ClientImage = "test-registry/dacs-client:latest"
+	cfg.StreamerEnv = map[string]string{
+		"CACHE_SERVER_CHUNK_BYTESIZE": "67108864",
+		"TACHYON_EXTRA_TUNING":        "on",
+	}
+	p := New(newFakeProvider().client, cfg)
+
+	ws := &kaitov1beta1.Workspace{
+		Cache: &kaitov1beta1.CacheSpec{
+			ModelCache: &kaitov1beta1.ModelCacheSpec{
+				Provider: "dacs",
+				Mode:     kaitov1beta1.CacheModeOpportunistic,
+			},
+		},
+	}
+
+	mutations, err := p.PodMutations(context.Background(), cache.CacheConcernModelWeights, ws, "microsoft/phi-4", "main", "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// 7 fixed env vars (incl. the linked chunk-size pair) + 2 free-form entries.
+	if len(mutations.EnvVars) != 9 {
+		t.Fatalf("expected 9 env vars, got %d: %v", len(mutations.EnvVars), mutations.EnvVars)
+	}
+	envVars := envVarMap(mutations.EnvVars)
+	if envVars["CACHE_SERVER_CHUNK_BYTESIZE"] != "67108864" {
+		t.Errorf("CACHE_SERVER_CHUNK_BYTESIZE: got %q, want 67108864", envVars["CACHE_SERVER_CHUNK_BYTESIZE"])
+	}
+	if envVars["TACHYON_EXTRA_TUNING"] != "on" {
+		t.Errorf("TACHYON_EXTRA_TUNING: got %q, want on", envVars["TACHYON_EXTRA_TUNING"])
+	}
+	// The linked chunk-size pair keeps its default when not overridden.
+	if envVars["RUNAI_STREAMER_CHUNK_BYTESIZE"] != "33554432" {
+		t.Errorf("RUNAI_STREAMER_CHUNK_BYTESIZE: got %q, want 33554432", envVars["RUNAI_STREAMER_CHUNK_BYTESIZE"])
+	}
+	if envVars["SI_streamingChunkSize"] != "33554432" {
+		t.Errorf("SI_streamingChunkSize: got %q, want 33554432", envVars["SI_streamingChunkSize"])
+	}
+}
+
+// TestPodMutations_ChunkSizePairOverride verifies that overriding the chunk size
+// via a single DACS_ENV_ var moves BOTH the run:ai streamer and StorageIntercept
+// chunk-size env vars together (they must stay equal), and that the override wins
+// over the built-in default (upsert, not duplicate).
+func TestPodMutations_ChunkSizePairOverride(t *testing.T) {
+	tests := []struct {
+		name string
+		env  map[string]string
+		want string
+	}{
+		{"override via runai", map[string]string{"RUNAI_STREAMER_CHUNK_BYTESIZE": "3145728"}, "3145728"},
+		{"override via si", map[string]string{"SI_streamingChunkSize": "3145728"}, "3145728"},
+		{"runai wins when both set", map[string]string{"RUNAI_STREAMER_CHUNK_BYTESIZE": "3145728", "SI_streamingChunkSize": "8388608"}, "3145728"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := DefaultConfig()
+			cfg.ClientImage = "test-registry/dacs-client:latest"
+			cfg.StreamerEnv = tt.env
+			p := New(newFakeProvider().client, cfg)
+
+			ws := &kaitov1beta1.Workspace{
+				Cache: &kaitov1beta1.CacheSpec{
+					ModelCache: &kaitov1beta1.ModelCacheSpec{
+						Provider: "dacs",
+						Mode:     kaitov1beta1.CacheModeOpportunistic,
+					},
+				},
+			}
+
+			mutations, err := p.PodMutations(context.Background(), cache.CacheConcernModelWeights, ws, "microsoft/phi-4", "main", "")
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			// Still 7 fixed env vars: the override upserts in place, not duplicates.
+			if len(mutations.EnvVars) != 7 {
+				t.Fatalf("expected 7 env vars, got %d: %v", len(mutations.EnvVars), mutations.EnvVars)
+			}
+			envVars := envVarMap(mutations.EnvVars)
+			if envVars["RUNAI_STREAMER_CHUNK_BYTESIZE"] != tt.want {
+				t.Errorf("RUNAI_STREAMER_CHUNK_BYTESIZE: got %q, want %q", envVars["RUNAI_STREAMER_CHUNK_BYTESIZE"], tt.want)
+			}
+			if envVars["SI_streamingChunkSize"] != tt.want {
+				t.Errorf("SI_streamingChunkSize: got %q, want %q", envVars["SI_streamingChunkSize"], tt.want)
+			}
+		})
+	}
+}
+
+// TestPodMutations_ChunkSizeRecommendation verifies that a known model defaults
+// the linked chunk-size pair to its per-model recommendation (from package
+// chunksize), and that a DACS_ENV_ override still wins over that recommendation.
+func TestPodMutations_ChunkSizeRecommendation(t *testing.T) {
+	tests := []struct {
+		name  string
+		model string
+		env   map[string]string
+		want  string
+	}{
+		{"recommended MoE default", "qwen3-coder-30b-a3b-instruct", nil, "3145728"},
+		{"recommended dense default", "qwen2.5-coder-7b-instruct", nil, "33554432"},
+		{"runtime basename with version suffix resolves", "ministral-3-8b-instruct-2512", nil, "2097152"},
+		{"full HF id normalizes to recommendation", "openai/gpt-oss-20b", nil, "2097152"},
+		{"unknown model falls back to cache-server default", "acme/does-not-exist", nil, "33554432"},
+		{"DACS_ENV_ override wins over recommendation", "qwen3-coder-30b-a3b-instruct", map[string]string{"RUNAI_STREAMER_CHUNK_BYTESIZE": "8388608"}, "8388608"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := DefaultConfig()
+			cfg.ClientImage = "test-registry/dacs-client:latest"
+			cfg.StreamerEnv = tt.env
+			p := New(newFakeProvider().client, cfg)
+
+			ws := &kaitov1beta1.Workspace{
+				Cache: &kaitov1beta1.CacheSpec{
+					ModelCache: &kaitov1beta1.ModelCacheSpec{
+						Provider: "dacs",
+						Mode:     kaitov1beta1.CacheModeOpportunistic,
+					},
+				},
+			}
+
+			mutations, err := p.PodMutations(context.Background(), cache.CacheConcernModelWeights, ws, tt.model, "main", "")
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			envVars := envVarMap(mutations.EnvVars)
+			if envVars["RUNAI_STREAMER_CHUNK_BYTESIZE"] != tt.want {
+				t.Errorf("RUNAI_STREAMER_CHUNK_BYTESIZE: got %q, want %q", envVars["RUNAI_STREAMER_CHUNK_BYTESIZE"], tt.want)
+			}
+			if envVars["SI_streamingChunkSize"] != tt.want {
+				t.Errorf("SI_streamingChunkSize: got %q, want %q", envVars["SI_streamingChunkSize"], tt.want)
+			}
+		})
+	}
+}
+
 func TestPodMutations_ModelWeights(t *testing.T) {
 	p := newFakeProvider()
 	ws := &kaitov1beta1.Workspace{
@@ -224,13 +387,20 @@ func TestPodMutations_ModelWeights(t *testing.T) {
 		t.Errorf("label %s: got %q, want %q", InjectLabelKey, mutations.Labels[InjectLabelKey], InjectLabelValue)
 	}
 
-	// Should have DACS discovery env vars (no KAITO_MODEL_PATH).
-	if len(mutations.EnvVars) != 5 {
-		t.Fatalf("expected 5 env vars, got %d: %v", len(mutations.EnvVars), mutations.EnvVars)
+	// Should have DACS discovery env vars plus the linked chunk-size pair
+	// (no KAITO_MODEL_PATH).
+	if len(mutations.EnvVars) != 7 {
+		t.Fatalf("expected 7 env vars, got %d: %v", len(mutations.EnvVars), mutations.EnvVars)
 	}
 	envVars := envVarMap(mutations.EnvVars)
 	if envVars["RUNAI_STREAMER_CACHE_ENABLED"] != "true" {
 		t.Errorf("RUNAI_STREAMER_CACHE_ENABLED: got %q, want true", envVars["RUNAI_STREAMER_CACHE_ENABLED"])
+	}
+	if envVars["RUNAI_STREAMER_CHUNK_BYTESIZE"] != "33554432" {
+		t.Errorf("RUNAI_STREAMER_CHUNK_BYTESIZE: got %q, want 33554432", envVars["RUNAI_STREAMER_CHUNK_BYTESIZE"])
+	}
+	if envVars["SI_streamingChunkSize"] != "33554432" {
+		t.Errorf("SI_streamingChunkSize: got %q, want 33554432", envVars["SI_streamingChunkSize"])
 	}
 	wantEndpoint := defaultCacheName + "-discovery." + defaultCacheNamespace + ".svc.cluster.local"
 	if envVars["CACHE_DISCOVERY_URL"] != wantEndpoint {
@@ -276,8 +446,8 @@ func TestPodMutations_ModelWeightsCustomPrefix(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(mutations.EnvVars) != 5 {
-		t.Fatalf("expected 5 env vars, got %d", len(mutations.EnvVars))
+	if len(mutations.EnvVars) != 7 {
+		t.Fatalf("expected 7 env vars, got %d", len(mutations.EnvVars))
 	}
 }
 
@@ -303,8 +473,8 @@ func TestPodMutations_ModelWeightsNoModelName(t *testing.T) {
 	}
 
 	// Same env vars regardless of model name (no KAITO_MODEL_PATH).
-	if len(mutations.EnvVars) != 5 {
-		t.Errorf("expected 5 env vars, got %d", len(mutations.EnvVars))
+	if len(mutations.EnvVars) != 7 {
+		t.Errorf("expected 7 env vars, got %d", len(mutations.EnvVars))
 	}
 }
 
@@ -382,8 +552,8 @@ func TestPodMutations_BothConcerns(t *testing.T) {
 	if err != nil {
 		t.Fatalf("model weights: unexpected error: %v", err)
 	}
-	if len(mwMutations.EnvVars) != 5 {
-		t.Errorf("model weights should have 5 RUNAI env vars, got %v", mwMutations.EnvVars)
+	if len(mwMutations.EnvVars) != 7 {
+		t.Errorf("model weights should have 7 env vars, got %v", mwMutations.EnvVars)
 	}
 	for _, env := range mwMutations.EnvVars {
 		if env.Name == "VLLM_KV_TRANSFER_CONFIG" {

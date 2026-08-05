@@ -1,5 +1,6 @@
 ---
-title: Gateway API Inference Extension
+title: Gateway API Inference Extension with llm-d Router
+description: How to enable Gateway API Inference Extension in KAITO using InferenceSet, Flux, and the llm-d Router gateway chart.
 ---
 
 KAITO integrates with [Gateway API Inference Extension](https://gateway-api-inference-extension.sigs.k8s.io/) (GWIE) and the [llm-d Router](https://github.com/llm-d/llm-d-router) EPP to provide model-aware routing and optimal endpoint selection for inference. This page covers what it is, prerequisites, how to enable it in KAITO, how it's wired, and a quickstart.
@@ -134,7 +135,7 @@ phi-4-mini-inferencepool   69s
 Verify that the Endpoint Picker (EPP) Pod is running in the InferenceSet namespace:
 
 ```bash
-kubectl get pod -l inferencepool=phi-4-mini-inferencepool-epp
+kubectl get pod -l app.kubernetes.io/name=phi-4-mini-inferencepool-epp
 
 NAME                                           READY   STATUS    RESTARTS   AGE
 phi-4-mini-inferencepool-epp-b74f8994b-s9kkt   1/1     Running   0          87s
@@ -143,13 +144,13 @@ phi-4-mini-inferencepool-epp-b74f8994b-s9kkt   1/1     Running   0          87s
 Confirm the EPP is using the llm-d Router EPP image:
 
 ```bash
-kubectl get pod -l inferencepool=phi-4-mini-inferencepool-epp -o jsonpath='{.items[0].spec.containers[0].image}'
+kubectl get pod -l app.kubernetes.io/name=phi-4-mini-inferencepool-epp -o jsonpath='{.items[0].spec.containers[0].image}'
 # Expected: mcr.microsoft.com/oss/v2/llm-d/llm-d-router-endpoint-picker:v0.9.0
 ```
 
 ### 3. Deploy DestinationRule and HTTPRoute
 
-Apply an Istio DestinationRule for the EPP service. Starting with the llm-d-router-gateway chart v0.9.0, the KAITO-managed EPP (`llm-d-router-endpoint-picker:v0.9.0`) listens on **plaintext** gRPC by default, so the DestinationRule sets `tls.mode: DISABLE` for the Istio Gateway → EPP ext_proc connection:
+Apply an Istio DestinationRule for the EPP service. In KAITO, the EPP is explicitly configured to listen on **plaintext** gRPC (`router.epp.flags.secure-serving=false`), so the DestinationRule sets `tls.mode: DISABLE` for the Istio Gateway → EPP ext_proc connection:
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/kaito-project/kaito/refs/heads/main/examples/gateway-api-inference-extension/destinationrule-phi-4-mini-instruct.yaml

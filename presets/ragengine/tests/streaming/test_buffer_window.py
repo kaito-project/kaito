@@ -25,8 +25,10 @@ from ragengine.streaming.buffer_window import (
 
 
 class AllowScanner:
-    def scan(self, text: str, *, flush: bool = False) -> WindowScanResult:
-        del flush
+    def scan(
+        self, text: str, *, flush: bool = False, left_context: str = ""
+    ) -> WindowScanResult:
+        del flush, left_context
         return WindowScanResult()
 
 
@@ -35,18 +37,24 @@ class BadSubstringScanner:
         self.substring = substring
         self.scanned_texts: list[str] = []
         self.flush_values: list[bool] = []
+        self.left_contexts: list[str] = []
 
-    def scan(self, text: str, *, flush: bool = False) -> WindowScanResult:
+    def scan(
+        self, text: str, *, flush: bool = False, left_context: str = ""
+    ) -> WindowScanResult:
         self.scanned_texts.append(text)
         self.flush_values.append(flush)
+        self.left_contexts.append(left_context)
         if self.substring in text:
             return WindowScanResult(blocked=True)
         return WindowScanResult()
 
 
 class InvisibleTextRedactScanner:
-    def scan(self, text: str, *, flush: bool = False) -> WindowScanResult:
-        del flush
+    def scan(
+        self, text: str, *, flush: bool = False, left_context: str = ""
+    ) -> WindowScanResult:
+        del flush, left_context
         sanitized_text = text.replace("\u200b", "").replace("\u200c", "")
         if sanitized_text == text:
             return WindowScanResult()
@@ -112,6 +120,7 @@ def test_holdback_tail_is_retained_and_not_emitted():
     assert flush_result.chunks == ("def",)
     assert scanner.scanned_texts == ["abcdef", "def"]
     assert scanner.flush_values == [False, True]
+    assert scanner.left_contexts == ["", "c"]
 
 
 def test_blocked_substring_crossing_holdback_boundary_is_detected():

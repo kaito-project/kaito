@@ -800,6 +800,26 @@ async def test_word_block_does_not_reject_chunk_end_before_lookahead():
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("action", ["redact", "block"])
+async def test_word_match_preserves_left_boundary_after_window_slides(action):
+    prefix = "p" * 300
+    expected = prefix + "xunsafe " + "q" * 300
+
+    chunks = await _apply_content_chunks(
+        [prefix + "xunsafe "] + ["q"] * 300,
+        _streaming_guardrails(
+            _ban_substrings_scanner(
+                "unsafe",
+                action=action,
+                match_type="word",
+            )
+        ),
+    )
+
+    assert _emitted_text(chunks) == expected
+
+
+@pytest.mark.asyncio
 async def test_long_word_match_is_held_until_right_boundary_arrives():
     substring = "a" * 300
 

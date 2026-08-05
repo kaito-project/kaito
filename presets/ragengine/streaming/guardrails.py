@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from typing import Any
@@ -193,7 +194,13 @@ class _LLMGuardWindowScanner:
         self._built_scanners = built_scanners
         self._default_action_on_hit = default_action_on_hit
 
-    def scan(self, text: str, *, flush: bool = False) -> WindowScanResult:
+    def scan(
+        self,
+        text: str,
+        *,
+        flush: bool = False,
+        left_context: str = "",
+    ) -> WindowScanResult:
         sanitized_text = text
         for scanner_config, scanner in self._built_scanners:
             scanner_action = scanner_config.action_on_hit or self._default_action_on_hit
@@ -216,6 +223,7 @@ class _LLMGuardWindowScanner:
                 scanner,
                 sanitized_text,
                 flush=flush,
+                left_context=left_context,
             )
             if scan_result is None:
                 return WindowScanResult(blocked=True)
@@ -238,6 +246,7 @@ class _LLMGuardWindowScanner:
                 scanner,
                 sanitized_text,
                 flush=flush,
+                left_context=left_context,
             )
             if scan_result is None:
                 return WindowScanResult(blocked=True)
@@ -256,21 +265,32 @@ class _LLMGuardWindowScanner:
         text: str,
         *,
         flush: bool,
+        left_context: str,
     ) -> tuple[str, dict[str, bool]] | None:
+        scan_prefix = ""
         boundary_guard = ""
         if (
             scanner_config.type == "ban_substrings"
             and scanner_config.config.match_type == "word"
-            and not flush
         ):
             max_length = max(len(value) for value in scanner_config.config.substrings)
-            boundary_guard = "x" * (max_length + 1)
+            if left_context and re.fullmatch(r"\w", left_context):
+                scan_prefix = "x" * (max_length + 1)
+            if not flush:
+                boundary_guard = "x" * (max_length + 1)
 
         scanner_output, results_valid, _ = scan_output(
-            [scanner], self._prompt, text + boundary_guard, fail_fast=False
+            [scanner],
+            self._prompt,
+            scan_prefix + text + boundary_guard,
+            fail_fast=False,
         )
         if not isinstance(scanner_output, str):
             return None
+        if scan_prefix:
+            if not scanner_output.startswith(scan_prefix):
+                return None
+            scanner_output = scanner_output[len(scan_prefix) :]
         if boundary_guard:
             if not scanner_output.endswith(boundary_guard):
                 return None

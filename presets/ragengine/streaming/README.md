@@ -32,9 +32,10 @@ upstream chunks
 | `guardrails.py` | Validate policy, run scanners, and emit or block |
 
 The default holdback is 256 characters. Policies with longer banned substrings
-increase it to the longest configured substring length minus one. The window
-keeps only the pending tail, so it supports local pattern detection but not
-scanners that need the complete response.
+increase it to the longest configured substring length minus one for `str`
+matching, or the full substring length for `word` matching. The window retains
+the pending tail and the preceding character's boundary class, so it supports
+local pattern detection but not scanners that need the complete response.
 
 ## Scanner Support
 

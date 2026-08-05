@@ -8,7 +8,7 @@ models:
       vllm: 0.26.0
       transformers: 5.14.1
     # Tag history:
-    # 0.5.0 - bump vllm to 0.26.0, lmcache to 0.5.2, transformers to 5.14.1; add scipy 1.16.2
+    # 0.5.0 - bump vllm to 0.26.0, lmcache to 0.5.2, transformers to 5.14.1; add scipy 1.16.2 and pin nixl-cu12 to 1.3.2
     # 0.4.5 - DeepSeek-V4 support: bookworm base + g++ and runtime CUDA toolkit install (cuda-provision.sh) for DeepGEMM; bump transformers to 5.8.1
     # 0.4.4 - use torch.cuda.mem_get_info() instead of pynvml for default gpu_memory_utilization
     # 0.4.3 - add export_sas_token_for_streaming.sh transparent wrapper for SAS-authenticated blob streaming

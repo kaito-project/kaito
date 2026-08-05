@@ -9,7 +9,7 @@ Incremental output scanning for OpenAI-compatible chat completion SSE streams.
 
 The API rejects `n > 1`. The pipeline also fails closed on multiple choices, a nonzero choice index, or malformed SSE.
 
-Text is held and scanned before release so a scanner can safely block or redact the response. Streaming redaction is currently limited to `invisible_text`.
+Text is held and scanned before release so a scanner can safely block or redact the response.
 
 ## Flow
 
@@ -31,7 +31,10 @@ upstream chunks
 | `buffer_window.py` | Retain and scan an un-emitted text tail |
 | `guardrails.py` | Validate policy, run scanners, and emit or block |
 
-The default holdback is 256 characters. The window keeps only the pending tail, so it supports local pattern detection but not scanners that need the complete response.
+The default holdback is 256 characters. Policies with longer banned substrings
+increase it to the longest configured substring length minus one. The window
+keeps only the pending tail, so it supports local pattern detection but not
+scanners that need the complete response.
 
 ## Scanner Support
 
@@ -42,8 +45,9 @@ The default holdback is 256 characters. The window keeps only the pending tail, 
 | `secrets` | Common credentials and secret formats |
 | `sensitive` | Email, phone, credit card, and IPv4 patterns |
 
-Streaming supports `block` for all listed scanners and `redact` for `invisible_text`
-and `sensitive`, plus `secrets` with `redactMode: all`.
+Streaming supports `block` for all listed scanners and `redact` for
+`ban_substrings`, `invisible_text`, and `sensitive`, plus `secrets` with
+`redactMode: all`.
 Redaction scanners sanitize held text before block scanners validate the final text.
 Secrets redaction replaces all occurrences of detected values and fails closed if
 the sanitized output cannot be verified.
@@ -58,13 +62,6 @@ Not supported in streaming:
 ## Limitations
 
 - Content events are rebuilt with choice index `0`; original content-event metadata is not preserved.
-- Patterns longer than the 256-character holdback may cross the release boundary.
-
-## Remaining Redaction Work
-
-Implement separately in this order:
-
-1. `ban_substrings`
 
 ## Policy Example
 
@@ -80,6 +77,7 @@ scanners:
   - type: sensitive
     detectors: [email, phone, credit_card, ip_address]
   - type: ban_substrings
+    action: redact
     substrings: [prohibited phrase]
     match_type: str
 ```

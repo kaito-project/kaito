@@ -528,9 +528,9 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 			}
 		}
 	} else { // NAP enabled
-		// GPU partitioning (MIG) is only supported on BYO nodes.
+		// GPU partitioning (MIG or accelerator) is only supported on BYO nodes.
 		if r.Partition != nil {
-			return errs.Also(apis.ErrGeneric("MIG is only supported with BYO nodes (disableNodeAutoProvisioning=true)", "partition"))
+			return errs.Also(apis.ErrGeneric("GPU partitioning is only supported with BYO nodes (disableNodeAutoProvisioning=true)", "partition"))
 		}
 		// Regardless of if preset is empty or not, we do want to make sure the instance type is valid for NAP and can't skip node validation like BYO.
 		skuHandler, err := sku.GetSKUHandler()
@@ -617,8 +617,10 @@ func (r *ResourceSpec) validatePartition() (errs *apis.FieldError) {
 	switch r.Partition.Mode {
 	case PartitionModeMIG:
 		return r.validateMIGPartition()
+	case PartitionModeAccelerator:
+		return r.validateAcceleratorPartition()
 	default:
-		return apis.ErrInvalidValue(fmt.Sprintf("unsupported partition mode %q, only \"mig\" is supported", r.Partition.Mode), "partition.mode")
+		return apis.ErrInvalidValue(fmt.Sprintf("unsupported partition mode %q, supported modes are \"mig\" and \"accelerator\"", r.Partition.Mode), "partition.mode")
 	}
 }
 
@@ -630,10 +632,31 @@ func (r *ResourceSpec) validateMIGPartition() (errs *apis.FieldError) {
 	if !featuregates.FeatureGates[consts.FeatureFlagEnableMIG] {
 		return apis.ErrGeneric("MIG support is not enabled, set feature gate enableMIG=true", "partition")
 	}
+	if r.Partition.Count != nil {
+		return apis.ErrInvalidValue("count is only valid for accelerator mode", "partition.count")
+	}
 	if err := mig.ValidateMIGProfile(r.Partition.Profile); err != nil {
 		return apis.ErrInvalidValue(err.Error(), "partition.profile")
 	}
 
+	return errs
+}
+
+// validateAcceleratorPartition validates an accelerator partition, which allocates
+// Count whole GPUs to the workload. It is only supported behind the enableAccelerator
+// feature gate. Count is required in this mode (the >= 1 bound is enforced by the CRD
+// schema); Profile is not valid. The BYO-node (NAP-disabled) requirement is enforced
+// by the caller.
+func (r *ResourceSpec) validateAcceleratorPartition() (errs *apis.FieldError) {
+	if !featuregates.FeatureGates[consts.FeatureFlagEnableAccelerator] {
+		return apis.ErrGeneric("accelerator partition support is not enabled, set feature gate enableAccelerator=true", "partition")
+	}
+	if r.Partition.Profile != "" {
+		errs = errs.Also(apis.ErrInvalidValue("profile is not valid for accelerator mode", "partition.profile"))
+	}
+	if r.Partition.Count == nil {
+		errs = errs.Also(apis.ErrMissingField("partition.count"))
+	}
 	return errs
 }
 

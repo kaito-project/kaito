@@ -45,8 +45,13 @@ func NodeEstimateRequestFromWorkspace(ctx context.Context, w *kaitov1beta1.Works
 		//nolint:staticcheck //SA1019: deprecate Resource.Count field
 		req.ResourceProfile.RequestedNodeCount = int(*w.Resource.Count)
 	}
-	if w.Resource.Partition != nil && w.Resource.Partition.Mode == kaitov1beta1.PartitionModeMIG {
-		req.ResourceProfile.MIGProfile = w.Resource.Partition.Profile
+	if w.Resource.Partition != nil {
+		switch w.Resource.Partition.Mode {
+		case kaitov1beta1.PartitionModeMIG:
+			req.ResourceProfile.MIGProfile = w.Resource.Partition.Profile
+		case kaitov1beta1.PartitionModeAccelerator:
+			req.ResourceProfile.AcceleratorCount = *w.Resource.Partition.Count
+		}
 	}
 	if w.Inference != nil && w.Inference.Preset != nil {
 		name := string(w.Inference.Preset.Name)

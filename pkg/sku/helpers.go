@@ -118,6 +118,19 @@ func GetGPUConfigFromNodeLabels(node *corev1.Node) (*GPUConfig, error) {
 	}, nil
 }
 
+// ScaleGPUConfigToCount returns a copy of nodeCfg scaled to count whole GPUs, preserving
+// the per-GPU memory (GPUMem/GPUCount); it errors when count exceeds the node's GPUs.
+func ScaleGPUConfigToCount(nodeCfg *GPUConfig, count int) (*GPUConfig, error) {
+	if count > nodeCfg.GPUCount {
+		return nil, fmt.Errorf("partition.count (%d) exceeds GPUs available on node (%d)", count, nodeCfg.GPUCount)
+	}
+	perGPUMem := nodeCfg.GPUMem.Value() / int64(nodeCfg.GPUCount)
+	scaled := *nodeCfg
+	scaled.GPUCount = count
+	scaled.GPUMem = *resource.NewQuantity(perGPUMem*int64(count), resource.BinarySI)
+	return &scaled, nil
+}
+
 // isMIGNode reports whether the node's GPUs are partitioned into MIG slices,
 // based on the labels the NVIDIA GPU Operator's mig-manager applies. A
 // nvidia.com/mig.config other than "all-disabled" that reached

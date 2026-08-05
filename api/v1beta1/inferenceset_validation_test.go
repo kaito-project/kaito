@@ -102,6 +102,38 @@ func TestInferenceSetMIGImmutable(t *testing.T) {
 	assert.Contains(t, errs.Error(), "field is immutable")
 }
 
+func TestInferenceSetAcceleratorImmutable(t *testing.T) {
+	makeIS := func(count *int) *InferenceSet {
+		var p *PartitionSpec
+		if count != nil {
+			p = &PartitionSpec{Mode: PartitionModeAccelerator, Count: count}
+		}
+		return &InferenceSet{
+			ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
+			Spec: InferenceSetSpec{
+				Template: InferenceSetTemplate{
+					Resource: InferenceSetResourceSpec{Partition: p},
+				},
+			},
+		}
+	}
+	countOf := func(i int) *int { return &i }
+
+	// Unchanged partition is allowed.
+	errs := makeIS(countOf(2)).validateUpdate(makeIS(countOf(2)))
+	assert.Nil(t, errs)
+
+	// Changing the count is rejected.
+	errs = makeIS(countOf(4)).validateUpdate(makeIS(countOf(2)))
+	assert.NotNil(t, errs)
+	assert.Contains(t, errs.Error(), "field is immutable")
+
+	// Adding a partition to a non-partitioned set is rejected.
+	errs = makeIS(countOf(2)).validateUpdate(makeIS(nil))
+	assert.NotNil(t, errs)
+	assert.Contains(t, errs.Error(), "field is immutable")
+}
+
 func TestInferenceSet_validateInstanceType(t *testing.T) {
 	tests := []struct {
 		name            string

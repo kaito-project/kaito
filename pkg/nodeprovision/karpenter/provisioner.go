@@ -560,6 +560,11 @@ func (p *KarpenterProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *ka
 		return nil, err
 	}
 
+	nodeList, err := nodeprovision.ListWorkspaceNodes(ctx, p.client, p, ws)
+	if err != nil {
+		return nil, fmt.Errorf("listing workspace nodes: %w", err)
+	}
+
 	targetCount := int(ws.Status.TargetNodeCount)
 
 	// NodeClaim condition: are enough karpenter NodeClaims ready?
@@ -571,10 +576,10 @@ func (p *KarpenterProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *ka
 		nodeClaimCond.Status = metav1.ConditionTrue
 		nodeClaimCond.Reason = "NodeClaimsReady"
 		nodeClaimCond.Message = "Enough NodeClaims are ready"
-	} else if reason, message, ok := nodeclaim.FirstProvisioningError(snap.allNodeClaims); ok {
+	} else if reason, message, ok := nodeclaim.FirstNodeClaimProvisioningState(snap.allNodeClaims); ok {
 		// Surface the underlying cloud-provider provisioning error (e.g. quota
-		// exceeded, unauthorized) so users can see the root cause in the
-		// workspace/inferenceset status instead of a generic message.
+		// exceeded, unauthorized), or the NodeClaim's current in-progress state
+		// (e.g. AwaitingReconciliation), instead of a generic "not enough" message.
 		nodeClaimCond.Reason = reason
 		nodeClaimCond.Message = message
 	}
@@ -602,6 +607,11 @@ func (p *KarpenterProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *ka
 			nodeCond.Reason = "NodesReady"
 			nodeCond.Message = "Enough Nodes are ready with GPU resources"
 		}
+	}
+
+	// Enrich NodesReady with a node-pressure warning (diagnostic only; status unchanged).
+	if w := nodes.NodePressureWarning(nodeList); w != "" {
+		nodeCond.Message = nodeCond.Message + "; warning: " + w
 	}
 
 	// Derive resource condition.

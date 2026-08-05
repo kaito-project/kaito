@@ -53,28 +53,40 @@ type ResourceSpec struct {
 }
 
 // PartitionMode identifies the GPU partitioning technology.
-// +kubebuilder:validation:Enum=mig
+// +kubebuilder:validation:Enum=mig;accelerator
 type PartitionMode string
 
 const (
-	// PartitionModeMIG partitions the GPU using NVIDIA Multi-Instance GPU (MIG).
+	// PartitionModeMIG partitions the GPU using NVIDIA Multi-Instance GPU (MIG),
+	// slicing a single physical GPU into a smaller unit addressed by Profile.
 	PartitionModeMIG PartitionMode = "mig"
+
+	// PartitionModeAccelerator allocates multiple whole GPUs to a single workload,
+	// with the number of GPUs given by Count.
+	PartitionModeAccelerator PartitionMode = "accelerator"
 )
 
-// PartitionSpec describes GPU partitioning for a workload. Today only NVIDIA MIG
-// (mode "mig") is supported; the mode discriminator leaves room for other GPU
-// partitioning technologies in the future.
+// PartitionSpec describes GPU partitioning for a workload. Two modes are supported:
+// "mig" slices one physical GPU into a smaller unit selected by Profile, while
+// "accelerator" allocates Count whole GPUs to the workload.
 type PartitionSpec struct {
-	// Mode selects the GPU partitioning technology. Currently only "mig" (NVIDIA
-	// Multi-Instance GPU) is supported.
-	// +kubebuilder:validation:Enum=mig
+	// Mode selects the GPU partitioning technology: "mig" (NVIDIA Multi-Instance
+	// GPU) or "accelerator" (multiple whole GPUs).
+	// +kubebuilder:validation:Enum=mig;accelerator
 	Mode PartitionMode `json:"mode"`
 
 	// Profile is the partition profile, interpreted according to Mode. For MIG this
 	// is a profile name like "1g.10gb", "2g.20gb", "3g.40gb". Each workload is
 	// scheduled on exactly one partition; tensor parallelism across partitions is
 	// not supported. Use multiple Workspaces or an InferenceSet to run replicas.
-	Profile string `json:"profile"`
+	// +optional
+	Profile string `json:"profile,omitempty"`
+
+	// Count is the number of whole GPUs to allocate to the workload. Required and
+	// used only when Mode is "accelerator"; must be >= 1. Not valid for "mig".
+	// +optional
+	// +kubebuilder:validation:Minimum=1
+	Count *int `json:"count,omitempty"`
 }
 
 type ModelName string

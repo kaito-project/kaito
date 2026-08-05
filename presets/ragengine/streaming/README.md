@@ -51,6 +51,8 @@ Streaming supports `block` for all listed scanners and `redact` for
 Redaction scanners sanitize held text before block scanners validate the final text.
 Secrets redaction replaces all occurrences of detected values and fails closed if
 the sanitized output cannot be verified.
+Streaming `ban_substrings` supports `str` and `word` matching.
+`contains_all: true` is not supported because it requires full-response context.
 
 Not supported in streaming:
 

@@ -31,7 +31,7 @@ class WindowScanResult:
 
 
 class WindowScanner(Protocol):
-    def scan(self, text: str) -> WindowScanResult: ...
+    def scan(self, text: str, *, flush: bool = False) -> WindowScanResult: ...
 
 
 @dataclass(frozen=True)
@@ -100,7 +100,7 @@ class StreamingBufferWindow:
         *,
         flush: bool,
     ) -> WindowEmitResult:
-        scan_result = self._scanner.scan(scan_text)
+        scan_result = self._scanner.scan(scan_text, flush=flush)
         if scan_result.blocked:
             self._blocked = True
             self._pending_buffer = ""

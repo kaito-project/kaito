@@ -25,7 +25,8 @@ from ragengine.streaming.buffer_window import (
 
 
 class AllowScanner:
-    def scan(self, text: str) -> WindowScanResult:
+    def scan(self, text: str, *, flush: bool = False) -> WindowScanResult:
+        del flush
         return WindowScanResult()
 
 
@@ -33,16 +34,19 @@ class BadSubstringScanner:
     def __init__(self, substring: str = "bad") -> None:
         self.substring = substring
         self.scanned_texts: list[str] = []
+        self.flush_values: list[bool] = []
 
-    def scan(self, text: str) -> WindowScanResult:
+    def scan(self, text: str, *, flush: bool = False) -> WindowScanResult:
         self.scanned_texts.append(text)
+        self.flush_values.append(flush)
         if self.substring in text:
             return WindowScanResult(blocked=True)
         return WindowScanResult()
 
 
 class InvisibleTextRedactScanner:
-    def scan(self, text: str) -> WindowScanResult:
+    def scan(self, text: str, *, flush: bool = False) -> WindowScanResult:
+        del flush
         sanitized_text = text.replace("\u200b", "").replace("\u200c", "")
         if sanitized_text == text:
             return WindowScanResult()
@@ -107,6 +111,7 @@ def test_holdback_tail_is_retained_and_not_emitted():
     assert result.chunks == ("abc",)
     assert flush_result.chunks == ("def",)
     assert scanner.scanned_texts == ["abcdef", "def"]
+    assert scanner.flush_values == [False, True]
 
 
 def test_blocked_substring_crossing_holdback_boundary_is_detected():

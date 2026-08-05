@@ -70,6 +70,17 @@ def validate_streaming_guardrails(
                 ),
             )
         if (
+            scanner_config.type == "ban_substrings"
+            and scanner_config.config.contains_all
+        ):
+            return StreamingGuardrailsSupport(
+                supported=False,
+                detail=(
+                    "stream=true does not support contains_all=true for "
+                    "scanner=ban_substrings because it requires the complete response."
+                ),
+            )
+        if (
             scanner_config.type == "secrets"
             and scanner_action == "redact"
             and scanner_config.config.redact_mode != "all"
@@ -158,7 +169,9 @@ async def apply_streaming_guardrails(
 def _get_streaming_guardrails_holdback_len(guardrails: OutputGuardrails) -> int:
     required_holdback = max(
         (
-            len(substring) - 1
+            len(substring)
+            if scanner_config.config.match_type == "word"
+            else len(substring) - 1
             for scanner_config in guardrails.scanner_configs
             if scanner_config.type == "ban_substrings"
             for substring in scanner_config.config.substrings
@@ -180,7 +193,7 @@ class _LLMGuardWindowScanner:
         self._built_scanners = built_scanners
         self._default_action_on_hit = default_action_on_hit
 
-    def scan(self, text: str) -> WindowScanResult:
+    def scan(self, text: str, *, flush: bool = False) -> WindowScanResult:
         sanitized_text = text
         for scanner_config, scanner in self._built_scanners:
             scanner_action = scanner_config.action_on_hit or self._default_action_on_hit
@@ -198,9 +211,15 @@ class _LLMGuardWindowScanner:
                 sanitized_text = redacted_text
                 continue
 
-            scanner_output, results_valid, _ = scan_output(
-                [scanner], self._prompt, sanitized_text, fail_fast=False
+            scan_result = self._scan_output(
+                scanner_config,
+                scanner,
+                sanitized_text,
+                flush=flush,
             )
+            if scan_result is None:
+                return WindowScanResult(blocked=True)
+            scanner_output, results_valid = scan_result
             if not all(results_valid.values()):
                 if (
                     not isinstance(scanner_output, str)
@@ -214,15 +233,50 @@ class _LLMGuardWindowScanner:
             if scanner_action != "block":
                 continue
 
-            _, results_valid, _ = scan_output(
-                [scanner], self._prompt, sanitized_text, fail_fast=False
+            scan_result = self._scan_output(
+                scanner_config,
+                scanner,
+                sanitized_text,
+                flush=flush,
             )
+            if scan_result is None:
+                return WindowScanResult(blocked=True)
+            _, results_valid = scan_result
             if not all(results_valid.values()):
                 return WindowScanResult(blocked=True)
 
         if sanitized_text == text:
             return WindowScanResult()
         return WindowScanResult(sanitized_text=sanitized_text)
+
+    def _scan_output(
+        self,
+        scanner_config: Any,
+        scanner: Any,
+        text: str,
+        *,
+        flush: bool,
+    ) -> tuple[str, dict[str, bool]] | None:
+        boundary_guard = ""
+        if (
+            scanner_config.type == "ban_substrings"
+            and scanner_config.config.match_type == "word"
+            and not flush
+        ):
+            max_length = max(len(value) for value in scanner_config.config.substrings)
+            boundary_guard = "x" * (max_length + 1)
+
+        scanner_output, results_valid, _ = scan_output(
+            [scanner], self._prompt, text + boundary_guard, fail_fast=False
+        )
+        if not isinstance(scanner_output, str):
+            return None
+        if boundary_guard:
+            if not scanner_output.endswith(boundary_guard):
+                return None
+            scanner_output = scanner_output[: -len(boundary_guard)]
+
+        return scanner_output, results_valid
 
 
 def _redact_secrets_and_verify(scanner: Any, prompt: str, text: str) -> str | None:

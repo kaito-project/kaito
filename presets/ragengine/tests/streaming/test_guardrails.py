@@ -66,6 +66,7 @@ def _ban_substrings_scanner(
     *,
     match_type="str",
     case_sensitive=False,
+    contains_all=False,
 ):
     substrings = [substring] if isinstance(substring, str) else list(substring)
     return ParsedScannerConfig(
@@ -75,6 +76,7 @@ def _ban_substrings_scanner(
             substrings=substrings,
             match_type=match_type,
             case_sensitive=case_sensitive,
+            contains_all=contains_all,
         ),
     )
 
@@ -153,6 +155,22 @@ def test_validate_streaming_guardrails_accepts_redact_ban_substrings_policy():
 
     assert support.supported is True
     assert support.detail is None
+
+
+def test_validate_streaming_guardrails_rejects_ban_substrings_contains_all():
+    scanner = _ban_substrings_scanner(
+        ["unsafe", "prohibited"],
+        action="redact",
+        contains_all=True,
+    )
+
+    support = validate_streaming_guardrails(_streaming_guardrails(scanner))
+
+    assert support.supported is False
+    assert support.detail == (
+        "stream=true does not support contains_all=true for "
+        "scanner=ban_substrings because it requires the complete response."
+    )
 
 
 def test_validate_streaming_guardrails_rejects_scanner_action_override():
@@ -707,6 +725,96 @@ async def test_ban_substrings_redaction_respects_match_type(match_type, expected
     )
 
     assert _emitted_text(chunks) == expected
+
+
+@pytest.mark.asyncio
+async def test_word_match_does_not_redact_chunk_end_before_lookahead():
+    prefix = "p" * 300
+
+    chunks = await _apply_content_chunks(
+        [prefix + " unsafe", "ish"],
+        _streaming_guardrails(
+            _ban_substrings_scanner(
+                "unsafe",
+                action="redact",
+                match_type="word",
+            )
+        ),
+    )
+
+    assert _emitted_text(chunks) == prefix + " unsafeish"
+
+
+@pytest.mark.asyncio
+async def test_word_match_redacts_after_boundary_arrives():
+    prefix = "p" * 300
+
+    chunks = await _apply_content_chunks(
+        [prefix + " unsafe", " suffix"],
+        _streaming_guardrails(
+            _ban_substrings_scanner(
+                "unsafe",
+                action="redact",
+                match_type="word",
+            )
+        ),
+    )
+
+    assert _emitted_text(chunks) == prefix + " [REDACTED] suffix"
+
+
+@pytest.mark.asyncio
+async def test_word_match_redacts_at_final_flush():
+    prefix = "p" * 300
+
+    chunks = await _apply_content_chunks(
+        [prefix + " unsafe"],
+        _streaming_guardrails(
+            _ban_substrings_scanner(
+                "unsafe",
+                action="redact",
+                match_type="word",
+            )
+        ),
+    )
+
+    assert _emitted_text(chunks) == prefix + " [REDACTED]"
+
+
+@pytest.mark.asyncio
+async def test_word_block_does_not_reject_chunk_end_before_lookahead():
+    prefix = "p" * 300
+
+    chunks = await _apply_content_chunks(
+        [prefix + " unsafe", "ish"],
+        _streaming_guardrails(
+            _ban_substrings_scanner(
+                "unsafe",
+                action="block",
+                match_type="word",
+            )
+        ),
+    )
+
+    assert _emitted_text(chunks) == prefix + " unsafeish"
+
+
+@pytest.mark.asyncio
+async def test_long_word_match_is_held_until_right_boundary_arrives():
+    substring = "a" * 300
+
+    chunks = await _apply_content_chunks(
+        [substring, " suffix"],
+        _streaming_guardrails(
+            _ban_substrings_scanner(
+                substring,
+                action="redact",
+                match_type="word",
+            )
+        ),
+    )
+
+    assert _emitted_text(chunks) == "[REDACTED] suffix"
 
 
 @pytest.mark.asyncio

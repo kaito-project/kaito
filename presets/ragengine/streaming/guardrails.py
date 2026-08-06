@@ -77,7 +77,8 @@ def validate_streaming_guardrails(
                 supported=False,
                 detail=(
                     "stream=true does not support contains_all=true for "
-                    "scanner=ban_substrings because it requires the complete response."
+                    "scanner=ban_substrings because the current windowed "
+                    "implementation cannot track matches across the complete response."
                 ),
             )
         if (

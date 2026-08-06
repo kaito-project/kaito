@@ -157,10 +157,11 @@ def test_validate_streaming_guardrails_accepts_redact_ban_substrings_policy():
     assert support.detail is None
 
 
-def test_validate_streaming_guardrails_rejects_ban_substrings_contains_all():
+@pytest.mark.parametrize("action", ["block", "redact"])
+def test_validate_streaming_guardrails_rejects_ban_substrings_contains_all(action):
     scanner = _ban_substrings_scanner(
         ["unsafe", "prohibited"],
-        action="redact",
+        action=action,
         contains_all=True,
     )
 
@@ -169,7 +170,8 @@ def test_validate_streaming_guardrails_rejects_ban_substrings_contains_all():
     assert support.supported is False
     assert support.detail == (
         "stream=true does not support contains_all=true for "
-        "scanner=ban_substrings because it requires the complete response."
+        "scanner=ban_substrings because the current windowed "
+        "implementation cannot track matches across the complete response."
     )
 
 

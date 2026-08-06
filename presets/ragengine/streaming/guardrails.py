@@ -11,7 +11,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import re
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from typing import Any
@@ -79,6 +78,17 @@ def validate_streaming_guardrails(
                 detail=(
                     "stream=true does not support contains_all=true for "
                     "scanner=ban_substrings because it requires the complete response."
+                ),
+            )
+        if (
+            scanner_config.type == "ban_substrings"
+            and scanner_config.config.match_type == "word"
+        ):
+            return StreamingGuardrailsSupport(
+                supported=False,
+                detail=(
+                    "stream=true does not support match_type=word for "
+                    "scanner=ban_substrings because it requires boundary context."
                 ),
             )
         if (
@@ -170,9 +180,7 @@ async def apply_streaming_guardrails(
 def _get_streaming_guardrails_holdback_len(guardrails: OutputGuardrails) -> int:
     required_holdback = max(
         (
-            len(substring)
-            if scanner_config.config.match_type == "word"
-            else len(substring) - 1
+            len(substring) - 1
             for scanner_config in guardrails.scanner_configs
             if scanner_config.type == "ban_substrings"
             for substring in scanner_config.config.substrings
@@ -193,31 +201,8 @@ class _LLMGuardWindowScanner:
         self._prompt = prompt
         self._built_scanners = built_scanners
         self._default_action_on_hit = default_action_on_hit
-        self._boundary_sentinels = {
-            id(scanner): (
-                _select_boundary_sentinel(
-                    scanner_config.config.substrings,
-                    word_character=True,
-                    case_sensitive=scanner_config.config.case_sensitive,
-                ),
-                _select_boundary_sentinel(
-                    scanner_config.config.substrings,
-                    word_character=False,
-                    case_sensitive=scanner_config.config.case_sensitive,
-                ),
-            )
-            for scanner_config, scanner in built_scanners
-            if scanner_config.type == "ban_substrings"
-            and scanner_config.config.match_type == "word"
-        }
 
-    def scan(
-        self,
-        text: str,
-        *,
-        flush: bool = False,
-        left_context: str = "",
-    ) -> WindowScanResult:
+    def scan(self, text: str) -> WindowScanResult:
         sanitized_text = text
         for scanner_config, scanner in self._built_scanners:
             scanner_action = scanner_config.action_on_hit or self._default_action_on_hit
@@ -235,16 +220,9 @@ class _LLMGuardWindowScanner:
                 sanitized_text = redacted_text
                 continue
 
-            scan_result = self._scan_output(
-                scanner_config,
-                scanner,
-                sanitized_text,
-                flush=flush,
-                left_context=left_context,
+            scanner_output, results_valid, _ = scan_output(
+                [scanner], self._prompt, sanitized_text, fail_fast=False
             )
-            if scan_result is None:
-                return WindowScanResult(blocked=True)
-            scanner_output, results_valid = scan_result
             if not all(results_valid.values()):
                 if (
                     not isinstance(scanner_output, str)
@@ -258,96 +236,15 @@ class _LLMGuardWindowScanner:
             if scanner_action != "block":
                 continue
 
-            scan_result = self._scan_output(
-                scanner_config,
-                scanner,
-                sanitized_text,
-                flush=flush,
-                left_context=left_context,
+            _, results_valid, _ = scan_output(
+                [scanner], self._prompt, sanitized_text, fail_fast=False
             )
-            if scan_result is None:
-                return WindowScanResult(blocked=True)
-            _, results_valid = scan_result
             if not all(results_valid.values()):
                 return WindowScanResult(blocked=True)
 
         if sanitized_text == text:
             return WindowScanResult()
         return WindowScanResult(sanitized_text=sanitized_text)
-
-    def _scan_output(
-        self,
-        scanner_config: Any,
-        scanner: Any,
-        text: str,
-        *,
-        flush: bool,
-        left_context: str,
-    ) -> tuple[str, dict[str, bool]] | None:
-        scan_prefix = ""
-        boundary_guard = ""
-        if (
-            scanner_config.type == "ban_substrings"
-            and scanner_config.config.match_type == "word"
-        ):
-            max_length = max(len(value) for value in scanner_config.config.substrings)
-            word_sentinel, nonword_sentinel = self._boundary_sentinels[id(scanner)]
-            if left_context and re.fullmatch(r"\w", left_context):
-                scan_prefix = word_sentinel * (max_length + 1)
-            if not flush:
-                guard_char = (
-                    word_sentinel
-                    if text and re.fullmatch(r"\w", text[-1])
-                    else nonword_sentinel
-                )
-                boundary_guard = guard_char * (max_length + 1)
-
-        scanner_output, results_valid, _ = scan_output(
-            [scanner],
-            self._prompt,
-            scan_prefix + text + boundary_guard,
-            fail_fast=False,
-        )
-        if not isinstance(scanner_output, str):
-            return None
-        if scan_prefix:
-            if not scanner_output.startswith(scan_prefix):
-                return None
-            scanner_output = scanner_output[len(scan_prefix) :]
-        if boundary_guard:
-            if not scanner_output.endswith(boundary_guard):
-                return None
-            scanner_output = scanner_output[: -len(boundary_guard)]
-
-        return scanner_output, results_valid
-
-
-def _select_boundary_sentinel(
-    substrings: list[str],
-    *,
-    word_character: bool,
-    case_sensitive: bool,
-) -> str:
-    flags = 0 if case_sensitive else re.IGNORECASE
-    preferred_candidates = (
-        "abcdefghijklmnopqrstuvwxyz0123456789_"
-        if word_character
-        else "~!@#$%^&*()[]{};:,<>?/|`"
-    )
-
-    for candidates in (preferred_candidates, map(chr, range(0x20, 0x110000))):
-        for candidate in candidates:
-            if not candidate.isprintable():
-                continue
-            if bool(re.fullmatch(r"\w", candidate)) != word_character:
-                continue
-            if any(
-                re.search(re.escape(candidate), value, flags) for value in substrings
-            ):
-                continue
-            return candidate
-
-    raise ValueError("unable to select a collision-free streaming boundary sentinel")
 
 
 def _redact_secrets_and_verify(scanner: Any, prompt: str, text: str) -> str | None:

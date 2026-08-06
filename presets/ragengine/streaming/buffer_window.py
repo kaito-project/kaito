@@ -31,13 +31,7 @@ class WindowScanResult:
 
 
 class WindowScanner(Protocol):
-    def scan(
-        self,
-        text: str,
-        *,
-        flush: bool = False,
-        left_context: str = "",
-    ) -> WindowScanResult: ...
+    def scan(self, text: str) -> WindowScanResult: ...
 
 
 @dataclass(frozen=True)
@@ -59,7 +53,6 @@ class StreamingBufferWindow:
         self._scanner = scanner
         self._holdback_len = holdback_len
         self._pending_buffer = ""
-        self._left_context = ""
         self._blocked = False
         self._redacted = False
 
@@ -107,11 +100,7 @@ class StreamingBufferWindow:
         *,
         flush: bool,
     ) -> WindowEmitResult:
-        scan_result = self._scanner.scan(
-            scan_text,
-            flush=flush,
-            left_context=self._left_context,
-        )
+        scan_result = self._scanner.scan(scan_text)
         if scan_result.blocked:
             self._blocked = True
             self._pending_buffer = ""
@@ -127,5 +116,4 @@ class StreamingBufferWindow:
 
         emit_text = self._pending_buffer[:emit_len]
         self._pending_buffer = self._pending_buffer[emit_len:]
-        self._left_context = emit_text[-1:]
         return WindowEmitResult(chunks=(emit_text,))

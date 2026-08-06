@@ -32,10 +32,9 @@ upstream chunks
 | `guardrails.py` | Validate policy, run scanners, and emit or block |
 
 The default holdback is 256 characters. Policies with longer banned substrings
-increase it to the longest configured substring length minus one for `str`
-matching, or the full substring length for `word` matching. The window retains
-the pending tail and the preceding character's boundary class, so it supports
-local pattern detection but not scanners that need the complete response.
+increase it to the longest configured substring length minus one. The window
+keeps only the pending tail, so it supports local pattern detection but not
+scanners that need the complete response.
 
 ## Scanner Support
 
@@ -52,8 +51,9 @@ Streaming supports `block` for all listed scanners and `redact` for
 Redaction scanners sanitize held text before block scanners validate the final text.
 Secrets redaction replaces all occurrences of detected values and fails closed if
 the sanitized output cannot be verified.
-Streaming `ban_substrings` supports `str` and `word` matching.
-`contains_all: true` is not supported because it requires full-response context.
+Streaming `ban_substrings` supports only `match_type: str` with
+`contains_all: false`. Word matching requires boundary context, while
+`contains_all: true` requires full-response context.
 
 Not supported in streaming:
 

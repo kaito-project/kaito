@@ -193,6 +193,23 @@ class _LLMGuardWindowScanner:
         self._prompt = prompt
         self._built_scanners = built_scanners
         self._default_action_on_hit = default_action_on_hit
+        self._boundary_sentinels = {
+            id(scanner): (
+                _select_boundary_sentinel(
+                    scanner_config.config.substrings,
+                    word_character=True,
+                    case_sensitive=scanner_config.config.case_sensitive,
+                ),
+                _select_boundary_sentinel(
+                    scanner_config.config.substrings,
+                    word_character=False,
+                    case_sensitive=scanner_config.config.case_sensitive,
+                ),
+            )
+            for scanner_config, scanner in built_scanners
+            if scanner_config.type == "ban_substrings"
+            and scanner_config.config.match_type == "word"
+        }
 
     def scan(
         self,
@@ -274,10 +291,15 @@ class _LLMGuardWindowScanner:
             and scanner_config.config.match_type == "word"
         ):
             max_length = max(len(value) for value in scanner_config.config.substrings)
+            word_sentinel, nonword_sentinel = self._boundary_sentinels[id(scanner)]
             if left_context and re.fullmatch(r"\w", left_context):
-                scan_prefix = "x" * (max_length + 1)
+                scan_prefix = word_sentinel * (max_length + 1)
             if not flush:
-                guard_char = "x" if text and re.fullmatch(r"\w", text[-1]) else "."
+                guard_char = (
+                    word_sentinel
+                    if text and re.fullmatch(r"\w", text[-1])
+                    else nonword_sentinel
+                )
                 boundary_guard = guard_char * (max_length + 1)
 
         scanner_output, results_valid, _ = scan_output(
@@ -298,6 +320,34 @@ class _LLMGuardWindowScanner:
             scanner_output = scanner_output[: -len(boundary_guard)]
 
         return scanner_output, results_valid
+
+
+def _select_boundary_sentinel(
+    substrings: list[str],
+    *,
+    word_character: bool,
+    case_sensitive: bool,
+) -> str:
+    flags = 0 if case_sensitive else re.IGNORECASE
+    preferred_candidates = (
+        "abcdefghijklmnopqrstuvwxyz0123456789_"
+        if word_character
+        else "~!@#$%^&*()[]{};:,<>?/|`"
+    )
+
+    for candidates in (preferred_candidates, map(chr, range(0x20, 0x110000))):
+        for candidate in candidates:
+            if not candidate.isprintable():
+                continue
+            if bool(re.fullmatch(r"\w", candidate)) != word_character:
+                continue
+            if any(
+                re.search(re.escape(candidate), value, flags) for value in substrings
+            ):
+                continue
+            return candidate
+
+    raise ValueError("unable to select a collision-free streaming boundary sentinel")
 
 
 def _redact_secrets_and_verify(scanner: Any, prompt: str, text: str) -> str | None:

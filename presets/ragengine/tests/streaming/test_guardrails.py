@@ -863,6 +863,52 @@ async def test_word_match_with_nonword_suffix_matches_at_real_boundary(action):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("substring", "input_value"),
+    [
+        ("x", "x"),
+        ("X", "x"),
+    ],
+)
+async def test_single_character_word_redaction_does_not_modify_boundary_guard(
+    substring, input_value
+):
+    prefix = "p" * 300
+
+    chunks = await _apply_content_chunks(
+        [prefix + f" {input_value} tail"],
+        _streaming_guardrails(
+            _ban_substrings_scanner(
+                substring,
+                action="redact",
+                match_type="word",
+                case_sensitive=False,
+            )
+        ),
+    )
+
+    assert _emitted_text(chunks) == prefix + " [REDACTED] tail"
+
+
+@pytest.mark.asyncio
+async def test_single_character_nonword_redaction_does_not_modify_boundary_guard():
+    prefix = "p" * 300
+
+    chunks = await _apply_content_chunks(
+        [prefix + " a.b "],
+        _streaming_guardrails(
+            _ban_substrings_scanner(
+                ".",
+                action="redact",
+                match_type="word",
+            )
+        ),
+    )
+
+    assert _emitted_text(chunks) == prefix + " a[REDACTED]b "
+
+
+@pytest.mark.asyncio
 async def test_long_word_match_is_held_until_right_boundary_arrives():
     substring = "a" * 300
 

@@ -277,7 +277,8 @@ class _LLMGuardWindowScanner:
             if left_context and re.fullmatch(r"\w", left_context):
                 scan_prefix = "x" * (max_length + 1)
             if not flush:
-                boundary_guard = "x" * (max_length + 1)
+                guard_char = "x" if text and re.fullmatch(r"\w", text[-1]) else "."
+                boundary_guard = guard_char * (max_length + 1)
 
         scanner_output, results_valid, _ = scan_output(
             [scanner],

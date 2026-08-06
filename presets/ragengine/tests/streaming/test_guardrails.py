@@ -820,6 +820,49 @@ async def test_word_match_preserves_left_boundary_after_window_slides(action):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("action", ["block", "redact"])
+async def test_word_match_with_nonword_suffix_waits_for_real_boundary(action):
+    prefix = "p" * 300
+
+    chunks = await _apply_content_chunks(
+        [prefix + " unsafe-", " suffix"],
+        _streaming_guardrails(
+            _ban_substrings_scanner(
+                "unsafe-",
+                action=action,
+                match_type="word",
+            )
+        ),
+    )
+
+    assert _emitted_text(chunks) == prefix + " unsafe- suffix"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("action", ["block", "redact"])
+async def test_word_match_with_nonword_suffix_matches_at_real_boundary(action):
+    prefix = "p" * 300
+
+    chunks = await _apply_content_chunks(
+        [prefix + " unsafe-", "x suffix"],
+        _streaming_guardrails(
+            _ban_substrings_scanner(
+                "unsafe-",
+                action=action,
+                match_type="word",
+            )
+        ),
+    )
+
+    emitted_text = _emitted_text(chunks)
+    if action == "block":
+        assert emitted_text.endswith("blocked-by-policy")
+        assert "unsafe-" not in emitted_text
+    else:
+        assert emitted_text == prefix + " [REDACTED]x suffix"
+
+
+@pytest.mark.asyncio
 async def test_long_word_match_is_held_until_right_boundary_arrives():
     substring = "a" * 300
 

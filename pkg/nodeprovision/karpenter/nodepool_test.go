@@ -33,25 +33,25 @@ func TestNodePoolName_Normal(t *testing.T) {
 	assert.Equal(t, "default-myworkspace", name)
 }
 
-func TestNodePoolName_Exactly253(t *testing.T) {
-	ws := strings.Repeat("a", 250)
+func TestNodePoolName_Exactly63(t *testing.T) {
+	ws := strings.Repeat("a", 60)
 	name := NodePoolName("ns", ws)
-	assert.Equal(t, 253, len(name))
+	assert.Equal(t, 63, len(name))
 	assert.Equal(t, "ns-"+ws, name)
 }
 
-func TestNodePoolName_Over253_Truncated(t *testing.T) {
-	ws := strings.Repeat("b", 251)
+func TestNodePoolName_Over63_Truncated(t *testing.T) {
+	ws := strings.Repeat("b", 61)
 	name := NodePoolName("ns", ws)
-	assert.Assert(t, len(name) == 253, "expected length 253, got %d", len(name))
+	assert.Assert(t, len(name) == 63, "expected length 63, got %d", len(name))
 	assert.Assert(t, name[maxNodePoolNameLen-1-hashSuffixLen] == '-', "expected dash at truncation point")
 	suffix := name[maxNodePoolNameLen-hashSuffixLen:]
 	assert.Equal(t, hashSuffixLen, len(suffix))
 }
 
 func TestNodePoolName_Deterministic(t *testing.T) {
-	name1 := NodePoolName("ns", strings.Repeat("c", 300))
-	name2 := NodePoolName("ns", strings.Repeat("c", 300))
+	name1 := NodePoolName("ns", strings.Repeat("c", 100))
+	name2 := NodePoolName("ns", strings.Repeat("c", 100))
 	assert.Equal(t, name1, name2)
 }
 

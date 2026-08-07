@@ -53,7 +53,8 @@ Redaction scanners sanitize held text before block scanners validate the final t
 Secrets redaction replaces all occurrences of detected values and fails closed if
 the sanitized output cannot be verified.
 Streaming `ban_substrings` supports `str` and `word` matching.
-`contains_all: true` is not supported because it requires full-response context.
+`contains_all: true` is not supported because the current windowed implementation
+does not track matches across the complete response.
 
 Not supported in streaming:
 

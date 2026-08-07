@@ -27,7 +27,9 @@ import (
 )
 
 const (
-	maxNodePoolNameLen = 253
+	// Bounded by the Kubernetes label-value limit: the name is stored in the
+	// karpenter.sh/nodepool label on NodeClaims and Nodes.
+	maxNodePoolNameLen = 63
 	hashSuffixLen      = 9
 )
 
@@ -43,10 +45,9 @@ func truncatedName(workspaceNamespace, workspaceName string, maxLen int) string 
 	return full[:truncLen] + "-" + hex.EncodeToString(h[:])[:hashSuffixLen]
 }
 
-// NodePoolName returns a deterministic, DNS-safe name for the NodePool
-// derived from the workspace namespace and name.
-// If the result exceeds 253 characters, it is truncated and a 9-char
-// SHA-256 hex suffix is appended for uniqueness.
+// NodePoolName returns a deterministic, label-safe name for the NodePool
+// derived from the workspace namespace and name, with a hash suffix appended
+// when truncation is needed.
 func NodePoolName(workspaceNamespace, workspaceName string) string {
 	return truncatedName(workspaceNamespace, workspaceName, maxNodePoolNameLen)
 }

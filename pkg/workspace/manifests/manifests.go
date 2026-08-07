@@ -400,7 +400,7 @@ func GenerateInferencePoolOCIRepository(inferenceSetObj *kaitov1beta1.InferenceS
 			},
 		},
 		Spec: sourcev1.OCIRepositorySpec{
-			// Chart source for Gateway API Inference Extension inference pool;
+			// Chart source for llm-d router gateway;
 			// keep in sync with consts.InferencePoolChartVersion when upgrading.
 			URL: consts.InferencePoolChartURL,
 			Reference: &sourcev1.OCIRepositoryRef{
@@ -423,29 +423,48 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1beta1.InferenceSet
 		consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name,
 	}
 
-	// The Endpoint Picker (EPP) from Gateway API Inference Extension picks an endpoint that can serve traffic.
-	// KAITO overrides the default GWIE EPP image with the llm-d inference scheduler, which provides
-	// advanced scheduling plugins (KV cache-aware routing, P/D disaggregation, pluggable filters/scorers).
+	// The Endpoint Picker (EPP) from llm-d router picks an endpoint that can serve traffic.
+	// It provides advanced scheduling plugins (KV cache-aware routing, P/D disaggregation,
+	// pluggable filters/scorers).
 	// In a multi-node inference environment, this means we need to select the leader pod (with pod index 0)
 	// since only the leader pod is capable of serving traffic.
 	matchLabels[appsv1.PodIndexLabel] = "0"
 
-	// Based on https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v1.3.1/config/charts/inferencepool/values.yaml
+	// Based on https://github.com/llm-d/llm-d-router/blob/v0.9.0/config/charts/routerlib/values.yaml
 	helmValues := map[string]any{
-		"inferenceExtension": map[string]any{
-			"image": map[string]string{
-				"hub":        consts.EPPImageHub,
-				"name":       consts.EPPImageName,
-				"tag":        consts.EPPImageTag,
-				"pullPolicy": string(corev1.PullIfNotPresent),
+		"router": map[string]any{
+			"epp": map[string]any{
+				"image": map[string]string{
+					"registry":   consts.EPPImageRegistry,
+					"repository": consts.EPPImageRepository,
+					"tag":        consts.EPPImageTag,
+					"pullPolicy": string(corev1.PullIfNotPresent),
+				},
+				"resources": map[string]any{
+					"requests": map[string]string{
+						"cpu":    "1",
+						"memory": "2Gi",
+					},
+					"limits": map[string]string{
+						"memory": "16Gi",
+					},
+				},
+				// Disable EPP's built-in TLS on the ext_proc gRPC port so the
+				// Istio Gateway can connect in plaintext. The llm-d-router-gateway
+				// chart's EPP binary defaults to --secure-serving=true, but our
+				// Istio DestinationRule for the EPP service is configured with
+				// tls.mode: DISABLE. Without turning this off, Envoy's ext_proc
+				// filter fails with "Connection refused" / "no healthy upstream"
+				// during TLS handshake against a plaintext client.
+				"flags": map[string]any{
+					"secure-serving": false,
+				},
 			},
-		},
-		"inferencePool": map[string]any{
-			"targetPorts": []map[string]any{{
-				"number": inferencePoolTargetPort(),
-			}},
 			"modelServers": map[string]any{
 				"matchLabels": matchLabels,
+				"targetPorts": []map[string]any{{
+					"number": inferencePoolTargetPort(),
+				}},
 			},
 		},
 	}

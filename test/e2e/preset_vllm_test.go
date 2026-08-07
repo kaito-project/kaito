@@ -88,6 +88,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 		// P/D-specific validations (require Istio)
 		validateMultiRoleInferenceEPPReady(mriObj)
+		validateMultiRoleInferenceEPPKVCacheScorer(mriObj)
 		validateMultiRoleInferenceDestinationRule(mriObj)
 		validateMultiRoleInferenceChatCompletions(mriObj)
 		validateMultiRoleInferenceKVEvents(mriObj)
@@ -515,12 +516,14 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 // and validates both positive (correct model → success) and negative (wrong model → error) routing.
 func validateBBRRouting(inferenceSetObj *kaitov1beta1.InferenceSet, modelName, inferencePoolName string, findWorkspacePod func() (string, string, string)) {
 	// Ensure a DestinationRule exists for the EPP service so Istio Gateway's
-	// ext_proc gRPC uses the right TLS mode. Current EPP image is
-	// llm-d-inference-scheduler:v0.8.0 which listens on TLS by default
-	// (--secure-serving=true). Without SIMPLE + insecureSkipVerify=true, Envoy
-	// sends plaintext and the connection is terminated -> Gateway returns
-	// HTTP 500 empty body on every BBR request. When we bump EPP to v0.9.x
-	// (plaintext by default), switch this to mode: DISABLE.
+	// ext_proc gRPC uses the right TLS mode. After migrating to the
+	// llm-d-router-gateway chart v0.9.0, EPP
+	// (mcr.microsoft.com/oss/v2/llm-d/llm-d-router-endpoint-picker:v0.9.0)
+	// listens on plaintext gRPC by default, so we use mode: DISABLE for the
+	// Istio Gateway -> EPP ext_proc connection. (The previous SIMPLE +
+	// insecureSkipVerify=true workaround was required by the older
+	// llm-d-inference-scheduler:v0.8.0 EPP which defaulted to
+	// --secure-serving=true with a self-signed cert.)
 	By("Ensuring DestinationRule for EPP service (BBR)", func() {
 		eppServiceName := inferencePoolName + "-epp"
 		dr := &unstructured.Unstructured{}
@@ -535,8 +538,7 @@ func validateBBRRouting(inferenceSetObj *kaitov1beta1.InferenceSet, modelName, i
 			"host": eppServiceName,
 			"trafficPolicy": map[string]interface{}{
 				"tls": map[string]interface{}{
-					"mode":               "SIMPLE",
-					"insecureSkipVerify": true,
+					"mode": "DISABLE",
 				},
 			},
 		}
@@ -556,7 +558,7 @@ func validateBBRRouting(inferenceSetObj *kaitov1beta1.InferenceSet, modelName, i
 			return err
 		}, 2*time.Minute, utils.PollInterval).Should(Succeed(),
 			"Failed to create DestinationRule for EPP service %s", eppServiceName)
-		GinkgoWriter.Printf("Created/updated DestinationRule (mode=SIMPLE) for EPP service %s\n", eppServiceName)
+		GinkgoWriter.Printf("Created/updated DestinationRule (mode=DISABLE) for EPP service %s\n", eppServiceName)
 
 		DeferCleanup(func() {
 			cleanupDR := &unstructured.Unstructured{}
@@ -870,8 +872,13 @@ func validateBBRRouting(inferenceSetObj *kaitov1beta1.InferenceSet, modelName, i
 
 			dumpPodLogs("default", "app.kubernetes.io/name=body-based-routing", 200)
 			dumpPodLogs("default", "gateway.networking.k8s.io/gateway-name=inference-gateway", 150)
-			dumpPodLogs(inferenceSetObj.Namespace, "app="+inferencePoolName+"-epp", 200)
-			dumpPodLogs(inferenceSetObj.Namespace, "inferencepool="+inferencePoolName, 200)
+			// llm-d-router-gateway v0.9.0 labels EPP pods with
+			// app.kubernetes.io/name=<release>-epp and
+			// llm-d-router-gateway=<release>-epp (see routerlib templates/_helpers.tpl).
+			// The legacy "app=<name>-epp" / "inferencepool=<name>" selectors from the
+			// GWIE inferencepool chart no longer match.
+			dumpPodLogs(inferenceSetObj.Namespace, "app.kubernetes.io/name="+inferencePoolName+"-epp", 200)
+			dumpPodLogs(inferenceSetObj.Namespace, "llm-d-router-gateway="+inferencePoolName+"-epp", 200)
 
 			// HTTPRoute status/spec
 			route := &unstructured.Unstructured{}
@@ -1903,6 +1910,161 @@ func validateMultiRoleInferenceEPPReady(mriObj *kaitov1alpha1.MultiRoleInference
 			return false
 		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(),
 			"EPP pod should have disagg-profile-handler in logs")
+	})
+}
+
+// validateMultiRoleInferenceEPPKVCacheScorer validates that the EPP plugins
+// ConfigMap contains the kv-cache-utilization-scorer plugin and that the EPP
+// pod logs confirm the scorer was loaded. This ensures the default
+// EndpointPickerConfig wires up KV cache-aware routing end-to-end.
+func validateMultiRoleInferenceEPPKVCacheScorer(mriObj *kaitov1alpha1.MultiRoleInference) {
+	poolName := kaitoutils.InferencePoolName(mriObj.Name)
+	eppDeploymentName := poolName + "-epp"
+
+	By("Validating EPP plugins ConfigMap contains kv-cache-utilization-scorer", func() {
+		Eventually(func() error {
+			// The llm-d-router-gateway chart stores the EPP plugins config in a
+			// ConfigMap whose name is derived from the HelmRelease. Try the
+			// most common naming patterns.
+			candidateNames := []string{
+				poolName + "-epp-plugins",
+				poolName + "-plugins",
+				poolName + "-epp",
+			}
+
+			coreClient, err := utils.GetK8sClientset()
+			if err != nil {
+				return fmt.Errorf("create core client: %w", err)
+			}
+
+			// If none of the candidate names match, fall back to listing all
+			// ConfigMaps in the namespace and scanning their data.
+			var found bool
+			for _, name := range candidateNames {
+				cm, err := coreClient.CoreV1().ConfigMaps(mriObj.Namespace).Get(ctx, name, metav1.GetOptions{})
+				if err != nil {
+					continue
+				}
+				for _, v := range cm.Data {
+					if strings.Contains(v, "kv-cache-utilization-scorer") {
+						GinkgoWriter.Printf("ConfigMap %s contains kv-cache-utilization-scorer\n", name)
+						found = true
+						break
+					}
+				}
+				if found {
+					break
+				}
+			}
+
+			if !found {
+				// Fallback: scan all ConfigMaps in namespace
+				cmList, err := coreClient.CoreV1().ConfigMaps(mriObj.Namespace).List(ctx, metav1.ListOptions{})
+				if err != nil {
+					return fmt.Errorf("list ConfigMaps: %w", err)
+				}
+				for _, cm := range cmList.Items {
+					for _, v := range cm.Data {
+						if strings.Contains(v, "kv-cache-utilization-scorer") {
+							GinkgoWriter.Printf("ConfigMap %s contains kv-cache-utilization-scorer\n", cm.Name)
+							found = true
+							break
+						}
+					}
+					if found {
+						break
+					}
+				}
+			}
+
+			if !found {
+				return fmt.Errorf("no ConfigMap in namespace %s contains kv-cache-utilization-scorer", mriObj.Namespace)
+			}
+			return nil
+		}, 5*time.Minute, utils.PollInterval).Should(Succeed(),
+			"EPP plugins ConfigMap should contain kv-cache-utilization-scorer")
+	})
+
+	By("Validating EPP pod logs confirm kv-cache-utilization-scorer is loaded", func() {
+		coreClient, err := utils.GetK8sClientset()
+		Expect(err).NotTo(HaveOccurred(), "Failed to create core client")
+
+		Eventually(func() bool {
+			eppDeployment := &appsv1.Deployment{}
+			if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: mriObj.Namespace,
+				Name:      eppDeploymentName,
+			}, eppDeployment); err != nil {
+				GinkgoWriter.Printf("Failed to get EPP deployment: %v\n", err)
+				return false
+			}
+			selector, err := metav1.LabelSelectorAsSelector(eppDeployment.Spec.Selector)
+			if err != nil {
+				GinkgoWriter.Printf("Failed to parse EPP deployment selector: %v\n", err)
+				return false
+			}
+			pods, err := coreClient.CoreV1().Pods(mriObj.Namespace).List(ctx, metav1.ListOptions{
+				LabelSelector: selector.String(),
+			})
+			if err != nil || len(pods.Items) == 0 {
+				return false
+			}
+			// Select a Running+Ready pod
+			var eppPod *corev1.Pod
+			for i := range pods.Items {
+				p := &pods.Items[i]
+				if p.Status.Phase != corev1.PodRunning {
+					continue
+				}
+				for _, cond := range p.Status.Conditions {
+					if cond.Type == corev1.PodReady && cond.Status == corev1.ConditionTrue {
+						eppPod = p
+						break
+					}
+				}
+				if eppPod != nil {
+					break
+				}
+			}
+			if eppPod == nil {
+				GinkgoWriter.Printf("No Running+Ready EPP pod found\n")
+				return false
+			}
+			// Derive container name, skipping istio-proxy sidecar
+			containerName := ""
+			for _, c := range eppPod.Spec.Containers {
+				if c.Name != "istio-proxy" {
+					containerName = c.Name
+					break
+				}
+			}
+			tailLines := int64(2000)
+			logOpts := &corev1.PodLogOptions{
+				TailLines: &tailLines,
+			}
+			if containerName != "" {
+				logOpts.Container = containerName
+			}
+			req := coreClient.CoreV1().Pods(mriObj.Namespace).GetLogs(eppPod.Name, logOpts)
+			stream, err := req.Stream(ctx)
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get EPP pod logs: %v\n", err)
+				return false
+			}
+			defer stream.Close()
+			buf := new(strings.Builder)
+			if _, err = io.Copy(buf, stream); err != nil {
+				return false
+			}
+			logs := buf.String()
+			if strings.Contains(logs, "kv-cache-utilization-scorer") {
+				GinkgoWriter.Printf("EPP pod %s has kv-cache-utilization-scorer in logs\n", eppPod.Name)
+				return true
+			}
+			GinkgoWriter.Printf("EPP pod %s logs do not contain kv-cache-utilization-scorer yet\n", eppPod.Name)
+			return false
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(),
+			"EPP pod should have kv-cache-utilization-scorer in logs")
 	})
 }
 

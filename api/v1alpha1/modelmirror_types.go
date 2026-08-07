@@ -117,6 +117,17 @@ type ModelMirrorStatus struct {
 	Conditions       []metav1.Condition `json:"conditions,omitempty"`
 	FailureMessage   string             `json:"failureMessage,omitempty"`
 	LastDownloadTime *metav1.Time       `json:"lastDownloadTime,omitempty"`
+
+	// DownloadDurationSeconds is the wall-clock duration of the model download
+	// phase only, excluding dependency installation and post-download cleanup.
+	DownloadDurationSeconds int64 `json:"downloadDurationSeconds,omitempty"`
+
+	// DownloadedBytes is the total size on disk of the downloaded model.
+	DownloadedBytes int64 `json:"downloadedBytes,omitempty"`
+
+	// DownloadThroughputMBps is the average download throughput in MB/s,
+	// derived from DownloadedBytes and DownloadDurationSeconds.
+	DownloadThroughputMBps string `json:"downloadThroughputMBps,omitempty"`
 }
 
 // +kubebuilder:object:root=true

@@ -207,6 +207,24 @@ spec:
                   - type
                   type: object
                 type: array
+              downloadDurationSeconds:
+                description: |-
+                  DownloadDurationSeconds is the wall-clock duration of the model download
+                  phase only, excluding dependency installation and post-download cleanup.
+                format: int64
+                type: integer
+              downloadThroughputMBps:
+                description: |-
+                  DownloadThroughputMBps is the average download throughput in MB/s,
+                  derived from DownloadedBytes and DownloadDurationSeconds. It is a string
+                  because the Kubernetes API convention avoids floating-point fields, which
+                  serialize inconsistently across clients.
+                type: string
+              downloadedBytes:
+                description: DownloadedBytes is the total size on disk of the downloaded
+                  model.
+                format: int64
+                type: integer
               failureMessage:
                 type: string
               lastDownloadTime:

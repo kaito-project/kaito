@@ -14,9 +14,11 @@
 package download
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 
@@ -83,6 +85,53 @@ func TestBuildDownloadJobResources(t *testing.T) {
 			assert.True(t, res.Limits[corev1.ResourceMemory].Equal(res.Requests[corev1.ResourceMemory]), "memory limit must equal request")
 		})
 	}
+}
+
+func TestBuildDownloadJobScript(t *testing.T) {
+	cr := newTestModelMirror()
+	job := BuildDownloadJob(cr, mmconsts.DefaultDownloadJobResources(), nil)
+	script := job.Spec.Template.Spec.Containers[0].Args[0]
+
+	t.Run("does not install or enable hf_transfer", func(t *testing.T) {
+		assert.NotContains(t, script, "hf_transfer")
+		assert.NotContains(t, script, "HF_HUB_ENABLE_HF_TRANSFER")
+	})
+
+	t.Run("emits the download stats marker", func(t *testing.T) {
+		assert.Contains(t, script, "KAITO_DOWNLOAD_STATS seconds=")
+		assert.Contains(t, script, "bytes=")
+	})
+
+	t.Run("measures only the download phase", func(t *testing.T) {
+		pipIdx := strings.Index(script, "pip install")
+		startIdx := strings.Index(script, "_kaito_start=")
+		endIdx := strings.Index(script, "_kaito_end=")
+		cleanupIdx := strings.LastIndex(script, "rm -rf")
+
+		require.NotEqual(t, -1, pipIdx)
+		require.NotEqual(t, -1, startIdx)
+		require.NotEqual(t, -1, endIdx)
+		require.NotEqual(t, -1, cleanupIdx)
+
+		assert.Less(t, pipIdx, startIdx, "pip install must precede the timed window")
+		assert.Less(t, startIdx, endIdx, "start must precede end")
+		assert.Less(t, endIdx, cleanupIdx, "cleanup must follow the timed window")
+	})
+
+	t.Run("still downloads and still cleans up", func(t *testing.T) {
+		assert.Contains(t, script, `hf download "${MODEL_ID}"`)
+		assert.Contains(t, script, "--exclude")
+		assert.Contains(t, script, "-mindepth 1 -type d")
+	})
+
+	t.Run("date command renders correctly", func(t *testing.T) {
+		assert.Contains(t, script, "_kaito_start=$(date +%s)")
+		assert.Contains(t, script, "_kaito_end=$(date +%s)")
+	})
+
+	t.Run("emits no marker when the size is unknown", func(t *testing.T) {
+		assert.Contains(t, script, `if [ -n "${_kaito_bytes}" ]; then`)
+	})
 }
 
 func TestBuildDownloadJobServiceAccount(t *testing.T) {

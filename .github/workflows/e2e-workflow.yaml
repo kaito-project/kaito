@@ -175,7 +175,7 @@ jobs:
         if: ${{ always() }}
         env:
           AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
-        uses: azure/CLI@v2.2.0
+        uses: azure/CLI@v3.0.0
         with:
           inlineScript: |
             set +e

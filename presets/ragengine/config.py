@@ -87,7 +87,7 @@ OUTPUT_GUARDRAILS_HOT_RELOAD_ENABLED = (
 # Vector database configuration
 # VECTOR_DB_TYPE is injected by the Go controller from CRD spec.storage.vectorDB.engine
 # When VectorDB is nil in the CRD, FAISS (in-process) is used by default.
-# Supported values: "faiss" (default, in-process), "qdrant" (client-server)
+# Supported values: "faiss" (default, in-process), "qdrant" (client-server), "milvus" (client-server)
 VECTOR_DB_TYPE = os.getenv("VECTOR_DB_TYPE", "faiss")
 DEFAULT_VECTOR_DB_PERSIST_DIR = os.getenv("DEFAULT_VECTOR_DB_PERSIST_DIR", "storage")
 

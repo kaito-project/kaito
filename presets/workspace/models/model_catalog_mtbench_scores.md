@@ -43,6 +43,7 @@ All models were deployed as KAITO Workspace CRs on AKS and evaluated using the v
 | nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16 | vllm | 6.91 | 7.35 | 7.30 | 7.05 | 9.65 | 6.35 | 7.25 | 5.40 | 4.90 | 2026-04-29 |
 | Qwen/Qwen3-8B-AWQ | vllm | 3.98 | 6.05 | 6.20 | 2.60 | 1.95 | 1.95 | 5.30 | 3.55 | 4.25 | 2026-04-29 |
 | google/gemma-4-31B-it | vllm | 8.56 | 8.20 | 8.50 | 8.70 | 9.90 | 8.35 | 8.35 | 8.35 | 8.10 | 2026-05-04 |
+| google/gemma-4-12B-it | vllm | 8.60 | 8.35 | 8.35 | 8.90 | 10.00 | 8.40 | 8.55 | 8.35 | 7.90 | 2026-07-30 |
 | google/gemma-4-26B-A4B-it | vllm | 8.49 | 8.30 | 8.50 | 8.80 | 10.00 | 8.25 | 8.20 | 8.05 | 7.85 | 2026-05-04 |
 | google/gemma-4-E4B-it | vllm | 7.88 | 8.00 | 8.25 | 8.00 | 9.45 | 7.00 | 8.10 | 7.10 | 7.10 | 2026-05-04 |
 | google/gemma-4-E2B-it | vllm | 7.30 | 7.50 | 7.25 | 6.50 | 9.45 | 6.35 | 7.95 | 6.60 | 6.80 | 2026-05-04 |
@@ -63,3 +64,10 @@ All models were deployed as KAITO Workspace CRs on AKS and evaluated using the v
 | moonshotai/Kimi-K2.6 | vllm | 8.44 | 8.40 | 8.55 | 8.95 | 9.95 | 6.95 | 8.35 | 7.80 | 8.55 | 2026-05-14 |
 | deepseek-ai/DeepSeek-V4-Flash | vllm | 8.07 | 8.45 | 8.30 | 8.15 | 9.75 | 6.80 | 8.65 | 7.55 | 6.90 | 2026-07-19 |
 | deepseek-ai/DeepSeek-V4-Pro | vllm | 8.33 | 8.45 | 8.25 | 8.80 | 9.90 | 7.60 | 8.65 | 8.00 | 7.00 | 2026-07-24 |
+| zai-org/GLM-5.2-FP8 | vllm | 8.49 | 8.15 | 8.15 | 8.25 | 10.0 | 8.1 | 8.35 | 8.45 | 8.45 | 2026-08-02 |
+| moonshotai/Kimi-K2.7-Code | vllm | 8.74 | 8.25 | 8.15 | 9.0 | 9.75 | 8.5 | 8.5 | 8.95 | 8.8 | 2026-07-31 |
+| thinkingmachines/Inkling-NVFP4 | vllm | 8.89 | 8.55 | 8.55 | 9.15 | 9.95 | 8.55 | 8.5 | 8.85 | 9.0 | 2026-08-01 |
+| thinkingmachines/Inkling-Small-NVFP4 | vllm | 8.82 | 8.55 | 8.7 | 8.35 | 10.0 | 9.0 | 9.05 | 8.2 | 8.7 | 2026-08-01 |
+| nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4 | vllm | 8.64 | 8.55 | 8.65 | 8.9 | 9.1 | 8.55 | 8.25 | 8.2 | 8.9 | 2026-08-01 |
+| deepseek-ai/DeepSeek-V3.2 | vllm | 8.61 | 8.55 | 8.45 | 8.7 | 9.85 | 7.9 | 8.4 | 8.5 | 8.55 | 2026-08-02 |
+| ibm-granite/granite-4.1-8b | vllm | 7.55 | 7.8 | 7.4 | 5.9 | 9.6 | 6.7 | 8.6 | 7.0 | 7.4 | 2026-08-02 |

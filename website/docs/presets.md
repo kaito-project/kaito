@@ -12,13 +12,17 @@ The following HuggingFace models are curated by the KAITO team with first-class 
 | deepseek-ai/DeepSeek-R1-Distill-Llama-8B | https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Llama-8B | MIT |
 | deepseek-ai/DeepSeek-R1-Distill-Qwen-14B | https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-14B | MIT |
 | deepseek-ai/DeepSeek-V3-0324 | https://huggingface.co/deepseek-ai/DeepSeek-V3-0324 | MIT |
+| deepseek-ai/DeepSeek-V3.2 | https://huggingface.co/deepseek-ai/DeepSeek-V3.2 | MIT |
 | deepseek-ai/DeepSeek-V4-Flash | https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash | MIT |
+| deepseek-ai/DeepSeek-V4-Pro | https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro | MIT |
 | google/gemma-3-4b-it | https://huggingface.co/google/gemma-3-4b-it | Gemma |
 | google/gemma-3-27b-it | https://huggingface.co/google/gemma-3-27b-it | Gemma |
+| google/gemma-4-12B-it | https://huggingface.co/google/gemma-4-12B-it | Apache-2.0 |
 | google/gemma-4-26B-A4B-it | https://huggingface.co/google/gemma-4-26B-A4B-it | Apache-2.0 |
 | google/gemma-4-31B-it | https://huggingface.co/google/gemma-4-31B-it | Apache-2.0 |
 | google/gemma-4-E2B-it | https://huggingface.co/google/gemma-4-E2B-it | Apache-2.0 |
 | google/gemma-4-E4B-it | https://huggingface.co/google/gemma-4-E4B-it | Apache-2.0 |
+| ibm-granite/granite-4.1-8b | https://huggingface.co/ibm-granite/granite-4.1-8b | Apache-2.0 |
 | meta-llama/Llama-3.1-8B-Instruct | https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct | Llama 3.1 |
 | meta-llama/Llama-3.3-70B-Instruct | https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct | Llama 3.3 |
 | microsoft/Phi-3-medium-4k-instruct | https://huggingface.co/microsoft/Phi-3-medium-4k-instruct | MIT |
@@ -40,10 +44,12 @@ The following HuggingFace models are curated by the KAITO team with first-class 
 | mistralai/Mistral-Small-4-119B-2603-NVFP4 | https://huggingface.co/mistralai/Mistral-Small-4-119B-2603-NVFP4 | Apache-2.0 |
 | moonshotai/Kimi-K2.5 | https://huggingface.co/moonshotai/Kimi-K2.5 | Modified MIT |
 | moonshotai/Kimi-K2.6 | https://huggingface.co/moonshotai/Kimi-K2.6 | Modified MIT |
+| moonshotai/Kimi-K2.7-Code | https://huggingface.co/moonshotai/Kimi-K2.7-Code | Modified MIT |
 | nvidia/Nemotron-Cascade-2-30B-A3B | https://huggingface.co/nvidia/Nemotron-Cascade-2-30B-A3B | NVIDIA Open |
 | nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16 | https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16 | NVIDIA Nemotron |
 | nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16 | https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16 | NVIDIA Nemotron |
 | nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16 | https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16 | NVIDIA Nemotron |
+| nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4 | https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4 | OpenMDW-1.1 |
 | nvidia/NVIDIA-Nemotron-Nano-9B-v2 | https://huggingface.co/nvidia/NVIDIA-Nemotron-Nano-9B-v2 | NVIDIA Open |
 | nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-BF16 | https://huggingface.co/nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-BF16 | NVIDIA Open |
 | openai/gpt-oss-20b | https://huggingface.co/openai/gpt-oss-20b | Apache-2.0 |
@@ -60,6 +66,9 @@ The following HuggingFace models are curated by the KAITO team with first-class 
 | Qwen/Qwen3.6-27B | https://huggingface.co/Qwen/Qwen3.6-27B | Apache-2.0 |
 | Qwen/Qwen3.6-35B-A3B | https://huggingface.co/Qwen/Qwen3.6-35B-A3B | Apache-2.0 |
 | Qwen/Qwen3.6-35B-A3B-FP8 | https://huggingface.co/Qwen/Qwen3.6-35B-A3B-FP8 | Apache-2.0 |
+| thinkingmachines/Inkling-NVFP4 | https://huggingface.co/thinkingmachines/Inkling-NVFP4 | Apache-2.0 |
+| thinkingmachines/Inkling-Small-NVFP4 | https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4 | Apache-2.0 |
+| zai-org/GLM-5.2-FP8 | https://huggingface.co/zai-org/GLM-5.2-FP8 | MIT |
 
 
 ## Generic HuggingFace Models

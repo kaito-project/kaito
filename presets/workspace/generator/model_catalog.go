@@ -46,6 +46,10 @@ type CatalogEntry struct {
 	QKRopeHeadDim     int      `yaml:"qkRopeHeadDim,omitempty"`
 	QuantMethod       string   `yaml:"quantMethod,omitempty"`
 	QuantBits         int      `yaml:"quantBits,omitempty"`
+	// MambaStateBytesPerSeq is the per-sequence GDN/Mamba recurrent-state cache
+	// size in bytes (tensor-parallel size 1). Only set for hybrid models; the
+	// node estimator reserves it for max_num_seqs concurrent sequences.
+	MambaStateBytesPerSeq int64 `yaml:"mambaStateBytesPerSeq,omitempty"`
 }
 
 // ModelCatalog holds the list of pre-computed model entries.
@@ -177,6 +181,10 @@ func FetchCatalogEntry(repo, token string) (*CatalogEntry, error) {
 		entry.QuantMethod = getString(qc, optionalKeyMap["quantMethod"])
 		entry.QuantBits = getInt(qc, []string{"bits"}, 0)
 	}
+
+	// GDN/Mamba-hybrid per-sequence recurrent-state cache size (0 for pure
+	// attention models). Needed by the node estimator to reserve state memory.
+	entry.MambaStateBytesPerSeq = mambaStateBytesPerSeq(config)
 
 	// Copy format fields from generator (only when non-default)
 	if g.LoadFormat != "auto" {

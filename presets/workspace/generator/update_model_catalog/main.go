@@ -131,6 +131,9 @@ func catalogFields(e *generator.CatalogEntry) map[string]string {
 	if e.QuantBits > 0 {
 		m["quantBits"] = fmt.Sprintf("%d", e.QuantBits)
 	}
+	if e.MambaStateBytesPerSeq > 0 {
+		m["mambaStateBytesPerSeq"] = fmt.Sprintf("%d", e.MambaStateBytesPerSeq)
+	}
 	if e.LoadFormat != "" {
 		m["loadFormat"] = e.LoadFormat
 	}

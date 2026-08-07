@@ -56,6 +56,12 @@ const (
 	// measures these empirically in determine_available_memory() and
 	// profile_cudagraph_memory(). We approximate at best effort here.
 	overheadWeightFactor = 0.05
+
+	// defaultMaxNumSeqs mirrors vLLM's default --max-num-seqs. GDN/Mamba hybrid
+	// models allocate one recurrent-state block per concurrent sequence, so the
+	// estimator reserves state memory for this many sequences. KAITO does not
+	// override --max-num-seqs, so vLLM uses this default.
+	defaultMaxNumSeqs = 1024
 )
 
 // NodeEstimator estimates node count based on SKU memory and model memory requirement
@@ -167,17 +173,24 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 		// Per-GPU memory available for model weights. The weight-scaled overhead
 		// (overheadWeightFactor x per-GPU weight) folds into the (1 + factor) divisor.
 		availMemPerGPU := (availGPUMem - fixedReserve) / (1 + overheadWeightFactor)
-		minGPUs := int(modelSize/availMemPerGPU) + 1
+
+		// GDN/Mamba hybrid models allocate one recurrent-state block per concurrent
+		// sequence (max_num_seqs). Like weights, this state shards across all GPUs, so
+		// fold it into the sharded size term rather than the per-GPU fixed reserve.
+		// Zero for pure-attention models.
+		mambaState := float64(inferParams.MambaStateBytesPerSeq) * float64(defaultMaxNumSeqs)
+		effectiveModelSize := modelSize + mambaState
+		minGPUs := int(effectiveModelSize/availMemPerGPU) + 1
 		nodeCountPerReplica = (minGPUs + gpuConfig.GPUCount - 1) / gpuConfig.GPUCount
 
-		klog.Infof("modelSize(%.0f), gpuMemPerGPU(%.0f), availGPUMem(%.0f), fixedReserve(%.0f), availMemPerGPU(%.0f), minGPUs(%d) => nodeCountPerReplica(%d) for workspace %s",
-			modelSize, gpuMemPerGPU, availGPUMem, fixedReserve, availMemPerGPU, minGPUs, nodeCountPerReplica, req.WorkspaceName)
+		klog.Infof("modelSize(%.0f), mambaState(%.0f), gpuMemPerGPU(%.0f), availGPUMem(%.0f), fixedReserve(%.0f), availMemPerGPU(%.0f), minGPUs(%d) => nodeCountPerReplica(%d) for workspace %s",
+			modelSize, mambaState, gpuMemPerGPU, availGPUMem, fixedReserve, availMemPerGPU, minGPUs, nodeCountPerReplica, req.WorkspaceName)
 
 		// MIG partitions are a single, non-shardable device: the model plus its
 		// runtime overhead must fit one slice. Report the slice-specific shortfall
 		// instead of scaling to multiple GPUs/nodes.
 		if gpuConfig.IsMIG && nodeCountPerReplica > 1 {
-			overhead := fixedReserve + overheadWeightFactor*modelSize
+			overhead := fixedReserve + overheadWeightFactor*modelSize + mambaState
 			sliceGiB := gpuMemPerGPU / float64(consts.GiBToBytes)
 			return 0, fmt.Errorf("model needs %.1fGB (weights %.1fGB + overhead %.1fGB) but MIG profile %s only provides %.0fGB (%.1fGB available after vLLM gpu-memory-utilization)",
 				(modelSize+overhead)/float64(consts.GiBToBytes),

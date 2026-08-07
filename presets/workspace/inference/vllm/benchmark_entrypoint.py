@@ -488,26 +488,49 @@ def _run_guidellm(processor: str, max_concurrency: int):
 
 
 def _extract_guidellm_metrics(report) -> tuple:
-    """Extract TTFT and TPOT averages from a guidellm report.
+    """Extract total-token TPM, TTFT, and TPOT from a guidellm report.
 
-    Uses the ``.total`` distribution bucket which includes both successful and
-    incomplete requests, ensuring metrics are available even when requests are
-    cancelled before completion (guidellm streams tokens, so per-token timestamps
-    exist for partial responses too).
+    All three metrics come from guidellm's own client-side measurements (the
+    ``report`` object), NOT from vLLM's ``/metrics`` endpoint.  Scraping
+    ``/metrics`` under the benchmark's high concurrency is unreliable: the
+    endpoint shares vLLM's saturated asyncio event loop, so the scrape times out
+    and reads 0 — which previously produced a false ``benchmark_no_generation``
+    failure even though the model was generating.  guidellm tracks token counts
+    and timings on the client, so it is immune to that starvation.
 
-    Returns ``(ttft_avg_ms, tpot_avg_ms)``.  Raises ``RuntimeError`` if the
-    report structure is empty or the fields are unavailable so the caller can
-    fail the benchmark cleanly.
+    Uses the ``.total`` distribution bucket (successful + incomplete requests),
+    matching guidellm's own "Server Throughput Statistics (All Requests)" table:
+
+      * ``tokens_per_second.total.mean``        → total (prompt+output) tok/s
+      * ``output_tokens_per_second.total.mean`` → output tok/s (generation check)
+      * ``time_to_first_token_ms.total.mean``   → TTFT
+      * ``time_per_output_token_ms.total.mean`` → TPOT
+
+    Returns ``(tpm, ttft_avg_ms, tpot_avg_ms)`` where ``tpm`` is total tokens per
+    minute.  Raises ``RuntimeError`` if the report is empty/malformed or the
+    model produced no output tokens.
     """
     try:
         metrics = report.benchmarks[0].metrics
+        total_tps = metrics.tokens_per_second.total.mean
+        output_tps = metrics.output_tokens_per_second.total.mean
         ttft = metrics.time_to_first_token_ms.total.mean
         tpot = metrics.time_per_output_token_ms.total.mean
-        return (round(ttft, 2), round(tpot, 2))
     except (IndexError, AttributeError, TypeError) as exc:
         raise RuntimeError(
-            f"failed to extract TTFT/TPOT from guidellm report: {exc}"
+            f"failed to extract metrics from guidellm report: {exc}"
         ) from exc
+
+    # guidellm completed the load run but the model emitted zero output tokens
+    # (wrong endpoint, auth failure, or all requests were prefill-only).
+    if not output_tps or output_tps <= 0:
+        raise RuntimeError(
+            "benchmark_no_generation output_tokens_per_second=0 — "
+            "model produced no output tokens"
+        )
+
+    tpm = round(total_tps * 60.0, 2)
+    return (tpm, round(ttft, 2), round(tpot, 2))
 
 
 # ── Core benchmark sequence ───────────────────────────────────────────────────
@@ -516,12 +539,7 @@ def _extract_guidellm_metrics(report) -> tuple:
 def _run_benchmark() -> tuple:
     """Run the full benchmark sequence.
 
-    Snapshots vLLM Prometheus counters before and after the guidellm load run, then
-    computes total TPM from the delta.  Extracts TTFT and TPOT averages from the
-    guidellm report (using the ``total`` bucket which includes both successful and
-    incomplete requests).
-
-    Returns ``(tpm, ttft_avg_ms, tpot_avg_ms)``.
+    Returns ``(tpm, ttft_avg_ms, tpot_avg_ms, max_concurrency)``.
     Raises ``RuntimeError`` on any failure so the caller can log it and fall back
     to the sentinel result.
     """
@@ -535,36 +553,20 @@ def _run_benchmark() -> tuple:
         tag="KAITO_BENCHMARK_CONFIG",
     )
 
-    t0_gen = _sum_counter_metric("vllm:generation_tokens_total")
-    t0_prompt = _sum_counter_metric("vllm:prompt_tokens_total")
     t0_epoch = time.time()
-    _log(f"benchmark_start epoch={t0_epoch:.1f} t0_gen={t0_gen} t0_prompt={t0_prompt}")
+    _log(f"benchmark_start epoch={t0_epoch:.1f}")
 
     report = _run_guidellm(processor, max_concurrency)
     if report is None:
         raise RuntimeError("guidellm exited non-zero")
 
-    ttft_ms, tpot_ms = _extract_guidellm_metrics(report)
+    tpm, ttft_ms, tpot_ms = _extract_guidellm_metrics(report)
 
-    t1_epoch = time.time()
-    t1_gen = _sum_counter_metric("vllm:generation_tokens_total")
-    t1_prompt = _sum_counter_metric("vllm:prompt_tokens_total")
-    _log(f"benchmark_end epoch={t1_epoch:.1f} t1_gen={t1_gen} t1_prompt={t1_prompt}")
-
-    delta_gen = t1_gen - t0_gen
-    # Require at least one generated token.  Zero generation means the load did not
-    # reach the model (e.g. wrong endpoint, auth failure, all requests are prefill-only).
-    if delta_gen == 0:
-        raise RuntimeError(
-            "benchmark_no_generation delta_gen=0 — model produced no output tokens"
-        )
-
-    elapsed = t1_epoch - t0_epoch
+    elapsed = time.time() - t0_epoch
     _log(
         f"benchmark_window elapsed_sec={elapsed:.1f} "
-        f"delta_gen={delta_gen} delta_prompt={t1_prompt - t0_prompt}"
+        f"tpm={tpm} ttft_ms={ttft_ms} tpot_ms={tpot_ms}"
     )
-    tpm = round((delta_gen + (t1_prompt - t0_prompt)) * 60.0 / elapsed, 2)
     return tpm, ttft_ms, tpot_ms, max_concurrency
 
 

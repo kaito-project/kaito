@@ -681,6 +681,72 @@ func (g *Generator) calculateKVCacheTokenSize() (int, string) {
 	return tokenSize, attnType
 }
 
+// countLayerType counts entries in the config's "layer_types" array equal to t.
+func countLayerType(config map[string]interface{}, t string) int {
+	raw, ok := config["layer_types"].([]interface{})
+	if !ok {
+		return 0
+	}
+	n := 0
+	for _, v := range raw {
+		if s, ok := v.(string); ok && s == t {
+			n++
+		}
+	}
+	return n
+}
+
+// mambaStateBytesPerSeq computes the per-sequence Gated-DeltaNet (GDN) /
+// linear-attention recurrent-state cache size in bytes, at tensor-parallel size
+// 1. vLLM allocates one such state block per concurrent sequence (max_num_seqs)
+// for hybrid GDN/Mamba models, so the node estimator must reserve it. Returns 0
+// for models without GDN linear-attention layers.
+//
+// Mirrors vLLM's MambaStateShapeCalculator.gated_delta_net_state_shape:
+//
+//	conv_state   = (key_head_dim*num_key_heads*2 + value_head_dim*num_value_heads) * (conv_kernel-1)
+//	temporal_ssm = num_value_heads * value_head_dim * key_head_dim
+//
+// summed over the number of linear-attention layers. The conv state is stored in
+// the model (compute) dtype; the temporal/ssm state in mamba_ssm_dtype (float32
+// for GDN), matching vLLM's cache allocation.
+func mambaStateBytesPerSeq(config map[string]interface{}) int64 {
+	numKHeads := getInt(config, []string{"linear_num_key_heads"}, 0)
+	numVHeads := getInt(config, []string{"linear_num_value_heads"}, 0)
+	headKDim := getInt(config, []string{"linear_key_head_dim"}, 0)
+	headVDim := getInt(config, []string{"linear_value_head_dim"}, 0)
+	convKernel := getInt(config, []string{"linear_conv_kernel_dim"}, 0)
+	if numKHeads == 0 || numVHeads == 0 || headKDim == 0 || headVDim == 0 || convKernel < 2 {
+		return 0 // not a GDN linear-attention model
+	}
+
+	numLinearLayers := countLayerType(config, "linear_attention")
+	if numLinearLayers == 0 {
+		// Fallback: derive from full_attention_interval (1 full-attn every N layers).
+		totalLayers := getInt(config, configKeyMap["numHiddenLayers"], 0)
+		interval := getInt(config, []string{"full_attention_interval"}, 0)
+		if totalLayers > 0 && interval > 1 {
+			numLinearLayers = totalLayers - totalLayers/interval
+		}
+	}
+	if numLinearLayers == 0 {
+		return 0
+	}
+
+	convBytes := int64(2) // conv state: model dtype (bf16)
+	ssmBytes := int64(2)
+	if getString(config, []string{"mamba_ssm_dtype"}) == "float32" {
+		ssmBytes = 4 // temporal/ssm state kept in fp32 for GDN
+	}
+
+	convDim := int64(headKDim*numKHeads*2 + headVDim*numVHeads)
+	convElems := convDim * int64(convKernel-1)
+	temporalElems := int64(numVHeads) * int64(headVDim) * int64(headKDim)
+
+	perLayer := convElems*convBytes + temporalElems*ssmBytes
+	return perLayer * int64(numLinearLayers)
+}
+
 func (g *Generator) FinalizeParams() {
 	g.Param.Metadata.DiskStorageRequirement = g.calculateStorageSize()
 
@@ -741,6 +807,13 @@ func (g *Generator) FinalizeParams() {
 	bpt, attnType := g.calculateKVCacheTokenSize()
 	g.Param.Metadata.BytesPerToken = bpt
 	g.Param.Metadata.AttnType = attnType
+
+	// GDN/Mamba per-sequence recurrent-state size. In the catalog path this is
+	// already loaded from the entry (raw GDN dims are not stored there), so only
+	// compute it from the config when unset.
+	if g.Param.Metadata.MambaStateBytesPerSeq == 0 {
+		g.Param.Metadata.MambaStateBytesPerSeq = mambaStateBytesPerSeq(g.ModelConfig)
+	}
 }
 
 // loadFromCatalog checks whether the model repo exists in the embedded catalog.
@@ -804,6 +877,7 @@ func (g *Generator) loadFromCatalog() bool {
 
 	// Populate fields that FetchModelMetadata would have set
 	g.Param.Metadata.ModelFileSize = entry.ModelFileSize
+	g.Param.Metadata.MambaStateBytesPerSeq = entry.MambaStateBytesPerSeq
 	g.Param.VLLM.ModelRunParams = make(map[string]string)
 
 	if entry.LoadFormat != "" {

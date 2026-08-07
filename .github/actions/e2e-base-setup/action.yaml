@@ -396,7 +396,7 @@ runs:
         REGISTRY: ${{ env.REGISTRY }}
         VERSION: ${{ env.VERSION }}
         TEST_SUITE: ${{ inputs.node_provisioner }}
-        HELM_INSTALL_EXTRA_ARGS: "--set featureGates.gatewayAPIInferenceExtension=true --set featureGates.enableInferenceSetController=true --set featureGates.enableMultiRoleInferenceController=true --set featureGates.enableBaseImageAutoUpgrade=true --set featureGates.ModelMirror=true --set featureGates.ModelStreaming=true --set defaultModelMirrorStorageClass=blob-fuse --set defaultStreamingServiceAccount=kaito-model-streamer --set modelMirrorDownloadCPU=2 --set modelMirrorDownloadMemory=4Gi --set nodeProvisioner=${{ inputs.node_provisioner == 'gpuprovisioner' && 'azure-gpu-provisioner' || 'karpenter' }}"
+        HELM_INSTALL_EXTRA_ARGS: "--set featureGates.gatewayAPIInferenceExtension=true --set featureGates.enableMultiRoleInferenceController=true --set featureGates.enableBaseImageAutoUpgrade=true --set featureGates.ModelMirror=true --set featureGates.ModelStreaming=true --set defaultModelMirrorStorageClass=blob-fuse --set defaultStreamingServiceAccount=kaito-model-streamer --set modelMirrorDownloadCPU=2 --set modelMirrorDownloadMemory=4Gi --set nodeProvisioner=${{ inputs.node_provisioner == 'gpuprovisioner' && 'azure-gpu-provisioner' || 'karpenter' }}"
 
     - name: Install Istio and Gateway for E2E testing
       shell: bash

@@ -60,11 +60,24 @@ def _sensitive_scanner(detectors):
     )
 
 
-def _ban_substrings_scanner(substring="unsafe"):
+def _ban_substrings_scanner(
+    substring="unsafe",
+    action="block",
+    *,
+    match_type="str",
+    case_sensitive=False,
+    contains_all=False,
+):
+    substrings = [substring] if isinstance(substring, str) else list(substring)
     return ParsedScannerConfig(
         type="ban_substrings",
-        action_on_hit="block",
-        config=BanSubstringsConfig(substrings=[substring], match_type="str"),
+        action_on_hit=action,
+        config=BanSubstringsConfig(
+            substrings=substrings,
+            match_type=match_type,
+            case_sensitive=case_sensitive,
+            contains_all=contains_all,
+        ),
     )
 
 
@@ -135,6 +148,52 @@ def test_validate_streaming_guardrails_accepts_block_ban_substrings_policy():
     assert support.detail is None
 
 
+def test_validate_streaming_guardrails_accepts_redact_ban_substrings_policy():
+    support = validate_streaming_guardrails(
+        _streaming_guardrails(_ban_substrings_scanner(action="redact"))
+    )
+
+    assert support.supported is True
+    assert support.detail is None
+
+
+@pytest.mark.parametrize("action", ["block", "redact"])
+def test_validate_streaming_guardrails_rejects_ban_substrings_contains_all(action):
+    scanner = _ban_substrings_scanner(
+        ["unsafe", "prohibited"],
+        action=action,
+        contains_all=True,
+    )
+
+    support = validate_streaming_guardrails(_streaming_guardrails(scanner))
+
+    assert support.supported is False
+    assert support.detail == (
+        "stream=true does not support contains_all=true for "
+        "scanner=ban_substrings because the current windowed "
+        "implementation cannot track matches across the complete response."
+    )
+
+
+@pytest.mark.parametrize("action", ["block", "redact"])
+def test_validate_streaming_guardrails_rejects_ban_substrings_word(action):
+    support = validate_streaming_guardrails(
+        _streaming_guardrails(
+            _ban_substrings_scanner(
+                "unsafe",
+                action=action,
+                match_type="word",
+            )
+        )
+    )
+
+    assert support.supported is False
+    assert support.detail == (
+        "stream=true does not support match_type=word for "
+        "scanner=ban_substrings because it requires boundary context."
+    )
+
+
 def test_validate_streaming_guardrails_rejects_scanner_action_override():
     support = validate_streaming_guardrails(
         OutputGuardrails(
@@ -153,7 +212,7 @@ def test_validate_streaming_guardrails_rejects_scanner_action_override():
     assert support.supported is False
     assert support.detail == (
         "stream=true does not support action=mask for scanner=ban_substrings. "
-        "Supported actions: ['block']."
+        "Supported actions: ['block', 'redact']."
     )
 
 
@@ -627,6 +686,72 @@ async def test_invisible_redaction_without_modified_text_fails_closed(monkeypatc
         'data: {"choices":[{"index":0,"delta":{"content":"blocked-by-policy"},'
         '"finish_reason":null}]}\n\n'
     )
+
+
+@pytest.mark.asyncio
+async def test_ban_substrings_redacts_long_value_split_after_default_holdback():
+    substring = "x" * 300
+
+    chunks = await _apply_content_chunks(
+        [substring[:270], substring[270:]],
+        _streaming_guardrails(_ban_substrings_scanner(substring, action="redact")),
+    )
+
+    assert _emitted_text(chunks) == "[REDACTED]"
+    assert substring not in "".join(chunks)
+
+
+@pytest.mark.asyncio
+async def test_ban_substrings_redacts_value_split_across_content_chunks():
+    chunks = await _apply_content_chunks(
+        ["prefix un", "safe suffix"],
+        _streaming_guardrails(_ban_substrings_scanner(action="redact")),
+    )
+
+    assert _emitted_text(chunks) == "prefix [REDACTED] suffix"
+
+
+@pytest.mark.asyncio
+async def test_ban_substrings_redaction_is_case_insensitive_when_configured():
+    chunks = await _apply_text(
+        "UNSAFE unsafe",
+        _streaming_guardrails(
+            _ban_substrings_scanner(
+                action="redact",
+                case_sensitive=False,
+            )
+        ),
+    )
+
+    assert _emitted_text(chunks) == "[REDACTED] [REDACTED]"
+
+
+@pytest.mark.asyncio
+async def test_ban_substrings_redacts_multiple_configured_values():
+    chunks = await _apply_text(
+        "unsafe and prohibited",
+        _streaming_guardrails(
+            _ban_substrings_scanner(
+                ["unsafe", "prohibited"],
+                action="redact",
+            )
+        ),
+    )
+
+    assert _emitted_text(chunks) == "[REDACTED] and [REDACTED]"
+
+
+@pytest.mark.asyncio
+async def test_ban_substrings_redaction_runs_before_later_block_scanner():
+    chunks = await _apply_text(
+        "unsafe",
+        _streaming_guardrails(
+            _ban_substrings_scanner("unsafe", action="redact"),
+            _ban_substrings_scanner("[REDACTED]", action="block"),
+        ),
+    )
+
+    assert _emitted_text(chunks) == "blocked-by-policy"
 
 
 @pytest.mark.asyncio

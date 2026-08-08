@@ -15,24 +15,67 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 )
+
+// testScheme builds the scheme used by every test in this package.
+func testScheme() *runtime.Scheme {
+	s := runtime.NewScheme()
+	_ = kaitov1alpha1.AddToScheme(s)
+	_ = batchv1.AddToScheme(s)
+	_ = corev1.AddToScheme(s)
+	_ = storagev1.AddToScheme(s)
+	return s
+}
+
+// newTestReconciler builds a reconciler over the given client, matching how the
+// production code constructs it.
+func newTestReconciler(c client.Client) *ModelMirrorReconciler {
+	return NewModelMirrorReconciler(c, zap.New(zap.UseDevMode(true)), mmconsts.DefaultDownloadJobResources())
+}
+
+// newManagedTestCR returns a Managed-mode ModelMirror CR with the minimum spec
+// the controller requires (source and storage are both mandatory for Managed).
+func newManagedTestCR(name string) *kaitov1alpha1.ModelMirror {
+	return &kaitov1alpha1.ModelMirror{
+		ObjectMeta: metav1.ObjectMeta{Name: name},
+		Spec: kaitov1alpha1.ModelMirrorSpec{
+			Mode:         kaitov1alpha1.ModelMirrorModeManaged,
+			JobNamespace: "default",
+			Source: &kaitov1alpha1.ModelMirrorSource{
+				Registry: "huggingface",
+				ModelID:  "microsoft/Phi-3-mini-4k-instruct",
+			},
+			Storage: &kaitov1alpha1.ModelMirrorStorage{
+				Size:             "20Gi",
+				StorageClassName: ptr.To("kaito-model-mirror"),
+			},
+		},
+	}
+}
 
 func TestReconcile_AlreadyReady(t *testing.T) {
 	scheme := runtime.NewScheme()
@@ -159,4 +202,189 @@ func TestReconcile_Static_SetsReadyNoProvision(t *testing.T) {
 	assert.Empty(t, jobs.Items, "static mirror must not create a Job")
 
 	assert.Empty(t, got.Finalizers, "static mirror must not add a finalizer")
+}
+
+func TestHandleJobSuccess_NoMarkerStillReady(t *testing.T) {
+	cr := newManagedTestCR("mirror-1")
+	job := &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{Name: "mirror-1-download-abc", Namespace: "default"},
+	}
+	c := fake.NewClientBuilder().WithScheme(testScheme()).
+		WithObjects(cr, job).WithStatusSubresource(cr).Build()
+	r := newTestReconciler(c)
+
+	_, err := r.handleJobSuccess(context.Background(), cr, job, zap.New(zap.UseDevMode(true)))
+	require.NoError(t, err)
+
+	assert.Equal(t, kaitov1alpha1.ModelMirrorPhaseReady, cr.Status.Phase)
+	assert.Empty(t, cr.Status.DownloadThroughputMBps)
+}
+
+func TestEnsurePVC_PendingSetsStorageReadyFalse(t *testing.T) {
+	cr := newManagedTestCR("mirror-1")
+	pvc := &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{Name: "mirror-1", Namespace: "default"},
+		Status:     corev1.PersistentVolumeClaimStatus{Phase: corev1.ClaimPending},
+	}
+	c := fake.NewClientBuilder().WithScheme(testScheme()).
+		WithObjects(cr, pvc).WithStatusSubresource(cr).Build()
+	r := newTestReconciler(c)
+
+	require.NoError(t, r.ensurePVC(context.Background(), cr))
+
+	cond := meta.FindStatusCondition(cr.Status.Conditions, mmconsts.ConditionTypeStorageReady)
+	require.NotNil(t, cond, "a pending PVC must set StorageReady, not stay silent")
+	assert.Equal(t, metav1.ConditionFalse, cond.Status)
+	assert.Equal(t, mmconsts.ReasonPVCPending, cond.Reason)
+	assert.Contains(t, cond.Message, "Pending")
+}
+
+func TestEnsurePVC_CreateFailureSetsConditionAndReturnsError(t *testing.T) {
+	cr := newManagedTestCR("mirror-1")
+	c := fake.NewClientBuilder().WithScheme(testScheme()).
+		WithObjects(cr).WithStatusSubresource(cr).
+		WithInterceptorFuncs(interceptor.Funcs{
+			Create: func(ctx context.Context, cl client.WithWatch, obj client.Object, opts ...client.CreateOption) error {
+				if _, ok := obj.(*corev1.PersistentVolumeClaim); ok {
+					return apierrors.NewForbidden(schema.GroupResource{Resource: "persistentvolumeclaims"}, "mirror-1", errors.New("quota exceeded"))
+				}
+				return cl.Create(ctx, obj, opts...)
+			},
+		}).Build()
+	r := newTestReconciler(c)
+
+	err := r.ensurePVC(context.Background(), cr)
+
+	assert.Error(t, err, "the error must still propagate so reconcile requeues")
+	cond := meta.FindStatusCondition(cr.Status.Conditions, mmconsts.ConditionTypeStorageReady)
+	require.NotNil(t, cond)
+	assert.Equal(t, mmconsts.ReasonPVCCreateFailed, cond.Reason)
+}
+
+func TestClassifyDownloadFailure(t *testing.T) {
+	cases := []struct {
+		name       string
+		podStatus  corev1.PodStatus
+		wantReason string
+	}{
+		{
+			name: "OOMKilled",
+			podStatus: corev1.PodStatus{
+				Phase: corev1.PodFailed,
+				ContainerStatuses: []corev1.ContainerStatus{{
+					Name: "downloader",
+					State: corev1.ContainerState{Terminated: &corev1.ContainerStateTerminated{
+						Reason: "OOMKilled", ExitCode: 137,
+					}},
+				}},
+			},
+			wantReason: mmconsts.ReasonDownloadOOMKilled,
+		},
+		{
+			name: "evicted, node low on ephemeral-storage",
+			podStatus: corev1.PodStatus{
+				Phase:   corev1.PodFailed,
+				Reason:  "Evicted",
+				Message: "The node was low on resource: ephemeral-storage. Threshold quantity: 2Gi, available: 1536Mi. ",
+			},
+			wantReason: mmconsts.ReasonDownloadEvicted,
+		},
+		{
+			name: "evicted, container exceeded local ephemeral storage limit",
+			podStatus: corev1.PodStatus{
+				Phase:   corev1.PodFailed,
+				Reason:  "Evicted",
+				Message: `Container downloader exceeded its local ephemeral storage limit "8Gi". `,
+			},
+			wantReason: mmconsts.ReasonDownloadEvicted,
+		},
+		{
+			name: "evicted, pod ephemeral storage usage exceeds total limit",
+			podStatus: corev1.PodStatus{
+				Phase:   corev1.PodFailed,
+				Reason:  "Evicted",
+				Message: "Pod ephemeral local storage usage exceeds the total limit of containers 8Gi. ",
+			},
+			wantReason: mmconsts.ReasonDownloadEvicted,
+		},
+		{
+			name: "evicted for memory pressure, not disk",
+			podStatus: corev1.PodStatus{
+				Phase:   corev1.PodFailed,
+				Reason:  "Evicted",
+				Message: "The node was low on resource: memory. Container downloader was using 9Gi, request is 8Gi, has larger consumption of memory. ",
+			},
+			wantReason: mmconsts.ReasonDownloadEvicted,
+		},
+		{
+			name: "generic exit 1 is not attributable",
+			podStatus: corev1.PodStatus{
+				Phase: corev1.PodFailed,
+				ContainerStatuses: []corev1.ContainerStatus{{
+					Name:  "downloader",
+					State: corev1.ContainerState{Terminated: &corev1.ContainerStateTerminated{ExitCode: 1}},
+				}},
+			},
+			wantReason: "",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			cr := newManagedTestCR("mirror-1")
+			pod := &corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "mirror-1-download-abc",
+					Namespace: "default",
+					Labels:    map[string]string{"job-name": "mirror-1-download"},
+				},
+				Status: tc.podStatus,
+			}
+			c := fake.NewClientBuilder().WithScheme(testScheme()).WithObjects(cr, pod).Build()
+			r := newTestReconciler(c)
+
+			reason, message := r.classifyDownloadFailure(context.Background(), cr, "mirror-1-download")
+			assert.Equal(t, tc.wantReason, reason)
+			if tc.podStatus.Reason == "Evicted" {
+				assert.Contains(t, message, tc.podStatus.Message)
+			}
+		})
+	}
+}
+
+func TestCheckJobStatus_FailedJobSetsReadyFalse(t *testing.T) {
+	cr := newManagedTestCR("mm-failed")
+	failedJob := &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:              "mm-failed-download-abcde",
+			Namespace:         "default",
+			CreationTimestamp: metav1.Now(),
+			Labels:            map[string]string{mmconsts.LabelModelMirrorName: cr.Name},
+		},
+		Status: batchv1.JobStatus{
+			Failed: 4,
+			Conditions: []batchv1.JobCondition{{
+				Type:    batchv1.JobFailed,
+				Status:  corev1.ConditionTrue,
+				Message: "BackoffLimitExceeded",
+			}},
+		},
+	}
+
+	c := fake.NewClientBuilder().WithScheme(testScheme()).
+		WithObjects(cr, failedJob).WithStatusSubresource(cr).Build()
+	r := newTestReconciler(c)
+
+	_, err := r.checkJobStatus(context.Background(), cr, zap.New(zap.UseDevMode(true)))
+	require.NoError(t, err)
+
+	got := &kaitov1alpha1.ModelMirror{}
+	require.NoError(t, c.Get(context.Background(), client.ObjectKey{Name: cr.Name}, got))
+
+	cond := meta.FindStatusCondition(got.Status.Conditions, mmconsts.ConditionTypeReady)
+	require.NotNil(t, cond, "a failed download Job must surface a Ready condition")
+	assert.Equal(t, metav1.ConditionFalse, cond.Status)
+	assert.Equal(t, mmconsts.ReasonDownloadFailed, cond.Reason)
+	assert.Contains(t, cond.Message, "BackoffLimitExceeded")
+	assert.Contains(t, got.Status.FailureMessage, "BackoffLimitExceeded")
 }

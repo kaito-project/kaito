@@ -24,6 +24,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
+	"github.com/kaito-project/kaito/pkg/modelmirror/downloadstats"
 )
 
 // BuildDownloadJob constructs the Job that downloads model files to the PVC.
@@ -39,19 +40,30 @@ func BuildDownloadJob(cr *kaitov1alpha1.ModelMirror, resources mmconsts.Download
 		excludeFlags += fmt.Sprintf("\n  --exclude %q \\", pattern)
 	}
 
+	// The script downloads model files to the PVC and emits a stats marker line
+	// consumed by pkg/modelmirror/downloadstats. Timing brackets only the download
+	// call.
+	//
 	// Post-download cleanup: empty directories left on the PVC become zero-byte
 	// blob objects on Azure Blob NFS. RunAI model streamer iterates all objects in
 	// the container and crashes on directories (IsADirectoryError). We remove all
 	// subdirectories as a safety net.
 	script := fmt.Sprintf(`set -e
-export HF_HUB_ENABLE_HF_TRANSFER=1
 export HF_HUB_DOWNLOAD_TIMEOUT=300
 
-pip install -q "huggingface-hub==%s" hf_transfer
+pip install -q "huggingface-hub==%s"
 
+_kaito_start=$(date +%%s)
 hf download "${MODEL_ID}" \
   --max-workers 4 \%s
   --local-dir "/models/${MODEL_ID}"
+_kaito_end=$(date +%%s)
+_kaito_bytes=$(du -sb "/models/${MODEL_ID}" 2>/dev/null | cut -f1)
+# Emit stats only when the size is known. A missing marker is handled as
+# "stats unavailable" by pkg/modelmirror/downloadstats
+if [ -n "${_kaito_bytes}" ]; then
+  echo "%s seconds=$((_kaito_end - _kaito_start)) bytes=${_kaito_bytes}"
+fi
 
 # Remove all subdirectories — on HNS-enabled blob (NFS), directories become
 # zero-byte objects that cause RunAI model streamer to fail with FileExistsError.
@@ -59,6 +71,7 @@ rm -rf "/models/${MODEL_ID}/.cache" 2>/dev/null || true
 find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null || true`,
 		mmconsts.HuggingFaceHubVersion,
 		excludeFlags,
+		downloadstats.MarkerPrefix,
 	)
 
 	envVars := []corev1.EnvVar{

@@ -18,6 +18,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -190,12 +191,15 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 		return nil
 	}
 	if !apierrors.IsNotFound(err) {
-		return fmt.Errorf("failed to get ModelMirror CR %s: %w", crName, err)
+		return &streamingValidationError{
+			reason: reasonModelMirrorCreateFailed,
+			err:    fmt.Errorf("failed to get ModelMirror CR %s: %w", crName, err),
+		}
 	}
 
 	if modelstreaming.StaticModelMirrorEnabled(wObj.Annotations) {
 		if err := registry.SelectModelStreamer(wObj).ValidateAuth(ctx, wObj, c.Client, modelstreaming.StreamingDefaults.ServiceAccount); err != nil {
-			return err
+			return &streamingValidationError{reason: reasonModelStreamingServiceAccountInvalid, err: err}
 		}
 		staticCR := &kaitov1alpha1.ModelMirror{
 			ObjectMeta: metav1.ObjectMeta{Name: crName},
@@ -205,7 +209,10 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 			if apierrors.IsAlreadyExists(err) {
 				return nil // Race condition
 			}
-			return fmt.Errorf("failed to create static ModelMirror CR %s: %w", crName, err)
+			return &streamingValidationError{
+				reason: reasonModelMirrorCreateFailed,
+				err:    fmt.Errorf("failed to create static ModelMirror CR %s: %w", crName, err),
+			}
 		}
 		klog.InfoS("Created static ModelMirror CR", "name", crName, "workspace", klog.KObj(wObj))
 		return nil
@@ -214,22 +221,28 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 	// Managed mirror: validate the StorageClass exists and uses the correct CSI provisioner.
 	storageClass, err := modelstreaming.ResolveStorageClass(wObj, modelstreaming.StreamingDefaults.StorageClass)
 	if err != nil {
-		return err
+		return &streamingValidationError{reason: reasonModelStreamingStorageClassNotFound, err: err}
 	}
 	sc := &storagev1.StorageClass{}
 	if err := c.Client.Get(ctx, client.ObjectKey{Name: storageClass}, sc); err != nil {
-		return fmt.Errorf("StorageClass %q not found: %w", storageClass, err)
+		return &streamingValidationError{
+			reason: reasonModelStreamingStorageClassNotFound,
+			err:    fmt.Errorf("StorageClass %q not found: %w", storageClass, err),
+		}
 	}
 	expectedCSIDriver := consts.CSIDriverNameForCloud(os.Getenv("CLOUD_PROVIDER"))
 	if sc.Provisioner != expectedCSIDriver {
-		return fmt.Errorf("StorageClass %q uses provisioner %q, but model streaming requires %q; "+
-			"create a StorageClass with the correct provisioner",
-			storageClass, sc.Provisioner, expectedCSIDriver)
+		return &streamingValidationError{
+			reason: reasonModelStreamingInvalidStorageClass,
+			err: fmt.Errorf("StorageClass %q uses provisioner %q, but model streaming requires %q; "+
+				"create a StorageClass with the correct provisioner",
+				storageClass, sc.Provisioner, expectedCSIDriver),
+		}
 	}
 
 	// Validate ServiceAccount exists and has provider-specific identity configured.
 	if err := registry.SelectModelStreamer(wObj).ValidateAuth(ctx, wObj, c.Client, modelstreaming.StreamingDefaults.ServiceAccount); err != nil {
-		return err
+		return &streamingValidationError{reason: reasonModelStreamingServiceAccountInvalid, err: err}
 	}
 
 	serviceAccount, err := modelstreaming.ResolveStreamingServiceAccount(wObj, modelstreaming.StreamingDefaults.ServiceAccount)
@@ -279,7 +292,10 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 		if apierrors.IsAlreadyExists(err) {
 			return nil // Race condition
 		}
-		return fmt.Errorf("failed to create ModelMirror CR %s: %w", crName, err)
+		return &streamingValidationError{
+			reason: reasonModelMirrorCreateFailed,
+			err:    fmt.Errorf("failed to create ModelMirror CR %s: %w", crName, err),
+		}
 	}
 
 	klog.InfoS("Created ModelMirror CR", "name", crName, "modelID", modelID, "workspace", klog.KObj(wObj))
@@ -709,6 +725,7 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 	if err != nil {
 		return err
 	}
+	infFailReason, infFailMsg = streamingValidationReason(reconcileErr, infFailReason, infFailMsg)
 
 	tuningSnapshot, err := c.collectTuningStatusSnapshot(ctx, wObj)
 	if err != nil {
@@ -892,6 +909,22 @@ const (
 	inferenceReasonNodeMemoryPressure  = "NodeMemoryPressure"
 	inferenceReasonUnschedulable       = "Unschedulable"
 )
+
+// Model streaming validation failure reasons.
+const (
+	reasonModelStreamingStorageClassNotFound  = "ModelStreamingStorageClassNotFound"
+	reasonModelStreamingInvalidStorageClass   = "ModelStreamingInvalidStorageClass"
+	reasonModelStreamingServiceAccountInvalid = "ModelStreamingServiceAccountInvalid"
+	reasonModelMirrorCreateFailed             = "ModelMirrorCreateFailed"
+)
+
+type streamingValidationError struct {
+	reason string
+	err    error
+}
+
+func (e *streamingValidationError) Error() string { return e.err.Error() }
+func (e *streamingValidationError) Unwrap() error { return e.err }
 
 // maxInferenceMessageLen caps the length of the failure message surfaced on the
 // InferenceReady condition so it stays readable in the workspace status.
@@ -1139,6 +1172,21 @@ func (c *WorkspaceReconciler) collectTuningStatusSnapshot(ctx context.Context, w
 	snapshot.started = snapshot.succeeded || snapshot.ready > 0 || snapshot.active > 0
 
 	return snapshot, nil
+}
+
+// streamingValidationReason promotes a model-streaming validation failure carried on
+// the reconcile error to a condition reason. Pod-level classification is more
+// specific, so it takes precedence; this only fills the gap when no pod failure was
+// identified (typically because validation failed before any pod was created).
+func streamingValidationReason(reconcileErr error, podReason, podMessage string) (reason, message string) {
+	if podReason != "" {
+		return podReason, podMessage
+	}
+	var sve *streamingValidationError
+	if !errors.As(reconcileErr, &sve) {
+		return "", ""
+	}
+	return sve.reason, utils.TruncateMessage(sve.Error(), maxInferenceMessageLen)
 }
 
 func buildReconcileErrMessageAppender(reconcileErr error) func(message string) string {

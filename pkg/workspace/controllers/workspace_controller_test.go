@@ -26,6 +26,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -2129,5 +2130,62 @@ func TestDetectInferencePodFailure(t *testing.T) {
 		}
 		out := utils.TruncateMessage(long, maxInferenceMessageLen)
 		assert.Equal(t, maxInferenceMessageLen+len("..."), len(out))
+	})
+}
+
+func TestStreamingValidationError(t *testing.T) {
+	base := errors.New(`StorageClass "kaito-model-mirror" not found`)
+	err := &streamingValidationError{reason: reasonModelStreamingStorageClassNotFound, err: base}
+
+	assert.Equal(t, base.Error(), err.Error())
+	assert.ErrorIs(t, err, base)
+
+	var sve *streamingValidationError
+	require.True(t, errors.As(error(err), &sve))
+	assert.Equal(t, reasonModelStreamingStorageClassNotFound, sve.reason)
+}
+
+func TestStreamingValidationReasonFallback(t *testing.T) {
+	sve := &streamingValidationError{
+		reason: reasonModelStreamingStorageClassNotFound,
+		err:    errors.New(`storageclass "kaito-model-mirror" not found`),
+	}
+	wrapped := fmt.Errorf("ensure model mirror: %w", sve)
+
+	t.Run("fills empty reason", func(t *testing.T) {
+		reason, msg := streamingValidationReason(wrapped, "", "")
+		assert.Equal(t, reasonModelStreamingStorageClassNotFound, reason)
+		assert.Contains(t, msg, "kaito-model-mirror")
+	})
+
+	t.Run("pod classification wins", func(t *testing.T) {
+		reason, msg := streamingValidationReason(wrapped, inferenceReasonOOMKilled, "container was OOMKilled")
+		assert.Equal(t, inferenceReasonOOMKilled, reason)
+		assert.Equal(t, "container was OOMKilled", msg)
+	})
+
+	t.Run("unrelated error is ignored", func(t *testing.T) {
+		reason, msg := streamingValidationReason(errors.New("boom"), "", "")
+		assert.Empty(t, reason)
+		assert.Empty(t, msg)
+	})
+
+	t.Run("nil error is ignored", func(t *testing.T) {
+		reason, msg := streamingValidationReason(nil, "", "")
+		assert.Empty(t, reason)
+		assert.Empty(t, msg)
+	})
+
+	t.Run("reason lands on the InferenceReady condition", func(t *testing.T) {
+		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStatePending}
+		applyInferenceWorkspaceStatus(context.Background(), status, &v1beta1.Workspace{},
+			buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue, false,
+			reasonModelStreamingStorageClassNotFound, `storageclass "kaito-model-mirror" not found`)
+
+		c := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
+		require.NotNil(t, c)
+		assert.Equal(t, v1.ConditionFalse, c.Status)
+		assert.Equal(t, reasonModelStreamingStorageClassNotFound, c.Reason)
+		assert.Contains(t, c.Message, "kaito-model-mirror")
 	})
 }

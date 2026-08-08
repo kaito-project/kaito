@@ -27,6 +27,18 @@ const (
 	ConditionTypeStorageReady = "StorageReady"
 	ConditionTypeReady        = "Ready"
 
+	// Condition reasons.
+	ReasonPVCBound          = "PVCBound"
+	ReasonPVCPending        = "PVCPending"
+	ReasonPVCCreateFailed   = "PVCCreateFailed"
+	ReasonJobCreateFailed   = "JobCreateFailed"
+	ReasonDownloadFailed    = "DownloadFailed"
+	ReasonDownloadOOMKilled = "DownloadOOMKilled"
+	ReasonDownloadEvicted   = "DownloadEvicted"
+	ReasonDownloadSucceeded = "DownloadSucceeded"
+	ReasonStaticMirror      = "StaticMirror"
+	ReasonInvalidSpec       = "InvalidSpec"
+
 	// Labels
 	LabelModelMirrorName = "kaito.sh/model-mirror-name"
 

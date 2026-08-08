@@ -29,9 +29,9 @@ from ragengine.streaming.openai import (
 )
 from ragengine.streaming.sse import iter_sse_events
 
-STREAMING_GUARDRAILS_HOLDBACK_LEN = 256
+DEFAULT_STREAMING_GUARDRAILS_HOLDBACK_LEN = 256
 STREAMING_GUARDRAILS_CAPABILITIES = {
-    "ban_substrings": frozenset({"block"}),
+    "ban_substrings": frozenset({"block", "redact"}),
     "invisible_text": frozenset({"block", "redact"}),
     "secrets": frozenset({"block", "redact"}),
     "sensitive": frozenset({"block", "redact"}),
@@ -70,6 +70,29 @@ def validate_streaming_guardrails(
                 ),
             )
         if (
+            scanner_config.type == "ban_substrings"
+            and scanner_config.config.contains_all
+        ):
+            return StreamingGuardrailsSupport(
+                supported=False,
+                detail=(
+                    "stream=true does not support contains_all=true for "
+                    "scanner=ban_substrings because the current windowed "
+                    "implementation cannot track matches across the complete response."
+                ),
+            )
+        if (
+            scanner_config.type == "ban_substrings"
+            and scanner_config.config.match_type == "word"
+        ):
+            return StreamingGuardrailsSupport(
+                supported=False,
+                detail=(
+                    "stream=true does not support match_type=word for "
+                    "scanner=ban_substrings because it requires boundary context."
+                ),
+            )
+        if (
             scanner_config.type == "secrets"
             and scanner_action == "redact"
             and scanner_config.config.redact_mode != "all"
@@ -105,7 +128,7 @@ async def apply_streaming_guardrails(
         )
         window = StreamingBufferWindow(
             scanner,
-            holdback_len=STREAMING_GUARDRAILS_HOLDBACK_LEN,
+            holdback_len=_get_streaming_guardrails_holdback_len(guardrails),
         )
 
         async for event in iter_sse_events(upstream_chunks):
@@ -153,6 +176,19 @@ async def apply_streaming_guardrails(
             _record_successful_redaction(window, guardrails)
     finally:
         await _aclose(upstream_chunks)
+
+
+def _get_streaming_guardrails_holdback_len(guardrails: OutputGuardrails) -> int:
+    required_holdback = max(
+        (
+            len(substring) - 1
+            for scanner_config in guardrails.scanner_configs
+            if scanner_config.type == "ban_substrings"
+            for substring in scanner_config.config.substrings
+        ),
+        default=0,
+    )
+    return max(DEFAULT_STREAMING_GUARDRAILS_HOLDBACK_LEN, required_holdback)
 
 
 class _LLMGuardWindowScanner:

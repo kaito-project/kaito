@@ -401,7 +401,6 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	} else if rc.MaxModelLen > 0 {
 		p.VLLM.ModelRunParams["max-model-len"] = strconv.Itoa(rc.MaxModelLen)
 	}
-	p.VLLM.ModelRunParams["gpu-memory-utilization"] = "0.84"
 
 	// Enable KV cache events by default so in-cluster subscribers can consume
 	// BlockStored / BlockRemoved / AllBlocksCleared events over ZMQ on the port

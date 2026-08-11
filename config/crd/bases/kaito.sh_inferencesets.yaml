@@ -280,6 +280,15 @@ spec:
                           This field must be empty when node auto-provisioning is disabled (BYO scenario).
                         type: string
                     type: object
+                  terminationGracePeriodSeconds:
+                    description: |-
+                      TerminationGracePeriodSeconds is the grace period granted to each replica's
+                      inference pod on deletion, before the kubelet sends SIGKILL.
+                      Propagated verbatim to each child Workspace.
+                      Defaults to the Kubernetes default (30) when unset.
+                    format: int64
+                    minimum: 0
+                    type: integer
                 required:
                 - inference
                 type: object
@@ -720,6 +729,15 @@ spec:
                         - mode
                         type: object
                     type: object
+                  terminationGracePeriodSeconds:
+                    description: |-
+                      TerminationGracePeriodSeconds is the grace period granted to each replica's
+                      inference pod on deletion, before the kubelet sends SIGKILL.
+                      Propagated verbatim to each child Workspace.
+                      Defaults to the Kubernetes default (30) when unset.
+                    format: int64
+                    minimum: 0
+                    type: integer
                 required:
                 - inference
                 type: object

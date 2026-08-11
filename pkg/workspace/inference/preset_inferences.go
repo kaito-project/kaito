@@ -669,6 +669,13 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		}
 		spec.Volumes = volumes
 
+		// Give the runtime enough time to drain in-flight requests before SIGKILL.
+		// Unset leaves the Kubernetes default (30s), which truncates responses for
+		// large models that need minutes to finish a generation.
+		if grace := ctx.Workspace.TerminationGracePeriodSeconds; grace != nil {
+			spec.TerminationGracePeriodSeconds = lo.ToPtr(*grace)
+		}
+
 		return nil
 	}
 }

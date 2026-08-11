@@ -58,7 +58,36 @@ spec:
 | `spec.template.inference.preset.name` | Yes | The model to serve — a Hugging Face model card ID or a KAITO preset name. |
 | `spec.template.inference.adapters` | No | One or more LoRA adapters to merge at serving time. |
 | `spec.template.inference.config` | No | Name of a ConfigMap holding custom vLLM runtime parameters. |
+| `spec.template.terminationGracePeriodSeconds` | No (default `30`) | Seconds each replica's pod is given to drain in-flight requests before it is killed. See [Termination grace period](#termination-grace-period). |
 | `spec.autoUpgrade` | No | Configures automatic base image upgrades of replicas after a controller upgrade. See [Automatic base image upgrades](#automatic-base-image-upgrades). |
+
+### Termination grace period
+
+When a replica is removed — during a scale-down, a rolling update, or a node drain — Kubernetes sends `SIGTERM` and then waits `terminationGracePeriodSeconds` before sending `SIGKILL`. The Kubernetes default is 30 seconds, which is not enough for large models: a single request against a 120B model on A100 GPUs can take 30–120 seconds to complete, so in-flight responses are truncated. This is most visible under autoscaling, where scale-down events are frequent.
+
+Set a grace period that matches the worst-case request latency of your model:
+
+```yaml
+apiVersion: kaito.sh/v1beta1
+kind: InferenceSet
+metadata:
+  name: gpt-oss-120b
+spec:
+  labelSelector:
+    matchLabels:
+      apps: gpt-oss-120b
+  template:
+    terminationGracePeriodSeconds: 300  # 5 minutes
+    resource:
+      instanceType: "Standard_NC24ads_A100_v4"
+    inference:
+      preset:
+        name: "gpt-oss-120b"
+```
+
+The value is propagated to every child `Workspace` and onto the pods of its `StatefulSet`. The same field is available directly on a `Workspace` for standalone deployments.
+
+Changing `terminationGracePeriodSeconds` alters the `InferenceSet` template, so the controller performs a rolling replacement of the existing replicas.
 
 ### Checking status
 

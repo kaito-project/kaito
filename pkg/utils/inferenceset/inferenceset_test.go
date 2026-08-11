@@ -518,6 +518,35 @@ func TestUpdateInferenceSetStatus(t *testing.T) {
 	})
 }
 
+func TestNewWorkspaceForInferenceSet(t *testing.T) {
+	newInferenceSet := func(grace *int64) *kaitov1beta1.InferenceSet {
+		return &kaitov1beta1.InferenceSet{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "test-inferenceset",
+				Namespace: "default",
+			},
+			Spec: kaitov1beta1.InferenceSetSpec{
+				Template: kaitov1beta1.InferenceSetTemplate{
+					TerminationGracePeriodSeconds: grace,
+				},
+			},
+		}
+	}
+
+	t.Run("Should propagate terminationGracePeriodSeconds to the child Workspace", func(t *testing.T) {
+		workspaceObj := NewWorkspaceForInferenceSet(newInferenceSet(lo.ToPtr(int64(300))))
+
+		assert.NotNil(t, workspaceObj.TerminationGracePeriodSeconds)
+		assert.Equal(t, int64(300), *workspaceObj.TerminationGracePeriodSeconds)
+	})
+
+	t.Run("Should leave terminationGracePeriodSeconds unset when the template omits it", func(t *testing.T) {
+		workspaceObj := NewWorkspaceForInferenceSet(newInferenceSet(nil))
+
+		assert.Nil(t, workspaceObj.TerminationGracePeriodSeconds)
+	})
+}
+
 func TestComputeInferenceSetHash(t *testing.T) {
 	t.Run("Should generate consistent hash for same InferenceSet", func(t *testing.T) {
 		inferenceset := &kaitov1beta1.InferenceSet{

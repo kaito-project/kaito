@@ -341,6 +341,12 @@ func GenerateManifestWithPodTemplate(workspaceObj *kaitov1beta1.Workspace, toler
 		templateCopy.Spec.Tolerations = append(templateCopy.Spec.Tolerations, tolerations...)
 	}
 
+	// The workspace-level grace period wins over whatever the custom pod template
+	// carries, so the same knob behaves identically on the preset and template paths.
+	if grace := workspaceObj.TerminationGracePeriodSeconds; grace != nil {
+		templateCopy.Spec.TerminationGracePeriodSeconds = lo.ToPtr(*grace)
+	}
+
 	return &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      workspaceObj.Name,

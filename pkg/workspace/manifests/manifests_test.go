@@ -20,9 +20,11 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
@@ -408,4 +410,42 @@ func TestGenerateServiceManifest_KVEventsPort(t *testing.T) {
 	hf := newWS(string(pkgmodel.RuntimeNameHuggingfaceTransformers))
 	hfCIP := GenerateServiceManifest(hf, corev1.ServiceTypeClusterIP)
 	assert.False(t, hasKVEvents(hfCIP), "non-vLLM ClusterIP Service must not expose kv-events port")
+}
+
+func TestGenerateManifestWithPodTemplateTerminationGracePeriod(t *testing.T) {
+	newWorkspace := func(workspaceGrace, templateGrace *int64) *kaitov1beta1.Workspace {
+		return &kaitov1beta1.Workspace{
+			ObjectMeta: metav1.ObjectMeta{Name: "test-workspace", Namespace: "test-ns"},
+			Inference: &kaitov1beta1.InferenceSpec{
+				Template: &corev1.PodTemplateSpec{
+					Spec: corev1.PodSpec{
+						Containers:                    []corev1.Container{{Name: "inference", Image: "test-image"}},
+						TerminationGracePeriodSeconds: templateGrace,
+					},
+				},
+			},
+			TerminationGracePeriodSeconds: workspaceGrace,
+		}
+	}
+
+	t.Run("applies the workspace grace period", func(t *testing.T) {
+		ss := GenerateManifestWithPodTemplate(newWorkspace(lo.ToPtr(int64(300)), nil), nil)
+
+		assert.NotNil(t, ss.Spec.Template.Spec.TerminationGracePeriodSeconds)
+		assert.Equal(t, int64(300), *ss.Spec.Template.Spec.TerminationGracePeriodSeconds)
+	})
+
+	t.Run("workspace grace period overrides the pod template", func(t *testing.T) {
+		ss := GenerateManifestWithPodTemplate(newWorkspace(lo.ToPtr(int64(300)), lo.ToPtr(int64(45))), nil)
+
+		assert.NotNil(t, ss.Spec.Template.Spec.TerminationGracePeriodSeconds)
+		assert.Equal(t, int64(300), *ss.Spec.Template.Spec.TerminationGracePeriodSeconds)
+	})
+
+	t.Run("keeps the pod template value when the workspace omits it", func(t *testing.T) {
+		ss := GenerateManifestWithPodTemplate(newWorkspace(nil, lo.ToPtr(int64(45))), nil)
+
+		assert.NotNil(t, ss.Spec.Template.Spec.TerminationGracePeriodSeconds)
+		assert.Equal(t, int64(45), *ss.Spec.Template.Spec.TerminationGracePeriodSeconds)
+	})
 }

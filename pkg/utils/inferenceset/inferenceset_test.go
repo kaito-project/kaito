@@ -94,20 +94,20 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 		mockClient.On("Get", mock.IsType(context.Background()),
 			client.ObjectKey{Name: "test-inferenceset", Namespace: "default"},
 			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
-				ws := args.Get(2).(*kaitov1beta1.InferenceSet)
-				*ws = *inferenceset
-			}).Return(nil)
+			ws := args.Get(2).(*kaitov1beta1.InferenceSet)
+			*ws = *inferenceset
+		}).Return(nil)
 
 		mockClient.StatusMock.On("Update", mock.IsType(context.Background()),
 			mock.IsType(&kaitov1beta1.InferenceSet{}), mock.Anything).Run(func(args mock.Arguments) {
-				ws := args.Get(1).(*kaitov1beta1.InferenceSet)
-				condition := meta.FindStatusCondition(ws.Status.Conditions, string(kaitov1beta1.ConditionTypeResourceStatus))
-				assert.NotNil(t, condition)
-				assert.Equal(t, int64(2), condition.ObservedGeneration)
-				assert.Equal(t, metav1.ConditionTrue, condition.Status)
-				assert.Equal(t, "ResourcesReady", condition.Reason)
-				assert.Equal(t, "All resources are ready", condition.Message)
-			}).Return(nil)
+			ws := args.Get(1).(*kaitov1beta1.InferenceSet)
+			condition := meta.FindStatusCondition(ws.Status.Conditions, string(kaitov1beta1.ConditionTypeResourceStatus))
+			assert.NotNil(t, condition)
+			assert.Equal(t, int64(2), condition.ObservedGeneration)
+			assert.Equal(t, metav1.ConditionTrue, condition.Status)
+			assert.Equal(t, "ResourcesReady", condition.Reason)
+			assert.Equal(t, "All resources are ready", condition.Message)
+		}).Return(nil)
 
 		ctx := context.Background()
 		err := UpdateStatusConditionIfNotMatch(ctx, mockClient, inferenceset,

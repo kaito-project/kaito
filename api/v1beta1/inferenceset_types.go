@@ -43,6 +43,14 @@ type InferenceSetTemplate struct {
 	// +optional
 	Resource  InferenceSetResourceSpec `json:"resource"`
 	Inference InferenceSpec            `json:"inference"`
+
+	// TerminationGracePeriodSeconds is the grace period granted to each replica's
+	// inference pod on deletion, before the kubelet sends SIGKILL.
+	// Propagated verbatim to each child Workspace.
+	// Defaults to the Kubernetes default (30) when unset.
+	// +optional
+	// +kubebuilder:validation:Minimum=0
+	TerminationGracePeriodSeconds *int64 `json:"terminationGracePeriodSeconds,omitempty"`
 }
 
 // AutoUpgradeStrategy describes how the controller replaces Workspaces when a

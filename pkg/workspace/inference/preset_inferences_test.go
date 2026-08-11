@@ -2065,3 +2065,59 @@ func TestGeneratePresetInferenceCUDAToolkitProvisioner(t *testing.T) {
 		}
 	})
 }
+
+func TestGeneratePresetInferenceTerminationGracePeriod(t *testing.T) {
+	test.RegisterTestModel()
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv("PRESET_REGISTRY_NAME", "test-registry")
+	t.Setenv("RELEASE_NAMESPACE", "kaito")
+
+	buildPodSpec := func(t *testing.T, grace *int64) corev1.PodSpec {
+		t.Helper()
+
+		mockClient := test.NewClient()
+		mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+		mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+
+		workspace := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+		workspace.Status.WorkerNodes = []string{"test-node-1"}
+		workspace.Status.TargetNodeCount = 1
+		workspace.Inference.Adapters = nil
+		workspace.Inference.Config = ""
+		workspace.TerminationGracePeriodSeconds = grace
+
+		svc := &corev1.Service{
+			ObjectMeta: metav1.ObjectMeta{Name: workspace.Name, Namespace: workspace.Namespace},
+			Spec:       corev1.ServiceSpec{ClusterIP: "10.0.0.1"},
+		}
+		mockClient.CreateOrUpdateObjectInMap(svc)
+
+		model := plugin.KaitoModelRegister.MustGet("test-model")
+
+		createdObject, err := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, model, mockClient, nil)
+		if err != nil {
+			t.Fatalf("GeneratePresetInference returned error: %v", err)
+		}
+
+		return createdObject.(*appsv1.StatefulSet).Spec.Template.Spec
+	}
+
+	t.Run("propagates the workspace grace period to the pod spec", func(t *testing.T) {
+		podSpec := buildPodSpec(t, lo.ToPtr(int64(300)))
+
+		if podSpec.TerminationGracePeriodSeconds == nil {
+			t.Fatal("expected terminationGracePeriodSeconds to be set on the pod spec")
+		}
+		if got := *podSpec.TerminationGracePeriodSeconds; got != 300 {
+			t.Errorf("terminationGracePeriodSeconds = %d, want 300", got)
+		}
+	})
+
+	t.Run("leaves the Kubernetes default when the workspace omits it", func(t *testing.T) {
+		podSpec := buildPodSpec(t, nil)
+
+		if podSpec.TerminationGracePeriodSeconds != nil {
+			t.Errorf("terminationGracePeriodSeconds = %d, want unset", *podSpec.TerminationGracePeriodSeconds)
+		}
+	})
+}

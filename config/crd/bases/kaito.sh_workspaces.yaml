@@ -291,6 +291,15 @@ spec:
                   type: string
                 type: array
             type: object
+          terminationGracePeriodSeconds:
+            description: |-
+              TerminationGracePeriodSeconds is the grace period granted to the inference
+              pods on deletion, before the kubelet sends SIGKILL.
+              Applies to the inference StatefulSet only; tuning jobs are unaffected.
+              Defaults to the Kubernetes default (30) when unset.
+            format: int64
+            minimum: 0
+            type: integer
           tuning:
             properties:
               config:
@@ -757,6 +766,15 @@ spec:
                   type: string
                 type: array
             type: object
+          terminationGracePeriodSeconds:
+            description: |-
+              TerminationGracePeriodSeconds is the grace period granted to the inference
+              pods on deletion, before the kubelet sends SIGKILL.
+              Applies to the inference StatefulSet only; tuning jobs are unaffected.
+              Defaults to the Kubernetes default (30) when unset.
+            format: int64
+            minimum: 0
+            type: integer
           tuning:
             properties:
               config:

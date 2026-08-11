@@ -202,6 +202,14 @@ type Workspace struct {
 	Inference *InferenceSpec  `json:"inference,omitempty"`
 	Tuning    *TuningSpec     `json:"tuning,omitempty"`
 	Status    WorkspaceStatus `json:"status,omitempty"`
+
+	// TerminationGracePeriodSeconds is the grace period granted to the inference
+	// pods on deletion, before the kubelet sends SIGKILL.
+	// Applies to the inference StatefulSet only; tuning jobs are unaffected.
+	// Defaults to the Kubernetes default (30) when unset.
+	// +optional
+	// +kubebuilder:validation:Minimum=0
+	TerminationGracePeriodSeconds *int64 `json:"terminationGracePeriodSeconds,omitempty"`
 }
 
 // WorkspaceList contains a list of Workspace

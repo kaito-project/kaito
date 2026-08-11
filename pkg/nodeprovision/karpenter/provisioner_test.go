@@ -46,6 +46,7 @@ var testConfig = NodeClassConfig{
 	Version:      "v1beta1",
 	ResourceName: "aksnodeclasses",
 	DefaultName:  "image-family-ubuntu",
+	AllowedNames: []string{"image-family-ubuntu", "image-family-azure-linux"},
 }
 
 // testScheme returns a scheme with all types needed for fake.Client tests.

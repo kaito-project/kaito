@@ -16,6 +16,8 @@ package karpenter
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
+	"slices"
 
 	"github.com/samber/lo"
 	corev1 "k8s.io/api/core/v1"
@@ -53,13 +55,16 @@ func NodePoolName(workspaceNamespace, workspaceName string) string {
 }
 
 // resolveNodeClassName determines the NodeClass resource name for a Workspace.
-// It checks for the node-class-name annotation on the workspace, then falls
-// back to the configured default.
-func resolveNodeClassName(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) string {
-	if name, ok := ws.Annotations[kaitov1beta1.AnnotationNodeClassName]; ok && name != "" {
-		return name
+func resolveNodeClassName(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) (string, error) {
+	name, ok := ws.Annotations[kaitov1beta1.AnnotationNodeClassName]
+	if !ok || name == "" {
+		return cfg.DefaultName, nil
 	}
-	return cfg.DefaultName
+	if !slices.Contains(cfg.AllowedNames, name) {
+		return "", fmt.Errorf("annotation %s=%q is not permitted: choose one of the KAITO-managed NodeClasses %v declared in the %q ConfigMap",
+			kaitov1beta1.AnnotationNodeClassName, name, cfg.AllowedNames, consts.NodeClassConfigMapName)
+	}
+	return name, nil
 }
 
 // isInferenceSetWorkspace returns true if the Workspace was created by an InferenceSet.
@@ -92,9 +97,8 @@ func nodePoolRequirements(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) []kar
 }
 
 // generateNodePool builds a karpenter NodePool manifest for the given Workspace.
-func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) *karpenterv1.NodePool {
+func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig, nodeClassName string) *karpenterv1.NodePool {
 	nodePoolName := NodePoolName(ws.Namespace, ws.Name)
-	nodeClassName := resolveNodeClassName(ws, cfg)
 
 	// Drift budget: InferenceSet workspaces start with "0" (blocked),
 	// standalone workspaces use "1" (karpenter handles autonomously).

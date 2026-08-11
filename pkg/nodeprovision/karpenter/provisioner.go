@@ -16,6 +16,7 @@ package karpenter
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/samber/lo"
@@ -44,13 +45,16 @@ import (
 
 // NodeClassConfig holds cloud-specific NodeClass reference info.
 // Group, Kind, Version, and ResourceName are injected via CLI flags.
-// DefaultName is derived by Start() from ConfigMap labels.
+// DefaultName and AllowedNames are derived by Start() from the NodeClass ConfigMap.
 type NodeClassConfig struct {
 	Group        string // e.g. "karpenter.azure.com"
 	Kind         string // e.g. "AKSNodeClass"
 	Version      string // e.g. "v1beta1"
 	ResourceName string // plural resource name (e.g. "aksnodeclasses"); combined with Group for CRD lookup
 	DefaultName  string // populated by Start(): name of entry with karpenter.kaito.sh/default=true
+	// AllowedNames is the set of NodeClass names KAITO created from the ConfigMap. It is
+	// the allowlist a Workspace may select from via the node-class-name annotation.
+	AllowedNames []string
 }
 
 // KarpenterProvisioner implements NodeProvisioner using the cloud-agnostic
@@ -71,8 +75,6 @@ func NewKarpenterProvisioner(c client.Client, cfg NodeClassConfig) *KarpenterPro
 
 // Name returns the provisioner name.
 func (p *KarpenterProvisioner) Name() string { return "KarpenterProvisioner" }
-
-const nodeClassConfigMapName = "kaito-nodeclasses"
 
 // Start verifies that the Karpenter CRDs are installed, creates
 // NodeClass resources from the ConfigMap, and derives DefaultName from labels.
@@ -111,13 +113,14 @@ func (p *KarpenterProvisioner) Start(ctx context.Context) error {
 	// Read the ConfigMap containing NodeClass manifests.
 	cm := &corev1.ConfigMap{}
 	if err := p.client.Get(ctx, types.NamespacedName{
-		Name: nodeClassConfigMapName, Namespace: releaseNS,
+		Name: consts.NodeClassConfigMapName, Namespace: releaseNS,
 	}, cm); err != nil {
 		return fmt.Errorf("reading NodeClass ConfigMap %q in namespace %q: %w",
-			nodeClassConfigMapName, releaseNS, err)
+			consts.NodeClassConfigMapName, releaseNS, err)
 	}
 
 	// Create each NodeClass and derive DefaultName from labels.
+	allowedNames := make([]string, 0, len(cm.Data))
 	for key, raw := range cm.Data {
 		obj := &unstructured.Unstructured{}
 		if err := sigsyaml.Unmarshal([]byte(raw), &obj.Object); err != nil {
@@ -126,6 +129,12 @@ func (p *KarpenterProvisioner) Start(ctx context.Context) error {
 
 		name := obj.GetName()
 		labels := obj.GetLabels()
+		// The admission webhook allowlists ConfigMap keys while provisioning allowlists
+		// manifest names; requiring them to match keeps the two checks equivalent.
+		if key != name {
+			return fmt.Errorf("NodeClass ConfigMap key %q does not match metadata.name %q", key, name)
+		}
+		allowedNames = append(allowedNames, name)
 
 		// Track the default NodeClass entry.
 		if labels["karpenter.kaito.sh/default"] == "true" {
@@ -148,6 +157,8 @@ func (p *KarpenterProvisioner) Start(ctx context.Context) error {
 	if p.nodeClassConfig.DefaultName == "" {
 		return fmt.Errorf("no NodeClass entry has label karpenter.kaito.sh/default=true")
 	}
+	slices.Sort(allowedNames)
+	p.nodeClassConfig.AllowedNames = allowedNames
 
 	// Wait for the default NodeClass to be ready.
 	if err := p.waitForNodeClassReady(ctx, p.nodeClassConfig.DefaultName); err != nil {
@@ -309,7 +320,10 @@ func (p *KarpenterProvisioner) countCoveredNodes(ctx context.Context, ws *kaitov
 // If a NodePool exists, replicas are only increased (never decreased) to avoid
 // disrupting running karpenter nodes when BYO nodes appear.
 func (p *KarpenterProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {
-	nodeClassName := resolveNodeClassName(ws, p.nodeClassConfig)
+	nodeClassName, err := resolveNodeClassName(ws, p.nodeClassConfig)
+	if err != nil {
+		return err
+	}
 	if err := p.checkNodeClassReady(ctx, nodeClassName); err != nil {
 		return fmt.Errorf("NodeClass %q is not ready: %w", nodeClassName, err)
 	}
@@ -332,7 +346,7 @@ func (p *KarpenterProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1be
 		if !apierrors.IsNotFound(err) {
 			return fmt.Errorf("getting NodePool %q: %w", nodePoolName, err)
 		}
-		np := generateNodePool(ws, p.nodeClassConfig)
+		np := generateNodePool(ws, p.nodeClassConfig, nodeClassName)
 		np.Spec.Replicas = lo.ToPtr(desiredReplicas)
 		if err := p.client.Create(ctx, np); err != nil {
 			if apierrors.IsAlreadyExists(err) {

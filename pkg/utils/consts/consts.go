@@ -111,6 +111,10 @@ const (
 	AKSNodeClassAzureLinuxName = "image-family-azure-linux"
 	AKSNodeClassOSDiskSizeGB   = 300
 
+	// NodeClassConfigMapName is the ConfigMap in the release namespace holding the
+	// admin-defined NodeClass manifests KAITO creates and allows Workspaces to select.
+	NodeClassConfigMapName = "kaito-nodeclasses"
+
 	// machine related consts
 	ProvisionerName           = "default"
 	LabelGPUProvisionerCustom = "kaito.sh/machine-type"

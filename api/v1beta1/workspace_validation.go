@@ -16,8 +16,10 @@ package v1beta1
 import (
 	"context"
 	"fmt"
+	"maps"
 	"os"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -26,6 +28,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
@@ -80,6 +83,9 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 			w.validateUpdate(old).ViaField("spec"),
 			w.Resource.validateUpdate(&old.Resource).ViaField("resource"),
 		)
+		if w.GetAnnotations()[AnnotationNodeClassName] != old.GetAnnotations()[AnnotationNodeClassName] {
+			errs = errs.Also(w.validateNodeClassNameAnnotation(ctx))
+		}
 		if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
 			errs = errs.Also(w.validateModelStreamingAnnotationImmutable(old))
 		}
@@ -99,6 +105,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 func (w *Workspace) ValidateCreate(ctx context.Context) (errs *apis.FieldError) {
 	errs = errs.Also(w.validateCreate().ViaField("spec"))
 	errs = errs.Also(w.validateAnnotations())
+	errs = errs.Also(w.validateNodeClassNameAnnotation(ctx))
 	if w.Inference != nil {
 		bypassResourceChecks := false
 		if w.GetAnnotations() != nil {
@@ -201,6 +208,40 @@ func (w *Workspace) validateNodeImageFamilyAnnotation() (errs *apis.FieldError) 
 		)
 	}
 
+	return nil
+}
+
+// validateNodeClassNameAnnotation restricts the node-class-name annotation to the
+// KAITO-managed NodeClasses declared in the release-namespace ConfigMap.
+func (w *Workspace) validateNodeClassNameAnnotation(ctx context.Context) *apis.FieldError {
+	name, ok := w.GetAnnotations()[AnnotationNodeClassName]
+	if !ok || name == "" {
+		return nil
+	}
+	field := fmt.Sprintf("metadata.annotations[%q]", AnnotationNodeClassName)
+
+	releaseNamespace, err := utils.GetReleaseNamespace()
+	if err != nil {
+		return apis.ErrGeneric(fmt.Sprintf("failed to determine release namespace: %v", err), field)
+	}
+
+	cm := &corev1.ConfigMap{}
+	if err := k8sclient.GetGlobalClient().Get(ctx, client.ObjectKey{
+		Name: consts.NodeClassConfigMapName, Namespace: releaseNamespace,
+	}, cm); err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil
+		}
+		return apis.ErrGeneric(fmt.Sprintf("failed to read NodeClass ConfigMap %q: %v", consts.NodeClassConfigMapName, err), field)
+	}
+
+	if _, ok := cm.Data[name]; !ok {
+		return apis.ErrInvalidValue(
+			fmt.Sprintf("%q is not a KAITO-managed NodeClass, supported values are %v",
+				name, slices.Sorted(maps.Keys(cm.Data))),
+			field,
+		)
+	}
 	return nil
 }
 

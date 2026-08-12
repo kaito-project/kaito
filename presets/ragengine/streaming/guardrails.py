@@ -38,6 +38,8 @@ STREAMING_GUARDRAILS_CAPABILITIES = {
     "sensitive": frozenset({"block", "redact"}),
 }
 STREAMING_GUARDRAILS_SUPPORTED_SCANNERS = frozenset(STREAMING_GUARDRAILS_CAPABILITIES)
+WORD_CHAR_SENTINEL = "\u02b0"
+NON_WORD_CHAR_SENTINEL = "\u2063"
 
 
 @dataclass(frozen=True)
@@ -194,30 +196,13 @@ class _LLMGuardWindowScanner:
         self._prompt = prompt
         self._built_scanners = built_scanners
         self._default_action_on_hit = default_action_on_hit
-        self._boundary_sentinels = {
-            id(scanner): (
-                _select_boundary_sentinel(
-                    scanner_config.config.substrings,
-                    word_character=True,
-                    case_sensitive=scanner_config.config.case_sensitive,
-                ),
-                _select_boundary_sentinel(
-                    scanner_config.config.substrings,
-                    word_character=False,
-                    case_sensitive=scanner_config.config.case_sensitive,
-                ),
-            )
-            for scanner_config, scanner in built_scanners
-            if scanner_config.type == "ban_substrings"
-            and scanner_config.config.match_type == "word"
-        }
 
     def scan(
         self,
         text: str,
         *,
         flush: bool = False,
-        left_context: str = "",
+        preceding_char: str = "",
     ) -> WindowScanResult:
         sanitized_text = text
         for scanner_config, scanner in self._built_scanners:
@@ -241,7 +226,7 @@ class _LLMGuardWindowScanner:
                 scanner,
                 sanitized_text,
                 flush=flush,
-                left_context=left_context,
+                preceding_char=preceding_char,
             )
             if scan_result is None:
                 return WindowScanResult(blocked=True)
@@ -264,7 +249,7 @@ class _LLMGuardWindowScanner:
                 scanner,
                 sanitized_text,
                 flush=flush,
-                left_context=left_context,
+                preceding_char=preceding_char,
             )
             if scan_result is None:
                 return WindowScanResult(blocked=True)
@@ -283,7 +268,7 @@ class _LLMGuardWindowScanner:
         text: str,
         *,
         flush: bool,
-        left_context: str,
+        preceding_char: str,
     ) -> tuple[str, dict[str, bool]] | None:
         scan_prefix = ""
         boundary_guard = ""
@@ -291,15 +276,10 @@ class _LLMGuardWindowScanner:
             scanner_config.type == "ban_substrings"
             and scanner_config.config.match_type == "word"
         ):
-            word_sentinel, nonword_sentinel = self._boundary_sentinels[id(scanner)]
-            if left_context and re.fullmatch(r"\w", left_context):
-                scan_prefix = word_sentinel
-            if not flush:
-                boundary_guard = (
-                    word_sentinel
-                    if text and re.fullmatch(r"\w", text[-1])
-                    else nonword_sentinel
-                )
+            scan_prefix = preceding_char
+            boundary_guard = NON_WORD_CHAR_SENTINEL
+            if not flush and text and re.fullmatch(r"\w", text[-1]):
+                boundary_guard = WORD_CHAR_SENTINEL
 
         scanner_output, results_valid, _ = scan_output(
             [scanner],
@@ -309,6 +289,21 @@ class _LLMGuardWindowScanner:
         )
         if not isinstance(scanner_output, str):
             return None
+        if scan_prefix and not all(results_valid.values()):
+            unprefixed_output, unprefixed_valid, _ = scan_output(
+                [scanner],
+                self._prompt,
+                text + boundary_guard,
+                fail_fast=False,
+            )
+            if not isinstance(unprefixed_output, str):
+                return None
+            if all(unprefixed_valid.values()) or not scanner_output.startswith(
+                scan_prefix
+            ):
+                scanner_output = unprefixed_output
+                results_valid = unprefixed_valid
+                scan_prefix = ""
         if scan_prefix:
             if not scanner_output.startswith(scan_prefix):
                 return None
@@ -319,34 +314,6 @@ class _LLMGuardWindowScanner:
             scanner_output = scanner_output[: -len(boundary_guard)]
 
         return scanner_output, results_valid
-
-
-def _select_boundary_sentinel(
-    substrings: list[str],
-    *,
-    word_character: bool,
-    case_sensitive: bool,
-) -> str:
-    flags = 0 if case_sensitive else re.IGNORECASE
-    preferred_candidates = (
-        "abcdefghijklmnopqrstuvwxyz0123456789_"
-        if word_character
-        else "~!@#$%^&*()[]{};:,<>?/|`"
-    )
-
-    for candidates in (preferred_candidates, map(chr, range(0x20, 0x110000))):
-        for candidate in candidates:
-            if not candidate.isprintable():
-                continue
-            if bool(re.fullmatch(r"\w", candidate)) != word_character:
-                continue
-            if any(
-                re.search(re.escape(candidate), value, flags) for value in substrings
-            ):
-                continue
-            return candidate
-
-    raise ValueError("unable to select a collision-free streaming boundary sentinel")
 
 
 def _redact_secrets_and_verify(scanner: Any, prompt: str, text: str) -> str | None:

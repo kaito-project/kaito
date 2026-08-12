@@ -36,7 +36,7 @@ class WindowScanner(Protocol):
         text: str,
         *,
         flush: bool = False,
-        left_context: str = "",
+        preceding_char: str = "",
     ) -> WindowScanResult: ...
 
 
@@ -59,7 +59,7 @@ class StreamingBufferWindow:
         self._scanner = scanner
         self._holdback_len = holdback_len
         self._pending_buffer = ""
-        self._left_context = ""
+        self._preceding_char = ""
         self._blocked = False
         self._redacted = False
 
@@ -110,7 +110,7 @@ class StreamingBufferWindow:
         scan_result = self._scanner.scan(
             scan_text,
             flush=flush,
-            left_context=self._left_context,
+            preceding_char=self._preceding_char,
         )
         if scan_result.blocked:
             self._blocked = True
@@ -127,5 +127,5 @@ class StreamingBufferWindow:
 
         emit_text = self._pending_buffer[:emit_len]
         self._pending_buffer = self._pending_buffer[emit_len:]
-        self._left_context = emit_text[-1:]
+        self._preceding_char = emit_text[-1:]
         return WindowEmitResult(chunks=(emit_text,))

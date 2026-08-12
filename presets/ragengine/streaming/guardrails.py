@@ -234,18 +234,16 @@ class _LLMGuardWindowScanner:
                     )
                 continue
 
-            scan_result = self._scan_output(
-                scanner,
+            scanner_output, results_valid, _ = scan_output(
+                [scanner],
+                self._prompt,
                 sanitized_text,
+                fail_fast=False,
             )
-            if scan_result is None:
+            if not isinstance(scanner_output, str):
                 return WindowScanResult(blocked=True)
-            scanner_output, results_valid = scan_result
             if not all(results_valid.values()):
-                if (
-                    not isinstance(scanner_output, str)
-                    or scanner_output == sanitized_text
-                ):
+                if scanner_output == sanitized_text:
                     return WindowScanResult(blocked=True)
                 sanitized_text = scanner_output
 
@@ -265,35 +263,20 @@ class _LLMGuardWindowScanner:
                     return WindowScanResult(blocked=True)
                 continue
 
-            scan_result = self._scan_output(
-                scanner,
+            scanner_output, results_valid, _ = scan_output(
+                [scanner],
+                self._prompt,
                 sanitized_text,
+                fail_fast=False,
             )
-            if scan_result is None:
+            if not isinstance(scanner_output, str):
                 return WindowScanResult(blocked=True)
-            _, results_valid = scan_result
             if not all(results_valid.values()):
                 return WindowScanResult(blocked=True)
 
         if sanitized_text == text:
             return WindowScanResult()
         return WindowScanResult(sanitized_text=sanitized_text)
-
-    def _scan_output(
-        self,
-        scanner: Any,
-        text: str,
-    ) -> tuple[str, dict[str, bool]] | None:
-        scanner_output, results_valid, _ = scan_output(
-            [scanner],
-            self._prompt,
-            text,
-            fail_fast=False,
-        )
-        if not isinstance(scanner_output, str):
-            return None
-
-        return scanner_output, results_valid
 
 
 def _is_word_match_scanner(scanner_config: Any) -> bool:
@@ -311,6 +294,11 @@ def _find_word_match_spans(
     preceding_char: str,
     flush: bool,
 ) -> tuple[tuple[int, int], ...]:
+    """Find matches with real word boundaries on both sides.
+
+    A match ending at the buffered text boundary remains unconfirmed until flush
+    because the next streamed character may remove its right word boundary.
+    """
     flags = 0 if case_sensitive else re.IGNORECASE
     spans: list[tuple[int, int]] = []
 
@@ -337,6 +325,7 @@ def _is_word_char(value: str) -> bool:
 def _merge_match_spans(
     spans: list[tuple[int, int]],
 ) -> tuple[tuple[int, int], ...]:
+    """Sort spans and merge overlaps produced by different substrings."""
     merged: list[tuple[int, int]] = []
     for start, end in sorted(spans):
         if merged and start < merged[-1][1]:

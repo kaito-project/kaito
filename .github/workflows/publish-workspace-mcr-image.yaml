@@ -1,9 +1,10 @@
 # TEMPORARY workflow (branch: qzhuang/tmp-mcr-extension).
-# Composes the ACR nightly flow with the MCR release:
-#   - build & push workspace image to ACR (matches nightly)
-#   - pin Chart.yaml/values.yaml, embed productionstack subchart
-#   - push helm chart to MCR
-#   - register extension version (fullPathToHelmChart -> MCR/helm/workspace)
+# MCR-only manual release for a temporary extension cut:
+#   - build & push workspace image to ${MCR}/public/aks/kaito/workspace
+#   - pin Chart.yaml/values.yaml at the release tag
+#   - push helm chart to ${MCR}/public/aks/kaito/helm/workspace
+#   - register extension version (fullPathToHelmChart -> ${MCR}/public/aks/kaito/helm/workspace)
+# The 1ES pool MI has no access to KAITO_ACR_REGISTRY, so everything targets MCR.
 # Manual trigger only; revert this file before merging back to main.
 name: Publish KAITO MCR image
 on:
@@ -65,65 +66,42 @@ jobs:
           submodules: true
           ref: ${{ github.event.inputs.git_ref || 'main' }}
 
-      - name: Authenticate to ACR and MCR
+      - name: Authenticate to MCR
         run: |
-          # 1ES pool uses a system-assigned MI; --client-id would look up a user-assigned identity that doesn't exist here.
+          # 1ES pool VMs only carry a system-assigned MI, so pass no --client-id.
+          # The MI has no access to KAITO_ACR_REGISTRY; push everything to MCR.
           az login --identity
-          az acr login -n "${ACR_REGISTRY}"
           az acr login -n "${MCR_REGISTRY}"
         env:
-          ACR_REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
           MCR_REGISTRY: ${{ secrets.KAITO_MCR_REGISTRY }}
 
-      - name: Build and push workspace image to ACR
+      - name: Build and push workspace image to MCR
         run: |
           make docker-build-workspace \
             REGISTRY="${REGISTRY}" \
             IMG_TAG="${IMG_TAG}" \
             IMG_NAME="${IMAGE_NAME}"
         env:
-          REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
+          # ${MCR}/public/aks/kaito syncs out to mcr.microsoft.com/aks/kaito.
+          REGISTRY: ${{ secrets.KAITO_MCR_REGISTRY }}/public/aks/kaito
           IMG_TAG: ${{ steps.get-image-tag.outputs.img_tag }}
 
       - name: Pin chart version and image to release tag
         run: |
-          # Chart.yaml: align version/appVersion with IMG_TAG so helm package emits
-          # <name>-<IMG_TAG>.tgz, which is what the Makefile target expects.
           yq -i ".version = \"${IMG_TAG}\" | .appVersion = \"${IMG_TAG}\"" "${CHART_PATH}/Chart.yaml"
-          # values.yaml: point the controller image at the ACR registry+tag we just pushed.
           yq -i ".image.repository = \"${REGISTRY}/${IMAGE_NAME}\" | .image.tag = \"${IMG_TAG}\"" "${CHART_PATH}/values.yaml"
         env:
-          REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
+          REGISTRY: ${{ secrets.KAITO_MCR_REGISTRY }}/public/aks/kaito
           IMG_TAG: ${{ steps.get-image-tag.outputs.img_tag }}
 
-      - name: Pin productionstack subchart to latest ACR tag
-        run: |
-          registry_name="${REGISTRY%%.*}"
-          productionstack_tag="$(az acr repository show-tags \
-            --name "${registry_name}" \
-            --repository 'helm/productionstack' \
-            --orderby time_desc \
-            --top 1 \
-            --output tsv)"
-          if [[ -z "${productionstack_tag}" ]]; then
-            echo 'No productionstack tags found in ACR' >&2
-            exit 1
-          fi
-
-          export PRODUCTIONSTACK_REPOSITORY="oci://${REGISTRY}/helm"
-          export PRODUCTIONSTACK_TAG="${productionstack_tag}"
-          yq -i '(.dependencies[] | select(.name == "productionstack") | .repository) = strenv(PRODUCTIONSTACK_REPOSITORY) |
-            (.dependencies[] | select(.name == "productionstack") | .version) = strenv(PRODUCTIONSTACK_TAG)' "${CHART_PATH}/Chart.yaml"
-          # helm dependency update pulls productionstack into charts/ so the packaged
-          # tgz embeds it — consumers installing from MCR do not need ACR access.
-          helm dependency update "${CHART_PATH}"
-        env:
-          REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
+      # productionstack subchart is already pinned to oci://mcr.microsoft.com/aks/kaito/helm
+      # in Chart.yaml and vendored under charts/kaito/workspace/charts/, so no dependency
+      # update is needed for an MCR release.
 
       - name: Package and push workspace chart to MCR
         run: |
           make helm-package-workspace \
-            REGISTRY="${MCR_REGISTRY}/helm" \
+            REGISTRY="${MCR_REGISTRY}/public/aks/kaito/helm" \
             IMG_TAG="${IMG_TAG}" \
             IMG_NAME="${IMAGE_NAME}"
         env:
@@ -222,7 +200,7 @@ jobs:
                           "dev",
                           "preview"
                       ],
-                      "fullPathToHelmChart": "'"${KAITO_EXTENSION_REGISTRY}"'/helm/workspace",
+                      "fullPathToHelmChart": "'"${KAITO_EXTENSION_REGISTRY}"'/public/aks/kaito/helm/workspace",
                       "isCustomerHidden": false,
                       "packageConfigName": "since-0.9.3"
                   }

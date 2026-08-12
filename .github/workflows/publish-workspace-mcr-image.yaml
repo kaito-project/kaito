@@ -2,9 +2,11 @@
 # MCR-only manual release for a temporary extension cut:
 #   - build & push workspace image to ${MCR}/public/aks/kaito/workspace
 #   - pin Chart.yaml/values.yaml at the release tag
+#   - bump productionstack subchart to the latest ACR tag (anonymous pull)
 #   - push helm chart to ${MCR}/public/aks/kaito/helm/workspace
 #   - register extension version (fullPathToHelmChart -> ${MCR}/public/aks/kaito/helm/workspace)
-# The 1ES pool MI has no access to KAITO_ACR_REGISTRY, so everything targets MCR.
+# The 1ES pool MI has no write access to KAITO_ACR_REGISTRY, so images and charts
+# land on MCR; ACR is only touched for anonymous reads of productionstack.
 # Manual trigger only; revert this file before merging back to main.
 name: Publish KAITO MCR image
 on:
@@ -95,8 +97,27 @@ jobs:
           IMG_TAG: ${{ steps.get-image-tag.outputs.img_tag }}
 
       # productionstack subchart is already pinned to oci://mcr.microsoft.com/aks/kaito/helm
-      # in Chart.yaml and vendored under charts/kaito/workspace/charts/, so no dependency
-      # update is needed for an MCR release.
+      # in Chart.yaml, but we still want the latest published tag for a temporary release.
+      # ACR has public pull enabled, so we can list tags anonymously via the data-plane API
+      # and let helm dependency update pull the tgz anonymously as well.
+      - name: Pin productionstack subchart to latest ACR tag
+        run: |
+          productionstack_tag="$(curl -sf "https://${ACR_REGISTRY}/acr/v1/helm/productionstack/_tags?orderby=timedesc&n=1" \
+            | python3 -c 'import json, sys; print(json.load(sys.stdin)["tags"][0]["name"])')"
+          if [[ -z "${productionstack_tag}" ]]; then
+            echo "No productionstack tags found in ${ACR_REGISTRY}" >&2
+            exit 1
+          fi
+          echo "Pinning productionstack to ${productionstack_tag}"
+
+          export PRODUCTIONSTACK_REPOSITORY="oci://${ACR_REGISTRY}/helm"
+          export PRODUCTIONSTACK_TAG="${productionstack_tag}"
+          yq -i '(.dependencies[] | select(.name == "productionstack") | .repository) = strenv(PRODUCTIONSTACK_REPOSITORY) |
+            (.dependencies[] | select(.name == "productionstack") | .version) = strenv(PRODUCTIONSTACK_TAG)' "${CHART_PATH}/Chart.yaml"
+          # Anonymous OCI pull; the tgz lands in charts/ so helm package embeds it.
+          helm dependency update "${CHART_PATH}"
+        env:
+          ACR_REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
 
       - name: Package and push workspace chart to MCR
         run: |

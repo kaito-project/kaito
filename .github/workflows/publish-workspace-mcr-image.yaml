@@ -13,9 +13,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Extension/chart version (SemVer, e.g. 0.12.0-rc-20260812)'
+        description: 'Extension/chart version (SemVer, e.g. 0.11.1)'
         required: true
-        default: '0.12.0-rc-20260812'
+        default: '0.11.1'
       git_ref:
         description: 'Git ref to build from (branch, tag, or SHA)'
         required: false

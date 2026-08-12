@@ -67,6 +67,8 @@ const (
 	FeatureFlagModelStreaming                     = "ModelStreaming"
 	FeatureFlagEnableBaseImageAutoUpgrade         = "enableBaseImageAutoUpgrade"
 
+	FeatureFlagDistributedCache = "distributedCache"
+
 	// Node provisioner types
 	NodeProvisionerAzureGPU  = "azure-gpu-provisioner"
 	NodeProvisionerKarpenter = "karpenter"

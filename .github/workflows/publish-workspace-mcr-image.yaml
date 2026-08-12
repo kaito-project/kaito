@@ -67,11 +67,11 @@ jobs:
 
       - name: Authenticate to ACR and MCR
         run: |
-          az login --identity --client-id "${CLIENTID}"
+          # 1ES pool uses a system-assigned MI; --client-id would look up a user-assigned identity that doesn't exist here.
+          az login --identity
           az acr login -n "${ACR_REGISTRY}"
           az acr login -n "${MCR_REGISTRY}"
         env:
-          CLIENTID: ${{ secrets.IDENTITY_CLIENT_ID }}
           ACR_REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
           MCR_REGISTRY: ${{ secrets.KAITO_MCR_REGISTRY }}
 
@@ -132,7 +132,6 @@ jobs:
 
       - name: Publish Extension
         env:
-          IDENTITY_CLIENT_ID: ${{ secrets.IDENTITY_CLIENT_ID }}
           EXTENSIONS_DP_RESOURCE: ${{ secrets.EXTENSIONS_DP_RESOURCE }}
           EXTENSIONS_DP_ENDPOINT: ${{ secrets.EXTENSIONS_DP_ENDPOINT }}
           EXTENSIONS_API_VERSION: ${{ secrets.EXTENSIONS_API_VERSION }}
@@ -141,7 +140,7 @@ jobs:
           KAITO_EXTENSION_VERSION: ${{ steps.get-image-tag.outputs.img_tag }}
           KAITO_EXTENSION_REGISTRY: ${{ secrets.KAITO_MCR_REGISTRY }}
         run: |
-          az login --identity --client-id "${IDENTITY_CLIENT_ID}"
+          az login --identity
           az rest --resource "${EXTENSIONS_DP_RESOURCE}" --method 'PUT' --url "https://${EXTENSIONS_DP_ENDPOINT}/subscriptions/${KAITO_EXTENSION_SUBSCRIPTION}/extensionTypeRegistrations/${KAITO_EXTENSION_TYPE}/versions/${KAITO_EXTENSION_VERSION}?api-version=${EXTENSIONS_API_VERSION}" --body '{
               "artifactEndpoints": [
                   {

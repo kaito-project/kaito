@@ -1,20 +1,31 @@
+# TEMPORARY workflow (branch: qzhuang/tmp-mcr-extension).
+# Composes the ACR nightly flow with the MCR release:
+#   - build & push workspace image to ACR (matches nightly)
+#   - pin Chart.yaml/values.yaml, embed productionstack subchart
+#   - push helm chart to MCR
+#   - register extension version (fullPathToHelmChart -> MCR/helm/workspace)
+# Manual trigger only; revert this file before merging back to main.
 name: Publish KAITO MCR image
 on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'tag to be created for this image (e.g. v0.6.0)'
+        description: 'Extension/chart version (SemVer, e.g. 0.12.0-rc-20260812)'
         required: true
-  repository_dispatch:
-    types: [ publish-workspace-mcr-image ]
+        default: '0.12.0-rc-20260812'
+      git_ref:
+        description: 'Git ref to build from (branch, tag, or SHA)'
+        required: false
+        default: 'main'
+        type: string
 
 permissions:
-  contents: write
-  packages: write
+  contents: read
 
 env:
   GO_VERSION: '1.26.4'
   IMAGE_NAME: 'workspace'
+  CHART_PATH: 'charts/kaito/workspace'
 
 jobs:
   build-publish-mcr-image:
@@ -40,51 +51,181 @@ jobs:
       - name: Set up Go ${{ env.GO_VERSION }}
         uses: actions/setup-go@v5.5.0
         with:
-          go-version: ${{ env.GO_VERSION  }}
+          go-version: ${{ env.GO_VERSION }}
 
-      - name: Set Image tag
+      - id: get-image-tag
+        name: Compute image tag
         run: |
-          ver=${{ github.event.client_payload.tag || github.event.inputs.tag }}
-          echo "IMG_TAG=${ver#"v"}" >> $GITHUB_ENV
+          ver='${{ github.event.inputs.tag }}'
+          echo "img_tag=${ver#v}" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           fetch-depth: 0
           submodules: true
-          ref: ${{ github.event.client_payload.tag || github.event.inputs.tag }}
+          ref: ${{ github.event.inputs.git_ref || 'main' }}
 
-      - name: Authenticate to ACR
+      - name: Authenticate to ACR and MCR
         run: |
-          az login --identity
-          az acr login -n ${{ secrets.KAITO_MCR_REGISTRY }}
-
-      - name: 'Build and Publish to MCR'
-        id: Publish
-        run: |
-          ARTF_REPO="${REGISTRY}/${IMG_NAME}"
-          INDEX_REF="${ARTF_REPO}:${IMG_TAG}"
-
-          make docker-build-workspace
-          INDEX_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}")"
-
-          # TODO(pedrotorres): remove REGISTRY override and uncomment all lines once sync problem is solved
-          make helm-package-workspace REGISTRY="${REGISTRY}/helm"
-          # CHART_DIG="$(oras manifest fetch --format 'go-template={{ .digest }}' "${INDEX_REF}")"
-          #
-          # oras manifest index update "${ARTF_REPO}@${INDEX_DIG}" --add "${CHART_DIG}" --tag "${IMG_TAG}"
+          az login --identity --client-id "${CLIENTID}"
+          az acr login -n "${ACR_REGISTRY}"
+          az acr login -n "${MCR_REGISTRY}"
         env:
-          VERSION: ${{ github.event.client_payload.tag || github.event.inputs.tag }}
-          REGISTRY: ${{ secrets.KAITO_MCR_REGISTRY }}/public/aks/kaito
-          IMG_NAME: workspace
-          IMG_TAG: ${{ env.IMG_TAG }}
+          CLIENTID: ${{ secrets.IDENTITY_CLIENT_ID }}
+          ACR_REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
+          MCR_REGISTRY: ${{ secrets.KAITO_MCR_REGISTRY }}
 
-  publish-helm-chart:
-    runs-on: ubuntu-latest
-    needs: [ build-publish-mcr-image ]
-    steps:
-      - name: 'Dispatch release tag for workspace helm chart'
-        uses: peter-evans/repository-dispatch@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          event-type: publish-workspace-helm-chart
-          client-payload: '{"tag": "${{ github.event.client_payload.tag || github.event.inputs.tag }}"}'
+      - name: Build and push workspace image to ACR
+        run: |
+          make docker-build-workspace \
+            REGISTRY="${REGISTRY}" \
+            IMG_TAG="${IMG_TAG}" \
+            IMG_NAME="${IMAGE_NAME}"
+        env:
+          REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
+          IMG_TAG: ${{ steps.get-image-tag.outputs.img_tag }}
+
+      - name: Pin chart version and image to release tag
+        run: |
+          # Chart.yaml: align version/appVersion with IMG_TAG so helm package emits
+          # <name>-<IMG_TAG>.tgz, which is what the Makefile target expects.
+          yq -i ".version = \"${IMG_TAG}\" | .appVersion = \"${IMG_TAG}\"" "${CHART_PATH}/Chart.yaml"
+          # values.yaml: point the controller image at the ACR registry+tag we just pushed.
+          yq -i ".image.repository = \"${REGISTRY}/${IMAGE_NAME}\" | .image.tag = \"${IMG_TAG}\"" "${CHART_PATH}/values.yaml"
+        env:
+          REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
+          IMG_TAG: ${{ steps.get-image-tag.outputs.img_tag }}
+
+      - name: Pin productionstack subchart to latest ACR tag
+        run: |
+          registry_name="${REGISTRY%%.*}"
+          productionstack_tag="$(az acr repository show-tags \
+            --name "${registry_name}" \
+            --repository 'helm/productionstack' \
+            --orderby time_desc \
+            --top 1 \
+            --output tsv)"
+          if [[ -z "${productionstack_tag}" ]]; then
+            echo 'No productionstack tags found in ACR' >&2
+            exit 1
+          fi
+
+          export PRODUCTIONSTACK_REPOSITORY="oci://${REGISTRY}/helm"
+          export PRODUCTIONSTACK_TAG="${productionstack_tag}"
+          yq -i '(.dependencies[] | select(.name == "productionstack") | .repository) = strenv(PRODUCTIONSTACK_REPOSITORY) |
+            (.dependencies[] | select(.name == "productionstack") | .version) = strenv(PRODUCTIONSTACK_TAG)' "${CHART_PATH}/Chart.yaml"
+          # helm dependency update pulls productionstack into charts/ so the packaged
+          # tgz embeds it — consumers installing from MCR do not need ACR access.
+          helm dependency update "${CHART_PATH}"
+        env:
+          REGISTRY: ${{ secrets.KAITO_ACR_REGISTRY }}
+
+      - name: Package and push workspace chart to MCR
+        run: |
+          make helm-package-workspace \
+            REGISTRY="${MCR_REGISTRY}/helm" \
+            IMG_TAG="${IMG_TAG}" \
+            IMG_NAME="${IMAGE_NAME}"
+        env:
+          MCR_REGISTRY: ${{ secrets.KAITO_MCR_REGISTRY }}
+          IMG_TAG: ${{ steps.get-image-tag.outputs.img_tag }}
+
+      - name: Publish Extension
+        env:
+          IDENTITY_CLIENT_ID: ${{ secrets.IDENTITY_CLIENT_ID }}
+          EXTENSIONS_DP_RESOURCE: ${{ secrets.EXTENSIONS_DP_RESOURCE }}
+          EXTENSIONS_DP_ENDPOINT: ${{ secrets.EXTENSIONS_DP_ENDPOINT }}
+          EXTENSIONS_API_VERSION: ${{ secrets.EXTENSIONS_API_VERSION }}
+          KAITO_EXTENSION_SUBSCRIPTION: ${{ secrets.KAITO_EXTENSION_SUBSCRIPTION }}
+          KAITO_EXTENSION_TYPE: ${{ secrets.KAITO_EXTENSION_TYPE }}
+          KAITO_EXTENSION_VERSION: ${{ steps.get-image-tag.outputs.img_tag }}
+          KAITO_EXTENSION_REGISTRY: ${{ secrets.KAITO_MCR_REGISTRY }}
+        run: |
+          az login --identity --client-id "${IDENTITY_CLIENT_ID}"
+          az rest --resource "${EXTENSIONS_DP_RESOURCE}" --method 'PUT' --url "https://${EXTENSIONS_DP_ENDPOINT}/subscriptions/${KAITO_EXTENSION_SUBSCRIPTION}/extensionTypeRegistrations/${KAITO_EXTENSION_TYPE}/versions/${KAITO_EXTENSION_VERSION}?api-version=${EXTENSIONS_API_VERSION}" --body '{
+              "artifactEndpoints": [
+                  {
+                      "regions": [
+                          "eastus2euap",
+                          "centraluseuap",
+                          "westcentralus",
+                          "eastasia",
+                          "uksouth",
+                          "eastus",
+                          "australiaeast",
+                          "brazilsouth",
+                          "canadacentral",
+                          "centralindia",
+                          "eastus2",
+                          "eastus3",
+                          "francecentral",
+                          "germanywestcentral",
+                          "japaneast",
+                          "koreacentral",
+                          "malaysiasouth",
+                          "northcentralus",
+                          "northeurope",
+                          "swedencentral",
+                          "switzerlandnorth",
+                          "westus2",
+                          "australiacentral",
+                          "israelcentral",
+                          "italynorth",
+                          "jioindiawest",
+                          "mexicocentral",
+                          "norwayeast",
+                          "qatarcentral",
+                          "southafricanorth",
+                          "taiwannorth",
+                          "uaenorth",
+                          "ukwest",
+                          "centralus",
+                          "chilecentral",
+                          "japanwest",
+                          "malaysiawest",
+                          "newzealandnorth",
+                          "southcentralus",
+                          "southeastasia",
+                          "westeurope",
+                          "westus3",
+                          "westus",
+                          "australiacentral2",
+                          "australiasoutheast",
+                          "brazilsoutheast",
+                          "canadaeast",
+                          "denmarkeast",
+                          "francesouth",
+                          "germanynorth",
+                          "jioindiacentral",
+                          "koreasouth",
+                          "norwaywest",
+                          "polandcentral",
+                          "southafricawest",
+                          "southcentralus2",
+                          "southindia",
+                          "spaincentral",
+                          "swedensouth",
+                          "switzerlandwest",
+                          "taiwannorthwest",
+                          "uaecentral",
+                          "southeastus",
+                          "southwestus",
+                          "southeastus3",
+                          "southeastus5",
+                          "indonesiacentral",
+                          "austriaeast",
+                          "israelnorthwest",
+                          "belgiumcentral",
+                          "northeastus5",
+                          "indiasouthcentral"
+                      ],
+                      "releasetrains": [
+                          "dev",
+                          "preview"
+                      ],
+                      "fullPathToHelmChart": "'"${KAITO_EXTENSION_REGISTRY}"'/helm/workspace",
+                      "isCustomerHidden": false,
+                      "packageConfigName": "since-0.9.3"
+                  }
+              ]
+          }'

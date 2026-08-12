@@ -1253,6 +1253,15 @@ func applyBenchmarkStatus(ctx context.Context, status *kaitov1beta1.WorkspaceSta
 	return nil
 }
 
+// refreshBenchmarkObservedGenerationIfCompleted preserves the write-once
+// BenchmarkCompleted=True state and recorded benchmark result, while advancing
+// the condition's ObservedGeneration to the current Workspace generation.
+//
+// This keeps the condition from looking stale after later reconciles or spec
+// updates that do not require re-running benchmark. Callers can use the return
+// value as a short-circuit signal: true means benchmark is already completed
+// (and its ObservedGeneration is now current), so no log re-read or result
+// overwrite should happen.
 func refreshBenchmarkObservedGenerationIfCompleted(status *kaitov1beta1.WorkspaceStatus, generation int64) bool {
 	c := meta.FindStatusCondition(status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted))
 	if c == nil || c.Status != metav1.ConditionTrue {

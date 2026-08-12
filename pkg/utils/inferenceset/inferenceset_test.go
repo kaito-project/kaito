@@ -51,10 +51,11 @@ func TestUpdateStatusConditionIfNotMatch(t *testing.T) {
 			Status: kaitov1beta1.InferenceSetStatus{
 				Conditions: []metav1.Condition{
 					{
-						Type:    string(kaitov1beta1.ConditionTypeResourceStatus),
-						Status:  metav1.ConditionTrue,
-						Reason:  "ResourcesReady",
-						Message: "All resources are ready",
+						Type:               string(kaitov1beta1.ConditionTypeResourceStatus),
+						Status:             metav1.ConditionTrue,
+						Reason:             "ResourcesReady",
+						Message:            "All resources are ready",
+						ObservedGeneration: 1,
 					},
 				},
 			},

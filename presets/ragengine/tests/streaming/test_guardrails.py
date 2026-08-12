@@ -784,6 +784,107 @@ async def test_word_match_redacts_at_final_flush():
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("case_sensitive", "expected"),
+    [
+        (True, "UNSAFE [REDACTED]"),
+        (False, "[REDACTED] [REDACTED]"),
+    ],
+)
+async def test_word_match_redaction_respects_case_sensitivity(case_sensitive, expected):
+    chunks = await _apply_text(
+        "UNSAFE unsafe",
+        _streaming_guardrails(
+            _ban_substrings_scanner(
+                "unsafe",
+                action="redact",
+                match_type="word",
+                case_sensitive=case_sensitive,
+            )
+        ),
+    )
+
+    assert _emitted_text(chunks) == expected
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("action", ["block", "redact"])
+async def test_word_match_handles_multiple_configured_values(action):
+    chunks = await _apply_text(
+        "unsafe and prohibited",
+        _streaming_guardrails(
+            _ban_substrings_scanner(
+                ["unsafe", "prohibited"],
+                action=action,
+                match_type="word",
+            )
+        ),
+    )
+
+    emitted_text = _emitted_text(chunks)
+    if action == "block":
+        assert emitted_text == "blocked-by-policy"
+    else:
+        assert emitted_text == "[REDACTED] and [REDACTED]"
+
+
+@pytest.mark.asyncio
+async def test_word_match_redacts_only_confirmed_spans():
+    chunks = await _apply_text(
+        "unsafe unsafeish UNSAFE",
+        _streaming_guardrails(
+            _ban_substrings_scanner(
+                "unsafe",
+                action="redact",
+                match_type="word",
+                case_sensitive=False,
+            )
+        ),
+    )
+
+    assert _emitted_text(chunks) == "[REDACTED] unsafeish [REDACTED]"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "substrings",
+    [
+        ["a.a", "a"],
+        ["a", "a.a"],
+    ],
+)
+async def test_word_match_merges_overlapping_spans(substrings):
+    chunks = await _apply_text(
+        "a.a",
+        _streaming_guardrails(
+            _ban_substrings_scanner(
+                substrings,
+                action="redact",
+                match_type="word",
+            )
+        ),
+    )
+
+    assert _emitted_text(chunks) == "[REDACTED]"
+
+
+@pytest.mark.asyncio
+async def test_word_match_merges_overlapping_occurrences():
+    chunks = await _apply_text(
+        "a-a-a",
+        _streaming_guardrails(
+            _ban_substrings_scanner(
+                "a-a",
+                action="redact",
+                match_type="word",
+            )
+        ),
+    )
+
+    assert _emitted_text(chunks) == "[REDACTED]"
+
+
+@pytest.mark.asyncio
 async def test_word_block_does_not_reject_chunk_end_before_lookahead():
     prefix = "p" * 300
 

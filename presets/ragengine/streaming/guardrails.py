@@ -38,8 +38,6 @@ STREAMING_GUARDRAILS_CAPABILITIES = {
     "sensitive": frozenset({"block", "redact"}),
 }
 STREAMING_GUARDRAILS_SUPPORTED_SCANNERS = frozenset(STREAMING_GUARDRAILS_CAPABILITIES)
-WORD_CHAR_SENTINEL = "\u02b0"
-NON_WORD_CHAR_SENTINEL = "\u2063"
 
 
 @dataclass(frozen=True)
@@ -221,12 +219,24 @@ class _LLMGuardWindowScanner:
                 sanitized_text = redacted_text
                 continue
 
+            if _is_word_match_scanner(scanner_config):
+                match_spans = _find_word_match_spans(
+                    sanitized_text,
+                    scanner_config.config.substrings,
+                    case_sensitive=scanner_config.config.case_sensitive,
+                    preceding_char=preceding_char,
+                    flush=flush,
+                )
+                if match_spans:
+                    sanitized_text = _redact_match_spans(
+                        sanitized_text,
+                        match_spans,
+                    )
+                continue
+
             scan_result = self._scan_output(
-                scanner_config,
                 scanner,
                 sanitized_text,
-                flush=flush,
-                preceding_char=preceding_char,
             )
             if scan_result is None:
                 return WindowScanResult(blocked=True)
@@ -244,12 +254,20 @@ class _LLMGuardWindowScanner:
             if scanner_action != "block":
                 continue
 
+            if _is_word_match_scanner(scanner_config):
+                if _find_word_match_spans(
+                    sanitized_text,
+                    scanner_config.config.substrings,
+                    case_sensitive=scanner_config.config.case_sensitive,
+                    preceding_char=preceding_char,
+                    flush=flush,
+                ):
+                    return WindowScanResult(blocked=True)
+                continue
+
             scan_result = self._scan_output(
-                scanner_config,
                 scanner,
                 sanitized_text,
-                flush=flush,
-                preceding_char=preceding_char,
             )
             if scan_result is None:
                 return WindowScanResult(blocked=True)
@@ -263,57 +281,80 @@ class _LLMGuardWindowScanner:
 
     def _scan_output(
         self,
-        scanner_config: Any,
         scanner: Any,
         text: str,
-        *,
-        flush: bool,
-        preceding_char: str,
     ) -> tuple[str, dict[str, bool]] | None:
-        scan_prefix = ""
-        boundary_guard = ""
-        if (
-            scanner_config.type == "ban_substrings"
-            and scanner_config.config.match_type == "word"
-        ):
-            scan_prefix = preceding_char
-            boundary_guard = NON_WORD_CHAR_SENTINEL
-            if not flush and text and re.fullmatch(r"\w", text[-1]):
-                boundary_guard = WORD_CHAR_SENTINEL
-
         scanner_output, results_valid, _ = scan_output(
             [scanner],
             self._prompt,
-            scan_prefix + text + boundary_guard,
+            text,
             fail_fast=False,
         )
         if not isinstance(scanner_output, str):
             return None
-        if scan_prefix and not all(results_valid.values()):
-            unprefixed_output, unprefixed_valid, _ = scan_output(
-                [scanner],
-                self._prompt,
-                text + boundary_guard,
-                fail_fast=False,
-            )
-            if not isinstance(unprefixed_output, str):
-                return None
-            if all(unprefixed_valid.values()) or not scanner_output.startswith(
-                scan_prefix
-            ):
-                scanner_output = unprefixed_output
-                results_valid = unprefixed_valid
-                scan_prefix = ""
-        if scan_prefix:
-            if not scanner_output.startswith(scan_prefix):
-                return None
-            scanner_output = scanner_output[len(scan_prefix) :]
-        if boundary_guard:
-            if not scanner_output.endswith(boundary_guard):
-                return None
-            scanner_output = scanner_output[: -len(boundary_guard)]
 
         return scanner_output, results_valid
+
+
+def _is_word_match_scanner(scanner_config: Any) -> bool:
+    return (
+        scanner_config.type == "ban_substrings"
+        and scanner_config.config.match_type == "word"
+    )
+
+
+def _find_word_match_spans(
+    text: str,
+    substrings: list[str],
+    *,
+    case_sensitive: bool,
+    preceding_char: str,
+    flush: bool,
+) -> tuple[tuple[int, int], ...]:
+    flags = 0 if case_sensitive else re.IGNORECASE
+    spans: list[tuple[int, int]] = []
+
+    for substring in substrings:
+        pattern = re.compile(f"(?=({re.escape(substring)}))", flags)
+        for match in pattern.finditer(text):
+            start, end = match.span(1)
+            left_char = text[start - 1] if start > 0 else preceding_char
+            if _is_word_char(left_char) == _is_word_char(text[start]):
+                continue
+            if end == len(text) and not flush:
+                continue
+            right_char = text[end] if end < len(text) else ""
+            if _is_word_char(text[end - 1]) == _is_word_char(right_char):
+                continue
+            spans.append((start, end))
+
+    return _merge_overlapping_spans(spans)
+
+
+def _is_word_char(value: str) -> bool:
+    return bool(value and re.fullmatch(r"\w", value))
+
+
+def _merge_overlapping_spans(
+    spans: list[tuple[int, int]],
+) -> tuple[tuple[int, int], ...]:
+    merged: list[tuple[int, int]] = []
+    for start, end in sorted(spans):
+        if merged and start < merged[-1][1]:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+        elif not merged or (start, end) != merged[-1]:
+            merged.append((start, end))
+    return tuple(merged)
+
+
+def _redact_match_spans(text: str, spans: tuple[tuple[int, int], ...]) -> str:
+    redacted_parts: list[str] = []
+    cursor = 0
+    for start, end in spans:
+        redacted_parts.extend((text[cursor:start], "[REDACTED]"))
+        cursor = end
+    redacted_parts.append(text[cursor:])
+    return "".join(redacted_parts)
 
 
 def _redact_secrets_and_verify(scanner: Any, prompt: str, text: str) -> str | None:

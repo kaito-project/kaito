@@ -173,6 +173,7 @@ func NewWorkspaceForInferenceSet(iObj *kaitov1beta1.InferenceSet) *kaitov1beta1.
 		workspaceObj.Resource.InstanceType = iObj.Spec.Template.Resource.InstanceType
 	}
 	workspaceObj.Inference = &iObj.Spec.Template.Inference
+	workspaceObj.Cache = iObj.Spec.Template.Cache
 
 	return workspaceObj
 }

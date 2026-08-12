@@ -51,6 +51,7 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/cache"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
@@ -361,6 +362,27 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 		}
 	}
 
+	// TODO(distributed-cache): Phase 4 — ModelMirror Integration (Cache Warming).
+	// Cache warming occurs as a side-effect of ModelMirror's download. Two paths:
+	//   CSI: Set provider StorageClass on ModelMirror PVC (writes flow through CSI to cache).
+	//   Webhook: Provider webhook injects cache interception into download pods.
+	// In Required mode, gate on both ModelMirror Ready AND provider.IsReady().
+	// In Opportunistic mode, gate only on ModelMirror Ready; cache warms lazily on first read.
+
+	// Check cache readiness when configured. In Required mode, block deployment
+	// until the cache is ready. Gated on the distributed-cache feature flag so
+	// the cache library itself stays feature-gate agnostic.
+	if featuregates.FeatureGates[consts.FeatureFlagDistributedCache] {
+		cacheResult := cache.ReconcileCache(ctx, c.Client, wObj, &wObj.Status)
+		if cacheResult.BlockDeployment {
+			klog.V(2).InfoS("Cache not ready, blocking deployment", "workspace", klog.KObj(wObj))
+			if cacheResult.RequeueNeeded {
+				return reconcile.Result{RequeueAfter: 10 * time.Second}, nil
+			}
+			return reconcile.Result{}, nil
+		}
+	}
+
 	if wObj.Tuning != nil {
 		if err := c.applyTuning(ctx, wObj); err != nil {
 			return reconcile.Result{}, err
@@ -379,6 +401,8 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 
 func (c *WorkspaceReconciler) deleteWorkspace(ctx context.Context, wObj *kaitov1beta1.Workspace) (reconcile.Result, error) {
 	klog.InfoS("deleteWorkspace", "workspace", klog.KObj(wObj))
+	// TODO(distributed-cache): Call provider.Cleanup() here when workspace.Cache.ModelCache.CleanupOnDelete
+	// is true. Add a cache-cleanup finalizer to gate deletion until cleanup completes or times out.
 	return c.garbageCollectWorkspace(ctx, wObj)
 }
 func (c *WorkspaceReconciler) syncControllerRevision(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
@@ -746,6 +770,15 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 			if _, ok := returnedTypes[t]; !ok {
 				meta.RemoveStatusCondition(&status.Conditions, t)
 			}
+		}
+
+		// Reconcile cache conditions against the freshly-fetched status so they
+		// are persisted alongside node/inference/tuning conditions. This also
+		// downgrades *CacheReady when the cache was not injected into the pod.
+		// Gated on the distributed-cache feature flag so the cache library stays
+		// feature-gate agnostic.
+		if featuregates.FeatureGates[consts.FeatureFlagDistributedCache] {
+			cache.ReconcileCache(ctx, c.Client, wObj, status)
 		}
 
 		// Extract ResourceStatus condition status for downstream use.

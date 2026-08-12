@@ -1,0 +1,135 @@
+# Models for which the run:ai streamer chunk size is auto-recommended.
+#
+# The recommended chunk size (RUNAI_STREAMER_CHUNK_BYTESIZE) is derived offline
+# from each model's safetensors tensor layout: the generator reads the
+# safetensors header of every shard (exactly how the run:ai streamer does — the
+# leading uint64 header length followed by the JSON header whose per-tensor
+# `data_offsets` give each tensor's byte size) and recommends the modal
+# per-tensor size (the size the most tensors share), capping any tensor above
+# 32 MiB at 32 MiB before counting and flooring the result at 2 MiB. Aligning
+# the streamer chunk to that size makes the dominant per-tensor read map to a
+# single chunk.
+#
+# KAITO's presets/workspace/models/supported_models.yaml is the source of truth
+# for supported presets; this file only lists the (name, repo, revision) needed
+# to fetch tensor metadata for chunk-size recommendation. Models already in
+# supported_models.yaml can be listed here too — the point is the HuggingFace
+# repo/revision to read headers from.
+#
+# Pin `revision` to a commit SHA for reproducible generation (the generated Go
+# file is checked in; CI does not refetch). Regenerate with:
+#
+#   make generate-chunksizes
+#
+models:
+  # Not present in supported_models.yaml (which only has qwen2.5-coder-*).
+  - name: qwen3-coder-30b-a3b-instruct
+    repo: Qwen/Qwen3-Coder-30B-A3B-Instruct
+    revision: b2cff646eb4bb1d68355c01b18ae02e7cf42d120
+
+  - name: qwen2.5-coder-7b-instruct
+    repo: Qwen/Qwen2.5-Coder-7B-Instruct
+    revision: c03e6d358207e414f1eca0bb1891e29f1db0e242
+
+  - name: qwen2.5-coder-32b-instruct
+    repo: Qwen/Qwen2.5-Coder-32B-Instruct
+    revision: 381fc969f78efac66bc87ff7ddeadb7e73c218a7
+
+  # MoE presets from supported_models.yaml (repo/revision pinned to the same
+  # commit the preset serves). e2e also exercises gpt-oss-20b and gpt-oss-120b.
+  - name: gpt-oss-20b
+    repo: openai/gpt-oss-20b
+    revision: db6852caddef0cf0c1f729034ed700c84eab376e
+
+  - name: gpt-oss-120b
+    repo: openai/gpt-oss-120b
+    revision: b5c939de8f754692c1647ca79fbf85e8c1e70f8a
+
+  - name: deepseek-r1-0528
+    repo: deepseek-ai/DeepSeek-R1-0528
+    revision: 4236a6af538feda4548eca9ab308586007567f52
+
+  - name: deepseek-v3-0324
+    repo: deepseek-ai/DeepSeek-V3-0324
+    revision: e9b33add76883f293d6bf61f6bd89b497e80e335
+
+  # Dense presets from supported_models.yaml. These typically resolve to the
+  # 32 MiB cap (their large weight tensors dominate), matching the fallback
+  # default; they are listed for documentation completeness and to pin an
+  # explicit per-model recommendation.
+  - name: phi-2
+    repo: microsoft/phi-2
+    revision: ef382358ec9e382308935a992d908de099b64c23
+
+  - name: phi-3-mini-4k-instruct
+    repo: microsoft/Phi-3-mini-4k-instruct
+    revision: 0a67737cc96d2554230f90338b163bc6380a2a85
+
+  - name: phi-3-mini-128k-instruct
+    repo: microsoft/Phi-3-mini-128k-instruct
+    revision: 072cb7562cb8c4adf682a8e186aaafa49469eb5d
+
+  - name: phi-3-medium-4k-instruct
+    repo: microsoft/Phi-3-medium-4k-instruct
+    revision: b64223aaea6fbf273c0c8cd0801d5e732dce8897
+
+  - name: phi-3-medium-128k-instruct
+    repo: microsoft/Phi-3-medium-128k-instruct
+    revision: fa7d2aa4f5ea69b2e36b20d050cdae79c9bfbb3f
+
+  - name: phi-3.5-mini-instruct
+    repo: microsoft/Phi-3.5-mini-instruct
+    revision: 3145e03a9fd4cdd7cd953c34d9bbf7ad606122ca
+
+  - name: phi-4-mini-instruct
+    repo: microsoft/Phi-4-mini-instruct
+    revision: c0fb9e74abda11b496b7907a9c6c9009a7a0488f
+
+  - name: phi-4
+    repo: microsoft/phi-4
+    revision: 187ef0342fff0eb3333be9f00389385e95ef0b61
+
+  - name: deepseek-r1-distill-qwen-14b
+    repo: deepseek-ai/DeepSeek-R1-Distill-Qwen-14B
+    revision: 1df8507178afcc1bef68cd8c393f61a886323761
+
+  - name: deepseek-r1-distill-llama-8b
+    repo: deepseek-ai/DeepSeek-R1-Distill-Llama-8B
+    revision: 6a6f4aa4197940add57724a7707d069478df56b1
+
+  - name: mistral-7b
+    repo: mistralai/Mistral-7B-v0.3
+    revision: d8cadc02ac76bd617a919d50b092e59d2d110aff
+
+  - name: mistral-7b-instruct
+    repo: mistralai/Mistral-7B-Instruct-v0.3
+    revision: e0bc86c23ce5aae1db576c8cca6f06f1f73af2db
+
+  - name: ministral-3-3b-instruct
+    repo: mistralai/Ministral-3-3B-Instruct-2512
+    revision: 83e15808ff6a115f18ff8e68123db3ab35035714
+
+  - name: ministral-3-8b-instruct
+    repo: mistralai/Ministral-3-8B-Instruct-2512
+    revision: df904c183734f8760042c708d3629a4ed68b103a
+
+  - name: ministral-3-14b-instruct
+    repo: mistralai/Ministral-3-14B-Instruct-2512
+    revision: 6aa4534f7bb46d16753bd12a08b32810a06b7a14
+
+  # Falcon presets. The commit supported_models.yaml pins predates safetensors
+  # (that commit ships PyTorch .bin only), so we read a later safetensors-bearing
+  # commit here — tensor shapes/sizes are format-independent, so the layout still
+  # matches the served model. falcon-40b-instruct is omitted: it has no
+  # safetensors at any commit.
+  - name: falcon-7b
+    repo: tiiuae/falcon-7b
+    revision: ec89142b67d748a1865ea4451372db8313ada0d8
+
+  - name: falcon-7b-instruct
+    repo: tiiuae/falcon-7b-instruct
+    revision: 8782b5c5d8c9290412416618f36a133653e85285
+
+  - name: falcon-40b
+    repo: tiiuae/falcon-40b
+    revision: 05ab2ee8d6b593bdbab17d728de5c028a7a94d83

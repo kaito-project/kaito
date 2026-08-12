@@ -79,6 +79,18 @@ spec:
               value: {{ .Values.cloudProviderName | quote }}
             - name: CLUSTER_NAME
               value: {{ .Values.clusterName | quote }}
+            {{- if and .Values.featureGates.distributedCache .Values.cache.providers.dacs.enabled }}
+            - name: DACS_ENABLED
+              value: "true"
+            - name: DACS_DISCOVERY_ENDPOINT
+              value: {{ .Values.cache.providers.dacs.discoveryEndpoint | quote }}
+            - name: DACS_KV_CACHE_ENABLED
+              value: {{ .Values.cache.providers.dacs.kvCacheEnabled | quote }}
+            - name: DACS_KV_CONNECTOR_PROTOCOL
+              value: {{ .Values.cache.providers.dacs.kvConnectorProtocol | quote }}
+            - name: DACS_CLIENT_IMAGE
+              value: {{ .Values.cache.providers.dacs.clientImage | quote }}
+            {{- end }}
           ports:
             - name: http-metrics
               containerPort: 8080

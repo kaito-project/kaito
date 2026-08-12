@@ -109,9 +109,10 @@ jobs:
       - name: Pin chart version and image to release tag
         run: |
           yq -i ".version = \"${IMG_TAG}\" | .appVersion = \"${IMG_TAG}\"" "${CHART_PATH}/Chart.yaml"
-          yq -i ".image.repository = \"${REGISTRY}/${IMAGE_NAME}\" | .image.tag = \"${IMG_TAG}\"" "${CHART_PATH}/values.yaml"
+          # Consumers pull from the public MCR domain, not the source ACR that mirrors to it.
+          yq -i ".image.repository = \"${IMAGE_REPO}\" | .image.tag = \"${IMG_TAG}\"" "${CHART_PATH}/values.yaml"
         env:
-          REGISTRY: ${{ secrets.KAITO_MCR_REGISTRY }}/public/aks/kaito
+          IMAGE_REPO: mcr.microsoft.com/aks/kaito/workspace
           IMG_TAG: ${{ steps.get-image-tag.outputs.img_tag }}
 
       # productionstack subchart is already pinned to oci://mcr.microsoft.com/aks/kaito/helm

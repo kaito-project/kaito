@@ -810,12 +810,19 @@ async def test_word_match_redaction_respects_case_sensitivity(case_sensitive, ex
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("action", ["block", "redact"])
-async def test_word_match_handles_multiple_configured_values(action):
+@pytest.mark.parametrize(
+    ("substrings", "text"),
+    [
+        (["safe", "safety"], "safety"),
+        (["a.a", "a"], "a.a"),
+    ],
+)
+async def test_word_match_handles_multiple_configured_values(action, substrings, text):
     chunks = await _apply_text(
-        "unsafe and prohibited",
+        text,
         _streaming_guardrails(
             _ban_substrings_scanner(
-                ["unsafe", "prohibited"],
+                substrings,
                 action=action,
                 match_type="word",
             )
@@ -826,7 +833,7 @@ async def test_word_match_handles_multiple_configured_values(action):
     if action == "block":
         assert emitted_text == "blocked-by-policy"
     else:
-        assert emitted_text == "[REDACTED] and [REDACTED]"
+        assert emitted_text == "[REDACTED]"
 
 
 @pytest.mark.asyncio

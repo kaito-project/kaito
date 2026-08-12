@@ -314,24 +314,36 @@ def _find_word_match_spans(
     flags = 0 if case_sensitive else re.IGNORECASE
     spans: list[tuple[int, int]] = []
 
-    pattern = re.compile("|".join(re.escape(value) for value in substrings), flags)
-    for match in pattern.finditer(text):
-        start, end = match.span()
-        left_char = text[start - 1] if start > 0 else preceding_char
-        if _is_word_char(left_char) == _is_word_char(text[start]):
-            continue
-        if end == len(text) and not flush:
-            continue
-        right_char = text[end] if end < len(text) else ""
-        if _is_word_char(text[end - 1]) == _is_word_char(right_char):
-            continue
-        spans.append((start, end))
+    for substring in substrings:
+        for match in re.finditer(re.escape(substring), text, flags):
+            start, end = match.span()
+            left_char = text[start - 1] if start > 0 else preceding_char
+            if _is_word_char(left_char) == _is_word_char(text[start]):
+                continue
+            if end == len(text) and not flush:
+                continue
+            right_char = text[end] if end < len(text) else ""
+            if _is_word_char(text[end - 1]) == _is_word_char(right_char):
+                continue
+            spans.append((start, end))
 
-    return tuple(spans)
+    return _merge_match_spans(spans)
 
 
 def _is_word_char(value: str) -> bool:
     return bool(value and re.fullmatch(r"\w", value))
+
+
+def _merge_match_spans(
+    spans: list[tuple[int, int]],
+) -> tuple[tuple[int, int], ...]:
+    merged: list[tuple[int, int]] = []
+    for start, end in sorted(spans):
+        if merged and start < merged[-1][1]:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+        else:
+            merged.append((start, end))
+    return tuple(merged)
 
 
 def _redact_match_spans(text: str, spans: tuple[tuple[int, int], ...]) -> str:

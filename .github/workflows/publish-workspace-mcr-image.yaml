@@ -60,6 +60,15 @@ jobs:
           sudo mv /tmp/yq /usr/local/bin/yq
           yq --version
 
+      - name: Install crane
+        run: |
+          VER='0.20.2'
+          curl -sSL "https://github.com/google/go-containerregistry/releases/download/v${VER}/go-containerregistry_Linux_x86_64.tar.gz" \
+            -o /tmp/crane.tgz
+          sudo tar -xzf /tmp/crane.tgz -C /usr/local/bin crane
+          rm -f /tmp/crane.tgz
+          crane version
+
       - name: Set up Go ${{ env.GO_VERSION }}
         uses: actions/setup-go@v5.5.0
         with:
@@ -107,12 +116,11 @@ jobs:
 
       # productionstack subchart is already pinned to oci://mcr.microsoft.com/aks/kaito/helm
       # in Chart.yaml, but we still want the latest published tag for a temporary release.
-      # ACR has public pull enabled, so we can list tags anonymously via the data-plane API
-      # and let helm dependency update pull the tgz anonymously as well.
+      # ACR has public pull enabled, so list tags anonymously with crane and let
+      # helm dependency update pull the tgz anonymously as well.
       - name: Pin productionstack subchart to latest ACR tag
         run: |
-          productionstack_tag="$(curl -sf "https://${ACR_REGISTRY}/acr/v1/helm/productionstack/_tags?orderby=timedesc&n=1" \
-            | python3 -c 'import json, sys; print(json.load(sys.stdin)["tags"][0]["name"])')"
+          productionstack_tag="$(crane ls "${ACR_REGISTRY}/helm/productionstack" | sort -V | tail -n1)"
           if [[ -z "${productionstack_tag}" ]]; then
             echo "No productionstack tags found in ${ACR_REGISTRY}" >&2
             exit 1

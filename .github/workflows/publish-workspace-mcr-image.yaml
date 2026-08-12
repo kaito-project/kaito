@@ -51,6 +51,15 @@ jobs:
           sudo tar -zxf "./oras_${VER}_linux_amd64.tar.gz" -C '/usr/local/bin'
           rm -f "./oras_${VER}_linux_amd64.tar.gz"
 
+      - name: Install yq
+        run: |
+          VER='4.44.3'
+          curl -sSL "https://github.com/mikefarah/yq/releases/download/v${VER}/yq_linux_amd64" \
+            -o /tmp/yq
+          chmod +x /tmp/yq
+          sudo mv /tmp/yq /usr/local/bin/yq
+          yq --version
+
       - name: Set up Go ${{ env.GO_VERSION }}
         uses: actions/setup-go@v5.5.0
         with:

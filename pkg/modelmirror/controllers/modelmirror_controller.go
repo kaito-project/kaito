@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sort"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -35,7 +36,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/k8sclient"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/modelmirror/download"
-	"github.com/kaito-project/kaito/pkg/modelmirror/downloadstats"
+	"github.com/kaito-project/kaito/pkg/modelmirror/progress"
 )
 
 const (
@@ -323,6 +324,7 @@ func (r *ModelMirrorReconciler) checkJobStatus(ctx context.Context, cr *kaitov1a
 	}
 
 	// Job still running
+	r.updateDownloadProgress(ctx, cr, activeJob.Name, log)
 	return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 }
 
@@ -339,9 +341,19 @@ func (r *ModelMirrorReconciler) classifyDownloadFailure(ctx context.Context, cr 
 		return "", ""
 	}
 
+	ordered := make([]*corev1.Pod, 0, len(pods.Items))
 	for i := range pods.Items {
-		pod := &pods.Items[i]
+		ordered = append(ordered, &pods.Items[i])
+	}
+	sort.Slice(ordered, func(a, b int) bool {
+		ta, tb := ordered[a].CreationTimestamp, ordered[b].CreationTimestamp
+		if ta.Equal(&tb) {
+			return ordered[a].Name > ordered[b].Name
+		}
+		return tb.Before(&ta)
+	})
 
+	for _, pod := range ordered {
 		for _, cs := range pod.Status.ContainerStatuses {
 			for _, t := range []*corev1.ContainerStateTerminated{cs.State.Terminated, cs.LastTerminationState.Terminated} {
 				if t != nil && t.Reason == "OOMKilled" {
@@ -367,7 +379,10 @@ func (r *ModelMirrorReconciler) handleJobSuccess(ctx context.Context, cr *kaitov
 	cr.Status.FailureMessage = ""
 	cr.Status.LastDownloadTime = ptr.To(metav1.Now())
 
-	r.recordDownloadStats(ctx, cr, job, log)
+	cr.Status.Download = &kaitov1alpha1.ModelMirrorDownloadStatus{
+		SpeedBytesPerSecond: 0,
+		RemainingSeconds:    0,
+	}
 
 	setCondition(cr, mmconsts.ConditionTypeReady, metav1.ConditionTrue, mmconsts.ReasonDownloadSucceeded, "Model download completed")
 	setCondition(cr, mmconsts.ConditionTypeStorageReady, metav1.ConditionTrue, mmconsts.ReasonPVCBound, "PVC is bound")
@@ -376,54 +391,67 @@ func (r *ModelMirrorReconciler) handleJobSuccess(ctx context.Context, cr *kaitov
 	return ctrl.Result{}, r.Status().Update(ctx, cr)
 }
 
-// recordDownloadStats populates the download telemetry fields on the CR status
-// from the succeeded download pod's log marker.
-func (r *ModelMirrorReconciler) recordDownloadStats(ctx context.Context, cr *kaitov1alpha1.ModelMirror, job *batchv1.Job, log logr.Logger) {
-	cs := k8sclient.GetGlobalClientGoClient()
-	if cs == nil {
-		log.V(1).Info("skipping download stats: no client-go client configured")
-		return
-	}
-
+// selectSamplerPod returns the name of the pod whose sampler should be polled:
+// the newest pod that is running or pending. A retried Job leaves failed pods
+// listed alongside the live one. Returns "" when no live pod exists.
+func (r *ModelMirrorReconciler) selectSamplerPod(ctx context.Context, namespace, jobName string) string {
 	pods := &corev1.PodList{}
 	if err := r.List(ctx, pods,
-		client.InNamespace(cr.Spec.JobNamespace),
-		client.MatchingLabels{"job-name": job.Name},
+		client.InNamespace(namespace),
+		client.MatchingLabels{"job-name": jobName},
 	); err != nil {
-		log.V(1).Info("skipping download stats: listing pods failed", "error", err)
-		return
+		return ""
 	}
 
-	// A retried Job leaves failed pods behind; only the succeeded pod emitted
-	// the marker.
-	var podName string
+	var newest *corev1.Pod
 	for i := range pods.Items {
-		if pods.Items[i].Status.Phase == corev1.PodSucceeded {
-			podName = pods.Items[i].Name
-			break
+		p := &pods.Items[i]
+		if p.Status.Phase != corev1.PodRunning && p.Status.Phase != corev1.PodPending {
+			continue
+		}
+		if newest == nil || p.CreationTimestamp.After(newest.CreationTimestamp.Time) {
+			newest = p
 		}
 	}
+	if newest == nil {
+		return ""
+	}
+	return newest.Name
+}
+
+// updateDownloadProgress polls the sampler sidecar and copies its two values to
+// status. It runs on the reconcile tick while the Job is active.
+//
+// Every failure path is non-fatal and leaves status untouched.
+func (r *ModelMirrorReconciler) updateDownloadProgress(ctx context.Context, cr *kaitov1alpha1.ModelMirror, jobName string, log logr.Logger) {
+	cs := k8sclient.GetGlobalClientGoClient()
+	if cs == nil {
+		return
+	}
+
+	podName := r.selectSamplerPod(ctx, cr.Spec.JobNamespace, jobName)
 	if podName == "" {
-		log.V(1).Info("skipping download stats: no succeeded download pod found")
 		return
 	}
 
-	stats, err := downloadstats.Fetch(ctx, cs, cr.Spec.JobNamespace, podName)
+	p, err := progress.Fetch(ctx, cs, cr.Spec.JobNamespace, podName)
 	if err != nil {
-		log.V(1).Info("skipping download stats: fetch failed", "pod", podName, "error", err)
-		return
-	}
-	if stats == nil {
-		log.V(1).Info("no download stats marker in pod log", "pod", podName)
+		log.V(1).Info("skipping download progress", "pod", podName, "error", err)
 		return
 	}
 
-	cr.Status.DownloadDurationSeconds = stats.DurationSeconds
-	cr.Status.DownloadedBytes = stats.Bytes
-	cr.Status.DownloadThroughputMBps = stats.ThroughputMBps()
-	log.Info("recorded download stats",
-		"seconds", stats.DurationSeconds, "bytes", stats.Bytes,
-		"throughputMBps", cr.Status.DownloadThroughputMBps)
+	cur := cr.Status.Download
+	if cur != nil && cur.SpeedBytesPerSecond == p.SpeedBytesPerSecond && cur.RemainingSeconds == p.RemainingSeconds {
+		return
+	}
+
+	cr.Status.Download = &kaitov1alpha1.ModelMirrorDownloadStatus{
+		SpeedBytesPerSecond: p.SpeedBytesPerSecond,
+		RemainingSeconds:    p.RemainingSeconds,
+	}
+	if err := r.Status().Update(ctx, cr); err != nil {
+		log.V(1).Info("download progress status update failed", "error", err)
+	}
 }
 
 func setCondition(cr *kaitov1alpha1.ModelMirror, condType string, status metav1.ConditionStatus, reason, message string) {

@@ -207,24 +207,30 @@ spec:
                   - type
                   type: object
                 type: array
-              downloadDurationSeconds:
+              download:
                 description: |-
-                  DownloadDurationSeconds is the wall-clock duration of the model download
-                  phase only, excluding dependency installation and post-download cleanup.
-                format: int64
-                type: integer
-              downloadThroughputMBps:
-                description: |-
-                  DownloadThroughputMBps is the average download throughput in MB/s,
-                  derived from DownloadedBytes and DownloadDurationSeconds. It is a string
-                  because the Kubernetes API convention avoids floating-point fields, which
-                  serialize inconsistently across clients.
-                type: string
-              downloadedBytes:
-                description: DownloadedBytes is the total size on disk of the downloaded
-                  model.
-                format: int64
-                type: integer
+                  Download reports in-progress download metrics. Both fields are 0 once the
+                  download has succeeded, since they describe only the in-progress state.
+                  On terminal failure they retain their last observed values; the failure
+                  itself is reported through the Ready condition.
+                properties:
+                  remainingSeconds:
+                    description: |-
+                      RemainingSeconds estimates the time to completion. 0 once the download has
+                      finished; -1 when it cannot be computed, which happens when the total size
+                      is unknown or the measured speed is 0.
+                    format: int64
+                    type: integer
+                  speedBytesPerSecond:
+                    description: |-
+                      SpeedBytesPerSecond is the average download speed from the start of the
+                      download until now. 0 once the download has finished.
+                    format: int64
+                    type: integer
+                required:
+                - remainingSeconds
+                - speedBytesPerSecond
+                type: object
               failureMessage:
                 type: string
               lastDownloadTime:

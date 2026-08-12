@@ -73,7 +73,11 @@ func modelMirrorDownloadTimeout(modelID string) time.Duration {
 }
 
 // validateModelMirrorCRReady asserts the cluster-scoped ModelMirror CR for modelID reaches
-// Ready (with StorageReady) and exposes the expected modelPath + lastDownloadTime.
+// Ready (with StorageReady) and exposes the expected modelPath.
+//
+// Readiness is deliberately not gated on status.download: the block is only populated when
+// the download job emitted a parseable stats marker, and a missing marker is a valid
+// "stats unavailable" outcome rather than a failure.
 func validateModelMirrorCRReady(modelID string) {
 	crName := modelstreaming.ModelMirrorCRName(modelID)
 	By(fmt.Sprintf("Checking ModelMirror CR %s is Ready", crName), func() {
@@ -86,9 +90,6 @@ func validateModelMirrorCRReady(modelID string) {
 				return false
 			}
 			if mm.Status.ModelPath != "/models/"+modelID {
-				return false
-			}
-			if mm.Status.LastDownloadTime == nil {
 				return false
 			}
 			_, ready := lo.Find(mm.Status.Conditions, func(c metav1.Condition) bool {

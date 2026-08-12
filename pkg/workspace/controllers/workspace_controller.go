@@ -54,6 +54,7 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
+	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -173,7 +174,7 @@ func (c *WorkspaceReconciler) ensureFinalizer(ctx context.Context, workspaceObj 
 // Returns nil if the CR exists (any phase) or was created successfully.
 func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
 	if err := modelstreaming.ValidateStaticModelMirrorAnnotations(wObj.Annotations); err != nil {
-		return err
+		return &streamingValidationError{reason: reasonModelStreamingInvalidAnnotations, err: err}
 	}
 
 	modelID := modelstreaming.ResolveHFModelID(wObj)
@@ -185,8 +186,11 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 	if err == nil {
 		// CR exists — verify it's for the same model (collision check).
 		if existing.Spec.Source != nil && existing.Spec.Source.ModelID != modelID {
-			return fmt.Errorf("ModelMirror CR name collision: %s maps to both %q and %q",
-				crName, existing.Spec.Source.ModelID, modelID)
+			return &streamingValidationError{
+				reason: reasonModelMirrorCreateFailed,
+				err: fmt.Errorf("ModelMirror CR name collision: %s maps to both %q and %q",
+					crName, existing.Spec.Source.ModelID, modelID),
+			}
 		}
 		return nil
 	}
@@ -247,19 +251,25 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 
 	serviceAccount, err := modelstreaming.ResolveStreamingServiceAccount(wObj, modelstreaming.StreamingDefaults.ServiceAccount)
 	if err != nil {
-		return err
+		return &streamingValidationError{reason: reasonModelStreamingServiceAccountInvalid, err: err}
 	}
 
 	// Resolve model metadata for DiskStorageRequirement
 	presetName := string(wObj.Inference.Preset.Name)
 	model, err := models.GetModelByName(ctx, presetName, wObj.Inference.Preset.PresetOptions.ModelAccessSecret, wObj.Namespace, c.Client)
 	if err != nil {
-		return fmt.Errorf("failed to resolve model for streaming: %w", err)
+		return &streamingValidationError{
+			reason: reasonModelMirrorCreateFailed,
+			err:    fmt.Errorf("failed to resolve model for streaming: %w", err),
+		}
 	}
 
 	modelSize := model.GetInferenceParameters().DiskStorageRequirement
 	if modelSize == "" {
-		return fmt.Errorf("model %q has no DiskStorageRequirement; cannot create ModelMirror CR", modelID)
+		return &streamingValidationError{
+			reason: reasonModelMirrorCreateFailed,
+			err:    fmt.Errorf("model %q has no DiskStorageRequirement; cannot create ModelMirror CR", modelID),
+		}
 	}
 
 	var accessSecret *corev1.ObjectReference
@@ -804,7 +814,7 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 						}
 						setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
 							kaitov1beta1.WorkspaceConditionTypeModelMirrorReady,
-							metav1.ConditionFalse, "ModelMirrorPending", msg)
+							metav1.ConditionFalse, modelMirrorPendingReason(cr), msg)
 						// Model weights not ready — override ResourceReady
 						resourceConditionStatus = metav1.ConditionFalse
 						setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
@@ -915,6 +925,7 @@ const (
 	reasonModelStreamingStorageClassNotFound  = "ModelStreamingStorageClassNotFound"
 	reasonModelStreamingInvalidStorageClass   = "ModelStreamingInvalidStorageClass"
 	reasonModelStreamingServiceAccountInvalid = "ModelStreamingServiceAccountInvalid"
+	reasonModelStreamingInvalidAnnotations    = "ModelStreamingInvalidAnnotations"
 	reasonModelMirrorCreateFailed             = "ModelMirrorCreateFailed"
 )
 
@@ -1174,6 +1185,16 @@ func (c *WorkspaceReconciler) collectTuningStatusSnapshot(ctx context.Context, w
 	return snapshot, nil
 }
 
+const reasonModelMirrorPending = "ModelMirrorPending"
+
+func modelMirrorPendingReason(cr *kaitov1alpha1.ModelMirror) string {
+	cond := meta.FindStatusCondition(cr.Status.Conditions, mmconsts.ConditionTypeReady)
+	if cond == nil || cond.Status == metav1.ConditionTrue || cond.Reason == "" {
+		return reasonModelMirrorPending
+	}
+	return cond.Reason
+}
+
 // streamingValidationReason promotes a model-streaming validation failure carried on
 // the reconcile error to a condition reason. Pod-level classification is more
 // specific, so it takes precedence; this only fills the gap when no pod failure was
@@ -1194,8 +1215,19 @@ func buildReconcileErrMessageAppender(reconcileErr error) func(message string) s
 		if reconcileErr == nil {
 			return message
 		}
+		if messageCarriesErr(message, reconcileErr.Error()) {
+			return message
+		}
 		return fmt.Sprintf("%s (last reconcile error: %s)", message, reconcileErr.Error())
 	}
+}
+
+func messageCarriesErr(message, errText string) bool {
+	if strings.Contains(message, errText) {
+		return true
+	}
+	trimmed, ok := strings.CutSuffix(message, "...")
+	return ok && len(trimmed) > 0 && strings.HasPrefix(errText, trimmed)
 }
 
 func setWorkspaceCondition(status *kaitov1beta1.WorkspaceStatus, generation int64, appendMessage func(string) string,

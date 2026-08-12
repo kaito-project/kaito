@@ -97,40 +97,21 @@ func TestBuildDownloadJobScript(t *testing.T) {
 		assert.NotContains(t, script, "HF_HUB_ENABLE_HF_TRANSFER")
 	})
 
-	t.Run("emits the download stats marker", func(t *testing.T) {
-		assert.Contains(t, script, "KAITO_DOWNLOAD_STATS seconds=")
-		assert.Contains(t, script, "bytes=")
-	})
-
-	t.Run("measures only the download phase", func(t *testing.T) {
-		pipIdx := strings.Index(script, "pip install")
-		startIdx := strings.Index(script, "_kaito_start=")
-		endIdx := strings.Index(script, "_kaito_end=")
-		cleanupIdx := strings.LastIndex(script, "rm -rf")
-
-		require.NotEqual(t, -1, pipIdx)
-		require.NotEqual(t, -1, startIdx)
-		require.NotEqual(t, -1, endIdx)
-		require.NotEqual(t, -1, cleanupIdx)
-
-		assert.Less(t, pipIdx, startIdx, "pip install must precede the timed window")
-		assert.Less(t, startIdx, endIdx, "start must precede end")
-		assert.Less(t, endIdx, cleanupIdx, "cleanup must follow the timed window")
-	})
-
 	t.Run("still downloads and still cleans up", func(t *testing.T) {
 		assert.Contains(t, script, `hf download "${MODEL_ID}"`)
 		assert.Contains(t, script, "--exclude")
 		assert.Contains(t, script, "-mindepth 1 -type d")
 	})
 
-	t.Run("date command renders correctly", func(t *testing.T) {
-		assert.Contains(t, script, "_kaito_start=$(date +%s)")
-		assert.Contains(t, script, "_kaito_end=$(date +%s)")
-	})
-
-	t.Run("emits no marker when the size is unknown", func(t *testing.T) {
-		assert.Contains(t, script, `if [ -n "${_kaito_bytes}" ]; then`)
+	t.Run("cache cleanup runs after the download", func(t *testing.T) {
+		downloadIdx := strings.Index(script, `hf download "${MODEL_ID}"`)
+		cleanupIdx := strings.Index(script, `rm -rf "/models/${MODEL_ID}/.cache"`)
+		require.NotEqual(t, -1, downloadIdx)
+		require.NotEqual(t, -1, cleanupIdx)
+		// .cache holds the *.incomplete files sampler.py reads to detect an
+		// in-flight download. Cleaning it before the download finishes would make
+		// the sampler report "finished" while bytes were still arriving.
+		assert.Less(t, downloadIdx, cleanupIdx)
 	})
 }
 
@@ -162,4 +143,18 @@ func TestBuildDownloadJobServiceAccount(t *testing.T) {
 		assert.Equal(t, "kaito-model-streamer", job.Spec.Template.Spec.ServiceAccountName)
 		assert.Empty(t, job.Spec.Template.Labels, "no pod labels expected when provider supplies none (non-Azure cloud)")
 	})
+}
+
+func TestDownloadJobStillCompletesWithSidecar(t *testing.T) {
+	cr := &kaitov1alpha1.ModelMirror{}
+	cr.Name = "mirror-abc123"
+	cr.Spec.Source = &kaitov1alpha1.ModelMirrorSource{ModelID: "some/model"}
+	job := BuildDownloadJob(cr, mmconsts.DefaultDownloadJobResources(), nil)
+
+	// The sampler must be an initContainer with restartPolicy Always. If it were
+	// a regular container it would run forever and the Job would hang at 0/1.
+	assert.Len(t, job.Spec.Template.Spec.Containers, 1,
+		"the sampler must not be a regular container")
+	require.Len(t, job.Spec.Template.Spec.InitContainers, 1)
+	require.NotNil(t, job.Spec.Template.Spec.InitContainers[0].RestartPolicy)
 }

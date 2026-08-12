@@ -204,22 +204,6 @@ func TestReconcile_Static_SetsReadyNoProvision(t *testing.T) {
 	assert.Empty(t, got.Finalizers, "static mirror must not add a finalizer")
 }
 
-func TestHandleJobSuccess_NoMarkerStillReady(t *testing.T) {
-	cr := newManagedTestCR("mirror-1")
-	job := &batchv1.Job{
-		ObjectMeta: metav1.ObjectMeta{Name: "mirror-1-download-abc", Namespace: "default"},
-	}
-	c := fake.NewClientBuilder().WithScheme(testScheme()).
-		WithObjects(cr, job).WithStatusSubresource(cr).Build()
-	r := newTestReconciler(c)
-
-	_, err := r.handleJobSuccess(context.Background(), cr, job, zap.New(zap.UseDevMode(true)))
-	require.NoError(t, err)
-
-	assert.Equal(t, kaitov1alpha1.ModelMirrorPhaseReady, cr.Status.Phase)
-	assert.Empty(t, cr.Status.DownloadThroughputMBps)
-}
-
 func TestEnsurePVC_PendingSetsStorageReadyFalse(t *testing.T) {
 	cr := newManagedTestCR("mirror-1")
 	pvc := &corev1.PersistentVolumeClaim{
@@ -352,6 +336,91 @@ func TestClassifyDownloadFailure(t *testing.T) {
 	}
 }
 
+func TestClassifyDownloadFailure_NewestAttemptWins(t *testing.T) {
+	base := metav1.Date(2026, 8, 10, 12, 0, 0, 0, time.UTC)
+	newPod := func(name string, ageOffset time.Duration, status corev1.PodStatus) *corev1.Pod {
+		return &corev1.Pod{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:              name,
+				Namespace:         "default",
+				Labels:            map[string]string{"job-name": "mirror-1-download"},
+				CreationTimestamp: metav1.NewTime(base.Add(ageOffset)),
+			},
+			Status: status,
+		}
+	}
+	oomStatus := corev1.PodStatus{
+		Phase: corev1.PodFailed,
+		ContainerStatuses: []corev1.ContainerStatus{{
+			Name: "downloader",
+			State: corev1.ContainerState{Terminated: &corev1.ContainerStateTerminated{
+				Reason: "OOMKilled", ExitCode: 137,
+			}},
+		}},
+	}
+	evictedStatus := corev1.PodStatus{
+		Phase:   corev1.PodFailed,
+		Reason:  "Evicted",
+		Message: "The node was low on resource: ephemeral-storage. ",
+	}
+
+	oldest := newPod("mirror-1-download-aaa", 0, oomStatus)
+	newest := newPod("mirror-1-download-zzz", 2*time.Minute, evictedStatus)
+
+	for i := 0; i < 20; i++ {
+		cr := newManagedTestCR("mirror-1")
+		c := fake.NewClientBuilder().WithScheme(testScheme()).WithObjects(cr, oldest, newest).Build()
+		r := newTestReconciler(c)
+
+		reason, _ := r.classifyDownloadFailure(context.Background(), cr, "mirror-1-download")
+		require.Equal(t, mmconsts.ReasonDownloadEvicted, reason,
+			"the newest attempt's cause must win on every run")
+	}
+}
+
+func TestClassifyDownloadFailure_TiedTimestampsAreDeterministic(t *testing.T) {
+	ts := metav1.Date(2026, 8, 10, 12, 0, 0, 0, time.UTC)
+	newPod := func(name string, status corev1.PodStatus) *corev1.Pod {
+		return &corev1.Pod{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:              name,
+				Namespace:         "default",
+				Labels:            map[string]string{"job-name": "mirror-1-download"},
+				CreationTimestamp: ts,
+			},
+			Status: status,
+		}
+	}
+	oom := newPod("mirror-1-download-aaa", corev1.PodStatus{
+		Phase: corev1.PodFailed,
+		ContainerStatuses: []corev1.ContainerStatus{{
+			Name: "downloader",
+			State: corev1.ContainerState{Terminated: &corev1.ContainerStateTerminated{
+				Reason: "OOMKilled", ExitCode: 137,
+			}},
+		}},
+	})
+	evicted := newPod("mirror-1-download-zzz", corev1.PodStatus{
+		Phase:   corev1.PodFailed,
+		Reason:  "Evicted",
+		Message: "The node was low on resource: ephemeral-storage. ",
+	})
+
+	var first string
+	for i := 0; i < 20; i++ {
+		cr := newManagedTestCR("mirror-1")
+		c := fake.NewClientBuilder().WithScheme(testScheme()).WithObjects(cr, oom, evicted).Build()
+		r := newTestReconciler(c)
+
+		reason, _ := r.classifyDownloadFailure(context.Background(), cr, "mirror-1-download")
+		if i == 0 {
+			first = reason
+			continue
+		}
+		require.Equal(t, first, reason, "tied timestamps must not classify differently across runs")
+	}
+}
+
 func TestCheckJobStatus_FailedJobSetsReadyFalse(t *testing.T) {
 	cr := newManagedTestCR("mm-failed")
 	failedJob := &batchv1.Job{
@@ -387,4 +456,67 @@ func TestCheckJobStatus_FailedJobSetsReadyFalse(t *testing.T) {
 	assert.Equal(t, mmconsts.ReasonDownloadFailed, cond.Reason)
 	assert.Contains(t, cond.Message, "BackoffLimitExceeded")
 	assert.Contains(t, got.Status.FailureMessage, "BackoffLimitExceeded")
+}
+
+func TestSelectSamplerPodPrefersNewestRunning(t *testing.T) {
+	// A retried Job leaves failed pods behind. Proxying to a dead pod would fail
+	// every fetch for the life of the download.
+	old := &corev1.Pod{}
+	old.Name = "job-abc-1"
+	old.Namespace = "default"
+	old.Labels = map[string]string{"job-name": "job-abc"}
+	old.CreationTimestamp = metav1.NewTime(time.Now().Add(-10 * time.Minute))
+	old.Status.Phase = corev1.PodFailed
+
+	current := &corev1.Pod{}
+	current.Name = "job-abc-2"
+	current.Namespace = "default"
+	current.Labels = map[string]string{"job-name": "job-abc"}
+	current.CreationTimestamp = metav1.NewTime(time.Now())
+	current.Status.Phase = corev1.PodRunning
+
+	// Register old first so list order alone would pick the wrong pod.
+	c := fake.NewClientBuilder().WithScheme(testScheme()).WithObjects(old, current).Build()
+	r := newTestReconciler(c)
+	got := r.selectSamplerPod(context.Background(), "default", "job-abc")
+	assert.Equal(t, "job-abc-2", got)
+}
+
+func TestSelectSamplerPodIgnoresTerminatedPods(t *testing.T) {
+	dead := &corev1.Pod{}
+	dead.Name = "job-abc-1"
+	dead.Namespace = "default"
+	dead.Labels = map[string]string{"job-name": "job-abc"}
+	dead.Status.Phase = corev1.PodFailed
+
+	c := fake.NewClientBuilder().WithScheme(testScheme()).WithObjects(dead).Build()
+	r := newTestReconciler(c)
+	assert.Empty(t, r.selectSamplerPod(context.Background(), "default", "job-abc"))
+}
+
+func TestHandleJobSuccessZeroesDownloadMetrics(t *testing.T) {
+	cr := newManagedTestCR("mirror-1")
+	// A stale in-progress reading from the last poll before the Job finished.
+	cr.Status.Download = &kaitov1alpha1.ModelMirrorDownloadStatus{
+		SpeedBytesPerSecond: 418920000,
+		RemainingSeconds:    128,
+	}
+	job := &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{Name: "mirror-1-download-abc", Namespace: "default"},
+	}
+	c := fake.NewClientBuilder().WithScheme(testScheme()).
+		WithObjects(cr, job).WithStatusSubresource(cr).Build()
+	r := newTestReconciler(c)
+
+	_, err := r.handleJobSuccess(context.Background(), cr, job, zap.New(zap.UseDevMode(true)))
+	require.NoError(t, err)
+
+	assert.Equal(t, kaitov1alpha1.ModelMirrorPhaseReady, cr.Status.Phase)
+	// The kubelet kills the sidecar as soon as the downloader exits, so no final
+	// fetch is possible. Leaving the last in-progress values would freeze a
+	// nonzero speed in status forever.
+	require.NotNil(t, cr.Status.Download)
+	assert.Equal(t, int64(0), cr.Status.Download.SpeedBytesPerSecond)
+	assert.Equal(t, int64(0), cr.Status.Download.RemainingSeconds)
+	assert.NotNil(t, cr.Status.LastDownloadTime)
 }

@@ -314,37 +314,24 @@ def _find_word_match_spans(
     flags = 0 if case_sensitive else re.IGNORECASE
     spans: list[tuple[int, int]] = []
 
-    for substring in substrings:
-        pattern = re.compile(f"(?=({re.escape(substring)}))", flags)
-        for match in pattern.finditer(text):
-            start, end = match.span(1)
-            left_char = text[start - 1] if start > 0 else preceding_char
-            if _is_word_char(left_char) == _is_word_char(text[start]):
-                continue
-            if end == len(text) and not flush:
-                continue
-            right_char = text[end] if end < len(text) else ""
-            if _is_word_char(text[end - 1]) == _is_word_char(right_char):
-                continue
-            spans.append((start, end))
+    pattern = re.compile("|".join(re.escape(value) for value in substrings), flags)
+    for match in pattern.finditer(text):
+        start, end = match.span()
+        left_char = text[start - 1] if start > 0 else preceding_char
+        if _is_word_char(left_char) == _is_word_char(text[start]):
+            continue
+        if end == len(text) and not flush:
+            continue
+        right_char = text[end] if end < len(text) else ""
+        if _is_word_char(text[end - 1]) == _is_word_char(right_char):
+            continue
+        spans.append((start, end))
 
-    return _merge_overlapping_spans(spans)
+    return tuple(spans)
 
 
 def _is_word_char(value: str) -> bool:
     return bool(value and re.fullmatch(r"\w", value))
-
-
-def _merge_overlapping_spans(
-    spans: list[tuple[int, int]],
-) -> tuple[tuple[int, int], ...]:
-    merged: list[tuple[int, int]] = []
-    for start, end in sorted(spans):
-        if merged and start < merged[-1][1]:
-            merged[-1] = (merged[-1][0], max(merged[-1][1], end))
-        elif not merged or (start, end) != merged[-1]:
-            merged.append((start, end))
-    return tuple(merged)
 
 
 def _redact_match_spans(text: str, spans: tuple[tuple[int, int], ...]) -> str:

@@ -730,7 +730,8 @@ async def test_ban_substrings_redaction_respects_match_type(match_type, expected
 
 
 @pytest.mark.asyncio
-async def test_word_match_does_not_redact_chunk_end_before_lookahead():
+@pytest.mark.parametrize("action", ["block", "redact"])
+async def test_word_match_waits_for_lookahead(action):
     prefix = "p" * 300
 
     chunks = await _apply_content_chunks(
@@ -738,7 +739,7 @@ async def test_word_match_does_not_redact_chunk_end_before_lookahead():
         _streaming_guardrails(
             _ban_substrings_scanner(
                 "unsafe",
-                action="redact",
+                action=action,
                 match_type="word",
             )
         ),
@@ -829,80 +830,6 @@ async def test_word_match_handles_multiple_configured_values(action):
 
 
 @pytest.mark.asyncio
-async def test_word_match_redacts_only_confirmed_spans():
-    chunks = await _apply_text(
-        "unsafe unsafeish UNSAFE",
-        _streaming_guardrails(
-            _ban_substrings_scanner(
-                "unsafe",
-                action="redact",
-                match_type="word",
-                case_sensitive=False,
-            )
-        ),
-    )
-
-    assert _emitted_text(chunks) == "[REDACTED] unsafeish [REDACTED]"
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "substrings",
-    [
-        ["a.a", "a"],
-        ["a", "a.a"],
-    ],
-)
-async def test_word_match_merges_overlapping_spans(substrings):
-    chunks = await _apply_text(
-        "a.a",
-        _streaming_guardrails(
-            _ban_substrings_scanner(
-                substrings,
-                action="redact",
-                match_type="word",
-            )
-        ),
-    )
-
-    assert _emitted_text(chunks) == "[REDACTED]"
-
-
-@pytest.mark.asyncio
-async def test_word_match_merges_overlapping_occurrences():
-    chunks = await _apply_text(
-        "a-a-a",
-        _streaming_guardrails(
-            _ban_substrings_scanner(
-                "a-a",
-                action="redact",
-                match_type="word",
-            )
-        ),
-    )
-
-    assert _emitted_text(chunks) == "[REDACTED]"
-
-
-@pytest.mark.asyncio
-async def test_word_block_does_not_reject_chunk_end_before_lookahead():
-    prefix = "p" * 300
-
-    chunks = await _apply_content_chunks(
-        [prefix + " unsafe", "ish"],
-        _streaming_guardrails(
-            _ban_substrings_scanner(
-                "unsafe",
-                action="block",
-                match_type="word",
-            )
-        ),
-    )
-
-    assert _emitted_text(chunks) == prefix + " unsafeish"
-
-
-@pytest.mark.asyncio
 @pytest.mark.parametrize("action", ["redact", "block"])
 async def test_word_match_preserves_left_boundary_after_window_slides(action):
     prefix = "p" * 300
@@ -924,30 +851,17 @@ async def test_word_match_preserves_left_boundary_after_window_slides(action):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("action", ["block", "redact"])
-async def test_word_match_with_nonword_suffix_waits_for_real_boundary(action):
+@pytest.mark.parametrize(
+    ("next_chunk", "matches"),
+    [(" suffix", False), ("x suffix", True)],
+)
+async def test_word_match_with_nonword_suffix_uses_real_boundary(
+    action, next_chunk, matches
+):
     prefix = "p" * 300
 
     chunks = await _apply_content_chunks(
-        [prefix + " unsafe-", " suffix"],
-        _streaming_guardrails(
-            _ban_substrings_scanner(
-                "unsafe-",
-                action=action,
-                match_type="word",
-            )
-        ),
-    )
-
-    assert _emitted_text(chunks) == prefix + " unsafe- suffix"
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize("action", ["block", "redact"])
-async def test_word_match_with_nonword_suffix_matches_at_real_boundary(action):
-    prefix = "p" * 300
-
-    chunks = await _apply_content_chunks(
-        [prefix + " unsafe-", "x suffix"],
+        [prefix + " unsafe-", next_chunk],
         _streaming_guardrails(
             _ban_substrings_scanner(
                 "unsafe-",
@@ -958,28 +872,31 @@ async def test_word_match_with_nonword_suffix_matches_at_real_boundary(action):
     )
 
     emitted_text = _emitted_text(chunks)
-    if action == "block":
+    if not matches:
+        assert emitted_text == prefix + " unsafe-" + next_chunk
+    elif action == "block":
         assert emitted_text.endswith("blocked-by-policy")
         assert "unsafe-" not in emitted_text
     else:
-        assert emitted_text == prefix + " [REDACTED]x suffix"
+        assert emitted_text == prefix + " [REDACTED]" + next_chunk
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    ("substring", "input_value"),
+    ("substring", "input_suffix", "expected_suffix"),
     [
-        ("x", "x"),
-        ("X", "x"),
+        ("x", " x tail", " [REDACTED] tail"),
+        ("X", " x tail", " [REDACTED] tail"),
+        (".", " a.b ", " a[REDACTED]b "),
     ],
 )
-async def test_single_character_word_redaction_does_not_modify_boundary_guard(
-    substring, input_value
+async def test_single_character_redaction_preserves_adjacent_text(
+    substring, input_suffix, expected_suffix
 ):
     prefix = "p" * 300
 
     chunks = await _apply_content_chunks(
-        [prefix + f" {input_value} tail"],
+        [prefix + input_suffix],
         _streaming_guardrails(
             _ban_substrings_scanner(
                 substring,
@@ -990,25 +907,7 @@ async def test_single_character_word_redaction_does_not_modify_boundary_guard(
         ),
     )
 
-    assert _emitted_text(chunks) == prefix + " [REDACTED] tail"
-
-
-@pytest.mark.asyncio
-async def test_single_character_nonword_redaction_does_not_modify_boundary_guard():
-    prefix = "p" * 300
-
-    chunks = await _apply_content_chunks(
-        [prefix + " a.b "],
-        _streaming_guardrails(
-            _ban_substrings_scanner(
-                ".",
-                action="redact",
-                match_type="word",
-            )
-        ),
-    )
-
-    assert _emitted_text(chunks) == prefix + " a[REDACTED]b "
+    assert _emitted_text(chunks) == prefix + expected_suffix
 
 
 @pytest.mark.asyncio

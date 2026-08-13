@@ -32,11 +32,9 @@ import (
 )
 
 const (
-	// gpuMemoryUtilization mirrors the --gpu-memory-utilization value vLLM is
-	// launched with (see buildVLLMInferenceCommand in pkg/model/interface.go).
-	// vLLM treats it as the hard cap on the fraction of total GPU memory used for
-	// weights + activations + CUDA graphs + KV cache, so the estimator must use
-	// the same value to predict the per-GPU memory budget vLLM will actually have.
+	// gpuMemoryUtilization is the conservative planning ratio used to estimate
+	// available GPU memory. At runtime, vLLM uses its free-memory-based default
+	// unless the user supplies an explicit --gpu-memory-utilization override.
 	gpuMemoryUtilization = 0.84
 
 	// weightExpansionFactor accounts for the ~2% expansion of model weights once

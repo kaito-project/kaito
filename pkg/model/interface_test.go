@@ -241,6 +241,38 @@ func TestGetInferenceCommandVLLMSingleNode(t *testing.T) {
 	assert.Contains(t, cmd[2], "tensor-parallel-size=2")
 }
 
+func TestGetInferenceCommandVLLMGpuMemoryUtilization(t *testing.T) {
+	newPreset := func(modelRunParams map[string]string) *PresetParam {
+		return &PresetParam{
+			RuntimeParam: RuntimeParam{
+				VLLM: VLLMParam{
+					BaseCommand:    "vllm serve",
+					ModelRunParams: modelRunParams,
+				},
+			},
+		}
+	}
+	rc := RuntimeContext{
+		RuntimeName: RuntimeNameVLLM,
+		SKUNumGPUs:  1,
+		NumNodes:    1,
+	}
+
+	t.Run("uses the runtime dynamic default", func(t *testing.T) {
+		cmd := newPreset(map[string]string{}).GetInferenceCommand(rc)
+		require.Len(t, cmd, 3)
+		assert.NotContains(t, cmd[2], "gpu-memory-utilization")
+	})
+
+	t.Run("preserves an explicit user override", func(t *testing.T) {
+		cmd := newPreset(map[string]string{
+			"gpu-memory-utilization": "0.95",
+		}).GetInferenceCommand(rc)
+		require.Len(t, cmd, 3)
+		assert.Contains(t, cmd[2], "--gpu-memory-utilization=0.95")
+	})
+}
+
 func TestGetInferenceCommandVLLMKVCacheEventsDefault(t *testing.T) {
 	// Default: --kv-events-config is injected so downstream ZMQ subscribers
 	// can consume BlockStored / BlockRemoved / AllBlocksCleared events.

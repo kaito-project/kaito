@@ -58,6 +58,7 @@ func TestNodePoolName_Deterministic(t *testing.T) {
 // --- resolveNodeClassName tests ---
 
 func TestResolveNodeClassName_FromAnnotation(t *testing.T) {
+	setAllowedNodeClasses(t, "image-family-ubuntu", "image-family-azure-linux")
 	ws := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
@@ -71,6 +72,7 @@ func TestResolveNodeClassName_FromAnnotation(t *testing.T) {
 }
 
 func TestResolveNodeClassName_RejectsUnmanagedNodeClass(t *testing.T) {
+	setAllowedNodeClasses(t, "image-family-ubuntu", "image-family-azure-linux")
 	ws := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
@@ -83,6 +85,7 @@ func TestResolveNodeClassName_RejectsUnmanagedNodeClass(t *testing.T) {
 }
 
 func TestResolveNodeClassName_RejectsWhenAllowlistEmpty(t *testing.T) {
+	setAllowedNodeClasses(t)
 	cfg := NodeClassConfig{DefaultName: "image-family-ubuntu"}
 	ws := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -118,12 +121,12 @@ func TestResolveNodeClassName_EmptyAnnotation_FallsBackToDefault(t *testing.T) {
 }
 
 func TestResolveNodeClassName_CustomConfig(t *testing.T) {
+	setAllowedNodeClasses(t, "default-ec2", "al2023-nodeclass")
 	cfg := NodeClassConfig{
 		Group:        "karpenter.k8s.aws",
 		Kind:         "EC2NodeClass",
 		ResourceName: "ec2nodeclasses",
 		DefaultName:  "default-ec2",
-		AllowedNames: []string{"default-ec2", "al2023-nodeclass"},
 	}
 	ws := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -258,6 +261,7 @@ func TestGenerateNodePool_InferenceSet(t *testing.T) {
 }
 
 func TestGenerateNodePool_WithAnnotation(t *testing.T) {
+	setAllowedNodeClasses(t, "image-family-ubuntu", "image-family-azure-linux")
 	ws := newTestWorkspace("default", "ws1", "Standard_D4s_v3", 1, nil, map[string]string{
 		kaitov1beta1.AnnotationNodeClassName: "image-family-azure-linux",
 	})

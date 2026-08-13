@@ -2076,18 +2076,17 @@ func TestWorkspaceValidateNodeClassNameAnnotation(t *testing.T) {
 	_ = v1.AddToScheme(scheme)
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(
 		defaultInferenceConfigMapManifest(),
-		&v1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      consts.NodeClassConfigMapName,
-				Namespace: DefaultReleaseNamespace,
-			},
-			Data: map[string]string{
-				consts.AKSNodeClassUbuntuName:     "apiVersion: karpenter.azure.com/v1beta1",
-				consts.AKSNodeClassAzureLinuxName: "apiVersion: karpenter.azure.com/v1beta1",
-			},
-		},
 	).Build()
 	k8sclient.SetGlobalClient(client)
+
+	oldProvisioner := consts.ActiveNodeProvisioner
+	oldAllowed := consts.AllowedNodeClassNames()
+	consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
+	consts.SetAllowedNodeClassNames([]string{consts.AKSNodeClassAzureLinuxName, consts.AKSNodeClassUbuntuName})
+	t.Cleanup(func() {
+		consts.ActiveNodeProvisioner = oldProvisioner
+		consts.SetAllowedNodeClassNames(oldAllowed)
+	})
 
 	baseWorkspace := &Workspace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -2144,6 +2143,19 @@ func TestWorkspaceValidateNodeClassNameAnnotation(t *testing.T) {
 			}
 		})
 	}
+
+	// The annotation is inert unless karpenter is provisioning nodes, so it must not
+	// block Workspaces on other provisioners.
+	t.Run("annotation is ignored when the provisioner is not karpenter", func(t *testing.T) {
+		consts.ActiveNodeProvisioner = consts.NodeProvisionerBYO
+		defer func() { consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter }()
+
+		ws := baseWorkspace.DeepCopy()
+		ws.Annotations = map[string]string{AnnotationNodeClassName: "someone-elses-nodeclass"}
+		if errs := ws.Validate(context.Background()); errs != nil {
+			t.Errorf("Validate() unexpected error for non-karpenter provisioner: %v", errs)
+		}
+	})
 
 	// A Workspace that predates this validation must stay updatable — otherwise its
 	// finalizer can never be removed and it becomes undeletable.

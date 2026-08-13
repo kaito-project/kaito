@@ -60,9 +60,10 @@ func resolveNodeClassName(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) (stri
 	if !ok || name == "" {
 		return cfg.DefaultName, nil
 	}
-	if !slices.Contains(cfg.AllowedNames, name) {
-		return "", fmt.Errorf("annotation %s=%q is not permitted: choose one of the KAITO-managed NodeClasses %v declared in the %q ConfigMap",
-			kaitov1beta1.AnnotationNodeClassName, name, cfg.AllowedNames, consts.NodeClassConfigMapName)
+	allowed := consts.AllowedNodeClassNames()
+	if !slices.Contains(allowed, name) {
+		return "", fmt.Errorf("annotation %s=%q is not permitted: choose one of the KAITO-managed NodeClasses %v",
+			kaitov1beta1.AnnotationNodeClassName, name, allowed)
 	}
 	return name, nil
 }

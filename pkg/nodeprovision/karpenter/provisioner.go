@@ -16,7 +16,6 @@ package karpenter
 import (
 	"context"
 	"fmt"
-	"slices"
 	"time"
 
 	"github.com/samber/lo"
@@ -25,6 +24,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -32,29 +32,32 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
-	sigsyaml "sigs.k8s.io/yaml"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
 	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/workspace/resource"
 )
 
+// NodeClassSpec is one entry of the --karpenter-node-classes flag. Spec is an opaque
+// provider-specific body (AKSNodeClass, EC2NodeClass, ...) passed through untouched.
+type NodeClassSpec struct {
+	Name    string                 `json:"name"`
+	Default bool                   `json:"default,omitempty"`
+	Spec    map[string]interface{} `json:"spec"`
+}
+
 // NodeClassConfig holds cloud-specific NodeClass reference info.
-// Group, Kind, Version, and ResourceName are injected via CLI flags.
-// DefaultName and AllowedNames are derived by Start() from the NodeClass ConfigMap.
+// Every field is injected via CLI flags; DefaultName is derived by Start() from NodeClasses.
 type NodeClassConfig struct {
 	Group        string // e.g. "karpenter.azure.com"
 	Kind         string // e.g. "AKSNodeClass"
 	Version      string // e.g. "v1beta1"
 	ResourceName string // plural resource name (e.g. "aksnodeclasses"); combined with Group for CRD lookup
-	DefaultName  string // populated by Start(): name of entry with karpenter.kaito.sh/default=true
-	// AllowedNames is the set of NodeClass names KAITO created from the ConfigMap. It is
-	// the allowlist a Workspace may select from via the node-class-name annotation.
-	AllowedNames []string
+	NodeClasses  []NodeClassSpec
+	DefaultName  string // populated by Start(): name of the entry marked default
 }
 
 // KarpenterProvisioner implements NodeProvisioner using the cloud-agnostic
@@ -76,8 +79,8 @@ func NewKarpenterProvisioner(c client.Client, cfg NodeClassConfig) *KarpenterPro
 // Name returns the provisioner name.
 func (p *KarpenterProvisioner) Name() string { return "KarpenterProvisioner" }
 
-// Start verifies that the Karpenter CRDs are installed, creates
-// NodeClass resources from the ConfigMap, and derives DefaultName from labels.
+// Start verifies that the Karpenter CRDs are installed, creates the configured
+// NodeClass resources, and derives DefaultName.
 // Returns an error if Karpenter is not installed.
 func (p *KarpenterProvisioner) Start(ctx context.Context) error {
 	// Check if the core Karpenter CRDs exist.
@@ -105,69 +108,69 @@ func (p *KarpenterProvisioner) Start(ctx context.Context) error {
 		return fmt.Errorf("checking NodeClass CRD %q: %w", nodeClassCRDName, err)
 	}
 
-	releaseNS, err := utils.GetReleaseNamespace()
-	if err != nil {
-		return fmt.Errorf("resolving release namespace: %w", err)
+	if len(p.nodeClassConfig.NodeClasses) == 0 {
+		return fmt.Errorf("no NodeClass definitions configured: --karpenter-node-classes is required when node-provisioner=karpenter")
 	}
 
-	// Read the ConfigMap containing NodeClass manifests.
-	cm := &corev1.ConfigMap{}
-	if err := p.client.Get(ctx, types.NamespacedName{
-		Name: consts.NodeClassConfigMapName, Namespace: releaseNS,
-	}, cm); err != nil {
-		return fmt.Errorf("reading NodeClass ConfigMap %q in namespace %q: %w",
-			consts.NodeClassConfigMapName, releaseNS, err)
-	}
-
-	// Create each NodeClass and derive DefaultName from labels.
-	allowedNames := make([]string, 0, len(cm.Data))
-	for key, raw := range cm.Data {
-		obj := &unstructured.Unstructured{}
-		if err := sigsyaml.Unmarshal([]byte(raw), &obj.Object); err != nil {
-			return fmt.Errorf("decoding NodeClass %q from ConfigMap: %w", key, err)
-		}
-
-		name := obj.GetName()
-		labels := obj.GetLabels()
-		// The admission webhook allowlists ConfigMap keys while provisioning allowlists
-		// manifest names; requiring them to match keeps the two checks equivalent.
-		if key != name {
-			return fmt.Errorf("NodeClass ConfigMap key %q does not match metadata.name %q", key, name)
-		}
-		allowedNames = append(allowedNames, name)
-
-		// Track the default NodeClass entry.
-		if labels["karpenter.kaito.sh/default"] == "true" {
+	// Create each configured NodeClass and derive DefaultName.
+	allowedNames := make([]string, 0, len(p.nodeClassConfig.NodeClasses))
+	for _, nc := range p.nodeClassConfig.NodeClasses {
+		allowedNames = append(allowedNames, nc.Name)
+		if nc.Default {
 			if p.nodeClassConfig.DefaultName != "" {
-				return fmt.Errorf("multiple NodeClass entries have karpenter.kaito.sh/default=true: %q and %q",
-					p.nodeClassConfig.DefaultName, name)
+				return fmt.Errorf("multiple NodeClass entries are marked default: %q and %q",
+					p.nodeClassConfig.DefaultName, nc.Name)
 			}
-			p.nodeClassConfig.DefaultName = name
+			p.nodeClassConfig.DefaultName = nc.Name
 		}
 
-		klog.InfoS("Creating NodeClass", "name", name, "kind", obj.GetKind())
+		obj := p.newNodeClassObject(nc)
+		klog.InfoS("Creating NodeClass", "name", nc.Name, "kind", obj.GetKind())
 		if err := p.client.Create(ctx, obj); err != nil {
 			if !apierrors.IsAlreadyExists(err) {
-				return fmt.Errorf("creating NodeClass %q: %w", key, err)
+				return fmt.Errorf("creating NodeClass %q: %w", nc.Name, err)
 			}
-			klog.InfoS("NodeClass already exists", "name", name)
+			klog.InfoS("NodeClass already exists", "name", nc.Name)
 		}
 	}
 
 	if p.nodeClassConfig.DefaultName == "" {
-		return fmt.Errorf("no NodeClass entry has label karpenter.kaito.sh/default=true")
+		return fmt.Errorf("no NodeClass entry is marked default")
 	}
-	slices.Sort(allowedNames)
-	p.nodeClassConfig.AllowedNames = allowedNames
+	// The allowlist a Workspace may select from via the node-class-name annotation.
+	// Held here because the admission webhook cannot import this package.
+	consts.SetAllowedNodeClassNames(allowedNames)
 
 	// Wait for the default NodeClass to be ready.
 	if err := p.waitForNodeClassReady(ctx, p.nodeClassConfig.DefaultName); err != nil {
 		return fmt.Errorf("default NodeClass %q not ready: %w", p.nodeClassConfig.DefaultName, err)
 	}
 	klog.InfoS("NodeClass resources created",
-		"count", len(cm.Data),
+		"count", len(p.nodeClassConfig.NodeClasses),
 		"default", p.nodeClassConfig.DefaultName)
 	return nil
+}
+
+// newNodeClassObject renders one flag entry into an unstructured NodeClass.
+func (p *KarpenterProvisioner) newNodeClassObject(nc NodeClassSpec) *unstructured.Unstructured {
+	obj := &unstructured.Unstructured{}
+	obj.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   p.nodeClassConfig.Group,
+		Version: p.nodeClassConfig.Version,
+		Kind:    p.nodeClassConfig.Kind,
+	})
+	obj.SetName(nc.Name)
+
+	labels := map[string]string{"karpenter.kaito.sh/managed-by": "kaito"}
+	if nc.Default {
+		labels["karpenter.kaito.sh/default"] = "true"
+	}
+	obj.SetLabels(labels)
+
+	if nc.Spec != nil {
+		obj.Object["spec"] = runtime.DeepCopyJSON(nc.Spec)
+	}
+	return obj
 }
 
 // checkNodeClassReady performs a single point-in-time check that the named

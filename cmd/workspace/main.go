@@ -109,6 +109,7 @@ func main() {
 	var karpenterNodeClassKind string
 	var karpenterNodeClassVersion string
 	var karpenterNodeClassResourceName string
+	var karpenterNodeClasses string
 	var kubeClientQPS int = 30
 	var kubeClientBurst int = 50
 	var printVersionAndExit bool
@@ -132,6 +133,7 @@ func main() {
 	flag.StringVar(&karpenterNodeClassKind, "karpenter-node-class-kind", "AKSNodeClass", "Karpenter NodeClass API kind. Only used when node-provisioner=karpenter.")
 	flag.StringVar(&karpenterNodeClassVersion, "karpenter-node-class-version", "v1beta1", "Karpenter NodeClass API version. Only used when node-provisioner=karpenter.")
 	flag.StringVar(&karpenterNodeClassResourceName, "karpenter-node-class-resource-name", "aksnodeclasses", "Plural resource name for the NodeClass CRD (e.g. aksnodeclasses). Combined with --karpenter-node-class-group to form the full CRD name. Only used when node-provisioner=karpenter.")
+	flag.StringVar(&karpenterNodeClasses, "karpenter-node-classes", "", `JSON array of NodeClasses KAITO creates and lets Workspaces select, e.g. [{"name":"image-family-ubuntu","default":true,"spec":{...}}]. "spec" is passed through to the provider's NodeClass unchanged. Exactly one entry must be default. Required when node-provisioner=karpenter.`)
 	flag.BoolVar(&printVersionAndExit, "version", false, "Print version and exit.")
 	flag.StringVar(&defaultModelMirrorStorageClass, "default-model-mirror-storage-class", "", "StorageClass for ModelMirror PVCs.")
 	flag.StringVar(&defaultStreamingServiceAccount, "default-streaming-service-account", "", "Default ServiceAccount for streaming inference pods.")
@@ -254,7 +256,7 @@ func main() {
 
 	// Select and initialize the node provisioner based on feature gates.
 	recorder := mgr.GetEventRecorderFor("KAITO-Workspace-controller")
-	nodeProvisioner := nodeprovisionmanager.NewNodeProvisioner(nodeprovisionmanager.ProvisionerConfig{
+	provisionerCfg := nodeprovisionmanager.ProvisionerConfig{
 		KClient:                kClient,
 		DirectClient:           directClient,
 		Recorder:               recorder,
@@ -264,7 +266,18 @@ func main() {
 		NodeClassKind:          karpenterNodeClassKind,
 		NodeClassVersion:       karpenterNodeClassVersion,
 		NodeClassResourceName:  karpenterNodeClassResourceName,
-	})
+	}
+	if nodeProvisionerType == consts.NodeProvisionerKarpenter {
+		nodeClasses, ncErr := nodeprovisionmanager.ParseNodeClasses(karpenterNodeClasses)
+		if ncErr != nil {
+			klog.ErrorS(ncErr, "invalid NodeClass configuration")
+			exitWithErrorFunc()
+		}
+		provisionerCfg.NodeClasses = nodeClasses
+	} else if karpenterNodeClasses != "" {
+		klog.InfoS("ignoring --karpenter-node-classes", "nodeProvisioner", nodeProvisionerType)
+	}
+	nodeProvisioner := nodeprovisionmanager.NewNodeProvisioner(provisionerCfg)
 	klog.InfoS("Node provisioner selected", "name", nodeProvisioner.Name())
 	if err := nodeProvisioner.Start(ctx); err != nil {
 		klog.ErrorS(err, "failed to start node provisioner")

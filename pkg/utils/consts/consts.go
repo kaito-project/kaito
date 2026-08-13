@@ -14,6 +14,7 @@
 package consts
 
 import (
+	"slices"
 	"strings"
 	"time"
 )
@@ -97,6 +98,22 @@ func IsKarpenterProvisioner() bool {
 	return ActiveNodeProvisioner == NodeProvisionerKarpenter
 }
 
+// allowedNodeClassNames is the sorted set of NodeClass names declared via
+// --karpenter-node-classes. Set once during startup in main.go; read by the Workspace
+// admission webhook to validate the node-class-name annotation. Unexported so callers
+// cannot mutate the allowlist in place.
+var allowedNodeClassNames []string
+
+// SetAllowedNodeClassNames publishes the NodeClass allowlist. Startup only.
+func SetAllowedNodeClassNames(names []string) {
+	allowedNodeClassNames = slices.Clone(names)
+}
+
+// AllowedNodeClassNames returns the NodeClass allowlist.
+func AllowedNodeClassNames() []string {
+	return slices.Clone(allowedNodeClassNames)
+}
+
 const (
 	// Nodeclaim related consts
 	KaitoNodePoolName             = "kaito"
@@ -110,10 +127,6 @@ const (
 	AKSNodeClassUbuntuName     = "image-family-ubuntu"
 	AKSNodeClassAzureLinuxName = "image-family-azure-linux"
 	AKSNodeClassOSDiskSizeGB   = 300
-
-	// NodeClassConfigMapName is the ConfigMap in the release namespace holding the
-	// admin-defined NodeClass manifests KAITO creates and allows Workspaces to select.
-	NodeClassConfigMapName = "kaito-nodeclasses"
 
 	// machine related consts
 	ProvisionerName           = "default"

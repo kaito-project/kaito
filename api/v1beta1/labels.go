@@ -62,9 +62,8 @@ const (
 	AnnotationNodeImageFamily = KAITOPrefix + "node-image-family"
 
 	// AnnotationNodeClassName selects the Karpenter NodeClass used by the generated NodePool.
-	// The value must name one of the KAITO-managed NodeClasses declared in the
-	// kaito-nodeclasses ConfigMap. When unset, the default
-	// NodeClass is used.
+	// The value must name one of the KAITO-managed NodeClasses declared via the operator's
+	// --karpenter-node-classes flag. When unset, the default NodeClass is used.
 	AnnotationNodeClassName = KAITOPrefix + "node-class-name"
 
 	// AnnotationDisableBenchmark disables the post-load throughput benchmark stage.

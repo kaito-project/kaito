@@ -50,5 +50,4 @@ decord==0.6.0
 fla-core==0.4.1
 mistral-common[soundfile]>=0.13.1
 num2words==0.5.14
-scipy==1.16.2  # Requires by Inkling models
 torch-c-dlpack-ext==0.1.5

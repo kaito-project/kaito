@@ -53,7 +53,6 @@ var (
 		"granite-3.2":  "granite",
 		"holo2":        "holo2",
 		"hunyuan-a13b": "hunyuan_a13b",
-		"inkling":      "inkling",
 		"kimi-k2":      "kimi_k2",
 		"laguna":       "poolside_v1",
 		"minimax-m2":   "minimax_m2_append_think",
@@ -74,7 +73,6 @@ var (
 		"Glm4MoeForCausalLM":                      "glm45",
 		"GlmMoeDsaForCausalLM":                    "glm45",
 		"HunYuanMoEV1ForCausalLM":                 "hunyuan_a13b",
-		"InklingForConditionalGeneration":         "inkling",
 		"GraniteForCausalLM":                      "granite",
 		"KimiK2ForCausalLM":                       "kimi_k2",
 		"KimiK25ForConditionalGeneration":         "kimi_k2",
@@ -127,7 +125,6 @@ var (
 		"xlam":          "xlam",
 		"qwq-32b":       "hermes",
 		"qwen2.5":       "hermes",
-		"inkling":       "inkling",
 		"laguna":        "poolside_v1",
 		"minimax-m2":    "minimax_m2",
 		"minimax-m3":    "minimax_m3",
@@ -171,7 +168,6 @@ var (
 		"GraniteMoeHybridForCausalLM":             "granite4",
 		"GPTBigCodeForCausalLM":                   "granite-20b-fc",
 		"InternLM2ForCausalLM":                    "internlm",
-		"InklingForConditionalGeneration":         "inkling",
 		"JambaForCausalLM":                        "jamba",
 		"Qwen2ForCausalLM":                        "hermes",
 		"Qwen3ForCausalLM":                        "hermes",
@@ -231,7 +227,6 @@ var (
 		"deepseek-r1": "deepseek_v32",
 		"deepseek-v3": "deepseek_v32",
 		"deepseek-v4": "deepseek_v4",
-		"inkling":     "inkling",
 	}
 
 	// vllmAttentionBackendPrefixMap maps model name prefixes to their vLLM attention backend.
@@ -288,9 +283,6 @@ var (
 
 	// vllmDisableFlashInferAutotunePrefixMap disables vLLM's FlashInfer kernel autotuning
 	vllmDisableFlashInferAutotunePrefixMap = map[string]bool{
-		// Inkling's recipe requires disabling it explicitly.
-		// source: https://recipes.vllm.ai/thinkingmachines/Inkling
-		"inkling": true,
 		// DeepSeek-V3.2's recipe requires disabling it explicitly.
 		// source: https://recipes.vllm.ai/deepseek-ai/DeepSeek-V3.2
 		"deepseek-v3.2": true,

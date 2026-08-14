@@ -627,7 +627,6 @@ func (p *PresetParam) isVLLMHybridKVCacheManagerRequired() bool {
 		case "NemotronHForCausalLM", "NemotronH_Nano_VL_V2", "NemotronHMTPModel", "NemotronHPuzzleForCausalLM",
 			"Gemma4ForCausalLM", "Gemma4ForConditionalGeneration", "Gemma4UnifiedForConditionalGeneration",
 			"Qwen3_5ForConditionalGeneration", "Qwen3_5MoeForConditionalGeneration",
-			"InklingForConditionalGeneration", "InklingForCausalLM",
 			"DeepseekV4ForCausalLM", "DeepseekV32ForCausalLM":
 			return true
 		}
@@ -656,31 +655,6 @@ func (p *PresetParam) RequiresDeepGEMM() bool {
 	for _, arch := range p.Architectures {
 		switch arch {
 		case "DeepseekV4ForCausalLM", "DeepseekV32ForCausalLM", "GlmMoeDsaForCausalLM":
-			return true
-		}
-	}
-	return false
-}
-
-// RequiresVllmModelRunnerV2 returns true for architectures that require vLLM's
-// v2 model runner (VLLM_USE_V2_MODEL_RUNNER=1).
-func (p *PresetParam) RequiresVllmModelRunnerV2() bool {
-	for _, arch := range p.Architectures {
-		switch arch {
-		case "InklingForConditionalGeneration", "InklingForCausalLM":
-			return true
-		}
-	}
-	return false
-}
-
-// RequiresVllmFlashAttentionCuteDslCache returns true for architectures that
-// require the FlashAttention CuTe DSL kernel cache
-// (FLASH_ATTENTION_CUTE_DSL_CACHE_ENABLED=1).
-func (p *PresetParam) RequiresVllmFlashAttentionCuteDslCache() bool {
-	for _, arch := range p.Architectures {
-		switch arch {
-		case "InklingForConditionalGeneration", "InklingForCausalLM":
 			return true
 		}
 	}

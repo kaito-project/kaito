@@ -11,7 +11,6 @@ BailingMoeV25MTPModel
 BailingMoeV2ForCausalLM
 BailingMoeV2_5ForCausalLM
 BeeForConditionalGeneration
-BertForMaskedLM
 BertForSequenceClassification
 BertForTokenClassification
 BertModel
@@ -37,7 +36,6 @@ ColModernVBertForRetrieval
 ColPaliForRetrieval
 ColQwen3
 ColQwen3_5
-Cosmos3EdgeForConditionalGeneration
 Cosmos3ForConditionalGeneration
 CwmForCausalLM
 DFlashDraftModel
@@ -93,6 +91,7 @@ FireRedLIDForConditionalGeneration
 FlexOlmoForCausalLM
 FunASRForConditionalGeneration
 FunAudioChatForConditionalGeneration
+FuyuForCausalLM
 GLM4VForCausalLM
 GPT2ForSequenceClassification
 GPT2LMHeadModel
@@ -106,7 +105,6 @@ Gemma3ForConditionalGeneration
 Gemma3TextModel
 Gemma3nForCausalLM
 Gemma3nForConditionalGeneration
-Gemma4DSparkModel
 Gemma4ForCausalLM
 Gemma4ForConditionalGeneration
 Gemma4MTPModel
@@ -151,9 +149,6 @@ HyperCLOVAXForCausalLM
 IQuestCoderForCausalLM
 IQuestLoopCoderForCausalLM
 Idefics3ForConditionalGeneration
-InklingForCausalLM
-InklingForConditionalGeneration
-InklingMTPModel
 InternLM2ForCausalLM
 InternLM2ForRewardModel
 InternLM3ForCausalLM
@@ -198,7 +193,6 @@ LlavaOnevision2ForConditionalGeneration
 LlavaOnevisionForConditionalGeneration
 LongCatFlashMTPModel
 LongcatFlashForCausalLM
-LongcatFlashNgramForCausalLM
 MPTForCausalLM
 Mamba2ForCausalLM
 MambaForCausalLM
@@ -274,6 +268,7 @@ PanguUltraMoEForCausalLM
 Param2MoEForCausalLM
 PeagleLlamaForCausalLM
 PeagleQwen3ForCausalLM
+PersimmonForCausalLM
 Phi3ForCausalLM
 Phi3VForCausalLM
 Phi4ForCausalLMV
@@ -316,7 +311,6 @@ RWForCausalLM
 Rnj1ForCausalLM
 RobertaForMaskedLM
 RobertaForSequenceClassification
-RobertaForTokenClassification
 RobertaModel
 SarvamMLAForCausalLM
 SarvamMoEForCausalLM
@@ -338,6 +332,7 @@ Step3p7ForConditionalGeneration
 StepVLForConditionalGeneration
 TeleChat2ForCausalLM
 TeleChat3ForCausalLM
+TeleChatForCausalLM
 TeleFLMForCausalLM
 Terratorch
 TransformersEmbeddingModel
@@ -357,6 +352,5 @@ VoxtralRealtimeGeneration
 VoyageQwen3BidirectionalEmbedModel
 WhisperForConditionalGeneration
 XLMRobertaForSequenceClassification
-XLMRobertaForTokenClassification
 XLMRobertaModel
 Zamba2ForCausalLM

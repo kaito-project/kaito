@@ -148,6 +148,7 @@ var (
 		"qwen3-coder":   "qwen3_xml",
 		"qwen3.5":       "qwen3_coder",
 		"qwen3.6":       "qwen3_coder",
+		"qwen3.8":       "qwen3_coder",
 		"olmo-3":        "olmo3",
 		"gigachat3":     "gigachat3",
 		"ernie-4.5":     "ernie45",
@@ -267,12 +268,13 @@ var (
 	}
 
 	// vllmGdnPrefillBackendPrefixMap maps model name prefixes to their vLLM GDN prefill backend.
-	// Qwen3.5/3.6 models use hybrid GDN (Gated DeltaNet) attention which defaults to
+	// Qwen3.5/3.6/3.8 models use hybrid GDN (Gated DeltaNet) attention which defaults to
 	// FlashInfer JIT compilation requiring nvcc. Pin to triton to avoid the dependency.
 	// source: https://docs.vllm.ai/en/latest/configuration/engine_args/#-gdn-prefill-backend
 	vllmGdnPrefillBackendPrefixMap = map[string]string{
 		"qwen3.5": "triton",
 		"qwen3.6": "triton",
+		"qwen3.8": "triton",
 	}
 
 	// vllmExpertParallelEnabled maps model name prefixes to enable expert parallelism.

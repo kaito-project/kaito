@@ -885,3 +885,16 @@ models:
   numHiddenLayers: 40
   numAttentionHeads: 32
   numKeyValueHeads: 8
+- name: Qwen/Qwen3.8-27B
+  description: https://huggingface.co/Qwen/Qwen3.8-27B
+  license: apache-2.0
+  pipelineTag: image-text-to-text
+  modelFileSize: 51.75Gi
+  architectures:
+  - Qwen3_5ForConditionalGeneration
+  modelTokenLimit: 262144
+  hiddenSize: 5120
+  numHiddenLayers: 64
+  numAttentionHeads: 24
+  numKeyValueHeads: 4
+  headDim: 256

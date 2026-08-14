@@ -62,7 +62,7 @@ All models were deployed as KAITO Workspace CRs on AKS and evaluated using the v
 | MiniMaxAI/MiniMax-M2.7 | vllm | 7.16 | 7.15 | 6.90 | 7.29 | 8.72 | 6.90 | 6.95 | 6.25 | 7.15 | 2026-05-13 |
 | mistralai/Mistral-Medium-3.5-128B | vllm | 8.18 | 8.05 | 8.10 | 8.15 | 9.55 | 7.40 | 8.60 | 7.60 | 8.00 | 2026-05-14 |
 | moonshotai/Kimi-K2.6 | vllm | 8.44 | 8.40 | 8.55 | 8.95 | 9.95 | 6.95 | 8.35 | 7.80 | 8.55 | 2026-05-14 |
-| deepseek-ai/DeepSeek-V4-Flash | vllm | 8.07 | 8.45 | 8.30 | 8.15 | 9.75 | 6.80 | 8.65 | 7.55 | 6.90 | 2026-07-19 |
+| deepseek-ai/DeepSeek-V4-Flash-0731 | vllm | 8.59 | 8.60 | 8.50 | 9.15 | 9.60 | 8.65 | 7.65 | 8.30 | 8.30 | 2026-08-14 |
 | deepseek-ai/DeepSeek-V4-Pro | vllm | 8.33 | 8.45 | 8.25 | 8.80 | 9.90 | 7.60 | 8.65 | 8.00 | 7.00 | 2026-07-24 |
 | zai-org/GLM-5.2-FP8 | vllm | 8.49 | 8.15 | 8.15 | 8.25 | 10.0 | 8.1 | 8.35 | 8.45 | 8.45 | 2026-08-02 |
 | moonshotai/Kimi-K2.7-Code | vllm | 8.74 | 8.25 | 8.15 | 9.0 | 9.75 | 8.5 | 8.5 | 8.95 | 8.8 | 2026-07-31 |

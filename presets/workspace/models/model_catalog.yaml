@@ -738,11 +738,11 @@ models:
   configFormat: mistral
   tokenizerMode: mistral
   quantMethod: fp8
-- name: deepseek-ai/DeepSeek-V4-Flash
-  description: https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash
+- name: deepseek-ai/DeepSeek-V4-Flash-0731
+  description: https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
   license: mit
   pipelineTag: text-generation
-  modelFileSize: 148.66Gi
+  modelFileSize: 155.43Gi
   architectures:
   - DeepseekV4ForCausalLM
   modelTokenLimit: 1048576

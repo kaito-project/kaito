@@ -75,14 +75,14 @@ func TestParseNodeClasses(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := ParseNodeClasses(tt.raw)
+			_, _, err := ParseNodeClasses(tt.raw)
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), tt.wantErr)
 		})
 	}
 
 	t.Run("valid input is parsed and sorted by name", func(t *testing.T) {
-		entries, err := ParseNodeClasses(`[
+		entries, names, err := ParseNodeClasses(`[
 			{"name":"image-family-ubuntu","default":true,"spec":{"imageFamily":"Ubuntu2204","osDiskSizeGB":300}},
 			{"name":"image-family-azure-linux","spec":{"imageFamily":"AzureLinux"}}
 		]`)
@@ -96,12 +96,17 @@ func TestParseNodeClasses(t *testing.T) {
 		assert.Equal(t, map[string]interface{}{
 			"imageFamily": "Ubuntu2204", "osDiskSizeGB": float64(300),
 		}, entries[1].Spec)
+
+		// The names feed the admission webhook allowlist, so they must match the
+		// entries the provisioner creates, in the same order.
+		assert.Equal(t, []string{"image-family-azure-linux", "image-family-ubuntu"}, names)
 	})
 
 	t.Run("spec is an opaque passthrough for other providers", func(t *testing.T) {
-		entries, err := ParseNodeClasses(`[{"name":"ec2","default":true,"spec":{"amiFamily":"AL2023","subnetSelectorTerms":[{"tags":{"karpenter.sh/discovery":"c"}}]}}]`)
+		entries, names, err := ParseNodeClasses(`[{"name":"ec2","default":true,"spec":{"amiFamily":"AL2023","subnetSelectorTerms":[{"tags":{"karpenter.sh/discovery":"c"}}]}}]`)
 		require.NoError(t, err)
 		assert.Equal(t, "AL2023", entries[0].Spec["amiFamily"])
 		assert.Len(t, entries[0].Spec["subnetSelectorTerms"], 1)
+		assert.Equal(t, []string{"ec2"}, names)
 	})
 }

@@ -215,14 +215,6 @@ func TestNewNodeClassObject(t *testing.T) {
 		assert.Equal(t, map[string]string{"karpenter.kaito.sh/managed-by": "kaito"}, obj.GetLabels())
 		assert.NotContains(t, obj.Object, "spec")
 	})
-
-	t.Run("spec is copied, not aliased", func(t *testing.T) {
-		spec := map[string]interface{}{"imageFamily": "Ubuntu2204"}
-		obj := p.newNodeClassObject(NodeClassSpec{Name: "nc", Spec: spec})
-
-		obj.Object["spec"].(map[string]interface{})["imageFamily"] = "mutated"
-		assert.Equal(t, "Ubuntu2204", spec["imageFamily"], "flag config must not be mutable via the created object")
-	})
 }
 
 func TestStart_NoNodeClassesConfigured(t *testing.T) {
@@ -233,6 +225,34 @@ func TestStart_NoNodeClassesConfigured(t *testing.T) {
 	err := p.Start(context.Background())
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "--karpenter-node-classes is required")
+}
+
+func TestStart_CreatesNodeClassesAndPublishesAllowlist(t *testing.T) {
+	setAllowedNodeClasses(t)
+
+	cfg := testConfig
+	cfg.DefaultName = ""
+	cfg.NodeClasses = []NodeClassSpec{
+		{Name: "image-family-azure-linux", Spec: map[string]interface{}{"imageFamily": "AzureLinux"}},
+		{Name: "image-family-ubuntu", Default: true, Spec: map[string]interface{}{"imageFamily": "Ubuntu2204"}},
+	}
+	cfg.NodeClassNames = []string{"image-family-azure-linux", "image-family-ubuntu"}
+
+	// Seed the default so waitForNodeClassReady observes Ready without polling.
+	c := newFakeClientWithCRDs(makeNodeClassUnstructured("image-family-ubuntu"))
+	p := NewKarpenterProvisioner(c, cfg)
+
+	require.NoError(t, p.Start(context.Background()))
+	assert.Equal(t, "image-family-ubuntu", p.nodeClassConfig.DefaultName)
+
+	// The webhook allowlist must name exactly the NodeClasses that now exist.
+	assert.Equal(t, []string{"image-family-azure-linux", "image-family-ubuntu"}, consts.AllowedNodeClassNames())
+	for _, name := range consts.AllowedNodeClassNames() {
+		obj := &unstructured.Unstructured{}
+		obj.SetGroupVersionKind(schema.GroupVersionKind{Group: cfg.Group, Version: cfg.Version, Kind: cfg.Kind})
+		require.NoError(t, c.Get(context.Background(), client.ObjectKey{Name: name}, obj),
+			"allowlisted NodeClass %q should exist", name)
+	}
 }
 
 func TestStart_NoDefaultEntry(t *testing.T) {

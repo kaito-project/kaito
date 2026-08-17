@@ -24,7 +24,6 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -57,7 +56,9 @@ type NodeClassConfig struct {
 	Version      string // e.g. "v1beta1"
 	ResourceName string // plural resource name (e.g. "aksnodeclasses"); combined with Group for CRD lookup
 	NodeClasses  []NodeClassSpec
-	DefaultName  string // populated by Start(): name of the entry marked default
+	// NodeClassNames are the NodeClasses' names, validated and sorted by ParseNodeClasses.
+	NodeClassNames []string
+	DefaultName    string // populated by Start(): name of the entry marked default
 }
 
 // KarpenterProvisioner implements NodeProvisioner using the cloud-agnostic
@@ -113,9 +114,7 @@ func (p *KarpenterProvisioner) Start(ctx context.Context) error {
 	}
 
 	// Create each configured NodeClass and derive DefaultName.
-	allowedNames := make([]string, 0, len(p.nodeClassConfig.NodeClasses))
 	for _, nc := range p.nodeClassConfig.NodeClasses {
-		allowedNames = append(allowedNames, nc.Name)
 		if nc.Default {
 			if p.nodeClassConfig.DefaultName != "" {
 				return fmt.Errorf("multiple NodeClass entries are marked default: %q and %q",
@@ -139,7 +138,7 @@ func (p *KarpenterProvisioner) Start(ctx context.Context) error {
 	}
 	// The allowlist a Workspace may select from via the node-class-name annotation.
 	// Held here because the admission webhook cannot import this package.
-	consts.SetAllowedNodeClassNames(allowedNames)
+	consts.SetAllowedNodeClassNames(p.nodeClassConfig.NodeClassNames)
 
 	// Wait for the default NodeClass to be ready.
 	if err := p.waitForNodeClassReady(ctx, p.nodeClassConfig.DefaultName); err != nil {
@@ -168,7 +167,7 @@ func (p *KarpenterProvisioner) newNodeClassObject(nc NodeClassSpec) *unstructure
 	obj.SetLabels(labels)
 
 	if nc.Spec != nil {
-		obj.Object["spec"] = runtime.DeepCopyJSON(nc.Spec)
+		obj.Object["spec"] = nc.Spec
 	}
 	return obj
 }

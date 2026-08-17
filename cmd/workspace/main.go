@@ -268,12 +268,13 @@ func main() {
 		NodeClassResourceName:  karpenterNodeClassResourceName,
 	}
 	if nodeProvisionerType == consts.NodeProvisionerKarpenter {
-		nodeClasses, ncErr := nodeprovisionmanager.ParseNodeClasses(karpenterNodeClasses)
+		nodeClasses, nodeClassNames, ncErr := nodeprovisionmanager.ParseNodeClasses(karpenterNodeClasses)
 		if ncErr != nil {
 			klog.ErrorS(ncErr, "invalid NodeClass configuration")
 			exitWithErrorFunc()
 		}
 		provisionerCfg.NodeClasses = nodeClasses
+		provisionerCfg.NodeClassNames = nodeClassNames
 	} else if karpenterNodeClasses != "" {
 		klog.InfoS("ignoring --karpenter-node-classes", "nodeProvisioner", nodeProvisionerType)
 	}

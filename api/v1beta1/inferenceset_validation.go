@@ -51,8 +51,17 @@ func (is *InferenceSet) Validate(ctx context.Context) (errs *apis.FieldError) {
 			is.validateUpdate(old).ViaField("spec"),
 		)
 	}
+	if ValidateInferenceSetWorkspace != nil {
+		errs = errs.Also(ValidateInferenceSetWorkspace(ctx, is).ViaField("spec", "template"))
+	}
 	return errs
 }
+
+// ValidateInferenceSetWorkspace validates the child Workspace an InferenceSet
+// would create. It is assigned at startup (see pkg/workspace/webhooks) to a
+// controller-side implementation, avoiding an import cycle with the util
+// package that builds the Workspace.
+var ValidateInferenceSetWorkspace func(ctx context.Context, is *InferenceSet) *apis.FieldError
 
 func (is *InferenceSet) validateCreate() (errs *apis.FieldError) {
 	if is.Spec.Replicas != nil && *is.Spec.Replicas < 0 {

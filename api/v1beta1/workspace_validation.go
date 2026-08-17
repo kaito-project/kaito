@@ -72,33 +72,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 	base := apis.GetBaseline(ctx)
 	if base == nil {
 		klog.InfoS("Validate creation", "workspace", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
-		errs = errs.Also(w.validateCreate().ViaField("spec"))
-		errs = errs.Also(w.validateAnnotations())
-		if w.Inference != nil {
-			// Check if the bypass resource checks annotation is set
-			bypassResourceChecks := false
-			if w.GetAnnotations() != nil {
-				if _, exists := w.GetAnnotations()[AnnotationBypassResourceChecks]; exists {
-					bypassResourceChecks = true
-				}
-			}
-
-			runtime := GetWorkspaceRuntimeName(w)
-			// TODO: Add Adapter Spec Validation - Including DataSource Validation for Adapter
-			errs = errs.Also(
-				w.Resource.validateCreateWithInference(ctx, w.Inference, bypassResourceChecks, runtime, w.Namespace).ViaField("resource"),
-				w.Inference.validateCreate(ctx, runtime, w.Namespace).ViaField("inference"),
-				w.validateInferenceConfig(ctx),
-			)
-			if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
-				errs = errs.Also(w.validateStreamingCSIDriver(ctx))
-			}
-		}
-		if w.Tuning != nil {
-			// TODO: Add validate resource based on Tuning Spec
-			errs = errs.Also(w.Resource.validateCreateWithTuning(w.Tuning).ViaField("resource"),
-				w.Tuning.validateCreate(ctx, w.Namespace).ViaField("tuning"))
-		}
+		errs = errs.Also(w.ValidateCreate(ctx))
 	} else {
 		klog.InfoS("Validate update", "workspace", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
 		old := base.(*Workspace)
@@ -115,6 +89,39 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		if w.Tuning != nil {
 			errs = errs.Also(w.Tuning.validateUpdate(old.Tuning).ViaField("tuning"))
 		}
+	}
+	return errs
+}
+
+// ValidateCreate runs the validations applied when a Workspace is created.
+// It can also validate a Workspace projected from another resource without
+// inheriting that resource's update baseline from the admission context.
+func (w *Workspace) ValidateCreate(ctx context.Context) (errs *apis.FieldError) {
+	errs = errs.Also(w.validateCreate().ViaField("spec"))
+	errs = errs.Also(w.validateAnnotations())
+	if w.Inference != nil {
+		bypassResourceChecks := false
+		if w.GetAnnotations() != nil {
+			if _, exists := w.GetAnnotations()[AnnotationBypassResourceChecks]; exists {
+				bypassResourceChecks = true
+			}
+		}
+
+		runtime := GetWorkspaceRuntimeName(w)
+		// TODO: Add Adapter Spec Validation - Including DataSource Validation for Adapter
+		errs = errs.Also(
+			w.Resource.validateCreateWithInference(ctx, w.Inference, bypassResourceChecks, runtime, w.Namespace).ViaField("resource"),
+			w.Inference.validateCreate(ctx, runtime, w.Namespace).ViaField("inference"),
+			w.validateInferenceConfig(ctx),
+		)
+		if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+			errs = errs.Also(w.validateStreamingCSIDriver(ctx))
+		}
+	}
+	if w.Tuning != nil {
+		// TODO: Add validate resource based on Tuning Spec
+		errs = errs.Also(w.Resource.validateCreateWithTuning(w.Tuning).ViaField("resource"),
+			w.Tuning.validateCreate(ctx, w.Namespace).ViaField("tuning"))
 	}
 	return errs
 }
@@ -539,7 +546,10 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 			return errs
 		}
 
-		machineCount = *r.Count
+		machineCount = 1
+		if r.Count != nil {
+			machineCount = *r.Count
+		}
 		skuConfig = skuHandler.GetGPUConfigBySKU(instanceType)
 
 		if skuConfig == nil {

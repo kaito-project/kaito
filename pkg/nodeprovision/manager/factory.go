@@ -14,6 +14,12 @@
 package manager
 
 import (
+	"encoding/json"
+	"fmt"
+	"slices"
+	"strings"
+
+	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -37,6 +43,53 @@ type ProvisionerConfig struct {
 	NodeClassKind          string
 	NodeClassVersion       string
 	NodeClassResourceName  string
+	NodeClasses            []karpenterprov.NodeClassSpec
+	NodeClassNames         []string
+}
+
+// ParseNodeClasses decodes the --karpenter-node-classes JSON array and validates it,
+// returning the entries and their names, both sorted by name.
+func ParseNodeClasses(raw string) ([]karpenterprov.NodeClassSpec, []string, error) {
+	if raw == "" {
+		return nil, nil, fmt.Errorf("--karpenter-node-classes is required when node-provisioner=%s", consts.NodeProvisionerKarpenter)
+	}
+
+	var entries []karpenterprov.NodeClassSpec
+	if err := json.Unmarshal([]byte(raw), &entries); err != nil {
+		return nil, nil, fmt.Errorf("parsing --karpenter-node-classes as a JSON array: %w", err)
+	}
+	if len(entries) == 0 {
+		return nil, nil, fmt.Errorf("--karpenter-node-classes declares no NodeClasses")
+	}
+
+	seen := make(map[string]struct{}, len(entries))
+	names := make([]string, 0, len(entries))
+	defaults := make([]string, 0, 1)
+	for i, e := range entries {
+		if e.Name == "" {
+			return nil, nil, fmt.Errorf("--karpenter-node-classes entry %d has an empty name", i)
+		}
+		if errs := validation.IsDNS1123Subdomain(e.Name); len(errs) > 0 {
+			return nil, nil, fmt.Errorf("--karpenter-node-classes entry %d name %q is not a valid resource name: %s", i, e.Name, errs[0])
+		}
+		if _, dup := seen[e.Name]; dup {
+			return nil, nil, fmt.Errorf("--karpenter-node-classes declares %q more than once", e.Name)
+		}
+		seen[e.Name] = struct{}{}
+		names = append(names, e.Name)
+		if e.Default {
+			defaults = append(defaults, e.Name)
+		}
+	}
+	if len(defaults) != 1 {
+		return nil, nil, fmt.Errorf("--karpenter-node-classes must mark exactly one entry default, got %d %v", len(defaults), defaults)
+	}
+
+	slices.SortFunc(entries, func(a, b karpenterprov.NodeClassSpec) int {
+		return strings.Compare(a.Name, b.Name)
+	})
+	slices.Sort(names)
+	return entries, names, nil
 }
 
 // NewNodeProvisioner creates and returns a NodeProvisioner based on the provisionerType parameter.
@@ -48,10 +101,12 @@ func NewNodeProvisioner(cfg ProvisionerConfig) nodeprovision.NodeProvisioner {
 	switch cfg.ProvisionerType {
 	case consts.NodeProvisionerKarpenter:
 		ncCfg := karpenterprov.NodeClassConfig{
-			Group:        cfg.NodeClassGroup,
-			Kind:         cfg.NodeClassKind,
-			Version:      cfg.NodeClassVersion,
-			ResourceName: cfg.NodeClassResourceName,
+			Group:          cfg.NodeClassGroup,
+			Kind:           cfg.NodeClassKind,
+			Version:        cfg.NodeClassVersion,
+			ResourceName:   cfg.NodeClassResourceName,
+			NodeClasses:    cfg.NodeClasses,
+			NodeClassNames: cfg.NodeClassNames,
 		}
 		return karpenterprov.NewKarpenterProvisioner(cfg.DirectClient, ncCfg)
 	case consts.NodeProvisionerBYO:

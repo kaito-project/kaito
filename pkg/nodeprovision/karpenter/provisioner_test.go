@@ -48,6 +48,14 @@ var testConfig = NodeClassConfig{
 	DefaultName:  "image-family-ubuntu",
 }
 
+// setAllowedNodeClasses scopes the process-wide NodeClass allowlist to a single test.
+func setAllowedNodeClasses(t *testing.T, names ...string) {
+	t.Helper()
+	prev := consts.AllowedNodeClassNames()
+	consts.SetAllowedNodeClassNames(names)
+	t.Cleanup(func() { consts.SetAllowedNodeClassNames(prev) })
+}
+
 // testScheme returns a scheme with all types needed for fake.Client tests.
 func testScheme() *runtime.Scheme {
 	s := runtime.NewScheme()
@@ -65,6 +73,20 @@ func newFakeClient(objs ...client.Object) client.Client {
 // newFakeClientWithInterceptors creates a fake.Client with custom interceptor functions for error injection.
 func newFakeClientWithInterceptors(funcs interceptor.Funcs, objs ...client.Object) client.Client {
 	return fake.NewClientBuilder().WithScheme(testScheme()).WithObjects(objs...).WithInterceptorFuncs(funcs).Build()
+}
+
+// newFakeClientWithCRDs creates a fake.Client where every CRD lookup succeeds, so Start()
+// gets past its installation checks.
+func newFakeClientWithCRDs(objs ...client.Object) client.Client {
+	return newFakeClientWithInterceptors(interceptor.Funcs{
+		Get: func(ctx context.Context, c client.WithWatch, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
+			if crd, ok := obj.(*apiextensionsv1.CustomResourceDefinition); ok {
+				crd.Name = key.Name
+				return nil
+			}
+			return c.Get(ctx, key, obj, opts...)
+		},
+	}, objs...)
 }
 
 // makeReadyNode creates a ready Node with the given name, instance type, and extra labels.
@@ -164,6 +186,84 @@ func TestStart_CRDNotFound(t *testing.T) {
 	err := p.Start(context.Background())
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "Karpenter must be installed")
+}
+
+func TestNewNodeClassObject(t *testing.T) {
+	p := NewKarpenterProvisioner(newFakeClient(), testConfig)
+
+	t.Run("default entry", func(t *testing.T) {
+		obj := p.newNodeClassObject(NodeClassSpec{
+			Name:    "image-family-ubuntu",
+			Default: true,
+			Spec:    map[string]interface{}{"imageFamily": "Ubuntu2204", "osDiskSizeGB": float64(300)},
+		})
+
+		assert.Equal(t, "karpenter.azure.com/v1beta1", obj.GetAPIVersion())
+		assert.Equal(t, "AKSNodeClass", obj.GetKind())
+		assert.Equal(t, "image-family-ubuntu", obj.GetName())
+		assert.Equal(t, map[string]string{
+			"karpenter.kaito.sh/managed-by": "kaito",
+			"karpenter.kaito.sh/default":    "true",
+		}, obj.GetLabels())
+		assert.Equal(t, map[string]interface{}{
+			"imageFamily": "Ubuntu2204", "osDiskSizeGB": float64(300),
+		}, obj.Object["spec"])
+	})
+
+	t.Run("non-default entry omits the default label", func(t *testing.T) {
+		obj := p.newNodeClassObject(NodeClassSpec{Name: "image-family-azure-linux"})
+		assert.Equal(t, map[string]string{"karpenter.kaito.sh/managed-by": "kaito"}, obj.GetLabels())
+		assert.NotContains(t, obj.Object, "spec")
+	})
+}
+
+func TestStart_NoNodeClassesConfigured(t *testing.T) {
+	cfg := testConfig
+	cfg.NodeClasses = nil
+	p := NewKarpenterProvisioner(newFakeClientWithCRDs(), cfg)
+
+	err := p.Start(context.Background())
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "--karpenter-node-classes is required")
+}
+
+func TestStart_CreatesNodeClassesAndPublishesAllowlist(t *testing.T) {
+	setAllowedNodeClasses(t)
+
+	cfg := testConfig
+	cfg.DefaultName = ""
+	cfg.NodeClasses = []NodeClassSpec{
+		{Name: "image-family-azure-linux", Spec: map[string]interface{}{"imageFamily": "AzureLinux"}},
+		{Name: "image-family-ubuntu", Default: true, Spec: map[string]interface{}{"imageFamily": "Ubuntu2204"}},
+	}
+	cfg.NodeClassNames = []string{"image-family-azure-linux", "image-family-ubuntu"}
+
+	// Seed the default so waitForNodeClassReady observes Ready without polling.
+	c := newFakeClientWithCRDs(makeNodeClassUnstructured("image-family-ubuntu"))
+	p := NewKarpenterProvisioner(c, cfg)
+
+	require.NoError(t, p.Start(context.Background()))
+	assert.Equal(t, "image-family-ubuntu", p.nodeClassConfig.DefaultName)
+
+	// The webhook allowlist must name exactly the NodeClasses that now exist.
+	assert.Equal(t, []string{"image-family-azure-linux", "image-family-ubuntu"}, consts.AllowedNodeClassNames())
+	for _, name := range consts.AllowedNodeClassNames() {
+		obj := &unstructured.Unstructured{}
+		obj.SetGroupVersionKind(schema.GroupVersionKind{Group: cfg.Group, Version: cfg.Version, Kind: cfg.Kind})
+		require.NoError(t, c.Get(context.Background(), client.ObjectKey{Name: name}, obj),
+			"allowlisted NodeClass %q should exist", name)
+	}
+}
+
+func TestStart_NoDefaultEntry(t *testing.T) {
+	cfg := testConfig
+	cfg.DefaultName = ""
+	cfg.NodeClasses = []NodeClassSpec{{Name: "image-family-ubuntu"}}
+	p := NewKarpenterProvisioner(newFakeClientWithCRDs(), cfg)
+
+	err := p.Start(context.Background())
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "no NodeClass entry is marked default")
 }
 
 // --- ProvisionNodes tests ---
@@ -365,6 +465,7 @@ func TestProvisionNodes_UsesDefaultNodeClassName(t *testing.T) {
 }
 
 func TestProvisionNodes_UsesAnnotationNodeClassName(t *testing.T) {
+	setAllowedNodeClasses(t, "image-family-ubuntu", "image-family-azure-linux")
 	nodeClass := makeNodeClassUnstructured("image-family-azure-linux")
 	c := newFakeClient(nodeClass)
 

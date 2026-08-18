@@ -16,8 +16,11 @@ package v1beta1
 import (
 	"context"
 	"fmt"
+	"net"
+	"net/url"
 	"os"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -80,6 +83,9 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 			w.validateUpdate(old).ViaField("spec"),
 			w.Resource.validateUpdate(&old.Resource).ViaField("resource"),
 		)
+		if w.GetAnnotations()[AnnotationNodeClassName] != old.GetAnnotations()[AnnotationNodeClassName] {
+			errs = errs.Also(w.validateNodeClassNameAnnotation())
+		}
 		if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
 			errs = errs.Also(w.validateModelStreamingAnnotationImmutable(old))
 		}
@@ -99,6 +105,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 func (w *Workspace) ValidateCreate(ctx context.Context) (errs *apis.FieldError) {
 	errs = errs.Also(w.validateCreate().ViaField("spec"))
 	errs = errs.Also(w.validateAnnotations())
+	errs = errs.Also(w.validateNodeClassNameAnnotation())
 	if w.Inference != nil {
 		bypassResourceChecks := false
 		if w.GetAnnotations() != nil {
@@ -201,6 +208,29 @@ func (w *Workspace) validateNodeImageFamilyAnnotation() (errs *apis.FieldError) 
 		)
 	}
 
+	return nil
+}
+
+// validateNodeClassNameAnnotation restricts the node-class-name annotation to the
+// KAITO-managed NodeClasses declared via --karpenter-node-classes.
+func (w *Workspace) validateNodeClassNameAnnotation() *apis.FieldError {
+	name, ok := w.GetAnnotations()[AnnotationNodeClassName]
+	if !ok || name == "" {
+		return nil
+	}
+	// The annotation is inert unless karpenter is provisioning nodes.
+	if !consts.IsKarpenterProvisioner() {
+		return nil
+	}
+	field := fmt.Sprintf("metadata.annotations[%q]", AnnotationNodeClassName)
+
+	allowed := consts.AllowedNodeClassNames()
+	if !slices.Contains(allowed, name) {
+		return apis.ErrInvalidValue(
+			fmt.Sprintf("%q is not a KAITO-managed NodeClass, supported values are %v", name, allowed),
+			field,
+		)
+	}
 	return nil
 }
 
@@ -323,6 +353,11 @@ func (r *TuningSpec) validateUpdate(old *TuningSpec) (errs *apis.FieldError) {
 func (r *DataSource) validateCreate() (errs *apis.FieldError) {
 	sourcesSpecified := 0
 	if len(r.URLs) > 0 {
+		for _, dataURL := range r.URLs {
+			if err := validateDataSourceURL(dataURL); err != nil {
+				errs = errs.Also(apis.ErrInvalidValue(err.Error(), "URLs"))
+			}
+		}
 		sourcesSpecified++
 	}
 	if image := r.Image; image != "" {
@@ -343,6 +378,38 @@ func (r *DataSource) validateCreate() (errs *apis.FieldError) {
 	}
 
 	return errs
+}
+
+func validateDataSourceURL(dataURL string) error {
+	parsedURL, err := url.ParseRequestURI(dataURL)
+	if err != nil || parsedURL.Host == "" {
+		return fmt.Errorf("invalid data source URL")
+	}
+
+	if !strings.EqualFold(parsedURL.Scheme, "http") && !strings.EqualFold(parsedURL.Scheme, "https") {
+		return fmt.Errorf("data source URL must use HTTP or HTTPS")
+	}
+
+	hostname := strings.ToLower(parsedURL.Hostname())
+	if hostname == "localhost" || strings.HasSuffix(hostname, ".localhost") || isMetadataHostname(hostname) {
+		return fmt.Errorf("data source URL must not target a local or metadata endpoint")
+	}
+
+	address := net.ParseIP(strings.SplitN(hostname, "%", 2)[0])
+	if address != nil && (address.IsLoopback() || address.IsPrivate() || address.IsLinkLocalUnicast() || address.IsLinkLocalMulticast()) {
+		return fmt.Errorf("data source URL must not target a loopback, private, or link-local address")
+	}
+
+	return nil
+}
+
+func isMetadataHostname(hostname string) bool {
+	switch hostname {
+	case "metadata.google.internal", "metadata.google", "instance-data.ec2.internal":
+		return true
+	default:
+		return false
+	}
 }
 
 func (r *DataSource) validateUpdate(old *DataSource, isTuning bool) (errs *apis.FieldError) {

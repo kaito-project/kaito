@@ -376,6 +376,21 @@ func (p *PresetParam) buildHuggingfaceInferenceCommand() []string {
 	return utils.ShellCmd(torchCommand + " " + modelCommand)
 }
 
+// defaultGPUMemoryUtilization is the --gpu-memory-utilization value KAITO passes
+// to vLLM unless the GPU model overrides it in gpuMemoryUtilizationByGPUModel.
+const defaultGPUMemoryUtilization = "0.84"
+
+// gpuMemoryUtilizationByGPUModel overrides --gpu-memory-utilization for specific
+// GPU models that need extra headroom. Keyed by the exact sku.GPUConfig.GPUModel
+// string (as defined in the SKU table, e.g. "NVIDIA A10").
+var gpuMemoryUtilizationByGPUModel = map[string]string{
+	// On the 24 GiB A10, vLLM's KV-pool profiling under-counts the
+	// prompt-logprobs warmup + CUDA-graph-capture transients for some models
+	// (e.g. gemma-4's huge-vocab final_logit_softcapping copy), so the default
+	// 0.84 leaves too little headroom and OOMs. 0.82 leaves enough slack.
+	"NVIDIA A10": "0.82",
+}
+
 func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	// Determine served-model-name priority:
 	// 1. MRI workspaces: use VLLM.ModelName so all roles share a single model
@@ -401,7 +416,14 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	} else if rc.MaxModelLen > 0 {
 		p.VLLM.ModelRunParams["max-model-len"] = strconv.Itoa(rc.MaxModelLen)
 	}
-	p.VLLM.ModelRunParams["gpu-memory-utilization"] = "0.84"
+
+	gpuMemoryUtilization := defaultGPUMemoryUtilization
+	if rc.GPUConfig != nil {
+		if util, ok := gpuMemoryUtilizationByGPUModel[rc.GPUConfig.GPUModel]; ok {
+			gpuMemoryUtilization = util
+		}
+	}
+	p.VLLM.ModelRunParams["gpu-memory-utilization"] = gpuMemoryUtilization
 
 	// Enable KV cache events by default so in-cluster subscribers can consume
 	// BlockStored / BlockRemoved / AllBlocksCleared events over ZMQ on the port
@@ -603,9 +625,9 @@ func (p *PresetParam) isVLLMHybridKVCacheManagerRequired() bool {
 	for _, arch := range p.Architectures {
 		switch arch {
 		case "NemotronHForCausalLM", "NemotronH_Nano_VL_V2", "NemotronHMTPModel", "NemotronHPuzzleForCausalLM",
-			"Gemma4ForCausalLM", "Gemma4ForConditionalGeneration",
+			"Gemma4ForCausalLM", "Gemma4ForConditionalGeneration", "Gemma4UnifiedForConditionalGeneration",
 			"Qwen3_5ForConditionalGeneration", "Qwen3_5MoeForConditionalGeneration",
-			"DeepseekV4ForCausalLM":
+			"DeepseekV4ForCausalLM", "DeepseekV32ForCausalLM":
 			return true
 		}
 	}
@@ -632,7 +654,7 @@ func (p *PresetParam) isLMCacheDisabled() bool {
 func (p *PresetParam) RequiresDeepGEMM() bool {
 	for _, arch := range p.Architectures {
 		switch arch {
-		case "DeepseekV4ForCausalLM":
+		case "DeepseekV4ForCausalLM", "DeepseekV32ForCausalLM", "GlmMoeDsaForCausalLM":
 			return true
 		}
 	}

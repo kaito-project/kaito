@@ -61,6 +61,7 @@ spec:
             - --karpenter-node-class-kind={{ $provider.kind }}
             - --karpenter-node-class-version={{ $provider.version }}
             - --karpenter-node-class-resource-name={{ $provider.resourceName }}
+            - {{ printf "--karpenter-node-classes=%s" ($provider.nodeClasses | toJson) | quote }}
             {{- end }}
           env:
             - name: CONFIG_LOGGING_NAME

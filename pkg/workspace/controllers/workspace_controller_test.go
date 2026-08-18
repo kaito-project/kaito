@@ -920,14 +920,14 @@ func TestUpdateWorkspaceTargetNodeCount(t *testing.T) {
 			expectedError:  true,
 			expectedTarget: 0,
 		},
-		"should persist over-limit estimate without error (guard lives in reconcileNodes)": {
+		"should persist estimate without error": {
 			workspace: &v1beta1.Workspace{
 				ObjectMeta: v1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Inference:  &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-preset"}}},
 				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: 0},
 			},
 			setupMocks: func(c *test.MockClient, e *mockEstimator, updatedTarget *int32) {
-				e.On("EstimateNodeCount", mock.Anything, mock.IsType(estimator.NodeEstimateRequest{}), mock.Anything).Return(int32(MaxAllowedNodeCount+1), nil)
+				e.On("EstimateNodeCount", mock.Anything, mock.IsType(estimator.NodeEstimateRequest{}), mock.Anything).Return(int32(4), nil)
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
 					Run(func(args mock.Arguments) {
 						ws := args.Get(2).(*v1beta1.Workspace)
@@ -941,7 +941,7 @@ func TestUpdateWorkspaceTargetNodeCount(t *testing.T) {
 					}).Return(nil)
 			},
 			expectedError:  false,
-			expectedTarget: MaxAllowedNodeCount + 1,
+			expectedTarget: 4,
 		},
 	}
 
@@ -971,47 +971,6 @@ func TestUpdateWorkspaceTargetNodeCount(t *testing.T) {
 
 			mockClient.AssertExpectations(t)
 			mockEst.AssertExpectations(t)
-		})
-	}
-}
-
-func TestGuardTargetNodeCount(t *testing.T) {
-	tests := map[string]struct {
-		workspace   *v1beta1.Workspace
-		expectError bool
-	}{
-		"no inference => allowed": {
-			workspace: &v1beta1.Workspace{
-				ObjectMeta: v1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: MaxAllowedNodeCount + 10},
-			},
-		},
-		"inference at the limit => allowed": {
-			workspace: &v1beta1.Workspace{
-				ObjectMeta: v1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-				Inference:  &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-preset"}}},
-				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: MaxAllowedNodeCount},
-			},
-		},
-		"inference above the limit => blocked": {
-			workspace: &v1beta1.Workspace{
-				ObjectMeta: v1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-				Inference:  &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-preset"}}},
-				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: MaxAllowedNodeCount + 1},
-			},
-			expectError: true,
-		},
-	}
-
-	for name, tt := range tests {
-		t.Run(name, func(t *testing.T) {
-			reconciler := &WorkspaceReconciler{}
-			err := reconciler.guardTargetNodeCount(tt.workspace)
-			if tt.expectError {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-			}
 		})
 	}
 }

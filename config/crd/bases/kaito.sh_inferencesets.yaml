@@ -711,10 +711,10 @@ spec:
                             type: string
                           profile:
                             description: |-
-                              Profile is the MIG partition profile, e.g. "1g.10gb", "2g.20gb", "3g.40gb".
-                              Required and used only when Mode is "mig". Each workload is scheduled on
-                              exactly one partition; tensor parallelism across partitions is not supported.
-                              Use multiple Workspaces or an InferenceSet to run replicas.
+                              Profile is the partition profile, interpreted according to Mode. For MIG this
+                              is a profile name like "1g.10gb", "2g.20gb", "3g.40gb". Each workload is
+                              scheduled on exactly one partition; tensor parallelism across partitions is
+                              not supported. Use multiple Workspaces or an InferenceSet to run replicas.
                             type: string
                         required:
                         - mode

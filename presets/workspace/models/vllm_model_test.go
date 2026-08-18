@@ -725,6 +725,24 @@ func TestGetModelByName_DeepSeekV4Flash(t *testing.T) {
 	assert.Equal(t, "fp8", runParams["kv-cache-dtype"])
 }
 
+// TestGetModelByName_DeepSeekV32 verifies DeepSeek-V3.2 resolves offline from the
+// embedded catalog and wires the deepseek_v3 reasoning parser, deepseek_v32
+// tool-call parser and tokenizer mode, and disables FlashInfer autotune per its recipe.
+func TestGetModelByName_DeepSeekV32(t *testing.T) {
+	m, err := GetModelByNameWithToken(context.Background(), "deepseek-ai/DeepSeek-V3.2", "")
+	assert.NoError(t, err)
+	if !assert.NotNil(t, m) {
+		return
+	}
+
+	params := m.GetInferenceParameters()
+	runParams := params.RuntimeParam.VLLM.ModelRunParams
+	assert.Equal(t, "deepseek_v3", runParams["reasoning-parser"])
+	assert.Equal(t, "deepseek_v32", runParams["tool-call-parser"])
+	assert.Equal(t, "deepseek_v32", runParams["tokenizer_mode"])
+	assert.Equal(t, "False", runParams["kernel-config.enable_flashinfer_autotune"])
+}
+
 // TestGetModelByName_DeepSeekV4Pro verifies DeepSeek-V4-Pro resolves offline from
 // the embedded catalog and inherits the DeepSeek-V4 family wiring — including the
 // fp8 kv-cache-dtype, which the engine asserts on for the DeepseekV4 architecture.
@@ -742,6 +760,25 @@ func TestGetModelByName_DeepSeekV4Pro(t *testing.T) {
 	assert.Equal(t, "", runParams["enable-auto-tool-choice"])
 	assert.Equal(t, "deepseek_v4", runParams["tokenizer_mode"])
 	assert.Equal(t, "fp8", runParams["kv-cache-dtype"])
+}
+
+// TestGetModelByName_GLM52FP8 verifies GLM-5.2-FP8 resolves offline from the
+// embedded catalog, wires the glm45 reasoning parser and glm47 tool-call parser,
+// uses an fp8 kv-cache per its recipe, and is flagged as requiring DeepGEMM.
+func TestGetModelByName_GLM52FP8(t *testing.T) {
+	m, err := GetModelByNameWithToken(context.Background(), "zai-org/GLM-5.2-FP8", "")
+	assert.NoError(t, err)
+	if !assert.NotNil(t, m) {
+		return
+	}
+
+	params := m.GetInferenceParameters()
+	runParams := params.RuntimeParam.VLLM.ModelRunParams
+	assert.Equal(t, "glm45", runParams["reasoning-parser"])
+	assert.Equal(t, "glm47", runParams["tool-call-parser"])
+	assert.Equal(t, "", runParams["enable-auto-tool-choice"])
+	assert.Equal(t, "fp8", runParams["kv-cache-dtype"])
+	assert.True(t, params.RequiresDeepGEMM())
 }
 
 func TestGetModelByName_BuiltinModels(t *testing.T) {

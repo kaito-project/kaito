@@ -612,7 +612,7 @@ if __name__ == "__main__":
 
         # Return our already-bound socket so vLLM does not try to bind a
         # new one (which would fail with "address already in use").
-        def _patched_setup(setup_args: argparse.Namespace):
+        def _patched_setup(setup_args: argparse.Namespace, *args, **kwargs):
             host = getattr(setup_args, "host", "0.0.0.0")
             return f"http://{host}:{setup_args.port}", pre_sock
 

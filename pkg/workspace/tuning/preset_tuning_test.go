@@ -57,7 +57,7 @@ func TestHandleURLDataSource(t *testing.T) {
 			},
 			expectedInitContainerName: "data-downloader",
 			expectedImage:             "curlimages/curl",
-			expectedCommands:          "curl -sSL -w \"%{http_code}\" -o \"$DATA_VOLUME_PATH/$filename\" \"$url\"",
+			expectedCommands:          "curl -sSL --proto =http,https -w \"%{http_code}\" -o \"$DATA_VOLUME_PATH/$filename\" \"$url\"",
 			expectedVolumeName:        "data-volume",
 			expectedVolumeMountPath:   utils.DefaultDataVolumePath,
 			expectedVolumeMounts:      []corev1.VolumeMount{{Name: "data-volume", MountPath: utils.DefaultDataVolumePath}},

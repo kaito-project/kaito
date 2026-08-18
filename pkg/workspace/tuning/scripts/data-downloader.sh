@@ -9,7 +9,7 @@ for url in $DATA_URLS; do
     echo "Downloading $url to $DATA_VOLUME_PATH/$filename"
     retry_count=0
     while [ $retry_count -lt 3 ]; do
-        http_status=$(curl -sSL -w "%{http_code}" -o "$DATA_VOLUME_PATH/$filename" "$url")
+        http_status=$(curl -sSL --proto =http,https -w "%{http_code}" -o "$DATA_VOLUME_PATH/$filename" "$url")
         curl_exit_status=$?  # Save the exit status of curl immediately
         if [ "$http_status" -eq "200" ] && [ -s "$DATA_VOLUME_PATH/$filename" ] && [ $curl_exit_status -eq 0 ]; then
             echo "Successfully downloaded $url"

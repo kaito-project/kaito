@@ -62,6 +62,9 @@ karpenterProviders:
     kind: "AKSNodeClass"
     version: "v1beta1"
     resourceName: "aksnodeclasses"
+    # Every entry below is selectable by any Workspace in any namespace via the
+    # kaito.sh/node-class-name annotation. Do not add a NodeClass that encodes a
+    # tenant-specific network, identity or security boundary.
     nodeClasses:
       - name: "image-family-ubuntu"
         default: true

@@ -20,6 +20,7 @@ import (
 	"net/url"
 	"os"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -82,6 +83,9 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 			w.validateUpdate(old).ViaField("spec"),
 			w.Resource.validateUpdate(&old.Resource).ViaField("resource"),
 		)
+		if w.GetAnnotations()[AnnotationNodeClassName] != old.GetAnnotations()[AnnotationNodeClassName] {
+			errs = errs.Also(w.validateNodeClassNameAnnotation())
+		}
 		if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
 			errs = errs.Also(w.validateModelStreamingAnnotationImmutable(old))
 		}
@@ -101,6 +105,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 func (w *Workspace) ValidateCreate(ctx context.Context) (errs *apis.FieldError) {
 	errs = errs.Also(w.validateCreate().ViaField("spec"))
 	errs = errs.Also(w.validateAnnotations())
+	errs = errs.Also(w.validateNodeClassNameAnnotation())
 	if w.Inference != nil {
 		bypassResourceChecks := false
 		if w.GetAnnotations() != nil {
@@ -203,6 +208,29 @@ func (w *Workspace) validateNodeImageFamilyAnnotation() (errs *apis.FieldError) 
 		)
 	}
 
+	return nil
+}
+
+// validateNodeClassNameAnnotation restricts the node-class-name annotation to the
+// KAITO-managed NodeClasses declared via --karpenter-node-classes.
+func (w *Workspace) validateNodeClassNameAnnotation() *apis.FieldError {
+	name, ok := w.GetAnnotations()[AnnotationNodeClassName]
+	if !ok || name == "" {
+		return nil
+	}
+	// The annotation is inert unless karpenter is provisioning nodes.
+	if !consts.IsKarpenterProvisioner() {
+		return nil
+	}
+	field := fmt.Sprintf("metadata.annotations[%q]", AnnotationNodeClassName)
+
+	allowed := consts.AllowedNodeClassNames()
+	if !slices.Contains(allowed, name) {
+		return apis.ErrInvalidValue(
+			fmt.Sprintf("%q is not a KAITO-managed NodeClass, supported values are %v", name, allowed),
+			field,
+		)
+	}
 	return nil
 }
 

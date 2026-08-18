@@ -14,6 +14,7 @@
 package consts
 
 import (
+	"slices"
 	"strings"
 	"time"
 )
@@ -95,6 +96,22 @@ var ActiveNodeProvisioner string
 // IsKarpenterProvisioner returns true if the active node provisioner is karpenter.
 func IsKarpenterProvisioner() bool {
 	return ActiveNodeProvisioner == NodeProvisionerKarpenter
+}
+
+// allowedNodeClassNames is the sorted set of NodeClass names declared via
+// --karpenter-node-classes. Set once during startup in main.go; read by the Workspace
+// admission webhook to validate the node-class-name annotation. Unexported so callers
+// cannot mutate the allowlist in place.
+var allowedNodeClassNames []string
+
+// SetAllowedNodeClassNames publishes the NodeClass allowlist. Startup only.
+func SetAllowedNodeClassNames(names []string) {
+	allowedNodeClassNames = slices.Clone(names)
+}
+
+// AllowedNodeClassNames returns the NodeClass allowlist.
+func AllowedNodeClassNames() []string {
+	return slices.Clone(allowedNodeClassNames)
 }
 
 const (

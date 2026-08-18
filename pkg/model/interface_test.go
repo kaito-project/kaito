@@ -241,6 +241,46 @@ func TestGetInferenceCommandVLLMSingleNode(t *testing.T) {
 	assert.Contains(t, cmd[2], "tensor-parallel-size=2")
 }
 
+func TestGetInferenceCommandVLLMGpuMemoryUtilization(t *testing.T) {
+	p := &PresetParam{
+		RuntimeParam: RuntimeParam{
+			VLLM: VLLMParam{
+				BaseCommand:    "vllm serve",
+				ModelRunParams: map[string]string{},
+			},
+		},
+	}
+	// A10 pins gpu-memory-utilization to 0.82.
+	cmdA10 := p.GetInferenceCommand(RuntimeContext{
+		RuntimeName: RuntimeNameVLLM,
+		SKUNumGPUs:  1,
+		NumNodes:    1,
+		GPUConfig:   &sku.GPUConfig{GPUModel: "NVIDIA A10"},
+	})
+	require.Len(t, cmdA10, 3)
+	assert.Contains(t, cmdA10[2], "--gpu-memory-utilization=0.82")
+
+	// A100 and nil GPUConfig fall back to the default 0.84.
+	p2 := &PresetParam{RuntimeParam: RuntimeParam{VLLM: VLLMParam{BaseCommand: "vllm serve", ModelRunParams: map[string]string{}}}}
+	cmdA100 := p2.GetInferenceCommand(RuntimeContext{
+		RuntimeName: RuntimeNameVLLM,
+		SKUNumGPUs:  1,
+		NumNodes:    1,
+		GPUConfig:   &sku.GPUConfig{GPUModel: "NVIDIA A100"},
+	})
+	require.Len(t, cmdA100, 3)
+	assert.Contains(t, cmdA100[2], "--gpu-memory-utilization=0.84")
+
+	p3 := &PresetParam{RuntimeParam: RuntimeParam{VLLM: VLLMParam{BaseCommand: "vllm serve", ModelRunParams: map[string]string{}}}}
+	cmdNil := p3.GetInferenceCommand(RuntimeContext{
+		RuntimeName: RuntimeNameVLLM,
+		SKUNumGPUs:  1,
+		NumNodes:    1,
+	})
+	require.Len(t, cmdNil, 3)
+	assert.Contains(t, cmdNil[2], "--gpu-memory-utilization=0.84")
+}
+
 func TestGetInferenceCommandVLLMKVCacheEventsDefault(t *testing.T) {
 	// Default: --kv-events-config is injected so downstream ZMQ subscribers
 	// can consume BlockStored / BlockRemoved / AllBlocksCleared events.

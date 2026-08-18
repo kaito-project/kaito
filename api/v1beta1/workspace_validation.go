@@ -16,6 +16,8 @@ package v1beta1
 import (
 	"context"
 	"fmt"
+	"net"
+	"net/url"
 	"os"
 	"reflect"
 	"slices"
@@ -351,6 +353,11 @@ func (r *TuningSpec) validateUpdate(old *TuningSpec) (errs *apis.FieldError) {
 func (r *DataSource) validateCreate() (errs *apis.FieldError) {
 	sourcesSpecified := 0
 	if len(r.URLs) > 0 {
+		for _, dataURL := range r.URLs {
+			if err := validateDataSourceURL(dataURL); err != nil {
+				errs = errs.Also(apis.ErrInvalidValue(err.Error(), "URLs"))
+			}
+		}
 		sourcesSpecified++
 	}
 	if image := r.Image; image != "" {
@@ -371,6 +378,38 @@ func (r *DataSource) validateCreate() (errs *apis.FieldError) {
 	}
 
 	return errs
+}
+
+func validateDataSourceURL(dataURL string) error {
+	parsedURL, err := url.ParseRequestURI(dataURL)
+	if err != nil || parsedURL.Host == "" {
+		return fmt.Errorf("invalid data source URL")
+	}
+
+	if !strings.EqualFold(parsedURL.Scheme, "http") && !strings.EqualFold(parsedURL.Scheme, "https") {
+		return fmt.Errorf("data source URL must use HTTP or HTTPS")
+	}
+
+	hostname := strings.ToLower(parsedURL.Hostname())
+	if hostname == "localhost" || strings.HasSuffix(hostname, ".localhost") || isMetadataHostname(hostname) {
+		return fmt.Errorf("data source URL must not target a local or metadata endpoint")
+	}
+
+	address := net.ParseIP(strings.SplitN(hostname, "%", 2)[0])
+	if address != nil && (address.IsLoopback() || address.IsPrivate() || address.IsLinkLocalUnicast() || address.IsLinkLocalMulticast()) {
+		return fmt.Errorf("data source URL must not target a loopback, private, or link-local address")
+	}
+
+	return nil
+}
+
+func isMetadataHostname(hostname string) bool {
+	switch hostname {
+	case "metadata.google.internal", "metadata.google", "instance-data.ec2.internal":
+		return true
+	default:
+		return false
+	}
 }
 
 func (r *DataSource) validateUpdate(old *DataSource, isTuning bool) (errs *apis.FieldError) {

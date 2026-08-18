@@ -2748,6 +2748,54 @@ func TestDataSourceValidateCreate(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "Unsupported URL scheme",
+			dataSource: &DataSource{
+				URLs: []string{"ftp://example.com/data"},
+			},
+			wantErr:  true,
+			errField: "must use HTTP or HTTPS",
+		},
+		{
+			name: "Loopback URL",
+			dataSource: &DataSource{
+				URLs: []string{"http://127.0.0.1/data"},
+			},
+			wantErr:  true,
+			errField: "loopback, private, or link-local",
+		},
+		{
+			name: "Private URL",
+			dataSource: &DataSource{
+				URLs: []string{"http://10.0.0.1/data"},
+			},
+			wantErr:  true,
+			errField: "loopback, private, or link-local",
+		},
+		{
+			name: "Link-local URL",
+			dataSource: &DataSource{
+				URLs: []string{"http://169.254.169.254/latest/meta-data"},
+			},
+			wantErr:  true,
+			errField: "loopback, private, or link-local",
+		},
+		{
+			name: "IPv6 loopback URL",
+			dataSource: &DataSource{
+				URLs: []string{"http://[::1]/data"},
+			},
+			wantErr:  true,
+			errField: "loopback, private, or link-local",
+		},
+		{
+			name: "Metadata hostname URL",
+			dataSource: &DataSource{
+				URLs: []string{"http://metadata.google.internal/computeMetadata/v1"},
+			},
+			wantErr:  true,
+			errField: "local or metadata endpoint",
+		},
+		{
 			name: "Volume specified only",
 			dataSource: &DataSource{
 				Volume: &v1.VolumeSource{},

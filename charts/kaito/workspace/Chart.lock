@@ -10,6 +10,6 @@ dependencies:
   version: 0.3.0
 - name: productionstack
   repository: oci://mcr.microsoft.com/aks/kaito/helm
-  version: 0.2.2
-digest: sha256:b75e23995ee00a9cb274cd9b9d91b76be91ca5c8e17e14f7126bcea647de4777
-generated: "2026-08-06T11:07:14.694063308Z"
+  version: 0.4.0
+digest: sha256:5ab0ea93aef70080be86076f5894326dd8d8a05c21370e3ea3a9a4c7a1f0d00b
+generated: "2026-08-20T14:57:46.692251+10:00"

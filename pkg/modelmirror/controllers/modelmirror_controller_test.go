@@ -435,7 +435,8 @@ func TestCheckJobStatus_FailedJobSetsReadyFalse(t *testing.T) {
 			Conditions: []batchv1.JobCondition{{
 				Type:    batchv1.JobFailed,
 				Status:  corev1.ConditionTrue,
-				Message: "BackoffLimitExceeded",
+				Reason:  batchv1.JobReasonBackoffLimitExceeded,
+				Message: "Job has reached the specified backoff limit",
 			}},
 		},
 	}
@@ -454,8 +455,8 @@ func TestCheckJobStatus_FailedJobSetsReadyFalse(t *testing.T) {
 	require.NotNil(t, cond, "a failed download Job must surface a Ready condition")
 	assert.Equal(t, metav1.ConditionFalse, cond.Status)
 	assert.Equal(t, mmconsts.ReasonDownloadFailed, cond.Reason)
-	assert.Contains(t, cond.Message, "BackoffLimitExceeded")
-	assert.Contains(t, got.Status.FailureMessage, "BackoffLimitExceeded")
+	assert.Contains(t, cond.Message, "Job has reached the specified backoff limit")
+	assert.Contains(t, got.Status.FailureMessage, "Job has reached the specified backoff limit")
 }
 
 func TestSelectSamplerPodPrefersNewestRunning(t *testing.T) {

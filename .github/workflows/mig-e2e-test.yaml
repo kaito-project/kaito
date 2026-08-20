@@ -29,6 +29,7 @@ on:
       - "pkg/model/interface.go"
       - "examples/mig/**"
       - "examples/inference/kaito_inferenceset_mig_*.yaml"
+      - "charts/kaito/workspace/**"
       - ".github/workflows/mig-e2e-test.yaml"
   workflow_dispatch:
     inputs:

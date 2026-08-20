@@ -231,22 +231,11 @@ var (
 
 	// vllmAttentionBackendPrefixMap maps model name prefixes to their vLLM attention backend.
 	// source: https://docs.vllm.ai/en/latest/design/attention_backends/
-	vllmAttentionBackendPrefixMap = map[string]string{
-		// flashinfer attention backend is chosen by default for LLaMA 3 models, which requires the FlashInfer library to be installed lively.
-		// Pin to triton backend as a workaround.
-		"llama-3": "TRITON_ATTN",
-	}
+	vllmAttentionBackendPrefixMap = map[string]string{}
 
 	// vllmMoeBackendOverride maps exact model names to their vLLM MoE backend.
 	// source: https://docs.vllm.ai/en/latest/configuration/engine_args/#-moe-backend
-	vllmMoeBackendOverride = map[string]string{
-		// Mistral Small 4 FP8 defaults to FlashInfer CUTLASS MoE backend which requires
-		// JIT compilation with CUDA dev headers (nvcc, cublasLt, nvrtc).
-		// Pin to triton backend to avoid the JIT dependency for now.
-		"mistral-small-4-119b-2603": "triton",
-		// MiniMax-M2.7 FP8 MoE also defaults to FlashInfer CUTLASS which needs nvcc.
-		"minimax-m2.7": "triton",
-	}
+	vllmMoeBackendOverride = map[string]string{}
 
 	// vllmKVCacheDtypePrefixMap maps model name prefixes to their required vLLM
 	// kv-cache-dtype. Some architectures only support a specific KV cache format

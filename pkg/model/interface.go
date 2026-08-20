@@ -661,6 +661,25 @@ func (p *PresetParam) RequiresDeepGEMM() bool {
 	return false
 }
 
+// RequiresFlashInfer returns true for models which require JIT-compilation with nvcc at runtime.
+func (p *PresetParam) RequiresFlashInfer() bool {
+	switch p.Name {
+	case "mistral-small-4-119b-2603":
+		return true
+	}
+	return false
+}
+
+// RequiresCUDAToolkit returns true for models that need the runtime CUDA toolkit
+// (nvcc) available in the container. This covers DeepGEMM models plus models
+// whose other runtime JIT paths compile with nvcc (see RequiresFlashInfer).
+// The slim base image ships no nvcc, so these models get the
+// cuda-toolkit-provisioner init container and CUDA_HOME. Enabling the toolkit
+// does not enable DeepGEMM itself (that stays gated on RequiresDeepGEMM).
+func (p *PresetParam) RequiresCUDAToolkit() bool {
+	return p.RequiresDeepGEMM() || p.RequiresFlashInfer()
+}
+
 // modelFitsOnSingleGPU returns true when the model file size is smaller than
 // 50% of a single GPU's memory, meaning the entire model can be loaded onto
 // one GPU with headroom to spare.

@@ -1372,9 +1372,9 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 		assert.Contains(t, inferenceCondition.Message, "SAS token fetch failed")
 	})
 
-	t.Run("not-ready path preserves benchmark condition and result (write-once)", func(t *testing.T) {
+	t.Run("not-ready path preserves benchmark condition and refreshes observedGeneration", func(t *testing.T) {
 		wObj := &v1beta1.Workspace{
-			ObjectMeta: v1.ObjectMeta{},
+			ObjectMeta: v1.ObjectMeta{Generation: 2},
 			Inference: &v1beta1.InferenceSpec{
 				Preset: &v1beta1.PresetSpec{
 					PresetMeta: v1beta1.PresetMeta{Name: "test-model"},
@@ -1391,9 +1391,10 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 			},
 			Conditions: []v1.Condition{
 				{
-					Type:   string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted),
-					Status: v1.ConditionTrue,
-					Reason: "BenchmarkCompleted",
+					Type:               string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted),
+					Status:             v1.ConditionTrue,
+					Reason:             "BenchmarkCompleted",
+					ObservedGeneration: 1,
 				},
 			},
 		}
@@ -1411,6 +1412,7 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 		benchmarkCond := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted))
 		if assert.NotNil(t, benchmarkCond, "BenchmarkCompleted must be preserved on not-ready (write-once)") {
 			assert.Equal(t, v1.ConditionTrue, benchmarkCond.Status)
+			assert.Equal(t, int64(2), benchmarkCond.ObservedGeneration)
 		}
 	})
 
@@ -1466,11 +1468,15 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 		assert.Nil(t, meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted)))
 	})
 
-	t.Run("benchmark guard skips StreamLogs when BenchmarkCompleted is already True", func(t *testing.T) {
+	t.Run("benchmark guard skips StreamLogs and refreshes observedGeneration when BenchmarkCompleted is already True", func(t *testing.T) {
 		wObj := &v1beta1.Workspace{
 			ObjectMeta: v1.ObjectMeta{
-				Name:      "ws",
-				Namespace: "default",
+				Name:       "ws",
+				Namespace:  "default",
+				Generation: 2,
+			},
+			Inference: &v1beta1.InferenceSpec{
+				Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-model"}},
 			},
 		}
 		status := &v1beta1.WorkspaceStatus{
@@ -1482,15 +1488,19 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 			},
 			Conditions: []v1.Condition{
 				{
-					Type:   string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted),
-					Status: v1.ConditionTrue,
-					Reason: "BenchmarkCompleted",
+					Type:               string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted),
+					Status:             v1.ConditionTrue,
+					Reason:             "BenchmarkCompleted",
+					ObservedGeneration: 1,
 				},
 			},
 		}
 
+		// Drive the whole ready path so both the L1203 refresh and applyBenchmarkStatus's
+		// write-once guard run together. Empty fake client would fail a log read, so
+		// reaching Ready proves the guard fired (no StreamLogs attempt).
 		k8sclient.SetGlobalClientGoClient(kubefake.NewClientset())
-		applyBenchmarkStatus(context.Background(), status, wObj, 1, buildReconcileErrMessageAppender(nil))
+		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue, true, "", "")
 
 		// Result and condition must be unchanged — the guard must have fired.
 		m, ok := status.Performance.Metrics[BenchmarkMetricPeakTPM]
@@ -1498,6 +1508,7 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 		assert.Equal(t, "12345", m.Value)
 		benchmarkCond := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeBenchmarkCompleted))
 		assert.Equal(t, v1.ConditionTrue, benchmarkCond.Status)
+		assert.Equal(t, int64(2), benchmarkCond.ObservedGeneration)
 	})
 }
 

@@ -39,7 +39,7 @@ import (
 func UpdateStatusConditionIfNotMatch(ctx context.Context, c client.Client, iObj *kaitov1beta1.InferenceSet, cType kaitov1beta1.ConditionType,
 	cStatus metav1.ConditionStatus, cReason, cMessage string) error {
 	if curCondition := meta.FindStatusCondition(iObj.Status.Conditions, string(cType)); curCondition != nil {
-		if curCondition.Status == cStatus && curCondition.Reason == cReason && curCondition.Message == cMessage {
+		if curCondition.Status == cStatus && curCondition.Reason == cReason && curCondition.Message == cMessage && curCondition.ObservedGeneration == iObj.GetGeneration() {
 			// Nothing to change
 			return nil
 		}

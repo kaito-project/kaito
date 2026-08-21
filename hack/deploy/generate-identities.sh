@@ -51,16 +51,21 @@ az identity federated-credential create --name "${FED_NAME}" \
 --issuer "${AKS_OIDC_ISSUER}" --audience api://AzureADTokenExchange \
 --subject system:serviceaccount:"${NAMESPACE}:${SA_NAME}"
 
+# Use --assignee-object-id with --assignee-principal-type to skip the Microsoft Graph
+# lookup that --assignee performs. The Graph call can be blocked by tenant conditional
+# access policies (e.g. AADSTS530084), which would otherwise fail the role assignment.
 if [[ "${COMPONENT_NAME}" == "azkarpenter" ]]; then
   echo "Creating role assignments for $COMPONENT_NAME ..."
   for role in "Virtual Machine Contributor" "Network Contributor" "Managed Identity Operator"; do
-    az role assignment create --assignee "$IDENTITY_PRINCIPAL_ID" \
+    az role assignment create --assignee-object-id "$IDENTITY_PRINCIPAL_ID" \
+    --assignee-principal-type ServicePrincipal \
     --scope "$AZURE_RESOURCE_GROUP_MC_RESOURCE_ID" \
     --role "$role"
   done
 else
   echo "Creating role assignments for $COMPONENT_NAME ..."
-  az role assignment create --assignee "$IDENTITY_PRINCIPAL_ID" \
+  az role assignment create --assignee-object-id "$IDENTITY_PRINCIPAL_ID" \
+  --assignee-principal-type ServicePrincipal \
   --scope "$AZURE_RESOURCE_GROUP_RESOURCE_ID" \
   --role "Contributor"
 fi

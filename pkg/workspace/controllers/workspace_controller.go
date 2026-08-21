@@ -18,6 +18,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -53,6 +54,7 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
+	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -162,7 +164,7 @@ func (c *WorkspaceReconciler) ensureFinalizer(ctx context.Context, workspaceObj 
 // Returns nil if the CR exists (any phase) or was created successfully.
 func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
 	if err := modelstreaming.ValidateStaticModelMirrorAnnotations(wObj.Annotations); err != nil {
-		return err
+		return &streamingValidationError{reason: reasonModelStreamingInvalidAnnotations, err: err}
 	}
 
 	modelID := modelstreaming.ResolveHFModelID(wObj)
@@ -174,18 +176,24 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 	if err == nil {
 		// CR exists — verify it's for the same model (collision check).
 		if existing.Spec.Source != nil && existing.Spec.Source.ModelID != modelID {
-			return fmt.Errorf("ModelMirror CR name collision: %s maps to both %q and %q",
-				crName, existing.Spec.Source.ModelID, modelID)
+			return &streamingValidationError{
+				reason: reasonModelMirrorCreateFailed,
+				err: fmt.Errorf("ModelMirror CR name collision: %s maps to both %q and %q",
+					crName, existing.Spec.Source.ModelID, modelID),
+			}
 		}
 		return nil
 	}
 	if !apierrors.IsNotFound(err) {
-		return fmt.Errorf("failed to get ModelMirror CR %s: %w", crName, err)
+		return &streamingValidationError{
+			reason: reasonModelMirrorCreateFailed,
+			err:    fmt.Errorf("failed to get ModelMirror CR %s: %w", crName, err),
+		}
 	}
 
 	if modelstreaming.StaticModelMirrorEnabled(wObj.Annotations) {
 		if err := registry.SelectModelStreamer(wObj).ValidateAuth(ctx, wObj, c.Client, modelstreaming.StreamingDefaults.ServiceAccount); err != nil {
-			return err
+			return &streamingValidationError{reason: reasonModelStreamingServiceAccountInvalid, err: err}
 		}
 		staticCR := &kaitov1alpha1.ModelMirror{
 			ObjectMeta: metav1.ObjectMeta{Name: crName},
@@ -195,7 +203,10 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 			if apierrors.IsAlreadyExists(err) {
 				return nil // Race condition
 			}
-			return fmt.Errorf("failed to create static ModelMirror CR %s: %w", crName, err)
+			return &streamingValidationError{
+				reason: reasonModelMirrorCreateFailed,
+				err:    fmt.Errorf("failed to create static ModelMirror CR %s: %w", crName, err),
+			}
 		}
 		klog.InfoS("Created static ModelMirror CR", "name", crName, "workspace", klog.KObj(wObj))
 		return nil
@@ -204,39 +215,51 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 	// Managed mirror: validate the StorageClass exists and uses the correct CSI provisioner.
 	storageClass, err := modelstreaming.ResolveStorageClass(wObj, modelstreaming.StreamingDefaults.StorageClass)
 	if err != nil {
-		return err
+		return &streamingValidationError{reason: reasonModelStreamingStorageClassNotFound, err: err}
 	}
 	sc := &storagev1.StorageClass{}
 	if err := c.Client.Get(ctx, client.ObjectKey{Name: storageClass}, sc); err != nil {
-		return fmt.Errorf("StorageClass %q not found: %w", storageClass, err)
+		return &streamingValidationError{
+			reason: reasonModelStreamingStorageClassNotFound,
+			err:    fmt.Errorf("StorageClass %q not found: %w", storageClass, err),
+		}
 	}
 	expectedCSIDriver := consts.CSIDriverNameForCloud(os.Getenv("CLOUD_PROVIDER"))
 	if sc.Provisioner != expectedCSIDriver {
-		return fmt.Errorf("StorageClass %q uses provisioner %q, but model streaming requires %q; "+
-			"create a StorageClass with the correct provisioner",
-			storageClass, sc.Provisioner, expectedCSIDriver)
+		return &streamingValidationError{
+			reason: reasonModelStreamingInvalidStorageClass,
+			err: fmt.Errorf("StorageClass %q uses provisioner %q, but model streaming requires %q; "+
+				"create a StorageClass with the correct provisioner",
+				storageClass, sc.Provisioner, expectedCSIDriver),
+		}
 	}
 
 	// Validate ServiceAccount exists and has provider-specific identity configured.
 	if err := registry.SelectModelStreamer(wObj).ValidateAuth(ctx, wObj, c.Client, modelstreaming.StreamingDefaults.ServiceAccount); err != nil {
-		return err
+		return &streamingValidationError{reason: reasonModelStreamingServiceAccountInvalid, err: err}
 	}
 
 	serviceAccount, err := modelstreaming.ResolveStreamingServiceAccount(wObj, modelstreaming.StreamingDefaults.ServiceAccount)
 	if err != nil {
-		return err
+		return &streamingValidationError{reason: reasonModelStreamingServiceAccountInvalid, err: err}
 	}
 
 	// Resolve model metadata for DiskStorageRequirement
 	presetName := string(wObj.Inference.Preset.Name)
 	model, err := models.GetModelByName(ctx, presetName, wObj.Inference.Preset.PresetOptions.ModelAccessSecret, wObj.Namespace, c.Client)
 	if err != nil {
-		return fmt.Errorf("failed to resolve model for streaming: %w", err)
+		return &streamingValidationError{
+			reason: reasonModelMirrorCreateFailed,
+			err:    fmt.Errorf("failed to resolve model for streaming: %w", err),
+		}
 	}
 
 	modelSize := model.GetInferenceParameters().DiskStorageRequirement
 	if modelSize == "" {
-		return fmt.Errorf("model %q has no DiskStorageRequirement; cannot create ModelMirror CR", modelID)
+		return &streamingValidationError{
+			reason: reasonModelMirrorCreateFailed,
+			err:    fmt.Errorf("model %q has no DiskStorageRequirement; cannot create ModelMirror CR", modelID),
+		}
 	}
 
 	var accessSecret *corev1.ObjectReference
@@ -269,7 +292,10 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 		if apierrors.IsAlreadyExists(err) {
 			return nil // Race condition
 		}
-		return fmt.Errorf("failed to create ModelMirror CR %s: %w", crName, err)
+		return &streamingValidationError{
+			reason: reasonModelMirrorCreateFailed,
+			err:    fmt.Errorf("failed to create ModelMirror CR %s: %w", crName, err),
+		}
 	}
 
 	klog.InfoS("Created ModelMirror CR", "name", crName, "modelID", modelID, "workspace", klog.KObj(wObj))
@@ -694,6 +720,7 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 	if err != nil {
 		return err
 	}
+	infFailReason, infFailMsg = streamingValidationReason(reconcileErr, infFailReason, infFailMsg)
 
 	tuningSnapshot, err := c.collectTuningStatusSnapshot(ctx, wObj)
 	if err != nil {
@@ -772,7 +799,7 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 						}
 						setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
 							kaitov1beta1.WorkspaceConditionTypeModelMirrorReady,
-							metav1.ConditionFalse, "ModelMirrorPending", msg)
+							metav1.ConditionFalse, modelMirrorPendingReason(cr), msg)
 						// Model weights not ready — override ResourceReady
 						resourceConditionStatus = metav1.ConditionFalse
 						setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
@@ -877,6 +904,23 @@ const (
 	inferenceReasonNodeMemoryPressure  = "NodeMemoryPressure"
 	inferenceReasonUnschedulable       = "Unschedulable"
 )
+
+// Model streaming validation failure reasons.
+const (
+	reasonModelStreamingStorageClassNotFound  = "ModelStreamingStorageClassNotFound"
+	reasonModelStreamingInvalidStorageClass   = "ModelStreamingInvalidStorageClass"
+	reasonModelStreamingServiceAccountInvalid = "ModelStreamingServiceAccountInvalid"
+	reasonModelStreamingInvalidAnnotations    = "ModelStreamingInvalidAnnotations"
+	reasonModelMirrorCreateFailed             = "ModelMirrorCreateFailed"
+)
+
+type streamingValidationError struct {
+	reason string
+	err    error
+}
+
+func (e *streamingValidationError) Error() string { return e.err.Error() }
+func (e *streamingValidationError) Unwrap() error { return e.err }
 
 // maxInferenceMessageLen caps the length of the failure message surfaced on the
 // InferenceReady condition so it stays readable in the workspace status.
@@ -1126,13 +1170,49 @@ func (c *WorkspaceReconciler) collectTuningStatusSnapshot(ctx context.Context, w
 	return snapshot, nil
 }
 
+const reasonModelMirrorPending = "ModelMirrorPending"
+
+func modelMirrorPendingReason(cr *kaitov1alpha1.ModelMirror) string {
+	cond := meta.FindStatusCondition(cr.Status.Conditions, mmconsts.ConditionTypeReady)
+	if cond == nil || cond.Status == metav1.ConditionTrue || cond.Reason == "" {
+		return reasonModelMirrorPending
+	}
+	return cond.Reason
+}
+
+// streamingValidationReason promotes a model-streaming validation failure carried on
+// the reconcile error to a condition reason. Pod-level classification is more
+// specific, so it takes precedence; this only fills the gap when no pod failure was
+// identified (typically because validation failed before any pod was created).
+func streamingValidationReason(reconcileErr error, podReason, podMessage string) (reason, message string) {
+	if podReason != "" {
+		return podReason, podMessage
+	}
+	var sve *streamingValidationError
+	if !errors.As(reconcileErr, &sve) {
+		return "", ""
+	}
+	return sve.reason, utils.TruncateMessage(sve.Error(), maxInferenceMessageLen)
+}
+
 func buildReconcileErrMessageAppender(reconcileErr error) func(message string) string {
 	return func(message string) string {
 		if reconcileErr == nil {
 			return message
 		}
+		if messageCarriesErr(message, reconcileErr.Error()) {
+			return message
+		}
 		return fmt.Sprintf("%s (last reconcile error: %s)", message, reconcileErr.Error())
 	}
+}
+
+func messageCarriesErr(message, errText string) bool {
+	if strings.Contains(message, errText) {
+		return true
+	}
+	trimmed, ok := strings.CutSuffix(message, "...")
+	return ok && len(trimmed) > 0 && strings.HasPrefix(errText, trimmed)
 }
 
 func setWorkspaceCondition(status *kaitov1beta1.WorkspaceStatus, generation int64, appendMessage func(string) string,

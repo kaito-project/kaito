@@ -43,11 +43,15 @@ func BuildDownloadJob(cr *kaitov1alpha1.ModelMirror, resources mmconsts.Download
 	// blob objects on Azure Blob NFS. RunAI model streamer iterates all objects in
 	// the container and crashes on directories (IsADirectoryError). We remove all
 	// subdirectories as a safety net.
+	//
+	// The cleanup must stay after `hf download` returns. It deletes
+	// /models/<id>/.cache, which is where huggingface_hub keeps its *.incomplete
+	// files — the signal sampler.py uses to decide whether a download is still in
+	// flight.
 	script := fmt.Sprintf(`set -e
-export HF_HUB_ENABLE_HF_TRANSFER=1
 export HF_HUB_DOWNLOAD_TIMEOUT=300
 
-pip install -q "huggingface-hub==%s" hf_transfer
+pip install -q "huggingface-hub==%s"
 
 hf download "${MODEL_ID}" \
   --max-workers 4 \%s
@@ -114,8 +118,9 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 			TTLSecondsAfterFinished: ptr.To(int32(3600)), // 1 hour — keeps failed pods for debugging
 			Template: corev1.PodTemplateSpec{
 				Spec: corev1.PodSpec{
-					RestartPolicy: corev1.RestartPolicyNever,
-					Containers:    []corev1.Container{container},
+					RestartPolicy:  corev1.RestartPolicyNever,
+					Containers:     []corev1.Container{container},
+					InitContainers: []corev1.Container{buildSamplerContainer(envVars)},
 					Volumes: []corev1.Volume{
 						{
 							Name: "model-storage",

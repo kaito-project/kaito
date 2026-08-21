@@ -1472,6 +1472,9 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 				Namespace:  "default",
 				Generation: 2,
 			},
+			Inference: &v1beta1.InferenceSpec{
+				Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-model"}},
+			},
 		}
 		status := &v1beta1.WorkspaceStatus{
 			State: v1beta1.WorkspaceStateReady,
@@ -1490,8 +1493,11 @@ func TestApplyInferenceWorkspaceStatus(t *testing.T) {
 			},
 		}
 
+		// Drive the whole ready path so both the L1203 refresh and applyBenchmarkStatus's
+		// write-once guard run together. Empty fake client would fail a log read, so
+		// reaching Ready proves the guard fired (no StreamLogs attempt).
 		k8sclient.SetGlobalClientGoClient(kubefake.NewClientset())
-		applyBenchmarkStatus(context.Background(), status, wObj, 2, buildReconcileErrMessageAppender(nil))
+		applyInferenceWorkspaceStatus(context.Background(), status, wObj, buildReconcileErrMessageAppender(nil), true, v1.ConditionTrue, true, "", "")
 
 		// Result and condition must be unchanged — the guard must have fired.
 		m, ok := status.Performance.Metrics[BenchmarkMetricPeakTPM]

@@ -18,9 +18,9 @@ deploymentStrategy:
   rollingUpdate:
     maxUnavailable: 1
 image:
-  repository: mcr.microsoft.com/aks/kaito/workspace
+  repository: mcr.microsoft.com/oss/v2/kaito/workspace
   pullPolicy: IfNotPresent
-  tag: 0.11.0
+  tag: v0.11.0
 imagePullSecrets: []
 podAnnotations: {}
 podSecurityContext:
@@ -94,7 +94,7 @@ webhook:
 # Knative logging configuration
 logging:
   level: "error"
-presetRegistryName: mcr.microsoft.com/aks/kaito
+presetRegistryName: mcr.microsoft.com/oss/v2/kaito
 resources:
   limits:
     cpu: 500m

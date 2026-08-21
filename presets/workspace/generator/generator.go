@@ -54,7 +54,10 @@ var (
 		"holo2":        "holo2",
 		"hunyuan-a13b": "hunyuan_a13b",
 		"kimi-k2":      "kimi_k2",
+		"laguna":       "poolside_v1",
 		"minimax-m2":   "minimax_m2_append_think",
+		"minimax-m3":   "minimax_m3",
+		"mimo":         "mimo",
 		"mistral":      "mistral",
 		"olmo-3":       "olmo3",
 		"qwen3":        "qwen3",
@@ -62,29 +65,36 @@ var (
 		"step3":        "step3",
 	}
 	reasoningParserArchMap = map[string]string{
-		"DeepseekV3ForCausalLM":                  "deepseek_v3",
-		"Ernie4_5_VLMoeForConditionalGeneration": "ernie45",
-		"Ernie4_5_MoeForCausalLM":                "ernie45",
-		"Gemma4ForConditionalGeneration":         "gemma4",
-		"Glm4MoeForCausalLM":                     "glm45",
-		"HunYuanMoEV1ForCausalLM":                "hunyuan_a13b",
-		"GraniteForCausalLM":                     "granite",
-		"KimiK2ForCausalLM":                      "kimi_k2",
-		"KimiK25ForConditionalGeneration":        "kimi_k2",
-		"MiniMaxM2ForCausalLM":                   "minimax_m2_append_think",
-		"Mistral3ForConditionalGeneration":       "mistral",
-		"MistralForCausalLM":                     "mistral",
-		"NemotronForCausalLM":                    "nemotron_v3",
-		"NemotronHForCausalLM":                   "nemotron_v3",
-		"NemotronH_Nano_VL_V2":                   "nemotron_v3",
-		"OlmoForCausalLM":                        "olmo3",
-		"Qwen3ForCausalLM":                       "qwen3",
-		"Qwen3MoeForCausalLM":                    "qwen3",
-		"Qwen3_5ForConditionalGeneration":        "qwen3",
-		"Qwen3_5MoeForConditionalGeneration":     "qwen3",
-		"GptOssForCausalLM":                      "openai_gptoss",
-		"Step3TextForCausalLM":                   "step3",
-		"Step3VLForConditionalGeneration":        "step3",
+		"DeepseekV3ForCausalLM":                   "deepseek_v3",
+		"Ernie4_5_VLMoeForConditionalGeneration":  "ernie45",
+		"Ernie4_5_MoeForCausalLM":                 "ernie45",
+		"Gemma4ForConditionalGeneration":          "gemma4",
+		"Gemma4UnifiedForConditionalGeneration":   "gemma4",
+		"Glm4MoeForCausalLM":                      "glm45",
+		"GlmMoeDsaForCausalLM":                    "glm45",
+		"HunYuanMoEV1ForCausalLM":                 "hunyuan_a13b",
+		"GraniteForCausalLM":                      "granite",
+		"KimiK2ForCausalLM":                       "kimi_k2",
+		"KimiK25ForConditionalGeneration":         "kimi_k2",
+		"MiniMaxM2ForCausalLM":                    "minimax_m2_append_think",
+		"MiniMaxM3SparseForCausalLM":              "minimax_m3",
+		"MiniMaxM3SparseForConditionalGeneration": "minimax_m3",
+		"MiMoForCausalLM":                         "mimo",
+		"HYV3ForCausalLM":                         "hy_v3",
+		"LagunaForCausalLM":                       "poolside_v1",
+		"Mistral3ForConditionalGeneration":        "mistral",
+		"MistralForCausalLM":                      "mistral",
+		"NemotronForCausalLM":                     "nemotron_v3",
+		"NemotronHForCausalLM":                    "nemotron_v3",
+		"NemotronH_Nano_VL_V2":                    "nemotron_v3",
+		"OlmoForCausalLM":                         "olmo3",
+		"Qwen3ForCausalLM":                        "qwen3",
+		"Qwen3MoeForCausalLM":                     "qwen3",
+		"Qwen3_5ForConditionalGeneration":         "qwen3",
+		"Qwen3_5MoeForConditionalGeneration":      "qwen3",
+		"GptOssForCausalLM":                       "openai_gptoss",
+		"Step3TextForCausalLM":                    "step3",
+		"Step3VLForConditionalGeneration":         "step3",
 	}
 
 	// nonReasoningModels lists models that are non-reasoning and the reasoning-parser parameter
@@ -108,14 +118,19 @@ var (
 		"meta-llama-3":  "llama3_json",
 		"meta-llama-4":  "llama4_pythonic",
 		"granite-3":     "granite",
-		"granite-4":     "hermes",
+		"granite-4":     "granite4",
 		"internlm":      "internlm",
 		"ai21-jamba":    "jamba",
 		"llama-xlama":   "xlam",
 		"xlam":          "xlam",
 		"qwq-32b":       "hermes",
 		"qwen2.5":       "hermes",
-		"minimax":       "minimax",
+		"laguna":        "poolside_v1",
+		"minimax-m2":    "minimax_m2",
+		"minimax-m3":    "minimax_m3",
+		"mimo":          "mimo",
+		"lfm2":          "lfm2",
+		"apertus":       "apertus",
 		"deepseek-r1":   "deepseek_v3",
 		"deepseek-v3":   "deepseek_v3",
 		"deepseek-v3.1": "deepseek_v31",
@@ -130,6 +145,7 @@ var (
 		"qwen3-coder":   "qwen3_xml",
 		"qwen3.5":       "qwen3_coder",
 		"qwen3.6":       "qwen3_coder",
+		"qwen3.8":       "qwen3_coder",
 		"olmo-3":        "olmo3",
 		"gigachat3":     "gigachat3",
 		"ernie-4.5":     "ernie45",
@@ -143,44 +159,53 @@ var (
 
 	// key is model architecture name, value is ToolCallParser mode name
 	toolCallParserArchMap = map[string]string{
-		"MistralForCausalLM":                     "mistral",
-		"MistralLarge3ForCausalLM":               "mistral",
-		"LlamaForCausalLM":                       "llama3_json",
-		"Llama4ForConditionalGeneration":         "llama4_pythonic",
-		"GraniteForCausalLM":                     "granite",
-		"GraniteMoeForCausalLM":                  "granite",
-		"GraniteMoeHybridForCausalLM":            "hermes",
-		"GPTBigCodeForCausalLM":                  "granite-20b-fc",
-		"InternLM2ForCausalLM":                   "internlm",
-		"JambaForCausalLM":                       "jamba",
-		"Qwen2ForCausalLM":                       "hermes",
-		"Qwen3ForCausalLM":                       "hermes",
-		"Qwen3MoeForCausalLM":                    "qwen3_xml",
-		"Qwen3_5ForConditionalGeneration":        "qwen3_coder",
-		"Qwen3_5MoeForConditionalGeneration":     "qwen3_coder",
-		"MiniMaxM1ForCausalLM":                   "minimax",
-		"MiniMaxM2ForCausalLM":                   "minimax_m2",
-		"DeepseekV3ForCausalLM":                  "deepseek_v3",
-		"DeepseekV32ForCausalLM":                 "deepseek_v32",
-		"GptOssForCausalLM":                      "openai",
-		"HunYuanMoEV1ForCausalLM":                "hunyuan_a13b",
-		"LongcatFlashForCausalLM":                "longcat",
-		"Glm4MoeForCausalLM":                     "glm45",
-		"Glm47MoeForCausalLM":                    "glm47",
-		"Gemma3ForCausalLM":                      "functiongemma",
-		"Gemma4ForConditionalGeneration":         "gemma4",
-		"Olmo3ForCausalLM":                       "olmo3",
-		"SeedOssForCausalLM":                     "seed_oss",
-		"Ernie4_5_VLMoeForConditionalGeneration": "ernie45",
-		"Ernie4_5_MoeForCausalLM":                "ernie45",
-		"Step3TextForCausalLM":                   "step3",
-		"Step3p5TextForCausalLM":                 "step3p5",
-		"NemotronHForCausalLM":                   "qwen3_coder",
-		"NemotronH_Nano_VL_V2":                   "qwen3_coder",
-		"Phi4MiniForCausalLM":                    "phi4_mini_json",
-		"KimiK2ForCausalLM":                      "kimi_k2",
-		"KimiK25ForConditionalGeneration":        "kimi_k2",
-		"GigaChat3ForCausalLM":                   "gigachat3",
+		"MistralForCausalLM":                      "mistral",
+		"MistralLarge3ForCausalLM":                "mistral",
+		"LlamaForCausalLM":                        "llama3_json",
+		"Llama4ForConditionalGeneration":          "llama4_pythonic",
+		"GraniteForCausalLM":                      "granite",
+		"GraniteMoeForCausalLM":                   "granite",
+		"GraniteMoeHybridForCausalLM":             "granite4",
+		"GPTBigCodeForCausalLM":                   "granite-20b-fc",
+		"InternLM2ForCausalLM":                    "internlm",
+		"JambaForCausalLM":                        "jamba",
+		"Qwen2ForCausalLM":                        "hermes",
+		"Qwen3ForCausalLM":                        "hermes",
+		"Qwen3MoeForCausalLM":                     "qwen3_xml",
+		"Qwen3_5ForConditionalGeneration":         "qwen3_coder",
+		"Qwen3_5MoeForConditionalGeneration":      "qwen3_coder",
+		"MiniMaxM2ForCausalLM":                    "minimax_m2",
+		"MiniMaxM3SparseForCausalLM":              "minimax_m3",
+		"MiniMaxM3SparseForConditionalGeneration": "minimax_m3",
+		"MiMoForCausalLM":                         "mimo",
+		"HYV3ForCausalLM":                         "hy_v3",
+		"LagunaForCausalLM":                       "poolside_v1",
+		"Lfm2ForCausalLM":                         "lfm2",
+		"Lfm2MoeForCausalLM":                      "lfm2",
+		"ApertusForCausalLM":                      "apertus",
+		"DeepseekV3ForCausalLM":                   "deepseek_v3",
+		"DeepseekV32ForCausalLM":                  "deepseek_v32",
+		"GptOssForCausalLM":                       "openai",
+		"HunYuanMoEV1ForCausalLM":                 "hunyuan_a13b",
+		"LongcatFlashForCausalLM":                 "longcat",
+		"Glm4MoeForCausalLM":                      "glm45",
+		"Glm47MoeForCausalLM":                     "glm47",
+		"GlmMoeDsaForCausalLM":                    "glm47",
+		"Gemma3ForCausalLM":                       "functiongemma",
+		"Gemma4ForConditionalGeneration":          "gemma4",
+		"Gemma4UnifiedForConditionalGeneration":   "gemma4",
+		"Olmo3ForCausalLM":                        "olmo3",
+		"SeedOssForCausalLM":                      "seed_oss",
+		"Ernie4_5_VLMoeForConditionalGeneration":  "ernie45",
+		"Ernie4_5_MoeForCausalLM":                 "ernie45",
+		"Step3TextForCausalLM":                    "step3",
+		"Step3p5TextForCausalLM":                  "step3p5",
+		"NemotronHForCausalLM":                    "qwen3_coder",
+		"NemotronH_Nano_VL_V2":                    "qwen3_coder",
+		"Phi4MiniForCausalLM":                     "phi4_mini_json",
+		"KimiK2ForCausalLM":                       "kimi_k2",
+		"KimiK25ForConditionalGeneration":         "kimi_k2",
+		"GigaChat3ForCausalLM":                    "gigachat3",
 	}
 
 	// chatTemplatePrefixMap maps model name prefixes to vllm-customized chat templates.
@@ -189,6 +214,7 @@ var (
 	chatTemplatePrefixMap = map[string]string{
 		"deepseek-r1": "tool-chat-deepseekr1.jinja",
 		"deepseek-v3": "tool-chat-deepseekv3.jinja",
+		"gemma-4":     "tool-chat-gemma4.jinja",
 		"llama-3":     "tool-chat-llama3.1-json.jinja",
 		"phi-4-mini":  "tool-chat-phi4-mini.jinja",
 		"qwen2.5":     "tool-chat-hermes.jinja",
@@ -205,22 +231,11 @@ var (
 
 	// vllmAttentionBackendPrefixMap maps model name prefixes to their vLLM attention backend.
 	// source: https://docs.vllm.ai/en/latest/design/attention_backends/
-	vllmAttentionBackendPrefixMap = map[string]string{
-		// flashinfer attention backend is chosen by default for LLaMA 3 models, which requires the FlashInfer library to be installed lively.
-		// Pin to triton backend as a workaround.
-		"llama-3": "TRITON_ATTN",
-	}
+	vllmAttentionBackendPrefixMap = map[string]string{}
 
 	// vllmMoeBackendOverride maps exact model names to their vLLM MoE backend.
 	// source: https://docs.vllm.ai/en/latest/configuration/engine_args/#-moe-backend
-	vllmMoeBackendOverride = map[string]string{
-		// Mistral Small 4 FP8 defaults to FlashInfer CUTLASS MoE backend which requires
-		// JIT compilation with CUDA dev headers (nvcc, cublasLt, nvrtc).
-		// Pin to triton backend to avoid the JIT dependency for now.
-		"mistral-small-4-119b-2603": "triton",
-		// MiniMax-M2.7 FP8 MoE also defaults to FlashInfer CUTLASS which needs nvcc.
-		"minimax-m2.7": "triton",
-	}
+	vllmMoeBackendOverride = map[string]string{}
 
 	// vllmKVCacheDtypePrefixMap maps model name prefixes to their required vLLM
 	// kv-cache-dtype. Some architectures only support a specific KV cache format
@@ -230,15 +245,20 @@ var (
 		// DeepSeek-V4 (Flash, Pro, ...) asserts "only supports fp8 kv-cache format
 		// for now" when the kv-cache-dtype is left at the default "auto".
 		"deepseek-v4": "fp8",
+		// GLM-5.2-FP8's recipe serves with an fp8 kv-cache to roughly halve the KV
+		// footprint (enabling its full context window).
+		// source: https://recipes.vllm.ai/zai-org/GLM-5.2
+		"glm-5.2-fp8": "fp8",
 	}
 
 	// vllmGdnPrefillBackendPrefixMap maps model name prefixes to their vLLM GDN prefill backend.
-	// Qwen3.5/3.6 models use hybrid GDN (Gated DeltaNet) attention which defaults to
+	// Qwen3.5/3.6/3.8 models use hybrid GDN (Gated DeltaNet) attention which defaults to
 	// FlashInfer JIT compilation requiring nvcc. Pin to triton to avoid the dependency.
 	// source: https://docs.vllm.ai/en/latest/configuration/engine_args/#-gdn-prefill-backend
 	vllmGdnPrefillBackendPrefixMap = map[string]string{
 		"qwen3.5": "triton",
 		"qwen3.6": "triton",
+		"qwen3.8": "triton",
 	}
 
 	// vllmExpertParallelEnabled maps model name prefixes to enable expert parallelism.
@@ -248,6 +268,13 @@ var (
 	// source: https://docs.vllm.ai/en/latest/configuration/engine_args/#-enable-expert-parallel
 	vllmExpertParallelEnabled = map[string]bool{
 		"minimax-m2": true,
+	}
+
+	// vllmDisableFlashInferAutotunePrefixMap disables vLLM's FlashInfer kernel autotuning
+	vllmDisableFlashInferAutotunePrefixMap = map[string]bool{
+		// DeepSeek-V3.2's recipe requires disabling it explicitly.
+		// source: https://recipes.vllm.ai/deepseek-ai/DeepSeek-V3.2
+		"deepseek-v3.2": true,
 	}
 
 	// catalogOverrides provides hardcoded values for models whose HuggingFace
@@ -734,6 +761,15 @@ func (g *Generator) FinalizeParams() {
 	for prefix, enabled := range vllmExpertParallelEnabled {
 		if strings.HasPrefix(g.Param.Metadata.Name, prefix) && enabled {
 			g.Param.VLLM.ModelRunParams["enable-expert-parallel"] = ""
+			break
+		}
+	}
+
+	// Disable FlashInfer kernel autotuning for models that explicitly require it.
+	// Emitted as --kernel-config.enable_flashinfer_autotune=False.
+	for prefix, disable := range vllmDisableFlashInferAutotunePrefixMap {
+		if strings.HasPrefix(g.Param.Metadata.Name, prefix) && disable {
+			g.Param.VLLM.ModelRunParams["kernel-config.enable_flashinfer_autotune"] = "False"
 			break
 		}
 	}

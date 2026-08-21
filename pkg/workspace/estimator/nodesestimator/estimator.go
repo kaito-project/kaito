@@ -113,6 +113,12 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 			if err != nil {
 				return 0, fmt.Errorf("failed to get GPU config from existing nodes: %w", err)
 			}
+			if req.ResourceProfile.AcceleratorCount > 0 {
+				gpuConfig, err = sku.ScaleGPUConfigToCount(gpuConfig, req.ResourceProfile.AcceleratorCount)
+				if err != nil {
+					return 0, err
+				}
+			}
 		}
 	} else {
 		// NAP is enabled — instanceType is required and must be valid.

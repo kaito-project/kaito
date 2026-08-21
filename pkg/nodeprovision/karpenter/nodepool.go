@@ -16,6 +16,8 @@ package karpenter
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
+	"slices"
 
 	"github.com/samber/lo"
 	corev1 "k8s.io/api/core/v1"
@@ -27,7 +29,9 @@ import (
 )
 
 const (
-	maxNodePoolNameLen = 253
+	// Bounded by the Kubernetes label-value limit: the name is stored in the
+	// karpenter.sh/nodepool label on NodeClaims and Nodes.
+	maxNodePoolNameLen = 63
 	hashSuffixLen      = 9
 )
 
@@ -43,22 +47,25 @@ func truncatedName(workspaceNamespace, workspaceName string, maxLen int) string 
 	return full[:truncLen] + "-" + hex.EncodeToString(h[:])[:hashSuffixLen]
 }
 
-// NodePoolName returns a deterministic, DNS-safe name for the NodePool
-// derived from the workspace namespace and name.
-// If the result exceeds 253 characters, it is truncated and a 9-char
-// SHA-256 hex suffix is appended for uniqueness.
+// NodePoolName returns a deterministic, label-safe name for the NodePool
+// derived from the workspace namespace and name, with a hash suffix appended
+// when truncation is needed.
 func NodePoolName(workspaceNamespace, workspaceName string) string {
 	return truncatedName(workspaceNamespace, workspaceName, maxNodePoolNameLen)
 }
 
 // resolveNodeClassName determines the NodeClass resource name for a Workspace.
-// It checks for the node-class-name annotation on the workspace, then falls
-// back to the configured default.
-func resolveNodeClassName(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) string {
-	if name, ok := ws.Annotations[kaitov1beta1.AnnotationNodeClassName]; ok && name != "" {
-		return name
+func resolveNodeClassName(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) (string, error) {
+	name, ok := ws.Annotations[kaitov1beta1.AnnotationNodeClassName]
+	if !ok || name == "" {
+		return cfg.DefaultName, nil
 	}
-	return cfg.DefaultName
+	allowed := consts.AllowedNodeClassNames()
+	if !slices.Contains(allowed, name) {
+		return "", fmt.Errorf("annotation %s=%q is not permitted: choose one of the KAITO-managed NodeClasses %v",
+			kaitov1beta1.AnnotationNodeClassName, name, allowed)
+	}
+	return name, nil
 }
 
 // isInferenceSetWorkspace returns true if the Workspace was created by an InferenceSet.
@@ -91,9 +98,8 @@ func nodePoolRequirements(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) []kar
 }
 
 // generateNodePool builds a karpenter NodePool manifest for the given Workspace.
-func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) *karpenterv1.NodePool {
+func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig, nodeClassName string) *karpenterv1.NodePool {
 	nodePoolName := NodePoolName(ws.Namespace, ws.Name)
-	nodeClassName := resolveNodeClassName(ws, cfg)
 
 	// Drift budget: InferenceSet workspaces start with "0" (blocked),
 	// standalone workspaces use "1" (karpenter handles autonomously).

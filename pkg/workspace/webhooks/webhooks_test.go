@@ -14,9 +14,11 @@
 package webhooks
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
@@ -117,4 +119,28 @@ func TestInferenceSetResources(t *testing.T) {
 	v1beta1GVK := kaitov1beta1.GroupVersion.WithKind("InferenceSet")
 	assert.Contains(t, InferenceSetResources, v1beta1GVK)
 	assert.IsType(t, &kaitov1beta1.InferenceSet{}, InferenceSetResources[v1beta1GVK])
+}
+
+// TestInferenceSetWorkspaceValidationWired verifies the package init wires the
+// InferenceSet admission webhook to the Workspace create-time validation.
+func TestInferenceSetWorkspaceValidationWired(t *testing.T) {
+	assert.NotNil(t, kaitov1beta1.ValidateInferenceSetWorkspace,
+		"InferenceSet workspace validation must be wired at startup")
+
+	is := &kaitov1beta1.InferenceSet{
+		ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
+		Spec: kaitov1beta1.InferenceSetSpec{
+			Template: kaitov1beta1.InferenceSetTemplate{
+				Inference: kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{
+						PresetMeta: kaitov1beta1.PresetMeta{Name: "invalid-preset"},
+					},
+				},
+			},
+		},
+	}
+
+	err := is.Validate(context.Background())
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "Unsupported inference preset name invalid-preset")
 }

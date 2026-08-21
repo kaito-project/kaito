@@ -73,16 +73,6 @@ const (
 	WorkspaceHashAnnotation = "workspace.kaito.io/hash"
 	WorkspaceNameLabel      = "workspace.kaito.io/name"
 	revisionHashSuffix      = 5
-
-	// MaxAllowedNodeCount caps the per-replica node count produced by the node
-	// estimator for inference workspaces. vLLM's Ray executor has a known bug
-	// where pipeline_parallel_size > 3 fails to initialize the KV cache,
-	// producing a KeyError on layer lookup; see
-	// https://github.com/vllm-project/vllm/issues/30128. Until that is fixed
-	// upstream, we refuse to provision more than this many nodes per replica
-	// and ask the user to pick a larger GPU instance type (or shrink the
-	// model / context size) instead.
-	MaxAllowedNodeCount = 3
 )
 
 type WorkspaceReconciler struct {
@@ -309,11 +299,6 @@ func (c *WorkspaceReconciler) waitForModelMirror(ctx context.Context, wObj *kait
 }
 
 func (c *WorkspaceReconciler) reconcileNodes(ctx context.Context, wObj *kaitov1beta1.Workspace) (result *reconcile.Result, err error) {
-	// Refuse to provision when the persisted target node count is over the limit.
-	if err := c.guardTargetNodeCount(wObj); err != nil {
-		return &reconcile.Result{}, err
-	}
-
 	// Provision nodes via the NodeProvisioner interface.
 	// GpuProvisioner creates NodeClaims; BYOProvisioner (BYO mode) is a no-op.
 	if err := c.nodeProvisioner.ProvisionNodes(ctx, wObj); err != nil {
@@ -867,38 +852,221 @@ func (c *WorkspaceReconciler) collectInferenceReadyStatus(ctx context.Context, w
 	}
 
 	ready := ss.Status.ReadyReplicas == replicas
-	// When not ready, surface a SAS-specific reason if the streaming init container
-	// (fetch-sas) is failing
+	// When not ready, classify the underlying pod/container failure (image pull,
+	// crash loop, OOM, eviction, unschedulable, SAS token fetch) so a specific,
+	// actionable reason is surfaced on the InferenceReady condition instead of a
+	// generic message.
 	if !ready {
-		failReason, failMsg = c.detectSASInitFailure(ctx, wObj)
+		failReason, failMsg = c.classifyInferencePodFailure(ctx, wObj)
 	}
 
 	return ready, hasBenchmarkStartupProbe(ss), failReason, failMsg, nil
 }
 
-// detectSASInitFailure returns a reason/message when a workspace pod's SAS-fetch
-// init container has failed or is crash-looping. Returns empty strings when no
-// such failure is observed.
-func (c *WorkspaceReconciler) detectSASInitFailure(ctx context.Context, wObj *kaitov1beta1.Workspace) (reason, message string) {
+// Inference not-ready reason constants. These are stable enum values surfaced on
+// the InferenceReady condition so users and automation can identify the root
+// cause of an inference workload that is not ready.
+const (
+	inferenceReasonSASTokenFetchFailed = "SASTokenFetchFailed"
+	inferenceReasonImagePullError      = "ImagePullError"
+	inferenceReasonCrashLoopBackOff    = "ContainerCrashLoopBackOff"
+	inferenceReasonOOMKilled           = "ContainerOOMKilled"
+	inferenceReasonContainerStartError = "ContainerStartError"
+	inferenceReasonEvicted             = "PodEvicted"
+	inferenceReasonNodeDiskPressure    = "NodeDiskPressure"
+	inferenceReasonNodeMemoryPressure  = "NodeMemoryPressure"
+	inferenceReasonUnschedulable       = "Unschedulable"
+)
+
+// maxInferenceMessageLen caps the length of the failure message surfaced on the
+// InferenceReady condition so it stays readable in the workspace status.
+const maxInferenceMessageLen = 256
+
+// classifyInferencePodFailure lists the workspace's inference pods and returns a
+// specific not-ready reason/message derived from live pod/container state. It
+// returns empty strings when no actionable failure is observed (the caller then
+// falls back to the generic pending reason). Checks are ordered from most
+// specific / most actionable to least.
+func (c *WorkspaceReconciler) classifyInferencePodFailure(ctx context.Context, wObj *kaitov1beta1.Workspace) (reason, message string) {
 	pods := &corev1.PodList{}
 	if err := c.List(ctx, pods, client.InNamespace(wObj.Namespace),
 		client.MatchingLabels{kaitov1beta1.LabelWorkspaceName: wObj.Name}); err != nil {
 		return "", ""
 	}
+
+	// 1. SAS-fetch init container failure (most specific; keeps existing behavior).
+	if r, m := detectSASInitFailure(pods); r != "" {
+		return r, m
+	}
+
+	// 2. Container-level failures (init + main containers).
+	if r, m := detectContainerFailure(pods); r != "" {
+		return r, utils.TruncateMessage(m, maxInferenceMessageLen)
+	}
+
+	// 3. Pod evicted due to node resource pressure.
+	if r, m := detectEvictedPod(pods); r != "" {
+		return r, utils.TruncateMessage(m, maxInferenceMessageLen)
+	}
+
+	// 4. Pod cannot be scheduled onto any node.
+	if r, m := detectUnschedulablePod(pods); r != "" {
+		return r, utils.TruncateMessage(m, maxInferenceMessageLen)
+	}
+
+	return "", ""
+}
+
+// detectSASInitFailure returns a reason/message when a workspace pod's SAS-fetch
+// init container has failed or is crash-looping. Returns empty strings when no
+// such failure is observed.
+func detectSASInitFailure(pods *corev1.PodList) (reason, message string) {
 	for i := range pods.Items {
 		for _, ics := range pods.Items[i].Status.InitContainerStatuses {
 			if ics.Name != modelstreaming.SASFetchInitContainerName {
 				continue
 			}
 			if t := ics.LastTerminationState.Terminated; t != nil && t.ExitCode != 0 {
-				return "SASTokenFetchFailed", "SAS token fetch failed: the streaming init container could not obtain a SAS token; check the fetch-sas init container logs"
+				return inferenceReasonSASTokenFetchFailed, "SAS token fetch failed: the streaming init container could not obtain a SAS token; check the fetch-sas init container logs"
 			}
 			if w := ics.State.Waiting; w != nil && w.Reason == "CrashLoopBackOff" {
-				return "SASTokenFetchFailed", "SAS token fetch failed: the streaming init container could not obtain a SAS token; check the fetch-sas init container logs"
+				return inferenceReasonSASTokenFetchFailed, "SAS token fetch failed: the streaming init container could not obtain a SAS token; check the fetch-sas init container logs"
 			}
 		}
 	}
 	return "", ""
+}
+
+// detectContainerFailure inspects init and main container statuses across all
+// pods and returns the most actionable failure reason/message, or empty strings.
+func detectContainerFailure(pods *corev1.PodList) (reason, message string) {
+	type check struct {
+		reason string
+		match  func(cs corev1.ContainerStatus) (bool, string)
+	}
+	// Ordered from most actionable / root-cause to least.
+	checks := []check{
+		{
+			reason: inferenceReasonOOMKilled,
+			match: func(cs corev1.ContainerStatus) (bool, string) {
+				for _, t := range []*corev1.ContainerStateTerminated{cs.State.Terminated, cs.LastTerminationState.Terminated} {
+					if t != nil && t.Reason == "OOMKilled" {
+						return true, fmt.Sprintf("container %q was OOMKilled (exit code %d); reduce memory usage or use a larger instance type", cs.Name, t.ExitCode)
+					}
+				}
+				return false, ""
+			},
+		},
+		{
+			reason: inferenceReasonImagePullError,
+			match: func(cs corev1.ContainerStatus) (bool, string) {
+				if w := cs.State.Waiting; w != nil && isImagePullErrorReason(w.Reason) {
+					return true, fmt.Sprintf("container %q image pull failed (%s): %s", cs.Name, w.Reason, w.Message)
+				}
+				return false, ""
+			},
+		},
+		{
+			reason: inferenceReasonContainerStartError,
+			match: func(cs corev1.ContainerStatus) (bool, string) {
+				if w := cs.State.Waiting; w != nil && isContainerStartErrorReason(w.Reason) {
+					return true, fmt.Sprintf("container %q failed to start (%s): %s", cs.Name, w.Reason, w.Message)
+				}
+				return false, ""
+			},
+		},
+		{
+			reason: inferenceReasonCrashLoopBackOff,
+			match: func(cs corev1.ContainerStatus) (bool, string) {
+				if w := cs.State.Waiting; w != nil && w.Reason == "CrashLoopBackOff" {
+					msg := fmt.Sprintf("container %q is in CrashLoopBackOff", cs.Name)
+					if t := cs.LastTerminationState.Terminated; t != nil {
+						detail := t.Message
+						if detail == "" {
+							detail = fmt.Sprintf("exit code %d", t.ExitCode)
+						}
+						msg = fmt.Sprintf("%s; last termination: %s", msg, detail)
+					}
+					return true, msg
+				}
+				return false, ""
+			},
+		},
+	}
+
+	for _, chk := range checks {
+		for i := range pods.Items {
+			statuses := append(append([]corev1.ContainerStatus{}, pods.Items[i].Status.InitContainerStatuses...), pods.Items[i].Status.ContainerStatuses...)
+			for _, cs := range statuses {
+				if ok, msg := chk.match(cs); ok {
+					return chk.reason, msg
+				}
+			}
+		}
+	}
+	return "", ""
+}
+
+// detectEvictedPod returns a reason/message when a workspace pod has been evicted
+// (typically due to node disk or memory pressure).
+func detectEvictedPod(pods *corev1.PodList) (reason, message string) {
+	for i := range pods.Items {
+		p := &pods.Items[i]
+		if p.Status.Phase != corev1.PodFailed || p.Status.Reason != "Evicted" {
+			continue
+		}
+		msg := p.Status.Message
+		lower := strings.ToLower(msg)
+		switch {
+		case strings.Contains(lower, "ephemeral-storage") || strings.Contains(lower, "disk"):
+			return inferenceReasonNodeDiskPressure, fmt.Sprintf("pod %q evicted due to node disk pressure: %s", p.Name, msg)
+		case strings.Contains(lower, "memory"):
+			return inferenceReasonNodeMemoryPressure, fmt.Sprintf("pod %q evicted due to node memory pressure: %s", p.Name, msg)
+		default:
+			return inferenceReasonEvicted, fmt.Sprintf("pod %q was evicted: %s", p.Name, msg)
+		}
+	}
+	return "", ""
+}
+
+// detectUnschedulablePod returns a reason/message when a pending workspace pod
+// cannot be scheduled onto any node.
+func detectUnschedulablePod(pods *corev1.PodList) (reason, message string) {
+	for i := range pods.Items {
+		p := &pods.Items[i]
+		if p.Status.Phase != corev1.PodPending {
+			continue
+		}
+		for _, cond := range p.Status.Conditions {
+			if cond.Type == corev1.PodScheduled &&
+				cond.Status == corev1.ConditionFalse &&
+				cond.Reason == corev1.PodReasonUnschedulable {
+				return inferenceReasonUnschedulable, fmt.Sprintf("pod %q is unschedulable: %s", p.Name, cond.Message)
+			}
+		}
+	}
+	return "", ""
+}
+
+// isImagePullErrorReason reports whether reason is a kubelet image-pull error.
+// Values come from k8s.io/kubernetes/pkg/kubelet/images/types.go.
+func isImagePullErrorReason(reason string) bool {
+	switch reason {
+	case "ImagePullBackOff", "ErrImagePull", "InvalidImageName", "ErrImageNeverPull", "ImageInspectError", "RegistryUnavailable":
+		return true
+	}
+	return false
+}
+
+// isContainerStartErrorReason reports whether reason is a kubelet container
+// create/start error. Values come from startContainer in
+// k8s.io/kubernetes/pkg/kubelet/kuberuntime/kuberuntime_container.go.
+func isContainerStartErrorReason(reason string) bool {
+	switch reason {
+	case "CreateContainerConfigError", "PreCreateHookError", "CreateContainerError", "PreStartHookError", "RunContainerError", "PostStartHookError":
+		return true
+	}
+	return false
 }
 
 // benchmarkEntrypointMarker is the script basename that uniquely identifies the
@@ -1257,22 +1425,6 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 	}
 
 	return nil
-}
-
-// guardTargetNodeCount blocks provisioning when the persisted target node
-// count exceeds MaxAllowedNodeCount. Only enforced for inference; tuning
-// paths set Resource.Count directly and do not go through the estimator.
-func (c *WorkspaceReconciler) guardTargetNodeCount(wObj *kaitov1beta1.Workspace) error {
-	if wObj.Inference == nil || wObj.Status.TargetNodeCount <= MaxAllowedNodeCount {
-		return nil
-	}
-	msg := fmt.Sprintf("estimated node count %d exceeds the maximum allowed %d; "+
-		"node provisioning halted. Use a larger GPU instance type or reduce model/context size.",
-		wObj.Status.TargetNodeCount, MaxAllowedNodeCount)
-	if c.Recorder != nil {
-		c.Recorder.Eventf(wObj, corev1.EventTypeWarning, "NodeCountExceedsLimit", msg)
-	}
-	return fmt.Errorf("%s", msg)
 }
 
 // SetupWithManager sets up the controller with the Manager.

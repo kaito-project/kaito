@@ -41,6 +41,7 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/apis"
+	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodes"
 )
@@ -403,35 +404,22 @@ func IsNodeClaimReadyNotDeleting(nodeClaim *karpenterv1.NodeClaim) bool {
 	return nodeClaim.Status.NodeName != ""
 }
 
-// maxProvisioningErrorMessageLen caps the length of the message surfaced by
-// FirstProvisioningError so it stays readable in the workspace status.
+// maxProvisioningErrorMessageLen caps the surfaced message length for readability.
 const maxProvisioningErrorMessageLen = 256
 
-// awaitingReconciliationReason is the reason the operatorpkg status library
-// (used by Karpenter core) stamps on freshly-initialized Unknown conditions
-// before any reconciliation has run. It marks a benign "not started / in
-// progress" state — not a provisioning failure — so it must be ignored when
-// looking for real errors.
+// awaitingReconciliationReason is the benign "not yet reconciled" state Karpenter
+// core stamps on freshly-initialized conditions; it is not a provisioning error.
 const awaitingReconciliationReason = "AwaitingReconciliation"
 
-// FirstProvisioningError scans NodeClaims for a provisioning failure that
-// Karpenter core surfaced on the standard lifecycle conditions
-// (Launched -> Registered -> Initialized) and returns the Reason and Message of
-// the earliest (root-cause) blocking condition.
-//
-// It is provider-agnostic: it reads only the Karpenter core condition types and
-// the generic Reason/Message fields (populated by the cloud provider via
-// cloudprovider.CreateError), so it works for any Karpenter provider (Azure,
-// AWS, gpu-provisioner, ...) and survives provider-specific reason changes.
-//
-// A blocking condition is one whose status is not True, that carries an
-// explanatory message, and whose reason is not the benign
-// "AwaitingReconciliation" initializer. A freshly created NodeClaim whose
-// conditions are still Unknown/AwaitingReconciliation (launch not yet attempted
-// or still in progress) is not an error and is skipped, as are NodeClaims that
-// are being deleted.
-func FirstProvisioningError(nodeClaims []*karpenterv1.NodeClaim) (reason, message string, found bool) {
-	// Earlier lifecycle stages are the root cause, so check them first.
+// FirstNodeClaimProvisioningState returns the reason/message of the earliest
+// non-True Karpenter lifecycle condition (Launched -> Registered -> Initialized)
+// across the NodeClaims. A real provisioning error takes priority over the benign
+// "AwaitingReconciliation" state. Deleting NodeClaims and empty messages are skipped.
+func FirstNodeClaimProvisioningState(nodeClaims []*karpenterv1.NodeClaim) (reason, message string, found bool) {
+	// A real error wins outright; otherwise fall back to the first in-progress state.
+	var pending *status.Condition
+
+	// Earlier lifecycle stages are the root cause, so scan them first.
 	for _, stage := range []string{
 		karpenterv1.ConditionTypeLaunched,
 		karpenterv1.ConditionTypeRegistered,
@@ -441,22 +429,24 @@ func FirstProvisioningError(nodeClaims []*karpenterv1.NodeClaim) (reason, messag
 			if nc == nil || !nc.DeletionTimestamp.IsZero() {
 				continue
 			}
-			for _, c := range nc.Status.Conditions {
-				if c.Type == stage &&
-					c.Status != metav1.ConditionTrue &&
-					c.Reason != awaitingReconciliationReason &&
-					c.Message != "" {
-					return c.Reason, truncateProvisioningMessage(c.Message), true
+			for i := range nc.Status.Conditions {
+				c := &nc.Status.Conditions[i]
+				if c.Type != stage || c.Status == metav1.ConditionTrue || c.Message == "" {
+					continue
 				}
+				if c.Reason == awaitingReconciliationReason {
+					if pending == nil {
+						pending = c
+					}
+					continue
+				}
+				return c.Reason, utils.TruncateMessage(c.Message, maxProvisioningErrorMessageLen), true
 			}
 		}
 	}
-	return "", "", false
-}
 
-func truncateProvisioningMessage(msg string) string {
-	if len(msg) <= maxProvisioningErrorMessageLen {
-		return msg
+	if pending != nil {
+		return pending.Reason, utils.TruncateMessage(pending.Message, maxProvisioningErrorMessageLen), true
 	}
-	return msg[:maxProvisioningErrorMessageLen] + "..."
+	return "", "", false
 }

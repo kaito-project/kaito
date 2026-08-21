@@ -30,6 +30,7 @@ import (
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -87,22 +88,11 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 		// P/D-specific validations (require Istio)
 		validateMultiRoleInferenceEPPReady(mriObj)
+		validateMultiRoleInferenceEPPKVCacheScorer(mriObj)
 		validateMultiRoleInferenceDestinationRule(mriObj)
 		validateMultiRoleInferenceChatCompletions(mriObj)
+		validateMultiRoleInferenceKVEvents(mriObj)
 		validateMultiRoleInferencePDDisaggregation(mriObj)
-	})
-
-	It("should create a Gemma 3 InferenceSet with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
-		numOfReplicas := 1
-		inferenceSetObj := createGemma3InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
-		defer cleanupResourcesForInferenceSet(inferenceSetObj)
-		time.Sleep(120 * time.Second)
-
-		validateInferenceSetStatus(inferenceSetObj)
-		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
-
-		validateInferenceSetBenchmarkCompleted(inferenceSetObj)
-		validateGatewayAPIInferenceExtensionResources(inferenceSetObj)
 	})
 
 	It("should create a qwen3-coder-30b-a3b-instruct two-node workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
@@ -431,11 +421,14 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a Gemma 3 InferenceSet with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should create a Gemma 3 InferenceSet with preset public mode and validate BBR routing", Serial, utils.GinkgoLabelFastCheck, func() {
+		Expect(isIstioCRDAvailable()).To(BeTrue(), "Istio CRDs must be available for BBR routing validation")
+
 		numOfReplicas := 1
 		inferenceSetObj := createGemma3InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
-		defer cleanupResourcesForInferenceSet(inferenceSetObj)
-		time.Sleep(120 * time.Second)
+		DeferCleanup(func() {
+			cleanupResourcesForInferenceSet(inferenceSetObj)
+		})
 
 		validateInferenceSetStatus(inferenceSetObj)
 		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
@@ -447,6 +440,52 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 		validateInferenceSetBenchmarkCompleted(inferenceSetObj)
 		validateGatewayAPIInferenceExtensionResources(inferenceSetObj)
+
+		// --- BBR (Body-Based Routing) validation ---
+		// vLLM serves the InferenceSet name as the OpenAI-compatible model id
+		// (see pkg/model/interface.go buildVLLMInferenceCommand: when the
+		// workspace has WorkspaceCreatedByInferenceSetLabel, served-model-name
+		// is set to the InferenceSet name). BBR mirrors the request body's
+		// "model" field into the X-Gateway-Model-Name header, so both the
+		// HTTPRoute header match and the request payload must use this name.
+		modelName := inferenceSetObj.Name
+		inferencePoolName := kaitoutils.InferencePoolName(inferenceSetObj.Name)
+
+		// findWorkspacePod locates a running pod belonging to a child Workspace
+		// created by the InferenceSet, using the correct label selector.
+		findWorkspacePod := func() (string, string, string) {
+			wsList := &kaitov1beta1.WorkspaceList{}
+			var podName, containerName, namespace string
+			Eventually(func() bool {
+				err := utils.TestingCluster.KubeClient.List(ctx, wsList,
+					client.InNamespace(inferenceSetObj.Namespace),
+					client.MatchingLabels{consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name})
+				if err != nil || len(wsList.Items) == 0 {
+					return false
+				}
+				ws := &wsList.Items[0]
+				podList := &corev1.PodList{}
+				err = utils.TestingCluster.KubeClient.List(ctx, podList,
+					client.InNamespace(ws.Namespace),
+					client.MatchingLabels{kaitov1beta1.LabelWorkspaceName: ws.Name})
+				if err != nil || len(podList.Items) == 0 {
+					return false
+				}
+				for _, pod := range podList.Items {
+					if pod.Status.Phase == corev1.PodRunning {
+						podName = pod.Name
+						containerName = pod.Spec.Containers[0].Name
+						namespace = pod.Namespace
+						return true
+					}
+				}
+				return false
+			}, 5*time.Minute, utils.PollInterval).Should(BeTrue(),
+				"Should find a running workspace pod for InferenceSet %s", inferenceSetObj.Name)
+			return podName, containerName, namespace
+		}
+
+		validateBBRRouting(inferenceSetObj, modelName, inferencePoolName, findWorkspacePod)
 	})
 
 	It("should create a ministral-3-3b-instruct-2512 workspace with preset public mode successfully", func() {
@@ -472,6 +511,457 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 })
+
+// validateBBRRouting installs BBR, creates an HTTPRoute with model-name header matching,
+// and validates both positive (correct model → success) and negative (wrong model → error) routing.
+func validateBBRRouting(inferenceSetObj *kaitov1beta1.InferenceSet, modelName, inferencePoolName string, findWorkspacePod func() (string, string, string)) {
+	// Ensure a DestinationRule exists for the EPP service so Istio Gateway's
+	// ext_proc gRPC uses the right TLS mode. After migrating to the
+	// llm-d-router-gateway chart v0.9.0, EPP
+	// (mcr.microsoft.com/oss/v2/llm-d/llm-d-router-endpoint-picker:v0.9.0)
+	// listens on plaintext gRPC by default, so we use mode: DISABLE for the
+	// Istio Gateway -> EPP ext_proc connection. (The previous SIMPLE +
+	// insecureSkipVerify=true workaround was required by the older
+	// llm-d-inference-scheduler:v0.8.0 EPP which defaulted to
+	// --secure-serving=true with a self-signed cert.)
+	By("Ensuring DestinationRule for EPP service (BBR)", func() {
+		eppServiceName := inferencePoolName + "-epp"
+		dr := &unstructured.Unstructured{}
+		dr.SetGroupVersionKind(schema.GroupVersionKind{
+			Group:   "networking.istio.io",
+			Version: "v1",
+			Kind:    "DestinationRule",
+		})
+		dr.SetName(eppServiceName)
+		dr.SetNamespace(inferenceSetObj.Namespace)
+		dr.Object["spec"] = map[string]interface{}{
+			"host": eppServiceName,
+			"trafficPolicy": map[string]interface{}{
+				"tls": map[string]interface{}{
+					"mode": "DISABLE",
+				},
+			},
+		}
+		Eventually(func() error {
+			err := utils.TestingCluster.KubeClient.Create(ctx, dr)
+			if err != nil && apierrors.IsAlreadyExists(err) {
+				existing := &unstructured.Unstructured{}
+				existing.SetGroupVersionKind(dr.GroupVersionKind())
+				if getErr := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+					Namespace: dr.GetNamespace(), Name: dr.GetName(),
+				}, existing); getErr != nil {
+					return getErr
+				}
+				dr.SetResourceVersion(existing.GetResourceVersion())
+				return utils.TestingCluster.KubeClient.Update(ctx, dr)
+			}
+			return err
+		}, 2*time.Minute, utils.PollInterval).Should(Succeed(),
+			"Failed to create DestinationRule for EPP service %s", eppServiceName)
+		GinkgoWriter.Printf("Created/updated DestinationRule (mode=DISABLE) for EPP service %s\n", eppServiceName)
+
+		DeferCleanup(func() {
+			cleanupDR := &unstructured.Unstructured{}
+			cleanupDR.SetGroupVersionKind(schema.GroupVersionKind{
+				Group: "networking.istio.io", Version: "v1", Kind: "DestinationRule",
+			})
+			cleanupDR.SetName(eppServiceName)
+			cleanupDR.SetNamespace(inferenceSetObj.Namespace)
+			_ = utils.TestingCluster.KubeClient.Delete(ctx, cleanupDR)
+		})
+	})
+
+	// Install BBR helm chart using a dedicated tool pod (alpine/helm)
+	By("Installing Body-Based Routing (BBR) helm chart", func() {
+		coreClient, err := utils.GetK8sClientset()
+		Expect(err).NotTo(HaveOccurred())
+
+		// Create a ServiceAccount + ClusterRoleBinding so the tool pod can install helm charts
+		sa := &corev1.ServiceAccount{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "bbr-helm-installer",
+				Namespace: "default",
+			},
+		}
+		_, err = coreClient.CoreV1().ServiceAccounts("default").Create(ctx, sa, metav1.CreateOptions{})
+		Expect(err).NotTo(HaveOccurred(), "Failed to create service account")
+
+		crb := &rbacv1.ClusterRoleBinding{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "bbr-helm-installer-admin",
+			},
+			RoleRef: rbacv1.RoleRef{
+				APIGroup: "rbac.authorization.k8s.io",
+				Kind:     "ClusterRole",
+				Name:     "cluster-admin",
+			},
+			Subjects: []rbacv1.Subject{{
+				Kind:      "ServiceAccount",
+				Name:      "bbr-helm-installer",
+				Namespace: "default",
+			}},
+		}
+		_, err = coreClient.RbacV1().ClusterRoleBindings().Create(ctx, crb, metav1.CreateOptions{})
+		Expect(err).NotTo(HaveOccurred(), "Failed to create ClusterRoleBinding")
+
+		DeferCleanup(func() {
+			_ = coreClient.RbacV1().ClusterRoleBindings().Delete(ctx, crb.Name, metav1.DeleteOptions{})
+			_ = coreClient.CoreV1().ServiceAccounts("default").Delete(ctx, sa.Name, metav1.DeleteOptions{})
+			GinkgoWriter.Printf("Deleted helm RBAC resources\n")
+		})
+
+		toolPod := &corev1.Pod{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "bbr-helm-installer",
+				Namespace: "default",
+			},
+			Spec: corev1.PodSpec{
+				RestartPolicy:      corev1.RestartPolicyNever,
+				ServiceAccountName: "bbr-helm-installer",
+				Containers: []corev1.Container{{
+					Name:    "helm",
+					Image:   "alpine/helm:3.17.3",
+					Command: []string{"sleep", "600"},
+				}},
+			},
+		}
+
+		_, err = coreClient.CoreV1().Pods("default").Create(ctx, toolPod, metav1.CreateOptions{})
+		Expect(err).NotTo(HaveOccurred(), "Failed to create helm tool pod")
+
+		DeferCleanup(func() {
+			_ = coreClient.CoreV1().Pods("default").Delete(ctx, toolPod.Name, metav1.DeleteOptions{})
+			GinkgoWriter.Printf("Deleted helm tool pod\n")
+		})
+
+		Eventually(func() bool {
+			p, err := coreClient.CoreV1().Pods("default").Get(ctx, toolPod.Name, metav1.GetOptions{})
+			return err == nil && p.Status.Phase == corev1.PodRunning
+		}, 3*time.Minute, utils.PollInterval).Should(BeTrue(), "Helm tool pod should be running")
+
+		k8sConfig, err := utils.GetK8sConfig()
+		Expect(err).NotTo(HaveOccurred())
+
+		installCmd := `helm upgrade --install body-based-routing ` +
+			`oci://registry.k8s.io/gateway-api-inference-extension/charts/body-based-routing ` +
+			`--version v1.3.0 --set provider.name=istio --namespace default --wait --timeout 3m 2>&1`
+
+		execOption := corev1.PodExecOptions{
+			Command:   []string{"sh", "-c", installCmd},
+			Container: "helm",
+			Stdout:    true,
+			Stderr:    true,
+		}
+
+		execCtx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+		stdout, execErr := utils.ExecSync(execCtx, k8sConfig, coreClient, "default", toolPod.Name, execOption)
+		cancel()
+		GinkgoWriter.Printf("BBR helm install output: %s\n", stdout)
+		Expect(execErr).NotTo(HaveOccurred(), "Failed to install BBR helm chart")
+
+		DeferCleanup(func() {
+			uninstallCmd := `helm uninstall body-based-routing --namespace default 2>/dev/null || true`
+			uninstallOption := corev1.PodExecOptions{
+				Command:   []string{"sh", "-c", uninstallCmd},
+				Container: "helm",
+				Stdout:    true,
+				Stderr:    true,
+			}
+			uninstallCtx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+			utils.ExecSync(uninstallCtx, k8sConfig, coreClient, "default", toolPod.Name, uninstallOption)
+			cancel()
+			GinkgoWriter.Printf("Uninstalled BBR helm chart\n")
+		})
+	})
+
+	// Patch Gateway to allow cross-namespace routes
+	By("Patching Gateway to allow routes from test namespace", func() {
+		var originalListeners []interface{}
+		originalCaptured := false
+
+		gw := &unstructured.Unstructured{}
+		gw.SetGroupVersionKind(schema.GroupVersionKind{
+			Group:   "gateway.networking.k8s.io",
+			Version: "v1",
+			Kind:    "Gateway",
+		})
+		Eventually(func() error {
+			if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: "default",
+				Name:      "inference-gateway",
+			}, gw); err != nil {
+				return err
+			}
+			spec, ok := gw.Object["spec"].(map[string]interface{})
+			if !ok || spec == nil {
+				spec = map[string]interface{}{}
+				gw.Object["spec"] = spec
+			}
+			if !originalCaptured {
+				if existing, ok := spec["listeners"].([]interface{}); ok {
+					if b, err := json.Marshal(existing); err == nil {
+						var cloned []interface{}
+						if err := json.Unmarshal(b, &cloned); err == nil {
+							originalListeners = cloned
+						}
+					}
+				}
+				originalCaptured = true
+			}
+			existingListeners, _ := spec["listeners"].([]interface{})
+			updatedListeners := make([]interface{}, 0, len(existingListeners))
+			httpListenerFound := false
+			for _, l := range existingListeners {
+				listener, ok := l.(map[string]interface{})
+				if !ok {
+					updatedListeners = append(updatedListeners, l)
+					continue
+				}
+				if proto, _ := listener["protocol"].(string); proto == "HTTP" {
+					listener["allowedRoutes"] = map[string]interface{}{
+						"namespaces": map[string]interface{}{"from": "All"},
+					}
+					httpListenerFound = true
+				}
+				updatedListeners = append(updatedListeners, listener)
+			}
+			if !httpListenerFound {
+				updatedListeners = append(updatedListeners, map[string]interface{}{
+					"name": "http", "port": int64(80), "protocol": "HTTP",
+					"allowedRoutes": map[string]interface{}{"namespaces": map[string]interface{}{"from": "All"}},
+				})
+			}
+			spec["listeners"] = updatedListeners
+			return utils.TestingCluster.KubeClient.Update(ctx, gw)
+		}, 2*time.Minute, utils.PollInterval).Should(Succeed(), "Failed to patch Gateway")
+
+		DeferCleanup(func() {
+			restoreGW := &unstructured.Unstructured{}
+			restoreGW.SetGroupVersionKind(schema.GroupVersionKind{Group: "gateway.networking.k8s.io", Version: "v1", Kind: "Gateway"})
+			if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{Namespace: "default", Name: "inference-gateway"}, restoreGW); err == nil && originalListeners != nil {
+				if spec, ok := restoreGW.Object["spec"].(map[string]interface{}); ok {
+					spec["listeners"] = originalListeners
+					_ = utils.TestingCluster.KubeClient.Update(ctx, restoreGW)
+				}
+			}
+		})
+	})
+
+	// Create HTTPRoute with BBR header matching
+	By("Creating HTTPRoute with BBR model-name header matching", func() {
+		httpRoute := &unstructured.Unstructured{}
+		httpRoute.SetGroupVersionKind(schema.GroupVersionKind{Group: "gateway.networking.k8s.io", Version: "v1", Kind: "HTTPRoute"})
+		httpRoute.SetName(inferenceSetObj.Name + "-bbr-route")
+		httpRoute.SetNamespace(inferenceSetObj.Namespace)
+		httpRoute.Object["spec"] = map[string]interface{}{
+			"parentRefs": []interface{}{map[string]interface{}{"group": "gateway.networking.k8s.io", "kind": "Gateway", "name": "inference-gateway", "namespace": "default"}},
+			"rules": []interface{}{
+				map[string]interface{}{
+					"matches":     []interface{}{map[string]interface{}{"headers": []interface{}{map[string]interface{}{"type": "Exact", "name": "X-Gateway-Model-Name", "value": modelName}}, "path": map[string]interface{}{"type": "PathPrefix", "value": "/"}}},
+					"backendRefs": []interface{}{map[string]interface{}{"group": "inference.networking.k8s.io", "kind": "InferencePool", "name": inferencePoolName}},
+				},
+				map[string]interface{}{
+					"matches":     []interface{}{map[string]interface{}{"headers": []interface{}{map[string]interface{}{"type": "Exact", "name": "X-Gateway-Model-Name", "value": "nonexistent-model-xyz"}}, "path": map[string]interface{}{"type": "PathPrefix", "value": "/"}}},
+					"backendRefs": []interface{}{map[string]interface{}{"group": "inference.networking.k8s.io", "kind": "InferencePool", "name": "nonexistent-pool"}},
+				},
+			},
+		}
+
+		Eventually(func() error {
+			err := utils.TestingCluster.KubeClient.Create(ctx, httpRoute)
+			if err != nil && apierrors.IsAlreadyExists(err) {
+				existing := &unstructured.Unstructured{}
+				existing.SetGroupVersionKind(httpRoute.GroupVersionKind())
+				if getErr := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{Namespace: httpRoute.GetNamespace(), Name: httpRoute.GetName()}, existing); getErr != nil {
+					return getErr
+				}
+				httpRoute.SetResourceVersion(existing.GetResourceVersion())
+				return utils.TestingCluster.KubeClient.Update(ctx, httpRoute)
+			}
+			return err
+		}, 2*time.Minute, utils.PollInterval).Should(Succeed(), "Failed to create BBR HTTPRoute")
+
+		DeferCleanup(func() {
+			cleanup := &unstructured.Unstructured{}
+			cleanup.SetGroupVersionKind(httpRoute.GroupVersionKind())
+			cleanup.SetName(httpRoute.GetName())
+			cleanup.SetNamespace(httpRoute.GetNamespace())
+			_ = utils.TestingCluster.KubeClient.Delete(ctx, cleanup)
+		})
+
+		Eventually(func() bool {
+			route := &unstructured.Unstructured{}
+			route.SetGroupVersionKind(httpRoute.GroupVersionKind())
+			if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{Namespace: httpRoute.GetNamespace(), Name: httpRoute.GetName()}, route); err != nil {
+				return false
+			}
+			status, _ := route.Object["status"].(map[string]interface{})
+			parents, _ := status["parents"].([]interface{})
+			for _, p := range parents {
+				parent, _ := p.(map[string]interface{})
+				conditions, _ := parent["conditions"].([]interface{})
+				for _, c := range conditions {
+					cond, _ := c.(map[string]interface{})
+					if cond["type"] == "Accepted" && cond["status"] == "True" {
+						return true
+					}
+				}
+			}
+			return false
+		}, 2*time.Minute, 5*time.Second).Should(BeTrue(), "BBR HTTPRoute should be accepted")
+	})
+
+	// Positive: correct model name → successful inference
+	By("Sending request with correct model name through BBR gateway", func() {
+		coreClient, err := utils.GetK8sClientset()
+		Expect(err).NotTo(HaveOccurred())
+		k8sConfig, err := utils.GetK8sConfig()
+		Expect(err).NotTo(HaveOccurred())
+
+		execPodName, execContainer, execNamespace := findWorkspacePod()
+		gatewayEndpoint := "http://inference-gateway-istio.default.svc.cluster.local/v1/chat/completions"
+
+		// Use `curl -s -w` to capture BOTH the response body and the HTTP status
+		// code, and drop `-f` so we don't blindly exit with 22 on 4xx/5xx. This
+		// makes failure logs actionable (previously curl exit 22 with an empty
+		// stderr told us nothing).
+		curlCmd := fmt.Sprintf(
+			`curl -s --max-time 120 -o /tmp/bbr-body -w "HTTP_STATUS=%%{http_code}\n" `+
+				`-X POST -H "Content-Type: application/json" `+
+				`-d '{"model":"%s","messages":[{"role":"user","content":"Hello"}],"max_tokens":10}' %s; `+
+				`echo '---body---'; cat /tmp/bbr-body 2>/dev/null | head -c 4096; echo`,
+			modelName, gatewayEndpoint)
+
+		var stdout string
+		diagDumped := false
+		dumpDiag := func(reason string) {
+			if diagDumped {
+				return
+			}
+			diagDumped = true
+			GinkgoWriter.Printf("\n===== BBR diagnostics (%s) =====\n", reason)
+			diagCtx, diagCancel := context.WithTimeout(context.Background(), 90*time.Second)
+			defer diagCancel()
+
+			dumpPodLogs := func(ns, selector string, tail int64) {
+				pods, listErr := coreClient.CoreV1().Pods(ns).List(diagCtx, metav1.ListOptions{LabelSelector: selector})
+				if listErr != nil {
+					GinkgoWriter.Printf("diag: list ns=%s selector=%q failed: %v\n", ns, selector, listErr)
+					return
+				}
+				if len(pods.Items) == 0 {
+					GinkgoWriter.Printf("diag: no pods matched ns=%s selector=%q\n", ns, selector)
+					return
+				}
+				for _, p := range pods.Items {
+					GinkgoWriter.Printf("diag: pod %s/%s phase=%s\n", p.Namespace, p.Name, p.Status.Phase)
+					for _, cs := range p.Status.ContainerStatuses {
+						GinkgoWriter.Printf("diag:   container %s ready=%v restarts=%d state=%+v\n", cs.Name, cs.Ready, cs.RestartCount, cs.State)
+					}
+					for _, c := range p.Spec.Containers {
+						tailLines := tail
+						req := coreClient.CoreV1().Pods(p.Namespace).GetLogs(p.Name, &corev1.PodLogOptions{Container: c.Name, TailLines: &tailLines})
+						if logs, lerr := req.DoRaw(diagCtx); lerr == nil {
+							GinkgoWriter.Printf("diag: logs %s/%s/%s:\n%s\n", p.Namespace, p.Name, c.Name, string(logs))
+						} else {
+							GinkgoWriter.Printf("diag: logs %s/%s/%s fetch failed: %v\n", p.Namespace, p.Name, c.Name, lerr)
+						}
+					}
+				}
+			}
+
+			dumpPodLogs("default", "app.kubernetes.io/name=body-based-routing", 200)
+			dumpPodLogs("default", "gateway.networking.k8s.io/gateway-name=inference-gateway", 150)
+			// llm-d-router-gateway v0.9.0 labels EPP pods with
+			// app.kubernetes.io/name=<release>-epp and
+			// llm-d-router-gateway=<release>-epp (see routerlib templates/_helpers.tpl).
+			// The legacy "app=<name>-epp" / "inferencepool=<name>" selectors from the
+			// GWIE inferencepool chart no longer match.
+			dumpPodLogs(inferenceSetObj.Namespace, "app.kubernetes.io/name="+inferencePoolName+"-epp", 200)
+			dumpPodLogs(inferenceSetObj.Namespace, "llm-d-router-gateway="+inferencePoolName+"-epp", 200)
+
+			// HTTPRoute status/spec
+			route := &unstructured.Unstructured{}
+			route.SetGroupVersionKind(schema.GroupVersionKind{Group: "gateway.networking.k8s.io", Version: "v1", Kind: "HTTPRoute"})
+			if getErr := utils.TestingCluster.KubeClient.Get(diagCtx, client.ObjectKey{Namespace: inferenceSetObj.Namespace, Name: inferenceSetObj.Name + "-bbr-route"}, route); getErr == nil {
+				if b, mErr := json.MarshalIndent(route.Object["spec"], "", "  "); mErr == nil {
+					GinkgoWriter.Printf("diag: HTTPRoute spec:\n%s\n", string(b))
+				}
+				if b, mErr := json.MarshalIndent(route.Object["status"], "", "  "); mErr == nil {
+					GinkgoWriter.Printf("diag: HTTPRoute status:\n%s\n", string(b))
+				}
+			} else {
+				GinkgoWriter.Printf("diag: HTTPRoute get failed: %v\n", getErr)
+			}
+
+			// InferencePool status
+			pool := &unstructured.Unstructured{}
+			pool.SetGroupVersionKind(schema.GroupVersionKind{Group: "inference.networking.k8s.io", Version: "v1", Kind: "InferencePool"})
+			if getErr := utils.TestingCluster.KubeClient.Get(diagCtx, client.ObjectKey{Namespace: inferenceSetObj.Namespace, Name: inferencePoolName}, pool); getErr == nil {
+				if b, mErr := json.MarshalIndent(pool.Object["status"], "", "  "); mErr == nil {
+					GinkgoWriter.Printf("diag: InferencePool %s/%s status:\n%s\n", inferenceSetObj.Namespace, inferencePoolName, string(b))
+				}
+			} else {
+				GinkgoWriter.Printf("diag: InferencePool get failed: %v\n", getErr)
+			}
+			GinkgoWriter.Printf("===== end BBR diagnostics =====\n\n")
+		}
+
+		Eventually(func() bool {
+			execOption := corev1.PodExecOptions{Command: []string{"sh", "-c", curlCmd}, Container: execContainer, Stdout: true, Stderr: true}
+			execCtx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+			stdout, err = utils.ExecSync(execCtx, k8sConfig, coreClient, execNamespace, execPodName, execOption)
+			cancel()
+			if err != nil {
+				GinkgoWriter.Printf("BBR request exec failed (model=%s, endpoint=%s): %v\nstdout: %s\n", modelName, gatewayEndpoint, err, stdout)
+				return false
+			}
+			if !strings.Contains(stdout, "HTTP_STATUS=200") || !strings.Contains(stdout, "choices") {
+				GinkgoWriter.Printf("BBR request not yet successful (model=%s):\n%s\n", modelName, stdout)
+				// On the very first non-2xx, dump BBR/gateway/EPP diagnostics so
+				// we can see why (empty 500 body from Envoy usually means the EPP
+				// ExtProc gRPC failed or the InferencePool has no ready endpoints).
+				dumpDiag("non-2xx response")
+				return false
+			}
+			return true
+		}, 5*time.Minute, 15*time.Second).Should(BeTrue(), "BBR should route correct model to inference pool")
+		GinkgoWriter.Printf("BBR routing succeeded: %s\n", stdout[:min(len(stdout), 400)])
+	})
+
+	// Negative: non-existent model → error
+	By("Sending request with non-existent model name through BBR gateway", func() {
+		coreClient, err := utils.GetK8sClientset()
+		Expect(err).NotTo(HaveOccurred())
+		k8sConfig, err := utils.GetK8sConfig()
+		Expect(err).NotTo(HaveOccurred())
+
+		execPodName, execContainer, execNamespace := findWorkspacePod()
+		gatewayEndpoint := "http://inference-gateway-istio.default.svc.cluster.local/v1/chat/completions"
+
+		curlCmd := fmt.Sprintf(
+			`curl -s --max-time 30 -o /dev/null -w "%%{http_code}" -X POST -H "Content-Type: application/json" `+
+				`-d '{"model":"nonexistent-model-xyz","messages":[{"role":"user","content":"Hello"}],"max_tokens":10}' %s`,
+			gatewayEndpoint)
+
+		Eventually(func() bool {
+			execOption := corev1.PodExecOptions{Command: []string{"sh", "-c", curlCmd}, Container: execContainer, Stdout: true, Stderr: true}
+			execCtx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+			stdout, execErr := utils.ExecSync(execCtx, k8sConfig, coreClient, execNamespace, execPodName, execOption)
+			cancel()
+			if execErr != nil {
+				GinkgoWriter.Printf("Request with wrong model exec failed (retrying): %v\n", execErr)
+				return false
+			}
+			httpCode := strings.TrimSpace(stdout)
+			GinkgoWriter.Printf("Request with wrong model returned HTTP %s\n", httpCode)
+			if httpCode == "000" || httpCode == "" {
+				return false
+			}
+			return httpCode != "200"
+		}, 2*time.Minute, 10*time.Second).Should(BeTrue(), "BBR should not route non-existent model")
+	})
+}
 
 func createPhi4WorkspaceWithAdapterAndVLLM(numOfNode int, validAdapters []kaitov1beta1.AdapterSpec) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}
@@ -750,6 +1240,153 @@ func validateMultiRoleInferenceChatCompletions(mriObj *kaitov1alpha1.MultiRoleIn
 			return true
 		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(),
 			"Failed to validate /v1/chat/completions endpoint on MRI decode pod")
+	})
+}
+
+// validateMultiRoleInferenceKVEvents validates that vLLM KV cache events are
+// correctly enabled + exposed for every child Workspace of a MultiRoleInference
+// (both prefill and decode roles).
+//
+// This is the producer half of the KV-cache-aware routing story: the
+// llm-d-inference-scheduler EPP (that KAITO's GAIE / InferenceSet path wires
+// up) subscribes to tcp://<pod>:5557. If any of these checks regress, the EPP
+// KVCache scorer silently starves.
+//
+// The whole feature is gated in the operator on
+// FeatureFlagEnableMultiRoleInferenceController, so by construction any MRI
+// workspace must satisfy all of the following:
+//
+//  1. StatefulSet pod spec has containerPort/kv-events=consts.PortKVCacheEvents.
+//  2. StatefulSet pod command contains --kv-events-config='{"enable_kv_cache_events":true}'.
+//  3. The child Workspace ClusterIP Service exposes a Service port named
+//     kv-events on consts.PortKVCacheEvents.
+//  4. vLLM logs contain the ZMQ publisher startup line, proving the process
+//     actually opened the socket (not just that the flag was passed).
+func validateMultiRoleInferenceKVEvents(mriObj *kaitov1alpha1.MultiRoleInference) {
+	By("Validating vLLM KV cache events are enabled + exposed for all MRI child workspaces", func() {
+		coreClient, err := utils.GetK8sClientset()
+		Expect(err).NotTo(HaveOccurred(), "Failed to create core client")
+
+		kvEventsFlag := `--kv-events-config='{"enable_kv_cache_events":true}'`
+		kvEventsPort := int32(consts.PortKVCacheEvents)
+
+		// Look up all child Workspaces (prefill + decode) via the MRI parent label.
+		var childWorkspaces []kaitov1beta1.Workspace
+		Eventually(func() bool {
+			wsList := &kaitov1beta1.WorkspaceList{}
+			if err := utils.TestingCluster.KubeClient.List(ctx, wsList,
+				client.InNamespace(mriObj.Namespace),
+				client.MatchingLabels{kaitov1alpha1.LabelMultiRoleInferenceParent: mriObj.Name},
+			); err != nil {
+				GinkgoWriter.Printf("Failed to list MRI child workspaces: %v\n", err)
+				return false
+			}
+			if len(wsList.Items) == 0 {
+				return false
+			}
+			childWorkspaces = wsList.Items
+			return true
+		}, 2*time.Minute, utils.PollInterval).Should(BeTrue(),
+			"Expected at least one child Workspace for MRI %s", mriObj.Name)
+
+		Expect(len(childWorkspaces)).To(BeNumerically(">=", 2),
+			"Expected prefill + decode child workspaces for MRI %s", mriObj.Name)
+
+		for i := range childWorkspaces {
+			ws := &childWorkspaces[i]
+			roleName := ws.Labels[kaitov1alpha1.LabelInferenceRole]
+			GinkgoWriter.Printf("Validating KV events for MRI child workspace %s/%s (role=%s)\n",
+				ws.Namespace, ws.Name, roleName)
+
+			// (1) + (2): StatefulSet pod spec must declare kv-events container port
+			// and the vLLM command must carry --kv-events-config.
+			Eventually(func() error {
+				sts := &appsv1.StatefulSet{}
+				if err := utils.TestingCluster.KubeClient.Get(ctx,
+					client.ObjectKey{Namespace: ws.Namespace, Name: ws.Name}, sts); err != nil {
+					return fmt.Errorf("get StatefulSet %s/%s: %w", ws.Namespace, ws.Name, err)
+				}
+				var mainContainer *corev1.Container
+				for idx := range sts.Spec.Template.Spec.Containers {
+					c := &sts.Spec.Template.Spec.Containers[idx]
+					if c.Name == ws.Name {
+						mainContainer = c
+						break
+					}
+				}
+				if mainContainer == nil {
+					return fmt.Errorf("StatefulSet %s/%s missing main container %s",
+						ws.Namespace, ws.Name, ws.Name)
+				}
+				foundPort := false
+				for _, p := range mainContainer.Ports {
+					if p.Name == "kv-events" {
+						if p.ContainerPort != kvEventsPort {
+							return fmt.Errorf("container port kv-events = %d, want %d",
+								p.ContainerPort, kvEventsPort)
+						}
+						foundPort = true
+						break
+					}
+				}
+				if !foundPort {
+					return fmt.Errorf("StatefulSet %s/%s main container missing kv-events container port",
+						ws.Namespace, ws.Name)
+				}
+				cmd := strings.Join(mainContainer.Command, " ")
+				if !strings.Contains(cmd, kvEventsFlag) {
+					return fmt.Errorf("StatefulSet %s/%s vLLM command missing %s; got: %s",
+						ws.Namespace, ws.Name, kvEventsFlag, cmd)
+				}
+				return nil
+			}, 2*time.Minute, utils.PollInterval).Should(Succeed(),
+				"MRI child workspace %s/%s must expose KV events on its pod spec",
+				ws.Namespace, ws.Name)
+
+			// (3): child Workspace ClusterIP Service must expose kv-events port.
+			Eventually(func() error {
+				svc := &corev1.Service{}
+				if err := utils.TestingCluster.KubeClient.Get(ctx,
+					client.ObjectKey{Namespace: ws.Namespace, Name: ws.Name}, svc); err != nil {
+					return fmt.Errorf("get Service %s/%s: %w", ws.Namespace, ws.Name, err)
+				}
+				if svc.Spec.Type != corev1.ServiceTypeClusterIP {
+					return fmt.Errorf("Service %s/%s is %s, expected ClusterIP",
+						ws.Namespace, ws.Name, svc.Spec.Type)
+				}
+				for _, p := range svc.Spec.Ports {
+					if p.Name == "kv-events" {
+						if p.Port != kvEventsPort {
+							return fmt.Errorf("Service %s/%s kv-events port = %d, want %d",
+								ws.Namespace, ws.Name, p.Port, kvEventsPort)
+						}
+						return nil
+					}
+				}
+				return fmt.Errorf("Service %s/%s missing kv-events port", ws.Namespace, ws.Name)
+			}, 2*time.Minute, utils.PollInterval).Should(Succeed(),
+				"MRI child workspace %s/%s Service must expose kv-events port",
+				ws.Namespace, ws.Name)
+
+			// (4): vLLM must actually have started the ZMQ publisher (log signal).
+			podName := ws.Name + "-0"
+			Eventually(func() error {
+				logs, err := utils.GetPodLogs(coreClient, ws.Namespace, podName, ws.Name)
+				if err != nil {
+					return fmt.Errorf("get logs for pod %s/%s: %w", ws.Namespace, podName, err)
+				}
+				// vLLM's kv_events.py logs "Starting ZMQ publisher thread" when the
+				// publisher actually boots. Match on the phrase to stay resilient
+				// against log-format tweaks (log level / module path).
+				if !strings.Contains(logs, "Starting ZMQ publisher thread") {
+					return fmt.Errorf("pod %s/%s logs missing 'Starting ZMQ publisher thread'",
+						ws.Namespace, podName)
+				}
+				return nil
+			}, 5*time.Minute, utils.PollInterval).Should(Succeed(),
+				"MRI child workspace %s/%s pod %s vLLM logs must show KV events ZMQ publisher startup",
+				ws.Namespace, ws.Name, podName)
+		}
 	})
 }
 
@@ -1273,6 +1910,161 @@ func validateMultiRoleInferenceEPPReady(mriObj *kaitov1alpha1.MultiRoleInference
 			return false
 		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(),
 			"EPP pod should have disagg-profile-handler in logs")
+	})
+}
+
+// validateMultiRoleInferenceEPPKVCacheScorer validates that the EPP plugins
+// ConfigMap contains the kv-cache-utilization-scorer plugin and that the EPP
+// pod logs confirm the scorer was loaded. This ensures the default
+// EndpointPickerConfig wires up KV cache-aware routing end-to-end.
+func validateMultiRoleInferenceEPPKVCacheScorer(mriObj *kaitov1alpha1.MultiRoleInference) {
+	poolName := kaitoutils.InferencePoolName(mriObj.Name)
+	eppDeploymentName := poolName + "-epp"
+
+	By("Validating EPP plugins ConfigMap contains kv-cache-utilization-scorer", func() {
+		Eventually(func() error {
+			// The llm-d-router-gateway chart stores the EPP plugins config in a
+			// ConfigMap whose name is derived from the HelmRelease. Try the
+			// most common naming patterns.
+			candidateNames := []string{
+				poolName + "-epp-plugins",
+				poolName + "-plugins",
+				poolName + "-epp",
+			}
+
+			coreClient, err := utils.GetK8sClientset()
+			if err != nil {
+				return fmt.Errorf("create core client: %w", err)
+			}
+
+			// If none of the candidate names match, fall back to listing all
+			// ConfigMaps in the namespace and scanning their data.
+			var found bool
+			for _, name := range candidateNames {
+				cm, err := coreClient.CoreV1().ConfigMaps(mriObj.Namespace).Get(ctx, name, metav1.GetOptions{})
+				if err != nil {
+					continue
+				}
+				for _, v := range cm.Data {
+					if strings.Contains(v, "kv-cache-utilization-scorer") {
+						GinkgoWriter.Printf("ConfigMap %s contains kv-cache-utilization-scorer\n", name)
+						found = true
+						break
+					}
+				}
+				if found {
+					break
+				}
+			}
+
+			if !found {
+				// Fallback: scan all ConfigMaps in namespace
+				cmList, err := coreClient.CoreV1().ConfigMaps(mriObj.Namespace).List(ctx, metav1.ListOptions{})
+				if err != nil {
+					return fmt.Errorf("list ConfigMaps: %w", err)
+				}
+				for _, cm := range cmList.Items {
+					for _, v := range cm.Data {
+						if strings.Contains(v, "kv-cache-utilization-scorer") {
+							GinkgoWriter.Printf("ConfigMap %s contains kv-cache-utilization-scorer\n", cm.Name)
+							found = true
+							break
+						}
+					}
+					if found {
+						break
+					}
+				}
+			}
+
+			if !found {
+				return fmt.Errorf("no ConfigMap in namespace %s contains kv-cache-utilization-scorer", mriObj.Namespace)
+			}
+			return nil
+		}, 5*time.Minute, utils.PollInterval).Should(Succeed(),
+			"EPP plugins ConfigMap should contain kv-cache-utilization-scorer")
+	})
+
+	By("Validating EPP pod logs confirm kv-cache-utilization-scorer is loaded", func() {
+		coreClient, err := utils.GetK8sClientset()
+		Expect(err).NotTo(HaveOccurred(), "Failed to create core client")
+
+		Eventually(func() bool {
+			eppDeployment := &appsv1.Deployment{}
+			if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{
+				Namespace: mriObj.Namespace,
+				Name:      eppDeploymentName,
+			}, eppDeployment); err != nil {
+				GinkgoWriter.Printf("Failed to get EPP deployment: %v\n", err)
+				return false
+			}
+			selector, err := metav1.LabelSelectorAsSelector(eppDeployment.Spec.Selector)
+			if err != nil {
+				GinkgoWriter.Printf("Failed to parse EPP deployment selector: %v\n", err)
+				return false
+			}
+			pods, err := coreClient.CoreV1().Pods(mriObj.Namespace).List(ctx, metav1.ListOptions{
+				LabelSelector: selector.String(),
+			})
+			if err != nil || len(pods.Items) == 0 {
+				return false
+			}
+			// Select a Running+Ready pod
+			var eppPod *corev1.Pod
+			for i := range pods.Items {
+				p := &pods.Items[i]
+				if p.Status.Phase != corev1.PodRunning {
+					continue
+				}
+				for _, cond := range p.Status.Conditions {
+					if cond.Type == corev1.PodReady && cond.Status == corev1.ConditionTrue {
+						eppPod = p
+						break
+					}
+				}
+				if eppPod != nil {
+					break
+				}
+			}
+			if eppPod == nil {
+				GinkgoWriter.Printf("No Running+Ready EPP pod found\n")
+				return false
+			}
+			// Derive container name, skipping istio-proxy sidecar
+			containerName := ""
+			for _, c := range eppPod.Spec.Containers {
+				if c.Name != "istio-proxy" {
+					containerName = c.Name
+					break
+				}
+			}
+			tailLines := int64(2000)
+			logOpts := &corev1.PodLogOptions{
+				TailLines: &tailLines,
+			}
+			if containerName != "" {
+				logOpts.Container = containerName
+			}
+			req := coreClient.CoreV1().Pods(mriObj.Namespace).GetLogs(eppPod.Name, logOpts)
+			stream, err := req.Stream(ctx)
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get EPP pod logs: %v\n", err)
+				return false
+			}
+			defer stream.Close()
+			buf := new(strings.Builder)
+			if _, err = io.Copy(buf, stream); err != nil {
+				return false
+			}
+			logs := buf.String()
+			if strings.Contains(logs, "kv-cache-utilization-scorer") {
+				GinkgoWriter.Printf("EPP pod %s has kv-cache-utilization-scorer in logs\n", eppPod.Name)
+				return true
+			}
+			GinkgoWriter.Printf("EPP pod %s logs do not contain kv-cache-utilization-scorer yet\n", eppPod.Name)
+			return false
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(),
+			"EPP pod should have kv-cache-utilization-scorer in logs")
 	})
 }
 

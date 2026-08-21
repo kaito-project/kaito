@@ -42,6 +42,7 @@ featureGates:
   gatewayAPIInferenceExtension: false
   enableInferenceSetController: true
   enableMIG: false
+  enableAccelerator: false
   enableMultiRoleInferenceController: false
   ModelMirror: false
   ModelStreaming: false
@@ -61,6 +62,9 @@ karpenterProviders:
     kind: "AKSNodeClass"
     version: "v1beta1"
     resourceName: "aksnodeclasses"
+    # Every entry below is selectable by any Workspace in any namespace via the
+    # kaito.sh/node-class-name annotation. Do not add a NodeClass that encodes a
+    # tenant-specific network, identity or security boundary.
     nodeClasses:
       - name: "image-family-ubuntu"
         default: true
@@ -74,7 +78,7 @@ karpenterProviders:
 nvidiaDevicePlugin:
   enabled: true
   daemonsetName: "nvidia-device-plugin-daemonset"
-  image: "mcr.microsoft.com/oss/v2/nvidia/k8s-device-plugin:v0.18.2-1"
+  image: "mcr.microsoft.com/oss/v2/nvidia/k8s-device-plugin:v0.18.2-12"
   imagePullPolicy: "IfNotPresent"
 
 # Spot instance support for Azure GPU node pools.
@@ -140,11 +144,11 @@ local-csi-driver:
   image:
     driver:
       repository: mcr.microsoft.com/acstor/local-csi-driver
-      tag: v0.2.18
+      tag: v0.3.0
       pullPolicy: Always
     manager:
       repository: mcr.microsoft.com/acstor/local-csi-manager
-      tag: v0.2.18
+      tag: v0.3.0
       pullPolicy: Always
     csiProvisioner:
       pullPolicy: Always

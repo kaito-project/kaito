@@ -16,7 +16,7 @@ permissions:
 
 env:
   OLD_CHART_VERSION: ${{ github.event.inputs.old_chart_version || '0.7.1' }}
-  GO_VERSION: "1.26.4"
+  GO_VERSION: "1.26.6"
 
 jobs:
   chart-upgrade-test:
@@ -109,20 +109,10 @@ jobs:
       - name: Verify migration to StatefulSet
         shell: bash
         run: |
-          # Wait for workspace to be ready again if needed
+          kubectl wait --for=create statefulset/workspace-mistral-7b-instruct --timeout=300s
+          kubectl wait --for=delete deployment/workspace-mistral-7b-instruct --timeout=300s
+          kubectl rollout status statefulset/workspace-mistral-7b-instruct --timeout=1000s
           kubectl wait --for=condition=InferenceReady workspace/workspace-mistral-7b-instruct --timeout=1000s
-
-          # Verify it is now using a StatefulSet
-          if ! kubectl get statefulset workspace-mistral-7b-instruct; then
-            echo "Error: StatefulSet not found for workspace after upgrade"
-            exit 1
-          fi
-
-          # Verify Deployment is gone
-          if kubectl get deployment workspace-mistral-7b-instruct 2>/dev/null; then
-            echo "Error: Old Deployment still exists"
-            exit 1
-          fi
 
       - name: Cleanup
         if: always()
@@ -291,19 +281,10 @@ jobs:
       - name: Verify migration to StatefulSet (BYO)
         shell: bash
         run: |
+          kubectl wait --for=create statefulset/workspace-mistral-7b-instruct --timeout=300s
+          kubectl wait --for=delete deployment/workspace-mistral-7b-instruct --timeout=300s
+          kubectl rollout status statefulset/workspace-mistral-7b-instruct --timeout=1200s
           kubectl wait --for=condition=InferenceReady workspace/workspace-mistral-7b-instruct --timeout=1200s
-
-          # Verify it is now using a StatefulSet
-          if ! kubectl get statefulset workspace-mistral-7b-instruct; then
-            echo "Error: StatefulSet not found for workspace after upgrade"
-            exit 1
-          fi
-
-          # Verify Deployment is gone
-          if kubectl get deployment workspace-mistral-7b-instruct 2>/dev/null; then
-            echo "Error: Old Deployment still exists"
-            exit 1
-          fi
 
       - name: Delete workspace and verify cleanup (BYO)
         shell: bash

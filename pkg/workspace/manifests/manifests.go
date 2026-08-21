@@ -76,6 +76,43 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 	// listens directly on 5000.
 	httpTargetPort := consts.PortInferenceServer
 
+	ports := []corev1.ServicePort{
+		// HTTP API Port
+		{
+			Name:       "http",
+			Protocol:   corev1.ProtocolTCP,
+			Port:       80,
+			TargetPort: intstr.FromInt32(httpTargetPort),
+		},
+		{
+			Name:       "ray",
+			Protocol:   corev1.ProtocolTCP,
+			Port:       6379,
+			TargetPort: intstr.FromInt32(6379),
+		},
+		{
+			Name:       "dashboard",
+			Protocol:   corev1.ProtocolTCP,
+			Port:       8265,
+			TargetPort: intstr.FromInt32(8265),
+		},
+	}
+
+	// KV cache events ZMQ stream is unauthenticated/unencrypted and is only
+	// produced by the vLLM runtime. Add the Service port only for vLLM
+	// workspaces, and only on in-cluster (ClusterIP) Services so we don't
+	// accidentally publish it to the internet on a LoadBalancer. Users who
+	// need external access should create their own Service + NetworkPolicy.
+	if serviceType == corev1.ServiceTypeClusterIP &&
+		kaitov1beta1.GetWorkspaceRuntimeName(workspaceObj) == pkgmodel.RuntimeNameVLLM {
+		ports = append(ports, corev1.ServicePort{
+			Name:       "kv-events",
+			Protocol:   corev1.ProtocolTCP,
+			Port:       int32(consts.PortKVCacheEvents),
+			TargetPort: intstr.FromInt32(consts.PortKVCacheEvents),
+		})
+	}
+
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      workspaceObj.Name,
@@ -85,28 +122,8 @@ func GenerateServiceManifest(workspaceObj *kaitov1beta1.Workspace, serviceType c
 			},
 		},
 		Spec: corev1.ServiceSpec{
-			Type: serviceType,
-			Ports: []corev1.ServicePort{
-				// HTTP API Port
-				{
-					Name:       "http",
-					Protocol:   corev1.ProtocolTCP,
-					Port:       80,
-					TargetPort: intstr.FromInt32(httpTargetPort),
-				},
-				{
-					Name:       "ray",
-					Protocol:   corev1.ProtocolTCP,
-					Port:       6379,
-					TargetPort: intstr.FromInt32(6379),
-				},
-				{
-					Name:       "dashboard",
-					Protocol:   corev1.ProtocolTCP,
-					Port:       8265,
-					TargetPort: intstr.FromInt32(8265),
-				},
-			},
+			Type:     serviceType,
+			Ports:    ports,
 			Selector: selector,
 			// Added this to allow pods to discover each other
 			// (DNS Resolution) During their initialization phase
@@ -383,7 +400,7 @@ func GenerateInferencePoolOCIRepository(inferenceSetObj *kaitov1beta1.InferenceS
 			},
 		},
 		Spec: sourcev1.OCIRepositorySpec{
-			// Chart source for Gateway API Inference Extension inference pool;
+			// Chart source for llm-d router gateway;
 			// keep in sync with consts.InferencePoolChartVersion when upgrading.
 			URL: consts.InferencePoolChartURL,
 			Reference: &sourcev1.OCIRepositoryRef{
@@ -406,29 +423,48 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1beta1.InferenceSet
 		consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name,
 	}
 
-	// The Endpoint Picker (EPP) from Gateway API Inference Extension picks an endpoint that can serve traffic.
-	// KAITO overrides the default GWIE EPP image with the llm-d inference scheduler, which provides
-	// advanced scheduling plugins (KV cache-aware routing, P/D disaggregation, pluggable filters/scorers).
+	// The Endpoint Picker (EPP) from llm-d router picks an endpoint that can serve traffic.
+	// It provides advanced scheduling plugins (KV cache-aware routing, P/D disaggregation,
+	// pluggable filters/scorers).
 	// In a multi-node inference environment, this means we need to select the leader pod (with pod index 0)
 	// since only the leader pod is capable of serving traffic.
 	matchLabels[appsv1.PodIndexLabel] = "0"
 
-	// Based on https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v1.3.1/config/charts/inferencepool/values.yaml
+	// Based on https://github.com/llm-d/llm-d-router/blob/v0.9.0/config/charts/routerlib/values.yaml
 	helmValues := map[string]any{
-		"inferenceExtension": map[string]any{
-			"image": map[string]string{
-				"hub":        consts.EPPImageHub,
-				"name":       consts.EPPImageName,
-				"tag":        consts.EPPImageTag,
-				"pullPolicy": string(corev1.PullIfNotPresent),
+		"router": map[string]any{
+			"epp": map[string]any{
+				"image": map[string]string{
+					"registry":   consts.EPPImageRegistry,
+					"repository": consts.EPPImageRepository,
+					"tag":        consts.EPPImageTag,
+					"pullPolicy": string(corev1.PullIfNotPresent),
+				},
+				"resources": map[string]any{
+					"requests": map[string]string{
+						"cpu":    "1",
+						"memory": "2Gi",
+					},
+					"limits": map[string]string{
+						"memory": "16Gi",
+					},
+				},
+				// Disable EPP's built-in TLS on the ext_proc gRPC port so the
+				// Istio Gateway can connect in plaintext. The llm-d-router-gateway
+				// chart's EPP binary defaults to --secure-serving=true, but our
+				// Istio DestinationRule for the EPP service is configured with
+				// tls.mode: DISABLE. Without turning this off, Envoy's ext_proc
+				// filter fails with "Connection refused" / "no healthy upstream"
+				// during TLS handshake against a plaintext client.
+				"flags": map[string]any{
+					"secure-serving": false,
+				},
 			},
-		},
-		"inferencePool": map[string]any{
-			"targetPorts": []map[string]any{{
-				"number": inferencePoolTargetPort(),
-			}},
 			"modelServers": map[string]any{
 				"matchLabels": matchLabels,
+				"targetPorts": []map[string]any{{
+					"number": inferencePoolTargetPort(),
+				}},
 			},
 		},
 	}

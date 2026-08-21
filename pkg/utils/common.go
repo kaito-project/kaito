@@ -38,6 +38,14 @@ const (
 	errInvalidModelVersionURL = "invalid model version URL: %s. Expected format: https://huggingface.co/<org>/<model>/commit/<revision>"
 )
 
+// TruncateMessage shortens msg to at most maxLen bytes, appending "..." when truncated.
+func TruncateMessage(msg string, maxLen int) string {
+	if len(msg) <= maxLen {
+		return msg
+	}
+	return msg[:maxLen] + "..."
+}
+
 func Contains(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {

@@ -16,6 +16,7 @@ package nodes
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/samber/lo"
 	corev1 "k8s.io/api/core/v1"
@@ -132,4 +133,41 @@ func NodeIsReadyAndNotDeleting(node *corev1.Node) bool {
 	})
 
 	return statusRunning
+}
+
+// pressureNodeConditionTypes are the kubelet-reported resource-pressure node
+// conditions, in display order (disk, memory, PID).
+var pressureNodeConditionTypes = []corev1.NodeConditionType{
+	corev1.NodeDiskPressure,
+	corev1.NodeMemoryPressure,
+	corev1.NodePIDPressure,
+}
+
+// NodePressureWarning returns a human-readable summary of the given nodes that
+// report kubelet resource pressure (DiskPressure/MemoryPressure/PIDPressure), or
+// "" when none do. It reads node conditions directly, so the signal is stable
+// regardless of pod eviction/reschedule churn.
+func NodePressureWarning(nodeList *corev1.NodeList) string {
+	if nodeList == nil {
+		return ""
+	}
+	var details []string
+	for i := range nodeList.Items {
+		node := &nodeList.Items[i]
+		var pressures []string
+		for _, pt := range pressureNodeConditionTypes {
+			for _, nc := range node.Status.Conditions {
+				if nc.Type == pt && nc.Status == corev1.ConditionTrue {
+					pressures = append(pressures, string(pt))
+				}
+			}
+		}
+		if len(pressures) > 0 {
+			details = append(details, fmt.Sprintf("%s (%s)", node.Name, strings.Join(pressures, ", ")))
+		}
+	}
+	if len(details) == 0 {
+		return ""
+	}
+	return "worker node(s) under resource pressure: " + strings.Join(details, "; ")
 }

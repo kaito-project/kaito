@@ -25,7 +25,10 @@ from ragengine.streaming.buffer_window import (
 
 
 class AllowScanner:
-    def scan(self, text: str) -> WindowScanResult:
+    def scan(
+        self, text: str, *, flush: bool = False, preceding_char: str = ""
+    ) -> WindowScanResult:
+        del flush, preceding_char
         return WindowScanResult()
 
 
@@ -33,12 +36,29 @@ class BadSubstringScanner:
     def __init__(self, substring: str = "bad") -> None:
         self.substring = substring
         self.scanned_texts: list[str] = []
+        self.flush_values: list[bool] = []
+        self.preceding_chars: list[str] = []
 
-    def scan(self, text: str) -> WindowScanResult:
+    def scan(
+        self, text: str, *, flush: bool = False, preceding_char: str = ""
+    ) -> WindowScanResult:
         self.scanned_texts.append(text)
+        self.flush_values.append(flush)
+        self.preceding_chars.append(preceding_char)
         if self.substring in text:
             return WindowScanResult(blocked=True)
         return WindowScanResult()
+
+
+class InvisibleTextRedactScanner:
+    def scan(
+        self, text: str, *, flush: bool = False, preceding_char: str = ""
+    ) -> WindowScanResult:
+        del flush, preceding_char
+        sanitized_text = text.replace("\u200b", "").replace("\u200c", "")
+        if sanitized_text == text:
+            return WindowScanResult()
+        return WindowScanResult(sanitized_text=sanitized_text)
 
 
 def test_safe_text_emits_as_single_confirmed_chunk():
@@ -49,6 +69,34 @@ def test_safe_text_emits_as_single_confirmed_chunk():
 
     assert result.chunks == ("abcdefgh",)
     assert result.blocked is False
+    assert flush_result.chunks == ()
+
+
+def test_redaction_replaces_pending_text_before_emission():
+    window = StreamingBufferWindow(InvisibleTextRedactScanner(), holdback_len=0)
+
+    result = window.feed("hello\u200bworld")
+
+    assert result.chunks == ("helloworld",)
+
+
+def test_redaction_recalculates_emit_length_after_text_shrinks():
+    window = StreamingBufferWindow(InvisibleTextRedactScanner(), holdback_len=5)
+
+    result = window.feed("abc\u200b\u200cdef")
+    flush_result = window.flush()
+
+    assert result.chunks == ("a",)
+    assert flush_result.chunks == ("bcdef",)
+
+
+def test_redaction_can_remove_all_text_during_flush():
+    window = StreamingBufferWindow(InvisibleTextRedactScanner(), holdback_len=5)
+
+    result = window.feed("\u200b\u200c")
+    flush_result = window.flush()
+
+    assert result.chunks == ()
     assert flush_result.chunks == ()
 
 
@@ -71,6 +119,8 @@ def test_holdback_tail_is_retained_and_not_emitted():
     assert result.chunks == ("abc",)
     assert flush_result.chunks == ("def",)
     assert scanner.scanned_texts == ["abcdef", "def"]
+    assert scanner.flush_values == [False, True]
+    assert scanner.preceding_chars == ["", "c"]
 
 
 def test_blocked_substring_crossing_holdback_boundary_is_detected():

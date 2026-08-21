@@ -22,6 +22,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -32,6 +33,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
@@ -958,4 +960,128 @@ func TestListWorkspaces(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestValidateWorkspaceForInferenceSet(t *testing.T) {
+	// BYO mode so an empty instanceType is valid and node-listing is skipped.
+	orig := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	t.Cleanup(func() {
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = orig
+	})
+
+	newIS := func(inf kaitov1beta1.InferenceSpec) *kaitov1beta1.InferenceSet {
+		return &kaitov1beta1.InferenceSet{
+			ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
+			Spec: kaitov1beta1.InferenceSetSpec{
+				Template: kaitov1beta1.InferenceSetTemplate{Inference: inf},
+			},
+		}
+	}
+
+	tests := []struct {
+		name       string
+		inference  kaitov1beta1.InferenceSpec
+		wantErr    bool
+		errContent string
+	}{
+		{
+			name: "invalid preset name is rejected",
+			inference: kaitov1beta1.InferenceSpec{
+				Preset: &kaitov1beta1.PresetSpec{PresetMeta: kaitov1beta1.PresetMeta{Name: "invalid-preset"}},
+			},
+			wantErr:    true,
+			errContent: "Unsupported inference preset name invalid-preset",
+		},
+		{
+			name:       "neither preset nor template is rejected",
+			inference:  kaitov1beta1.InferenceSpec{},
+			wantErr:    true,
+			errContent: "Preset or Template must be specified",
+		},
+		{
+			name: "both preset and template is rejected",
+			inference: kaitov1beta1.InferenceSpec{
+				Preset:   &kaitov1beta1.PresetSpec{PresetMeta: kaitov1beta1.PresetMeta{Name: "invalid-preset"}},
+				Template: &corev1.PodTemplateSpec{},
+			},
+			wantErr:    true,
+			errContent: "Preset and Template cannot be set at the same time",
+		},
+		{
+			name:      "custom template on BYO nodes is accepted",
+			inference: kaitov1beta1.InferenceSpec{Template: &corev1.PodTemplateSpec{}},
+			wantErr:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidateWorkspaceForInferenceSet(context.Background(), newIS(tt.inference))
+			if tt.wantErr {
+				assert.NotNil(t, err)
+				assert.Contains(t, err.Error(), tt.errContent)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
+}
+
+// TestValidateWorkspaceForInferenceSet_InstanceTypeNotProjectedOnBYO verifies
+// that a template-level instanceType is not projected onto the child Workspace
+// in BYO mode, so validation passes (the Workspace webhook rejects instanceType
+// on BYO nodes).
+func TestValidateWorkspaceForInferenceSet_InstanceTypeNotProjectedOnBYO(t *testing.T) {
+	orig := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	origProvisioner := consts.ActiveNodeProvisioner
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	consts.ActiveNodeProvisioner = consts.NodeProvisionerBYO
+	t.Cleanup(func() {
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = orig
+		consts.ActiveNodeProvisioner = origProvisioner
+	})
+
+	is := &kaitov1beta1.InferenceSet{
+		ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
+		Spec: kaitov1beta1.InferenceSetSpec{
+			Template: kaitov1beta1.InferenceSetTemplate{
+				Resource:  kaitov1beta1.InferenceSetResourceSpec{InstanceType: "Standard_NC6s_v3"},
+				Inference: kaitov1beta1.InferenceSpec{Template: &corev1.PodTemplateSpec{}},
+			},
+		},
+	}
+
+	err := ValidateWorkspaceForInferenceSet(context.Background(), is)
+	assert.Nil(t, err)
+}
+
+// TestValidateWorkspaceForInferenceSet_NAPDoesNotPanicOnNilCount reproduces the
+// regression where the projected Workspace had no Resource.Count: the NAP code
+// path in validateCreateWithInference dereferenced r.Count, which panicked the
+// InferenceSet admission webhook. Validation now guards the nil deref.
+func TestValidateWorkspaceForInferenceSet_NAPDoesNotPanicOnNilCount(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	origNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	origProvisioner := consts.ActiveNodeProvisioner
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+	consts.ActiveNodeProvisioner = consts.NodeProvisionerAzureGPU
+	t.Cleanup(func() {
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = origNAP
+		consts.ActiveNodeProvisioner = origProvisioner
+	})
+
+	is := &kaitov1beta1.InferenceSet{
+		ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
+		Spec: kaitov1beta1.InferenceSetSpec{
+			Template: kaitov1beta1.InferenceSetTemplate{
+				Resource:  kaitov1beta1.InferenceSetResourceSpec{InstanceType: "Standard_NC6s_v3"},
+				Inference: kaitov1beta1.InferenceSpec{Template: &corev1.PodTemplateSpec{}},
+			},
+		},
+	}
+
+	assert.NotPanics(t, func() {
+		_ = ValidateWorkspaceForInferenceSet(context.Background(), is)
+	})
 }

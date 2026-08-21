@@ -67,9 +67,20 @@ const (
 )
 
 var (
-	containerPorts = []corev1.ContainerPort{{
-		ContainerPort: int32(consts.PortInferenceServer),
-	}}
+	containerPorts = []corev1.ContainerPort{
+		{
+			Name:          "http",
+			ContainerPort: int32(consts.PortInferenceServer),
+		},
+	}
+
+	// vllmKVEventsContainerPort is the KV cache events ZMQ port. It is only added
+	// to the pod spec for vLLM inference workspaces; other runtimes don't expose
+	// this endpoint, so advertising it there would be misleading.
+	vllmKVEventsContainerPort = corev1.ContainerPort{
+		Name:          "kv-events",
+		ContainerPort: int32(consts.PortKVCacheEvents),
+	}
 
 	// defaultLivenessProbe has no initial delay because the startup probe ensures
 	// the model is up before liveness evaluation begins.
@@ -281,33 +292,42 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 }
 
 func getGPUConfig(ctx *generator.WorkspaceGeneratorContext) (*sku.GPUConfig, error) {
+	partition := ctx.Workspace.Resource.Partition
+
 	// Partition path: build GPU config from the partition spec (MIG mode).
-	if featuregates.FeatureGates[consts.FeatureFlagEnableMIG] && ctx.Workspace.Resource.Partition != nil &&
-		ctx.Workspace.Resource.Partition.Mode == v1beta1.PartitionModeMIG {
-		return utils.GetMIGGPUConfig(ctx.Workspace.Resource.Partition.Profile)
+	if featuregates.FeatureGates[consts.FeatureFlagEnableMIG] && partition != nil &&
+		partition.Mode == v1beta1.PartitionModeMIG {
+		return utils.GetMIGGPUConfig(partition.Profile)
 	}
 
-	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		// NAP is disabled (BYO scenario) - prefer to get GPU config from matching nodes with nvidia.com labels
-		// Only try to find matching nodes if we have a labelSelector and if WorkerNodes is not already populated
-		readyNodes, err := nodeprovision.GetReadyNodes(ctx.Ctx, ctx.KubeClient, ctx.NodeProvisioner, ctx.Workspace)
-		if err != nil {
-			return nil, fmt.Errorf("failed to list ready nodes: %w", err)
-		}
-		if len(readyNodes) == 0 {
-			return nil, fmt.Errorf("no ready nodes found matching the workspace's label selector")
-		}
-
-		return sku.GetGPUConfigFromNodeLabels(readyNodes[0])
-	} else {
-		// NAP is enabled - try to get GPU config from known SKU
-		gpuConfig, err := sku.GetGPUConfigBySKU(ctx.Workspace.Resource.InstanceType)
-		if err != nil {
-			return nil, err
-		}
-
-		return gpuConfig, nil
+	// NAP is enabled - try to get GPU config from known SKU
+	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		return sku.GetGPUConfigBySKU(ctx.Workspace.Resource.InstanceType)
 	}
+
+	// NAP is disabled (BYO scenario) - prefer to get GPU config from matching nodes with nvidia.com labels
+	// Only try to find matching nodes if we have a labelSelector and if WorkerNodes is not already populated
+	readyNodes, err := nodeprovision.GetReadyNodes(ctx.Ctx, ctx.KubeClient, ctx.NodeProvisioner, ctx.Workspace)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list ready nodes: %w", err)
+	}
+	if len(readyNodes) == 0 {
+		return nil, fmt.Errorf("no ready nodes found matching the workspace's label selector")
+	}
+	gpuConfig, err := sku.GetGPUConfigFromNodeLabels(readyNodes[0])
+	if err != nil {
+		return nil, err
+	}
+
+	// Accelerator partition: rescale the node's config down to Count whole GPUs so
+	// resource requests, vLLM parallelism, and node sizing reflect the partition
+	// rather than the full node.
+	if featuregates.FeatureGates[consts.FeatureFlagEnableAccelerator] && partition != nil &&
+		partition.Mode == v1beta1.PartitionModeAccelerator {
+		return sku.ScaleGPUConfigToCount(gpuConfig, *partition.Count)
+	}
+
+	return gpuConfig, nil
 }
 
 func shouldUseDistributedInference(ctx *generator.WorkspaceGeneratorContext, numNodes int) bool {
@@ -622,8 +642,13 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 
 		mainContainerEnv := buildMainContainerEnv(runtimeName, inferenceParam, cudaHome, localModelWeightsPath)
 
+		ports := append([]corev1.ContainerPort(nil), containerPorts...)
+		if runtimeName == pkgmodel.RuntimeNameVLLM {
+			ports = append(ports, vllmKVEventsContainerPort)
+		}
+
 		setInferenceContainers(spec, ctx.Workspace.Name, commands, resourceReq,
-			volumeMounts, mainContainerEnv, readinessTimeout, vllmPort, cudaHome)
+			volumeMounts, mainContainerEnv, readinessTimeout, vllmPort, cudaHome, ports)
 
 		applyInferenceRoleEnv(ctx.Workspace.Labels, ctx.Workspace.Name, spec)
 
@@ -677,10 +702,11 @@ func configureModelWeightsVolumes(streamingModelPath, localModelWeightsPath stri
 }
 
 // configureCUDAToolkitVolume mounts the node's CUDA toolkit into the pod for
-// models whose FP8 GEMMs require DeepGEMM's nvcc JIT (e.g. DeepSeek-V4), and
-// returns cudaHome — the toolkit path — or "" for models that don't need it.
+// models whose runtime JIT paths require nvcc (see RequiresCUDAToolkit — e.g.
+// DeepSeek-V4's DeepGEMM FP8 GEMMs, or Mistral-Small-4's FlashInfer CUTLASS MoE),
+// and returns cudaHome — the toolkit path — or "" for models that don't need it.
 //
-// Only DeepGEMM models get a toolkit. It lives at a fixed node path
+// Only models requiring the toolkit get one. It lives at a fixed node path
 // (defaultCudaHomePath) and is mounted read-only (the main container only
 // reads nvcc + headers/libs; the cuda-toolkit-provisioner init container mounts it
 // read-write to install). Because it lives on the node (hostPath, DirectoryOrCreate
@@ -690,7 +716,7 @@ func configureModelWeightsVolumes(streamingModelPath, localModelWeightsPath stri
 func configureCUDAToolkitVolume(model pkgmodel.Model,
 	volumes []corev1.Volume, volumeMounts []corev1.VolumeMount,
 ) ([]corev1.Volume, []corev1.VolumeMount, string) {
-	if !model.GetInferenceParameters().RequiresDeepGEMM() {
+	if !model.GetInferenceParameters().RequiresCUDAToolkit() {
 		return volumes, volumeMounts, ""
 	}
 
@@ -741,24 +767,6 @@ func buildMainContainerEnv(runtimeName pkgmodel.RuntimeName, inferenceParam *pkg
 			Name:  consts.VLLMUseDeepGEMMEnvName,
 			Value: deepGEMMValue,
 		})
-		// Disable vLLM's FlashInfer MoE backends across all precisions. For MoE
-		// models vLLM auto-selects a FlashInfer (TRTLLM/CUTLASS) expert kernel,
-		// which JIT-compiles at runtime via nvcc (absent from the base image) and
-		// crashes the engine at startup. Setting each per-precision toggle to "0"
-		// forces the Triton MoE fallback, which needs no nvcc JIT.
-		for _, name := range []string{
-			consts.VLLMUseFlashInferMoeFP16EnvName,
-			consts.VLLMUseFlashInferMoeFP8EnvName,
-			consts.VLLMUseFlashInferMoeFP4EnvName,
-			consts.VLLMUseFlashInferMoeMXFP4BF16EnvName,
-			consts.VLLMUseFlashInferMoeMXFP4MXFP8EnvName,
-			consts.VLLMUseFlashInferMoeMXFP4MXFP8CutlassEnvName,
-		} {
-			env = append(env, corev1.EnvVar{
-				Name:  name,
-				Value: "0",
-			})
-		}
 	}
 
 	// When a CUDA toolkit is provided (installed via init container or mounted
@@ -799,7 +807,7 @@ func buildMainContainerEnv(runtimeName pkgmodel.RuntimeName, inferenceParam *pkg
 // commands.
 func setInferenceContainers(spec *corev1.PodSpec, containerName string, commands []string,
 	resourceReq corev1.ResourceRequirements, volumeMounts []corev1.VolumeMount, env []corev1.EnvVar,
-	readinessTimeout time.Duration, vllmPort int32, cudaHome string,
+	readinessTimeout time.Duration, vllmPort int32, cudaHome string, ports []corev1.ContainerPort,
 ) {
 	spec.Containers = []corev1.Container{
 		{
@@ -807,7 +815,7 @@ func setInferenceContainers(spec *corev1.PodSpec, containerName string, commands
 			Image:          GetBaseImageName(),
 			Command:        commands,
 			Resources:      resourceReq,
-			Ports:          append([]corev1.ContainerPort(nil), containerPorts...),
+			Ports:          ports,
 			StartupProbe:   buildStartupProbe(readinessTimeout, vllmPort),
 			LivenessProbe:  buildProbeWithPort(defaultLivenessProbe, vllmPort),
 			ReadinessProbe: buildProbeWithPort(defaultReadinessProbe, vllmPort),

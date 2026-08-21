@@ -31,26 +31,34 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
-	sigsyaml "sigs.k8s.io/yaml"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
-	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
 	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/workspace/resource"
 )
 
+// NodeClassSpec is one entry of the --karpenter-node-classes flag. Spec is an opaque
+// provider-specific body (AKSNodeClass, EC2NodeClass, ...) passed through untouched.
+type NodeClassSpec struct {
+	Name    string                 `json:"name"`
+	Default bool                   `json:"default,omitempty"`
+	Spec    map[string]interface{} `json:"spec"`
+}
+
 // NodeClassConfig holds cloud-specific NodeClass reference info.
-// Group, Kind, Version, and ResourceName are injected via CLI flags.
-// DefaultName is derived by Start() from ConfigMap labels.
+// Every field is injected via CLI flags; DefaultName is derived by Start() from NodeClasses.
 type NodeClassConfig struct {
 	Group        string // e.g. "karpenter.azure.com"
 	Kind         string // e.g. "AKSNodeClass"
 	Version      string // e.g. "v1beta1"
 	ResourceName string // plural resource name (e.g. "aksnodeclasses"); combined with Group for CRD lookup
-	DefaultName  string // populated by Start(): name of entry with karpenter.kaito.sh/default=true
+	NodeClasses  []NodeClassSpec
+	// NodeClassNames are the NodeClasses' names, validated and sorted by ParseNodeClasses.
+	NodeClassNames []string
+	DefaultName    string // populated by Start(): name of the entry marked default
 }
 
 // KarpenterProvisioner implements NodeProvisioner using the cloud-agnostic
@@ -72,10 +80,8 @@ func NewKarpenterProvisioner(c client.Client, cfg NodeClassConfig) *KarpenterPro
 // Name returns the provisioner name.
 func (p *KarpenterProvisioner) Name() string { return "KarpenterProvisioner" }
 
-const nodeClassConfigMapName = "kaito-nodeclasses"
-
-// Start verifies that the Karpenter CRDs are installed, creates
-// NodeClass resources from the ConfigMap, and derives DefaultName from labels.
+// Start verifies that the Karpenter CRDs are installed, creates the configured
+// NodeClass resources, and derives DefaultName.
 // Returns an error if Karpenter is not installed.
 func (p *KarpenterProvisioner) Start(ctx context.Context) error {
 	// Check if the core Karpenter CRDs exist.
@@ -103,60 +109,67 @@ func (p *KarpenterProvisioner) Start(ctx context.Context) error {
 		return fmt.Errorf("checking NodeClass CRD %q: %w", nodeClassCRDName, err)
 	}
 
-	releaseNS, err := utils.GetReleaseNamespace()
-	if err != nil {
-		return fmt.Errorf("resolving release namespace: %w", err)
+	if len(p.nodeClassConfig.NodeClasses) == 0 {
+		return fmt.Errorf("no NodeClass definitions configured: --karpenter-node-classes is required when node-provisioner=karpenter")
 	}
 
-	// Read the ConfigMap containing NodeClass manifests.
-	cm := &corev1.ConfigMap{}
-	if err := p.client.Get(ctx, types.NamespacedName{
-		Name: nodeClassConfigMapName, Namespace: releaseNS,
-	}, cm); err != nil {
-		return fmt.Errorf("reading NodeClass ConfigMap %q in namespace %q: %w",
-			nodeClassConfigMapName, releaseNS, err)
-	}
-
-	// Create each NodeClass and derive DefaultName from labels.
-	for key, raw := range cm.Data {
-		obj := &unstructured.Unstructured{}
-		if err := sigsyaml.Unmarshal([]byte(raw), &obj.Object); err != nil {
-			return fmt.Errorf("decoding NodeClass %q from ConfigMap: %w", key, err)
-		}
-
-		name := obj.GetName()
-		labels := obj.GetLabels()
-
-		// Track the default NodeClass entry.
-		if labels["karpenter.kaito.sh/default"] == "true" {
+	// Create each configured NodeClass and derive DefaultName.
+	for _, nc := range p.nodeClassConfig.NodeClasses {
+		if nc.Default {
 			if p.nodeClassConfig.DefaultName != "" {
-				return fmt.Errorf("multiple NodeClass entries have karpenter.kaito.sh/default=true: %q and %q",
-					p.nodeClassConfig.DefaultName, name)
+				return fmt.Errorf("multiple NodeClass entries are marked default: %q and %q",
+					p.nodeClassConfig.DefaultName, nc.Name)
 			}
-			p.nodeClassConfig.DefaultName = name
+			p.nodeClassConfig.DefaultName = nc.Name
 		}
 
-		klog.InfoS("Creating NodeClass", "name", name, "kind", obj.GetKind())
+		obj := p.newNodeClassObject(nc)
+		klog.InfoS("Creating NodeClass", "name", nc.Name, "kind", obj.GetKind())
 		if err := p.client.Create(ctx, obj); err != nil {
 			if !apierrors.IsAlreadyExists(err) {
-				return fmt.Errorf("creating NodeClass %q: %w", key, err)
+				return fmt.Errorf("creating NodeClass %q: %w", nc.Name, err)
 			}
-			klog.InfoS("NodeClass already exists", "name", name)
+			klog.InfoS("NodeClass already exists", "name", nc.Name)
 		}
 	}
 
 	if p.nodeClassConfig.DefaultName == "" {
-		return fmt.Errorf("no NodeClass entry has label karpenter.kaito.sh/default=true")
+		return fmt.Errorf("no NodeClass entry is marked default")
 	}
+	// The allowlist a Workspace may select from via the node-class-name annotation.
+	// Held here because the admission webhook cannot import this package.
+	consts.SetAllowedNodeClassNames(p.nodeClassConfig.NodeClassNames)
 
 	// Wait for the default NodeClass to be ready.
 	if err := p.waitForNodeClassReady(ctx, p.nodeClassConfig.DefaultName); err != nil {
 		return fmt.Errorf("default NodeClass %q not ready: %w", p.nodeClassConfig.DefaultName, err)
 	}
 	klog.InfoS("NodeClass resources created",
-		"count", len(cm.Data),
+		"count", len(p.nodeClassConfig.NodeClasses),
 		"default", p.nodeClassConfig.DefaultName)
 	return nil
+}
+
+// newNodeClassObject renders one flag entry into an unstructured NodeClass.
+func (p *KarpenterProvisioner) newNodeClassObject(nc NodeClassSpec) *unstructured.Unstructured {
+	obj := &unstructured.Unstructured{}
+	obj.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   p.nodeClassConfig.Group,
+		Version: p.nodeClassConfig.Version,
+		Kind:    p.nodeClassConfig.Kind,
+	})
+	obj.SetName(nc.Name)
+
+	labels := map[string]string{"karpenter.kaito.sh/managed-by": "kaito"}
+	if nc.Default {
+		labels["karpenter.kaito.sh/default"] = "true"
+	}
+	obj.SetLabels(labels)
+
+	if nc.Spec != nil {
+		obj.Object["spec"] = nc.Spec
+	}
+	return obj
 }
 
 // checkNodeClassReady performs a single point-in-time check that the named
@@ -309,7 +322,10 @@ func (p *KarpenterProvisioner) countCoveredNodes(ctx context.Context, ws *kaitov
 // If a NodePool exists, replicas are only increased (never decreased) to avoid
 // disrupting running karpenter nodes when BYO nodes appear.
 func (p *KarpenterProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {
-	nodeClassName := resolveNodeClassName(ws, p.nodeClassConfig)
+	nodeClassName, err := resolveNodeClassName(ws, p.nodeClassConfig)
+	if err != nil {
+		return err
+	}
 	if err := p.checkNodeClassReady(ctx, nodeClassName); err != nil {
 		return fmt.Errorf("NodeClass %q is not ready: %w", nodeClassName, err)
 	}
@@ -332,7 +348,7 @@ func (p *KarpenterProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1be
 		if !apierrors.IsNotFound(err) {
 			return fmt.Errorf("getting NodePool %q: %w", nodePoolName, err)
 		}
-		np := generateNodePool(ws, p.nodeClassConfig)
+		np := generateNodePool(ws, p.nodeClassConfig, nodeClassName)
 		np.Spec.Replicas = lo.ToPtr(desiredReplicas)
 		if err := p.client.Create(ctx, np); err != nil {
 			if apierrors.IsAlreadyExists(err) {
@@ -560,6 +576,11 @@ func (p *KarpenterProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *ka
 		return nil, err
 	}
 
+	nodeList, err := nodeprovision.ListWorkspaceNodes(ctx, p.client, p, ws)
+	if err != nil {
+		return nil, fmt.Errorf("listing workspace nodes: %w", err)
+	}
+
 	targetCount := int(ws.Status.TargetNodeCount)
 
 	// NodeClaim condition: are enough karpenter NodeClaims ready?
@@ -571,10 +592,10 @@ func (p *KarpenterProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *ka
 		nodeClaimCond.Status = metav1.ConditionTrue
 		nodeClaimCond.Reason = "NodeClaimsReady"
 		nodeClaimCond.Message = "Enough NodeClaims are ready"
-	} else if reason, message, ok := nodeclaim.FirstProvisioningError(snap.allNodeClaims); ok {
+	} else if reason, message, ok := nodeclaim.FirstNodeClaimProvisioningState(snap.allNodeClaims); ok {
 		// Surface the underlying cloud-provider provisioning error (e.g. quota
-		// exceeded, unauthorized) so users can see the root cause in the
-		// workspace/inferenceset status instead of a generic message.
+		// exceeded, unauthorized), or the NodeClaim's current in-progress state
+		// (e.g. AwaitingReconciliation), instead of a generic "not enough" message.
 		nodeClaimCond.Reason = reason
 		nodeClaimCond.Message = message
 	}
@@ -602,6 +623,11 @@ func (p *KarpenterProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *ka
 			nodeCond.Reason = "NodesReady"
 			nodeCond.Message = "Enough Nodes are ready with GPU resources"
 		}
+	}
+
+	// Enrich NodesReady with a node-pressure warning (diagnostic only; status unchanged).
+	if w := nodes.NodePressureWarning(nodeList); w != "" {
+		nodeCond.Message = nodeCond.Message + "; warning: " + w
 	}
 
 	// Derive resource condition.

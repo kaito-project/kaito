@@ -14,6 +14,7 @@
 package consts
 
 import (
+	"slices"
 	"strings"
 	"time"
 )
@@ -60,6 +61,7 @@ const (
 	FeatureFlagGatewayAPIInferenceExtension = "gatewayAPIInferenceExtension"
 	FeatureFlagEnableInferenceSetController = "enableInferenceSetController"
 	FeatureFlagEnableMIG                    = "enableMIG"
+	FeatureFlagEnableAccelerator            = "enableAccelerator"
 
 	FeatureFlagEnableMultiRoleInferenceController = "enableMultiRoleInferenceController"
 	FeatureFlagModelMirror                        = "ModelMirror"
@@ -96,6 +98,22 @@ func IsKarpenterProvisioner() bool {
 	return ActiveNodeProvisioner == NodeProvisionerKarpenter
 }
 
+// allowedNodeClassNames is the sorted set of NodeClass names declared via
+// --karpenter-node-classes. Set once during startup in main.go; read by the Workspace
+// admission webhook to validate the node-class-name annotation. Unexported so callers
+// cannot mutate the allowlist in place.
+var allowedNodeClassNames []string
+
+// SetAllowedNodeClassNames publishes the NodeClass allowlist. Startup only.
+func SetAllowedNodeClassNames(names []string) {
+	allowedNodeClassNames = slices.Clone(names)
+}
+
+// AllowedNodeClassNames returns the NodeClass allowlist.
+func AllowedNodeClassNames() []string {
+	return slices.Clone(allowedNodeClassNames)
+}
+
 const (
 	// Nodeclaim related consts
 	KaitoNodePoolName             = "kaito"
@@ -122,21 +140,26 @@ const (
 	// PortInferenceServer is the default port for the inference server.
 	PortInferenceServer = int32(5000)
 
-	// InferencePoolChartURL is the OCI registry URL for the Gateway API Inference Extension inferencepool chart.
-	InferencePoolChartURL = "oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool"
+	// PortKVCacheEvents is the default ZMQ port for vLLM KV cache events.
+	// See https://docs.vllm.ai/en/stable/api/vllm/config/kv_events/
+	PortKVCacheEvents = int32(5557)
 
-	// InferencePoolChartVersion is the tag/version of the inferencepool chart to deploy.
-	// MUST KEEP IN SYNC with the version in go.mod.
-	InferencePoolChartVersion = "v1.3.1"
+	// InferencePoolChartURL is the OCI registry URL for the llm-d router gateway chart.
+	// Migrated from GWIE inferencepool chart to llm-d-router-gateway which provides
+	// the same InferencePool deployment with advanced routing capabilities.
+	InferencePoolChartURL = "oci://ghcr.io/llm-d/charts/llm-d-router-gateway"
+
+	// InferencePoolChartVersion is the tag/version of the llm-d-router-gateway chart to deploy.
+	InferencePoolChartVersion = "v0.9.0"
 
 	// EPP (Endpoint Picker) image configuration.
-	// The InferencePool chart composes the image as: {hub}/{name}:{tag}
-	// Using llm-d inference scheduler which consolidates the GWIE EPP implementation
-	// with advanced scheduling plugins (KV cache-aware routing, P/D disaggregation, etc.)
-	// See: https://github.com/llm-d/llm-d-inference-scheduler
-	EPPImageHub  = "mcr.microsoft.com/oss/v2/llm-d"
-	EPPImageName = "llm-d-inference-scheduler"
-	EPPImageTag  = "v0.8.0"
+	// The llm-d-router chart composes the image as: {registry}/{repository}:{tag}
+	// Using llm-d router endpoint picker which provides advanced scheduling plugins
+	// (KV cache-aware routing, P/D disaggregation, pluggable filters/scorers).
+	// See: https://github.com/llm-d/llm-d-router
+	EPPImageRegistry   = "mcr.microsoft.com/oss/v2/llm-d"
+	EPPImageRepository = "llm-d-router-endpoint-picker"
+	EPPImageTag        = "v0.9.0"
 
 	// TokenizerSidecar runs a GPU-less vLLM render process for tokenization.
 	// It exposes /v1/completions/render and /v1/chat/completions/render on port 8100.
@@ -175,21 +198,6 @@ const (
 	// image, so the FP8 warmup hard-fails with "DeepGEMM backend is not available".
 	// Set to "0" to keep FP8 models on their non-DeepGEMM kernel path.
 	VLLMUseDeepGEMMEnvName = "VLLM_USE_DEEP_GEMM"
-
-	// The VLLMUseFlashInferMoe*EnvName variables toggle vLLM's per-precision
-	// FlashInfer MoE backends. For MoE models vLLM auto-selects a FlashInfer
-	// (TRTLLM/CUTLASS) expert kernel, which JIT-compiles at runtime via nvcc — a
-	// CUDA toolchain the base image does not ship — crashing the engine at startup.
-	// Setting each explicitly to "0" removes the FlashInfer backends from the
-	// candidate list so vLLM falls back to the Triton MoE kernel, which needs no
-	// nvcc JIT (KAITO does not support FlashInfer). One variable exists per MoE
-	// weight/activation precision, so all must be disabled to cover every model.
-	VLLMUseFlashInferMoeFP16EnvName              = "VLLM_USE_FLASHINFER_MOE_FP16"
-	VLLMUseFlashInferMoeFP8EnvName               = "VLLM_USE_FLASHINFER_MOE_FP8"
-	VLLMUseFlashInferMoeFP4EnvName               = "VLLM_USE_FLASHINFER_MOE_FP4"
-	VLLMUseFlashInferMoeMXFP4BF16EnvName         = "VLLM_USE_FLASHINFER_MOE_MXFP4_BF16"
-	VLLMUseFlashInferMoeMXFP4MXFP8EnvName        = "VLLM_USE_FLASHINFER_MOE_MXFP4_MXFP8"
-	VLLMUseFlashInferMoeMXFP4MXFP8CutlassEnvName = "VLLM_USE_FLASHINFER_MOE_MXFP4_MXFP8_CUTLASS"
 
 	// ConditionReady is the condition type for a ready condition.
 	ConditionReady = "Ready"

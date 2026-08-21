@@ -26,11 +26,18 @@ from typing import Protocol
 
 @dataclass(frozen=True)
 class WindowScanResult:
+    sanitized_text: str | None = None
     blocked: bool = False
 
 
 class WindowScanner(Protocol):
-    def scan(self, text: str) -> WindowScanResult: ...
+    def scan(
+        self,
+        text: str,
+        *,
+        flush: bool = False,
+        preceding_char: str = "",
+    ) -> WindowScanResult: ...
 
 
 @dataclass(frozen=True)
@@ -52,11 +59,17 @@ class StreamingBufferWindow:
         self._scanner = scanner
         self._holdback_len = holdback_len
         self._pending_buffer = ""
+        self._preceding_char = ""
         self._blocked = False
+        self._redacted = False
 
     @property
     def blocked(self) -> bool:
         return self._blocked
+
+    @property
+    def redacted(self) -> bool:
+        return self._redacted
 
     def feed(self, text: str) -> WindowEmitResult:
         if self._blocked:
@@ -69,7 +82,7 @@ class StreamingBufferWindow:
 
         return self._scan_and_emit(
             self._pending_buffer,
-            emit_len=emit_len,
+            flush=False,
         )
 
     def flush(self) -> WindowEmitResult:
@@ -80,7 +93,7 @@ class StreamingBufferWindow:
 
         return self._scan_and_emit(
             self._pending_buffer,
-            emit_len=len(self._pending_buffer),
+            flush=True,
         )
 
     def _calc_emit_len(self) -> int:
@@ -92,14 +105,27 @@ class StreamingBufferWindow:
         self,
         scan_text: str,
         *,
-        emit_len: int,
+        flush: bool,
     ) -> WindowEmitResult:
-        scan_result = self._scanner.scan(scan_text)
+        scan_result = self._scanner.scan(
+            scan_text,
+            flush=flush,
+            preceding_char=self._preceding_char,
+        )
         if scan_result.blocked:
             self._blocked = True
             self._pending_buffer = ""
             return WindowEmitResult(chunks=(), blocked=True)
 
+        if scan_result.sanitized_text is not None:
+            self._pending_buffer = scan_result.sanitized_text
+            self._redacted = True
+
+        emit_len = len(self._pending_buffer) if flush else self._calc_emit_len()
+        if emit_len == 0:
+            return WindowEmitResult(chunks=())
+
         emit_text = self._pending_buffer[:emit_len]
         self._pending_buffer = self._pending_buffer[emit_len:]
+        self._preceding_char = emit_text[-1:]
         return WindowEmitResult(chunks=(emit_text,))

@@ -33,47 +33,77 @@ func TestNodePoolName_Normal(t *testing.T) {
 	assert.Equal(t, "default-myworkspace", name)
 }
 
-func TestNodePoolName_Exactly253(t *testing.T) {
-	ws := strings.Repeat("a", 250)
+func TestNodePoolName_Exactly63(t *testing.T) {
+	ws := strings.Repeat("a", 60)
 	name := NodePoolName("ns", ws)
-	assert.Equal(t, 253, len(name))
+	assert.Equal(t, 63, len(name))
 	assert.Equal(t, "ns-"+ws, name)
 }
 
-func TestNodePoolName_Over253_Truncated(t *testing.T) {
-	ws := strings.Repeat("b", 251)
+func TestNodePoolName_Over63_Truncated(t *testing.T) {
+	ws := strings.Repeat("b", 61)
 	name := NodePoolName("ns", ws)
-	assert.Assert(t, len(name) == 253, "expected length 253, got %d", len(name))
+	assert.Assert(t, len(name) == 63, "expected length 63, got %d", len(name))
 	assert.Assert(t, name[maxNodePoolNameLen-1-hashSuffixLen] == '-', "expected dash at truncation point")
 	suffix := name[maxNodePoolNameLen-hashSuffixLen:]
 	assert.Equal(t, hashSuffixLen, len(suffix))
 }
 
 func TestNodePoolName_Deterministic(t *testing.T) {
-	name1 := NodePoolName("ns", strings.Repeat("c", 300))
-	name2 := NodePoolName("ns", strings.Repeat("c", 300))
+	name1 := NodePoolName("ns", strings.Repeat("c", 100))
+	name2 := NodePoolName("ns", strings.Repeat("c", 100))
 	assert.Equal(t, name1, name2)
 }
 
 // --- resolveNodeClassName tests ---
 
 func TestResolveNodeClassName_FromAnnotation(t *testing.T) {
+	setAllowedNodeClasses(t, "image-family-ubuntu", "image-family-azure-linux")
 	ws := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
-				kaitov1beta1.AnnotationNodeClassName: "my-custom-nodeclass",
+				kaitov1beta1.AnnotationNodeClassName: "image-family-azure-linux",
 			},
 		},
 	}
-	name := resolveNodeClassName(ws, testConfig)
-	assert.Equal(t, "my-custom-nodeclass", name)
+	name, err := resolveNodeClassName(ws, testConfig)
+	assert.NilError(t, err)
+	assert.Equal(t, "image-family-azure-linux", name)
+}
+
+func TestResolveNodeClassName_RejectsUnmanagedNodeClass(t *testing.T) {
+	setAllowedNodeClasses(t, "image-family-ubuntu", "image-family-azure-linux")
+	ws := &kaitov1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{
+				kaitov1beta1.AnnotationNodeClassName: "someone-elses-nodeclass",
+			},
+		},
+	}
+	_, err := resolveNodeClassName(ws, testConfig)
+	assert.ErrorContains(t, err, "is not permitted")
+}
+
+func TestResolveNodeClassName_RejectsWhenAllowlistEmpty(t *testing.T) {
+	setAllowedNodeClasses(t)
+	cfg := NodeClassConfig{DefaultName: "image-family-ubuntu"}
+	ws := &kaitov1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{
+				kaitov1beta1.AnnotationNodeClassName: "image-family-ubuntu",
+			},
+		},
+	}
+	_, err := resolveNodeClassName(ws, cfg)
+	assert.ErrorContains(t, err, "is not permitted")
 }
 
 func TestResolveNodeClassName_DefaultFallback(t *testing.T) {
 	ws := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{},
 	}
-	name := resolveNodeClassName(ws, testConfig)
+	name, err := resolveNodeClassName(ws, testConfig)
+	assert.NilError(t, err)
 	assert.Equal(t, "image-family-ubuntu", name)
 }
 
@@ -85,11 +115,13 @@ func TestResolveNodeClassName_EmptyAnnotation_FallsBackToDefault(t *testing.T) {
 			},
 		},
 	}
-	name := resolveNodeClassName(ws, testConfig)
+	name, err := resolveNodeClassName(ws, testConfig)
+	assert.NilError(t, err)
 	assert.Equal(t, "image-family-ubuntu", name)
 }
 
 func TestResolveNodeClassName_CustomConfig(t *testing.T) {
+	setAllowedNodeClasses(t, "default-ec2", "al2023-nodeclass")
 	cfg := NodeClassConfig{
 		Group:        "karpenter.k8s.aws",
 		Kind:         "EC2NodeClass",
@@ -103,7 +135,8 @@ func TestResolveNodeClassName_CustomConfig(t *testing.T) {
 			},
 		},
 	}
-	name := resolveNodeClassName(ws, cfg)
+	name, err := resolveNodeClassName(ws, cfg)
+	assert.NilError(t, err)
 	assert.Equal(t, "al2023-nodeclass", name)
 }
 
@@ -156,7 +189,7 @@ func newTestWorkspace(ns, name, instanceType string, targetNodeCount int32, labe
 
 func TestGenerateNodePool_Standalone(t *testing.T) {
 	ws := newTestWorkspace("default", "llama-serve", "Standard_NC24ads_A100_v4", 2, nil, nil)
-	np := generateNodePool(ws, testConfig)
+	np := generateNodePool(ws, testConfig, testConfig.DefaultName)
 
 	// Name
 	assert.Equal(t, "default-llama-serve", np.Name)
@@ -214,7 +247,7 @@ func TestGenerateNodePool_InferenceSet(t *testing.T) {
 		consts.WorkspaceCreatedByInferenceSetLabel: "my-infset",
 	}
 	ws := newTestWorkspace("prod", "llama-infset-0", "Standard_NC24ads_A100_v4", 1, labels, nil)
-	np := generateNodePool(ws, testConfig)
+	np := generateNodePool(ws, testConfig, testConfig.DefaultName)
 
 	// InferenceSet workspace gets budget "0"
 	assert.Equal(t, "0", np.Spec.Disruption.Budgets[0].Nodes)
@@ -228,10 +261,13 @@ func TestGenerateNodePool_InferenceSet(t *testing.T) {
 }
 
 func TestGenerateNodePool_WithAnnotation(t *testing.T) {
+	setAllowedNodeClasses(t, "image-family-ubuntu", "image-family-azure-linux")
 	ws := newTestWorkspace("default", "ws1", "Standard_D4s_v3", 1, nil, map[string]string{
 		kaitov1beta1.AnnotationNodeClassName: "image-family-azure-linux",
 	})
-	np := generateNodePool(ws, testConfig)
+	nodeClassName, err := resolveNodeClassName(ws, testConfig)
+	assert.NilError(t, err)
+	np := generateNodePool(ws, testConfig, nodeClassName)
 	assert.Equal(t, "image-family-azure-linux", np.Spec.Template.Spec.NodeClassRef.Name)
 }
 
@@ -242,7 +278,7 @@ func TestGenerateNodePool_CustomCloudConfig(t *testing.T) {
 		DefaultName: "default-ec2",
 	}
 	ws := newTestWorkspace("default", "ws1", "m5.xlarge", 1, nil, nil)
-	np := generateNodePool(ws, cfg)
+	np := generateNodePool(ws, cfg, cfg.DefaultName)
 
 	ref := np.Spec.Template.Spec.NodeClassRef
 	assert.Equal(t, "karpenter.k8s.aws", ref.Group)

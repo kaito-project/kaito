@@ -274,3 +274,33 @@ func TestGetGPUConfigFromNvidiaLabels(t *testing.T) {
 		})
 	}
 }
+
+func TestScaleGPUConfigToCount(t *testing.T) {
+	perGPU := int64(80) * consts.GiBToBytes
+	nodeCfg := &GPUConfig{
+		GPUCount: 8,
+		GPUModel: "NVIDIA-A100",
+		GPUMem:   *resource.NewQuantity(perGPU*8, resource.BinarySI),
+	}
+
+	t.Run("scales GPUCount and GPUMem to the requested count", func(t *testing.T) {
+		got, err := ScaleGPUConfigToCount(nodeCfg, 2)
+		assert.NoError(t, err)
+		assert.Equal(t, 2, got.GPUCount)
+		assert.Equal(t, perGPU*2, got.GPUMem.Value())
+		assert.Equal(t, perGPU, got.GPUMem.Value()/int64(got.GPUCount))
+		assert.Equal(t, 8, nodeCfg.GPUCount)
+	})
+
+	t.Run("count equal to node GPUs is allowed", func(t *testing.T) {
+		got, err := ScaleGPUConfigToCount(nodeCfg, 8)
+		assert.NoError(t, err)
+		assert.Equal(t, 8, got.GPUCount)
+	})
+
+	t.Run("count exceeding node GPUs errors", func(t *testing.T) {
+		_, err := ScaleGPUConfigToCount(nodeCfg, 9)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "exceeds GPUs available")
+	})
+}

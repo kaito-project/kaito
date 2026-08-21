@@ -917,14 +917,14 @@ func TestUpdateWorkspaceTargetNodeCount(t *testing.T) {
 			expectedError:  true,
 			expectedTarget: 0,
 		},
-		"should persist over-limit estimate without error (guard lives in reconcileNodes)": {
+		"should persist estimate without error": {
 			workspace: &v1beta1.Workspace{
 				ObjectMeta: v1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
 				Inference:  &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-preset"}}},
 				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: 0},
 			},
 			setupMocks: func(c *test.MockClient, e *mockEstimator, updatedTarget *int32) {
-				e.On("EstimateNodeCount", mock.Anything, mock.IsType(estimator.NodeEstimateRequest{}), mock.Anything).Return(int32(MaxAllowedNodeCount+1), nil)
+				e.On("EstimateNodeCount", mock.Anything, mock.IsType(estimator.NodeEstimateRequest{}), mock.Anything).Return(int32(4), nil)
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).
 					Run(func(args mock.Arguments) {
 						ws := args.Get(2).(*v1beta1.Workspace)
@@ -938,7 +938,7 @@ func TestUpdateWorkspaceTargetNodeCount(t *testing.T) {
 					}).Return(nil)
 			},
 			expectedError:  false,
-			expectedTarget: MaxAllowedNodeCount + 1,
+			expectedTarget: 4,
 		},
 	}
 
@@ -968,47 +968,6 @@ func TestUpdateWorkspaceTargetNodeCount(t *testing.T) {
 
 			mockClient.AssertExpectations(t)
 			mockEst.AssertExpectations(t)
-		})
-	}
-}
-
-func TestGuardTargetNodeCount(t *testing.T) {
-	tests := map[string]struct {
-		workspace   *v1beta1.Workspace
-		expectError bool
-	}{
-		"no inference => allowed": {
-			workspace: &v1beta1.Workspace{
-				ObjectMeta: v1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: MaxAllowedNodeCount + 10},
-			},
-		},
-		"inference at the limit => allowed": {
-			workspace: &v1beta1.Workspace{
-				ObjectMeta: v1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-				Inference:  &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-preset"}}},
-				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: MaxAllowedNodeCount},
-			},
-		},
-		"inference above the limit => blocked": {
-			workspace: &v1beta1.Workspace{
-				ObjectMeta: v1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-				Inference:  &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-preset"}}},
-				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: MaxAllowedNodeCount + 1},
-			},
-			expectError: true,
-		},
-	}
-
-	for name, tt := range tests {
-		t.Run(name, func(t *testing.T) {
-			reconciler := &WorkspaceReconciler{}
-			err := reconciler.guardTargetNodeCount(tt.workspace)
-			if tt.expectError {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-			}
 		})
 	}
 }
@@ -2001,4 +1960,133 @@ func TestShouldUpgradeBaseImage(t *testing.T) {
 			assert.Equal(t, tt.expect, got)
 		})
 	}
+}
+
+func TestDetectInferencePodFailure(t *testing.T) {
+	podList := func(pods ...corev1.Pod) *corev1.PodList {
+		return &corev1.PodList{Items: pods}
+	}
+	waitingContainer := func(name, reason string) corev1.ContainerStatus {
+		return corev1.ContainerStatus{Name: name, State: corev1.ContainerState{Waiting: &corev1.ContainerStateWaiting{Reason: reason, Message: reason + " message"}}}
+	}
+	oomContainer := func(name string) corev1.ContainerStatus {
+		return corev1.ContainerStatus{Name: name, LastTerminationState: corev1.ContainerState{Terminated: &corev1.ContainerStateTerminated{Reason: "OOMKilled", ExitCode: 137}}}
+	}
+
+	t.Run("container-level failures", func(t *testing.T) {
+		testcases := map[string]struct {
+			pods           *corev1.PodList
+			expectedReason string
+		}{
+			"image pull backoff": {
+				pods:           podList(corev1.Pod{Status: corev1.PodStatus{ContainerStatuses: []corev1.ContainerStatus{waitingContainer("infer", "ImagePullBackOff")}}}),
+				expectedReason: inferenceReasonImagePullError,
+			},
+			"err image pull": {
+				pods:           podList(corev1.Pod{Status: corev1.PodStatus{ContainerStatuses: []corev1.ContainerStatus{waitingContainer("infer", "ErrImagePull")}}}),
+				expectedReason: inferenceReasonImagePullError,
+			},
+			"crash loop backoff": {
+				pods:           podList(corev1.Pod{Status: corev1.PodStatus{ContainerStatuses: []corev1.ContainerStatus{waitingContainer("infer", "CrashLoopBackOff")}}}),
+				expectedReason: inferenceReasonCrashLoopBackOff,
+			},
+			"oom killed": {
+				pods:           podList(corev1.Pod{Status: corev1.PodStatus{ContainerStatuses: []corev1.ContainerStatus{oomContainer("infer")}}}),
+				expectedReason: inferenceReasonOOMKilled,
+			},
+			"container start config error": {
+				pods:           podList(corev1.Pod{Status: corev1.PodStatus{ContainerStatuses: []corev1.ContainerStatus{waitingContainer("infer", "CreateContainerConfigError")}}}),
+				expectedReason: inferenceReasonContainerStartError,
+			},
+			"init container image pull failure is caught": {
+				pods:           podList(corev1.Pod{Status: corev1.PodStatus{InitContainerStatuses: []corev1.ContainerStatus{waitingContainer("init", "ImagePullBackOff")}}}),
+				expectedReason: inferenceReasonImagePullError,
+			},
+			"oom takes precedence over crash loop": {
+				pods: podList(corev1.Pod{Status: corev1.PodStatus{ContainerStatuses: []corev1.ContainerStatus{
+					waitingContainer("infer", "CrashLoopBackOff"),
+					oomContainer("sidecar"),
+				}}}),
+				expectedReason: inferenceReasonOOMKilled,
+			},
+			"no failure": {
+				pods:           podList(corev1.Pod{Status: corev1.PodStatus{ContainerStatuses: []corev1.ContainerStatus{{Name: "infer", Ready: true}}}}),
+				expectedReason: "",
+			},
+		}
+		for name, tc := range testcases {
+			t.Run(name, func(t *testing.T) {
+				reason, _ := detectContainerFailure(tc.pods)
+				assert.Equal(t, tc.expectedReason, reason)
+			})
+		}
+	})
+
+	t.Run("evicted pod", func(t *testing.T) {
+		testcases := map[string]struct {
+			message        string
+			expectedReason string
+		}{
+			"disk pressure": {
+				message:        "The node was low on resource: ephemeral-storage.",
+				expectedReason: inferenceReasonNodeDiskPressure,
+			},
+			"memory pressure": {
+				message:        "The node was low on resource: memory.",
+				expectedReason: inferenceReasonNodeMemoryPressure,
+			},
+			"generic eviction": {
+				message:        "evicted for an unspecified reason",
+				expectedReason: inferenceReasonEvicted,
+			},
+		}
+		for name, tc := range testcases {
+			t.Run(name, func(t *testing.T) {
+				pods := podList(corev1.Pod{
+					ObjectMeta: v1.ObjectMeta{Name: "pod-a"},
+					Status:     corev1.PodStatus{Phase: corev1.PodFailed, Reason: "Evicted", Message: tc.message},
+				})
+				reason, message := detectEvictedPod(pods)
+				assert.Equal(t, tc.expectedReason, reason)
+				assert.Contains(t, message, "pod-a")
+			})
+		}
+	})
+
+	t.Run("unschedulable pod", func(t *testing.T) {
+		pods := podList(corev1.Pod{
+			ObjectMeta: v1.ObjectMeta{Name: "pod-b"},
+			Status: corev1.PodStatus{
+				Phase: corev1.PodPending,
+				Conditions: []corev1.PodCondition{{
+					Type:    corev1.PodScheduled,
+					Status:  corev1.ConditionFalse,
+					Reason:  corev1.PodReasonUnschedulable,
+					Message: "0/3 nodes are available: insufficient nvidia.com/gpu.",
+				}},
+			},
+		})
+		reason, message := detectUnschedulablePod(pods)
+		assert.Equal(t, inferenceReasonUnschedulable, reason)
+		assert.Contains(t, message, "pod-b")
+	})
+
+	t.Run("sas init failure", func(t *testing.T) {
+		pods := podList(corev1.Pod{Status: corev1.PodStatus{InitContainerStatuses: []corev1.ContainerStatus{{
+			Name:                 modelstreaming.SASFetchInitContainerName,
+			LastTerminationState: corev1.ContainerState{Terminated: &corev1.ContainerStateTerminated{ExitCode: 1}},
+		}}}})
+		reason, message := detectSASInitFailure(pods)
+		assert.Equal(t, inferenceReasonSASTokenFetchFailed, reason)
+		assert.Contains(t, message, "SAS token fetch failed")
+	})
+
+	t.Run("truncate long message", func(t *testing.T) {
+		long := ""
+		for range make([]struct{}, maxInferenceMessageLen+50) {
+			long += "a"
+		}
+		out := utils.TruncateMessage(long, maxInferenceMessageLen)
+		assert.Equal(t, maxInferenceMessageLen+len("..."), len(out))
+	})
 }

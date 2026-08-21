@@ -1232,7 +1232,9 @@ func applyInferenceWorkspaceStatus(ctx context.Context, status *kaitov1beta1.Wor
 func applyBenchmarkStatus(ctx context.Context, status *kaitov1beta1.WorkspaceStatus, wObj *kaitov1beta1.Workspace, generation int64, appendMessage func(string) string) error {
 	// Skip once the benchmark is done (write-once). Nothing clears BenchmarkCompleted on a
 	// readiness transition, so a recorded result survives transient flaps and pod restarts.
-	if refreshBenchmarkObservedGenerationIfCompleted(status, generation) {
+	// ObservedGeneration is kept current by refreshBenchmarkObservedGenerationIfCompleted,
+	// which the caller (applyInferenceWorkspaceStatus) invokes unconditionally on every reconcile.
+	if c := meta.FindStatusCondition(status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted)); c != nil && c.Status == metav1.ConditionTrue {
 		return nil
 	}
 
@@ -1258,23 +1260,19 @@ func applyBenchmarkStatus(ctx context.Context, status *kaitov1beta1.WorkspaceSta
 // the condition's ObservedGeneration to the current Workspace generation.
 //
 // This keeps the condition from looking stale after later reconciles or spec
-// updates that do not require re-running benchmark. Callers can use the return
-// value as a short-circuit signal: true means benchmark is already completed
-// (and its ObservedGeneration is now current), so no log re-read or result
-// overwrite should happen.
-func refreshBenchmarkObservedGenerationIfCompleted(status *kaitov1beta1.WorkspaceStatus, generation int64) bool {
+// updates that do not require re-running benchmark. It is called once per
+// reconcile at the top of applyInferenceWorkspaceStatus so every code path
+// (ready, not-ready, benchmark-not-applicable) refreshes the condition
+// uniformly, and applyBenchmarkStatus does not need to duplicate the refresh.
+func refreshBenchmarkObservedGenerationIfCompleted(status *kaitov1beta1.WorkspaceStatus, generation int64) {
 	c := meta.FindStatusCondition(status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted))
-	if c == nil || c.Status != metav1.ConditionTrue {
-		return false
-	}
-	if c.ObservedGeneration == generation {
-		return true
+	if c == nil || c.Status != metav1.ConditionTrue || c.ObservedGeneration == generation {
+		return
 	}
 
 	updated := *c
 	updated.ObservedGeneration = generation
 	meta.SetStatusCondition(&status.Conditions, updated)
-	return true
 }
 
 // resetBenchmarkOnUpgrade clears the recorded benchmark result and removes the

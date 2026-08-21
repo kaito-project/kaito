@@ -20,12 +20,14 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -42,6 +44,7 @@ import (
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
+	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	byoprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/byo-provisioner"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -2100,4 +2103,240 @@ func TestDetectInferencePodFailure(t *testing.T) {
 		out := utils.TruncateMessage(long, maxInferenceMessageLen)
 		assert.Equal(t, maxInferenceMessageLen+len("..."), len(out))
 	})
+}
+
+func TestStreamingValidationError(t *testing.T) {
+	base := errors.New(`StorageClass "kaito-model-mirror" not found`)
+	err := &streamingValidationError{reason: reasonModelStreamingStorageClassNotFound, err: base}
+
+	assert.Equal(t, base.Error(), err.Error())
+	assert.ErrorIs(t, err, base)
+
+	var sve *streamingValidationError
+	require.True(t, errors.As(error(err), &sve))
+	assert.Equal(t, reasonModelStreamingStorageClassNotFound, sve.reason)
+}
+
+func TestStreamingValidationReasonFallback(t *testing.T) {
+	sve := &streamingValidationError{
+		reason: reasonModelStreamingStorageClassNotFound,
+		err:    errors.New(`storageclass "kaito-model-mirror" not found`),
+	}
+	wrapped := fmt.Errorf("ensure model mirror: %w", sve)
+
+	t.Run("fills empty reason", func(t *testing.T) {
+		reason, msg := streamingValidationReason(wrapped, "", "")
+		assert.Equal(t, reasonModelStreamingStorageClassNotFound, reason)
+		assert.Contains(t, msg, "kaito-model-mirror")
+	})
+
+	t.Run("pod classification wins", func(t *testing.T) {
+		reason, msg := streamingValidationReason(wrapped, inferenceReasonOOMKilled, "container was OOMKilled")
+		assert.Equal(t, inferenceReasonOOMKilled, reason)
+		assert.Equal(t, "container was OOMKilled", msg)
+	})
+
+	t.Run("unrelated error is ignored", func(t *testing.T) {
+		reason, msg := streamingValidationReason(errors.New("boom"), "", "")
+		assert.Empty(t, reason)
+		assert.Empty(t, msg)
+	})
+
+	t.Run("nil error is ignored", func(t *testing.T) {
+		reason, msg := streamingValidationReason(nil, "", "")
+		assert.Empty(t, reason)
+		assert.Empty(t, msg)
+	})
+
+	t.Run("reason lands on the InferenceReady condition", func(t *testing.T) {
+		status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStatePending}
+		applyInferenceWorkspaceStatus(context.Background(), status, &v1beta1.Workspace{},
+			buildReconcileErrMessageAppender(nil), false, v1.ConditionTrue, false,
+			reasonModelStreamingStorageClassNotFound, `storageclass "kaito-model-mirror" not found`)
+
+		c := meta.FindStatusCondition(status.Conditions, string(v1beta1.WorkspaceConditionTypeInferenceStatus))
+		require.NotNil(t, c)
+		assert.Equal(t, v1.ConditionFalse, c.Status)
+		assert.Equal(t, reasonModelStreamingStorageClassNotFound, c.Reason)
+		assert.Contains(t, c.Message, "kaito-model-mirror")
+	})
+}
+
+// TestAppendReconcileErrMessage_NoDuplication covers the interaction between
+// streamingValidationReason and buildReconcileErrMessageAppender. The typed error
+// already supplies the reconcile error as the condition message, so appending it
+// again would render `X (last reconcile error: X)`.
+func TestAppendReconcileErrMessage_NoDuplication(t *testing.T) {
+	sve := &streamingValidationError{
+		reason: reasonModelStreamingStorageClassNotFound,
+		err:    fmt.Errorf("StorageClass %q not found", "does-not-exist-sc"),
+	}
+
+	t.Run("typed error is not appended twice", func(t *testing.T) {
+		var reconcileErr error = sve
+		_, msg := streamingValidationReason(reconcileErr, "", "")
+		got := buildReconcileErrMessageAppender(reconcileErr)(msg)
+
+		assert.NotContains(t, got, "last reconcile error")
+		assert.Equal(t, sve.Error(), got)
+	})
+
+	t.Run("truncated typed error is not appended twice", func(t *testing.T) {
+		long := &streamingValidationError{
+			reason: reasonModelStreamingStorageClassNotFound,
+			err:    fmt.Errorf("%s", strings.Repeat("x", maxInferenceMessageLen+50)),
+		}
+		var reconcileErr error = long
+		_, msg := streamingValidationReason(reconcileErr, "", "")
+		require.True(t, strings.HasSuffix(msg, "..."), "expected the message to be truncated")
+
+		got := buildReconcileErrMessageAppender(reconcileErr)(msg)
+		assert.NotContains(t, got, "last reconcile error")
+	})
+
+	t.Run("unrelated message still gets the reconcile error appended", func(t *testing.T) {
+		reconcileErr := fmt.Errorf("boom")
+		got := buildReconcileErrMessageAppender(reconcileErr)("Inference workload is not ready")
+
+		assert.Equal(t, "Inference workload is not ready (last reconcile error: boom)", got)
+	})
+
+	t.Run("nil reconcile error leaves the message untouched", func(t *testing.T) {
+		assert.Equal(t, "all good", buildReconcileErrMessageAppender(nil)("all good"))
+	})
+}
+
+func TestModelMirrorPendingReason(t *testing.T) {
+	withReady := func(status v1.ConditionStatus, reason string) *kaitov1alpha1.ModelMirror {
+		return &kaitov1alpha1.ModelMirror{
+			Status: kaitov1alpha1.ModelMirrorStatus{
+				Conditions: []v1.Condition{{
+					Type:   mmconsts.ConditionTypeReady,
+					Status: status,
+					Reason: reason,
+				}},
+			},
+		}
+	}
+
+	cases := []struct {
+		name string
+		cr   *kaitov1alpha1.ModelMirror
+		want string
+	}{
+		{
+			name: "OOMKilled forwards the actionable reason",
+			cr:   withReady(v1.ConditionFalse, mmconsts.ReasonDownloadOOMKilled),
+			want: mmconsts.ReasonDownloadOOMKilled,
+		},
+		{
+			name: "evicted forwards the actionable reason",
+			cr:   withReady(v1.ConditionFalse, mmconsts.ReasonDownloadEvicted),
+			want: mmconsts.ReasonDownloadEvicted,
+		},
+		{
+			name: "no Ready condition yet falls back to the generic reason",
+			cr:   &kaitov1alpha1.ModelMirror{},
+			want: reasonModelMirrorPending,
+		},
+		{
+			name: "only StorageReady written falls back to the generic reason",
+			cr: &kaitov1alpha1.ModelMirror{
+				Status: kaitov1alpha1.ModelMirrorStatus{
+					Conditions: []v1.Condition{{
+						Type:   mmconsts.ConditionTypeStorageReady,
+						Status: v1.ConditionFalse,
+						Reason: mmconsts.ReasonPVCPending,
+					}},
+				},
+			},
+			want: reasonModelMirrorPending,
+		},
+		{
+			name: "Ready=True is not forwarded onto a False condition",
+			cr:   withReady(v1.ConditionTrue, mmconsts.ReasonDownloadSucceeded),
+			want: reasonModelMirrorPending,
+		},
+		{
+			name: "empty reason falls back to the generic reason",
+			cr:   withReady(v1.ConditionFalse, ""),
+			want: reasonModelMirrorPending,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, modelMirrorPendingReason(tc.cr))
+		})
+	}
+}
+
+func TestModelMirrorPendingReason_ClosedVocabulary(t *testing.T) {
+	allowed := map[string]bool{
+		mmconsts.ReasonPVCBound:          true,
+		mmconsts.ReasonPVCPending:        true,
+		mmconsts.ReasonPVCCreateFailed:   true,
+		mmconsts.ReasonJobCreateFailed:   true,
+		mmconsts.ReasonDownloadFailed:    true,
+		mmconsts.ReasonDownloadOOMKilled: true,
+		mmconsts.ReasonDownloadEvicted:   true,
+		mmconsts.ReasonDownloadSucceeded: true,
+		mmconsts.ReasonStaticMirror:      true,
+		mmconsts.ReasonInvalidSpec:       true,
+		reasonModelMirrorPending:         true,
+	}
+
+	for reason := range allowed {
+		cr := &kaitov1alpha1.ModelMirror{
+			Status: kaitov1alpha1.ModelMirrorStatus{
+				Conditions: []v1.Condition{{
+					Type:   mmconsts.ConditionTypeReady,
+					Status: v1.ConditionFalse,
+					Reason: reason,
+				}},
+			},
+		}
+		assert.True(t, allowed[modelMirrorPendingReason(cr)],
+			"forwarded reason %q must stay within the closed vocabulary", reason)
+	}
+}
+
+func TestEnsureModelMirror_StaticAnnotationsCarryReason(t *testing.T) {
+	cases := []struct {
+		name        string
+		annotations map[string]string
+		wantMessage string
+	}{
+		{
+			name: "partial core SAS annotations",
+			annotations: map[string]string{
+				modelstreaming.AnnotationStaticModelMirror: "true",
+			},
+			wantMessage: "missing",
+		},
+		{
+			name: "invalid stream source type",
+			annotations: map[string]string{
+				modelstreaming.AnnotationStaticModelMirror:      "true",
+				modelstreaming.AnnotationStreamDatarefsURL:      "https://example.com/refs",
+				modelstreaming.AnnotationStreamIdentityClientID: "00000000-0000-0000-0000-000000000000",
+				modelstreaming.AnnotationStreamSourceType:       "bogus",
+			},
+			wantMessage: "stream-source-type",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := &WorkspaceReconciler{}
+			err := c.ensureModelMirror(context.Background(), &v1beta1.Workspace{
+				ObjectMeta: v1.ObjectMeta{Name: "ws", Namespace: "default", Annotations: tc.annotations},
+			})
+			require.Error(t, err)
+
+			reason, msg := streamingValidationReason(fmt.Errorf("reconcile: %w", err), "", "")
+			assert.Equal(t, reasonModelStreamingInvalidAnnotations, reason)
+			assert.Contains(t, msg, tc.wantMessage)
+		})
+	}
 }

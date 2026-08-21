@@ -1185,6 +1185,8 @@ func applyInferenceWorkspaceStatus(ctx context.Context, status *kaitov1beta1.Wor
 	resourceReady := resourceConditionStatus == metav1.ConditionTrue
 	isInferenceEstablished := status.State == kaitov1beta1.WorkspaceStateReady || status.State == kaitov1beta1.WorkspaceStateNotReady
 
+	refreshBenchmarkObservedGenerationIfCompleted(status, generation)
+
 	if inferenceReady && resourceReady {
 		setWorkspaceCondition(status, generation, appendMessage,
 			kaitov1beta1.WorkspaceConditionTypeInferenceStatus, metav1.ConditionTrue, "WorkspaceInferenceStatusSuccess", "Inference has been deployed successfully")
@@ -1230,6 +1232,8 @@ func applyInferenceWorkspaceStatus(ctx context.Context, status *kaitov1beta1.Wor
 func applyBenchmarkStatus(ctx context.Context, status *kaitov1beta1.WorkspaceStatus, wObj *kaitov1beta1.Workspace, generation int64, appendMessage func(string) string) error {
 	// Skip once the benchmark is done (write-once). Nothing clears BenchmarkCompleted on a
 	// readiness transition, so a recorded result survives transient flaps and pod restarts.
+	// ObservedGeneration is kept current by refreshBenchmarkObservedGenerationIfCompleted,
+	// which the caller (applyInferenceWorkspaceStatus) invokes unconditionally on every reconcile.
 	if c := meta.FindStatusCondition(status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted)); c != nil && c.Status == metav1.ConditionTrue {
 		return nil
 	}
@@ -1249,6 +1253,26 @@ func applyBenchmarkStatus(ctx context.Context, status *kaitov1beta1.WorkspaceSta
 		kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted, metav1.ConditionTrue,
 		"BenchmarkCompleted", "benchmark result has been recorded")
 	return nil
+}
+
+// refreshBenchmarkObservedGenerationIfCompleted preserves the write-once
+// BenchmarkCompleted=True state and recorded benchmark result, while advancing
+// the condition's ObservedGeneration to the current Workspace generation.
+//
+// This keeps the condition from looking stale after later reconciles or spec
+// updates that do not require re-running benchmark. It is called once per
+// reconcile at the top of applyInferenceWorkspaceStatus so every code path
+// (ready, not-ready, benchmark-not-applicable) refreshes the condition
+// uniformly, and applyBenchmarkStatus does not need to duplicate the refresh.
+func refreshBenchmarkObservedGenerationIfCompleted(status *kaitov1beta1.WorkspaceStatus, generation int64) {
+	c := meta.FindStatusCondition(status.Conditions, string(kaitov1beta1.WorkspaceConditionTypeBenchmarkCompleted))
+	if c == nil || c.Status != metav1.ConditionTrue || c.ObservedGeneration == generation {
+		return
+	}
+
+	updated := *c
+	updated.ObservedGeneration = generation
+	meta.SetStatusCondition(&status.Conditions, updated)
 }
 
 // resetBenchmarkOnUpgrade clears the recorded benchmark result and removes the

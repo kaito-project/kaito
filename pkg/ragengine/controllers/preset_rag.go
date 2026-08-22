@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -108,9 +109,9 @@ func getEnv(key, defaultValue string) string {
 
 // configStorageVolume creates a volume and volume mount for vector database storage
 func configStorageVolume(storageSpec *v1beta1.StorageSpec) (corev1.Volume, corev1.VolumeMount) {
-	mountPath := "/mnt/data"
+	mountPath := v1beta1.RAGStorageMountRoot
 	if storageSpec.PersistentVolume != nil && storageSpec.PersistentVolume.MountPath != "" {
-		mountPath = storageSpec.PersistentVolume.MountPath
+		mountPath = path.Clean(storageSpec.PersistentVolume.MountPath)
 	}
 
 	volumeMount := corev1.VolumeMount{

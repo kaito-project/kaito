@@ -15,6 +15,7 @@ package manifests
 
 import (
 	"fmt"
+	"path"
 	"strconv"
 
 	"github.com/samber/lo"
@@ -239,12 +240,12 @@ func RAGSetEnv(ragEngineObj *kaitov1beta1.RAGEngine) []corev1.EnvVar {
 	// Set the vector database persist directory based on storage configuration
 	persistDir := "storage" // default in-memory/ephemeral storage
 	if ragEngineObj.Spec.Storage != nil && ragEngineObj.Spec.Storage.PersistentVolume != nil {
-		mountPath := "/mnt/data"
+		mountPath := kaitov1beta1.RAGStorageMountRoot
 		if ragEngineObj.Spec.Storage.PersistentVolume.MountPath != "" {
-			mountPath = ragEngineObj.Spec.Storage.PersistentVolume.MountPath
+			mountPath = path.Clean(ragEngineObj.Spec.Storage.PersistentVolume.MountPath)
 		}
 		// Append RAGEngine name to ensure unique directory per instance
-		persistDir = fmt.Sprintf("%s/%s", mountPath, ragEngineObj.Name)
+		persistDir = path.Join(mountPath, ragEngineObj.Name)
 	}
 	persistDirEnv := corev1.EnvVar{
 		Name:  "DEFAULT_VECTOR_DB_PERSIST_DIR",

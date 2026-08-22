@@ -22,14 +22,14 @@ This design enables fine-grained retrieval and more accurate, context-aware resp
 
 ## Vector Store Backend Differences
 
-The RAGEngine API is the same regardless of the vector store backend (FAISS, Qdrant, etc.), but there are behavioral differences worth noting:
+The RAGEngine API is the same regardless of the vector store backend (FAISS, Qdrant, Milvus), but there are behavioral differences worth noting:
 
-| Feature | FAISS | Qdrant |
-|---|---|---|
-| **Search type** | Dense embedding similarity | Hybrid (dense + BM25 sparse) with Reciprocal Rank Fusion |
-| **Persistence** | In-memory; requires PVC or `/persist` API | Server-side; data survives pod restarts automatically |
-| **Document dedup** | Via in-memory docstore | Via Qdrant `count()` queries (docstore-independent) |
-| **Index restore on restart** | From PVC snapshot (if configured) | Automatic from Qdrant collections |
+| Feature | FAISS | Qdrant | Milvus |
+|---|---|---|---|
+| **Search type** | Dense embedding similarity | Hybrid (dense + BM25 sparse) with Reciprocal Rank Fusion | Dense embedding similarity (COSINE) |
+| **Persistence** | In-memory; requires PVC or `/persist` API | Server-side; data survives pod restarts automatically | Server-side; data survives pod restarts automatically |
+| **Document dedup** | Via in-memory docstore | Via Qdrant `count()` queries (docstore-independent) | Via Milvus `query()` on `doc_id` field |
+| **Index restore on restart** | From PVC snapshot (if configured) | Automatic from Qdrant collections | Automatic from Milvus collections (rebuilds docstore) |
 
 :::note Qdrant hybrid search
 When using the Qdrant backend, all retrieval queries (`/retrieve` and `/v1/chat/completions`) automatically use **hybrid search**: results from dense vector similarity and BM25 keyword matching are fused using Reciprocal Rank Fusion (RRF). This typically improves retrieval quality for mixed keyword/semantic queries without any API changes.

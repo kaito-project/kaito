@@ -15,7 +15,11 @@ llama-index-retrievers-bm25==0.6.5
 # fastembed: BM25 sparse tokenizer used by Qdrant native hybrid search
 fastembed>=0.4.0
 
-fastapi==0.115.9
+# fastapi bumped to pull in a starlette release that fixes known CVEs
+# (CVE-2025-62727, CVE-2026-48818, CVE-2026-54283); starlette pinned explicitly
+# to guarantee the fixed version is installed regardless of fastapi's bounds.
+fastapi==0.141.1
+starlette>=1.3.1
 faiss-cpu==1.11.0
 llama-index-vector-stores-faiss==0.5.3
 llama-index-vector-stores-qdrant==0.9.1

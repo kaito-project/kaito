@@ -337,8 +337,9 @@ func main() {}"""
                 "test_code_index", [unsupported_doc]
             )
             assert False, "Expected ValueError for unsupported language"
-        except LookupError:
-            assert True
+        except Exception as e:
+            print(str(e))
+            assert "Download error: Language 'invalid' not available for download" in str(e)
 
     @pytest.mark.asyncio
     @respx.mock

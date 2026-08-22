@@ -1,0 +1,26 @@
+# Transitive dependencies of the RAG service that cannot be upgraded today.
+#
+# llm-guard==0.3.16 (presets/ragengine/requirements.txt) is the latest release and
+# hard-pins transformers==4.51.3, json-repair==0.44.1 and presidio-anonymizer==2.2.358
+# (which itself caps cryptography<44.1). llama-index-llms-huggingface additionally caps
+# transformers<5. Pinning the fixed versions therefore makes the image build
+# unresolvable. Drop the corresponding entries as soon as an upstream release relaxes
+# these pins.
+
+# cryptography 44.0.3, fixed in 46.0.5 / 48.0.1 / 49.0.0 / 50.0.0
+# Pinned via llm-guard -> presidio-anonymizer==2.2.358 (requires cryptography<44.1).
+CVE-2026-26007
+CVE-2026-69247
+CVE-2026-69249
+GHSA-537c-gmf6-5ccf
+
+# json_repair 0.44.1, fixed in 0.60.1
+# Pinned via llm-guard (json-repair==0.44.1).
+GHSA-xf7x-x43h-rpqh
+
+# transformers 4.51.3, fixed in 5.3.0 / 5.5.0
+# Pinned via llm-guard (transformers==4.51.3) and capped by
+# llama-index-llms-huggingface (transformers[torch]<5). The kaito-base image is not
+# affected: it already ships transformers 5.14.1.
+CVE-2026-4372
+CVE-2026-5241

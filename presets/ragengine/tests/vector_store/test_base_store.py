@@ -339,7 +339,10 @@ func main() {}"""
             assert False, "Expected ValueError for unsupported language"
         except Exception as e:
             print(str(e))
-            assert "Download error: Language 'invalid' not available for download" in str(e)
+            assert (
+                "Download error: Language 'invalid' not available for download"
+                in str(e)
+            )
 
     @pytest.mark.asyncio
     @respx.mock

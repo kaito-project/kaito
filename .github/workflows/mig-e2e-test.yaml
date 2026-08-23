@@ -1,0 +1,414 @@
+name: Multi-Instance E2E Test
+
+# End-to-end test for the NVIDIA Multi-Instance GPU (MIG) / GPU partitioning feature.
+#
+# Unlike the auto-provisioning e2e suites, MIG is BYO-only: KAITO does not create or
+# partition MIG nodes. This workflow therefore:
+#   1. Spins up the shared e2e base (cluster + ACR + controller image) via e2e-base-setup.
+#   2. Adds a MIG-capable GPU node pool (A100 by default) to that cluster.
+#   3. Installs the NVIDIA GPU Operator with the MIG manager and partitions the GPU.
+#   4. Installs KAITO with enableMIG + disableNodeAutoProvisioning and NFD/GFD disabled.
+#   5. Creates an InferenceSet (2 replicas) with a `partition` block (mixed strategy) and
+#      verifies each replica requests the per-profile MIG resource, both land on the same
+#      GPU node on distinct slices, become Ready, and serve inference.
+
+on:
+  pull_request:
+    paths:
+      - "api/v1beta1/workspace_types.go"
+      - "api/v1beta1/workspace_validation.go"
+      - "api/v1beta1/inferenceset_types.go"
+      - "api/v1beta1/inferenceset_validation.go"
+      - "api/v1alpha1/inferenceset_types.go"
+      - "api/v1alpha1/inferenceset_validation.go"
+      - "pkg/utils/mig/**"
+      - "pkg/workspace/estimator/**"
+      - "pkg/sku/**"
+      - "pkg/workspace/inference/preset_inferences.go"
+      - "pkg/utils/common.go"
+      - "pkg/model/interface.go"
+      - "examples/mig/**"
+      - "examples/inference/kaito_inferenceset_mig_*.yaml"
+      - "charts/kaito/workspace/**"
+      - ".github/workflows/mig-e2e-test.yaml"
+  workflow_dispatch:
+    inputs:
+      vm_size:
+        description: "MIG-capable GPU VM size for the BYO node pool"
+        required: true
+        default: "Standard_NC24ads_A100_v4"
+        type: string
+      mig_strategy:
+        description: "NVIDIA device-plugin MIG strategy (mixed or single)"
+        required: true
+        default: "mixed"
+        type: choice
+        options:
+          - mixed
+          - single
+      mig_profile:
+        description: "MIG profile to partition into (e.g. 3g.40gb, 2g.20gb for A100-80GB)"
+        required: true
+        default: "3g.40gb"
+        type: string
+      mig_slice_count:
+        description: "Number of MIG slices of the chosen profile to create on the GPU"
+        required: true
+        default: "2"
+        type: string
+      model:
+        description: "Preset model to serve on the MIG slice"
+        required: true
+        default: "microsoft/Phi-4-mini-instruct"
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  GO_VERSION: "1.26.6"
+  VM_SIZE: ${{ github.event.inputs.vm_size || 'Standard_NC24ads_A100_v4' }}
+  MIG_STRATEGY: ${{ github.event.inputs.mig_strategy || 'mixed' }}
+  MIG_PROFILE: ${{ github.event.inputs.mig_profile || '3g.40gb' }}
+  MIG_SLICE_COUNT: ${{ github.event.inputs.mig_slice_count || '2' }}
+  MODEL: ${{ github.event.inputs.model || 'microsoft/Phi-4-mini-instruct' }}
+  GPU_OPERATOR_VERSION: "v25.3.0"
+  MIG_CONFIG_NAME: "kaito-mig-e2e"
+
+jobs:
+  mig-e2e-test:
+    runs-on: ["self-hosted", "hostname:kaito-e2e-github-runner"]
+    environment: e2e-test
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Set BUILD_KAITO_BASE_IMAGE
+        run: |
+          # e2e-base-setup rewrites the base entry to the test ACR + $VERSION tag; it must
+          # also build+push that image when the current base tag isn't already published.
+          BUILD_KAITO_BASE_IMAGE=$(python3 .github/determine_missing_preset_images.py | jq -r '.[] | select(.name == "base") | length > 0')
+          echo "BUILD_KAITO_BASE_IMAGE=${BUILD_KAITO_BASE_IMAGE}" >> $GITHUB_ENV
+
+      - name: Run e2e-base-setup composite action
+        uses: ./.github/actions/e2e-base-setup
+        with:
+          git_sha: ${{ github.event.pull_request.head.sha || github.sha }}
+          build_kaito_base_image: ${{ env.BUILD_KAITO_BASE_IMAGE }}
+          skip_helm_install: true
+
+      - name: Build workspace controller
+        run: |
+          make docker-build-workspace
+        env:
+          REGISTRY: ${{ env.REGISTRY }}
+          IMG_NAME: "workspace"
+          IMG_TAG: "test"
+          OUTPUT_TYPE: "type=registry"
+          ARCH: "amd64"
+
+      - name: Add MIG-capable GPU node pool
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The base AKS cluster (+ resource group, ACR, controller image) is created
+          # by the e2e-base-setup composite action above; here we just attach a
+          # MIG-capable node pool to it.
+          # BYO MIG node: skip the AKS-managed GPU driver so the NVIDIA GPU Operator
+          # owns the full driver + toolkit + device-plugin + MIG-manager stack.
+          # Taint with the standard sku=gpu:NoSchedule that KAITO GPU workloads tolerate;
+          # GPU Operator DaemonSets tolerate everything.
+          az aks nodepool add \
+            --cluster-name "$CLUSTER_NAME" \
+            --resource-group "$CLUSTER_NAME" \
+            --name migpool \
+            --node-vm-size "$VM_SIZE" \
+            --node-count 1 \
+            --skip-gpu-driver-install \
+            --node-taints "sku=gpu:NoSchedule" \
+            --labels kaito.sh/mig-enabled=true \
+            -o none
+
+          kubectl wait --for=condition=Ready node -l kaito.sh/mig-enabled=true --timeout=600s
+          kubectl get nodes -o wide
+
+      - name: Install NVIDIA GPU Operator and partition the GPU
+        shell: bash
+        run: |
+          set -euo pipefail
+          kubectl create namespace gpu-operator --dry-run=client -o yaml | kubectl apply -f -
+
+          # Custom mig-parted config: partition every MIG-capable GPU on the node into
+          # $MIG_SLICE_COUNT slices of $MIG_PROFILE. The MIG manager applies this when the
+          # node carries the label nvidia.com/mig.config=$MIG_CONFIG_NAME.
+          cat <<EOF | kubectl apply -f -
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: custom-mig-config
+            namespace: gpu-operator
+          data:
+            config.yaml: |
+              version: v1
+              mig-configs:
+                ${MIG_CONFIG_NAME}:
+                  - devices: all
+                    mig-enabled: true
+                    mig-devices:
+                      "${MIG_PROFILE}": ${MIG_SLICE_COUNT}
+          EOF
+
+          helm repo add nvidia https://helm.ngc.nvidia.com/nvidia
+          helm repo update
+
+          # Operands + NFD worker must tolerate the migpool sku=gpu:NoSchedule taint,
+          # otherwise NFD never labels the node and no operands (incl. mig-manager) deploy.
+          helm upgrade --install gpu-operator nvidia/gpu-operator \
+            --namespace gpu-operator \
+            --version "$GPU_OPERATOR_VERSION" \
+            --set mig.strategy="$MIG_STRATEGY" \
+            --set migManager.enabled=true \
+            --set migManager.config.name=custom-mig-config \
+            --set-string migManager.env[0].name=WITH_REBOOT \
+            --set-string migManager.env[0].value="true" \
+            --set-json 'daemonsets.tolerations=[{"operator":"Exists"}]' \
+            --set-json 'node-feature-discovery.worker.tolerations=[{"operator":"Exists"}]' \
+            --wait --timeout 15m
+
+          echo "Requesting MIG partition: ${MIG_SLICE_COUNT} x ${MIG_PROFILE} (config=${MIG_CONFIG_NAME})"
+          kubectl label node -l kaito.sh/mig-enabled=true "nvidia.com/mig.config=${MIG_CONFIG_NAME}" --overwrite
+
+      - name: Wait for MIG partitioning to complete
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Waiting for nvidia.com/mig.config.state=success on the MIG node..."
+          end=$((SECONDS+900))
+          while [ $SECONDS -lt $end ]; do
+            STATE=$(kubectl get node -l kaito.sh/mig-enabled=true -o json \
+              | jq -r '.items[0].metadata.labels["nvidia.com/mig.config.state"] // empty')
+            if [ "$STATE" = "success" ]; then
+              echo "MIG partitioning succeeded."
+              break
+            fi
+            echo "Waiting... (mig.config.state=${STATE:-<none>})"
+            sleep 15
+          done
+
+          if [ $SECONDS -ge $end ]; then
+            echo "Timeout: MIG partitioning did not reach 'success'."
+            kubectl get node -l kaito.sh/mig-enabled=true -o json | jq '.items[0].metadata.labels'
+            kubectl -n gpu-operator get pods
+            kubectl -n gpu-operator logs -l app=nvidia-mig-manager --tail=100 || true
+            exit 1
+          fi
+
+          echo "=== MIG-related node labels / allocatable ==="
+          kubectl get node -l kaito.sh/mig-enabled=true -o json \
+            | jq '.items[0] | {labels: (.metadata.labels | with_entries(select(.key | startswith("nvidia.com/")))), allocatable: (.status.allocatable | with_entries(select(.key | startswith("nvidia.com/"))))}'
+
+      - name: Install KAITO with MIG enabled
+        shell: bash
+        run: |
+          make az-patch-install-helm
+          kubectl wait --for=condition=available deploy "kaito-workspace" -n kaito-workspace --timeout=300s
+        env:
+          AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
+          AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+          REGISTRY: ${{ env.REGISTRY }}
+          VERSION: ${{ env.VERSION }}
+          TEST_SUITE: gpuprovisioner
+          # MIG is BYO-only, so disable node auto-provisioning and select the byo
+          # provisioner (the InferenceSet webhook requires instanceType unless byo).
+          # NFD/GFD are provided by the GPU Operator, so disable KAITO's bundled copies.
+          HELM_INSTALL_EXTRA_ARGS: "--set nodeProvisioner=byo --set featureGates.enableMIG=true --set featureGates.disableNodeAutoProvisioning=true --set featureGates.enableInferenceSetController=true --set gpu-feature-discovery.nfd.enabled=false --set gpu-feature-discovery.gfd.enabled=false"
+
+      - name: Wait for webhook endpoints
+        shell: bash
+        run: |
+          echo "Waiting for webhook service endpoints..."
+          end=$((SECONDS+120))
+          while [ $SECONDS -lt $end ]; do
+            EP=$(kubectl get endpoints kaito-workspace-svc -n kaito-workspace -o jsonpath='{.subsets[0].addresses[0].ip}' 2>/dev/null || true)
+            if [ -n "$EP" ]; then
+              echo "Webhook endpoint ready: $EP"
+              break
+            fi
+            sleep 5
+          done
+
+          if [ $SECONDS -ge $end ]; then
+            echo "Timeout waiting for webhook endpoints"
+            exit 1
+          fi
+
+      - name: Create MIG InferenceSet
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Write to RUNNER_TEMP (per-job, runner-owned); system /tmp may hold a
+          # root-owned leftover from a prior containerized run and reject the write.
+          IS_YAML="${RUNNER_TEMP}/mig-is.yaml"
+          # InferenceSet.spec.labelSelector selects the BYO MIG node(s) and is propagated
+          # to each child Workspace's resource.labelSelector. The partition block (mixed
+          # strategy) is likewise propagated to every child.
+          cat <<'EOF' > "$IS_YAML"
+          apiVersion: kaito.sh/v1beta1
+          kind: InferenceSet
+          metadata:
+            name: mig-e2e
+            namespace: default
+          spec:
+            replicas: 2
+            labelSelector:
+              matchLabels:
+                kaito.sh/mig-enabled: "true"
+            template:
+              inference:
+                preset:
+                  accessMode: public
+                  name: placeholder
+          EOF
+
+          yq -i '.spec.template.inference.preset.name = strenv(MODEL)' "$IS_YAML"
+
+          # For the single strategy the partition block is omitted (slices are plain
+          # nvidia.com/gpu); for mixed we request the specific per-profile slice.
+          if [ "$MIG_STRATEGY" = "mixed" ]; then
+            yq -i '.spec.template.resource.partition.mode = "mig" | .spec.template.resource.partition.profile = strenv(MIG_PROFILE)' "$IS_YAML"
+          fi
+
+          cat "$IS_YAML"
+          kubectl apply -f "$IS_YAML"
+
+          echo "Waiting for the InferenceSet to create its child workspaces..."
+          end=$((SECONDS+120))
+          while [ $SECONDS -lt $end ]; do
+            N=$(kubectl get workspace -l inferenceset.kaito.sh/created-by=mig-e2e -o json | jq '.items | length')
+            if [ "${N:-0}" -ge 2 ]; then
+              echo "Child workspaces created: $N"
+              break
+            fi
+            echo "Waiting... (child workspaces: ${N:-0}/2)"
+            sleep 5
+          done
+          kubectl get workspace -l inferenceset.kaito.sh/created-by=mig-e2e
+
+      - name: Verify MIG resource request on child StatefulSets
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$MIG_STRATEGY" = "mixed" ]; then
+            EXPECTED="nvidia.com/mig-${MIG_PROFILE}"
+          else
+            EXPECTED="nvidia.com/gpu"
+          fi
+          echo "Expecting each replica to request '$EXPECTED'."
+
+          WS=$(kubectl get workspace -l inferenceset.kaito.sh/created-by=mig-e2e -o jsonpath='{.items[*].metadata.name}')
+          for w in $WS; do
+            # Wait for the child StatefulSet to exist.
+            end=$((SECONDS+180))
+            while [ $SECONDS -lt $end ]; do
+              kubectl get statefulset "$w" >/dev/null 2>&1 && break
+              sleep 5
+            done
+            LIMITS=$(kubectl get statefulset "$w" -o json | jq -c '.spec.template.spec.containers[0].resources.limits')
+            echo "  $w limits: $LIMITS"
+            if ! echo "$LIMITS" | jq -e --arg k "$EXPECTED" 'has($k)' >/dev/null; then
+              echo "ERROR: child $w does not request '$EXPECTED'."
+              exit 1
+            fi
+          done
+          echo "All child StatefulSets correctly request '$EXPECTED'."
+
+      - name: Wait for InferenceSet readiness
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Waiting for all child workspaces to become InferenceReady..."
+          if kubectl wait --for=condition=InferenceReady workspace \
+               -l inferenceset.kaito.sh/created-by=mig-e2e --timeout=1800s; then
+            echo "All replicas are ready."
+          else
+            echo "Timeout: not all replicas became ready."
+            echo "=== InferenceSet ==="
+            kubectl get inferenceset mig-e2e -o yaml
+            echo "=== Child workspaces ==="
+            kubectl get workspace -l inferenceset.kaito.sh/created-by=mig-e2e -o yaml
+            echo "=== Pods ==="
+            kubectl get pods -l inferenceset.kaito.sh/created-by=mig-e2e -o wide
+            kubectl describe pods -l inferenceset.kaito.sh/created-by=mig-e2e | tail -80 || true
+            echo "=== Pod logs ==="
+            kubectl logs -l inferenceset.kaito.sh/created-by=mig-e2e --tail=120 || true
+            echo "=== Controller logs ==="
+            kubectl logs deploy/kaito-workspace -n kaito-workspace --tail=120 || true
+            exit 1
+          fi
+
+      - name: Verify replicas share one GPU node on distinct MIG slices
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "=== replica pods ==="
+          kubectl get pods -l inferenceset.kaito.sh/created-by=mig-e2e \
+            -o custom-columns=POD:.metadata.name,NODE:.spec.nodeName,STATUS:.status.phase
+
+          # All replicas must land on the SAME MIG node (different slices of one GPU),
+          # not on separate nodes.
+          NODE_COUNT=$(kubectl get pods -l inferenceset.kaito.sh/created-by=mig-e2e \
+            -o jsonpath='{.items[*].spec.nodeName}' | tr ' ' '\n' | sort -u | grep -c .)
+          if [ "$NODE_COUNT" -ne 1 ]; then
+            echo "ERROR: replicas are spread across $NODE_COUNT nodes; expected 1 MIG node."
+            exit 1
+          fi
+          echo "All replicas co-located on a single MIG node."
+
+          # Each replica must be pinned to a distinct MIG device (different MIG-... UUID).
+          echo "=== MIG devices per replica ==="
+          # RUNNER_TEMP is runner-owned; system /tmp may hold a root-owned leftover.
+          UUIDS="${RUNNER_TEMP}/mig-uuids"
+          : > "$UUIDS"
+          for p in $(kubectl get pods -l inferenceset.kaito.sh/created-by=mig-e2e -o name); do
+            echo "== $p =="
+            OUT=$(kubectl exec "$p" -- nvidia-smi -L)
+            echo "$OUT"
+            echo "$OUT" | grep -oE 'MIG-[0-9a-f-]+' >> "$UUIDS"
+          done
+          TOTAL=$(grep -c . "$UUIDS" || true)
+          UNIQUE=$(sort -u "$UUIDS" | grep -c . || true)
+          echo "MIG devices seen: total=$TOTAL unique=$UNIQUE"
+          if [ "$TOTAL" -lt 2 ] || [ "$TOTAL" -ne "$UNIQUE" ]; then
+            echo "ERROR: each replica must hold its own distinct MIG slice (total=$TOTAL unique=$UNIQUE)."
+            exit 1
+          fi
+          echo "Each replica is isolated to its own MIG slice."
+
+      - name: Verify inference works on a MIG slice
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Each child Workspace exposes a Service named after the workspace (port 80).
+          WS=$(kubectl get workspace -l inferenceset.kaito.sh/created-by=mig-e2e -o jsonpath='{.items[0].metadata.name}')
+          echo "Sending an inference request to child workspace service: $WS"
+          kubectl run mig-e2e-curl --rm -i --restart=Never --image=curlimages/curl:8.10.1 -- \
+            -sS --fail --max-time 120 \
+            "http://${WS}.default.svc.cluster.local/v1/models"
+          echo ""
+          echo "Inference endpoint responded successfully."
+
+      - name: Cleanup
+        if: always()
+        shell: bash
+        run: |
+          az group delete --name "${{ env.CLUSTER_NAME }}" --yes --no-wait || true

@@ -704,6 +704,14 @@ func printPodDiagnostics(namespace, labelSelector string) {
 			if cs.State.Terminated != nil {
 				GinkgoWriter.Printf("    Terminated: exitCode=%d, reason=%s, message=%s\n", cs.State.Terminated.ExitCode, cs.State.Terminated.Reason, cs.State.Terminated.Message)
 			}
+			if cs.RestartCount > 0 {
+				prevLogs, prevErr := utils.GetPreviousPodLogs(coreClient, namespace, pod.Name, cs.Name)
+				if prevErr != nil {
+					GinkgoWriter.Printf("  InitContainer '%s' PREVIOUS (pre-restart) logs: (error: %v)\n", cs.Name, prevErr)
+				} else {
+					GinkgoWriter.Printf("  InitContainer '%s' PREVIOUS (pre-restart) logs (last 50 lines):\n%s\n", cs.Name, lastNLines(prevLogs, 50))
+				}
+			}
 			logs, logErr := utils.GetPodLogs(coreClient, namespace, pod.Name, cs.Name)
 			if logErr != nil {
 				GinkgoWriter.Printf("  InitContainer '%s' logs: (error: %v)\n", cs.Name, logErr)
@@ -719,6 +727,17 @@ func printPodDiagnostics(namespace, labelSelector string) {
 			}
 			if cs.State.Terminated != nil {
 				GinkgoWriter.Printf("    Terminated: exitCode=%d, reason=%s, message=%s\n", cs.State.Terminated.ExitCode, cs.State.Terminated.Reason, cs.State.Terminated.Message)
+			}
+			// When the container has restarted, the pre-restart logs capture the
+			// actual failure; the current logs only show the post-restart
+			// re-initialization. Print the previous incarnation's logs first.
+			if cs.RestartCount > 0 {
+				prevLogs, prevErr := utils.GetPreviousPodLogs(coreClient, namespace, pod.Name, cs.Name)
+				if prevErr != nil {
+					GinkgoWriter.Printf("  Container '%s' PREVIOUS (pre-restart) logs: (error: %v)\n", cs.Name, prevErr)
+				} else {
+					GinkgoWriter.Printf("  Container '%s' PREVIOUS (pre-restart) logs (last 100 lines):\n%s\n", cs.Name, lastNLines(prevLogs, 100))
+				}
 			}
 			logs, logErr := utils.GetPodLogs(coreClient, namespace, pod.Name, cs.Name)
 			if logErr != nil {

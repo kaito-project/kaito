@@ -2066,6 +2066,121 @@ func TestWorkspaceValidatePerformanceModeAnnotation(t *testing.T) {
 	}
 }
 
+func TestWorkspaceValidateNodeClassNameAnnotation(t *testing.T) {
+	RegisterValidationTestModels()
+
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv(consts.DefaultReleaseNamespaceEnvVar, DefaultReleaseNamespace)
+
+	scheme := runtime.NewScheme()
+	_ = v1.AddToScheme(scheme)
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(
+		defaultInferenceConfigMapManifest(),
+	).Build()
+	k8sclient.SetGlobalClient(client)
+
+	oldProvisioner := consts.ActiveNodeProvisioner
+	oldAllowed := consts.AllowedNodeClassNames()
+	consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
+	consts.SetAllowedNodeClassNames([]string{consts.AKSNodeClassAzureLinuxName, consts.AKSNodeClassUbuntuName})
+	t.Cleanup(func() {
+		consts.ActiveNodeProvisioner = oldProvisioner
+		consts.SetAllowedNodeClassNames(oldAllowed)
+	})
+
+	baseWorkspace := &Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-workspace",
+			Namespace: "kaito",
+		},
+		Resource: ResourceSpec{
+			InstanceType: "Standard_NV36ads_A10_v5",
+			Count:        pointerToInt(1),
+		},
+		Inference: &InferenceSpec{
+			Preset: &PresetSpec{
+				PresetMeta: PresetMeta{
+					Name: ModelName("test-validation-static"),
+				},
+			},
+		},
+	}
+
+	tests := []struct {
+		name        string
+		annotations map[string]string
+		wantErr     bool
+	}{
+		{
+			name:        "no annotation is valid",
+			annotations: nil,
+			wantErr:     false,
+		},
+		{
+			name:        "empty annotation falls back to the default",
+			annotations: map[string]string{AnnotationNodeClassName: ""},
+			wantErr:     false,
+		},
+		{
+			name:        "KAITO-managed NodeClass is valid",
+			annotations: map[string]string{AnnotationNodeClassName: consts.AKSNodeClassAzureLinuxName},
+			wantErr:     false,
+		},
+		{
+			name:        "NodeClass outside the managed set is rejected",
+			annotations: map[string]string{AnnotationNodeClassName: "someone-elses-nodeclass"},
+			wantErr:     true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ws := baseWorkspace.DeepCopy()
+			ws.Annotations = tt.annotations
+			errs := ws.Validate(context.Background())
+			if (errs != nil) != tt.wantErr {
+				t.Errorf("Validate() error = %v, wantErr %v", errs, tt.wantErr)
+			}
+		})
+	}
+
+	// The annotation is inert unless karpenter is provisioning nodes, so it must not
+	// block Workspaces on other provisioners.
+	t.Run("annotation is ignored when the provisioner is not karpenter", func(t *testing.T) {
+		consts.ActiveNodeProvisioner = consts.NodeProvisionerBYO
+		defer func() { consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter }()
+
+		ws := baseWorkspace.DeepCopy()
+		ws.Annotations = map[string]string{AnnotationNodeClassName: "someone-elses-nodeclass"}
+		if errs := ws.Validate(context.Background()); errs != nil {
+			t.Errorf("Validate() unexpected error for non-karpenter provisioner: %v", errs)
+		}
+	})
+
+	// A Workspace that predates this validation must stay updatable — otherwise its
+	// finalizer can never be removed and it becomes undeletable.
+	t.Run("unchanged pre-existing annotation is allowed on update", func(t *testing.T) {
+		old := baseWorkspace.DeepCopy()
+		old.Annotations = map[string]string{AnnotationNodeClassName: "legacy-nodeclass"}
+		ws := old.DeepCopy()
+		errs := ws.Validate(apis.WithinUpdate(context.Background(), old))
+		if errs != nil {
+			t.Errorf("Validate() unexpected error for unchanged annotation: %v", errs)
+		}
+	})
+
+	t.Run("changing to a disallowed annotation is rejected on update", func(t *testing.T) {
+		old := baseWorkspace.DeepCopy()
+		ws := old.DeepCopy()
+		ws.Annotations = map[string]string{AnnotationNodeClassName: "someone-elses-nodeclass"}
+		errs := ws.Validate(apis.WithinUpdate(context.Background(), old))
+		if errs == nil || !strings.Contains(errs.Error(), AnnotationNodeClassName) {
+			t.Errorf("Validate() expected a %s error when the annotation changes to a disallowed value, got %v",
+				AnnotationNodeClassName, errs)
+		}
+	})
+}
+
 func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 	RegisterValidationTestModels()
 
@@ -2631,6 +2746,54 @@ func TestDataSourceValidateCreate(t *testing.T) {
 				URLs: []string{"http://example.com/data"},
 			},
 			wantErr: false,
+		},
+		{
+			name: "Unsupported URL scheme",
+			dataSource: &DataSource{
+				URLs: []string{"ftp://example.com/data"},
+			},
+			wantErr:  true,
+			errField: "must use HTTP or HTTPS",
+		},
+		{
+			name: "Loopback URL",
+			dataSource: &DataSource{
+				URLs: []string{"http://127.0.0.1/data"},
+			},
+			wantErr:  true,
+			errField: "loopback, private, or link-local",
+		},
+		{
+			name: "Private URL",
+			dataSource: &DataSource{
+				URLs: []string{"http://10.0.0.1/data"},
+			},
+			wantErr:  true,
+			errField: "loopback, private, or link-local",
+		},
+		{
+			name: "Link-local URL",
+			dataSource: &DataSource{
+				URLs: []string{"http://169.254.169.254/latest/meta-data"},
+			},
+			wantErr:  true,
+			errField: "loopback, private, or link-local",
+		},
+		{
+			name: "IPv6 loopback URL",
+			dataSource: &DataSource{
+				URLs: []string{"http://[::1]/data"},
+			},
+			wantErr:  true,
+			errField: "loopback, private, or link-local",
+		},
+		{
+			name: "Metadata hostname URL",
+			dataSource: &DataSource{
+				URLs: []string{"http://metadata.google.internal/computeMetadata/v1"},
+			},
+			wantErr:  true,
+			errField: "local or metadata endpoint",
 		},
 		{
 			name: "Volume specified only",

@@ -702,10 +702,11 @@ func configureModelWeightsVolumes(streamingModelPath, localModelWeightsPath stri
 }
 
 // configureCUDAToolkitVolume mounts the node's CUDA toolkit into the pod for
-// models whose FP8 GEMMs require DeepGEMM's nvcc JIT (e.g. DeepSeek-V4), and
-// returns cudaHome — the toolkit path — or "" for models that don't need it.
+// models whose runtime JIT paths require nvcc (see RequiresCUDAToolkit — e.g.
+// DeepSeek-V4's DeepGEMM FP8 GEMMs, or Mistral-Small-4's FlashInfer CUTLASS MoE),
+// and returns cudaHome — the toolkit path — or "" for models that don't need it.
 //
-// Only DeepGEMM models get a toolkit. It lives at a fixed node path
+// Only models requiring the toolkit get one. It lives at a fixed node path
 // (defaultCudaHomePath) and is mounted read-only (the main container only
 // reads nvcc + headers/libs; the cuda-toolkit-provisioner init container mounts it
 // read-write to install). Because it lives on the node (hostPath, DirectoryOrCreate
@@ -715,7 +716,7 @@ func configureModelWeightsVolumes(streamingModelPath, localModelWeightsPath stri
 func configureCUDAToolkitVolume(model pkgmodel.Model,
 	volumes []corev1.Volume, volumeMounts []corev1.VolumeMount,
 ) ([]corev1.Volume, []corev1.VolumeMount, string) {
-	if !model.GetInferenceParameters().RequiresDeepGEMM() {
+	if !model.GetInferenceParameters().RequiresCUDAToolkit() {
 		return volumes, volumeMounts, ""
 	}
 
@@ -766,24 +767,6 @@ func buildMainContainerEnv(runtimeName pkgmodel.RuntimeName, inferenceParam *pkg
 			Name:  consts.VLLMUseDeepGEMMEnvName,
 			Value: deepGEMMValue,
 		})
-		// Disable vLLM's FlashInfer MoE backends across all precisions. For MoE
-		// models vLLM auto-selects a FlashInfer (TRTLLM/CUTLASS) expert kernel,
-		// which JIT-compiles at runtime via nvcc (absent from the base image) and
-		// crashes the engine at startup. Setting each per-precision toggle to "0"
-		// forces the Triton MoE fallback, which needs no nvcc JIT.
-		for _, name := range []string{
-			consts.VLLMUseFlashInferMoeFP16EnvName,
-			consts.VLLMUseFlashInferMoeFP8EnvName,
-			consts.VLLMUseFlashInferMoeFP4EnvName,
-			consts.VLLMUseFlashInferMoeMXFP4BF16EnvName,
-			consts.VLLMUseFlashInferMoeMXFP4MXFP8EnvName,
-			consts.VLLMUseFlashInferMoeMXFP4MXFP8CutlassEnvName,
-		} {
-			env = append(env, corev1.EnvVar{
-				Name:  name,
-				Value: "0",
-			})
-		}
 	}
 
 	// When a CUDA toolkit is provided (installed via init container or mounted

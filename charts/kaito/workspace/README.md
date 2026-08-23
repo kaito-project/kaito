@@ -5,7 +5,7 @@
 ```bash
 export REGISTRY=mcr.microsoft.com/aks/kaito
 export IMG_NAME=workspace
-export IMG_TAG=0.11.0
+export IMG_TAG=0.12.0
 helm install workspace ./charts/kaito/workspace  \
 --set image.repository=${REGISTRY}/${IMG_NAME} --set image.tag=${IMG_TAG} \
 --namespace kaito-workspace --create-namespace
@@ -43,7 +43,7 @@ helm install workspace ./charts/kaito/workspace  \
 | karpenterProviders.azure.kind                  | string | `"AKSNodeClass"`                                         | Karpenter NodeClass API kind. |
 | karpenterProviders.azure.version               | string | `"v1beta1"`                                              | Karpenter NodeClass API version. |
 | karpenterProviders.azure.resourceName          | string | `"aksnodeclasses"`                                       | Plural resource name for the NodeClass CRD. Combined with `group` to form the full CRD name. |
-| karpenterProviders.azure.nodeClasses           | list   | (see values.yaml)                                        | NodeClass definitions to create at startup. Exactly one entry must have `default: true`. Each entry has `name`, `spec`, and optionally `default: true`. |
+| karpenterProviders.azure.nodeClasses           | list   | (see values.yaml)                                        | NodeClass definitions to create at startup, and the allowlist for the `kaito.sh/node-class-name` annotation. Exactly one entry must have `default: true`. Each entry has `name`, `spec`, and optionally `default: true`. Passed to the controller as `--karpenter-node-classes`, so changing it rolls the Deployment. |
 | tolerations                                    | list   | `[]`                                                     | Controller pod tolerations.                                   |
 | webhook.port                                   | int    | `9443`                                                   | Webhook HTTPS port. Valid TCP port (1–65535); must not conflict with other container ports. |
 | logging.level                                  | string | `"error"`                                                | Knative zap logging level. Allowed values: `debug`, `info`, `warn`, `error`, `dpanic`, `panic`, `fatal`. |

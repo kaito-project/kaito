@@ -261,7 +261,7 @@ func TestGetInferenceCommandVLLMGpuMemoryUtilization(t *testing.T) {
 	t.Run("uses the runtime dynamic default", func(t *testing.T) {
 		cmd := newPreset(map[string]string{}).GetInferenceCommand(rc)
 		require.Len(t, cmd, 3)
-		assert.NotContains(t, cmd[2], "gpu-memory-utilization")
+		assert.Contains(t, cmd[2], "--gpu-memory-utilization=0.84")
 	})
 
 	t.Run("preserves an explicit user override", func(t *testing.T) {
@@ -271,6 +271,35 @@ func TestGetInferenceCommandVLLMGpuMemoryUtilization(t *testing.T) {
 		require.Len(t, cmd, 3)
 		assert.Contains(t, cmd[2], "--gpu-memory-utilization=0.95")
 	})
+	// A10 pins gpu-memory-utilization to 0.82.
+	cmdA10 := newPreset(map[string]string{}).GetInferenceCommand(RuntimeContext{
+		RuntimeName: RuntimeNameVLLM,
+		SKUNumGPUs:  1,
+		NumNodes:    1,
+		GPUConfig:   &sku.GPUConfig{GPUModel: "NVIDIA A10"},
+	})
+	require.Len(t, cmdA10, 3)
+	assert.Contains(t, cmdA10[2], "--gpu-memory-utilization=0.82")
+
+	// A100 and nil GPUConfig fall back to the default 0.84.
+	p2 := newPreset(map[string]string{})
+	cmdA100 := p2.GetInferenceCommand(RuntimeContext{
+		RuntimeName: RuntimeNameVLLM,
+		SKUNumGPUs:  1,
+		NumNodes:    1,
+		GPUConfig:   &sku.GPUConfig{GPUModel: "NVIDIA A100"},
+	})
+	require.Len(t, cmdA100, 3)
+	assert.Contains(t, cmdA100[2], "--gpu-memory-utilization=0.84")
+
+	p3 := newPreset(map[string]string{})
+	cmdNil := p3.GetInferenceCommand(RuntimeContext{
+		RuntimeName: RuntimeNameVLLM,
+		SKUNumGPUs:  1,
+		NumNodes:    1,
+	})
+	require.Len(t, cmdNil, 3)
+	assert.Contains(t, cmdNil[2], "--gpu-memory-utilization=0.84")
 }
 
 func TestGetInferenceCommandVLLMKVCacheEventsDefault(t *testing.T) {

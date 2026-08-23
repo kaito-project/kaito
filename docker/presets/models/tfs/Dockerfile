@@ -47,11 +47,15 @@ RUN --mount=type=cache,target=/root/.cache/pip \
         --extra-index-url "https://wheels.vllm.ai/${VLLM_VERSION}/cu129" \
         --extra-index-url https://download.pytorch.org/whl/cu129 \
         --find-links "https://github.com/LMCache/LMCache/releases/expanded_assets/v${LMCACHE_VERSION}-cu129" && \
-    : "LMCache depends on the 'nixl' meta package which installs BOTH nixl-cu12 and" \
-      "nixl-cu13; they ship the same nixl_ep_cpp .so (last writer wins) and nixl-cu13" \
-      "links libcudart.so.13 which is absent on this CUDA 12.9 image. Reinstall nixl-cu12" \
-      "last so its cu12 .so wins, otherwise 'import nixl_ep' fails with libcudart.so.13 not found." && \
-    uv pip install --system -q --reinstall-package nixl-cu12 nixl-cu12 && \
+    : "requirements.txt pins nixl-cu12 (the CUDA-12 NIXL bindings), installed above. vLLM's" \
+      "NixlConnector (P/D disaggregation, used by MultiRoleInference prefill/decode roles)" \
+      "imports the top-level 'nixl' module (nixl._api), which nixl-cu12 does NOT provide" \
+      "(it ships 'nixl_cu12'/'nixl_ep_cu12'). Install the matching pure-python 'nixl'" \
+      "dispatcher with --no-deps so it reuses the pinned cu12 bindings rather than also" \
+      "pulling nixl-cu13 (which links libcudart.so.13, absent on this CUDA 12.9 image)." \
+      "Without the dispatcher, prefill/decode pods crash at engine init with 'NIXL is not available'." && \
+    NIXL_VERSION=$(grep 'nixl-cu12==' /workspace/requirements.txt | cut -d'=' -f3 | tr -d ' ') && \
+    uv pip install --system -q --no-deps "nixl==${NIXL_VERSION}" && \
     pip3 uninstall -y uv
 
 # 1. Huggingface transformers

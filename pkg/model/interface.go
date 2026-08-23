@@ -376,6 +376,21 @@ func (p *PresetParam) buildHuggingfaceInferenceCommand() []string {
 	return utils.ShellCmd(torchCommand + " " + modelCommand)
 }
 
+// defaultGPUMemoryUtilization is the --gpu-memory-utilization value KAITO passes
+// to vLLM unless the GPU model overrides it in gpuMemoryUtilizationByGPUModel.
+const defaultGPUMemoryUtilization = "0.84"
+
+// gpuMemoryUtilizationByGPUModel overrides --gpu-memory-utilization for specific
+// GPU models that need extra headroom. Keyed by the exact sku.GPUConfig.GPUModel
+// string (as defined in the SKU table, e.g. "NVIDIA A10").
+var gpuMemoryUtilizationByGPUModel = map[string]string{
+	// On the 24 GiB A10, vLLM's KV-pool profiling under-counts the
+	// prompt-logprobs warmup + CUDA-graph-capture transients for some models
+	// (e.g. gemma-4's huge-vocab final_logit_softcapping copy), so the default
+	// 0.84 leaves too little headroom and OOMs. 0.82 leaves enough slack.
+	"NVIDIA A10": "0.82",
+}
+
 func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	// Determine served-model-name priority:
 	// 1. MRI workspaces: use VLLM.ModelName so all roles share a single model
@@ -400,6 +415,16 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		p.VLLM.ModelRunParams["max-model-len"] = "auto"
 	} else if rc.MaxModelLen > 0 {
 		p.VLLM.ModelRunParams["max-model-len"] = strconv.Itoa(rc.MaxModelLen)
+	}
+
+	gpuMemoryUtilization := defaultGPUMemoryUtilization
+	if rc.GPUConfig != nil {
+		if util, ok := gpuMemoryUtilizationByGPUModel[rc.GPUConfig.GPUModel]; ok {
+			gpuMemoryUtilization = util
+		}
+	}
+	if _, ok := p.VLLM.ModelRunParams["gpu-memory-utilization"]; !ok {
+		p.VLLM.ModelRunParams["gpu-memory-utilization"] = gpuMemoryUtilization
 	}
 
 	// Enable KV cache events by default so in-cluster subscribers can consume
@@ -602,9 +627,9 @@ func (p *PresetParam) isVLLMHybridKVCacheManagerRequired() bool {
 	for _, arch := range p.Architectures {
 		switch arch {
 		case "NemotronHForCausalLM", "NemotronH_Nano_VL_V2", "NemotronHMTPModel", "NemotronHPuzzleForCausalLM",
-			"Gemma4ForCausalLM", "Gemma4ForConditionalGeneration",
+			"Gemma4ForCausalLM", "Gemma4ForConditionalGeneration", "Gemma4UnifiedForConditionalGeneration",
 			"Qwen3_5ForConditionalGeneration", "Qwen3_5MoeForConditionalGeneration",
-			"DeepseekV4ForCausalLM":
+			"DeepseekV4ForCausalLM", "DeepseekV32ForCausalLM":
 			return true
 		}
 	}
@@ -631,11 +656,30 @@ func (p *PresetParam) isLMCacheDisabled() bool {
 func (p *PresetParam) RequiresDeepGEMM() bool {
 	for _, arch := range p.Architectures {
 		switch arch {
-		case "DeepseekV4ForCausalLM":
+		case "DeepseekV4ForCausalLM", "DeepseekV32ForCausalLM", "GlmMoeDsaForCausalLM":
 			return true
 		}
 	}
 	return false
+}
+
+// RequiresFlashInfer returns true for models which require JIT-compilation with nvcc at runtime.
+func (p *PresetParam) RequiresFlashInfer() bool {
+	switch p.Name {
+	case "mistral-small-4-119b-2603":
+		return true
+	}
+	return false
+}
+
+// RequiresCUDAToolkit returns true for models that need the runtime CUDA toolkit
+// (nvcc) available in the container. This covers DeepGEMM models plus models
+// whose other runtime JIT paths compile with nvcc (see RequiresFlashInfer).
+// The slim base image ships no nvcc, so these models get the
+// cuda-toolkit-provisioner init container and CUDA_HOME. Enabling the toolkit
+// does not enable DeepGEMM itself (that stays gated on RequiresDeepGEMM).
+func (p *PresetParam) RequiresCUDAToolkit() bool {
+	return p.RequiresDeepGEMM() || p.RequiresFlashInfer()
 }
 
 // modelFitsOnSingleGPU returns true when the model file size is smaller than

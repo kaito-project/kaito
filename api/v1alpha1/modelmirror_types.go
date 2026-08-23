@@ -117,6 +117,30 @@ type ModelMirrorStatus struct {
 	Conditions       []metav1.Condition `json:"conditions,omitempty"`
 	FailureMessage   string             `json:"failureMessage,omitempty"`
 	LastDownloadTime *metav1.Time       `json:"lastDownloadTime,omitempty"`
+
+	// Download reports in-progress download metrics. Both fields are 0 once the
+	// download has succeeded, since they describe only the in-progress state.
+	// On terminal failure they retain their last observed values; the failure
+	// itself is reported through the Ready condition.
+	// +optional
+	Download *ModelMirrorDownloadStatus `json:"download,omitempty"`
+}
+
+// ModelMirrorDownloadStatus reports live progress for an in-flight download.
+//
+// Neither field carries omitempty. Both use 0 as a meaningful value meaning
+// "finished", and RemainingSeconds uses -1 to mean "unknown"; omitempty would
+// erase a legitimate 0 and make "finished" indistinguishable from "never
+// reported".
+type ModelMirrorDownloadStatus struct {
+	// SpeedBytesPerSecond is the average download speed from the start of the
+	// download until now. 0 once the download has finished.
+	SpeedBytesPerSecond int64 `json:"speedBytesPerSecond"`
+
+	// RemainingSeconds estimates the time to completion. 0 once the download has
+	// finished; -1 when it cannot be computed, which happens when the total size
+	// is unknown or the measured speed is 0.
+	RemainingSeconds int64 `json:"remainingSeconds"`
 }
 
 // +kubebuilder:object:root=true

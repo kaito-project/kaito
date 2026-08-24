@@ -6,7 +6,7 @@ An enterprise RAG application retrieves an internal troubleshooting document con
 
 Deterministic scanners can block or redact recognizable risks such as credentials, personal information, invisible Unicode, and prohibited terms. Semantic risks, including unsupported answers, toxicity, topic violations, and instruction overrides, require model-based evaluation rather than pattern matching alone.
 
-> **Grounding controls what information the model can use. Guardrails control what the application is allowed to return.**
+> **Grounding helps make responses relevant and evidence-based. Guardrails enforce what content may cross the application boundary.**
 
 KAITO RAGEngine currently provides centrally managed output guardrails for standard and streaming responses, with blocking, redaction, hot reload, and telemetry. This post configures and evaluates those controls on Azure Kubernetes Service (AKS), explains cross-chunk protection, and considers future semantic checks. RAGEngine does not currently scan user input or retrieved context or provide model-based scanners.
 

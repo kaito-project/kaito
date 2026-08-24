@@ -41,7 +41,7 @@ func TestConfigStorageVolumeMountPath(t *testing.T) {
 	}{
 		{
 			name:         "default mount path",
-			expectedPath: v1beta1.RAGStorageMountRoot,
+			expectedPath: v1beta1.RAGStorageMountDefault,
 		},
 		{
 			name:         "custom mount path is normalized",

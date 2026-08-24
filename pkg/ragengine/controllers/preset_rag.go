@@ -109,7 +109,7 @@ func getEnv(key, defaultValue string) string {
 
 // configStorageVolume creates a volume and volume mount for vector database storage
 func configStorageVolume(storageSpec *v1beta1.StorageSpec) (corev1.Volume, corev1.VolumeMount) {
-	mountPath := v1beta1.RAGStorageMountRoot
+	mountPath := v1beta1.RAGStorageMountDefault
 	if storageSpec.PersistentVolume != nil && storageSpec.PersistentVolume.MountPath != "" {
 		mountPath = path.Clean(storageSpec.PersistentVolume.MountPath)
 	}

@@ -48,7 +48,7 @@ type PersistentVolumeConfig struct {
 }
 
 const (
-	RAGStorageMountRoot        = "/mnt/data"
+	RAGStorageMountDefault     = "/mnt/data"
 	RAGStorageAllowedMountRoot = "/mnt"
 )
 

@@ -240,7 +240,7 @@ func RAGSetEnv(ragEngineObj *kaitov1beta1.RAGEngine) []corev1.EnvVar {
 	// Set the vector database persist directory based on storage configuration
 	persistDir := "storage" // default in-memory/ephemeral storage
 	if ragEngineObj.Spec.Storage != nil && ragEngineObj.Spec.Storage.PersistentVolume != nil {
-		mountPath := kaitov1beta1.RAGStorageMountRoot
+		mountPath := kaitov1beta1.RAGStorageMountDefault
 		if ragEngineObj.Spec.Storage.PersistentVolume.MountPath != "" {
 			mountPath = path.Clean(ragEngineObj.Spec.Storage.PersistentVolume.MountPath)
 		}

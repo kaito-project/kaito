@@ -23,8 +23,6 @@ os.environ["MKL_NUM_THREADS"] = "1"  # Force MKL to use a single thread
 # Set LLM_INFERENCE_URL before importing ragengine modules
 os.environ["LLM_INFERENCE_URL"] = "http://localhost:5000/v1/chat/completions"
 
-import asyncio
-
 import aiorwlock
 import httpx
 import nest_asyncio
@@ -40,13 +38,6 @@ async def async_client():
     """Use an async HTTP client to interact with FastAPI app."""
     async with httpx.AsyncClient(app=app, base_url="http://localhost") as client:
         yield client
-
-
-@pytest_asyncio.fixture(scope="session")
-def event_loop():
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
 
 
 @pytest_asyncio.fixture(autouse=True)

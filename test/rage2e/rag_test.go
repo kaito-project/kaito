@@ -486,6 +486,7 @@ func createPhi3WorkspaceWithPresetPublicModeAndVLLM(numOfReplica int) *kaitov1be
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "rag-e2e-test-phi-4-mini-instruct-vllm"},
 			}, nil, PresetPhi3Mini128kModel, nil, nil, nil, "", "")
+		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
 
 		createAndValidateWorkspace(workspaceObj)
 	})

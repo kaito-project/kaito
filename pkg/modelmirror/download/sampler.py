@@ -18,12 +18,17 @@ shared model PVC.
 """
 
 import fnmatch
-import http.server
 import os
 import signal
 import sys
-import threading
 import time
+
+from prometheus_client import (
+    CollectorRegistry,
+    Gauge,
+    generate_latest,
+    start_http_server,
+)
 
 # huggingface_hub creates a .incomplete file per *file*, not per download: the
 # path is derived from that file's etag and opened when its transfer starts, then
@@ -174,44 +179,39 @@ DEFAULT_PORT = 9100
 SAMPLE_INTERVAL_SECONDS = 60
 
 
+def build_registry(state):
+    """Registry holding the two download gauges.
+
+    A dedicated registry so the payload carries
+    only these two families and none of the python_* / process_* collectors.
+
+    The gauges are backed by callables because serve() builds this registry
+    before the sampling loop takes its first reading; a plain set() would pin
+    both values at their startup zeros.
+    """
+    registry = CollectorRegistry()
+    Gauge(
+        SPEED_METRIC,
+        "Average download speed since the download started",
+        registry=registry,
+    ).set_function(state.speed_bytes_per_second)
+    Gauge(
+        REMAINING_METRIC,
+        "Estimated seconds to completion; -1 when unknown",
+        registry=registry,
+    ).set_function(state.remaining_seconds)
+    return registry
+
+
 def render_metrics(state):
-    """Prometheus text format. Values are emitted as-is; the operator truncates
-    toward zero when assigning to its int64 status fields."""
-    return (
-        f"# HELP {SPEED_METRIC} Average download speed since the download started\n"
-        f"# TYPE {SPEED_METRIC} gauge\n"
-        f"{SPEED_METRIC} {state.speed_bytes_per_second():g}\n"
-        f"# HELP {REMAINING_METRIC} Estimated seconds to completion; -1 when unknown\n"
-        f"# TYPE {REMAINING_METRIC} gauge\n"
-        f"{REMAINING_METRIC} {state.remaining_seconds()}\n"
-    )
-
-
-class _Handler(http.server.BaseHTTPRequestHandler):
-    state = None  # set by serve()
-
-    def do_GET(self):  # noqa: N802 — name fixed by BaseHTTPRequestHandler
-        if self.path != "/metrics":
-            self.send_response(404)
-            self.end_headers()
-            return
-        body = render_metrics(self.state).encode()
-        self.send_response(200)
-        self.send_header("Content-Type", "text/plain; version=0.0.4")
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
-
-    def log_message(self, *_args):
-        # Silence per-request logging; the operator polls every 10s.
-        pass
+    """Prometheus text format. The operator truncates toward zero when assigning
+    to its int64 status fields."""
+    return generate_latest(build_registry(state)).decode()
 
 
 def serve(state, port=DEFAULT_PORT):
-    """Bind and serve in a daemon thread. Returns the server."""
-    _Handler.state = state
-    server = http.server.ThreadingHTTPServer(("", port), _Handler)
-    threading.Thread(target=server.serve_forever, daemon=True).start()
+    """Bind and serve /metrics in a daemon thread. Returns the server."""
+    server, _thread = start_http_server(port, registry=build_registry(state))
     return server
 
 

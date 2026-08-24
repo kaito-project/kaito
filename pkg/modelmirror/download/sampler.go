@@ -47,8 +47,8 @@ func buildSamplerContainer(envVars []corev1.EnvVar) corev1.Container {
 	// non-interactive command.
 	shell := fmt.Sprintf(`set -e
 trap 'exit 0' TERM
-pip install -q "huggingface-hub==%s"
-exec python3 -c "$SAMPLER_SCRIPT"`, mmconsts.HuggingFaceHubVersion)
+pip install -q "huggingface-hub==%s" "prometheus-client==%s"
+exec python3 -c "$SAMPLER_SCRIPT"`, mmconsts.HuggingFaceHubVersion, mmconsts.PrometheusClientVersion)
 
 	env := append([]corev1.EnvVar{}, envVars...)
 	env = append(env,

@@ -48,6 +48,9 @@ const (
 	// huggingface-hub version
 	HuggingFaceHubVersion = "1.18.0"
 
+	// prometheus-client version, used by the sampler sidecar to expose progress
+	PrometheusClientVersion = "0.24.1"
+
 	// Default CPU/memory request==limit for the download Job container. Sized for fast
 	// parallel HF downloads in production
 	DefaultDownloadJobCPU    = "3"

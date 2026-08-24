@@ -529,7 +529,7 @@ func TestHandleJobSuccessZeroesDownloadMetrics(t *testing.T) {
 		WithObjects(cr, job).WithStatusSubresource(cr).Build()
 	r := newTestReconciler(c)
 
-	_, err := r.handleJobSuccess(context.Background(), cr, job, zap.New(zap.UseDevMode(true)))
+	_, err := r.handleJobSuccess(context.Background(), cr, zap.New(zap.UseDevMode(true)))
 	require.NoError(t, err)
 
 	assert.Equal(t, kaitov1alpha1.ModelMirrorPhaseReady, cr.Status.Phase)

@@ -330,7 +330,7 @@ func (r *ModelMirrorReconciler) checkJobStatus(ctx context.Context, cr *kaitov1a
 
 	// Check for success
 	if activeJob.Status.Succeeded > 0 {
-		return r.handleJobSuccess(ctx, cr, activeJob, log)
+		return r.handleJobSuccess(ctx, cr, log)
 	}
 
 	// Check for failure (all retries exhausted on this Job)
@@ -402,7 +402,7 @@ func (r *ModelMirrorReconciler) classifyDownloadFailure(ctx context.Context, cr 
 	return "", ""
 }
 
-func (r *ModelMirrorReconciler) handleJobSuccess(ctx context.Context, cr *kaitov1alpha1.ModelMirror, job *batchv1.Job, log logr.Logger) (ctrl.Result, error) {
+func (r *ModelMirrorReconciler) handleJobSuccess(ctx context.Context, cr *kaitov1alpha1.ModelMirror, log logr.Logger) (ctrl.Result, error) {
 	modelID := cr.Spec.Source.ModelID
 	cr.Status.Phase = kaitov1alpha1.ModelMirrorPhaseReady
 	cr.Status.ModelPath = "/models/" + modelID

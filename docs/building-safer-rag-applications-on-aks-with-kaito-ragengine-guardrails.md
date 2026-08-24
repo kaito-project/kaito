@@ -12,7 +12,7 @@ KAITO RAGEngine currently provides centrally managed output guardrails for stand
 
 ## Why Application-Level Filters Do Not Scale
 
-An application can call a filtering library before returning a model response. For one service, that may be sufficient. At platform scale, every team must repeat scanner initialization, policy parsing, actions, failure handling, streaming logic, metrics, and logging. These implementations and their policy versions quickly diverge.
+An application can call a filtering library before returning a model response. For one service, that may be sufficient. At platform scale, every team must repeat scanner initialization, policy parsing, actions, failure handling, streaming logic, metrics, and logging. These implementations and policy versions quickly become inconsistent.
 
 Streaming turns inconsistency into a leakage risk. Scanning after generation is too late for an SSE response:
 

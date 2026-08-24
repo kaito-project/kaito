@@ -8,11 +8,11 @@ Deterministic scanners can block or redact recognizable risks such as credential
 
 > **Grounding gives the model relevant evidence for its response. Guardrails enforce what content the application is allowed to return.**
 
-KAITO RAGEngine currently provides centrally managed output guardrails for standard and streaming responses, with blocking, redaction, hot reload, and telemetry. This post configures and evaluates those controls on Azure Kubernetes Service (AKS), explains cross-chunk protection, and considers future semantic checks. RAGEngine does not currently scan user input or retrieved context or provide model-based scanners.
+KAITO RAGEngine currently provides centrally managed output guardrails for standard and streaming responses, with blocking, redaction, hot reload, metrics, and structured logs. This post configures and evaluates those controls on Azure Kubernetes Service (AKS), explains cross-chunk protection, and considers future semantic checks. RAGEngine does not currently scan user input or retrieved context or provide model-based scanners.
 
 ## Why Application-Level Filters Do Not Scale
 
-An application can call a filtering library before returning a model response. For one service, that may be sufficient. At platform scale, every team must repeat scanner initialization, policy parsing, actions, failure handling, streaming logic, and telemetry. These implementations and their policy versions quickly diverge.
+An application can call a filtering library before returning a model response. For one service, that may be sufficient. At platform scale, every team must repeat scanner initialization, policy parsing, actions, failure handling, streaming logic, metrics, and logging. These implementations and their policy versions quickly diverge.
 
 Streaming turns inconsistency into a leakage risk. Scanning after generation is too late for an SSE response:
 
@@ -246,4 +246,4 @@ ConfigMaps, hot reload, fail-closed execution, metrics, and logs separate policy
 
 ## Conclusion
 
-KAITO RAGEngine gives applications one OpenAI-compatible API, platform teams Kubernetes-managed policy, and security teams consistent enforcement and telemetry. Deterministic scanners and streaming holdback protect current workloads, while the same architecture can support future semantic checks.
+KAITO RAGEngine gives applications one OpenAI-compatible API, platform teams Kubernetes-managed policy, and security teams consistent enforcement, metrics, and structured logs. Deterministic scanners and streaming holdback protect current workloads, while the same architecture can support future semantic checks.

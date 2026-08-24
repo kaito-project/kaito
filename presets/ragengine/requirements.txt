@@ -1,42 +1,41 @@
 # RAG Library Requirements
-llama-index==0.14.15
-# Pin llama-index-core to 0.14.18 to avoid refresh_ref_docs regression in 0.14.19
-# that causes KeyError on document IDs after update_documents with FAISS backend.
-# See: https://github.com/kaito-project/kaito/issues/TBD
+llama-index==0.14.18
+# Pin llama-index-core to 0.14.18 to avoid the refresh_ref_docs regression in
+# newer releases that leaves FAISS node IDs out of sync with the index struct.
 llama-index-core==0.14.18
 # HF Embeddings
-llama-index-embeddings-huggingface==0.6.1
-llama-index-embeddings-huggingface-api==0.4.1
+llama-index-embeddings-huggingface==0.7.0
+llama-index-embeddings-huggingface-api==0.5.0
 # HF LLMs
-llama-index-llms-huggingface==0.6.1
-llama-index-llms-huggingface-api==0.6.2
+llama-index-llms-huggingface==0.7.0
+llama-index-llms-huggingface-api==0.7.0
 # BM25 keyword retriever for hybrid search (Python-side fallback for non-Qdrant backends)
-llama-index-retrievers-bm25==0.6.5
+llama-index-retrievers-bm25==0.7.1
 # fastembed: BM25 sparse tokenizer used by Qdrant native hybrid search
 fastembed>=0.4.0
 
 fastapi==0.141.1
 starlette>=1.3.1
-faiss-cpu==1.11.0
-llama-index-vector-stores-faiss==0.5.3
-llama-index-vector-stores-qdrant==0.9.1
-qdrant-client==1.16.2
+faiss-cpu==1.15.0
+llama-index-vector-stores-faiss==0.6.0
+llama-index-vector-stores-qdrant==0.10.3
+qdrant-client==1.19.0
 llama-index-vector-stores-chroma==0.5.5
-llama-index-vector-stores-azurecosmosmongo==0.7.1
+llama-index-vector-stores-azurecosmosmongo==0.8.0
 uvicorn==0.34.2
 asyncio==3.4.3
 aiorwlock==1.5.0
 nest-asyncio==1.6.0
 httpx==0.27.0
-requests==2.32.4
+requests==2.33.0
 openai==1.108.1
 llm-guard==0.3.16
 PyYAML>=6.0.2
 watchfiles>=0.21.0
 
 tiktoken==0.11.0
-tree-sitter==0.23.2
+tree-sitter==0.26.0
 tree_sitter_languages==1.10.2
-tree-sitter-language-pack==0.7.3
+tree-sitter-language-pack==1.14.3
 # Metrics collection
 prometheus-client>=0.17.0

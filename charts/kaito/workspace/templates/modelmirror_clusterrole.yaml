@@ -13,9 +13,15 @@ rules:
   - apiGroups: ["kaito.sh"]
     resources: ["modelmirrors/status"]
     verbs: ["get", "update", "patch"]
+  # Required to set blockOwnerDeletion on the PVC and Job owned by a ModelMirror.
+  - apiGroups: ["kaito.sh"]
+    resources: ["modelmirrors/finalizers"]
+    verbs: ["update"]
+  # The PVC is garbage collected via its ownerReference; update is what removes the
+  # protection finalizer so that deletion can complete.
   - apiGroups: [""]
     resources: ["persistentvolumeclaims"]
-    verbs: ["create", "update", "patch", "delete"]
+    verbs: ["create", "update", "patch"]
   - apiGroups: ["admissionregistration.k8s.io"]
     resources: ["validatingwebhookconfigurations"]
     verbs: ["update"]

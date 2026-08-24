@@ -61,10 +61,9 @@ func newTestReconciler(c client.Client) *ModelMirrorReconciler {
 // the controller requires (source and storage are both mandatory for Managed).
 func newManagedTestCR(name string) *kaitov1alpha1.ModelMirror {
 	return &kaitov1alpha1.ModelMirror{
-		ObjectMeta: metav1.ObjectMeta{Name: name},
+		ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: "default"},
 		Spec: kaitov1alpha1.ModelMirrorSpec{
-			Mode:         kaitov1alpha1.ModelMirrorModeManaged,
-			JobNamespace: "default",
+			Mode: kaitov1alpha1.ModelMirrorModeManaged,
 			Source: &kaitov1alpha1.ModelMirrorSource{
 				Registry: "huggingface",
 				ModelID:  "microsoft/Phi-3-mini-4k-instruct",
@@ -85,7 +84,7 @@ func TestReconcile_AlreadyReady(t *testing.T) {
 	_ = storagev1.AddToScheme(scheme)
 
 	cr := &kaitov1alpha1.ModelMirror{
-		ObjectMeta: metav1.ObjectMeta{Name: "abc123"},
+		ObjectMeta: metav1.ObjectMeta{Name: "abc123", Namespace: "default"},
 		Status:     kaitov1alpha1.ModelMirrorStatus{Phase: kaitov1alpha1.ModelMirrorPhaseReady},
 	}
 
@@ -93,7 +92,7 @@ func TestReconcile_AlreadyReady(t *testing.T) {
 	r := NewModelMirrorReconciler(client, zap.New(zap.UseDevMode(true)), mmconsts.DefaultDownloadJobResources())
 
 	result, err := r.Reconcile(context.Background(), ctrl.Request{
-		NamespacedName: types.NamespacedName{Name: "abc123"},
+		NamespacedName: types.NamespacedName{Name: "abc123", Namespace: "default"},
 	})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -103,7 +102,7 @@ func TestReconcile_AlreadyReady(t *testing.T) {
 	}
 }
 
-func TestReconcile_AddsFinalizer(t *testing.T) {
+func TestReconcile_OwnsPVC(t *testing.T) {
 	scheme := runtime.NewScheme()
 	_ = kaitov1alpha1.AddToScheme(scheme)
 	_ = batchv1.AddToScheme(scheme)
@@ -111,11 +110,10 @@ func TestReconcile_AddsFinalizer(t *testing.T) {
 	_ = storagev1.AddToScheme(scheme)
 
 	cr := &kaitov1alpha1.ModelMirror{
-		ObjectMeta: metav1.ObjectMeta{Name: "abc123"},
+		ObjectMeta: metav1.ObjectMeta{Name: "abc123", Namespace: "default", UID: "mirror-uid"},
 		Spec: kaitov1alpha1.ModelMirrorSpec{
-			Source:       &kaitov1alpha1.ModelMirrorSource{Registry: "huggingface", ModelID: "test/model"},
-			Storage:      &kaitov1alpha1.ModelMirrorStorage{StorageClassName: ptr.To("blob-nfs"), Size: "10Gi"},
-			JobNamespace: "default",
+			Source:  &kaitov1alpha1.ModelMirrorSource{Registry: "huggingface", ModelID: "test/model"},
+			Storage: &kaitov1alpha1.ModelMirrorStorage{StorageClassName: ptr.To("blob-nfs"), Size: "10Gi"},
 		},
 		Status: kaitov1alpha1.ModelMirrorStatus{Phase: kaitov1alpha1.ModelMirrorPhasePending},
 	}
@@ -123,28 +121,47 @@ func TestReconcile_AddsFinalizer(t *testing.T) {
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(cr).Build()
 	r := NewModelMirrorReconciler(client, zap.New(zap.UseDevMode(true)), mmconsts.DefaultDownloadJobResources())
 
-	result, err := r.Reconcile(context.Background(), ctrl.Request{
-		NamespacedName: types.NamespacedName{Name: "abc123"},
-	})
-	if err != nil {
+	if _, err := r.Reconcile(context.Background(), ctrl.Request{
+		NamespacedName: types.NamespacedName{Name: "abc123", Namespace: "default"},
+	}); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if result.RequeueAfter == 0 {
-		t.Error("expected requeue after adding finalizer")
-	}
 
-	// Verify finalizer was added
-	updated := &kaitov1alpha1.ModelMirror{}
-	_ = client.Get(context.Background(), types.NamespacedName{Name: "abc123"}, updated)
-	found := false
-	for _, f := range updated.Finalizers {
-		if f == mmconsts.ModelMirrorFinalizer {
-			found = true
-		}
+	pvc := &corev1.PersistentVolumeClaim{}
+	if err := client.Get(context.Background(), types.NamespacedName{Name: "abc123", Namespace: "default"}, pvc); err != nil {
+		t.Fatalf("PVC not created: %v", err)
 	}
-	if !found {
-		t.Error("finalizer not added to CR")
+	assert.Equal(t, "default", pvc.Namespace, "PVC must be created in the mirror's namespace")
+
+	ref := metav1.GetControllerOf(pvc)
+	require.NotNil(t, ref, "PVC must carry a controller ownerReference so GC can reap it")
+	assert.Equal(t, "ModelMirror", ref.Kind)
+	assert.Equal(t, "abc123", ref.Name)
+	assert.Equal(t, cr.UID, ref.UID)
+}
+
+// A PVC the controller does not own is never garbage collected, so waiting on it would
+// requeue forever.
+func TestReleasePVC_UnownedPVCDoesNotRequeue(t *testing.T) {
+	scheme := runtime.NewScheme()
+	_ = kaitov1alpha1.AddToScheme(scheme)
+	_ = corev1.AddToScheme(scheme)
+
+	pvc := &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:       "abc123",
+			Namespace:  "default",
+			Finalizers: []string{mmconsts.ModelMirrorPVCFinalizer},
+		},
 	}
+	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(pvc).Build()
+	r := NewModelMirrorReconciler(client, zap.New(zap.UseDevMode(true)), mmconsts.DefaultDownloadJobResources())
+
+	result, err := r.Reconcile(context.Background(), ctrl.Request{
+		NamespacedName: types.NamespacedName{Name: "abc123", Namespace: "default"},
+	})
+	require.NoError(t, err)
+	assert.Zero(t, result.RequeueAfter, "an unowned PVC must not be waited on")
 }
 
 func TestJobRetryInterval(t *testing.T) {
@@ -162,7 +179,8 @@ func TestReconcile_Static_SetsReadyNoProvision(t *testing.T) {
 
 	cr := &kaitov1alpha1.ModelMirror{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "abc123",
+			Name:      "abc123",
+			Namespace: "default",
 		},
 		Spec: kaitov1alpha1.ModelMirrorSpec{
 			// A static mirror sets only Mode — no Source, no Storage (BYO storage; nothing to download).
@@ -172,11 +190,11 @@ func TestReconcile_Static_SetsReadyNoProvision(t *testing.T) {
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(cr).WithStatusSubresource(cr).Build()
 	r := NewModelMirrorReconciler(client, zap.New(zap.UseDevMode(true)), mmconsts.DefaultDownloadJobResources())
 
-	_, err := r.Reconcile(context.Background(), ctrl.Request{NamespacedName: types.NamespacedName{Name: "abc123"}})
+	_, err := r.Reconcile(context.Background(), ctrl.Request{NamespacedName: types.NamespacedName{Name: "abc123", Namespace: "default"}})
 	assert.NoError(t, err)
 
 	got := &kaitov1alpha1.ModelMirror{}
-	assert.NoError(t, client.Get(context.Background(), types.NamespacedName{Name: "abc123"}, got))
+	assert.NoError(t, client.Get(context.Background(), types.NamespacedName{Name: "abc123", Namespace: "default"}, got))
 	assert.Equal(t, kaitov1alpha1.ModelMirrorPhaseReady, got.Status.Phase)
 	// A static mirror stored the weights nowhere locally, so ModelPath is empty.
 	assert.Empty(t, got.Status.ModelPath)
@@ -208,6 +226,7 @@ func TestEnsurePVC_PendingSetsStorageReadyFalse(t *testing.T) {
 	cr := newManagedTestCR("mirror-1")
 	pvc := &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{Name: "mirror-1", Namespace: "default"},
+		Spec:       corev1.PersistentVolumeClaimSpec{StorageClassName: ptr.To("kaito-model-mirror")},
 		Status:     corev1.PersistentVolumeClaimStatus{Phase: corev1.ClaimPending},
 	}
 	c := fake.NewClientBuilder().WithScheme(testScheme()).
@@ -429,6 +448,7 @@ func TestCheckJobStatus_FailedJobSetsReadyFalse(t *testing.T) {
 			Namespace:         "default",
 			CreationTimestamp: metav1.Now(),
 			Labels:            map[string]string{mmconsts.LabelModelMirrorName: cr.Name},
+			OwnerReferences:   []metav1.OwnerReference{*metav1.NewControllerRef(cr, kaitov1alpha1.GroupVersion.WithKind("ModelMirror"))},
 		},
 		Status: batchv1.JobStatus{
 			Failed: 4,
@@ -449,7 +469,7 @@ func TestCheckJobStatus_FailedJobSetsReadyFalse(t *testing.T) {
 	require.NoError(t, err)
 
 	got := &kaitov1alpha1.ModelMirror{}
-	require.NoError(t, c.Get(context.Background(), client.ObjectKey{Name: cr.Name}, got))
+	require.NoError(t, c.Get(context.Background(), client.ObjectKeyFromObject(cr), got))
 
 	cond := meta.FindStatusCondition(got.Status.Conditions, mmconsts.ConditionTypeReady)
 	require.NotNil(t, cond, "a failed download Job must surface a Ready condition")

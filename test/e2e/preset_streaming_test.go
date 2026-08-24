@@ -72,18 +72,18 @@ func modelMirrorDownloadTimeout(modelID string) time.Duration {
 	return defaultModelMirrorDownloadTimeout
 }
 
-// validateModelMirrorCRReady asserts the cluster-scoped ModelMirror CR for modelID reaches
+// validateModelMirrorCRReady asserts the ModelMirror CR for modelID in namespace reaches
 // Ready (with StorageReady) and exposes the expected modelPath.
 //
 // Readiness is deliberately not gated on status.download: the block is only populated when
 // the download job emitted a parseable stats marker, and a missing marker is a valid
 // "stats unavailable" outcome rather than a failure.
-func validateModelMirrorCRReady(modelID string) {
+func validateModelMirrorCRReady(modelID, namespace string) {
 	crName := modelstreaming.ModelMirrorCRName(modelID)
-	By(fmt.Sprintf("Checking ModelMirror CR %s is Ready", crName), func() {
+	By(fmt.Sprintf("Checking ModelMirror CR %s/%s is Ready", namespace, crName), func() {
 		Eventually(func() bool {
 			mm := &kaitov1alpha1.ModelMirror{}
-			if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{Name: crName}, mm); err != nil {
+			if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{Name: crName, Namespace: namespace}, mm); err != nil {
 				return false
 			}
 			if string(mm.Status.Phase) != "Ready" {
@@ -107,7 +107,7 @@ func validateModelMirrorCRReady(modelID string) {
 // ModelMirrorReady=True. Use this for plain-Workspace streaming tests; for the InferenceSet
 // case (no *Workspace handle) call validateModelMirrorCRReady directly.
 func validateModelMirrorReady(workspaceObj *kaitov1beta1.Workspace, modelID string) {
-	validateModelMirrorCRReady(modelID)
+	validateModelMirrorCRReady(modelID, workspaceObj.Namespace)
 	By(fmt.Sprintf("Checking workspace %s has ModelMirrorReady=True", workspaceObj.Name), func() {
 		Eventually(func() bool {
 			ws := &kaitov1beta1.Workspace{}
@@ -266,28 +266,29 @@ func envVal(env []corev1.EnvVar, name string) string {
 	return ""
 }
 
-// deleteStreamingModelMirrorCR deletes the cluster-scoped ModelMirror CR for modelID and waits
-// for it to be gone. The CR is not owned by any workspace/InferenceSet (it is shared and
-// cluster-scoped), so it must be cleaned up explicitly to avoid a leftover Ready CR false-passing
-// a later run on a reused cluster.
-func deleteStreamingModelMirrorCR(modelID string) {
-	By("Deleting the cluster-scoped ModelMirror CR", func() {
+// deleteStreamingModelMirrorCR deletes the ModelMirror CR for modelID in namespace and waits
+// for it to be gone. The CR is not owned by any workspace/InferenceSet (it is shared by every
+// workspace in the namespace that uses the model), so it must be cleaned up explicitly to avoid
+// a leftover Ready CR false-passing a later run on a reused cluster.
+func deleteStreamingModelMirrorCR(modelID, namespace string) {
+	By("Deleting the ModelMirror CR", func() {
 		crName := modelstreaming.ModelMirrorCRName(modelID)
-		mm := &kaitov1alpha1.ModelMirror{ObjectMeta: metav1.ObjectMeta{Name: crName}}
+		mm := &kaitov1alpha1.ModelMirror{ObjectMeta: metav1.ObjectMeta{Name: crName, Namespace: namespace}}
 		delErr := utils.TestingCluster.KubeClient.Delete(ctx, mm)
 		Expect(delErr == nil || apierrors.IsNotFound(delErr)).To(BeTrue())
 		Eventually(func() bool {
-			getErr := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{Name: crName}, &kaitov1alpha1.ModelMirror{})
+			getErr := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{Name: crName, Namespace: namespace}, &kaitov1alpha1.ModelMirror{})
 			return apierrors.IsNotFound(getErr)
 		}, 3*time.Minute, utils.PollInterval).Should(BeTrue())
 	})
 }
 
-// cleanupStreamingResources deletes the workspace, then (on success) the cluster-scoped MM CR.
+// cleanupStreamingResources deletes the workspace, then (on success) the ModelMirror CR.
 func cleanupStreamingResources(workspaceObj *kaitov1beta1.Workspace, modelID string) {
+	namespace := workspaceObj.Namespace
 	cleanupResources(workspaceObj)
 	if CurrentSpecReport().Failed() {
 		return
 	}
-	deleteStreamingModelMirrorCR(modelID)
+	deleteStreamingModelMirrorCR(modelID, namespace)
 }

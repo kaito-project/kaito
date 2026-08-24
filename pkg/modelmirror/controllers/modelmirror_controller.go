@@ -15,6 +15,7 @@ package controllers
 
 import (
 	"context"
+	goerrors "errors"
 	"fmt"
 	"os"
 	"sort"
@@ -41,7 +42,15 @@ import (
 
 const (
 	jobRetryInterval = 5 * time.Minute
+
+	// pvcReleaseRetryInterval paces the wait for garbage collection to mark the PVC for
+	// deletion after its owning ModelMirror goes away.
+	pvcReleaseRetryInterval = 5 * time.Second
 )
+
+// errPVCUnusable reports a PVC that cannot serve this ModelMirror and will not become
+// usable on its own. Reconcile stops on it rather than retrying.
+var errPVCUnusable = goerrors.New("model mirror PVC is unusable")
 
 // ModelMirrorReconciler reconciles ModelMirror objects.
 type ModelMirrorReconciler struct {
@@ -66,19 +75,21 @@ func (r *ModelMirrorReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	cr := &kaitov1alpha1.ModelMirror{}
 	if err := r.Get(ctx, req.NamespacedName, cr); err != nil {
 		if errors.IsNotFound(err) {
-			return ctrl.Result{}, nil
+			return r.releasePVC(ctx, req.NamespacedName)
 		}
 		return ctrl.Result{}, err
 	}
 
-	// Handle deletion
+	// The PVC outlives the CR only until garbage collection reaps it, and its protection
+	// finalizer has to come off first. Under foreground deletion the CR is still readable
+	// while it waits for the PVC, so this branch has to run here too.
 	if !cr.DeletionTimestamp.IsZero() {
-		return r.handleDeletion(ctx, cr)
+		return r.releasePVC(ctx, req.NamespacedName)
 	}
 
 	// Static mirror (BYO storage): the model weights already exist in a pre-existing
 	// location, so there is no PVC to provision and no weights to download. Mark Ready
-	// immediately and never create a finalizer, PVC, or Job.
+	// immediately and never create a PVC or Job.
 	if cr.Spec.Mode == kaitov1alpha1.ModelMirrorModeStatic {
 		if cr.Status.Phase == kaitov1alpha1.ModelMirrorPhaseReady {
 			return ctrl.Result{}, nil
@@ -103,17 +114,13 @@ func (r *ModelMirrorReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, r.Status().Update(ctx, cr)
 	}
 
-	// Step 0a: Ensure finalizer
-	if !controllerutil.ContainsFinalizer(cr, mmconsts.ModelMirrorFinalizer) {
-		controllerutil.AddFinalizer(cr, mmconsts.ModelMirrorFinalizer)
-		if err := r.Update(ctx, cr); err != nil {
-			return ctrl.Result{}, err
-		}
-		return ctrl.Result{RequeueAfter: 1 * time.Second}, nil
-	}
-
 	// Step 1: Ensure PVC
 	if err := r.ensurePVC(ctx, cr); err != nil {
+		// An unusable PVC is not something a retry can fix, so stop here rather than
+		// building a Job that would mount it.
+		if goerrors.Is(err, errPVCUnusable) {
+			return ctrl.Result{}, nil
+		}
 		return ctrl.Result{}, err
 	}
 
@@ -126,50 +133,56 @@ func (r *ModelMirrorReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	return r.checkJobStatus(ctx, cr, log)
 }
 
-func (r *ModelMirrorReconciler) handleDeletion(ctx context.Context, cr *kaitov1alpha1.ModelMirror) (ctrl.Result, error) {
-	ns := cr.Spec.JobNamespace
-
-	// Delete all download Jobs for this CR (cluster-scoped CR cannot own
-	// namespaced resources, so ownerReference-based GC does not work)
-	jobList := &batchv1.JobList{}
-	if err := r.List(ctx, jobList,
-		client.InNamespace(ns),
-		client.MatchingLabels{mmconsts.LabelModelMirrorName: cr.Name},
-	); err == nil {
-		for i := range jobList.Items {
-			if err := r.Delete(ctx, &jobList.Items[i], client.PropagationPolicy(metav1.DeletePropagationBackground)); err != nil && !errors.IsNotFound(err) {
-				return ctrl.Result{}, err
-			}
-		}
-	}
-
-	// Delete PVC
+// releasePVC removes the protection finalizer from the mirror's PVC once the owning CR is
+// gone or on its way out, so garbage collection can complete. Nothing else strips it, and a
+// PVC stuck terminating would keep its namespace from being deleted.
+func (r *ModelMirrorReconciler) releasePVC(ctx context.Context, key types.NamespacedName) (ctrl.Result, error) {
 	pvc := &corev1.PersistentVolumeClaim{}
-	if err := r.Get(ctx, types.NamespacedName{Name: cr.Name, Namespace: ns}, pvc); err == nil {
-		if controllerutil.ContainsFinalizer(pvc, mmconsts.ModelMirrorPVCFinalizer) {
-			controllerutil.RemoveFinalizer(pvc, mmconsts.ModelMirrorPVCFinalizer)
-			if err := r.Update(ctx, pvc); err != nil {
-				return ctrl.Result{}, err
-			}
-		}
-		if err := r.Delete(ctx, pvc); err != nil && !errors.IsNotFound(err) {
-			return ctrl.Result{}, err
-		}
+	if err := r.Get(ctx, key, pvc); err != nil {
+		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Remove CR finalizer
-	controllerutil.RemoveFinalizer(cr, mmconsts.ModelMirrorFinalizer)
-	if err := r.Update(ctx, cr); err != nil {
-		return ctrl.Result{}, err
+	// A PVC the controller does not own is never garbage collected, so waiting on it would
+	// requeue forever. Mirrors that predate ownerReferences fall in this bucket.
+	ref := metav1.GetControllerOf(pvc)
+	if ref == nil || ref.Kind != "ModelMirror" || ref.Name != key.Name {
+		return ctrl.Result{}, nil
 	}
-	return ctrl.Result{}, nil
+
+	if pvc.DeletionTimestamp.IsZero() {
+		return ctrl.Result{RequeueAfter: pvcReleaseRetryInterval}, nil
+	}
+
+	if !controllerutil.ContainsFinalizer(pvc, mmconsts.ModelMirrorPVCFinalizer) {
+		return ctrl.Result{}, nil
+	}
+	controllerutil.RemoveFinalizer(pvc, mmconsts.ModelMirrorPVCFinalizer)
+	return ctrl.Result{}, client.IgnoreNotFound(r.Update(ctx, pvc))
+}
+
+// isOwnedBy reports whether obj carries a controller ownerReference to owner. The UID is
+// compared so a resource left behind by an earlier CR of the same name is not adopted.
+func isOwnedBy(obj metav1.Object, owner *kaitov1alpha1.ModelMirror) bool {
+	ref := metav1.GetControllerOf(obj)
+	return ref != nil && ref.Kind == "ModelMirror" && ref.Name == owner.Name && ref.UID == owner.UID
 }
 
 func (r *ModelMirrorReconciler) ensurePVC(ctx context.Context, cr *kaitov1alpha1.ModelMirror) error {
 	pvcName := cr.Name
 	pvc := &corev1.PersistentVolumeClaim{}
-	err := r.Get(ctx, types.NamespacedName{Name: pvcName, Namespace: cr.Spec.JobNamespace}, pvc)
+	err := r.Get(ctx, types.NamespacedName{Name: pvcName, Namespace: cr.Namespace}, pvc)
 	if err == nil {
+		// An existing PVC on a different StorageClass would silently place the weights
+		// somewhere other than the mirror asks for, so report it instead of adopting it.
+		if want := ptr.Deref(cr.Spec.Storage.StorageClassName, ""); ptr.Deref(pvc.Spec.StorageClassName, "") != want {
+			setCondition(cr, mmconsts.ConditionTypeStorageReady, metav1.ConditionFalse, mmconsts.ReasonPVCStorageClassMismatch,
+				fmt.Sprintf("PVC %s/%s uses StorageClass %q but this ModelMirror requires %q; delete the PVC to re-provision it",
+					cr.Namespace, pvcName, ptr.Deref(pvc.Spec.StorageClassName, ""), want))
+			if updateErr := r.Status().Update(ctx, cr); updateErr != nil {
+				return updateErr
+			}
+			return errPVCUnusable
+		}
 		// PVC already exists
 		if pvc.Status.Phase == corev1.ClaimBound {
 			setCondition(cr, mmconsts.ConditionTypeStorageReady, metav1.ConditionTrue, mmconsts.ReasonPVCBound, "PVC is bound")
@@ -177,7 +190,7 @@ func (r *ModelMirrorReconciler) ensurePVC(ctx context.Context, cr *kaitov1alpha1
 		}
 		setCondition(cr, mmconsts.ConditionTypeStorageReady, metav1.ConditionFalse, mmconsts.ReasonPVCPending,
 			fmt.Sprintf("PVC %s/%s is %s; check the StorageClass parameters and that the storage identity has write access",
-				cr.Spec.JobNamespace, pvcName, pvc.Status.Phase))
+				cr.Namespace, pvcName, pvc.Status.Phase))
 		return r.Status().Update(ctx, cr)
 	}
 	if !errors.IsNotFound(err) {
@@ -189,7 +202,7 @@ func (r *ModelMirrorReconciler) ensurePVC(ctx context.Context, cr *kaitov1alpha1
 	pvc = &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:       pvcName,
-			Namespace:  cr.Spec.JobNamespace,
+			Namespace:  cr.Namespace,
 			Finalizers: []string{mmconsts.ModelMirrorPVCFinalizer},
 		},
 		Spec: corev1.PersistentVolumeClaimSpec{
@@ -202,9 +215,12 @@ func (r *ModelMirrorReconciler) ensurePVC(ctx context.Context, cr *kaitov1alpha1
 			},
 		},
 	}
+	if err := controllerutil.SetControllerReference(cr, pvc, r.Scheme()); err != nil {
+		return err
+	}
 	if err := r.Create(ctx, pvc); err != nil {
 		setCondition(cr, mmconsts.ConditionTypeStorageReady, metav1.ConditionFalse, mmconsts.ReasonPVCCreateFailed,
-			fmt.Sprintf("failed to create PVC %s/%s: %v", cr.Spec.JobNamespace, pvcName, err))
+			fmt.Sprintf("failed to create PVC %s/%s: %v", cr.Namespace, pvcName, err))
 		if updateErr := r.Status().Update(ctx, cr); updateErr != nil {
 			r.Log.Error(updateErr, "failed to update ModelMirror status", "modelmirror", cr.Name)
 			return updateErr
@@ -218,7 +234,7 @@ func (r *ModelMirrorReconciler) ensureDownloadJob(ctx context.Context, cr *kaito
 	// Check if an active (non-failed) Job already exists
 	jobList := &batchv1.JobList{}
 	if err := r.List(ctx, jobList,
-		client.InNamespace(cr.Spec.JobNamespace),
+		client.InNamespace(cr.Namespace),
 		client.MatchingLabels{mmconsts.LabelModelMirrorName: cr.Name},
 	); err != nil {
 		setCondition(cr, mmconsts.ConditionTypeReady, metav1.ConditionFalse, mmconsts.ReasonJobCreateFailed,
@@ -233,6 +249,14 @@ func (r *ModelMirrorReconciler) ensureDownloadJob(ctx context.Context, cr *kaito
 	var latestFailTime *metav1.Time
 	for i := range jobList.Items {
 		job := &jobList.Items[i]
+		// A Job left over from an earlier CR of the same name shares the PVC with the one
+		// about to be created, and the two would write the same directory tree. Reap it.
+		if !isOwnedBy(job, cr) {
+			if err := r.Delete(ctx, job, client.PropagationPolicy(metav1.DeletePropagationBackground)); err != nil && !errors.IsNotFound(err) {
+				return err
+			}
+			continue
+		}
 		if !isJobFailed(job) {
 			return nil // Active or succeeded Job exists
 		}
@@ -252,10 +276,13 @@ func (r *ModelMirrorReconciler) ensureDownloadJob(ctx context.Context, cr *kaito
 	}
 
 	job := download.BuildDownloadJob(cr, r.DownloadResources, download.WorkloadIdentityPodLabels(os.Getenv("CLOUD_PROVIDER")))
-	log.Info("Creating download Job", "namespace", cr.Spec.JobNamespace)
+	if err := controllerutil.SetControllerReference(cr, job, r.Scheme()); err != nil {
+		return err
+	}
+	log.Info("Creating download Job", "namespace", cr.Namespace)
 	if err := r.Create(ctx, job); err != nil {
 		setCondition(cr, mmconsts.ConditionTypeReady, metav1.ConditionFalse, mmconsts.ReasonJobCreateFailed,
-			fmt.Sprintf("failed to create download Job in namespace %s: %v", cr.Spec.JobNamespace, err))
+			fmt.Sprintf("failed to create download Job in namespace %s: %v", cr.Namespace, err))
 		if updateErr := r.Status().Update(ctx, cr); updateErr != nil {
 			log.Error(updateErr, "failed to update ModelMirror status", "modelmirror", cr.Name)
 			return updateErr
@@ -278,7 +305,7 @@ func (r *ModelMirrorReconciler) checkJobStatus(ctx context.Context, cr *kaitov1a
 	// Find the latest active Job for this CR
 	jobList := &batchv1.JobList{}
 	if err := r.List(ctx, jobList,
-		client.InNamespace(cr.Spec.JobNamespace),
+		client.InNamespace(cr.Namespace),
 		client.MatchingLabels{mmconsts.LabelModelMirrorName: cr.Name},
 	); err != nil {
 		return ctrl.Result{}, err
@@ -288,6 +315,9 @@ func (r *ModelMirrorReconciler) checkJobStatus(ctx context.Context, cr *kaitov1a
 	var activeJob *batchv1.Job
 	for i := range jobList.Items {
 		job := &jobList.Items[i]
+		if !isOwnedBy(job, cr) {
+			continue
+		}
 		if activeJob == nil || job.CreationTimestamp.After(activeJob.CreationTimestamp.Time) {
 			activeJob = job
 		}
@@ -335,7 +365,7 @@ func (r *ModelMirrorReconciler) checkJobStatus(ctx context.Context, cr *kaitov1a
 func (r *ModelMirrorReconciler) classifyDownloadFailure(ctx context.Context, cr *kaitov1alpha1.ModelMirror, jobName string) (reason, message string) {
 	pods := &corev1.PodList{}
 	if err := r.List(ctx, pods,
-		client.InNamespace(cr.Spec.JobNamespace),
+		client.InNamespace(cr.Namespace),
 		client.MatchingLabels{"job-name": jobName},
 	); err != nil {
 		return "", ""
@@ -429,12 +459,12 @@ func (r *ModelMirrorReconciler) updateDownloadProgress(ctx context.Context, cr *
 		return
 	}
 
-	podName := r.selectSamplerPod(ctx, cr.Spec.JobNamespace, jobName)
+	podName := r.selectSamplerPod(ctx, cr.Namespace, jobName)
 	if podName == "" {
 		return
 	}
 
-	p, err := progress.Fetch(ctx, cs, cr.Spec.JobNamespace, podName)
+	p, err := progress.Fetch(ctx, cs, cr.Namespace, podName)
 	if err != nil {
 		log.V(1).Info("skipping download progress", "pod", podName, "error", err)
 		return
@@ -480,5 +510,6 @@ func setCondition(cr *kaitov1alpha1.ModelMirror, condType string, status metav1.
 func (r *ModelMirrorReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&kaitov1alpha1.ModelMirror{}).
+		Owns(&corev1.PersistentVolumeClaim{}).
 		Complete(r)
 }

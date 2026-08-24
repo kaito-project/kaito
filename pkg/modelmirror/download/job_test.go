@@ -21,6 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
@@ -28,8 +29,8 @@ import (
 
 func newTestModelMirror() *kaitov1alpha1.ModelMirror {
 	return &kaitov1alpha1.ModelMirror{
+		ObjectMeta: metav1.ObjectMeta{Name: "mirror-1", Namespace: "default"},
 		Spec: kaitov1alpha1.ModelMirrorSpec{
-			JobNamespace: "default",
 			Source: &kaitov1alpha1.ModelMirrorSource{
 				ModelID: "Qwen/Qwen3-8B-AWQ",
 			},

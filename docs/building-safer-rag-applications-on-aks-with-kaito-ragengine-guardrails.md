@@ -14,23 +14,21 @@ KAITO RAGEngine currently provides centrally managed output guardrails for stand
 
 An application can call a filtering library before returning a model response. For one service, that may be sufficient. At platform scale, every team must repeat scanner initialization, policy parsing, actions, failure handling, streaming logic, metrics, and logging. These implementations and policy versions quickly become inconsistent.
 
-Streaming turns inconsistency into a leakage risk. Scanning after generation is too late for an SSE response:
+Application-level filtering creates two additional platform-scale problems. First, streaming responses require ordered buffering because content already sent to the client cannot be retracted, and unsafe values may span chunk boundaries.
 
 ```text
 Model -> SSE chunks -> Client
-			^
-			unsafe text may already be visible
+                       ^
+                       unsafe text may already be visible
 ```
 
-Once a chunk reaches the client, it cannot be retracted. Independent chunk scanning also misses credentials or phrases split across boundaries; safe streaming requires ordered buffering before release.
-
-Application-owned policy also couples rule changes to release cycles. A platform-level guardrail replaces repeated builds and deployments with:
+Second, policy changes become tied to each application's release cycle, often requiring repeated builds and deployments across multiple services. With RAGEngine, the workflow becomes:
 
 ```text
 Update ConfigMap -> reload policy at runtime -> keep using the same endpoint
 ```
 
-RAGEngine already sits on the OpenAI-compatible response path between applications and model endpoints, making it a natural enforcement point before output reaches the client. Applications keep the same API integration while platform teams manage policy, streaming safety, updates, and observability in one place.
+RAGEngine addresses both problems from a shared enforcement point on the OpenAI-compatible response path, applying policy before output reaches the client while applications keep the same endpoint.
 
 ## Guardrails as a RAGEngine Runtime Capability
 

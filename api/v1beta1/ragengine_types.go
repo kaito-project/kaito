@@ -42,10 +42,15 @@ type PersistentVolumeConfig struct {
 	// PersistentVolumeClaim specifies the PVC to use for persisting vector database data.
 	PersistentVolumeClaim string `json:"persistentVolumeClaim"`
 	// MountPath specifies where the volume should be mounted in the container.
-	// Defaults to /mnt/data if not specified.
+	// Defaults to /mnt/data if not specified. Custom paths must be beneath /mnt.
 	// +optional
 	MountPath string `json:"mountPath,omitempty"`
 }
+
+const (
+	RAGStorageMountDefault     = "/mnt/data"
+	RAGStorageAllowedMountRoot = "/mnt"
+)
 
 // VectorDBConfig specifies the vector database backend configuration.
 // The Engine must be a LlamaIndex-supported vector store backend.

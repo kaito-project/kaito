@@ -178,6 +178,39 @@ func TestRAGEngineValidateCreate(t *testing.T) {
 	}
 }
 
+func TestStorageSpecValidate(t *testing.T) {
+	tests := []struct {
+		name      string
+		mountPath string
+		wantErr   bool
+	}{
+		{name: "default mount path", mountPath: ""},
+		{name: "storage root", mountPath: "/mnt/data"},
+		{name: "nested storage directory", mountPath: "/mnt/data/customer/indexes"},
+		{name: "historical storage directory", mountPath: "/mnt/vector-db"},
+		{name: "custom storage directory", mountPath: "/mnt/customer/data"},
+		{name: "relative path", mountPath: "mnt/data", wantErr: true},
+		{name: "different root", mountPath: "/etc", wantErr: true},
+		{name: "mount root", mountPath: "/mnt", wantErr: true},
+		{name: "sibling prefix", mountPath: "/mnt-other/data", wantErr: true},
+		{name: "parent traversal", mountPath: "/mnt/data/../../../etc", wantErr: true},
+		{name: "nested parent traversal", mountPath: "/mnt/data/customer/../other", wantErr: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			storage := &StorageSpec{
+				PersistentVolume: &PersistentVolumeConfig{MountPath: tt.mountPath},
+			}
+
+			err := storage.validate()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestLocalEmbeddingValidateCreate(t *testing.T) {
 	tests := []struct {
 		name           string

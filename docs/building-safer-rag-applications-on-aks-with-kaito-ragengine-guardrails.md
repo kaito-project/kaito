@@ -250,4 +250,4 @@ ConfigMaps, hot reload, fail-closed response scanning, metrics, and logs separat
 
 ## Conclusion
 
-KAITO RAGEngine gives applications one OpenAI-compatible API, platform teams Kubernetes-managed policy, and security teams consistent enforcement, metrics, and structured logs. Deterministic scanners and streaming holdback protect current workloads, while the same architecture can support future semantic checks.
+KAITO RAGEngine moves output guardrails from application-specific filtering into a shared runtime capability. Applications keep the same OpenAI-compatible API, platform teams manage policy through Kubernetes, and security teams gain consistent enforcement, metrics, and structured logs. Deterministic scanners and streaming holdback apply configured checks before assistant output is released, while the same runtime architecture provides a path toward future semantic checks.

@@ -12,23 +12,27 @@ KAITO RAGEngine currently provides centrally managed output guardrails for stand
 
 ## Why Application-Level Filters Do Not Scale
 
-An application can call a filtering library before returning a model response. For one service, that may be sufficient. At platform scale, every team must repeat scanner initialization, policy parsing, actions, failure handling, streaming logic, metrics, and logging. These implementations and policy versions quickly become inconsistent.
+An application can call a filtering library before returning a model response. For a single service, that may be sufficient. At platform scale, however, application-level filtering creates three problems.
 
-Application-level filtering creates two additional platform-scale problems. First, streaming responses require ordered buffering because content already sent to the client cannot be retracted, and unsafe values may span chunk boundaries.
+First, every team must independently implement scanner initialization, policy parsing, enforcement actions, failure handling, streaming logic, metrics, and logging. Over time, these implementations and policy versions can become inconsistent across services.
+
+Second, streaming responses require safety-aware buffering and delayed emission. If an application scans and forwards each SSE chunk independently, unsafe content may already be visible before the complete value can be detected, especially when it spans chunk boundaries.
 
 ```text
 Model -> SSE chunks -> Client
                        ^
-                       unsafe text may already be visible
+                       unsafe content may already be visible
 ```
 
-Second, policy changes become tied to each application's release cycle, often requiring repeated builds and deployments across multiple services. With RAGEngine, the workflow becomes:
+A streaming guardrail therefore cannot simply scan each chunk independently. It must retain an uncommitted suffix, scan across chunk boundaries, and emit only content that has been confirmed safe.
+
+Third, policy changes become tied to each application's release cycle, often requiring repeated configuration changes, builds, and deployments across multiple services. With RAGEngine, the workflow becomes:
 
 ```text
 Update ConfigMap -> reload policy at runtime -> keep using the same endpoint
 ```
 
-RAGEngine addresses both problems from a shared enforcement point on the OpenAI-compatible response path, applying policy before output reaches the client while applications keep the same endpoint.
+RAGEngine centralizes these responsibilities on the OpenAI-compatible response path. It applies the active policy before output reaches the client, performs safe buffering and cross-chunk inspection for streaming responses, and allows applications to continue using the same endpoint.
 
 ## Guardrails as a RAGEngine Runtime Capability
 

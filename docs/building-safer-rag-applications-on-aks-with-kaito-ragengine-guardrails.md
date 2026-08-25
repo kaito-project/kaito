@@ -40,6 +40,8 @@ RAGEngine separates policy management from response enforcement. The control pla
 
 This separation keeps scanner lifecycle out of application code and applies a shared enforcement model across supported chat-completion paths.
 
+RAGEngine integrates and adapts scanners from [Protect AI's LLM Guard](https://github.com/protectai/llm-guard) for deterministic output checks. RAGEngine adds Kubernetes-managed policy lifecycle, response-path enforcement, streaming holdback, hot reload, metrics, and structured logs around those scanners.
+
 ```mermaid
 flowchart LR
 	subgraph CP[Control plane]

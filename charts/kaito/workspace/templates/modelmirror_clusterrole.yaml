@@ -13,7 +13,9 @@ rules:
   - apiGroups: ["kaito.sh"]
     resources: ["modelmirrors/status"]
     verbs: ["get", "update", "patch"]
-  # Required to set blockOwnerDeletion on the PVC and Job owned by a ModelMirror.
+  # SetControllerReference stamps blockOwnerDeletion on the PVC and Job it owns, which the
+  # OwnerReferencesPermissionEnforcement admission plugin only allows for a subject holding
+  # update on the owner's finalizers subresource. Unrelated to finalizers on the CR itself.
   - apiGroups: ["kaito.sh"]
     resources: ["modelmirrors/finalizers"]
     verbs: ["update"]

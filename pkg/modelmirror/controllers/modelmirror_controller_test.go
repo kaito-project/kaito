@@ -224,10 +224,15 @@ func TestReconcile_Static_SetsReadyNoProvision(t *testing.T) {
 
 func TestEnsurePVC_PendingSetsStorageReadyFalse(t *testing.T) {
 	cr := newManagedTestCR("mirror-1")
+	cr.UID = "mirror-uid"
 	pvc := &corev1.PersistentVolumeClaim{
-		ObjectMeta: metav1.ObjectMeta{Name: "mirror-1", Namespace: "default"},
-		Spec:       corev1.PersistentVolumeClaimSpec{StorageClassName: ptr.To("kaito-model-mirror")},
-		Status:     corev1.PersistentVolumeClaimStatus{Phase: corev1.ClaimPending},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            "mirror-1",
+			Namespace:       "default",
+			OwnerReferences: []metav1.OwnerReference{mirrorOwnerRef("mirror-1", "mirror-uid")},
+		},
+		Spec:   corev1.PersistentVolumeClaimSpec{StorageClassName: ptr.To("kaito-model-mirror")},
+		Status: corev1.PersistentVolumeClaimStatus{Phase: corev1.ClaimPending},
 	}
 	c := fake.NewClientBuilder().WithScheme(testScheme()).
 		WithObjects(cr, pvc).WithStatusSubresource(cr).Build()
@@ -262,6 +267,210 @@ func TestEnsurePVC_CreateFailureSetsConditionAndReturnsError(t *testing.T) {
 	cond := meta.FindStatusCondition(cr.Status.Conditions, mmconsts.ConditionTypeStorageReady)
 	require.NotNil(t, cond)
 	assert.Equal(t, mmconsts.ReasonPVCCreateFailed, cond.Reason)
+}
+
+// mirrorOwnerRef builds the controller ownerReference a ModelMirror stamps on its PVC.
+func mirrorOwnerRef(name string, uid types.UID) metav1.OwnerReference {
+	return metav1.OwnerReference{
+		APIVersion: kaitov1alpha1.GroupVersion.String(),
+		Kind:       "ModelMirror",
+		Name:       name,
+		UID:        uid,
+		Controller: ptr.To(true),
+	}
+}
+
+// Per spec §3.6 the protection finalizer is the only synchronous guard between an accidental
+// `kubectl delete pvc` and destruction of the weights, so a live mirror's own PVC keeps it.
+func TestEnsurePVC_TerminatingPVCOfLiveMirrorKeepsFinalizer(t *testing.T) {
+	cr := newManagedTestCR("mirror-1")
+	cr.UID = "live-uid"
+	now := metav1.Now()
+	pvc := &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:              "mirror-1",
+			Namespace:         "default",
+			Finalizers:        []string{mmconsts.ModelMirrorPVCFinalizer},
+			DeletionTimestamp: &now,
+			OwnerReferences:   []metav1.OwnerReference{mirrorOwnerRef("mirror-1", "live-uid")},
+		},
+		Spec: corev1.PersistentVolumeClaimSpec{StorageClassName: ptr.To("kaito-model-mirror")},
+	}
+	c := fake.NewClientBuilder().WithScheme(testScheme()).
+		WithObjects(cr, pvc).WithStatusSubresource(cr).Build()
+	r := newTestReconciler(c)
+
+	assert.ErrorIs(t, r.ensurePVC(context.Background(), cr), errPVCAwaitingDeletion)
+
+	got := &corev1.PersistentVolumeClaim{}
+	require.NoError(t, c.Get(context.Background(), types.NamespacedName{Name: "mirror-1", Namespace: "default"}, got))
+	assert.Contains(t, got.Finalizers, mmconsts.ModelMirrorPVCFinalizer,
+		"a live mirror's own PVC must keep its protection finalizer")
+
+	cond := meta.FindStatusCondition(cr.Status.Conditions, mmconsts.ConditionTypeStorageReady)
+	require.NotNil(t, cond)
+	assert.Equal(t, mmconsts.ReasonPVCTerminating, cond.Reason)
+}
+
+// releasePVC runs only while the CR is absent, so a newer CR of the same name would otherwise
+// requeue forever on a PVC whose protection finalizer nothing strips.
+func TestEnsurePVC_ClearsFinalizerOnTerminatingPVCFromPreviousGeneration(t *testing.T) {
+	cr := newManagedTestCR("mirror-1")
+	cr.UID = "new-uid"
+	now := metav1.Now()
+	pvc := &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:              "mirror-1",
+			Namespace:         "default",
+			Finalizers:        []string{mmconsts.ModelMirrorPVCFinalizer},
+			DeletionTimestamp: &now,
+			OwnerReferences:   []metav1.OwnerReference{mirrorOwnerRef("mirror-1", "old-uid")},
+		},
+		Spec: corev1.PersistentVolumeClaimSpec{StorageClassName: ptr.To("kaito-model-mirror")},
+	}
+	c := fake.NewClientBuilder().WithScheme(testScheme()).
+		WithObjects(cr, pvc).WithStatusSubresource(cr).Build()
+	r := newTestReconciler(c)
+
+	assert.ErrorIs(t, r.ensurePVC(context.Background(), cr), errPVCAwaitingDeletion)
+
+	err := c.Get(context.Background(), types.NamespacedName{Name: "mirror-1", Namespace: "default"}, &corev1.PersistentVolumeClaim{})
+	assert.True(t, apierrors.IsNotFound(err),
+		"the previous generation's finalizer must be cleared so the name frees up")
+}
+
+// The regression was a non-convergence rather than one wrong branch: a recreated mirror
+// requeued forever on a PVC whose finalizer nothing would strip. Drive Reconcile to prove the
+// loop settles on a fresh PVC.
+func TestReconcile_RecreatedMirrorConvergesAfterPreviousGenerationPVCIsReaped(t *testing.T) {
+	cr := newManagedTestCR("mirror-1")
+	cr.UID = "new-uid"
+	now := metav1.Now()
+	pvc := &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:              "mirror-1",
+			Namespace:         "default",
+			Finalizers:        []string{mmconsts.ModelMirrorPVCFinalizer},
+			DeletionTimestamp: &now,
+			OwnerReferences:   []metav1.OwnerReference{mirrorOwnerRef("mirror-1", "old-uid")},
+		},
+		Spec: corev1.PersistentVolumeClaimSpec{StorageClassName: ptr.To("kaito-model-mirror")},
+	}
+	c := fake.NewClientBuilder().WithScheme(testScheme()).
+		WithObjects(cr, pvc).WithStatusSubresource(cr).Build()
+	r := newTestReconciler(c)
+	key := types.NamespacedName{Name: "mirror-1", Namespace: "default"}
+
+	res, err := r.Reconcile(context.Background(), ctrl.Request{NamespacedName: key})
+	require.NoError(t, err)
+	assert.Equal(t, pvcReleaseRetryInterval, res.RequeueAfter, "the first pass waits on the old PVC")
+
+	if _, err := r.Reconcile(context.Background(), ctrl.Request{NamespacedName: key}); err != nil {
+		t.Fatalf("second reconcile failed: %v", err)
+	}
+
+	got := &corev1.PersistentVolumeClaim{}
+	require.NoError(t, c.Get(context.Background(), key, got), "a fresh PVC must be provisioned")
+	assert.True(t, got.DeletionTimestamp.IsZero(), "the fresh PVC must not be the terminating one")
+	ref := metav1.GetControllerOf(got)
+	require.NotNil(t, ref)
+	assert.Equal(t, types.UID("new-uid"), ref.UID, "the fresh PVC must belong to the recreated mirror")
+}
+
+// A PVC left by an earlier CR of the same name is on its way out, so reusing it would hand
+// the new mirror a directory tree that garbage collection is about to remove.
+func TestEnsurePVC_PVCFromPreviousGenerationIsRejected(t *testing.T) {
+	cr := newManagedTestCR("mirror-1")
+	cr.UID = "new-uid"
+	pvc := &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            "mirror-1",
+			Namespace:       "default",
+			OwnerReferences: []metav1.OwnerReference{mirrorOwnerRef("mirror-1", "old-uid")},
+		},
+		Spec:   corev1.PersistentVolumeClaimSpec{StorageClassName: ptr.To("kaito-model-mirror")},
+		Status: corev1.PersistentVolumeClaimStatus{Phase: corev1.ClaimBound},
+	}
+	c := fake.NewClientBuilder().WithScheme(testScheme()).
+		WithObjects(cr, pvc).WithStatusSubresource(cr).Build()
+	r := newTestReconciler(c)
+
+	assert.ErrorIs(t, r.ensurePVC(context.Background(), cr), errPVCAwaitingDeletion)
+
+	cond := meta.FindStatusCondition(cr.Status.Conditions, mmconsts.ConditionTypeStorageReady)
+	require.NotNil(t, cond)
+	assert.Equal(t, mmconsts.ReasonPVCTerminating, cond.Reason)
+}
+
+// A PVC the mirror did not provision -- hand-created, or left by a pre-namespaced mirror --
+// never becomes usable on its own, so reconcile has to stop and say so.
+func TestEnsurePVC_PVCNotOwnedIsUnusable(t *testing.T) {
+	tests := []struct {
+		name      string
+		ownerRefs []metav1.OwnerReference
+	}{
+		{name: "no owner (legacy or hand-created)", ownerRefs: nil},
+		{name: "owned by an unrelated object", ownerRefs: []metav1.OwnerReference{{
+			APIVersion: "apps/v1",
+			Kind:       "StatefulSet",
+			Name:       "unrelated",
+			UID:        "sts-uid",
+			Controller: ptr.To(true),
+		}}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cr := newManagedTestCR("mirror-1")
+			cr.UID = "new-uid"
+			pvc := &corev1.PersistentVolumeClaim{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:            "mirror-1",
+					Namespace:       "default",
+					OwnerReferences: tt.ownerRefs,
+				},
+				Spec:   corev1.PersistentVolumeClaimSpec{StorageClassName: ptr.To("kaito-model-mirror")},
+				Status: corev1.PersistentVolumeClaimStatus{Phase: corev1.ClaimBound},
+			}
+			c := fake.NewClientBuilder().WithScheme(testScheme()).
+				WithObjects(cr, pvc).WithStatusSubresource(cr).Build()
+			r := newTestReconciler(c)
+
+			assert.ErrorIs(t, r.ensurePVC(context.Background(), cr), errPVCUnusable)
+
+			cond := meta.FindStatusCondition(cr.Status.Conditions, mmconsts.ConditionTypeStorageReady)
+			require.NotNil(t, cond)
+			assert.Equal(t, mmconsts.ReasonPVCNotOwned, cond.Reason)
+		})
+	}
+}
+
+// A stale reconcile for a deleted CR must not strip protection from the PVC that a newer CR
+// of the same name now owns.
+func TestReleasePVC_KeepsFinalizerWhenOwnedByLiveNewerCR(t *testing.T) {
+	cr := newManagedTestCR("mirror-1")
+	cr.UID = "new-uid"
+	now := metav1.Now()
+	pvc := &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:              "mirror-1",
+			Namespace:         "default",
+			Finalizers:        []string{mmconsts.ModelMirrorPVCFinalizer},
+			DeletionTimestamp: &now,
+			OwnerReferences:   []metav1.OwnerReference{mirrorOwnerRef("mirror-1", "new-uid")},
+		},
+	}
+	c := fake.NewClientBuilder().WithScheme(testScheme()).
+		WithObjects(cr, pvc).WithStatusSubresource(cr).Build()
+	r := newTestReconciler(c)
+
+	_, err := r.releasePVC(context.Background(), types.NamespacedName{Name: "mirror-1", Namespace: "default"})
+	require.NoError(t, err)
+
+	got := &corev1.PersistentVolumeClaim{}
+	require.NoError(t, c.Get(context.Background(), types.NamespacedName{Name: "mirror-1", Namespace: "default"}, got))
+	assert.Contains(t, got.Finalizers, mmconsts.ModelMirrorPVCFinalizer,
+		"a live mirror's PVC must keep its protection finalizer")
 }
 
 func TestClassifyDownloadFailure(t *testing.T) {

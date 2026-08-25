@@ -31,6 +31,8 @@ const (
 	ReasonPVCPending              = "PVCPending"
 	ReasonPVCCreateFailed         = "PVCCreateFailed"
 	ReasonPVCStorageClassMismatch = "PVCStorageClassMismatch"
+	ReasonPVCTerminating          = "PVCTerminating"
+	ReasonPVCNotOwned             = "PVCNotOwned"
 	ReasonJobCreateFailed         = "JobCreateFailed"
 	ReasonDownloadFailed          = "DownloadFailed"
 	ReasonDownloadOOMKilled       = "DownloadOOMKilled"

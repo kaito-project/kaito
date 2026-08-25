@@ -52,6 +52,10 @@ const (
 // usable on its own. Reconcile stops on it rather than retrying.
 var errPVCUnusable = goerrors.New("model mirror PVC is unusable")
 
+// errPVCAwaitingDeletion reports a PVC that still holds the mirror's name but belongs to a
+// generation on its way out. Reconcile waits for garbage collection instead of adopting it.
+var errPVCAwaitingDeletion = goerrors.New("model mirror PVC is awaiting deletion")
+
 // ModelMirrorReconciler reconciles ModelMirror objects.
 type ModelMirrorReconciler struct {
 	client.Client
@@ -121,6 +125,10 @@ func (r *ModelMirrorReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		if goerrors.Is(err, errPVCUnusable) {
 			return ctrl.Result{}, nil
 		}
+		// A PVC on its way out clears on its own once garbage collection catches up.
+		if goerrors.Is(err, errPVCAwaitingDeletion) {
+			return ctrl.Result{RequeueAfter: pvcReleaseRetryInterval}, nil
+		}
 		return ctrl.Result{}, err
 	}
 
@@ -142,17 +150,30 @@ func (r *ModelMirrorReconciler) releasePVC(ctx context.Context, key types.Namesp
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// A PVC the controller does not own is never garbage collected, so waiting on it would
-	// requeue forever. Mirrors that predate ownerReferences fall in this bucket.
 	ref := metav1.GetControllerOf(pvc)
 	if ref == nil || ref.Kind != "ModelMirror" || ref.Name != key.Name {
 		return ctrl.Result{}, nil
 	}
 
+	// This reconcile can be for a CR generation that is already gone while a newer CR of the
+	// same name owns the PVC. Comparing the UID keeps that newer generation's storage from
+	// losing its protection finalizer.
+	owner := &kaitov1alpha1.ModelMirror{}
+	switch err := r.Get(ctx, key, owner); {
+	case err == nil && owner.UID == ref.UID && owner.DeletionTimestamp.IsZero():
+		return ctrl.Result{}, nil
+	case err != nil && !errors.IsNotFound(err):
+		return ctrl.Result{}, err
+	}
+
 	if pvc.DeletionTimestamp.IsZero() {
 		return ctrl.Result{RequeueAfter: pvcReleaseRetryInterval}, nil
 	}
+	return r.clearPVCFinalizer(ctx, pvc)
+}
 
+// clearPVCFinalizer drops the protection finalizer so deletion of the PVC can complete.
+func (r *ModelMirrorReconciler) clearPVCFinalizer(ctx context.Context, pvc *corev1.PersistentVolumeClaim) (ctrl.Result, error) {
 	if !controllerutil.ContainsFinalizer(pvc, mmconsts.ModelMirrorPVCFinalizer) {
 		return ctrl.Result{}, nil
 	}
@@ -172,12 +193,53 @@ func (r *ModelMirrorReconciler) ensurePVC(ctx context.Context, cr *kaitov1alpha1
 	pvc := &corev1.PersistentVolumeClaim{}
 	err := r.Get(ctx, types.NamespacedName{Name: pvcName, Namespace: cr.Namespace}, pvc)
 	if err == nil {
+		// A terminating PVC still holds the name this mirror needs. Adopting it would bind
+		// the mirror to storage that is about to disappear, so wait for the reap instead.
+		if !pvc.DeletionTimestamp.IsZero() {
+			// releasePVC runs only while the CR is absent, so once this newer CR owns the
+			// reconcile key nothing else would strip the finalizer and the wait would not end.
+			if !isOwnedBy(pvc, cr) {
+				if _, err := r.clearPVCFinalizer(ctx, pvc); err != nil {
+					return err
+				}
+			}
+			setCondition(cr, mmconsts.ConditionTypeStorageReady, metav1.ConditionFalse, mmconsts.ReasonPVCTerminating,
+				fmt.Sprintf("PVC %s/%s is terminating; waiting for it to be reclaimed", cr.Namespace, pvcName))
+			if updateErr := r.Status().Update(ctx, cr); updateErr != nil {
+				return updateErr
+			}
+			return errPVCAwaitingDeletion
+		}
 		// An existing PVC on a different StorageClass would silently place the weights
 		// somewhere other than the mirror asks for, so report it instead of adopting it.
 		if want := ptr.Deref(cr.Spec.Storage.StorageClassName, ""); ptr.Deref(pvc.Spec.StorageClassName, "") != want {
 			setCondition(cr, mmconsts.ConditionTypeStorageReady, metav1.ConditionFalse, mmconsts.ReasonPVCStorageClassMismatch,
 				fmt.Sprintf("PVC %s/%s uses StorageClass %q but this ModelMirror requires %q; delete the PVC to re-provision it",
 					cr.Namespace, pvcName, ptr.Deref(pvc.Spec.StorageClassName, ""), want))
+			if updateErr := r.Status().Update(ctx, cr); updateErr != nil {
+				return updateErr
+			}
+			return errPVCUnusable
+		}
+		// The mirror only uses a PVC it provisioned itself. Ownership is checked after the
+		// StorageClass so an unusable PVC is never taken over.
+		switch ref := metav1.GetControllerOf(pvc); {
+		case isOwnedBy(pvc, cr):
+			// Already this generation's PVC.
+		case ref != nil && ref.Kind == "ModelMirror" && ref.Name == cr.Name:
+			// Left by an earlier CR of the same name. Garbage collection reaps it once that
+			// generation is gone, and a fresh PVC is provisioned on the next pass.
+			setCondition(cr, mmconsts.ConditionTypeStorageReady, metav1.ConditionFalse, mmconsts.ReasonPVCTerminating,
+				fmt.Sprintf("PVC %s/%s belongs to a previous generation of this ModelMirror; waiting for it to be reclaimed",
+					cr.Namespace, pvcName))
+			if updateErr := r.Status().Update(ctx, cr); updateErr != nil {
+				return updateErr
+			}
+			return errPVCAwaitingDeletion
+		default:
+			setCondition(cr, mmconsts.ConditionTypeStorageReady, metav1.ConditionFalse, mmconsts.ReasonPVCNotOwned,
+				fmt.Sprintf("PVC %s/%s is not managed by this ModelMirror; delete it so the mirror can provision its own",
+					cr.Namespace, pvcName))
 			if updateErr := r.Status().Update(ctx, cr); updateErr != nil {
 				return updateErr
 			}

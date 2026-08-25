@@ -189,7 +189,7 @@ Upstream chunk 1: "AWS key: AKIA1234"
 Upstream chunk 2: "567890ABCDEF"
 ```
 
-The holdback window combines and scans pending text before release:
+With the policy shown above and `redact_mode: all`, the holdback window combines and scans pending text before release:
 
 | Upstream | Pending window | Client-visible output |
 | --- | --- | --- |

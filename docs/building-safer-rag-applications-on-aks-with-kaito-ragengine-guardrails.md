@@ -24,7 +24,7 @@ Model -> SSE chunks -> Client
                        unsafe content may already be visible
 ```
 
-A streaming guardrail therefore cannot simply scan each chunk independently. It must retain an uncommitted suffix, scan across chunk boundaries, and emit only content that has been confirmed safe.
+A streaming guardrail therefore cannot simply scan each chunk independently. It must retain an uncommitted suffix, scan across chunk boundaries, and emit only content that has passed the applicable safety checks.
 
 Third, policy changes become tied to each application's release cycle, often requiring repeated configuration changes, builds, and deployments across multiple services. With RAGEngine, the workflow becomes:
 
@@ -38,7 +38,7 @@ RAGEngine centralizes these responsibilities on the OpenAI-compatible response p
 
 RAGEngine separates policy management from response enforcement. The control plane configures guardrails through Kubernetes; the data plane applies the active policy before assistant output reaches the client.
 
-This separation keeps scanner lifecycle out of application code and applies one enforcement model across supported inference endpoints.
+This separation keeps scanner lifecycle out of application code and applies a shared enforcement model across supported chat-completion paths.
 
 ```mermaid
 flowchart LR
@@ -58,11 +58,13 @@ flowchart LR
 
 Users enable the feature with `spec.guardrails.enabled` and optionally select a policy ConfigMap through `configMapRef`. The controller resolves and mounts the policy and injects the enabled state and path. Applications continue calling the same OpenAI-compatible endpoint without loading scanners or adding filtering code.
 
-At runtime, RAGEngine parses the YAML, validates scanner settings, and builds the pipeline. Unsupported or incompatible scanner entries are skipped and reported; active scanner failures fail closed rather than return unscanned output.
+At runtime, RAGEngine parses the YAML, validates scanner settings, and builds the pipeline. Unsupported, invalid, or incompatible policy entries are skipped and reported. Scanner construction failures are logged and excluded from the active pipeline, while response-scanning failures fail closed rather than returning unscanned output.
 
-Policy and application releases have separate lifecycles. A ConfigMap change builds a new snapshot and atomically replaces the active one. A reloader failure keeps the current snapshot and reports the outcome without restarting the Pod.
+Policy and application releases have separate lifecycles. When the mounted policy changes, the policy reloader builds a new snapshot and atomically replaces the active one. A reloader failure keeps the current snapshot and reports the outcome without restarting the Pod.
 
-The `/v1/chat/completions` endpoint scans complete non-streaming responses. Streaming responses use SSE parsing, a holdback window, and a compatible scanner subset. Both paths share one policy model, while metrics report policy loads and reloads, scanner construction and hits, and final actions. Enforcement currently covers assistant text only.
+The `/v1/chat/completions` endpoint scans complete non-streaming responses. Streaming responses use SSE parsing and a safety-aware holdback window. Streaming requests are accepted only when the active policy uses supported scanner/action combinations; unsupported streaming configurations are rejected rather than silently bypassed.
+
+Both paths share the same active policy model. Metrics expose policy loads and reloads, scanner construction, and enforcement outcomes; the non-streaming path additionally records per-scanner hits. Enforcement currently covers assistant text only.
 
 ## Configure Policy-Driven Output Protection
 
@@ -132,35 +134,37 @@ flowchart LR
   A[Upstream bytes] --> B[SSE event framing]
   B --> C[OpenAI delta parsing]
   C --> D[Pending holdback window]
-  D --> E[Redact and scan]
-  E -->|safe prefix| F[Rebuilt SSE delta]
+  D --> E[Apply redaction, then block scans]
+  E -->|checked prefix| F[Rebuilt SSE delta]
   E -->|block| G[Policy message]
   G --> H[content_filter and DONE]
 ```
 
-RAGEngine frames OpenAI-compatible SSE events, extracts textual `delta.content`, appends it to pending text, and scans the combined window. It releases only the prefix outside the holdback boundary, allowing the scanner to see `AKIA1234567890123456` as one candidate. The retained tail returns to the configured holdback size after each release instead of growing with the response.
+RAGEngine frames OpenAI-compatible SSE events, extracts textual `delta.content`, appends it to pending text, and scans the combined window. It releases only the prefix outside the holdback boundary, allowing the scanner to see `AKIA1234567890123456` as one candidate. The retained tail remains bounded rather than growing with the complete response.
 
 At `finish_reason`, `[DONE]`, or upstream end, RAGEngine flushes and scans the remaining window. A block discards pending text and emits the policy message, an OpenAI `content_filter` finish reason, and `[DONE]`.
 
-Redaction can change text length, so offsets derived from original content are unsafe. RAGEngine replaces pending text with the sanitized result and recalculates the releasable prefix, preventing partial, duplicated, or missing output.
+Redaction can change text length, so offsets derived from the original content are unsafe. RAGEngine replaces pending text with the sanitized result and recalculates the releasable prefix, preventing partial, duplicated, or missing output.
 
 Word matching requires both boundaries. With `match_type: word`, `SECRET_PROJECT is active` matches, while `MY_SECRET_PROJECT_ARCHIVE` does not. RAGEngine retains the preceding emitted character for the left boundary. If the right character has not arrived, the candidate remains pending; flush treats the response end as the final boundary.
 
-Secret redaction adds verification: RAGEngine scans the sanitized result again and fails closed if it cannot confirm removal. Malformed SSE, multiple choices, unsupported policy combinations, or scanner failures likewise produce a refusal instead of uncertain output.
+Secret redaction adds an additional verification step: RAGEngine scans the sanitized result again and fails closed if it cannot confirm that the secret was removed.
 
-The holdback is a safety boundary, not only a delay. It keeps values that begin near an emission boundary from leaking before the runtime can determine whether later characters complete a secret or prohibited word. Policies with longer banned substrings increase the retained tail, trading first-visible-token latency for a wider detection boundary.
+Malformed SSE or unexpected multi-choice events fail closed with a streaming refusal. Unsupported scanner/action combinations are rejected before streaming begins rather than silently bypassed.
 
-The default window retains 256 characters and grows for longer banned substrings, providing adjacent text without retaining the complete response.
+The holdback is a safety boundary, not only a delay. It prevents values that begin near an emission boundary from leaking before the runtime can determine whether later characters complete a secret or prohibited word. Policies with longer banned substrings increase the retained tail, trading first-visible-token latency for a wider detection boundary.
 
-RAGEngine therefore treats streaming output as one ordered text stream and releases only text confirmed safe.
+The default holdback is 256 characters and increases when required by the configured banned substrings, providing adjacent context without retaining the complete response.
+
+RAGEngine therefore treats streaming output as a continuous text stream and releases only content that has passed the applicable safety checks.
 
 ## See Guardrails in Action
 
-The application uses the same request and endpoint in each example; only the policy changes the result.
+Applications keep the same OpenAI-compatible endpoint and request shape; the active guardrail policy determines how assistant output is handled.
 
 ### Redact sensitive data
 
-The `sensitive` scanner removes detected values while preserving the answer:
+The `sensitive` scanner removes detected values while preserving the rest of the answer:
 
 ```text
 Without: Email alice@example.com, call +1 (206) 555-0100,
@@ -172,7 +176,7 @@ With:    Email <EMAIL>, call <PHONE>,
 
 With `action: redact`, RAGEngine returns the remaining context normally.
 
-The request body and endpoint are unchanged; the scanner action controls only the returned assistant text.
+The request body and endpoint are unchanged; the scanner action affects only the returned assistant text.
 
 ### Redact a secret split across chunks
 
@@ -189,9 +193,7 @@ The holdback window combines and scans pending text before release:
 | --- | --- | --- |
 | Secret split across chunks | `AKIA1234567890ABCDEF` | `AWS key: ******` |
 
-The client never receives the first half, and the complete secret appears in no downstream chunk.
-
-This is the key streaming result: client-visible leakage remains zero even though the upstream value crosses an event boundary.
+The client never receives the first half. The complete secret appears in no downstream chunk, even though the upstream value crosses an SSE event boundary.
 
 ### Block a prohibited term
 
@@ -207,19 +209,17 @@ finish_reason: content_filter
 
 On a match, RAGEngine discards pending original text before emitting the configured refusal sequence.
 
-Add `CONFIDENTIAL_ALPHA` to the ConfigMap and RAGEngine reloads it without restarting the Pod or changing the endpoint. The reload metric and active policy metadata confirm the update.
+Add `CONFIDENTIAL_ALPHA` to the ConfigMap and RAGEngine reloads the updated policy without restarting the Pod or changing the endpoint. Reload metrics and active-policy metadata confirm the update.
 
 ## From Pattern Matching to Semantic Protection
 
 Deterministic scanners protect known patterns, but a response can contain no secret, PII, prohibited term, or invalid JSON and still be irrelevant or unsupported by retrieved evidence.
 
-Future model-based scanners could assess relevance, toxicity, or topic policy. Factual consistency also needs retrieved evidence as scanner input, while prompt-injection detection belongs on an input-side hook before retrieval and inference.
+Future model-based scanners could assess relevance, toxicity, or topic policy. Factual-consistency checks require retrieved evidence to be available as scanner context, while prompt-injection detection belongs on an input-side hook before retrieval and inference.
 
 > **Model-based scanners should complement fast rule- and pattern-based checks rather than replace them.**
 
-KAITO does not currently expose these scanners. Adding them requires context plumbing, thresholds, fallback behavior, and measurement of quality, latency, and resource cost.
-
-They are context-aware, but more expensive.
+KAITO does not currently expose these scanners. Adding them requires context plumbing, threshold selection, fallback behavior, and measurement of quality, latency, and resource cost. Model-based scanners can account for broader context, but they also introduce additional latency and operational complexity.
 
 ## Evaluate Safety and Performance
 
@@ -235,14 +235,16 @@ Evaluate four profiles rather than reporting configuration alone:
 Use positive, negative, boundary, and malformed samples. Report detection errors, redaction correctness, cross-chunk detection, and the defining streaming metric:
 
 ```text
-Leakage bytes = unsafe bytes delivered to the client before enforcement
+Leakage bytes = bytes from detected policy-violating content delivered before enforcement
 ```
 
-Target zero leakage and verify valid SSE. Separate model TTFT from guardrail-induced first-visible-token delay; report P50, P95, and P99 latency, throughput, resource use, and reload time across allow, redact, and block paths. KAITO does not yet publish benchmark results.
+Target zero leakage for detected policy violations and verify valid SSE framing. Separate model TTFT from guardrail-induced first-visible-token delay; report P50, P95, and P99 latency, throughput, resource use, and reload time across allow, redact, and block paths.
+
+KAITO does not yet publish benchmark results.
 
 ## Operational Considerations and Current Scope
 
-ConfigMaps, hot reload, fail-closed execution, metrics, and logs separate policy operations from application releases. Current enforcement covers assistant text; streaming supports a scanner subset and one choice, while tool-call arguments, input scanning, and retrieved-context checks are outside scope.
+ConfigMaps, hot reload, fail-closed response scanning, metrics, and logs separate policy operations from application releases. Current enforcement covers assistant text; streaming supports a defined scanner/action subset and a single choice, while tool-call arguments, input scanning, and retrieved-context checks are outside scope.
 
 > **Guardrails are one layer of defense, not a replacement for RBAC, network policies, secret management, data access controls, or secure retrieval design.**
 

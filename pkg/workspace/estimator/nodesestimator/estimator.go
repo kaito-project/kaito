@@ -37,7 +37,8 @@ const (
 	// vLLM treats it as the hard cap on the fraction of total GPU memory used for
 	// weights + activations + CUDA graphs + KV cache, so the estimator must use
 	// the same value to predict the per-GPU memory budget vLLM will actually have.
-	gpuMemoryUtilization = 0.84
+	// https://docs.vllm.ai/en/latest/configuration/engine_args/#-gpu-memory-utilization
+	gpuMemoryUtilization = 0.92
 
 	// weightExpansionFactor accounts for the ~2% expansion of model weights once
 	// loaded by vLLM relative to the on-disk safetensor size.
@@ -148,7 +149,7 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 		totalGPUMemRequired := resource.MustParse(inferParams.TotalSafeTensorFileSize)
 		modelSize := float64(totalGPUMemRequired.Value()) * weightExpansionFactor // vllm model size is about 102% of HuggingFace size
 		gpuMemPerGPU := float64(gpuConfig.GPUMem.Value() / int64(gpuConfig.GPUCount))
-		availGPUMem := gpuMemPerGPU * gpuMemoryUtilization // utilization is set to default 0.84
+		availGPUMem := gpuMemPerGPU * gpuMemoryUtilization
 
 		// Overhead: a fixed base plus the KV cache for the
 		// context length, plus a term that scales with the per-GPU model weight

@@ -461,8 +461,8 @@ func TestNodeEstimator_EstimateNodeCount_MIG(t *testing.T) {
 	//   modelSize  = 8Gi * 1.02                       = 8.16 GiB
 	//   overhead   = 2.3 GiB base + 0 KV + 0.05*8.16  = 2.71 GiB
 	//   needed     ~= 10.87 GiB
-	//   available  = <sliceGB> * 0.84 GiB
-	// so a slice must expose ~13GB before overhead to fit the model.
+	//   available  = <sliceGB> * 0.92 GiB
+	// so a slice must expose ~12GB before overhead to fit the model.
 	tests := []struct {
 		name          string
 		migProfile    string
@@ -472,19 +472,19 @@ func TestNodeEstimator_EstimateNodeCount_MIG(t *testing.T) {
 	}{
 		{
 			name:          "Model fits in a large MIG slice",
-			migProfile:    "2g.24gb", // 24 * 0.84 = 20.16 GiB available
+			migProfile:    "2g.24gb", // 24 * 0.92 = 22.08 GiB available
 			expectedCount: 1,
 			expectedError: false,
 		},
 		{
 			name:          "Model fits in a 3g.47gb slice",
-			migProfile:    "3g.47gb", // 47 * 0.84 = 39.48 GiB available
+			migProfile:    "3g.47gb", // 47 * 0.92 = 43.24 GiB available
 			expectedCount: 1,
 			expectedError: false,
 		},
 		{
 			name:          "Model does not fit in a small MIG slice",
-			migProfile:    "1g.10gb", // 10 * 0.84 = 8.4 GiB available < 10.87 GiB needed
+			migProfile:    "1g.10gb", // 10 * 0.92 = 9.2 GiB available < 10.87 GiB needed
 			expectedCount: 0,
 			expectedError: true,
 			errorContains: "only provides",
@@ -569,7 +569,7 @@ func TestNodeEstimator_EstimateNodeCount_MIG_ContextSize(t *testing.T) {
 			Namespace: "default",
 		},
 		Resource: kaitov1beta1.ResourceSpec{
-			Partition: &kaitov1beta1.PartitionSpec{Mode: kaitov1beta1.PartitionModeMIG, Profile: "1g.24gb"}, // 24 * 0.84 = 20.16 GiB available
+			Partition: &kaitov1beta1.PartitionSpec{Mode: kaitov1beta1.PartitionModeMIG, Profile: "1g.24gb"}, // 24 * 0.92 = 22.08 GiB available
 		},
 		Inference: &kaitov1beta1.InferenceSpec{
 			Preset: &kaitov1beta1.PresetSpec{
@@ -659,8 +659,8 @@ func TestNodeEstimator_EstimateNodeCount_RealCatalogModels_A100(t *testing.T) {
 		a100_2GPU = "Standard_NC48ads_A100_v4"
 	)
 	runRealCatalogModelCases(t, []realCatalogModelCase{
-		{"gpt-oss-120b/1xA100", "openai/gpt-oss-120b", a100_1GPU, 3},                          // 121.54Gi
-		{"gpt-oss-120b/2xA100", "openai/gpt-oss-120b", a100_2GPU, 2},                          // 121.54Gi
+		{"gpt-oss-120b/1xA100", "openai/gpt-oss-120b", a100_1GPU, 2},                          // 121.54Gi
+		{"gpt-oss-120b/2xA100", "openai/gpt-oss-120b", a100_2GPU, 1},                          // 121.54Gi
 		{"DeepSeek-V4-Flash-0731/1xA100", "deepseek-ai/DeepSeek-V4-Flash-0731", a100_1GPU, 3}, // 155.43Gi
 		{"DeepSeek-V4-Flash-0731/2xA100", "deepseek-ai/DeepSeek-V4-Flash-0731", a100_2GPU, 2}, // 155.43Gi
 		{"Qwen3.8-27B/1xA100", "Qwen/Qwen3.8-27B", a100_1GPU, 1},                              // 51.75Gi
@@ -680,8 +680,8 @@ func TestNodeEstimator_EstimateNodeCount_RealCatalogModels_H100(t *testing.T) {
 	runRealCatalogModelCases(t, []realCatalogModelCase{
 		{"gpt-oss-120b/1xH100", "openai/gpt-oss-120b", h100_1GPU, 2},                          // 121.54Gi
 		{"gpt-oss-120b/2xH100", "openai/gpt-oss-120b", h100_2GPU, 1},                          // 121.54Gi
-		{"DeepSeek-V4-Flash-0731/1xH100", "deepseek-ai/DeepSeek-V4-Flash-0731", h100_1GPU, 3}, // 155.43Gi
-		{"DeepSeek-V4-Flash-0731/2xH100", "deepseek-ai/DeepSeek-V4-Flash-0731", h100_2GPU, 2}, // 155.43Gi
+		{"DeepSeek-V4-Flash-0731/1xH100", "deepseek-ai/DeepSeek-V4-Flash-0731", h100_1GPU, 2}, // 155.43Gi
+		{"DeepSeek-V4-Flash-0731/2xH100", "deepseek-ai/DeepSeek-V4-Flash-0731", h100_2GPU, 1}, // 155.43Gi
 		{"Qwen3.8-27B/1xH100", "Qwen/Qwen3.8-27B", h100_1GPU, 1},                              // 51.75Gi
 		{"gemma-4-31B-it/1xH100", "google/gemma-4-31B-it", h100_1GPU, 1},                      // 58.25Gi
 	})
@@ -702,7 +702,7 @@ func TestNodeEstimator_EstimateNodeCount_RealCatalogModels_A10(t *testing.T) {
 		{"gemma-4-12B-it/1xA10", "google/gemma-4-12B-it", a10_1GPU, 2},         // 22.28Gi
 		{"gemma-4-12B-it/2xA10", "google/gemma-4-12B-it", a10_2GPU, 1},         // 22.28Gi
 		{"granite-4.1-8b/1xA10", "ibm-granite/granite-4.1-8b", a10_1GPU, 1},    // 16.38Gi
-		{"Qwen3.6-35B-A3B-FP8/1xA10", "Qwen/Qwen3.6-35B-A3B-FP8", a10_1GPU, 3}, // 34.90Gi
-		{"Qwen3.6-35B-A3B-FP8/2xA10", "Qwen/Qwen3.6-35B-A3B-FP8", a10_2GPU, 2}, // 34.90Gi
+		{"Qwen3.6-35B-A3B-FP8/1xA10", "Qwen/Qwen3.6-35B-A3B-FP8", a10_1GPU, 2}, // 34.90Gi
+		{"Qwen3.6-35B-A3B-FP8/2xA10", "Qwen/Qwen3.6-35B-A3B-FP8", a10_2GPU, 1}, // 34.90Gi
 	})
 }

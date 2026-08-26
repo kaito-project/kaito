@@ -20,11 +20,10 @@ rules:
     resources: ["modelmirrors/finalizers"]
     verbs: ["update"]
   # The PVC and Job are torn down explicitly while the mirror's cleanup finalizer holds the
-  # CR, so the replacement mirror can never observe the previous generation's storage. patch
-  # maintains the mirror's own finalizer on the PVC.
+  # CR, so the replacement mirror can never observe the previous generation's storage.
   - apiGroups: [""]
     resources: ["persistentvolumeclaims"]
-    verbs: ["create", "delete", "patch"]
+    verbs: ["create", "delete"]
   - apiGroups: ["admissionregistration.k8s.io"]
     resources: ["validatingwebhookconfigurations"]
     verbs: ["update"]

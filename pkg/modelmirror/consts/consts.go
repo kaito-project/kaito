@@ -16,10 +16,6 @@ package consts
 const (
 	// Finalizers
 	ModelMirrorFinalizer = "kaito.sh/model-mirror-cleanup"
-	// ModelMirrorPVCFinalizer gives the controller a chance to react before the PVC is
-	// reclaimed. The StorageClass reclaim policy is Delete, so that reap destroys the
-	// downloaded weights.
-	ModelMirrorPVCFinalizer = "kaito.sh/model-mirror-pvc"
 
 	// Annotations
 	AnnotationModelStreaming          = "kaito.sh/model-streaming"
@@ -34,9 +30,6 @@ const (
 	ReasonPVCBound          = "PVCBound"
 	ReasonPVCPending        = "PVCPending"
 	ReasonPVCCreateFailed   = "PVCCreateFailed"
-	ReasonPVCTerminating    = "PVCTerminating"
-	ReasonPVCNotOwned       = "PVCNotOwned"
-	ReasonPVCLost           = "PVCLost"
 	ReasonJobCreateFailed   = "JobCreateFailed"
 	ReasonDownloadFailed    = "DownloadFailed"
 	ReasonDownloadOOMKilled = "DownloadOOMKilled"

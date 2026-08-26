@@ -30,11 +30,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
 	models "github.com/kaito-project/kaito/presets/workspace/models"
 	"github.com/kaito-project/kaito/test/e2e/utils"
@@ -141,14 +139,11 @@ func validateModelMirrorResources(modelID, namespace string) {
 			if pvc.Spec.StorageClassName == nil || *pvc.Spec.StorageClassName != "blob-fuse" {
 				return false
 			}
-			// The mirror owns the PVC and holds a finalizer on it, so the storage is
-			// never reclaimed without the controller getting a chance to react.
-			if !controllerutil.ContainsFinalizer(pvc, mmconsts.ModelMirrorPVCFinalizer) {
-				return false
-			}
+			// The mirror owns the PVC; teardown ordering comes from the CR's cleanup
+			// finalizer rather than one on the PVC.
 			ref := metav1.GetControllerOf(pvc)
 			return ref != nil && ref.Kind == "ModelMirror" && ref.Name == crName
-		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), "ModelMirror PVC not Bound with expected SC + ownerReference + finalizer")
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), "ModelMirror PVC not Bound with expected SC + ownerReference")
 	})
 
 	By(fmt.Sprintf("Checking ModelMirror download Job for %s exists in %s", crName, namespace), func() {

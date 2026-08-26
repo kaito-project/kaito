@@ -15,7 +15,6 @@ package controllers
 
 import (
 	"context"
-	goerrors "errors"
 	"fmt"
 	"os"
 	"sort"
@@ -46,19 +45,7 @@ const (
 
 	// deletionRetryInterval paces the wait for the mirror's children to disappear.
 	deletionRetryInterval = 5 * time.Second
-
-	// unusablePVCRetryInterval paces the re-check of a PVC only the user can fix. Deleting a
-	// PVC the mirror does not own raises no event it watches, so nothing else would retry.
-	unusablePVCRetryInterval = time.Minute
 )
-
-// errPVCUnusable reports a PVC that cannot serve this ModelMirror and will not become
-// usable on its own. Reconcile stops building on it rather than mounting it.
-var errPVCUnusable = goerrors.New("model mirror PVC is unusable")
-
-// errPVCAwaitingDeletion reports a PVC that still holds the mirror's name but is on its way
-// out. Reconcile waits for the reap instead of binding to it.
-var errPVCAwaitingDeletion = goerrors.New("model mirror PVC is awaiting deletion")
 
 // ModelMirrorReconciler reconciles ModelMirror objects.
 type ModelMirrorReconciler struct {
@@ -112,20 +99,7 @@ func (r *ModelMirrorReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	if cr.Status.Phase == kaitov1alpha1.ModelMirrorPhaseReady {
-		intact, err := r.readyStorageIntact(ctx, cr)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-		if intact {
-			return ctrl.Result{}, nil
-		}
-		log.Info("ModelMirror storage is gone, re-provisioning", "namespace", cr.Namespace)
-		cr.Status.Phase = kaitov1alpha1.ModelMirrorPhasePending
-		setCondition(cr, mmconsts.ConditionTypeReady, metav1.ConditionFalse, mmconsts.ReasonPVCLost,
-			fmt.Sprintf("PVC %s/%s is gone; re-provisioning storage and downloading the model again", cr.Namespace, cr.Name))
-		if err := r.Status().Update(ctx, cr); err != nil {
-			return ctrl.Result{}, err
-		}
+		return ctrl.Result{}, nil
 	}
 
 	if cr.Spec.Source == nil || cr.Spec.Storage == nil {
@@ -137,14 +111,6 @@ func (r *ModelMirrorReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	if err := r.ensurePVC(ctx, cr); err != nil {
-		// Only the user can clear an unusable PVC, and doing so raises no event this
-		// controller watches, so poll rather than waiting to be told.
-		if goerrors.Is(err, errPVCUnusable) {
-			return ctrl.Result{RequeueAfter: unusablePVCRetryInterval}, nil
-		}
-		if goerrors.Is(err, errPVCAwaitingDeletion) {
-			return ctrl.Result{RequeueAfter: deletionRetryInterval}, nil
-		}
 		return ctrl.Result{}, err
 	}
 
@@ -213,9 +179,6 @@ func (r *ModelMirrorReconciler) deleteOwnedPVC(ctx context.Context, cr *kaitov1a
 		return false, nil
 	}
 
-	if err := r.releasePVCFinalizer(ctx, pvc); err != nil {
-		return false, err
-	}
 	if pvc.DeletionTimestamp.IsZero() {
 		if err := r.Delete(ctx, pvc); err != nil && !errors.IsNotFound(err) {
 			return false, err
@@ -225,8 +188,6 @@ func (r *ModelMirrorReconciler) deleteOwnedPVC(ctx context.Context, cr *kaitov1a
 }
 
 // deleteOwnedJobs removes the download Jobs this mirror owns and reports whether any survive.
-// A finished Job's pod still counts as a PVC user, so this is also what lets kubelet's
-// pvc-protection finalizer release a PVC the mirror is waiting to see reclaimed.
 func (r *ModelMirrorReconciler) deleteOwnedJobs(ctx context.Context, cr *kaitov1alpha1.ModelMirror) (bool, error) {
 	jobList := &batchv1.JobList{}
 	if err := r.APIReader.List(ctx, jobList,
@@ -253,28 +214,6 @@ func (r *ModelMirrorReconciler) deleteOwnedJobs(ctx context.Context, cr *kaitov1
 	return pending, nil
 }
 
-// readyStorageIntact reports whether the PVC backing a Ready mirror is still usable.
-func (r *ModelMirrorReconciler) readyStorageIntact(ctx context.Context, cr *kaitov1alpha1.ModelMirror) (bool, error) {
-	pvc := &corev1.PersistentVolumeClaim{}
-	if err := r.Get(ctx, client.ObjectKeyFromObject(cr), pvc); err != nil {
-		if errors.IsNotFound(err) {
-			return false, nil
-		}
-		return false, err
-	}
-	return pvc.DeletionTimestamp.IsZero() && isOwnedBy(pvc, cr), nil
-}
-
-// releasePVCFinalizer drops the mirror's hold so the PVC can finish being reclaimed.
-func (r *ModelMirrorReconciler) releasePVCFinalizer(ctx context.Context, pvc *corev1.PersistentVolumeClaim) error {
-	if !controllerutil.ContainsFinalizer(pvc, mmconsts.ModelMirrorPVCFinalizer) {
-		return nil
-	}
-	patch := client.MergeFromWithOptions(pvc.DeepCopy(), client.MergeFromWithOptimisticLock{})
-	controllerutil.RemoveFinalizer(pvc, mmconsts.ModelMirrorPVCFinalizer)
-	return client.IgnoreNotFound(r.Patch(ctx, pvc, patch))
-}
-
 // isOwnedBy reports whether obj carries a controller ownerReference to owner. The UID is
 // compared so a resource carrying the mirror's name but not created by it is never used.
 func isOwnedBy(obj metav1.Object, owner *kaitov1alpha1.ModelMirror) bool {
@@ -287,35 +226,6 @@ func (r *ModelMirrorReconciler) ensurePVC(ctx context.Context, cr *kaitov1alpha1
 	pvc := &corev1.PersistentVolumeClaim{}
 	err := r.Get(ctx, types.NamespacedName{Name: pvcName, Namespace: cr.Namespace}, pvc)
 	if err == nil {
-		if !isOwnedBy(pvc, cr) {
-			setCondition(cr, mmconsts.ConditionTypeStorageReady, metav1.ConditionFalse, mmconsts.ReasonPVCNotOwned,
-				fmt.Sprintf("PVC %s/%s is not managed by this ModelMirror; delete it so the mirror can provision its own",
-					cr.Namespace, pvcName))
-			if updateErr := r.Status().Update(ctx, cr); updateErr != nil {
-				return updateErr
-			}
-			return errPVCUnusable
-		}
-
-		// A deletionTimestamp cannot be withdrawn, so the hold only buys the chance to
-		// notice. Let the PVC go and provision a fresh one once it is gone.
-		if !pvc.DeletionTimestamp.IsZero() {
-			if err := r.releasePVCFinalizer(ctx, pvc); err != nil {
-				return err
-			}
-			// A finished download pod still counts as a PVC user, so pvc-protection would
-			// pin the claim until the Job's TTL expired an hour later.
-			if _, err := r.deleteOwnedJobs(ctx, cr); err != nil {
-				return err
-			}
-			setCondition(cr, mmconsts.ConditionTypeStorageReady, metav1.ConditionFalse, mmconsts.ReasonPVCTerminating,
-				fmt.Sprintf("PVC %s/%s is terminating; waiting for it to be reclaimed", cr.Namespace, pvcName))
-			if updateErr := r.Status().Update(ctx, cr); updateErr != nil {
-				return updateErr
-			}
-			return errPVCAwaitingDeletion
-		}
-
 		if pvc.Status.Phase == corev1.ClaimBound {
 			setCondition(cr, mmconsts.ConditionTypeStorageReady, metav1.ConditionTrue, mmconsts.ReasonPVCBound, "PVC is bound")
 			return r.Status().Update(ctx, cr)
@@ -332,9 +242,8 @@ func (r *ModelMirrorReconciler) ensurePVC(ctx context.Context, cr *kaitov1alpha1
 	storageSize := resource.MustParse(cr.Spec.Storage.Size)
 	pvc = &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:       pvcName,
-			Namespace:  cr.Namespace,
-			Finalizers: []string{mmconsts.ModelMirrorPVCFinalizer},
+			Name:      pvcName,
+			Namespace: cr.Namespace,
 		},
 		Spec: corev1.PersistentVolumeClaimSpec{
 			AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteMany},

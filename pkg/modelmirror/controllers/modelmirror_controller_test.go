@@ -80,53 +80,19 @@ func TestReconcile_AlreadyReady(t *testing.T) {
 	cr := newManagedTestCR("abc123")
 	cr.UID = "live-uid"
 	cr.Status.Phase = kaitov1alpha1.ModelMirrorPhaseReady
-	pvc := &corev1.PersistentVolumeClaim{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:            "abc123",
-			Namespace:       "default",
-			Finalizers:      []string{mmconsts.ModelMirrorPVCFinalizer},
-			OwnerReferences: []metav1.OwnerReference{mirrorOwnerRef("abc123", "live-uid")},
-		},
-		Status: corev1.PersistentVolumeClaimStatus{Phase: corev1.ClaimBound},
-	}
 	c := fake.NewClientBuilder().WithScheme(testScheme()).
-		WithObjects(cr, pvc).WithStatusSubresource(cr).Build()
+		WithObjects(cr).WithStatusSubresource(cr).Build()
 	r := newTestReconciler(c)
 
 	result, err := r.Reconcile(context.Background(), ctrl.Request{
 		NamespacedName: types.NamespacedName{Name: "abc123", Namespace: "default"},
 	})
 	require.NoError(t, err)
-	assert.Zero(t, result.RequeueAfter, "a Ready mirror whose storage is intact needs no requeue")
+	assert.Zero(t, result.RequeueAfter, "a Ready mirror is a no-op")
 
-	got := &kaitov1alpha1.ModelMirror{}
-	require.NoError(t, c.Get(context.Background(), types.NamespacedName{Name: "abc123", Namespace: "default"}, got))
-	assert.Equal(t, kaitov1alpha1.ModelMirrorPhaseReady, got.Status.Phase)
-}
-
-// Phase is a latch, so a Ready mirror must confirm its storage still exists; otherwise it
-// would advertise weights that are gone and never rebuild them.
-func TestReconcile_ReadyMirrorRebuildsLostPVC(t *testing.T) {
-	cr := newManagedTestCR("abc123")
-	cr.UID = "live-uid"
-	cr.Status.Phase = kaitov1alpha1.ModelMirrorPhaseReady
-	c := fake.NewClientBuilder().WithScheme(testScheme()).
-		WithObjects(cr).WithStatusSubresource(cr).Build()
-	r := newTestReconciler(c)
-
-	_, err := r.Reconcile(context.Background(), ctrl.Request{
-		NamespacedName: types.NamespacedName{Name: "abc123", Namespace: "default"},
-	})
-	require.NoError(t, err)
-
-	got := &kaitov1alpha1.ModelMirror{}
-	require.NoError(t, c.Get(context.Background(), types.NamespacedName{Name: "abc123", Namespace: "default"}, got))
-	assert.NotEqual(t, kaitov1alpha1.ModelMirrorPhaseReady, got.Status.Phase, "mirror must leave Ready once its PVC is gone")
-
-	pvc := &corev1.PersistentVolumeClaim{}
-	require.NoError(t, c.Get(context.Background(), types.NamespacedName{Name: "abc123", Namespace: "default"}, pvc),
-		"a replacement PVC must be provisioned")
-	assert.Contains(t, pvc.Finalizers, mmconsts.ModelMirrorPVCFinalizer)
+	pvcs := &corev1.PersistentVolumeClaimList{}
+	require.NoError(t, c.List(context.Background(), pvcs))
+	assert.Empty(t, pvcs.Items, "a Ready mirror must not provision anything further")
 }
 
 func TestReconcile_OwnsPVC(t *testing.T) {
@@ -301,68 +267,6 @@ func mirrorOwnerRef(name string, uid types.UID) metav1.OwnerReference {
 	}
 }
 
-// A terminating PVC is storage about to disappear, so the mirror waits for the reap rather
-// than binding to it.
-func TestEnsurePVC_WaitsOnTerminatingPVC(t *testing.T) {
-	cr := newManagedTestCR("mirror-1")
-	cr.UID = "live-uid"
-	now := metav1.Now()
-	pvc := &corev1.PersistentVolumeClaim{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:              "mirror-1",
-			Namespace:         "default",
-			Finalizers:        []string{"kubernetes.io/pvc-protection"},
-			DeletionTimestamp: &now,
-			OwnerReferences:   []metav1.OwnerReference{mirrorOwnerRef("mirror-1", "live-uid")},
-		},
-		Spec: corev1.PersistentVolumeClaimSpec{StorageClassName: ptr.To("kaito-model-mirror")},
-	}
-	c := fake.NewClientBuilder().WithScheme(testScheme()).
-		WithObjects(cr, pvc).WithStatusSubresource(cr).Build()
-	r := newTestReconciler(c)
-
-	assert.ErrorIs(t, r.ensurePVC(context.Background(), cr), errPVCAwaitingDeletion)
-
-	cond := meta.FindStatusCondition(cr.Status.Conditions, mmconsts.ConditionTypeStorageReady)
-	require.NotNil(t, cond)
-	assert.Equal(t, mmconsts.ReasonPVCTerminating, cond.Reason)
-}
-
-// A finished download pod still counts as a PVC user, so leaving the Job in place lets
-// pvc-protection pin the terminating claim until the Job's TTL expires an hour later.
-func TestEnsurePVC_TerminatingPVCAlsoTearsDownJobs(t *testing.T) {
-	cr := newManagedTestCR("mirror-1")
-	cr.UID = "live-uid"
-	now := metav1.Now()
-	pvc := &corev1.PersistentVolumeClaim{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:              "mirror-1",
-			Namespace:         "default",
-			Finalizers:        []string{"kubernetes.io/pvc-protection"},
-			DeletionTimestamp: &now,
-			OwnerReferences:   []metav1.OwnerReference{mirrorOwnerRef("mirror-1", "live-uid")},
-		},
-	}
-	job := &batchv1.Job{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:            "mirror-1-download-abc",
-			Namespace:       "default",
-			Labels:          map[string]string{mmconsts.LabelModelMirrorName: "mirror-1"},
-			OwnerReferences: []metav1.OwnerReference{mirrorOwnerRef("mirror-1", "live-uid")},
-		},
-		Status: batchv1.JobStatus{Succeeded: 1},
-	}
-	c := fake.NewClientBuilder().WithScheme(testScheme()).
-		WithObjects(cr, pvc, job).WithStatusSubresource(cr).Build()
-	r := newTestReconciler(c)
-
-	assert.ErrorIs(t, r.ensurePVC(context.Background(), cr), errPVCAwaitingDeletion)
-
-	got := &batchv1.Job{}
-	err := c.Get(context.Background(), types.NamespacedName{Name: "mirror-1-download-abc", Namespace: "default"}, got)
-	assert.True(t, apierrors.IsNotFound(err), "the completed download Job must be torn down, got %v", err)
-}
-
 // The mirror must not be released while its storage survives, or a replacement could be
 // created against the previous generation's PVC.
 func TestFinalizeMirror_HoldsCRWhileChildrenSurvive(t *testing.T) {
@@ -415,96 +319,6 @@ func TestFinalizeMirror_ReleasesCROnceChildrenAreGone(t *testing.T) {
 
 	err = c.Get(context.Background(), key, &kaitov1alpha1.ModelMirror{})
 	assert.True(t, apierrors.IsNotFound(err), "the CR must be released once its children are gone")
-}
-
-// Deleting a live mirror's PVC by hand is not a supported operation, but it must still
-// settle rather than wedge: wait for the reap, then provision fresh.
-func TestReconcile_ConvergesAfterPVCIsDeletedUnderALiveMirror(t *testing.T) {
-	cr := newManagedTestCR("mirror-1")
-	cr.UID = "live-uid"
-	cr.Finalizers = []string{mmconsts.ModelMirrorFinalizer}
-	now := metav1.Now()
-	pvc := &corev1.PersistentVolumeClaim{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:              "mirror-1",
-			Namespace:         "default",
-			Finalizers:        []string{"kubernetes.io/pvc-protection"},
-			DeletionTimestamp: &now,
-			OwnerReferences:   []metav1.OwnerReference{mirrorOwnerRef("mirror-1", "live-uid")},
-		},
-		Spec: corev1.PersistentVolumeClaimSpec{StorageClassName: ptr.To("kaito-model-mirror")},
-	}
-	c := fake.NewClientBuilder().WithScheme(testScheme()).
-		WithObjects(cr, pvc).WithStatusSubresource(cr).Build()
-	r := newTestReconciler(c)
-	key := types.NamespacedName{Name: "mirror-1", Namespace: "default"}
-
-	res, err := r.Reconcile(context.Background(), ctrl.Request{NamespacedName: key})
-	require.NoError(t, err)
-	assert.Equal(t, deletionRetryInterval, res.RequeueAfter, "the first pass waits on the doomed PVC")
-
-	// Stand in for the garbage collector, which the fake client does not implement.
-	stale := &corev1.PersistentVolumeClaim{}
-	require.NoError(t, c.Get(context.Background(), key, stale))
-	stale.Finalizers = nil
-	require.NoError(t, c.Update(context.Background(), stale))
-
-	if _, err := r.Reconcile(context.Background(), ctrl.Request{NamespacedName: key}); err != nil {
-		t.Fatalf("second reconcile failed: %v", err)
-	}
-
-	got := &corev1.PersistentVolumeClaim{}
-	require.NoError(t, c.Get(context.Background(), key, got), "a fresh PVC must be provisioned")
-	assert.True(t, got.DeletionTimestamp.IsZero(), "the fresh PVC must not be the terminating one")
-	ref := metav1.GetControllerOf(got)
-	require.NotNil(t, ref)
-	assert.Equal(t, types.UID("live-uid"), ref.UID)
-}
-
-// A PVC the mirror did not provision never becomes usable on its own, so reconcile has to
-// stop and say so rather than mounting someone else's storage.
-func TestEnsurePVC_PVCNotOwnedIsUnusable(t *testing.T) {
-	tests := []struct {
-		name      string
-		ownerRefs []metav1.OwnerReference
-	}{
-		{name: "no owner (hand-created)", ownerRefs: nil},
-		{name: "owned by an unrelated object", ownerRefs: []metav1.OwnerReference{{
-			APIVersion: "apps/v1",
-			Kind:       "StatefulSet",
-			Name:       "unrelated",
-			UID:        "sts-uid",
-			Controller: ptr.To(true),
-		}}},
-		{name: "owned by an earlier mirror of the same name", ownerRefs: []metav1.OwnerReference{
-			mirrorOwnerRef("mirror-1", "old-uid"),
-		}},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cr := newManagedTestCR("mirror-1")
-			cr.UID = "new-uid"
-			pvc := &corev1.PersistentVolumeClaim{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:            "mirror-1",
-					Namespace:       "default",
-					OwnerReferences: tt.ownerRefs,
-				},
-				Spec:   corev1.PersistentVolumeClaimSpec{StorageClassName: ptr.To("kaito-model-mirror")},
-				Status: corev1.PersistentVolumeClaimStatus{Phase: corev1.ClaimBound},
-			}
-			c := fake.NewClientBuilder().WithScheme(testScheme()).
-				WithObjects(cr, pvc).WithStatusSubresource(cr).Build()
-			r := newTestReconciler(c)
-
-			assert.ErrorIs(t, r.ensurePVC(context.Background(), cr), errPVCUnusable)
-
-			cond := meta.FindStatusCondition(cr.Status.Conditions, mmconsts.ConditionTypeStorageReady)
-			require.NotNil(t, cond)
-			assert.Equal(t, mmconsts.ReasonPVCNotOwned, cond.Reason)
-		})
-	}
 }
 
 func TestClassifyDownloadFailure(t *testing.T) {

@@ -41,8 +41,6 @@ import (
 )
 
 const (
-	PresetLlama3_1_8BInstruct       = "llama-3.1-8b-instruct"
-	PresetLlama3_3_70BInstruct      = "llama-3.3-70b-instruct"
 	PresetPhi3Mini128kModel         = "phi-3-mini-128k-instruct"
 	PresetPhi4MiniModel             = "phi-4-mini-instruct"
 	PresetPhi4Model                 = "phi-4"

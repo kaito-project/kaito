@@ -1289,36 +1289,6 @@ func validateMultiRoleInferenceKVEvents(mriObj *kaitov1alpha1.MultiRoleInference
 	})
 }
 
-func createLlama3_1_8BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int, instanceType string) *kaitov1beta1.Workspace {
-	modelSecret := createAndValidateModelSecret()
-	workspaceObj := &kaitov1beta1.Workspace{}
-	By("Creating a workspace CR with Llama 3.1-8B Instruct preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-llama3-1-8b-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, instanceType,
-			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": uniqueID},
-			}, nil, PresetLlama3_1_8BInstruct, nil, nil, nil, modelSecret.Name, "") // Llama 3.1-8B Instruct model requires a model access secret
-		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
-		createAndValidateWorkspace(workspaceObj)
-	})
-	return workspaceObj
-}
-
-func createLlama3_3_70BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
-	modelSecret := createAndValidateModelSecret()
-	workspaceObj := &kaitov1beta1.Workspace{}
-	By("Creating a workspace CR with Llama 3.3-70B Instruct preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-llama3-3-70b-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC48ads_A100_v4",
-			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-llama3-3-70b-vllm"},
-			}, nil, PresetLlama3_3_70BInstruct, nil, nil, nil, modelSecret.Name, "") // Llama 3.3-70B Instruct model requires a model access secret
-		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
-		createAndValidateWorkspace(workspaceObj)
-	})
-	return workspaceObj
-}
-
 func createGemma4_E2BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}
 

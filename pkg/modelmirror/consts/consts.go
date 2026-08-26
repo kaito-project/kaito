@@ -15,7 +15,11 @@ package consts
 
 const (
 	// Finalizers
-	ModelMirrorPVCFinalizer = "kaito.sh/model-mirror-protection"
+	ModelMirrorFinalizer = "kaito.sh/model-mirror-cleanup"
+	// ModelMirrorPVCFinalizer gives the controller a chance to react before the PVC is
+	// reclaimed. The StorageClass reclaim policy is Delete, so that reap destroys the
+	// downloaded weights.
+	ModelMirrorPVCFinalizer = "kaito.sh/model-mirror-pvc"
 
 	// Annotations
 	AnnotationModelStreaming          = "kaito.sh/model-streaming"
@@ -27,19 +31,19 @@ const (
 	ConditionTypeReady        = "Ready"
 
 	// Condition reasons.
-	ReasonPVCBound                = "PVCBound"
-	ReasonPVCPending              = "PVCPending"
-	ReasonPVCCreateFailed         = "PVCCreateFailed"
-	ReasonPVCStorageClassMismatch = "PVCStorageClassMismatch"
-	ReasonPVCTerminating          = "PVCTerminating"
-	ReasonPVCNotOwned             = "PVCNotOwned"
-	ReasonJobCreateFailed         = "JobCreateFailed"
-	ReasonDownloadFailed          = "DownloadFailed"
-	ReasonDownloadOOMKilled       = "DownloadOOMKilled"
-	ReasonDownloadEvicted         = "DownloadEvicted"
-	ReasonDownloadSucceeded       = "DownloadSucceeded"
-	ReasonStaticMirror            = "StaticMirror"
-	ReasonInvalidSpec             = "InvalidSpec"
+	ReasonPVCBound          = "PVCBound"
+	ReasonPVCPending        = "PVCPending"
+	ReasonPVCCreateFailed   = "PVCCreateFailed"
+	ReasonPVCTerminating    = "PVCTerminating"
+	ReasonPVCNotOwned       = "PVCNotOwned"
+	ReasonPVCLost           = "PVCLost"
+	ReasonJobCreateFailed   = "JobCreateFailed"
+	ReasonDownloadFailed    = "DownloadFailed"
+	ReasonDownloadOOMKilled = "DownloadOOMKilled"
+	ReasonDownloadEvicted   = "DownloadEvicted"
+	ReasonDownloadSucceeded = "DownloadSucceeded"
+	ReasonStaticMirror      = "StaticMirror"
+	ReasonInvalidSpec       = "InvalidSpec"
 
 	// Labels
 	LabelModelMirrorName = "kaito.sh/model-mirror-name"

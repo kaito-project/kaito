@@ -195,7 +195,7 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 		}
 		if err := c.Client.Create(ctx, staticCR); err != nil {
 			if apierrors.IsAlreadyExists(err) {
-				return nil // Race condition
+				return errModelMirrorRaced
 			}
 			return &streamingValidationError{
 				reason: reasonModelMirrorCreateFailed,
@@ -275,7 +275,7 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 
 	if err := c.Client.Create(ctx, cr); err != nil {
 		if apierrors.IsAlreadyExists(err) {
-			return nil // Race condition
+			return errModelMirrorRaced
 		}
 		return &streamingValidationError{
 			reason: reasonModelMirrorCreateFailed,
@@ -294,6 +294,17 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 func (c *WorkspaceReconciler) validateExistingModelMirror(wObj *kaitov1beta1.Workspace,
 	existing *kaitov1alpha1.ModelMirror, modelID string, staticRequested bool) error {
 	crName := existing.Name
+
+	// A mirror on its way out still holds the name, so a replacement cannot be created yet.
+	// Deleting one while workspaces still use it is not a supported operation; this only
+	// keeps the workspace from binding to storage that is about to disappear.
+	if !existing.DeletionTimestamp.IsZero() {
+		return &streamingValidationError{
+			reason: reasonModelMirrorDeleting,
+			err: fmt.Errorf("ModelMirror %s in namespace %s is being deleted; waiting for it to be removed before recreating it",
+				crName, existing.Namespace),
+		}
+	}
 
 	if existing.Spec.Source != nil && existing.Spec.Source.ModelID != modelID {
 		return &streamingValidationError{
@@ -364,6 +375,11 @@ func (c *WorkspaceReconciler) waitForModelMirror(ctx context.Context, wObj *kait
 		return &reconcile.Result{}, fmt.Errorf("failed to get ModelMirror CR %s: %w", crName, err)
 	}
 
+	if !cr.DeletionTimestamp.IsZero() {
+		klog.InfoS("ModelMirror CR is being deleted, gating inference", "name", crName)
+		return &reconcile.Result{RequeueAfter: modelMirrorDrainRetryInterval}, nil
+	}
+
 	if cr.Status.Phase != kaitov1alpha1.ModelMirrorPhaseReady {
 		klog.InfoS("ModelMirror CR not ready, gating inference", "name", crName, "phase", cr.Status.Phase)
 		return &reconcile.Result{}, nil
@@ -404,6 +420,11 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 	// Ensure ModelMirror CR exists (starts download in parallel with node provisioning).
 	if modelstreaming.ModelStreamingEnabled(wObj) && wObj.Inference != nil && wObj.Inference.Preset != nil {
 		if err := c.ensureModelMirror(ctx, wObj); err != nil {
+			var sve *streamingValidationError
+			if errors.Is(err, errModelMirrorRaced) ||
+				(errors.As(err, &sve) && sve.reason == reasonModelMirrorDeleting) {
+				return reconcile.Result{RequeueAfter: modelMirrorDrainRetryInterval}, nil
+			}
 			return reconcile.Result{}, err
 		}
 	}
@@ -952,7 +973,17 @@ const (
 	reasonModelStreamingServiceAccountInvalid = "ModelStreamingServiceAccountInvalid"
 	reasonModelStreamingInvalidAnnotations    = "ModelStreamingInvalidAnnotations"
 	reasonModelMirrorCreateFailed             = "ModelMirrorCreateFailed"
+	reasonModelMirrorDeleting                 = "ModelMirrorDeleting"
 )
+
+// modelMirrorDrainRetryInterval paces retries while a mirror finishes tearing down.
+const modelMirrorDrainRetryInterval = 5 * time.Second
+
+// errModelMirrorRaced reports a mirror that appeared between this workspace's cached read
+// and its create. It was built from another workspace's spec, so this one must still run
+// validateExistingModelMirror against it; that happens on the next pass, once the cache
+// catches up and the Get path is taken.
+var errModelMirrorRaced = errors.New("ModelMirror was created concurrently")
 
 type streamingValidationError struct {
 	reason string
@@ -1225,6 +1256,12 @@ func modelMirrorPendingReason(cr *kaitov1alpha1.ModelMirror) string {
 func modelMirrorCondition(cr *kaitov1alpha1.ModelMirror, infFailReason, infFailMsg string) (metav1.ConditionStatus, string, string) {
 	if infFailReason == reasonModelMirrorCreateFailed {
 		return metav1.ConditionFalse, infFailReason, infFailMsg
+	}
+	// Reported here rather than off the reconcile error, which is a requeue and so never
+	// reaches the status sync.
+	if !cr.DeletionTimestamp.IsZero() {
+		return metav1.ConditionFalse, reasonModelMirrorDeleting,
+			fmt.Sprintf("ModelMirror %s in namespace %s is being deleted", cr.Name, cr.Namespace)
 	}
 	if cr.Status.Phase == kaitov1alpha1.ModelMirrorPhaseReady {
 		return metav1.ConditionTrue, "ModelMirrorReady", "Model download complete"

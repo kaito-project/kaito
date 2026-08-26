@@ -19,11 +19,12 @@ rules:
   - apiGroups: ["kaito.sh"]
     resources: ["modelmirrors/finalizers"]
     verbs: ["update"]
-  # The PVC is garbage collected via its ownerReference; update is what removes the
-  # protection finalizer so that deletion can complete.
+  # The PVC and Job are torn down explicitly while the mirror's cleanup finalizer holds the
+  # CR, so the replacement mirror can never observe the previous generation's storage. patch
+  # maintains the mirror's own finalizer on the PVC.
   - apiGroups: [""]
     resources: ["persistentvolumeclaims"]
-    verbs: ["create", "update", "patch"]
+    verbs: ["create", "delete", "patch"]
   - apiGroups: ["admissionregistration.k8s.io"]
     resources: ["validatingwebhookconfigurations"]
     verbs: ["update"]

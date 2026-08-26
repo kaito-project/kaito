@@ -16,12 +16,17 @@
 NOTE: this file is under a Go package dir, so CI pytest globs (which target
 presets/) do NOT run it automatically. Run manually during development:
     python3 pkg/modelmirror/download/sampler_test.py
+
+Requires prometheus-client (the sampler's only third-party import).
 """
 
 import importlib.util
 import os
 import sys
 import tempfile
+
+from prometheus_client import generate_latest
+from prometheus_client.parser import text_string_to_metric_families
 
 _here = os.path.dirname(os.path.abspath(__file__))
 _spec = importlib.util.spec_from_file_location(
@@ -237,21 +242,47 @@ def test_total_bytes_none_when_zero():
     assert sampler.fetch_total_bytes("m", [], fs_factory=lambda: fs) is None
 
 
+def _metric_value(out, name):
+    """Parsed value of a single gauge in Prometheus text output."""
+    for family in text_string_to_metric_families(out):
+        if family.name == name:
+            return family.samples[0].value
+    raise AssertionError(f"{name} not found in:\n{out}")
+
+
 def test_render_metrics_format():
     s = sampler.ProgressState(baseline_bytes=0, start_time=0.0, total_bytes=1000)
     s.update(current_bytes=400, now=10.0)
     out = sampler.render_metrics(s)
     assert "# TYPE model_mirror_download_speed_bytes_per_second gauge" in out
     assert "# TYPE model_mirror_download_remaining_seconds gauge" in out
-    assert "model_mirror_download_speed_bytes_per_second 40" in out
-    assert "model_mirror_download_remaining_seconds 15" in out
+    assert _metric_value(out, sampler.SPEED_METRIC) == 40.0
+    assert _metric_value(out, sampler.REMAINING_METRIC) == 15.0
     assert out.endswith("\n")
+
+
+def test_render_metrics_carries_only_the_two_download_gauges():
+    # A dedicated registry keeps the default python_* / process_* collectors out.
+    s = sampler.ProgressState(baseline_bytes=0, start_time=0.0)
+    names = {f.name for f in text_string_to_metric_families(sampler.render_metrics(s))}
+    assert names == {sampler.SPEED_METRIC, sampler.REMAINING_METRIC}
+
+
+def test_metrics_reflect_state_at_scrape_time():
+    # serve() builds the registry before the sampling loop takes its first
+    # reading, so the gauges must re-read state on every scrape.
+    s = sampler.ProgressState(baseline_bytes=0, start_time=0.0, total_bytes=1000)
+    registry = sampler.build_registry(s)
+    s.update(current_bytes=400, now=10.0)
+    out = generate_latest(registry).decode()
+    assert _metric_value(out, sampler.SPEED_METRIC) == 40.0
+    assert _metric_value(out, sampler.REMAINING_METRIC) == 15.0
 
 
 def test_render_metrics_unknown_eta():
     s = sampler.ProgressState(baseline_bytes=0, start_time=0.0)
     out = sampler.render_metrics(s)
-    assert "model_mirror_download_remaining_seconds -1" in out
+    assert _metric_value(out, sampler.REMAINING_METRIC) == -1.0
 
 
 def test_speed_never_negative_when_bytes_shrink():
@@ -261,7 +292,7 @@ def test_speed_never_negative_when_bytes_shrink():
     s = sampler.ProgressState(baseline_bytes=1000, start_time=0.0)
     s.update(current_bytes=200, now=10.0)
     assert s.speed_bytes_per_second() == 0.0
-    assert "-" not in sampler.render_metrics(s).split("speed_bytes_per_second ")[1]
+    assert _metric_value(sampler.render_metrics(s), sampler.SPEED_METRIC) == 0.0
 
 
 def test_sigterm_handler_exits_zero():

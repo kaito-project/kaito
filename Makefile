@@ -117,6 +117,7 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole, and Cus
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 	cp config/crd/bases/kaito.sh_workspaces.yaml charts/kaito/workspace/templates/
 	cp config/crd/bases/kaito.sh_inferencesets.yaml charts/kaito/workspace/templates/
+	cp config/crd/bases/kaito.sh_modelmirrors.yaml charts/kaito/workspace/templates/
 	cp config/crd/bases/kaito.sh_ragengines.yaml charts/kaito/ragengine/templates/
 
 .PHONY: generate

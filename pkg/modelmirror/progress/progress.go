@@ -19,7 +19,6 @@
 package progress
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -79,18 +78,20 @@ func Parse(r io.Reader) (*Progress, error) {
 	}, nil
 }
 
+func ParseLimited(r io.Reader) (*Progress, error) {
+	return Parse(io.LimitReader(r, maxMetricsBytes))
+}
+
 // Fetch GETs the sampler's /metrics through the API server's pod-proxy
 // subresource.
 func Fetch(ctx context.Context, cs kubernetes.Interface, namespace, podName string) (*Progress, error) {
 	body, err := cs.CoreV1().
 		Pods(namespace).
 		ProxyGet("http", podName, metricsPort, metricsPath, nil).
-		DoRaw(ctx)
+		Stream(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("fetching sampler metrics from %s/%s: %w", namespace, podName, err)
 	}
-	if len(body) > maxMetricsBytes {
-		body = body[:maxMetricsBytes]
-	}
-	return Parse(bytes.NewReader(body))
+	defer body.Close()
+	return ParseLimited(body)
 }

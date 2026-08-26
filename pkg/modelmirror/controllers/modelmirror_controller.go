@@ -190,29 +190,38 @@ func (r *ModelMirrorReconciler) finalizeMirror(ctx context.Context, cr *kaitov1a
 
 // deleteChildren removes the Jobs and PVC this mirror owns and reports whether any survive.
 func (r *ModelMirrorReconciler) deleteChildren(ctx context.Context, cr *kaitov1alpha1.ModelMirror) (bool, error) {
-	pending, err := r.deleteOwnedJobs(ctx, cr)
+	jobsPending, err := r.deleteOwnedJobs(ctx, cr)
 	if err != nil {
 		return false, err
 	}
 
-	pvc := &corev1.PersistentVolumeClaim{}
-	switch err := r.APIReader.Get(ctx, client.ObjectKeyFromObject(cr), pvc); {
-	case errors.IsNotFound(err):
-	case err != nil:
+	pvcPending, err := r.deleteOwnedPVC(ctx, cr)
+	if err != nil {
 		return false, err
-	case isOwnedBy(pvc, cr):
-		pending = true
-		if err := r.releasePVCFinalizer(ctx, pvc); err != nil {
-			return false, err
-		}
-		if pvc.DeletionTimestamp.IsZero() {
-			if err := r.Delete(ctx, pvc); err != nil && !errors.IsNotFound(err) {
-				return false, err
-			}
-		}
 	}
 
-	return pending, nil
+	return jobsPending || pvcPending, nil
+}
+
+// deleteOwnedPVC removes the PVC this mirror owns and reports whether it survives.
+func (r *ModelMirrorReconciler) deleteOwnedPVC(ctx context.Context, cr *kaitov1alpha1.ModelMirror) (bool, error) {
+	pvc := &corev1.PersistentVolumeClaim{}
+	if err := r.APIReader.Get(ctx, client.ObjectKeyFromObject(cr), pvc); err != nil {
+		return false, client.IgnoreNotFound(err)
+	}
+	if !isOwnedBy(pvc, cr) {
+		return false, nil
+	}
+
+	if err := r.releasePVCFinalizer(ctx, pvc); err != nil {
+		return false, err
+	}
+	if pvc.DeletionTimestamp.IsZero() {
+		if err := r.Delete(ctx, pvc); err != nil && !errors.IsNotFound(err) {
+			return false, err
+		}
+	}
+	return true, nil
 }
 
 // deleteOwnedJobs removes the download Jobs this mirror owns and reports whether any survive.

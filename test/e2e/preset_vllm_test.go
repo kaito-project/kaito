@@ -187,21 +187,21 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a qwen3.6-35b-a3b-fp8 workspace with model streaming successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should create a granite-4.1-8b workspace with model streaming successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
 
 		// Create the federated identity credential for this process's namespace.
 		createStreamingFIC(namespaceName)
 		defer deleteStreamingFIC(namespaceName)
 
-		workspaceObj := createQwen3_6_35BA3BFP8WorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+		workspaceObj := createGranite4_1_8BStreamingWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
-		defer cleanupStreamingResources(workspaceObj, "Qwen/Qwen3.6-35B-A3B-FP8")
+		defer cleanupStreamingResources(workspaceObj, "ibm-granite/granite-4.1-8b")
 		time.Sleep(30 * time.Second)
 
 		validateCreateNode(workspaceObj, numOfNode)
-		validateModelMirrorResources("Qwen/Qwen3.6-35B-A3B-FP8", workspaceObj.Namespace)
-		validateModelMirrorReady(workspaceObj, "Qwen/Qwen3.6-35B-A3B-FP8")
+		validateModelMirrorResources("ibm-granite/granite-4.1-8b", workspaceObj.Namespace)
+		validateModelMirrorReady(workspaceObj, "ibm-granite/granite-4.1-8b")
 		validateResourceStatus(workspaceObj)
 
 		time.Sleep(30 * time.Second)
@@ -211,16 +211,16 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
-		validateStreamingPodShape(workspaceObj, "Qwen/Qwen3.6-35B-A3B-FP8", false)
+		validateStreamingPodShape(workspaceObj, "ibm-granite/granite-4.1-8b", false)
 		validateWorkspaceReadiness(workspaceObj)
 		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a granite-4.1-8b workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, utils.GinkgoLabelMinimumRequired, func() {
+	It("should create a NVIDIA-Nemotron-Nano-9B-v2 workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, utils.GinkgoLabelMinimumRequired, func() {
 		numOfNode := 1
-		workspaceObj := createGranite4_1_8BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+		workspaceObj := createNemotronNano9Bv2WorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)
@@ -1274,32 +1274,35 @@ func createMinistral3_3BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode i
 	return workspaceObj
 }
 
-func createQwen3_6_35BA3BFP8WorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+func createNemotronNano9Bv2WorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}
-	By("Creating a workspace CR with Qwen3.6-35B-A3B-FP8 preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-qwen3-6-35b-a3b-fp8-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV72ads_A10_v5",
+	// NVIDIA-Nemotron-Nano-9B-v2 is a NemotronH hybrid model that interleaves Mamba-2
+	// state-space layers with a few self-attention layers instead of using full attention
+	// on every layer, so it exercises the preset path on a non-standard architecture.
+	By("Creating a workspace CR with NVIDIA-Nemotron-Nano-9B-v2 preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-nemotron-nano-9b-v2-", rand.Intn(1000))
+		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-qwen3-6-35b-a3b-fp8-vllm"},
-			}, nil, PresetQwen3_6_35BA3BFP8Model, nil, nil, nil, "", "")
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-nemotron-nano-9b-v2-vllm"},
+			}, nil, PresetNemotronNano9Bv2Model, nil, nil, nil, "", "")
 
-		// STREAMING TEST: intentionally NOT setting kaito.sh/model-streaming=disabled.
-		// With the gate on, this workspace streams from blob (az://).
+		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
 }
 
-func createGranite4_1_8BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+func createGranite4_1_8BStreamingWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}
-	By("Creating a workspace CR with granite-4.1-8b preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-granite-4-1-8b-", rand.Intn(1000))
+	By("Creating a workspace CR with granite-4.1-8b preset public mode and vLLM (streaming)", func() {
+		uniqueID := fmt.Sprint("preset-granite-4-1-8b-stream-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-granite-4-1-8b-vllm"},
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-granite-4-1-8b-stream-vllm"},
 			}, nil, PresetGranite4_1_8BModel, nil, nil, nil, "", "")
 
-		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
+		// STREAMING TEST: intentionally NOT setting kaito.sh/model-streaming=disabled.
+		// With the gate on, this workspace streams from blob (az://).
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj

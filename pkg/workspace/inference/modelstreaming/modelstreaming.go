@@ -19,6 +19,8 @@ import (
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
@@ -92,6 +94,20 @@ func sha256First6(input string) string {
 // ModelMirrorCRName derives the ModelMirror CR name from a HuggingFace model ID.
 func ModelMirrorCRName(modelID string) string {
 	return sha256First6(modelID)
+}
+
+// ModelMirrorKey is the key of the ModelMirror a workspace uses.
+func ModelMirrorKey(ws *v1beta1.Workspace) client.ObjectKey {
+	return client.ObjectKey{
+		Namespace: ws.Namespace,
+		Name:      ModelMirrorCRName(ResolveHFModelID(ws)),
+	}
+}
+
+// ModelMirrorObjectMeta is the ObjectMeta for a ModelMirror a workspace creates.
+func ModelMirrorObjectMeta(ws *v1beta1.Workspace) metav1.ObjectMeta {
+	key := ModelMirrorKey(ws)
+	return metav1.ObjectMeta{Name: key.Name, Namespace: key.Namespace}
 }
 
 // ResolveHFModelID resolves the HuggingFace model ID from a workspace's preset name.

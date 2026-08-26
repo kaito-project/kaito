@@ -375,6 +375,7 @@ func main() {
 		}
 		mmReconciler := mmcontrollers.NewModelMirrorReconciler(
 			kClient,
+			mgr.GetAPIReader(),
 			log.Log.WithName("controllers").WithName("ModelMirror"),
 			downloadResources,
 		)

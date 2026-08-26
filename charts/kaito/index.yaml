@@ -388,7 +388,7 @@ entries:
       artifacthub.io/prerelease: "false"
     apiVersion: v2
     appVersion: 0.12.0
-    created: "2026-08-22T03:29:16.671680372Z"
+    created: "2026-08-26T09:22:06.245885032Z"
     dependencies:
     - condition: featureGates.gatewayAPIInferenceExtension
       name: flux2
@@ -407,7 +407,7 @@ entries:
       repository: oci://mcr.microsoft.com/aks/kaito/helm
       version: 0.4.0
     description: A Helm chart to install AI Toolchain Operator Workspace
-    digest: 826dbea816bc68879682bfda4a6ef657de71a4e9b5389ca69ea70bc4bb3fb2f3
+    digest: 338a2437f125e87f1da041b38af5d2eac98d169421bda73e6b05b1d20d05ed98
     home: https://github.com/kaito-project/kaito
     maintainers:
     - email: vrgf2003@gmail.com
@@ -1349,4 +1349,4 @@ entries:
     urls:
     - https://kaito-project.github.io/kaito/charts/kaito/workspace-0.1.0.tgz
     version: 0.1.0
-generated: "2026-08-22T03:46:39.464913776Z"
+generated: "2026-08-26T09:22:06.233430745Z"

@@ -155,13 +155,15 @@ func (r *ModelMirrorReconciler) finalizeMirror(ctx context.Context, cr *kaitov1a
 }
 
 // deleteChildren removes the Jobs and PVC this mirror owns and reports whether any survive.
+// The name and label are enough to identify them: the cleanup finalizer holds the CR until
+// they are gone, so a live mirror can never share them with another generation.
 func (r *ModelMirrorReconciler) deleteChildren(ctx context.Context, cr *kaitov1alpha1.ModelMirror) (bool, error) {
-	jobsPending, err := r.deleteOwnedJobs(ctx, cr)
+	jobsPending, err := r.deleteDownloadJobs(ctx, cr)
 	if err != nil {
 		return false, err
 	}
 
-	pvcPending, err := r.deleteOwnedPVC(ctx, cr)
+	pvcPending, err := r.deletePVC(ctx, cr)
 	if err != nil {
 		return false, err
 	}
@@ -169,14 +171,11 @@ func (r *ModelMirrorReconciler) deleteChildren(ctx context.Context, cr *kaitov1a
 	return jobsPending || pvcPending, nil
 }
 
-// deleteOwnedPVC removes the PVC this mirror owns and reports whether it survives.
-func (r *ModelMirrorReconciler) deleteOwnedPVC(ctx context.Context, cr *kaitov1alpha1.ModelMirror) (bool, error) {
+// deletePVC removes the mirror's PVC and reports whether it survives.
+func (r *ModelMirrorReconciler) deletePVC(ctx context.Context, cr *kaitov1alpha1.ModelMirror) (bool, error) {
 	pvc := &corev1.PersistentVolumeClaim{}
 	if err := r.APIReader.Get(ctx, client.ObjectKeyFromObject(cr), pvc); err != nil {
 		return false, client.IgnoreNotFound(err)
-	}
-	if !isOwnedBy(pvc, cr) {
-		return false, nil
 	}
 
 	if pvc.DeletionTimestamp.IsZero() {
@@ -187,8 +186,8 @@ func (r *ModelMirrorReconciler) deleteOwnedPVC(ctx context.Context, cr *kaitov1a
 	return true, nil
 }
 
-// deleteOwnedJobs removes the download Jobs this mirror owns and reports whether any survive.
-func (r *ModelMirrorReconciler) deleteOwnedJobs(ctx context.Context, cr *kaitov1alpha1.ModelMirror) (bool, error) {
+// deleteDownloadJobs removes the mirror's download Jobs and reports whether any survive.
+func (r *ModelMirrorReconciler) deleteDownloadJobs(ctx context.Context, cr *kaitov1alpha1.ModelMirror) (bool, error) {
 	jobList := &batchv1.JobList{}
 	if err := r.APIReader.List(ctx, jobList,
 		client.InNamespace(cr.Namespace),
@@ -197,13 +196,8 @@ func (r *ModelMirrorReconciler) deleteOwnedJobs(ctx context.Context, cr *kaitov1
 		return false, err
 	}
 
-	pending := false
 	for i := range jobList.Items {
 		job := &jobList.Items[i]
-		if !isOwnedBy(job, cr) {
-			continue
-		}
-		pending = true
 		if !job.DeletionTimestamp.IsZero() {
 			continue
 		}
@@ -211,14 +205,7 @@ func (r *ModelMirrorReconciler) deleteOwnedJobs(ctx context.Context, cr *kaitov1
 			return false, err
 		}
 	}
-	return pending, nil
-}
-
-// isOwnedBy reports whether obj carries a controller ownerReference to owner. The UID is
-// compared so a resource carrying the mirror's name but not created by it is never used.
-func isOwnedBy(obj metav1.Object, owner *kaitov1alpha1.ModelMirror) bool {
-	ref := metav1.GetControllerOf(obj)
-	return ref != nil && ref.Kind == "ModelMirror" && ref.Name == owner.Name && ref.UID == owner.UID
+	return len(jobList.Items) > 0, nil
 }
 
 func (r *ModelMirrorReconciler) ensurePVC(ctx context.Context, cr *kaitov1alpha1.ModelMirror) error {
@@ -290,12 +277,6 @@ func (r *ModelMirrorReconciler) ensureDownloadJob(ctx context.Context, cr *kaito
 	var latestFailTime *metav1.Time
 	for i := range jobList.Items {
 		job := &jobList.Items[i]
-		if !isOwnedBy(job, cr) {
-			if err := r.Delete(ctx, job, client.PropagationPolicy(metav1.DeletePropagationBackground)); err != nil && !errors.IsNotFound(err) {
-				return err
-			}
-			continue
-		}
 		if !isJobFailed(job) {
 			return nil // Active or succeeded Job exists
 		}
@@ -354,9 +335,6 @@ func (r *ModelMirrorReconciler) checkJobStatus(ctx context.Context, cr *kaitov1a
 	var activeJob *batchv1.Job
 	for i := range jobList.Items {
 		job := &jobList.Items[i]
-		if !isOwnedBy(job, cr) {
-			continue
-		}
 		if activeJob == nil || job.CreationTimestamp.After(activeJob.CreationTimestamp.Time) {
 			activeJob = job
 		}

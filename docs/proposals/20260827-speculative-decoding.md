@@ -180,31 +180,27 @@ The existing `inference_config.yaml` ConfigMap `vllm:` passthrough is **not goin
 
 ### Where the Per-Preset Config Lives in Code
 
-Two locations. The pattern reuses the existing `catalogOverrides` mechanism in the KAITO code generator.
+**The config lives in `supported_models.yaml`, not in `model_catalog.yaml`.**
 
-#### Location 1 — Source of Truth: `catalogOverrides` Map
+An earlier draft of this proposal put `SpeculativeDecoding` on `CatalogEntry` (populated via `catalogOverrides`). Two problems with that:
 
-File: [`presets/workspace/generator/generator.go`](https://github.com/kaito-project/kaito/blob/main/presets/workspace/generator/generator.go)
+1. **Semantic mismatch.** `CatalogEntry` / `model_catalog.yaml` is generated from HuggingFace `config.json` and holds model-metadata facts (architecture, hidden sizes, token limits, quant config). Speculative decoding is an operator-side runtime choice about a maintainer-validated flag — not a model-metadata fact. It belongs next to other operator-controlled knobs, not next to `hiddenSize`.
+2. **Webhook can't read it.** `model_catalog.yaml` is embedded into the *preset image* at build time. The controller and admission webhook binaries do not carry it. They read `supported_models.yaml` (via `//go:embed`) and consult `plugin.KaitoModelRegister`. Any admission-time check against `SpeculativeDecoding` therefore has to source the config from something the webhook actually loads.
 
-This map already exists to override fields that HuggingFace `config.json` gets wrong or omits (e.g. gemma-3's `ModelTokenLimit`, mistral-large-3's `Architectures`). Adding speculative decoding just extends that pattern.
-
-#### Location 2 — Generated Artifact: `model_catalog.yaml`
-
-File: [`presets/workspace/models/model_catalog.yaml`](https://github.com/kaito-project/kaito/blob/main/presets/workspace/models/model_catalog.yaml)
-
-Produced by running `go run ./presets/workspace/generator/update_model_catalog`. This is what the KAITO controller and admission webhook actually read at runtime.
+So the config is added to `presets/workspace/models/supported_models.yaml` and to the corresponding `model.Metadata` (or `PresetParam`) struct that `plugin.KaitoModelRegister` returns. This gives the webhook and the preset controller a single, embedded source of truth. `model_catalog.yaml` is not touched by this proposal.
 
 ### Implementation
 
-#### Step 1 — Extend the Type
+#### Step 1 — Extend the model metadata type
 
-`presets/workspace/generator/model_catalog.go`:
+In the `model` package (whichever file defines `Metadata` / `PresetParam` served by `plugin.KaitoModelRegister`):
 
 ```go
 type SpeculativeDecodingConfig struct {
-    Method string        `yaml:"method"`         // "mtp" / "dspark" / "ngram" / ...
-    MTP    *MTPConfig    `yaml:"mtp,omitempty"`
-    NGram  *NGramConfig  `yaml:"ngram,omitempty"`
+    Method string       `yaml:"method"`         // "mtp" / "ngram" / "dspark" / ...
+    MTP    *MTPConfig   `yaml:"mtp,omitempty"`
+    NGram  *NGramConfig `yaml:"ngram,omitempty"`
+    DSpark *DSparkConfig `yaml:"dspark,omitempty"`
     // future: EAGLE *EAGLEConfig
 }
 
@@ -217,97 +213,111 @@ type NGramConfig struct {
     PromptLookupMax      int `yaml:"promptLookupMax"`
 }
 
-type CatalogEntry struct {
+type DSparkConfig struct {
+    NumSpeculativeTokens int `yaml:"numSpeculativeTokens"`
+}
+
+// Added to model.Metadata (or PresetParam).
+type Metadata struct {
     // ... existing fields ...
     SpeculativeDecoding *SpeculativeDecodingConfig `yaml:"speculativeDecoding,omitempty"`
 }
 ```
 
-The typed sub-structs make invalid method/parameter combinations impossible to author.
+The typed sub-structs make invalid method/parameter combinations impossible to author. `DSpark` is included even though DeepSeek-V4 onboarding is a follow-up, so the type surface is stable when the next preset lights up.
 
-#### Step 2 — Declare Per-Preset Config in `catalogOverrides`
+#### Step 2 — Declare per-preset config in `supported_models.yaml`
 
-`presets/workspace/generator/generator.go`:
-
-```go
-catalogOverrides = map[string]CatalogEntry{
-    // ... existing gemma / mistral overrides ...
-
-    "deepseek-ai/deepseek-r1-0528": {
-        SpeculativeDecoding: &SpeculativeDecodingConfig{
-            Method: "mtp",
-            MTP: &MTPConfig{
-                NumSpeculativeTokens: 3,
-            },
-        },
-    },
-    "deepseek-ai/deepseek-v3-0324": {
-        SpeculativeDecoding: &SpeculativeDecodingConfig{
-            Method: "mtp",
-            MTP: &MTPConfig{
-                NumSpeculativeTokens: 3,
-            },
-        },
-    },
-}
-```
-
-#### Step 3 — Regenerate the Catalog
-
-```
-go run ./presets/workspace/generator/update_model_catalog
-```
-
-Produces (fragment):
+`presets/workspace/models/supported_models.yaml`:
 
 ```yaml
-models:
-  - name: deepseek-r1-0528
-    architectures: [DeepseekV3ForCausalLM]
-    modelTokenLimit: 163840
-    # ...
-    speculativeDecoding:
-      method: mtp
-      mtp:
-        numSpeculativeTokens: 3
+- name: deepseek-r1-0528
+  type: text-generation
+  runtime: vllm
+  # ... existing fields ...
+  speculativeDecoding:
+    method: mtp
+    mtp:
+      numSpeculativeTokens: 3
+
+- name: deepseek-v3-0324
+  type: text-generation
+  runtime: vllm
+  # ... existing fields ...
+  speculativeDecoding:
+    method: mtp
+    mtp:
+      numSpeculativeTokens: 3
 ```
 
-#### Step 4 — Preset Controller Reads the Field and Injects the vLLM Flag
+> **Why `numSpeculativeTokens: 3`?** Chosen based on the vLLM MTP benchmark ([vllm-project/vllm#12755](https://github.com/vllm-project/vllm/pull/12755)) which reports the best acceptance-length × verification-cost tradeoff at 3 for DeepSeek-R1/V3 at low-to-medium QPS. To be re-verified against KAITO's pinned vLLM version before merge; if the pinned version changes the default, this value moves with it.
+
+#### Step 3 — Preset controller reads the field and injects the vLLM flag
 
 ```go
 if ws.Annotations["kaito.sh/enable-speculative-decoding"] == "true" {
-    if entry.SpeculativeDecoding != nil {
-        blob, _ := json.Marshal(vllmFormat(entry.SpeculativeDecoding))
-        vllmArgs = append(vllmArgs, "--speculative-config", string(blob))
+    meta := plugin.KaitoModelRegister.Get(ws.Inference.Preset.Name)
+    if meta != nil && meta.SpeculativeDecoding != nil {
+        // Skip injection if the user already provided --speculative-config
+        // via inference_config.yaml passthrough. ConfigMap wins to preserve
+        // the power-user escape hatch. See Step 5 for validation.
+        if !userSpecifiedSpeculativeConfig(inferenceConfig) {
+            blob, err := vllmFormat(meta.SpeculativeDecoding)
+            if err != nil {
+                return fmt.Errorf("speculative decoding: %w", err)
+            }
+            vllmArgs = append(vllmArgs, "--speculative-config", blob)
+        }
     }
 }
 ```
 
-Where `vllmFormat` converts the typed Go struct into the JSON shape vLLM expects:
+Where `vllmFormat` converts the typed Go struct into the JSON shape vLLM expects and fails loud on unknown methods:
 
 ```go
-func vllmFormat(sd *SpeculativeDecodingConfig) map[string]any {
+func vllmFormat(sd *SpeculativeDecodingConfig) (string, error) {
     m := map[string]any{"method": sd.Method}
     switch sd.Method {
     case "mtp":
+        if sd.MTP == nil {
+            return "", fmt.Errorf("method=mtp requires mtp config")
+        }
         m["num_speculative_tokens"] = sd.MTP.NumSpeculativeTokens
     case "ngram":
+        if sd.NGram == nil {
+            return "", fmt.Errorf("method=ngram requires ngram config")
+        }
         m["num_speculative_tokens"] = sd.NGram.NumSpeculativeTokens
         m["prompt_lookup_max"]      = sd.NGram.PromptLookupMax
+    case "dspark":
+        if sd.DSpark == nil {
+            return "", fmt.Errorf("method=dspark requires dspark config")
+        }
+        m["num_speculative_tokens"] = sd.DSpark.NumSpeculativeTokens
+    default:
+        // Belt-and-suspenders: caught earlier by unit tests over
+        // supported_models.yaml, but never silently emit a method-only blob.
+        return "", fmt.Errorf("unsupported speculative decoding method %q", sd.Method)
     }
-    return m
+    b, err := json.Marshal(m)
+    if err != nil {
+        return "", err
+    }
+    return string(b), nil
 }
 ```
 
-#### Step 5 — Admission Webhook Validates the Annotation
+#### Step 4 — Admission webhook validates the annotation
 
 ```go
 func validateSpeculativeDecoding(ws *Workspace) error {
     if ws.Annotations["kaito.sh/enable-speculative-decoding"] != "true" {
         return nil
     }
-    entry := lookupCatalogEntry(ws.Inference.Preset.Name)
-    if entry == nil || entry.SpeculativeDecoding == nil {
+
+    // (a) Preset must have a validated config in supported_models.yaml.
+    meta := plugin.KaitoModelRegister.Get(ws.Inference.Preset.Name)
+    if meta == nil || meta.SpeculativeDecoding == nil {
         return fmt.Errorf(
             "preset %q does not have a validated speculative decoding configuration; "+
             "remove kaito.sh/enable-speculative-decoding annotation or choose a "+
@@ -315,9 +325,29 @@ func validateSpeculativeDecoding(ws *Workspace) error {
             ws.Inference.Preset.Name,
         )
     }
+
+    // (b) Reject pipeline parallelism (vLLM caveat — speculative decoding
+    //     is not supported with PP > 1). Multi-node distributed inference
+    //     uses PP, so this blocks that combination.
+    if ws.Resource.Count != nil && *ws.Resource.Count > 1 {
+        return fmt.Errorf(
+            "kaito.sh/enable-speculative-decoding is incompatible with "+
+            "multi-node distributed inference (pipeline parallelism); "+
+            "set resource.count to 1 or remove the annotation",
+        )
+    }
+
     return nil
 }
 ```
+
+#### Step 5 — Precedence when the user also sets `speculative-config` in a ConfigMap
+
+The existing `inference_config.yaml` passthrough (`vllm.speculative-config: '...'`) stays. When both are present:
+
+- **ConfigMap wins.** The preset controller skips its own `--speculative-config` injection if the user's ConfigMap already contains a `speculative-config` key under `vllm:`. This preserves the power-user escape hatch (sweep `num_speculative_tokens`, try `eagle`) without producing two conflicting `--speculative-config` flags on the vLLM command line.
+- The admission webhook still enforces (a) — the annotation still requires a supported preset. This keeps the failure mode consistent regardless of ConfigMap contents.
+- A validation warning (not rejection) is emitted when the webhook can see the referenced ConfigMap and detects both sources present — so the user gets a heads-up that their ConfigMap is overriding the KAITO-managed default.
 
 ### InferenceSet Support
 

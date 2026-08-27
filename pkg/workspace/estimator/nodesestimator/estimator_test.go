@@ -702,7 +702,8 @@ func TestNodeEstimator_EstimateNodeCount_RealCatalogModels_A10(t *testing.T) {
 		{"gemma-4-12B-it/1xA10", "google/gemma-4-12B-it", a10_1GPU, 2},                  // 22.28Gi
 		{"gemma-4-12B-it/2xA10", "google/gemma-4-12B-it", a10_2GPU, 1},                  // 22.28Gi
 		{"granite-4.1-8b/1xA10", "ibm-granite/granite-4.1-8b", a10_1GPU, 1},             // 16.38Gi
-		{"Nemotron-Nano-9B-v2/1xA10", "nvidia/NVIDIA-Nemotron-Nano-9B-v2", a10_1GPU, 1}, // 16.56Gi
+		{"Nemotron-Nano-9B-v2/1xA10", "nvidia/NVIDIA-Nemotron-Nano-9B-v2", a10_1GPU, 2}, // 16.56Gi, can't launch on 1 1xA10 node due to mamba cache
+		{"Nemotron-Nano-9B-v2/2xA10", "nvidia/NVIDIA-Nemotron-Nano-9B-v2", a10_2GPU, 1}, // 16.56Gi
 		{"Qwen3.5-9B/1xA10", "Qwen/Qwen3.5-9B", a10_1GPU, 2},                            // 17.98Gi, can't launch on 1 1xA10 node
 		{"Qwen3.6-35B-A3B-FP8/1xA10", "Qwen/Qwen3.6-35B-A3B-FP8", a10_1GPU, 3},          // 34.90Gi
 		{"Qwen3.6-35B-A3B-FP8/2xA10", "Qwen/Qwen3.6-35B-A3B-FP8", a10_2GPU, 2},          // 34.90Gi, can't launch on 1 2xA10 node

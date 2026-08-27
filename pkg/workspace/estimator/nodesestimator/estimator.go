@@ -52,6 +52,12 @@ const (
 	// measures these empirically in determine_available_memory() and
 	// profile_cudagraph_memory(). We approximate at best effort here.
 	overheadWeightFactor = 0.05
+
+	// mambaStateReferenceConcurrency is the reference number of concurrent
+	// sequences used to size the per-GPU Mamba-2 state reservation for hybrid
+	// models. It mirrors how the KV-cache term uses a fixed reference context
+	// length: a representative serving batch rather than vLLM's max_num_seqs.
+	mambaStateReferenceConcurrency = 64
 )
 
 // baseOverheadGiBByGPUModel overrides baseOverheadGiB for specific GPU models.
@@ -192,11 +198,17 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 		// Per-GPU memory available for model weights. The weight-scaled overhead
 		// (overheadWeightFactor x per-GPU weight) folds into the (1 + factor) divisor.
 		availMemPerGPU := (availGPUMem - fixedReserve) / (1 + overheadWeightFactor)
-		minGPUs := int(modelSize/availMemPerGPU) + 1
+
+		// Hybrid Mamba/Attention models (e.g. NemotronH) allocate a per-sequence
+		// Mamba-2 state cache in addition to the attention KV cache. Like weights it
+		// shards across TP ranks, so fold the reservation for a reference serving
+		// concurrency into the total sharded footprint. Zero for pure-attention models.
+		mambaState := float64(inferParams.MambaStateBytesPerSeq * mambaStateReferenceConcurrency)
+		minGPUs := int((modelSize+mambaState)/availMemPerGPU) + 1
 		nodeCountPerReplica = (minGPUs + gpuConfig.GPUCount - 1) / gpuConfig.GPUCount
 
-		klog.Infof("modelSize(%.0f), gpuMemPerGPU(%.0f), availGPUMem(%.0f), fixedReserve(%.0f), availMemPerGPU(%.0f), minGPUs(%d) => nodeCountPerReplica(%d) for workspace %s",
-			modelSize, gpuMemPerGPU, availGPUMem, fixedReserve, availMemPerGPU, minGPUs, nodeCountPerReplica, req.WorkspaceName)
+		klog.Infof("modelSize(%.0f), mambaState(%.0f), gpuMemPerGPU(%.0f), availGPUMem(%.0f), fixedReserve(%.0f), availMemPerGPU(%.0f), minGPUs(%d) => nodeCountPerReplica(%d) for workspace %s",
+			modelSize, mambaState, gpuMemPerGPU, availGPUMem, fixedReserve, availMemPerGPU, minGPUs, nodeCountPerReplica, req.WorkspaceName)
 
 		// MIG partitions are a single, non-shardable device: the model plus its
 		// runtime overhead must fit one slice. Report the slice-specific shortfall

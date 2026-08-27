@@ -129,6 +129,13 @@ type Metadata struct {
 	// +optional
 	BytesPerToken int `yaml:"bytesPerToken,omitempty"`
 
+	// MambaStateBytesPerSeq is the per-sequence Mamba-2 state cache size in bytes
+	// (single TP rank) for hybrid Mamba/Attention models (e.g. NemotronH). vLLM
+	// allocates this for every running sequence on top of the attention KV cache,
+	// so the node estimator reserves it. Zero for pure-attention models.
+	// +optional
+	MambaStateBytesPerSeq int `yaml:"mambaStateBytesPerSeq,omitempty"`
+
 	// AttnType specifies the attention implementation (e.g., MHA, GQA, MQA, MLA),
 	// computed by the preset generator from the model config.
 	// +optional

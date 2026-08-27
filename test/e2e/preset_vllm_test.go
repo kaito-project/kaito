@@ -218,9 +218,9 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a NVIDIA-Nemotron-Nano-9B-v2 workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, utils.GinkgoLabelMinimumRequired, func() {
+	It("should create a NVIDIA-Nemotron-3-Nano-4B-BF16 workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, utils.GinkgoLabelMinimumRequired, func() {
 		numOfNode := 1
-		workspaceObj := createNemotronNano9Bv2WorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+		workspaceObj := createNemotron3Nano4BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)
@@ -1274,17 +1274,17 @@ func createMinistral3_3BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode i
 	return workspaceObj
 }
 
-func createNemotronNano9Bv2WorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+func createNemotron3Nano4BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}
-	// NVIDIA-Nemotron-Nano-9B-v2 is a NemotronH hybrid model that interleaves Mamba-2
+	// NVIDIA-Nemotron-3-Nano-4B-BF16 is a NemotronH hybrid model that interleaves Mamba-2
 	// state-space layers with a few self-attention layers instead of using full attention
 	// on every layer, so it exercises the preset path on a non-standard architecture.
-	By("Creating a workspace CR with NVIDIA-Nemotron-Nano-9B-v2 preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-nemotron-nano-9b-v2-", rand.Intn(1000))
+	By("Creating a workspace CR with NVIDIA-Nemotron-3-Nano-4B-BF16 preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-nemotron-3-nano-4b-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-nemotron-nano-9b-v2-vllm"},
-			}, nil, PresetNemotronNano9Bv2Model, nil, nil, nil, "", "")
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-nemotron-3-nano-4b-vllm"},
+			}, nil, PresetNemotron3Nano4BModel, nil, nil, nil, "", "")
 
 		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
 		createAndValidateWorkspace(workspaceObj)

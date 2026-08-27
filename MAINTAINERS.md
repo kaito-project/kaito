@@ -9,6 +9,7 @@ The following are current KAITO maintainers:
 
 * Fei Guo @Fei-Guo
 * Qinghui Zhuang @zhuangqh
+* Andy Zhang @andyzhangx
 
 Emeritus:
 * Ernest Wong @chewong

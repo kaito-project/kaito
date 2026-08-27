@@ -348,7 +348,7 @@ func validateSpeculativeDecoding(ws *Workspace) error {
         return nil
     }
     if !validAnnotationValues[val] {
-        // Typos like "tru" / "1" / "yes" must not be silently treated as
+        // Non-boolean values (typos, "1", "yes", etc.) must not be silently treated as
         // disabled — that would defeat the admission-time feedback promise.
         return fmt.Errorf(
             "annotation kaito.sh/enable-speculative-decoding has invalid value %q; "+

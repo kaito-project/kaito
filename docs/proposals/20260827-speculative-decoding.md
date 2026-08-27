@@ -108,7 +108,7 @@ inference:
     name: deepseek-r1-0528     # a committed MTP preset (see Model Coverage)
   config: my-inference-config
 resource:
-  instanceType: Standard_ND96isr_H100_v5
+  instanceType: Standard_ND96isr_H200_v5
   labelSelector:
     matchLabels:
       apps: workspace-r1
@@ -129,7 +129,7 @@ inference:
   preset:
     name: deepseek-r1-0528     # a committed MTP preset
 resource:
-  instanceType: Standard_ND96isr_H100_v5
+  instanceType: Standard_ND96isr_H200_v5
   labelSelector:
     matchLabels:
       apps: workspace-r1
@@ -177,7 +177,7 @@ inference:
 `kubectl apply` is rejected by the admission webhook:
 
 ```
-Error from server (Forbidden): admission webhook "workspace-validation.kaito.sh"
+Error from server (Forbidden): admission webhook "validation.workspace.kaito.sh"
 denied the request: preset "llama-3.1-8b-instruct" does not have a validated
 speculative decoding configuration; remove kaito.sh/enable-speculative-decoding
 annotation or choose a supported preset (e.g. deepseek-r1-*, deepseek-v3-*).
@@ -198,15 +198,23 @@ The existing `inference_config.yaml` ConfigMap `vllm:` passthrough is **not goin
 
 ### Where the Per-Preset Config Lives in Code
 
-**The config lives in `supported_models.yaml` and flows through `PresetParam`, not in `model_catalog.yaml`.**
+**The config lives in `supported_models.yaml`, but the data flow to get it into the controller and webhook does not exist today — this proposal specifies it.**
 
-An earlier draft of this proposal put `SpeculativeDecoding` on `CatalogEntry` (populated via `catalogOverrides`). Three problems with that:
+Today: `metadata.go` loads `supported_models.yaml` into a private map used only for validation; `vllm_model.go` redirects short preset names to full HuggingFace IDs and constructs the registered runtime model out of `model_catalog.yaml`. `ModelRegister` also has no `Get` API that exposes metadata to callers. So a field added only to `supported_models.yaml` is invisible at reconcile and admission time.
+
+An earlier draft put `SpeculativeDecoding` on `CatalogEntry` (populated via `catalogOverrides`). Three problems with that:
 
 1. **Semantic mismatch.** `CatalogEntry` / `model_catalog.yaml` is generated from HuggingFace `config.json` and holds model-metadata facts (architecture, hidden sizes, token limits, quant config). Speculative decoding is an operator-side runtime choice about a maintainer-validated flag — not a model-metadata fact.
-2. **Webhook can't read it.** `model_catalog.yaml` (the actual file lives at `presets/workspace/models/model_catalog.yaml`, embedded by `presets/workspace/models/vllm_model.go`) is embedded into the *preset image* at build time. The controller and admission webhook binaries do not carry it. They read `supported_models.yaml` (via `//go:embed`) and consult `plugin.KaitoModelRegister`.
-3. **Controller drops it.** Even inside the generator, `CatalogEntry` is parsed into `model.PresetParam`; `vLLMCompatibleModel` then retains only the fields needed for run parameters. Extending `CatalogEntry` alone would discard `SpeculativeDecoding` before reconciliation. The typed config must be plumbed through `Generator` → `PresetParam` / `model.Model` → `plugin.KaitoModelRegister` so admission and reconciliation both see it.
+2. **Webhook can't read it.** `model_catalog.yaml` (embedded by `presets/workspace/models/vllm_model.go`) is baked into the *preset image* at build time. The controller and admission webhook binaries do not carry it.
+3. **Controller drops it.** Even inside the generator, `CatalogEntry` is parsed into `model.PresetParam`; `vLLMCompatibleModel` retains only the fields needed for run parameters. Extending `CatalogEntry` alone would discard `SpeculativeDecoding` before reconciliation.
 
-So the config is added to `presets/workspace/models/supported_models.yaml`, plumbed through `model.Metadata` (or `PresetParam`) and out through `plugin.KaitoModelRegister`. `model_catalog.yaml` is not touched by this proposal.
+The fix is a small, explicit plumbing change (part of this proposal, not "already there"):
+
+1. Add `SpeculativeDecoding` to the entry type parsed out of `supported_models.yaml` in `metadata.go`, and store it in the per-preset metadata map.
+2. Extend `vllm_model.go`'s registration path so the `SpeculativeDecoding` field is copied from that metadata map into the runtime `model.Model` returned via `plugin.KaitoModelRegister` — alongside the HF-ID redirection it already does.
+3. Add a `GetMetadata(name string) *model.Metadata` (or equivalent) method on `ModelRegister` so the admission webhook can look up the field directly without going through the runtime-model path.
+
+After these three changes, both the controller (via the registered `model.Model`) and the webhook (via `KaitoModelRegister.GetMetadata`) see the same `SpeculativeDecoding` value from a single source of truth. `model_catalog.yaml` is not touched by this proposal.
 
 ### Implementation
 
@@ -233,7 +241,13 @@ type NGramConfig struct {
 }
 
 type DSparkConfig struct {
-    NumSpeculativeTokens int `yaml:"numSpeculativeTokens"`
+    // Model is the assistant/draft checkpoint reference (e.g.
+    // "deepseek-ai/DeepSeek-V4-Flash-0731-DSpark") serialized as
+    // speculative_config.model in the vLLM JSON blob. DSpark uses a
+    // separate draft checkpoint, so this field is required for the
+    // converter to emit valid vLLM configuration.
+    Model                string `yaml:"model"`
+    NumSpeculativeTokens int    `yaml:"numSpeculativeTokens"`
 }
 
 // Added to model.Metadata (or PresetParam).
@@ -278,11 +292,17 @@ The typed sub-structs constrain the shape, but they do not by themselves prevent
 
 #### Step 3 — Preset controller reads the field and injects the vLLM flag
 
-The existing runtime command is assembled as a shell string via `BuildCmdStr` and executed with `/bin/sh -c`, so a raw JSON value with braces, commas, and double quotes would be re-tokenized by the shell. The injection therefore goes through the existing `ModelRunParams` path (the same route `kv-events-config` uses), which shell-quotes the value before it reaches the command line:
+The existing runtime command is assembled as a shell string via `BuildCmdStr` and executed with `/bin/sh -c`. `ModelRunParams` appends `--key=value` **verbatim** to that string — it does **not** shell-quote the value, and today `kv-events-config` works around this by storing the value with literal single quotes already embedded. Handing a raw `json.Marshal` result to `ModelRunParams` would let `/bin/sh` strip the JSON's double quotes and mis-tokenize the braces/commas.
+
+Two acceptable options; the design commits to option (a) because it is smaller and localized:
+
+**(a) Explicit shell-escape at the injection site.** Wrap the JSON in single quotes and escape any embedded single quotes with the standard `'\''` sequence before assigning to `ModelRunParams`. A unit test asserts the final `/bin/sh -c` command line by round-tripping through `sh -c 'echo $1'` and re-parsing as JSON.
+
+**(b) Move `--speculative-config` off the shell-string path.** Emit it directly into `container.Args` (argv), bypassing `BuildCmdStr` for this one flag. Larger change; called out as a follow-up if more flags need JSON payloads.
 
 ```go
 if ws.Annotations["kaito.sh/enable-speculative-decoding"] == "true" {
-    meta := plugin.KaitoModelRegister.Get(ws.Inference.Preset.Name)
+    meta := plugin.KaitoModelRegister.GetMetadata(ws.Inference.Preset.Name)
     if meta != nil && meta.SpeculativeDecoding != nil {
         // Skip injection if the user already provided --speculative-config
         // via inference_config.yaml passthrough. ConfigMap wins to preserve
@@ -292,11 +312,18 @@ if ws.Annotations["kaito.sh/enable-speculative-decoding"] == "true" {
             if err != nil {
                 return fmt.Errorf("speculative decoding: %w", err)
             }
-            // ModelRunParams handles shell-safe quoting; do NOT append the
-            // raw JSON to a []string that is later joined into a shell string.
-            runParams["speculative-config"] = blob
+            // ModelRunParams does NOT shell-quote. Wrap in single quotes
+            // and escape embedded single quotes so /bin/sh sees exactly
+            // one argv token.
+            runParams["speculative-config"] = shellSingleQuote(blob)
         }
     }
+}
+
+// shellSingleQuote wraps s in single quotes, escaping any embedded
+// single quote as '\''. Safe for /bin/sh -c "cmd --key=<value>".
+func shellSingleQuote(s string) string {
+    return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'"
 }
 ```
 
@@ -318,9 +345,15 @@ func vllmFormat(sd *SpeculativeDecodingConfig) (string, error) {
         m["num_speculative_tokens"] = sd.NGram.NumSpeculativeTokens
         m["prompt_lookup_max"]      = sd.NGram.PromptLookupMax
     case "dspark":
-        if sd.DSpark == nil {
-            return "", fmt.Errorf("method=dspark requires dspark config")
+        // dspark ships as a separate assistant checkpoint referenced via
+        // speculative_config.model. Until DSparkConfig.Model is populated
+        // (see "Ready to Onboard" model coverage), the converter must
+        // reject dspark rather than emit a method-only blob vLLM cannot
+        // resolve.
+        if sd.DSpark == nil || sd.DSpark.Model == "" {
+            return "", fmt.Errorf("method=dspark requires dspark.model (assistant checkpoint reference)")
         }
+        m["model"] = sd.DSpark.Model
         m["num_speculative_tokens"] = sd.DSpark.NumSpeculativeTokens
     default:
         // Belt-and-suspenders: caught earlier by unit tests over
@@ -357,8 +390,19 @@ func validateSpeculativeDecoding(ws *Workspace) error {
         )
     }
 
-    // (a) Preset must have a validated config in supported_models.yaml.
-    meta := plugin.KaitoModelRegister.Get(ws.Inference.Preset.Name)
+    // (a) Workspace must actually run a preset inference. The webhook
+    //     aggregates errors and can invoke annotation checks even for
+    //     tuning-only or malformed objects, so guard the pointer chain
+    //     before dereferencing.
+    if ws.Inference == nil || ws.Inference.Preset == nil || ws.Inference.Preset.Name == "" {
+        return fmt.Errorf(
+            "kaito.sh/enable-speculative-decoding requires a preset inference; "+
+            "remove the annotation or set inference.preset.name",
+        )
+    }
+
+    // (b) Preset must have a validated config in supported_models.yaml.
+    meta := plugin.KaitoModelRegister.GetMetadata(ws.Inference.Preset.Name)
     if meta == nil || meta.SpeculativeDecoding == nil {
         return fmt.Errorf(
             "preset %q does not have a validated speculative decoding configuration; "+
@@ -368,7 +412,7 @@ func validateSpeculativeDecoding(ws *Workspace) error {
         )
     }
 
-    // (b) Runtime must resolve to vLLM. A supported preset can explicitly
+    // (c) Runtime must resolve to vLLM. A supported preset can explicitly
     //     select the Transformers runtime (or run with the vLLM feature
     //     gate disabled), in which case --speculative-config would never
     //     be honored.
@@ -380,14 +424,25 @@ func validateSpeculativeDecoding(ws *Workspace) error {
         )
     }
 
-    // (c) Reject pipeline parallelism (vLLM caveat — speculative decoding
-    //     is not supported with PP > 1). Multi-node distributed inference
-    //     uses PP, so this blocks that combination.
-    if ws.Resource.Count != nil && *ws.Resource.Count > 1 {
+    // (d) Reject pipeline parallelism. resource.count is NOT the resolved
+    //     vLLM node count — the controller computes status.targetNodeCount
+    //     from model size and SKU AFTER admission (workspace_controller.go
+    //     lines 1578-1621). A nil or 1 count can still become multiple
+    //     nodes and pull in PP. So we enforce single-node compatibility
+    //     using the same estimator the controller uses, and add a
+    //     reconcile-time guard before injection.
+    //
+    //     Admission time (this webhook): reject if the resource estimator
+    //     already knows the preset requires PP for the resolved SKU.
+    //     Reconcile time (Step 3 injection site): re-check
+    //     status.targetNodeCount and refuse to inject if it exceeds 1,
+    //     emitting a Workspace condition explaining why.
+    if targetNodes, err := estimateTargetNodeCount(ws); err == nil && targetNodes > 1 {
         return fmt.Errorf(
             "kaito.sh/enable-speculative-decoding is incompatible with "+
             "multi-node distributed inference (pipeline parallelism); "+
-            "set resource.count to 1 or remove the annotation",
+            "preset %q on SKU %q resolves to %d nodes",
+            ws.Inference.Preset.Name, ws.Resource.InstanceType, targetNodes,
         )
     }
 
@@ -400,8 +455,8 @@ func validateSpeculativeDecoding(ws *Workspace) error {
 The existing `inference_config.yaml` passthrough (`vllm.speculative-config: '...'`) stays. When both are present:
 
 - **ConfigMap wins.** The preset controller skips its own `--speculative-config` injection if the user's ConfigMap already contains a `speculative-config` key under `vllm:`. This preserves the power-user escape hatch (sweep `num_speculative_tokens`, try `eagle`) without producing two conflicting `--speculative-config` flags on the vLLM command line.
-- The admission webhook still enforces (a) — the annotation still requires a supported preset. This keeps the failure mode consistent regardless of ConfigMap contents.
-- A validation warning (not rejection) is emitted when the webhook can see the referenced ConfigMap and detects both sources present — so the user gets a heads-up that their ConfigMap is overriding the KAITO-managed default.
+- The admission webhook still enforces (b) — the annotation still requires a supported preset. This keeps the failure mode consistent regardless of ConfigMap contents.
+- When the webhook can see the referenced ConfigMap and detects both sources present, it emits a **Kubernetes Event** (`SpeculativeDecodingConfigMapOverride`) on the Workspace at admission and reconcile time — not an admission-response warning, because the current Knative resource-semantics validation path returns only `*apis.FieldError` and there is no user-visible admission-warning mechanism in the repo today. Events show up in `kubectl describe workspace` / `kubectl get events` and are the existing user-visible signal path.
 
 ### InferenceSet Support
 
@@ -435,7 +490,7 @@ spec:
         accessMode: public
         name: deepseek-r1-0528
     resource:
-      instanceType: Standard_ND96isr_H100_v5
+      instanceType: Standard_ND96isr_H200_v5
 ```
 
 `kubectl apply -f` and the InferenceSet controller creates `replicas` Workspaces, each with `kaito.sh/enable-speculative-decoding: "true"` in its own annotation map. Each child then goes through the exact same preset-controller injection and admission-webhook validation flow.
@@ -451,8 +506,10 @@ spec:
 
 Rejection must happen at `apply` time for **both** served API versions:
 
-- **`v1beta1`**: the InferenceSet webhook already projects the template through `NewWorkspaceForInferenceSet` and runs `Workspace.ValidateCreate`. `validateSpeculativeDecoding` (Step 4) is invoked as part of that projection, so an unsupported template preset is rejected at `kubectl apply -f <InferenceSet>` — no reconcile-time surprise.
-- **`v1alpha1`**: the current webhook does **not** project the templated child, so it would otherwise let an unsupported template through and only fail when the InferenceSet controller tries to create Workspaces. This proposal requires `v1alpha1` to gain the same projected-child validation for parity — either by calling `NewWorkspaceForInferenceSet` + `ValidateCreate` in the `v1alpha1` webhook, or by factoring the annotation check into a shared helper both webhooks invoke.
+- **`v1beta1`**: the InferenceSet webhook already projects the template through `NewWorkspaceForInferenceSet` (which is `v1beta1`-typed: it accepts `*v1beta1.InferenceSet` and returns `v1beta1.Workspace`) and runs `Workspace.ValidateCreate`. `validateSpeculativeDecoding` (Step 4) is invoked as part of that projection, so an unsupported template preset is rejected at `kubectl apply -f <InferenceSet>` — no reconcile-time surprise.
+- **`v1alpha1`**: the current webhook does **not** project the templated child. Because `NewWorkspaceForInferenceSet` is `v1beta1`-typed, the `v1alpha1` webhook cannot call it directly. Two acceptable implementations; this proposal recommends option (a):
+  - **(a) Shared version-neutral helper.** Factor the annotation + preset + runtime + PP checks out of `Workspace.ValidateCreate` into a helper that takes the annotation map, preset name, runtime name, and resource spec — no version-typed dependency. Both webhooks call it. This avoids introducing a conversion round-trip on the admission hot path.
+  - **(b) Explicit v1alpha1 → v1beta1 conversion.** Convert `*v1alpha1.InferenceSet` to `*v1beta1.InferenceSet` (either via the existing conversion webhook or an in-webhook shim), then reuse `NewWorkspaceForInferenceSet` + `ValidateCreate`. Larger blast radius; only pick this if the annotation set grows beyond what a small helper cleanly captures.
 
 Either way, rejection happens at `apply` time on both served versions, and the create/update parity requirement from Step 4 (`ValidateCreate` **and** `ValidateUpdate`) applies here too — an existing InferenceSet must not be able to add the annotation post-hoc and bypass the check.
 
@@ -475,12 +532,25 @@ Cross-referencing the KAITO preset catalog ([`presets/workspace/models/model_cat
 
 ### Free-to-Onboard Next (Same `mtp` Path, No Extra Memory / Download)
 
-These presets already exist in the KAITO catalog and the vLLM upstream MTP docs ([mtp.md](https://github.com/vllm-project/vllm/blob/main/docs/features/speculative_decoding/mtp.md)) confirm the checkpoint ships an MTP path. The maintainer cost is one re-verification against KAITO's pinned vLLM version, then one entry in `supported_models.yaml`.
+Only the DeepSeek continuation ships as a zero-download addition — its MTP head is bundled in the same checkpoint as the base weights, matching the shipping presets.
 
 | KAITO preset | HF ID | In KAITO catalog? | Notes / vLLM evidence |
 |---|---|---|---|
-| `deepseek-v3.2` | `deepseek-ai/DeepSeek-V3.2` | ✅ Yes | DeepSeek-V3 family continuation; same MTP path |
-| `gemma-4-E2B-it` | `google/gemma-4-E2B-it` | ✅ Yes | vLLM MTP doc confirms Gemma 4 IT assistant checkpoints are supported |
+| `deepseek-v3.2` | `deepseek-ai/DeepSeek-V3.2` | ✅ Yes | DeepSeek-V3 family continuation; same in-checkpoint MTP path |
+
+### Ready to Onboard (`mtp`, Assistant Checkpoint Required)
+
+Gemma 4 `-it` presets support `mtp` via vLLM, but per upstream vLLM MTP documentation the assistant checkpoint is served **separately** in `speculative_config.model` — it is not bundled in the base checkpoint. So the onboarding cost is real:
+
+1. Source/mirror the Gemma 4 assistant checkpoints into the KAITO preset image (or fetch at pod startup).
+2. Populate `MTPConfig.Model` — which means extending `MTPConfig` with a `Model` field of the same shape as `DSparkConfig.Model` (see Step 1).
+3. Re-verify against KAITO's pinned vLLM version.
+
+This is architecturally the same shape as the `dspark` case below.
+
+| KAITO preset | HF ID | Assistant checkpoint required | Notes |
+|---|---|---|---|
+| `gemma-4-E2B-it` | `google/gemma-4-E2B-it` | ✅ Yes | vLLM MTP doc: Gemma 4 IT uses a separate assistant checkpoint |
 | `gemma-4-E4B-it` | `google/gemma-4-E4B-it` | ✅ Yes | same |
 | `gemma-4-12B-it` | `google/gemma-4-12B-it` | ✅ Yes | same |
 | `gemma-4-26B-A4B-it` | `google/gemma-4-26B-A4B-it` | ✅ Yes | same |

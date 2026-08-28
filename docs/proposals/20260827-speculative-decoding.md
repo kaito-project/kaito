@@ -39,8 +39,8 @@ Today, enabling speculative decoding in KAITO requires users to write a ConfigMa
 
 - Define a one-annotation toggle (`kaito.sh/enable-speculative-decoding: "true"`) for users to enable speculative decoding on supported presets
 - Add a typed `SpeculativeDecoding` field to `CatalogEntry` in `model_catalog.yaml` (populated via `catalogOverrides` in `presets/workspace/generator/generator.go`), propagated through `PresetParam` / `Generator` / `vLLMCompatibleModel` so both the controller and the admission webhook can read it. `supported_models.yaml` is intentionally not extended: it is being deprecated (only the `base` image entry remains actively used); `model_catalog.yaml` + `catalogOverrides` is the going-forward source of truth for per-preset metadata.
-- Preset controller reads the field **off the already-resolved `model.Model`** — via `GetInferenceParameters()` on the object returned by `plugin.KaitoModelRegister.MustGet` — and injects the vLLM `--speculative-config` flag automatically. This avoids re-looking up the preset by its short name at reconcile time: `GetModelByNameWithToken` rewrites short aliases like `deepseek-r1-0528` to `deepseek-ai/deepseek-r1-0528` before registering them (`presets/workspace/models/vllm_model.go`), so any second registry lookup keyed on the raw annotation'd preset name is not guaranteed to hit.
-- Admission webhook rejects unsupported preset + annotation combinations at `kubectl apply` time — using the same resolver the controller uses (`plugin.KaitoModelRegister.MustGet` on the preset from `ws.Inference.Preset.Name`) so it observes the same alias-rewrite behavior; the webhook then reads `GetInferenceParameters().SpeculativeDecoding` from the resolved model.
+- Preset controller reads the field **off the already-resolved `model.Model`** — via `GetInferenceParameters()` on the model object the controller already resolved through `models.GetModelByName` (which calls `GetModelByNameWithToken` internally) — and injects the vLLM `--speculative-config` flag automatically. The controller must not re-look up the preset by its short name at reconcile time: `GetModelByNameWithToken` rewrites short aliases like `deepseek-r1-0528` to `deepseek-ai/deepseek-r1-0528` before registering them (`presets/workspace/models/vllm_model.go`), so a direct `plugin.KaitoModelRegister.MustGet` keyed on the raw annotation'd preset name is not guaranteed to hit.
+- Admission webhook rejects unsupported preset + annotation combinations at `kubectl apply` time — using `models.GetModelByName(ws.Inference.Preset.Name, accessSecret)` which performs the same alias rewrite and lazy model generation as the controller; the webhook then reads `GetInferenceParameters().SpeculativeDecoding` from the resolved model.
 - Initial preset coverage: `mtp` for the current DeepSeek reasoning/MoE presets available in the KAITO catalog at ship time (see "Model Coverage" table below — targets include `deepseek-r1-0528`, `deepseek-v3-0324`, and `deepseek-v3.2`; final shipping list is driven by which of these are catalog-present and vLLM-verified against KAITO's pinned vLLM at merge time). DeepSeek-V4-Flash / V4-Pro land in **Ready to Onboard (`dspark`)** below, because the vLLM recipe for both wires DSpark as a separate assistant checkpoint (`speculative_config.model=deepseek-ai/DeepSeek-V4-Flash-DSpark`) rather than a bundled head — see the corrected DeepSeek-V4 section for details.
 - Support InferenceSet via `spec.template.metadata.annotations` propagation
 
@@ -71,7 +71,7 @@ vllm serve deepseek-ai/DeepSeek-R1 \
 | Method | How it drafts | Extra GPU memory? | Best-fit workload |
 |---|---|---|---|
 | `mtp` | Multi-Token Prediction head bundled in the checkpoint (DeepSeek-V3 / R1, etc.) | No | Any workload on that model family |
-| `dspark` | DeepSeek-V4's own semi-autoregressive block drafting; bundled in checkpoint | No | Any workload on DeepSeek-V4 |
+| `dspark` | DeepSeek-V4's own semi-autoregressive block drafting; requires a **separately sourced assistant checkpoint** (e.g. `DeepSeek-V4-Flash-DSpark`) — not bundled in the base weights | Yes (separate assistant checkpoint loaded alongside target; requires node-estimator budgeting) | Any workload on DeepSeek-V4 |
 | `eagle` / `eagle3` | Separate draft model trained to mimic the target | Yes (separate checkpoint loaded alongside target) | General-purpose; mainstream across vLLM/SGLang/TensorRT-LLM |
 | `ngram` / `suffix` | Pure lookup against prompt + generation history | No | Code completion, RAG, summarization, translation, agent tool-call echo |
 
@@ -210,13 +210,13 @@ Status quo:
 
 The plumbing change this proposal adds:
 
-1. Add a `SpeculativeDecoding *SpeculativeDecodingConfig` field to `generator.CatalogEntry` (`presets/workspace/generator/model_catalog.go`) so it round-trips through `LoadCatalog` / `SaveCatalog`. `update_model_catalog/main.go` treats it as a preserved-across-refresh field (same treatment as other override-only fields) so a HF `config.json` refresh does not blow it away.
+1. Add a `SpeculativeDecoding *SpeculativeDecodingConfig` field to `generator.CatalogEntry` (`presets/workspace/generator/model_catalog.go`) so it round-trips through `LoadCatalog` / `SaveCatalog`. `update_model_catalog/main.go` treats it as a preserved-across-refresh field (same treatment as other override-only fields) so a HF `config.json` refresh does not blow it away. Additionally, extend the `catalogFields` change-detection map in `update_model_catalog/main.go` (lines ~97-143) to include the `SpeculativeDecoding` field, so that a speculative-only override change is correctly detected and written out on refresh rather than silently reported as "no changes."
 2. Populate it via `catalogOverrides` in `presets/workspace/generator/generator.go` for the presets listed in the Model Coverage table. `catalogOverrides` is the existing hook for maintainer-authored fields whose values are not on HuggingFace.
 3. Extend `generator.Generator.Param` (`model.PresetParam`) with a `SpeculativeDecoding` field so `GeneratePreset` copies the value out of `CatalogEntry` at preset-generation time.
 4. Extend `vLLMCompatibleModel` in `presets/workspace/models/vllm_model.go` to hold the field, and make `GetInferenceParameters()` return it on the copy it hands back to the controller — this is what makes the value visible to the reconcile-time injection site in Step 3.
-5. Reuse the same resolver both call sites use — `plugin.KaitoModelRegister.MustGet(name).GetInferenceParameters()` — in the admission webhook. `MustGet` is the one entry point that honors the alias-rewrite performed at registration (`vllm_model.go` rewrites short aliases like `deepseek-r1-0528` to `deepseek-ai/deepseek-r1-0528`), so both the controller and the webhook resolve the same object for the same annotation-facing preset name. A convenience `KaitoModelRegister.GetSpeculativeDecoding(name)` may be added later as a thin wrapper, but is not required for correctness.
+5. Use `models.GetModelByName(name, accessSecret)` in the admission webhook to resolve the preset. This function calls `GetModelByNameWithToken` internally, which normalizes aliases (`deepseek-r1-0528` → `deepseek-ai/deepseek-r1-0528`), lazily generates catalog models on first access, and resolves access secrets — unlike `plugin.KaitoModelRegister.MustGet`, which is a direct map lookup that would miss unregistered short names and panic on cache misses. Both the controller and the webhook thus resolve the same object for the same annotation-facing preset name.
 
-After these changes, both the controller and the webhook read the same `SpeculativeDecoding` value from one source of truth in `model_catalog.yaml` + `catalogOverrides` — both go through `plugin.KaitoModelRegister.MustGet(ws.Inference.Preset.Name).GetInferenceParameters()`, which honors the alias rewrite performed by `GetModelByNameWithToken` at registration (`presets/workspace/models/vllm_model.go`). `supported_models.yaml` is not touched by this proposal.
+After these changes, both the controller and the webhook read the same `SpeculativeDecoding` value from one source of truth in `model_catalog.yaml` + `catalogOverrides` — both go through `models.GetModelByName(ws.Inference.Preset.Name, accessSecret)` → `GetModelByNameWithToken` → `GetInferenceParameters()`, which honors the alias rewrite performed at registration (`presets/workspace/models/vllm_model.go`). `supported_models.yaml` is not touched by this proposal.
 
 ### Implementation
 
@@ -318,26 +318,41 @@ Two acceptable options; the design commits to option (a) because it is smaller a
 
 ```go
 if ws.Annotations["kaito.sh/enable-speculative-decoding"] == "true" {
-    // 5. Extract SpeculativeDecoding from the already-resolved model. Do
-    //    NOT re-look up by ws.Inference.Preset.Name here — short aliases
-    //    (deepseek-r1-0528) are rewritten to HF IDs
-    //    (deepseek-ai/deepseek-r1-0528) at registration, so a raw lookup
-    //    can miss.
-    resolved := plugin.KaitoModelRegister.MustGet(ws.Inference.Preset.Name)
-    params := resolved.GetInferenceParameters()
-    if params.SpeculativeDecoding != nil {
-        // Skip injection if the user already provided --speculative-config
-        // via inference_config.yaml passthrough. ConfigMap wins to preserve
-        // the power-user escape hatch. See Step 5 for precedence rules.
-        if !userSpecifiedSpeculativeConfig(inferenceConfig) {
-            blob, err := vllmFormat(params.SpeculativeDecoding)
-            if err != nil {
-                return fmt.Errorf("speculative decoding: %w", err)
+    // Guard: reject multi-node (pipeline parallelism) at reconcile time.
+    // The admission webhook checks this too, but estimation can change
+    // between admission and reconcile (e.g. SKU availability), so we
+    // re-check status.targetNodeCount here before injecting.
+    if ws.Status.TargetNodeCount > 1 {
+        // Set a Workspace condition explaining why speculative decoding
+        // was not injected, rather than silently skipping.
+        setCondition(ws, ConditionSpeculativeDecodingDisabled,
+            "multi-node distributed inference (pipeline parallelism) is incompatible "+
+            "with speculative decoding; resolved to %d nodes", ws.Status.TargetNodeCount)
+        // Do NOT inject --speculative-config.
+    } else {
+        // Extract SpeculativeDecoding from the already-resolved model
+        // passed in by the caller. Do NOT re-look up by
+        // ws.Inference.Preset.Name here — short aliases
+        // (deepseek-r1-0528) are rewritten to HF IDs
+        // (deepseek-ai/deepseek-r1-0528) at registration, so a raw
+        // registry lookup can miss. Use the model object the controller
+        // already resolved via models.GetModelByName (which triggers
+        // GetModelByNameWithToken internally).
+        params := resolvedModel.GetInferenceParameters()
+        if params.SpeculativeDecoding != nil {
+            // Skip injection if the user already provided --speculative-config
+            // via inference_config.yaml passthrough. ConfigMap wins to preserve
+            // the power-user escape hatch. See Step 5 for precedence rules.
+            if !userSpecifiedSpeculativeConfig(inferenceConfig) {
+                blob, err := vllmFormat(params.SpeculativeDecoding)
+                if err != nil {
+                    return fmt.Errorf("speculative decoding: %w", err)
+                }
+                // ModelRunParams does NOT shell-quote. Wrap in single quotes
+                // and escape embedded single quotes so /bin/sh sees exactly
+                // one argv token.
+                runParams["speculative-config"] = shellSingleQuote(blob)
             }
-            // ModelRunParams does NOT shell-quote. Wrap in single quotes
-            // and escape embedded single quotes so /bin/sh sees exactly
-            // one argv token.
-            runParams["speculative-config"] = shellSingleQuote(blob)
         }
     }
 }
@@ -425,14 +440,17 @@ func validateSpeculativeDecoding(ws *Workspace) error {
         )
     }
 
-    // (b) Preset must have a validated config in the catalog. Use the
-    //     same resolver the controller uses so alias rewrites
-    //     (deepseek-r1-0528 -> deepseek-ai/deepseek-r1-0528, done at
-    //     registration in vllm_model.go) are honored.
-    resolved, ok := plugin.KaitoModelRegister.Get(ws.Inference.Preset.Name)
-    if !ok {
+    // (b) Preset must have a validated config in the catalog. Use
+    //     models.GetModelByName (which calls GetModelByNameWithToken
+    //     internally, handling alias rewrites like deepseek-r1-0528 ->
+    //     deepseek-ai/deepseek-r1-0528, lazy-generation of catalog
+    //     models, and access-secret resolution). A direct
+    //     KaitoModelRegister.Get/MustGet would bypass alias
+    //     normalization and fail on short preset names.
+    resolved, err := models.GetModelByName(ws.Inference.Preset.Name, ws.Inference.Preset.AccessSecret)
+    if err != nil || resolved == nil {
         return fmt.Errorf(
-            "preset %q is not registered; "+
+            "preset %q could not be resolved; "+
             "remove kaito.sh/enable-speculative-decoding annotation or choose a supported preset",
             ws.Inference.Preset.Name,
         )
@@ -492,7 +510,16 @@ func validateSpeculativeDecoding(ws *Workspace) error {
     //     Reconcile time (Step 3 injection site): re-check
     //     status.targetNodeCount and refuse to inject if it exceeds 1,
     //     emitting a Workspace condition explaining why.
-    if targetNodes, err := estimateTargetNodeCount(ws); err == nil && targetNodes > 1 {
+    targetNodes, err := estimateTargetNodeCount(ws)
+    if err != nil {
+        return fmt.Errorf(
+            "kaito.sh/enable-speculative-decoding: failed to estimate node count "+
+            "for preset %q on SKU %q: %w; cannot validate pipeline-parallelism "+
+            "compatibility — resolve the estimation error or remove the annotation",
+            ws.Inference.Preset.Name, ws.Resource.InstanceType, err,
+        )
+    }
+    if targetNodes > 1 {
         return fmt.Errorf(
             "kaito.sh/enable-speculative-decoding is incompatible with "+
             "multi-node distributed inference (pipeline parallelism); "+
@@ -511,7 +538,7 @@ The existing `inference_config.yaml` passthrough (`vllm.speculative-config: '...
 
 - **ConfigMap wins.** The preset controller skips its own `--speculative-config` injection if the user's ConfigMap already contains a `speculative-config` key under `vllm:`. This preserves the power-user escape hatch (sweep `num_speculative_tokens`, try `eagle`) without producing two conflicting `--speculative-config` flags on the vLLM command line.
 - The admission webhook still enforces (b) — the annotation still requires a supported preset. This keeps the failure mode consistent regardless of ConfigMap contents.
-- When both sources are present, the **reconcile-time preset controller** emits a Kubernetes Event (`SpeculativeDecodingConfigMapOverride`) on the Workspace at the same place it decides to skip injection. Events are only emitted from the reconcile path — not the validating webhook — because the webhook is declared with `sideEffects: None` (`charts/kaito/workspace/templates/webhooks.yaml`) and can be invoked for dry-run or retried admission requests. Emitting an Event from admission would violate the webhook contract and could produce duplicate or spurious events; the reconcile-time signal fires exactly once per apply, after the Workspace exists, and shows up in `kubectl describe workspace` / `kubectl get events`.
+- When both sources are present, the **reconcile-time preset controller** emits a Kubernetes Event (`SpeculativeDecodingConfigMapOverride`) on the Workspace at the same place it decides to skip injection. Events are only emitted from the reconcile path — not the validating webhook — because the webhook is declared with `sideEffects: None` (`charts/kaito/workspace/templates/webhooks.yaml`) and can be invoked for dry-run or retried admission requests. Emitting an Event from admission would violate the webhook contract and could produce duplicate or spurious events; the reconcile-time signal may fire on repeated reconciliations of the same generation (status updates, child-resource watches, retries). Kubernetes Events are inherently aggregated — the API server deduplicates events with the same reason/message within a window — so the emission is safe without explicit idempotency tracking. It shows up in `kubectl describe workspace` / `kubectl get events`.
 
 ### InferenceSet Support
 

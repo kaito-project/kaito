@@ -252,16 +252,22 @@ type NGramConfig struct {
 }
 
 type DSparkConfig struct {
+    // Variant is the draft-source discriminator: "fused" (default) or
+    // "assistant". Fused variants (V4-Flash-0731, V4-Flash-DSpark)
+    // ship the DSpark module inside the served checkpoint and emit a
+    // method-only-plus-parameters vLLM blob (no `model` field).
+    // Assistant variants load a separately sourced DSpark checkpoint
+    // alongside the base model. Catalog validation keys off this
+    // field: assistant REQUIRES Model non-empty; fused REQUIRES Model
+    // empty. Unset (zero value) is treated as "fused" for backwards
+    // compatibility with the initial fused-only shipping list.
+    Variant              string `yaml:"variant,omitempty"` // "" | "fused" | "assistant"
     // Model is the assistant/draft checkpoint reference (e.g.
     // "deepseek-ai/DeepSeek-V4-Flash-DSpark") serialized as
-    // speculative_config.model in the vLLM JSON blob. It is REQUIRED
-    // only for the separately sourced assistant-checkpoint variant.
-    // For fused served-checkpoint DSpark variants (V4-Flash-0731 and
-    // the -DSpark repo, both of which ship the DSpark module inside
-    // the served weights), Model is omitted and vLLM emits a
-    // method-only-plus-parameters blob. Catalog-generation validation
-    // is per-preset: an override that marks the entry as
-    // assistant-checkpoint requires Model; fused entries do not.
+    // speculative_config.model in the vLLM JSON blob. REQUIRED when
+    // Variant == "assistant"; MUST be empty when Variant == "fused"
+    // (or unset). Fused served-checkpoint identity is tracked on the
+    // preset (`CatalogEntry.Name` / preset image), not here.
     Model                string `yaml:"model,omitempty"`
     NumSpeculativeTokens int    `yaml:"numSpeculativeTokens"`
     // DraftSampleMethod matches speculative_config.draft_sample_method
@@ -284,7 +290,7 @@ type Metadata struct {
 
 The typed sub-structs constrain the shape, but they do not by themselves prevent an author from pairing `Method: "mtp"` with a nil `MTP` or a populated `NGram`. Validation happens in two places:
 
-- **Catalog generation** (unit test over `model_catalog.yaml` after regeneration from `catalogOverrides`): asserts method / sub-struct exclusivity (exactly one non-nil sub-config, matching `method`), required positive fields (`numSpeculativeTokens > 0`, `promptLookupMax > 0` for `ngram`), and supported methods. For `dspark`, an entry marked as assistant-checkpoint (via a build-tag or an explicit `variant: assistant` field in `catalogOverrides`) requires a non-empty `Model`; fused entries do not. Fails the build if a maintainer authors a broken `catalogOverrides` entry.
+- **Catalog generation** (unit test over `model_catalog.yaml` after regeneration from `catalogOverrides`): asserts method / sub-struct exclusivity (exactly one non-nil sub-config, matching `method`), required positive fields (`numSpeculativeTokens > 0`, `promptLookupMax > 0` for `ngram`), and supported methods. For `dspark`, a typed `DSparkConfig.Variant` discriminator (`"fused"` | `"assistant"`, defaulting to `"fused"` when unset for backwards compatibility) decides whether `Model` is required: `Variant: "assistant"` requires a non-empty `Model`; `Variant: "fused"` requires `Model` to be empty. Any `MTPConfig` in Step 1 is implicitly self-contained-head; a parallel `MTPConfig.Variant` discriminator is deferred to the Gemma 4 IT assistant-checkpoint follow-up (see the caveat in [Per-Preset Config Ownership](#per-preset-config-ownership)). Fails the build if a maintainer authors a broken `catalogOverrides` entry.
 - **Runtime** (`vllmFormat`, Step 3): returns a typed error rather than dereferencing a possibly-nil pointer.
 
 `DSpark` is included even though DeepSeek-V4 onboarding is a follow-up, so the type surface is stable when the next preset lights up.
@@ -339,7 +345,14 @@ Two acceptable options; the design commits to option (a) because it is smaller a
 
 > **On per-preset parameter defaults.** For presets whose vLLM recipe upstream gives concrete recommended values (e.g. DeepSeek-V4-Flash's [vLLM recipe](https://recipes.vllm.ai/deepseek-ai/DeepSeek-V4-Flash) covers `num_speculative_tokens`, tensor-parallel size, and KV-cache dtype), the `catalogOverrides` entry for that preset carries those values so the injected `--speculative-config` matches the upstream-recommended profile out of the box. When the recipe is silent, `numSpeculativeTokens: 1` is used as a safe default (see “Why 1?” in Step 2).
 
+**Where the injection lives.** `GenerateInferencePodSpec` (`pkg/workspace/inference/preset_inferences.go:522`) is the code that builds the workload command. On line 578 it calls `ctx.Model.GetInferenceParameters().DeepCopy()` to obtain a fresh `PresetParam` for **this** pod, then on line 600 it calls `inferenceParam.GetInferenceCommand(...)` which walks `inferenceParam.VLLM.ModelRunParams` to build the shell string. `GetInferenceParameters` on `vLLMCompatibleModel` allocates a new `PresetParam` on every call, so **mutating any earlier copy is lost**. The injection therefore has to run **after** the line-578 `DeepCopy()` and **before** the line-600 `GetInferenceCommand(...)`, and it has to mutate `inferenceParam.VLLM.ModelRunParams` on that exact copy — no free-floating `runParams` map, no earlier `PresetParam` snapshot:
+
 ```go
+// pkg/workspace/inference/preset_inferences.go, inside GenerateInferencePodSpec's
+// returned func, immediately after:
+//     inferenceParam := ctx.Model.GetInferenceParameters().DeepCopy()
+// and BEFORE:
+//     commands := inferenceParam.GetInferenceCommand(...)
 if ws.Annotations["kaito.sh/enable-speculative-decoding"] == "true" {
     // Guard: reject multi-node (pipeline parallelism) at reconcile time.
     // The admission webhook checks this too, but estimation can change
@@ -352,33 +365,38 @@ if ws.Annotations["kaito.sh/enable-speculative-decoding"] == "true" {
             "multi-node distributed inference (pipeline parallelism) is incompatible "+
             "with speculative decoding; resolved to %d nodes", ws.Status.TargetNodeCount)
         // Do NOT inject --speculative-config.
-    } else {
-        // Extract SpeculativeDecoding from the already-resolved model
-        // passed in by the caller. Do NOT re-look up by
-        // ws.Inference.Preset.Name here — short aliases
-        // (deepseek-r1-0528) are rewritten to HF IDs
-        // (deepseek-ai/deepseek-r1-0528) at registration, so a raw
-        // registry lookup can miss. Use the model object the controller
-        // already resolved via models.GetModelByName (which triggers
-        // GetModelByNameWithToken internally).
-        params := resolvedModel.GetInferenceParameters()
-        if params.SpeculativeDecoding != nil {
+    } else if inferenceParam.VLLM != nil {
+        // Extract SpeculativeDecoding from the already-resolved model.
+        // ctx.Model was resolved by the caller via models.GetModelByName
+        // (which triggers GetModelByNameWithToken internally and rewrites
+        // short aliases like deepseek-r1-0528 -> deepseek-ai/deepseek-r1-0528).
+        // Read the field off inferenceParam (the DeepCopy above), not off
+        // ctx.Model.GetInferenceParameters() again — the latter would allocate
+        // yet another PresetParam and any prior edits to inferenceParam would
+        // not appear on it.
+        if inferenceParam.SpeculativeDecoding != nil {
             // Skip injection if the user already provided --speculative-config
             // via inference_config.yaml passthrough. ConfigMap wins to preserve
             // the power-user escape hatch. See Step 5 for precedence rules.
             if !userSpecifiedSpeculativeConfig(inferenceConfig) {
-                blob, err := vllmFormat(params.SpeculativeDecoding)
+                blob, err := vllmFormat(inferenceParam.SpeculativeDecoding)
                 if err != nil {
                     return fmt.Errorf("speculative decoding: %w", err)
                 }
-                // ModelRunParams does NOT shell-quote. Wrap in single quotes
-                // and escape embedded single quotes so /bin/sh sees exactly
-                // one argv token.
-                runParams["speculative-config"] = shellSingleQuote(blob)
+                // ModelRunParams is walked by GetInferenceCommand below to
+                // build the shell string. It does NOT shell-quote values, so
+                // wrap the JSON in single quotes and escape embedded single
+                // quotes so /bin/sh sees exactly one argv token.
+                if inferenceParam.VLLM.ModelRunParams == nil {
+                    inferenceParam.VLLM.ModelRunParams = map[string]string{}
+                }
+                inferenceParam.VLLM.ModelRunParams["speculative-config"] = shellSingleQuote(blob)
             }
         }
     }
 }
+
+commands := inferenceParam.GetInferenceCommand(pkgmodel.RuntimeContext{ /* ... */ })
 ```
 
 ```go
@@ -407,25 +425,31 @@ func vllmFormat(sd *SpeculativeDecodingConfig) (string, error) {
         m["num_speculative_tokens"] = sd.NGram.NumSpeculativeTokens
         m["prompt_lookup_max"]      = sd.NGram.PromptLookupMax
     case "dspark":
-        // dspark can ship two ways depending on the DeepSeek-V4 variant:
-        //  1. Fused served-checkpoint variant (e.g. DeepSeek-V4-Flash-0731,
-        //     DeepSeek-V4-Flash-DSpark): the DSpark module is baked into
-        //     the served checkpoint and vLLM's own recipe emits a
+        // dspark ships two ways, discriminated by DSpark.Variant:
+        //  1. "fused" (default): the DSpark module is baked into the
+        //     served checkpoint (e.g. DeepSeek-V4-Flash-0731,
+        //     DeepSeek-V4-Flash-DSpark). vLLM's recipe emits a
         //     method-only blob (`{"method":"dspark", ...}`) with no
-        //     `model` field. The served checkpoint identity is tracked
-        //     on the preset (`CatalogEntry.Name` / preset image),
-        //     not on the speculative-config blob.
-        //  2. Assistant-checkpoint variant (future / cross-preset): a
-        //     separate DSpark assistant loaded alongside a distinct base
-        //     model — represented by a non-empty `DSpark.Model`.
-        //
-        // Do NOT hard-require `DSpark.Model` here; that would reject the
-        // current official DeepSeek-V4 DSpark configuration.
-        if sd.DSpark != nil && sd.DSpark.Model != "" {
+        //     `model` field. Served-checkpoint identity is tracked on
+        //     the preset (`CatalogEntry.Name` / preset image), not on
+        //     the speculative-config blob. Catalog validation requires
+        //     `Model == ""` for this variant.
+        //  2. "assistant": a separate DSpark assistant loaded alongside
+        //     a distinct base model. Catalog validation requires
+        //     `Model != ""`; runtime emits the `model` field.
+        // The Variant discriminator is authoritative; do NOT branch on
+        // `Model` alone at runtime because "" is a valid fused value.
+        if sd.DSpark != nil && sd.DSpark.Variant == "assistant" {
             m["model"] = sd.DSpark.Model
         }
         if sd.DSpark != nil && sd.DSpark.NumSpeculativeTokens > 0 {
             m["num_speculative_tokens"] = sd.DSpark.NumSpeculativeTokens
+        }
+        if sd.DSpark != nil && sd.DSpark.DraftSampleMethod != "" {
+            m["draft_sample_method"] = sd.DSpark.DraftSampleMethod
+        }
+        if sd.DSpark != nil && sd.DSpark.AttentionBackend != "" {
+            m["attention_backend"] = sd.DSpark.AttentionBackend
         }
     default:
         // Belt-and-suspenders: caught earlier by the catalog-generation
@@ -735,7 +759,7 @@ DeepSeek-V4-Pro-0813 is treated separately: it is DSpark-eligible per the vLLM f
 Onboarding steps for V4-Flash-0731 (and the parallel FP8 Preview / NVFP4 / -DSpark rows above):
 
 1. Add the base preset to the catalog (rename `deepseek-v4-pro` → `-0813` when it lands; add `deepseek-v4-flash-0731` alongside).
-2. Populate `DSparkConfig` — fused entries need only `NumSpeculativeTokens` (and, when applicable, `DraftSampleMethod: "probabilistic"` and any hardware `AttentionBackend` override the recipe calls out). Runtime `vllmFormat` emits a method-only-plus-parameters blob; catalog-generation validation for fused entries does not require `Model`.
+2. Populate `DSparkConfig` — fused entries set `Variant: "fused"` (or leave unset) and need only `NumSpeculativeTokens` (and, when applicable, `DraftSampleMethod: "probabilistic"` and any hardware `AttentionBackend` override the recipe calls out). Runtime `vllmFormat` emits a method-only-plus-parameters blob; catalog-generation validation requires `Model == ""` for `Variant: "fused"`. The assistant-checkpoint case (`Variant: "assistant"` + non-empty `Model`) is defined but has no shipping preset in Step 1.
 3. Re-verify against KAITO's pinned vLLM version.
 
 The `mtp` variants (FP8 Preview and NVFP4) reuse the exact `MTPConfig` shape already shipped for R1-0528 / V3-0324 — no new type work, no assistant checkpoint. They can land in the initial `dspark` follow-up PR or as a parallel `mtp` follow-up, at maintainer discretion.

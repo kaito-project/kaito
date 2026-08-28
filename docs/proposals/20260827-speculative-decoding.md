@@ -345,15 +345,17 @@ Two acceptable options; the design commits to option (a) because it is smaller a
 
 > **On per-preset parameter defaults.** For presets whose vLLM recipe upstream gives concrete recommended values (e.g. DeepSeek-V4-Flash's [vLLM recipe](https://recipes.vllm.ai/deepseek-ai/DeepSeek-V4-Flash) covers `num_speculative_tokens`, tensor-parallel size, and KV-cache dtype), the `catalogOverrides` entry for that preset carries those values so the injected `--speculative-config` matches the upstream-recommended profile out of the box. When the recipe is silent, `numSpeculativeTokens: 1` is used as a safe default (see “Why 1?” in Step 2).
 
-**Where the injection lives.** `GenerateInferencePodSpec` (`pkg/workspace/inference/preset_inferences.go:522`) is the code that builds the workload command. On line 578 it calls `ctx.Model.GetInferenceParameters().DeepCopy()` to obtain a fresh `PresetParam` for **this** pod, then on line 600 it calls `inferenceParam.GetInferenceCommand(...)` which walks `inferenceParam.VLLM.ModelRunParams` to build the shell string. `GetInferenceParameters` on `vLLMCompatibleModel` allocates a new `PresetParam` on every call, so **mutating any earlier copy is lost**. The injection therefore has to run **after** the line-578 `DeepCopy()` and **before** the line-600 `GetInferenceCommand(...)`, and it has to mutate `inferenceParam.VLLM.ModelRunParams` on that exact copy — no free-floating `runParams` map, no earlier `PresetParam` snapshot:
+**Where the injection lives.** `GenerateInferencePodSpec` (`pkg/workspace/inference/preset_inferences.go:522`) is the code that builds the workload command. On line 578 it calls `ctx.Model.GetInferenceParameters().DeepCopy()` to obtain a fresh `PresetParam` for **this** pod; on line 579 it computes `runtimeName := v1beta1.GetWorkspaceRuntimeName(ctx.Workspace)`; then on line 600 it calls `inferenceParam.GetInferenceCommand(...)` which walks `inferenceParam.VLLM.ModelRunParams` to build the shell string. `GetInferenceParameters` on `vLLMCompatibleModel` allocates a new `PresetParam` on every call, so **mutating any earlier copy is lost**. The injection therefore has to run **after** the line-578 `DeepCopy()` (and after the line-579 runtime-name computation) and **before** the line-600 `GetInferenceCommand(...)`, and it has to mutate `inferenceParam.VLLM.ModelRunParams` on that exact copy — no free-floating `runParams` map, no earlier `PresetParam` snapshot. `RuntimeParam.VLLM` is a value of type `VLLMParam`, not a pointer (see `pkg/model/interface.go:233–260`), so the runtime gate is `runtimeName == pkgmodel.RuntimeNameVLLM`, not a nil check on `inferenceParam.VLLM`:
 
 ```go
 // pkg/workspace/inference/preset_inferences.go, inside GenerateInferencePodSpec's
 // returned func, immediately after:
 //     inferenceParam := ctx.Model.GetInferenceParameters().DeepCopy()
+//     runtimeName := v1beta1.GetWorkspaceRuntimeName(ctx.Workspace)
 // and BEFORE:
 //     commands := inferenceParam.GetInferenceCommand(...)
-if ws.Annotations["kaito.sh/enable-speculative-decoding"] == "true" {
+if runtimeName == pkgmodel.RuntimeNameVLLM &&
+    ws.Annotations["kaito.sh/enable-speculative-decoding"] == "true" {
     // Guard: reject multi-node (pipeline parallelism) at reconcile time.
     // The admission webhook checks this too, but estimation can change
     // between admission and reconcile (e.g. SKU availability), so we
@@ -365,7 +367,7 @@ if ws.Annotations["kaito.sh/enable-speculative-decoding"] == "true" {
             "multi-node distributed inference (pipeline parallelism) is incompatible "+
             "with speculative decoding; resolved to %d nodes", ws.Status.TargetNodeCount)
         // Do NOT inject --speculative-config.
-    } else if inferenceParam.VLLM != nil {
+    } else {
         // Extract SpeculativeDecoding from the already-resolved model.
         // ctx.Model was resolved by the caller via models.GetModelByName
         // (which triggers GetModelByNameWithToken internally and rewrites
@@ -374,6 +376,11 @@ if ws.Annotations["kaito.sh/enable-speculative-decoding"] == "true" {
         // ctx.Model.GetInferenceParameters() again — the latter would allocate
         // yet another PresetParam and any prior edits to inferenceParam would
         // not appear on it.
+        //
+        // NOTE: inferenceParam.VLLM is VLLMParam (a value, not a pointer;
+        // see pkg/model/interface.go:233–260, RuntimeParam.VLLM VLLMParam).
+        // Do NOT gate on `inferenceParam.VLLM != nil` — that wouldn't compile.
+        // The `runtimeName == RuntimeNameVLLM` check above is the correct gate.
         if inferenceParam.SpeculativeDecoding != nil {
             // Skip injection if the user already provided --speculative-config
             // via inference_config.yaml passthrough. ConfigMap wins to preserve

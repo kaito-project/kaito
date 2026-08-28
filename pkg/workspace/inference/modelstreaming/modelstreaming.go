@@ -163,9 +163,8 @@ func buildCommonStreamingEnvVars(modelID string) []corev1.EnvVar {
 //   - When the provider supplies init containers (SAS path): appends the shared volume, mounts
 //     it in the main container, and prepends the transparent entrypoint wrapper.
 //
-// Note: weights volume mount removal and init container skipping are handled upstream —
-// GenerateInferencePodSpec skips the mount when streamingModelPath is set, and
-// SetModelDownloadInfo returns early when streaming is enabled.
+// Note: weight-volume handling is performed upstream. GenerateInferencePodSpec
+// skips the default mount when streamingModelPath is set.
 func SetStreamingConfig(streamingCfg *StreamingConfig, modelID, defaultSA string) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 		mainIdx := -1

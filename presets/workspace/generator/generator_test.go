@@ -38,7 +38,6 @@ func TestGeneratePreset(t *testing.T) {
 					Name:                   "phi-4-mini-instruct",
 					Architectures:          []string{"Phi3ForCausalLM"},
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "microsoft/Phi-4-mini-instruct"),
-					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "7.15Gi",
 					BytesPerToken:          131072,
@@ -64,7 +63,6 @@ func TestGeneratePreset(t *testing.T) {
 					Name:                   "falcon-7b-instruct",
 					Architectures:          []string{"FalconForCausalLM"},
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "tiiuae/falcon-7b-instruct"),
-					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "13.44Gi", // Python test expects 27Gi due to double counting (bin+safetensors). We fix this to use safetensors only.
 					BytesPerToken:          8192,
@@ -90,7 +88,6 @@ func TestGeneratePreset(t *testing.T) {
 					Name:                   "ministral-3-8b-instruct-2512",
 					Architectures:          []string{"Mistral3ForConditionalGeneration"},
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Ministral-3-8B-Instruct-2512"),
-					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "9.70Gi",
 					BytesPerToken:          139264,
@@ -117,7 +114,6 @@ func TestGeneratePreset(t *testing.T) {
 					Name:                   "mistral-large-3-675b-instruct-2512",
 					Architectures:          []string{"MistralLarge3ForCausalLM"},
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Mistral-Large-3-675B-Instruct-2512"),
-					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "634.70Gi",
 					BytesPerToken:          70272,
@@ -145,7 +141,6 @@ func TestGeneratePreset(t *testing.T) {
 					Name:                   "qwen3-coder-30b-a3b-instruct",
 					Architectures:          []string{"Qwen3MoeForCausalLM"},
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "Qwen/Qwen3-Coder-30B-A3B-Instruct"),
-					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "56.87Gi",
 					BytesPerToken:          98304,
@@ -173,7 +168,6 @@ func TestGeneratePreset(t *testing.T) {
 					Name:                   "qwen3-8b",
 					Architectures:          []string{"Qwen3ForCausalLM"},
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "Qwen/Qwen3-8B"),
-					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "15.26Gi",
 					BytesPerToken:          147456,
@@ -201,7 +195,6 @@ func TestGeneratePreset(t *testing.T) {
 					Name:                   "deepseek-v3.1",
 					Architectures:          []string{"DeepseekV3ForCausalLM"},
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "deepseek-ai/DeepSeek-V3.1"),
-					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "641.30Gi",
 					BytesPerToken:          70272,
@@ -230,7 +223,6 @@ func TestGeneratePreset(t *testing.T) {
 					Name:                   "deepseek-v3",
 					Architectures:          []string{"DeepseekV3ForCausalLM"},
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "deepseek-ai/DeepSeek-V3"),
-					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "641.30Gi",
 					BytesPerToken:          70272,
@@ -259,7 +251,6 @@ func TestGeneratePreset(t *testing.T) {
 					Name:                   "nemotron-orchestrator-8b",
 					Architectures:          []string{"Qwen3ForCausalLM"},
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "nvidia/Nemotron-Orchestrator-8B"),
-					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "30.51Gi",
 					BytesPerToken:          147456,
@@ -287,7 +278,6 @@ func TestGeneratePreset(t *testing.T) {
 					Name:                   "qwen3-8b-awq",
 					Architectures:          []string{"Qwen3ForCausalLM"},
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "Qwen/Qwen3-8B-AWQ"),
-					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "5.68Gi",
 					BytesPerToken:          147456,
@@ -322,7 +312,6 @@ func TestGeneratePreset(t *testing.T) {
 			assert.Equal(t, tc.expectedParam.Name, param.Name)
 			assert.Equal(t, tc.expectedParam.Architectures, param.Architectures)
 			assert.Equal(t, tc.expectedParam.Version, param.Version)
-			assert.Equal(t, tc.expectedParam.DownloadAtRuntime, param.DownloadAtRuntime)
 			assert.Equal(t, tc.expectedParam.DownloadAuthRequired, param.DownloadAuthRequired)
 			assert.Equal(t, tc.expectedParam.Metadata.ModelFileSize, param.Metadata.ModelFileSize)
 			assert.Equal(t, tc.expectedParam.Metadata.BytesPerToken, param.Metadata.BytesPerToken)
@@ -473,7 +462,6 @@ func TestLoadFromCatalog(t *testing.T) {
 					Name:                   "phi-4-mini-instruct",
 					Architectures:          []string{"Phi3ForCausalLM"},
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "microsoft/Phi-4-mini-instruct"),
-					DownloadAtRuntime:      true,
 					ModelFileSize:          "7.15Gi",
 					BytesPerToken:          131072,
 					ModelTokenLimit:        131072,
@@ -490,7 +478,6 @@ func TestLoadFromCatalog(t *testing.T) {
 					Name:                   "phi-4",
 					Architectures:          []string{"Phi3ForCausalLM"},
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "microsoft/phi-4"),
-					DownloadAtRuntime:      true,
 					ModelFileSize:          "27.31Gi",
 					BytesPerToken:          204800,
 					ModelTokenLimit:        16384,
@@ -507,7 +494,6 @@ func TestLoadFromCatalog(t *testing.T) {
 					Name:                   "gemma-3-4b-it",
 					Architectures:          []string{"Gemma3ForConditionalGeneration"},
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "google/gemma-3-4b-it"),
-					DownloadAtRuntime:      true,
 					ModelFileSize:          "8.01Gi",
 					BytesPerToken:          139264,
 					ModelTokenLimit:        131072,
@@ -525,7 +511,6 @@ func TestLoadFromCatalog(t *testing.T) {
 					Name:                   "mistral-7b-v0.3",
 					Architectures:          []string{"MistralForCausalLM"},
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Mistral-7B-v0.3"),
-					DownloadAtRuntime:      true,
 					ModelFileSize:          "13.50Gi",
 					BytesPerToken:          131072,
 					ModelTokenLimit:        32768,
@@ -543,7 +528,6 @@ func TestLoadFromCatalog(t *testing.T) {
 					Name:                   "ministral-3-8b-instruct-2512",
 					Architectures:          []string{"Mistral3ForConditionalGeneration"},
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Ministral-3-8B-Instruct-2512"),
-					DownloadAtRuntime:      true,
 					ModelFileSize:          "9.70Gi",
 					BytesPerToken:          139264,
 					ModelTokenLimit:        262144,
@@ -579,7 +563,6 @@ func TestLoadFromCatalog(t *testing.T) {
 			assert.Equal(t, tc.expectedParam.Name, gen.Param.Name)
 			assert.Equal(t, tc.expectedParam.Architectures, gen.Param.Architectures)
 			assert.Equal(t, tc.expectedParam.Version, gen.Param.Version)
-			assert.Equal(t, tc.expectedParam.DownloadAtRuntime, gen.Param.DownloadAtRuntime)
 			assert.Equal(t, tc.expectedParam.Metadata.ModelFileSize, gen.Param.Metadata.ModelFileSize)
 			assert.Equal(t, tc.expectedParam.Metadata.BytesPerToken, gen.Param.Metadata.BytesPerToken)
 			assert.Equal(t, tc.expectedParam.Metadata.ModelTokenLimit, gen.Param.Metadata.ModelTokenLimit)

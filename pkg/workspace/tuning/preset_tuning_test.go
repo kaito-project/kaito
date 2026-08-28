@@ -681,7 +681,15 @@ func (m *mockModel) GetInferenceParameters() *pkgmodel.PresetParam {
 }
 
 func (m *mockModel) GetTuningParameters() *pkgmodel.PresetParam {
-	return &pkgmodel.PresetParam{}
+	return &pkgmodel.PresetParam{
+		Metadata: pkgmodel.Metadata{Registry: "test-registry"},
+		RuntimeParam: pkgmodel.RuntimeParam{
+			Transformers: pkgmodel.HuggingfaceTransformersParam{
+				ModelName: "test-model",
+				Tag:       "0.2.0",
+			},
+		},
+	}
 }
 
 func (m *mockModel) SupportDistributedInference() bool {
@@ -708,9 +716,12 @@ func (m *mockModelDistinctParams) GetInferenceParameters() *pkgmodel.PresetParam
 
 func (m *mockModelDistinctParams) GetTuningParameters() *pkgmodel.PresetParam {
 	return &pkgmodel.PresetParam{
+		Metadata: pkgmodel.Metadata{Registry: "test-registry"},
 		RuntimeParam: pkgmodel.RuntimeParam{
 			Transformers: pkgmodel.HuggingfaceTransformersParam{
 				BaseCommand: "tuning-base-command",
+				ModelName:   "test-model",
+				Tag:         "0.2.0",
 			},
 		},
 	}
@@ -765,4 +776,17 @@ func TestGenerateBasicTuningPodSpec_UsesTuningParams(t *testing.T) {
 		"expected tuning command to use GetTuningParameters().BaseCommand")
 	assert.NotContains(t, cmd, "inference-command-should-not-appear",
 		"tuning command must not use GetInferenceParameters().BaseCommand")
+
+	assert.Len(t, podSpec.InitContainers, 1)
+	puller := podSpec.InitContainers[0]
+	assert.Equal(t, "model-weights-downloader", puller.Name)
+	assert.Equal(t, utils.DefaultORASToolImage, puller.Image)
+	assert.Equal(t, []string{
+		"oras",
+		"pull",
+		"test-registry/kaito-test-model:0.2.0",
+		"-o",
+		utils.DefaultWeightsVolumePath,
+	}, puller.Command)
+	assert.Equal(t, []corev1.VolumeMount{utils.DefaultModelWeightsVolumeMount}, puller.VolumeMounts)
 }

@@ -170,7 +170,6 @@ name: phi-4-mini-instruct
 architectures:
 - Phi3ForCausalLM
 version: https://huggingface.co/microsoft/Phi-4-mini-instruct
-download_at_runtime: true
 download_auth_required: false
 disk_storage_requirement: 87Gi
 model_file_size_gb: 7.15

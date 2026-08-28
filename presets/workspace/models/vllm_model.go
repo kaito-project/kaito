@@ -179,7 +179,6 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 	metaData := &model.Metadata{
 		Name:                  m.model.Name,
 		Version:               m.model.Version,
-		DownloadAtRuntime:     true,
 		DownloadAuthRequired:  m.model.DownloadAuthRequired,
 		Architectures:         m.model.Architectures,
 		QuantMethod:           m.model.QuantMethod,
@@ -255,6 +254,8 @@ func (m *vLLMCompatibleModel) GetTuningParameters() *model.PresetParam {
 	if !ok {
 		return nil
 	}
+	transformers := tc.Transformers.DeepCopy()
+	transformers.Tag = defaultTuningModelArtifactTag
 	return &model.PresetParam{
 		Metadata:                      m.model,
 		DiskStorageRequirement:        tc.DiskStorageRequirement,
@@ -264,7 +265,7 @@ func (m *vLLMCompatibleModel) GetTuningParameters() *model.PresetParam {
 		TuningPerGPUMemoryRequirement: tc.TuningPerGPUMemoryRequirement,
 		ReadinessTimeout:              tc.ReadinessTimeout,
 		RuntimeParam: model.RuntimeParam{
-			Transformers: tc.Transformers,
+			Transformers: transformers,
 		},
 	}
 }

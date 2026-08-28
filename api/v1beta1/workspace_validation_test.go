@@ -102,7 +102,6 @@ func (*testModelDownload) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata: model.Metadata{
 			Version:              "https://huggingface.co/test-repo/test-model/commit/test-revision",
-			DownloadAtRuntime:    true,
 			DownloadAuthRequired: true,
 		},
 		TotalSafeTensorFileSize: "32Gi",
@@ -1510,7 +1509,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			expectErrs: true,
 		},
 		{
-			name: "Preset with model weights packaged but with access secret",
+			name: "public preset with optional access secret",
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
 					PresetMeta: PresetMeta{
@@ -1521,8 +1520,6 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 					},
 				},
 			},
-			errContent: "This preset does not require a modelAccessSecret with HF_TOKEN key under presetOptions",
-			expectErrs: true,
 		},
 	}
 

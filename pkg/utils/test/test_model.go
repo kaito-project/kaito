@@ -153,10 +153,9 @@ func (*testModelDownload) SupportDistributedInference() bool {
 func (*testModelDownload) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata: model.Metadata{
-			Name:              "test-model-download",
-			Tag:               "1.0.0",
-			Version:           "https://huggingface.co/test-repo/test-model/commit/test-revision",
-			DownloadAtRuntime: true,
+			Name:    "test-model-download",
+			Tag:     "1.0.0",
+			Version: "https://huggingface.co/test-repo/test-model/commit/test-revision",
 		},
 		DiskStorageRequirement:  "100Gi",
 		TotalSafeTensorFileSize: "64Gi",
@@ -187,10 +186,9 @@ func (*testModelDownloadA100) SupportDistributedInference() bool {
 func (*testModelDownloadA100) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata: model.Metadata{
-			Name:              "test-model-download-a100",
-			Tag:               "1.0.0",
-			Version:           "https://huggingface.co/test-repo/test-model-a100/commit/test-revision",
-			DownloadAtRuntime: true,
+			Name:    "test-model-download-a100",
+			Tag:     "1.0.0",
+			Version: "https://huggingface.co/test-repo/test-model-a100/commit/test-revision",
 		},
 		DiskStorageRequirement:  "100Gi",
 		TotalSafeTensorFileSize: "64Gi",

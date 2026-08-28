@@ -66,7 +66,6 @@ func main() {
 		{Key: "name", Value: param.Metadata.Name},
 		{Key: "architectures", Value: param.Metadata.Architectures},
 		{Key: "version", Value: param.Metadata.Version},
-		{Key: "download_at_runtime", Value: param.Metadata.DownloadAtRuntime},
 		{Key: "download_auth_required", Value: param.Metadata.DownloadAuthRequired},
 		{Key: "disk_storage_requirement", Value: param.Metadata.DiskStorageRequirement},
 		{Key: "model_file_size_gb", Value: szVal},

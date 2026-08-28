@@ -53,7 +53,6 @@ func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
 			checkParams: func(t *testing.T, params *model.PresetParam) {
 				assert.Equal(t, "test-model", params.Metadata.Name)
 				assert.Equal(t, "https://huggingface.co/test/model", params.Metadata.Version)
-				assert.True(t, params.Metadata.DownloadAtRuntime)
 				assert.False(t, params.Metadata.DownloadAuthRequired)
 				assert.Equal(t, "bfloat16", params.RuntimeParam.VLLM.ModelRunParams["dtype"])
 				assert.Equal(t, "", params.RuntimeParam.VLLM.ModelRunParams["trust-remote-code"])
@@ -440,6 +439,7 @@ func TestVLLMCompatibleModel_GetTuningParameters(t *testing.T) {
 			assert.Equal(t, tc.ReadinessTimeout, params.ReadinessTimeout)
 			assert.Equal(t, tc.Transformers.BaseCommand, params.RuntimeParam.Transformers.BaseCommand)
 			assert.Equal(t, tc.Transformers.ModelName, params.RuntimeParam.Transformers.ModelName)
+			assert.Equal(t, defaultTuningModelArtifactTag, params.RuntimeParam.Transformers.Tag)
 		})
 	}
 }

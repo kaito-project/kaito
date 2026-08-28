@@ -69,14 +69,6 @@ type Metadata struct {
 	// and revision ID, e.g. https://huggingface.co/mistralai/Mistral-7B-v0.3/commit/d8cadc02ac76bd617a919d50b092e59d2d110aff.
 	Version string `yaml:"version"`
 
-	// DownloadAtRuntime indicates whether the model should be downloaded
-	// at runtime. If set to true, the model will be downloaded when the
-	// model deployment is created, and the container image will always be
-	// the KAITO base image. If set to false, a container image whose name
-	// contains the model name will be used, in which the model weights are baked.
-	// +optional
-	DownloadAtRuntime bool `yaml:"downloadAtRuntime,omitempty"`
-
 	// DownloadAuthRequired indicates whether the model requires authentication to download.
 	// +optional
 	DownloadAuthRequired bool `yaml:"downloadAuthRequired,omitempty"`
@@ -351,7 +343,7 @@ func (p *PresetParam) buildHuggingfaceInferenceCommand() []string {
 	if p.Transformers.ModelName != "" {
 		p.Transformers.ModelRunParams["served_model_name"] = p.Transformers.ModelName
 	}
-	if p.DownloadAtRuntime {
+	if p.Version != "" {
 		repoId, revision, _ := utils.ParseHuggingFaceModelVersion(p.Version)
 		p.Transformers.ModelRunParams["pretrained_model_name_or_path"] = repoId
 		if revision != "" {
@@ -473,7 +465,7 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		// (e.g. mistral sets load_format=mistral); remove it to avoid conflicting
 		// with the hyphenated --load-format we set here.
 		delete(p.VLLM.ModelRunParams, "load_format")
-	} else if p.DownloadAtRuntime {
+	} else if p.Version != "" {
 		repoId, revision, _ := utils.ParseHuggingFaceModelVersion(p.Version)
 		p.VLLM.ModelRunParams["model"] = repoId
 		if revision != "" {

@@ -38,10 +38,10 @@ Today, enabling speculative decoding in KAITO requires users to write a ConfigMa
 ### Goals
 
 - Define a one-annotation toggle (`kaito.sh/enable-speculative-decoding: "true"`) for users to enable speculative decoding on supported presets
-- Add a typed `SpeculativeDecoding` field to `model.Metadata` in `supported_models.yaml`, propagated through `PresetParam` / `Generator` / `vLLMCompatibleModel` so both the controller and the admission webhook can read it
+- Add a typed `SpeculativeDecoding` field to `CatalogEntry` in `model_catalog.yaml` (populated via `catalogOverrides` in `presets/workspace/generator/generator.go`), propagated through `PresetParam` / `Generator` / `vLLMCompatibleModel` so both the controller and the admission webhook can read it. `supported_models.yaml` is intentionally not extended: it is being deprecated (only the `base` image entry remains actively used); `model_catalog.yaml` + `catalogOverrides` is the going-forward source of truth for per-preset metadata.
 - Preset controller reads the field and injects vLLM `--speculative-config` flag automatically
 - Admission webhook rejects unsupported preset + annotation combinations at `kubectl apply` time
-- Initial preset coverage: `mtp` for `deepseek-r1-0528` and `deepseek-v3-0324` (zero extra memory/download)
+- Initial preset coverage: `mtp` for the current DeepSeek reasoning/MoE presets available in the KAITO catalog at ship time (see "Model Coverage" table below — targets include `deepseek-r1-0528`, `deepseek-v3-0324`, `deepseek-v3.2`, `deepseek-v4-flash-0731`, and (once catalog-renamed) `deepseek-v4-pro-0813`; final shipping list is driven by which of these are catalog-present and vLLM-verified against KAITO's pinned vLLM at merge time)
 - Support InferenceSet via `spec.template.metadata.annotations` propagation
 
 ### Non-Goals/Future Work
@@ -194,27 +194,29 @@ annotation or choose a supported preset (e.g. deepseek-r1-*, deepseek-v3-*).
 
 #### Escape Hatch for Power Users
 
-The existing `inference_config.yaml` ConfigMap `vllm:` passthrough is **not going away** — a researcher who wants to sweep `num_speculative_tokens` or try `eagle` can still write raw `--speculative-config` themselves. A typed override field on `InferenceSpec` is called out as **out of scope** for this proposal.
+The existing `inference_config.yaml` ConfigMap `vllm:` passthrough is **not going away** — a researcher who wants to sweep `num_speculative_tokens` or try a different method (e.g. `ngram`) can still write raw `--speculative-config` themselves. A typed override field on `InferenceSpec` is called out as **out of scope** for this proposal.
+
+> **Caveat on the passthrough for methods that need a separate draft model (`eagle` / `medusa` / assistant-checkpoint `mtp` / `dspark`).** The passthrough gets vLLM the `speculative_config` JSON, but the KAITO node estimator (`workspace_controller.go`, resource-planning path) sizes the pod GPU memory from the **target** model only. A separate draft checkpoint of non-trivial size can silently push the pod OOM at load, or evict KV cache under load. So `inference_config.yaml` passthrough is safe for zero-extra-weight methods (`mtp` with self-contained head, `ngram`, `suffix`), but for draft-model methods the estimator has to be updated in the same PR that ships the config — which is exactly why draft-model methods are handled as first-class typed config in Step 1 (see `MTPConfig.Model` and `DSparkConfig.Model`) rather than as escape-hatch use cases.
 
 ### Where the Per-Preset Config Lives in Code
 
-**The config lives in `supported_models.yaml`, but the data flow to get it into the controller and webhook does not exist today — this proposal specifies it.**
+**The config lives in `model_catalog.yaml` (populated via `catalogOverrides` in `presets/workspace/generator/generator.go`), and this proposal plumbs it end-to-end from `CatalogEntry` → `PresetParam` → registered `model.Model` → admission webhook.**
 
-Today: `metadata.go` loads `supported_models.yaml` into a private map used only for validation; `vllm_model.go` redirects short preset names to full HuggingFace IDs and constructs the registered runtime model out of `model_catalog.yaml`. `ModelRegister` also has no `Get` API that exposes metadata to callers. So a field added only to `supported_models.yaml` is invisible at reconcile and admission time.
+Status quo:
 
-An earlier draft put `SpeculativeDecoding` on `CatalogEntry` (populated via `catalogOverrides`). Three problems with that:
+- `presets/workspace/models/supported_models.yaml` is being deprecated. Only the `base` image entry is still actively consumed; per-preset metadata that used to live there is being migrated to `model_catalog.yaml`. Adding a new per-preset field to `supported_models.yaml` would be adding to a file the project is trying to phase out.
+- `presets/workspace/models/model_catalog.yaml` is generated from HuggingFace `config.json` by `presets/workspace/generator/update_model_catalog/main.go`; hand-curated per-preset overrides land in the `catalogOverrides` map in `presets/workspace/generator/generator.go` (already used today for missing HF metadata like Gemma 3 context length and Mistral Large 3 architecture). This is the correct home for a maintainer-controlled runtime knob.
+- Today `CatalogEntry` is parsed into `model.PresetParam` by `GeneratePreset`; `vLLMCompatibleModel` (the object registered in `plugin.KaitoModelRegister`) currently retains only the fields it uses at command-build time. `ModelRegister` also has no `Get` API that exposes richer metadata to callers such as the admission webhook.
 
-1. **Semantic mismatch.** `CatalogEntry` / `model_catalog.yaml` is generated from HuggingFace `config.json` and holds model-metadata facts (architecture, hidden sizes, token limits, quant config). Speculative decoding is an operator-side runtime choice about a maintainer-validated flag — not a model-metadata fact.
-2. **Webhook can't read it.** `model_catalog.yaml` (embedded by `presets/workspace/models/vllm_model.go`) is baked into the *preset image* at build time. The controller and admission webhook binaries do not carry it.
-3. **Controller drops it.** Even inside the generator, `CatalogEntry` is parsed into `model.PresetParam`; `vLLMCompatibleModel` retains only the fields needed for run parameters. Extending `CatalogEntry` alone would discard `SpeculativeDecoding` before reconciliation.
+The plumbing change this proposal adds:
 
-The fix is a small, explicit plumbing change (part of this proposal, not "already there"):
+1. Add a `SpeculativeDecoding *SpeculativeDecodingConfig` field to `generator.CatalogEntry` (`presets/workspace/generator/model_catalog.go`) so it round-trips through `LoadCatalog` / `SaveCatalog`. `update_model_catalog/main.go` treats it as a preserved-across-refresh field (same treatment as other override-only fields) so a HF `config.json` refresh does not blow it away.
+2. Populate it via `catalogOverrides` in `presets/workspace/generator/generator.go` for the presets listed in the Model Coverage table. `catalogOverrides` is the existing hook for maintainer-authored fields whose values are not on HuggingFace.
+3. Extend `generator.Generator.Param` (`model.PresetParam`) with a `SpeculativeDecoding` field so `GeneratePreset` copies the value out of `CatalogEntry` at preset-generation time.
+4. Extend `vLLMCompatibleModel` in `presets/workspace/models/vllm_model.go` to hold the field, and make `GetInferenceParameters()` return it on the copy it hands back to the controller — this is what makes the value visible to the reconcile-time injection site in Step 3.
+5. Add a `GetMetadata(name string) *model.Metadata` (or `GetSpeculativeDecoding(name)`) method on `plugin.KaitoModelRegister` so the admission webhook can look the value up directly without instantiating a full `PresetParam`.
 
-1. Add `SpeculativeDecoding` to the entry type parsed out of `supported_models.yaml` in `metadata.go`, and store it in the per-preset metadata map.
-2. Extend `vllm_model.go`'s registration path so the `SpeculativeDecoding` field is copied from that metadata map into the runtime `model.Model` returned via `plugin.KaitoModelRegister` — alongside the HF-ID redirection it already does.
-3. Add a `GetMetadata(name string) *model.Metadata` (or equivalent) method on `ModelRegister` so the admission webhook can look up the field directly without going through the runtime-model path.
-
-After these three changes, both the controller (via the registered `model.Model`) and the webhook (via `KaitoModelRegister.GetMetadata`) see the same `SpeculativeDecoding` value from a single source of truth. `model_catalog.yaml` is not touched by this proposal.
+After these changes, both the controller (via the registered `model.Model` returned from `KaitoModelRegister.MustGet` → `GetInferenceParameters`) and the webhook (via `KaitoModelRegister.GetSpeculativeDecoding`) read the same `SpeculativeDecoding` value from one source of truth in `model_catalog.yaml` + `catalogOverrides`. `supported_models.yaml` is not touched by this proposal.
 
 ### Implementation
 
@@ -264,24 +266,36 @@ The typed sub-structs constrain the shape, but they do not by themselves prevent
 
 `DSpark` is included even though DeepSeek-V4 onboarding is a follow-up, so the type surface is stable when the next preset lights up.
 
-#### Step 2 — Declare per-preset config in `supported_models.yaml`
+#### Step 2 — Declare per-preset config via `catalogOverrides` (feeding `model_catalog.yaml`)
 
-`presets/workspace/models/supported_models.yaml`:
+Add `SpeculativeDecoding` entries to the `catalogOverrides` map in `presets/workspace/generator/generator.go`. On the next `update_model_catalog` run these are written into `presets/workspace/models/model_catalog.yaml` alongside the existing HF-derived fields, and are preserved on subsequent refreshes.
+
+`presets/workspace/generator/generator.go`:
+
+```go
+catalogOverrides = map[string]CatalogEntry{
+    // ... existing entries ...
+    "deepseek-ai/deepseek-r1-0528": {
+        SpeculativeDecoding: &SpeculativeDecodingConfig{
+            Method: "mtp",
+            MTP:    &MTPConfig{NumSpeculativeTokens: 1},
+        },
+    },
+    "deepseek-ai/deepseek-v3-0324": {
+        SpeculativeDecoding: &SpeculativeDecodingConfig{
+            Method: "mtp",
+            MTP:    &MTPConfig{NumSpeculativeTokens: 1},
+        },
+    },
+    // See the "Model Coverage" section for the full initial-ship list.
+}
+```
+
+After regeneration, the corresponding `model_catalog.yaml` block looks like:
 
 ```yaml
-- name: deepseek-r1-0528
-  type: text-generation
-  runtime: vllm
-  # ... existing fields ...
-  speculativeDecoding:
-    method: mtp
-    mtp:
-      numSpeculativeTokens: 1
-
-- name: deepseek-v3-0324
-  type: text-generation
-  runtime: vllm
-  # ... existing fields ...
+- name: deepseek-ai/DeepSeek-R1-0528
+  # ... existing HF-derived fields (architectures, hiddenSize, etc.) ...
   speculativeDecoding:
     method: mtp
     mtp:
@@ -299,6 +313,8 @@ Two acceptable options; the design commits to option (a) because it is smaller a
 **(a) Explicit shell-escape at the injection site.** Wrap the JSON in single quotes and escape any embedded single quotes with the standard `'\''` sequence before assigning to `ModelRunParams`. A unit test asserts the final `/bin/sh -c` command line by round-tripping through `sh -c 'echo $1'` and re-parsing as JSON.
 
 **(b) Move `--speculative-config` off the shell-string path.** Emit it directly into `container.Args` (argv), bypassing `BuildCmdStr` for this one flag. Larger change; called out as a follow-up if more flags need JSON payloads.
+
+> **On per-preset parameter defaults.** For presets whose vLLM recipe upstream gives concrete recommended values (e.g. DeepSeek-V4-Flash's [vLLM recipe](https://recipes.vllm.ai/deepseek-ai/DeepSeek-V4-Flash) covers `num_speculative_tokens`, tensor-parallel size, and KV-cache dtype), the `catalogOverrides` entry for that preset carries those values so the injected `--speculative-config` matches the upstream-recommended profile out of the box. When the recipe is silent, `numSpeculativeTokens: 1` is used as a safe default (see “Why 1?” in Step 2).
 
 ```go
 if ws.Annotations["kaito.sh/enable-speculative-decoding"] == "true" {
@@ -424,13 +440,33 @@ func validateSpeculativeDecoding(ws *Workspace) error {
         )
     }
 
-    // (d) Reject pipeline parallelism. resource.count is NOT the resolved
-    //     vLLM node count — the controller computes status.targetNodeCount
-    //     from model size and SKU AFTER admission (workspace_controller.go
-    //     lines 1578-1621). A nil or 1 count can still become multiple
-    //     nodes and pull in PP. So we enforce single-node compatibility
-    //     using the same estimator the controller uses, and add a
-    //     reconcile-time guard before injection.
+    // (d) Reject pipeline parallelism.
+    //     Rationale: KAITO's cross-node runtime today is pipeline
+    //     parallelism (see workspace_controller.go lines 1578-1621, where
+    //     multi-node presets are resolved and PP is what gets configured
+    //     when the resolved node count > 1). Upstream vLLM's own
+    //     speculative-decoding docs likewise gate their per-method
+    //     recipes on single-node deployments, and MTP / DSpark PP
+    //     support is still being landed / stabilized in vLLM at the time
+    //     of this proposal (see vLLM issues tracking
+    //     speculative-decoding+PP). Enabling `--speculative-config` on a
+    //     PP layout in the current KAITO+vLLM combination would either
+    //     hard-fail vLLM startup or silently disable speculation on the
+    //     non-first stages, neither of which we want to route through
+    //     `enable-speculative-decoding: "true"`.
+    //
+    //     Note this is a conservative admission-time gate, not an
+    //     upstream compatibility statement. When vLLM's PP support for a
+    //     given method stabilizes and we’ve verified it on a KAITO PP
+    //     layout, the gate is lifted per-method (a `PPCompatible bool`
+    //     on `SpeculativeDecodingConfig` is the natural extension).
+    //
+    //     resource.count is NOT the resolved vLLM node count — the
+    //     controller computes status.targetNodeCount from model size and
+    //     SKU AFTER admission. A nil or 1 count can still become
+    //     multiple nodes and pull in PP. So we enforce single-node
+    //     compatibility using the same estimator the controller uses,
+    //     and add a reconcile-time guard before injection.
     //
     //     Admission time (this webhook): reject if the resource estimator
     //     already knows the preset requires PP for the resolved SKU.
@@ -523,20 +559,31 @@ Cross-referencing the KAITO preset catalog ([`presets/workspace/models/model_cat
 
 ### Committed (Initial Preset Coverage)
 
+The initial shipping list favors presets that (a) are already in `model_catalog.yaml`, (b) do not need a separately sourced draft checkpoint, and (c) have upstream evidence (vLLM benchmark, vLLM recipe, or vendor release notes) that speculative decoding gives a net win on realistic KAITO-shape workloads.
+
 | KAITO preset | HF ID | In KAITO catalog? | Method | `num_speculative_tokens` | Extra memory / download |
 |---|---|---|---|---|---|
 | `deepseek-r1-0528` | `deepseek-ai/DeepSeek-R1-0528` | ✅ Yes | `mtp` | 1 | none — MTP head is in the checkpoint |
 | `deepseek-v3-0324` | `deepseek-ai/DeepSeek-V3-0324` | ✅ Yes | `mtp` | 1 | none — same |
+| `deepseek-v3.2` | `deepseek-ai/DeepSeek-V3.2` | ✅ Yes | `mtp` | 1 | none — same in-checkpoint MTP path as V3 family |
+| `deepseek-v4-flash-0731` | `deepseek-ai/DeepSeek-V4-Flash-0731` | ✅ Yes | `dspark` | per [vLLM recipe](https://recipes.vllm.ai/deepseek-ai/DeepSeek-V4-Flash) | none — DSpark head bundled in 0731 base checkpoint (~167 GiB, incl. DSpark) |
 
-⚠️ Note: the distilled presets `DeepSeek-R1-Distill-Llama-8B` and `DeepSeek-R1-Distill-Qwen-14B` are **not** MTP candidates — they are Llama / Qwen architectures with no MTP head in the checkpoint.
+**Additionally ship in the same PR (catalog rename + `catalogOverrides` entry):**
 
-### Free-to-Onboard Next (Same `mtp` Path, No Extra Memory / Download)
+| KAITO preset | HF ID | Catalog action | Method |
+|---|---|---|---|
+| `deepseek-v4-pro-0813` | `deepseek-ai/DeepSeek-V4-Pro-0813` | rename `deepseek-ai/DeepSeek-V4-Pro` → `-0813` in `model_catalog.yaml`, then add `catalogOverrides` entry | `dspark` |
 
-Only the DeepSeek continuation ships as a zero-download addition — its MTP head is bundled in the same checkpoint as the base weights, matching the shipping presets.
+⚠️ Notes:
+- The distilled presets `DeepSeek-R1-Distill-Llama-8B` and `DeepSeek-R1-Distill-Qwen-14B` are **not** MTP candidates — they are Llama / Qwen architectures with no MTP head in the checkpoint.
+- `zai-org/GLM-5.2-FP8` and the `Qwen3.x` family are in the catalog but do not yet have vLLM-documented speculative-decoding recipes on the shape KAITO ships (single-node, TP-only). They are called out under **Free-to-Onboard Next** rather than the initial ship list, and are the first candidates to promote once vLLM guidance stabilizes.
+
+### Free-to-Onboard Next (Same `mtp` Path, No Extra Memory / Download; or awaiting upstream recipe)
 
 | KAITO preset | HF ID | In KAITO catalog? | Notes / vLLM evidence |
 |---|---|---|---|
-| `deepseek-v3.2` | `deepseek-ai/DeepSeek-V3.2` | ✅ Yes | DeepSeek-V3 family continuation; same in-checkpoint MTP path |
+| `zai-org/GLM-5.2-FP8` | `zai-org/GLM-5.2-FP8` | ✅ Yes | Add once vLLM publishes a speculative-decoding recipe for GLM-5.2 on TP-only single-node layouts |
+| Qwen3.x MoE (e.g. `Qwen/Qwen3.6-35B-A3B`) | `Qwen/Qwen3.6-35B-A3B` (and family) | ✅ Yes | Onboard method-by-method as vLLM recipes for Qwen3 speculative decoding land; `ngram` is a plausible first target |
 
 ### Ready to Onboard (`mtp`, Assistant Checkpoint Required)
 
@@ -558,20 +605,17 @@ This is architecturally the same shape as the `dspark` case below.
 
 ### Ready to Onboard (`dspark`, DeepSeek-V4 Family)
 
-As of August 2026, the base DeepSeek-V4 presets (`deepseek-v4-flash-0731`, `deepseek-v4-pro`) are in the KAITO model catalog, but the base checkpoints alone are **not** ready for `dspark`. Upstream vLLM `dspark` usage targets the `DeepSeek-V4-*-DSpark` variants and supplies that checkpoint via `speculative_config.model` — i.e., the draft path is a separate model reference, not a self-contained head in the base checkpoint.
+As of August 2026 the DeepSeek-V4 presets in the KAITO catalog land in two flavors depending on the vendor release:
 
-As a result, `dspark` onboarding requires:
+- `deepseek-v4-flash-0731` — the **official** 0731 release ships with the DSpark draft head bundled into the base checkpoint (~167 GiB vs ~160 GiB in the earlier preview build without DSpark). Onboarding is a config-only change: attach a `speculativeDecoding` entry via `catalogOverrides` pointing at method `dspark`; there is no separate draft checkpoint to source and no additional GPU-memory budget to plan for.
+- `deepseek-v4-pro-0813` — the DSpark-bundled release of Pro. The catalog entry name `deepseek-v4-pro` (which currently points at the pre-DSpark Pro build) needs to be renamed / re-pointed to `deepseek-ai/DeepSeek-V4-Pro-0813` in `model_catalog.yaml` before attaching `speculativeDecoding`. That is a catalog-side rename in the same PR that lands DSpark, not an extra checkpoint-sourcing exercise.
 
-1. Sourcing / mirroring the `DeepSeek-V4-*-DSpark` checkpoint into the KAITO preset image (or making it fetchable at pod startup).
-2. Extending `SpeculativeDecodingConfig` (specifically `DSparkConfig`) with a `Model` / `Checkpoint` field so the typed config can carry the draft-model reference; `catalogOverrides`-style method-only entries are not sufficient.
-3. Re-verifying against KAITO's pinned vLLM version.
+`DSparkConfig.Model` is still defined up front in Step 1 for the case where a future DeepSeek release keeps the draft head as a separate `-DSpark` checkpoint (as the earlier preview did), so we can attach it there without re-shaping the type.
 
-The type surface (`DSparkConfig`) is defined up front in Step 1 so this future work is a field addition, not a re-shape.
-
-| KAITO preset (base) | HF ID | DSpark checkpoint needed | Method |
+| KAITO preset (base, DSpark-bundled) | HF ID | DSpark checkpoint action | Method |
 |---|---|---|---|
-| `deepseek-v4-flash-0731` | `deepseek-ai/DeepSeek-V4-Flash-0731` | `DeepSeek-V4-Flash-0731-DSpark` | `dspark` |
-| `deepseek-v4-pro` | `deepseek-ai/DeepSeek-V4-Pro` | `DeepSeek-V4-Pro-DSpark` | `dspark` |
+| `deepseek-v4-flash-0731` | `deepseek-ai/DeepSeek-V4-Flash-0731` | Bundled in base checkpoint (~167 GiB, incl. DSpark head) | `dspark` |
+| `deepseek-v4-pro-0813` (rename `deepseek-v4-pro` → `-0813` in `model_catalog.yaml`) | `deepseek-ai/DeepSeek-V4-Pro-0813` | Bundled in base checkpoint | `dspark` |
 
 ### Deferred — EAGLE / EAGLE-3 (Separate Draft Checkpoint)
 

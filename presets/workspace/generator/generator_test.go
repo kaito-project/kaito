@@ -37,7 +37,6 @@ func TestGeneratePreset(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "phi-4-mini-instruct",
 					Architectures:          []string{"Phi3ForCausalLM"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "microsoft/Phi-4-mini-instruct"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
@@ -64,7 +63,6 @@ func TestGeneratePreset(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "falcon-7b-instruct",
 					Architectures:          []string{"FalconForCausalLM"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "tiiuae/falcon-7b-instruct"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
@@ -91,7 +89,6 @@ func TestGeneratePreset(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "ministral-3-8b-instruct-2512",
 					Architectures:          []string{"Mistral3ForConditionalGeneration"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Ministral-3-8B-Instruct-2512"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
@@ -119,7 +116,6 @@ func TestGeneratePreset(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "mistral-large-3-675b-instruct-2512",
 					Architectures:          []string{"MistralLarge3ForCausalLM"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Mistral-Large-3-675B-Instruct-2512"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
@@ -148,7 +144,6 @@ func TestGeneratePreset(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "qwen3-coder-30b-a3b-instruct",
 					Architectures:          []string{"Qwen3MoeForCausalLM"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "Qwen/Qwen3-Coder-30B-A3B-Instruct"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
@@ -177,7 +172,6 @@ func TestGeneratePreset(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "qwen3-8b",
 					Architectures:          []string{"Qwen3ForCausalLM"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "Qwen/Qwen3-8B"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
@@ -206,7 +200,6 @@ func TestGeneratePreset(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "deepseek-v3.1",
 					Architectures:          []string{"DeepseekV3ForCausalLM"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "deepseek-ai/DeepSeek-V3.1"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
@@ -236,7 +229,6 @@ func TestGeneratePreset(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "deepseek-v3",
 					Architectures:          []string{"DeepseekV3ForCausalLM"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "deepseek-ai/DeepSeek-V3"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
@@ -266,7 +258,6 @@ func TestGeneratePreset(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "nemotron-orchestrator-8b",
 					Architectures:          []string{"Qwen3ForCausalLM"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "nvidia/Nemotron-Orchestrator-8B"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
@@ -295,7 +286,6 @@ func TestGeneratePreset(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "qwen3-8b-awq",
 					Architectures:          []string{"Qwen3ForCausalLM"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "Qwen/Qwen3-8B-AWQ"),
 					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
@@ -331,7 +321,6 @@ func TestGeneratePreset(t *testing.T) {
 			// Metadata checks
 			assert.Equal(t, tc.expectedParam.Name, param.Name)
 			assert.Equal(t, tc.expectedParam.Architectures, param.Architectures)
-			assert.Equal(t, tc.expectedParam.ModelType, param.ModelType)
 			assert.Equal(t, tc.expectedParam.Version, param.Version)
 			assert.Equal(t, tc.expectedParam.DownloadAtRuntime, param.DownloadAtRuntime)
 			assert.Equal(t, tc.expectedParam.DownloadAuthRequired, param.DownloadAuthRequired)
@@ -483,7 +472,6 @@ func TestLoadFromCatalog(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "phi-4-mini-instruct",
 					Architectures:          []string{"Phi3ForCausalLM"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "microsoft/Phi-4-mini-instruct"),
 					DownloadAtRuntime:      true,
 					ModelFileSize:          "7.15Gi",
@@ -501,7 +489,6 @@ func TestLoadFromCatalog(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "phi-4",
 					Architectures:          []string{"Phi3ForCausalLM"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "microsoft/phi-4"),
 					DownloadAtRuntime:      true,
 					ModelFileSize:          "27.31Gi",
@@ -519,7 +506,6 @@ func TestLoadFromCatalog(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "gemma-3-4b-it",
 					Architectures:          []string{"Gemma3ForConditionalGeneration"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "google/gemma-3-4b-it"),
 					DownloadAtRuntime:      true,
 					ModelFileSize:          "8.01Gi",
@@ -538,7 +524,6 @@ func TestLoadFromCatalog(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "mistral-7b-v0.3",
 					Architectures:          []string{"MistralForCausalLM"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Mistral-7B-v0.3"),
 					DownloadAtRuntime:      true,
 					ModelFileSize:          "13.50Gi",
@@ -557,7 +542,6 @@ func TestLoadFromCatalog(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "ministral-3-8b-instruct-2512",
 					Architectures:          []string{"Mistral3ForConditionalGeneration"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Ministral-3-8B-Instruct-2512"),
 					DownloadAtRuntime:      true,
 					ModelFileSize:          "9.70Gi",
@@ -594,7 +578,6 @@ func TestLoadFromCatalog(t *testing.T) {
 
 			assert.Equal(t, tc.expectedParam.Name, gen.Param.Name)
 			assert.Equal(t, tc.expectedParam.Architectures, gen.Param.Architectures)
-			assert.Equal(t, tc.expectedParam.ModelType, gen.Param.ModelType)
 			assert.Equal(t, tc.expectedParam.Version, gen.Param.Version)
 			assert.Equal(t, tc.expectedParam.DownloadAtRuntime, gen.Param.DownloadAtRuntime)
 			assert.Equal(t, tc.expectedParam.Metadata.ModelFileSize, gen.Param.Metadata.ModelFileSize)

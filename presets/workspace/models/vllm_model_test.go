@@ -52,9 +52,7 @@ func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
 			expectedDType: "bfloat16",
 			checkParams: func(t *testing.T, params *model.PresetParam) {
 				assert.Equal(t, "test-model", params.Metadata.Name)
-				assert.Equal(t, "text-generation", params.Metadata.ModelType)
 				assert.Equal(t, "https://huggingface.co/test/model", params.Metadata.Version)
-				assert.Equal(t, "tfs", params.Metadata.Runtime)
 				assert.True(t, params.Metadata.DownloadAtRuntime)
 				assert.False(t, params.Metadata.DownloadAuthRequired)
 				assert.Equal(t, "bfloat16", params.RuntimeParam.VLLM.ModelRunParams["dtype"])

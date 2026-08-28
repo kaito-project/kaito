@@ -764,18 +764,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			useFeatureGate:     true,
 		},
 		{
-			name: "Deprecated Model",
-			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NV36ads_A10_v5",
-				Count:        pointerToInt(1),
-			},
-			preset:             true,
-			presetNameOverride: "phi-2",
-			runtime:            model.RuntimeNameVLLM,
-			expectErrs:         true,
-			errContent:         "Model phi-2 is deprecated and no longer supported",
-		},
-		{
 			name: "Empty TotalSafeTensorFileSize skips GPU memory validation",
 			resourceSpec: &ResourceSpec{
 				InstanceType: "Standard_NV36ads_A10_v5",

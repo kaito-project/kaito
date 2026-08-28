@@ -329,7 +329,6 @@ func NewGenerator(modelRepo, token string) *Generator {
 
 	// Initialize default PresetParam
 	gen.Param.Metadata.Name = modelNameSafe
-	gen.Param.Metadata.ModelType = "tfs"
 	gen.Param.Metadata.Version = fmt.Sprintf("%s/%s", HuggingFaceWebsite, modelRepo)
 	gen.Param.Metadata.DownloadAtRuntime = true
 	gen.Param.Metadata.DiskStorageRequirement = fmt.Sprintf("%dGi", SystemFileDiskSizeGiB)

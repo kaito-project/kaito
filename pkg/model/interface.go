@@ -64,19 +64,10 @@ type Metadata struct {
 	// It is used to register the model information and retrieve it later.
 	Name string `yaml:"name"`
 
-	// ModelType is the type of the model, which indicates the kind of model
-	// it is. Currently, the only supported types are "text-generation" and
-	// "llama2-completion" (deprecated).
-	ModelType string `yaml:"type"`
-
 	// Version is the version of the model. It is a URL that points to the
 	// model's huggingface page, which contains the model's repository ID
 	// and revision ID, e.g. https://huggingface.co/mistralai/Mistral-7B-v0.3/commit/d8cadc02ac76bd617a919d50b092e59d2d110aff.
 	Version string `yaml:"version"`
-
-	// Runtime is the runtime environment in which the model operates.
-	// Currently, the only supported runtime is "tfs".
-	Runtime string `yaml:"runtime"`
 
 	// DownloadAtRuntime indicates whether the model should be downloaded
 	// at runtime. If set to true, the model will be downloaded when the

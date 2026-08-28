@@ -46,7 +46,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/mig"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/presets/workspace/models"
-	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 const (
@@ -478,23 +477,6 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 		secretName = inference.Preset.PresetOptions.ModelAccessSecret
 		// Since inference.Preset exists, we must validate preset name.
 		if !plugin.IsValidPreset(presetName) {
-			// If the preset is not valid, check if it is a deprecated model
-			// We use recover() to handle the panic from MustGet if the model is not found
-			var isDeprecated bool
-			func() {
-				defer func() {
-					if r := recover(); r != nil {
-						isDeprecated = false
-					}
-				}()
-				m := metadata.MustGet(presetName)
-				isDeprecated = m.Deprecated
-			}()
-
-			if isDeprecated {
-				errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Model %s is deprecated and no longer supported", presetName), "presetName"))
-				return errs
-			}
 			// Return to skip the rest of checks, the Inference spec validation will return proper err msg.
 			return errs
 		}

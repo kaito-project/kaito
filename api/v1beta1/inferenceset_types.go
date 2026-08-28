@@ -159,6 +159,9 @@ type InferenceSetStatus struct {
 	Replicas int `json:"replicas,omitempty"`
 	// ReadyReplicas is the number of workspaces that are in ready state.
 	ReadyReplicas int `json:"readyReplicas,omitempty"`
+	// MaxModelLen is set when all ready workspaces report the same runtime limit.
+	// +optional
+	MaxModelLen *int32 `json:"maxModelLen,omitempty"`
 	// Selector is used to select the pods that provide metrics for making scaling action decisions.
 	// This field must be set when HPA and VPA is used for scaling.
 	Selector string `json:"selector,omitempty"`

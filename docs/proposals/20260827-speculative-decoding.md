@@ -41,7 +41,7 @@ Today, enabling speculative decoding in KAITO requires users to write a ConfigMa
 - Add a typed `SpeculativeDecoding` field to `CatalogEntry` in `model_catalog.yaml` (populated via `catalogOverrides` in `presets/workspace/generator/generator.go`), propagated through `PresetParam` / `Generator` / `vLLMCompatibleModel` so both the controller and the admission webhook can read it. `supported_models.yaml` is intentionally not extended: it is being deprecated (only the `base` image entry remains actively used); `model_catalog.yaml` + `catalogOverrides` is the going-forward source of truth for per-preset metadata.
 - Preset controller reads the field **off the already-resolved `model.Model`** — via `GetInferenceParameters()` on the model object the controller already resolved through `models.GetModelByName` (which calls `GetModelByNameWithToken` internally) — and injects the vLLM `--speculative-config` flag automatically. The controller must not re-look up the preset by its short name at reconcile time: `GetModelByNameWithToken` rewrites short aliases like `deepseek-r1-0528` to `deepseek-ai/deepseek-r1-0528` before registering them (`presets/workspace/models/vllm_model.go`), so a direct `plugin.KaitoModelRegister.MustGet` keyed on the raw annotation'd preset name is not guaranteed to hit.
 - Admission webhook rejects unsupported preset + annotation combinations at `kubectl apply` time — using `models.GetModelByName(ws.Inference.Preset.Name, accessSecret)` which performs the same alias rewrite and lazy model generation as the controller; the webhook then reads `GetInferenceParameters().SpeculativeDecoding` from the resolved model.
-- Initial preset coverage: `mtp` for the current DeepSeek reasoning/MoE presets available in the KAITO catalog at ship time (see "Model Coverage" table below — targets include `deepseek-r1-0528`, `deepseek-v3-0324`, and `deepseek-v3.2`; final shipping list is driven by which of these are catalog-present and vLLM-verified against KAITO's pinned vLLM at merge time). DeepSeek-V4-Flash / V4-Pro land in **Ready to Onboard (`dspark`)** below, because the vLLM recipe for both wires DSpark as a separate assistant checkpoint (`speculative_config.model=deepseek-ai/DeepSeek-V4-Flash-DSpark`) rather than a bundled head — see the corrected DeepSeek-V4 section for details.
+- Initial preset coverage: `mtp` on the two DeepSeek presets that are catalog-present today and vLLM-verified against KAITO's pinned vLLM at merge time — `deepseek-r1-0528` and `deepseek-v3-0324`. `deepseek-v3.2` is a Free-to-onboard-next candidate (same `mtp` path, no new type work) but is not in the initial ship list. DeepSeek-V4-Flash / V4-Pro land in **Ready to Onboard (`dspark`, fused)** below: the vLLM V4-Flash recipe classifies the dated releases (`DeepSeek-V4-Flash-0731`, `DeepSeek-V4-Flash-DSpark`) as fused served-checkpoint DSpark, not assistant-checkpoint — see the corrected DeepSeek-V4 section for details.
 - Support InferenceSet via `spec.template.metadata.annotations` propagation
 
 ### Non-Goals/Future Work
@@ -180,7 +180,8 @@ inference:
 Error from server (Forbidden): admission webhook "validation.workspace.kaito.sh"
 denied the request: preset "llama-3.1-8b-instruct" does not have a validated
 speculative decoding configuration; remove kaito.sh/enable-speculative-decoding
-annotation or choose a supported preset (e.g. deepseek-r1-*, deepseek-v3-*).
+annotation or choose a supported preset (currently: deepseek-r1-0528,
+deepseek-v3-0324).
 ```
 
 ### Per-Preset Config Ownership
@@ -412,7 +413,7 @@ func vllmFormat(sd *SpeculativeDecodingConfig) (string, error) {
         //     the served checkpoint and vLLM's own recipe emits a
         //     method-only blob (`{"method":"dspark", ...}`) with no
         //     `model` field. The served checkpoint identity is tracked
-        //     on the preset (`CatalogEntry.ModelName` / preset image),
+        //     on the preset (`CatalogEntry.Name` / preset image),
         //     not on the speculative-config blob.
         //  2. Assistant-checkpoint variant (future / cross-preset): a
         //     separate DSpark assistant loaded alongside a distinct base
@@ -513,7 +514,7 @@ func validateSpeculativeDecoding(ws *Workspace) error {
         return fmt.Errorf(
             "preset %q does not have a validated speculative decoding configuration; "+
             "remove kaito.sh/enable-speculative-decoding annotation or choose a "+
-            "supported preset (e.g. deepseek-r1-*, deepseek-v3-*)",
+            "supported preset (currently: deepseek-r1-0528, deepseek-v3-0324)",
             ws.Inference.Preset.Name,
         )
     }

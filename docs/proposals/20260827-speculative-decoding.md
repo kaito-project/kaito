@@ -196,7 +196,7 @@ annotation or choose a supported preset (e.g. deepseek-r1-*, deepseek-v3-*).
 
 The existing `inference_config.yaml` ConfigMap `vllm:` passthrough is **not going away** — a researcher who wants to sweep `num_speculative_tokens` or try a different method (e.g. `ngram`) can still write raw `--speculative-config` themselves. A typed override field on `InferenceSpec` is called out as **out of scope** for this proposal.
 
-> **Caveat on the passthrough for methods that need a separate draft model (`eagle` / `medusa` / assistant-checkpoint `mtp` / `dspark`).** The passthrough gets vLLM the `speculative_config` JSON, but the KAITO node estimator (`workspace_controller.go`, resource-planning path) sizes the pod GPU memory from the **target** model only. A separate draft checkpoint of non-trivial size can silently push the pod OOM at load, or evict KV cache under load. So `inference_config.yaml` passthrough is safe for zero-extra-weight methods (`mtp` with self-contained head, `ngram`, `suffix`), but for draft-model methods the estimator has to be updated in the same PR that ships the config — which is exactly why draft-model methods are handled as first-class typed config in Step 1 (see `MTPConfig.Model` and `DSparkConfig.Model`) rather than as escape-hatch use cases.
+> **Caveat on the passthrough for methods that need a separate draft model (`eagle` / `medusa` / assistant-checkpoint `mtp` / `dspark`).** The passthrough gets vLLM the `speculative_config` JSON, but the KAITO node estimator (`workspace_controller.go`, resource-planning path) sizes the pod GPU memory from the **target** model only. A separate draft checkpoint of non-trivial size can silently push the pod OOM at load, or evict KV cache under load. So `inference_config.yaml` passthrough is safe for zero-extra-weight methods (`mtp` with self-contained head, `ngram`, `suffix`), but for draft-model methods the estimator has to be updated in the same PR that ships the config. Step 1 covers the DSpark assistant-checkpoint case as first-class typed config (`DSparkConfig.Model`). Assistant-checkpoint `mtp` (Gemma 4 IT family) is **not** first-class in Step 1 — Step 1's `MTPConfig` is intentionally a self-contained-head-only shape (see the type below). Extending `MTPConfig` with a `Model` field and updating the node estimator are called out as **future work** in the Gemma 4 IT onboarding section below, alongside assistant-checkpoint sourcing.
 
 ### Where the Per-Preset Config Lives in Code
 
@@ -235,6 +235,12 @@ type SpeculativeDecodingConfig struct {
     // future: EAGLE *EAGLEConfig
 }
 
+// MTPConfig covers the self-contained-head case only (DeepSeek R1/V3
+// family), where the MTP head is bundled in the served checkpoint and
+// vLLM emits a method-only-plus-depth blob. Assistant-checkpoint MTP
+// (Gemma 4 IT family) is future work and will extend this struct with
+// a `Model` field of the same shape as `DSparkConfig.Model` — see the
+// Gemma 4 IT onboarding section under Model Coverage.
 type MTPConfig struct {
     NumSpeculativeTokens int `yaml:"numSpeculativeTokens"`
 }
@@ -407,8 +413,10 @@ func vllmFormat(sd *SpeculativeDecodingConfig) (string, error) {
             m["num_speculative_tokens"] = sd.DSpark.NumSpeculativeTokens
         }
     default:
-        // Belt-and-suspenders: caught earlier by unit tests over
-        // supported_models.yaml, but never silently emit a method-only blob.
+        // Belt-and-suspenders: caught earlier by the catalog-generation
+        // validation over `model_catalog.yaml` + `catalogOverrides`
+        // (the source of truth per Per-Preset Config Ownership), but
+        // never silently emit a method-only blob at runtime.
         return "", fmt.Errorf("unsupported speculative decoding method %q", sd.Method)
     }
     b, err := json.Marshal(m)
@@ -638,7 +646,10 @@ The initial shipping list favors presets that (a) are already in `model_catalog.
 |---|---|---|---|---|---|
 | `deepseek-r1-0528` | `deepseek-ai/DeepSeek-R1-0528` | ✅ Yes | `mtp` | 1 | none — MTP head is in the checkpoint |
 | `deepseek-v3-0324` | `deepseek-ai/DeepSeek-V3-0324` | ✅ Yes | `mtp` | 1 | none — same |
-| `deepseek-v3.2` | `deepseek-ai/DeepSeek-V3.2` | ✅ Yes | `mtp` | 1 | none — same in-checkpoint MTP path as V3 family |
+
+The initial ship list is intentionally scoped to `deepseek-r1-0528` and `deepseek-v3-0324` (as declared in the PR summary): both are already in the catalog, both use the self-contained-head `mtp` path with `MTPConfig` as defined in Step 1, and both have KAITO-shape upstream evidence (vLLM MTP benchmark #12755). Any additional preset in the initial catalog PR would need its own required-catalog-test coverage without expanding proposal scope.
+
+Other in-catalog DeepSeek presets (`deepseek-v3.2` and any subsequent V3 point-releases sharing the same in-checkpoint MTP path) are the immediate follow-up candidates — same code path, same `MTPConfig`, no new type work — and are called out in **Free-to-Onboard Next** below.
 
 DeepSeek-V4-Flash-0731 and V4-Pro-0813 are DSpark candidates but need a separately sourced assistant checkpoint (`deepseek-ai/DeepSeek-V4-Flash-DSpark`) per the vLLM recipe — they land in **Ready to Onboard (`dspark`, DeepSeek-V4 Family)** below, not in the initial ship list. See that section for the corrected onboarding steps.
 
@@ -650,6 +661,7 @@ DeepSeek-V4-Flash-0731 and V4-Pro-0813 are DSpark candidates but need a separate
 
 | KAITO preset | HF ID | In KAITO catalog? | Notes / vLLM evidence |
 |---|---|---|---|
+| `deepseek-v3.2` | `deepseek-ai/DeepSeek-V3.2` | ✅ Yes | Same self-contained-head `mtp` path as V3 family; add in the follow-up preset PR once the initial `deepseek-r1-0528` / `deepseek-v3-0324` shipping catalog + required tests are merged |
 | `zai-org/GLM-5.2-FP8` | `zai-org/GLM-5.2-FP8` | ✅ Yes | Add once vLLM publishes a speculative-decoding recipe for GLM-5.2 on TP-only single-node layouts |
 | Qwen3.x MoE (e.g. `Qwen/Qwen3.6-35B-A3B`) | `Qwen/Qwen3.6-35B-A3B` (and family) | ✅ Yes | Onboard method-by-method as vLLM recipes for Qwen3 speculative decoding land; `ngram` is a plausible first target |
 
@@ -676,7 +688,7 @@ This is architecturally the same shape as the `dspark` case below.
 As of August 2026 the DeepSeek-V4 presets are DSpark candidates, but per the upstream [vLLM DeepSeek-V4-Flash recipe](https://recipes.vllm.ai/deepseek-ai/DeepSeek-V4-Flash) the DSpark draft head is served **as a separate assistant checkpoint** (`speculative_config.model = deepseek-ai/DeepSeek-V4-Flash-DSpark`), not bundled into the base weights — the earlier hallway assumption that the 0731 base checkpoint carries DSpark inline was wrong. The corollary is that `dspark` onboarding for both V4-Flash and V4-Pro has the same shape as the `mtp`-with-assistant-checkpoint case (Gemma 4 IT above):
 
 1. Source/mirror the `DeepSeek-V4-Flash-DSpark` (and, when released, `DeepSeek-V4-Pro-DSpark`) assistant checkpoints into the KAITO preset image (or fetch at pod startup) and account for the extra GPU-memory budget of the draft model in the node estimator (see the Escape Hatch section — the estimator otherwise sizes for the target model only).
-2. Populate `DSparkConfig.Model` in `catalogOverrides` with the assistant HF ID. `vllmFormat` rejects an empty `DSparkConfig.Model` (see Step 3), so `catalogOverrides` for V4-Flash / V4-Pro cannot ship until the assistant checkpoint is resolvable.
+2. Populate `DSparkConfig.Model` in `catalogOverrides` with the assistant HF ID. Catalog-generation validation (the same check `default:` in `vllmFormat` backstops at runtime — see the note in Step 3 pointing at `model_catalog.yaml` + `catalogOverrides` as the source of truth) rejects an assistant-checkpoint DSpark override with an empty `Model`, so `catalogOverrides` for V4-Flash / V4-Pro cannot ship until the assistant checkpoint is resolvable. The runtime `vllmFormat` converter itself intentionally does **not** hard-require `DSpark.Model` — that would reject the fused served-checkpoint DSpark variant (DeepSeek-V4-Flash-0731 / -DSpark), where vLLM's own recipe emits a method-only blob.
 3. Re-verify against KAITO's pinned vLLM version.
 
 The base-preset catalog names still land in the same PR (rename `deepseek-v4-pro` → `deepseek-v4-pro-0813` when 0813 is picked up, and add `deepseek-v4-flash-0731`), but the `speculativeDecoding` entry can only attach once the DSpark assistant checkpoint sourcing is in place.

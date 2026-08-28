@@ -169,7 +169,6 @@ attn_type: GQA
 name: phi-4-mini-instruct
 architectures:
 - Phi3ForCausalLM
-type: tfs
 version: https://huggingface.co/microsoft/Phi-4-mini-instruct
 download_at_runtime: true
 download_auth_required: false

@@ -171,9 +171,6 @@ inference-api-e2e: ## Run inference API e2e tests with pytest.
 	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/vllm
 	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/inference/text-generation
 
-	pip install --no-cache-dir -r ./presets/workspace/generator/requirements.txt --upgrade
-	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/generator/
-
 # Ginkgo configurations
 GINKGO_FOCUS ?=
 GINKGO_SKIP ?=

@@ -215,10 +215,6 @@ type PresetParam struct {
 	BytesPerToken                 int            // Number of bytes per token for the model. It is calculated by 2 * hidden_layers * kv_heads * head_dim (hidden_size/num_attemtion_numbers) * dtype_size
 	ModelTokenLimit               int            // Maximum number of tokens (context window) supported by the model. Maps to 'max_position_embeddings' in the model's Hugging Face config.json.
 
-	// To determine TotalSafeTensorFileSize and BytesPerToken values for a new model,
-	// run the presets/workspace/generator/preset_generator.py script
-	// with the model's Hugging Face repository ID as an argument.
-
 	RuntimeParam
 
 	// ReadinessTimeout defines the maximum duration for creating the workload.

@@ -25,7 +25,7 @@ import (
 )
 
 func TestGeneratePreset(t *testing.T) {
-	// These expected values are derived from presets/workspace/generator/preset_generator_test.py
+	// These expected values cover representative Hugging Face model configurations.
 	cases := []struct {
 		modelRepo     string
 		expectedParam model.PresetParam

@@ -526,27 +526,6 @@ func GenerateE2ETuningConfigMapManifest(namespace string) *corev1.ConfigMap {
 	}
 }
 
-// GenerateE2EInferenceConfigMapManifest generates a ConfigMap manifest for E2E inference.
-func GenerateE2EInferenceConfigMapManifest(name, namespace string) *corev1.ConfigMap {
-	return &corev1.ConfigMap{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "v1",
-			Kind:       "ConfigMap",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace, // Same as workspace namespace
-		},
-		Data: map[string]string{
-			"inference_config.yaml": `
-vllm:
-  max-model-len: 2560
-  gpu-memory-utilization: 0.7
-`,
-		},
-	}
-}
-
 func GeneratePodTemplate(name, namespace, image string, labels map[string]string) *corev1.PodTemplateSpec {
 	return &corev1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{

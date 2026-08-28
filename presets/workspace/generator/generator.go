@@ -708,6 +708,54 @@ func (g *Generator) calculateKVCacheTokenSize() (int, string) {
 	return tokenSize, attnType
 }
 
+// computeMambaStateBytesPerSeq returns the per-sequence Mamba-2 state cache size
+// in bytes (for a single TP rank) for hybrid Mamba/Attention models such as
+// NemotronH, or 0 for pure-attention models. vLLM allocates this state for every
+// running sequence in addition to the attention KV cache, so it must be reserved
+// when sizing GPUs. The conv state uses the model dtype (2 bytes); the SSM
+// temporal state uses float32 (4 bytes), matching vLLM's mamba cache.
+func computeMambaStateBytesPerSeq(config map[string]interface{}) int {
+	ssmStateSize := getInt(config, []string{"ssm_state_size", "mamba_state_dim", "mamba_d_state", "state_size"}, 0)
+	convKernel := getInt(config, []string{"conv_kernel", "mamba_d_conv"}, 0)
+	mambaNumHeads := getInt(config, []string{"mamba_num_heads"}, 0)
+	mambaHeadDim := getInt(config, []string{"mamba_head_dim"}, 0)
+	if ssmStateSize == 0 || convKernel <= 1 || mambaNumHeads == 0 || mambaHeadDim == 0 {
+		return 0
+	}
+	nGroups := getInt(config, []string{"n_groups", "mamba_num_groups"}, 1)
+	if nGroups == 0 {
+		nGroups = 1
+	}
+
+	// Count Mamba layers from the hybrid layer pattern ("M" = mamba block).
+	numMambaLayers := 0
+	if pattern, ok := config["hybrid_override_pattern"].(string); ok {
+		numMambaLayers = strings.Count(pattern, "M")
+	}
+	if numMambaLayers == 0 {
+		if lbt, ok := config["layers_block_type"].([]interface{}); ok {
+			for _, l := range lbt {
+				if s, ok := l.(string); ok && strings.Contains(strings.ToLower(s), "mamba") {
+					numMambaLayers++
+				}
+			}
+		}
+	}
+	if numMambaLayers == 0 {
+		return 0
+	}
+
+	const convDtypeBytes = 2 // model dtype (bf16)
+	const ssmDtypeBytes = 4  // vLLM keeps the SSM temporal state in float32
+
+	mambaIntermediate := mambaNumHeads * mambaHeadDim
+	convDim := mambaIntermediate + 2*nGroups*ssmStateSize
+	convStateBytes := convDim * (convKernel - 1) * convDtypeBytes
+	ssmStateBytes := mambaNumHeads * mambaHeadDim * ssmStateSize * ssmDtypeBytes
+
+	return numMambaLayers * (convStateBytes + ssmStateBytes)
+}
+
 func (g *Generator) FinalizeParams() {
 	g.Param.Metadata.DiskStorageRequirement = g.calculateStorageSize()
 
@@ -777,6 +825,11 @@ func (g *Generator) FinalizeParams() {
 	bpt, attnType := g.calculateKVCacheTokenSize()
 	g.Param.Metadata.BytesPerToken = bpt
 	g.Param.Metadata.AttnType = attnType
+
+	// Catalog models get this from loadFromCatalog; compute it for the HF path.
+	if g.Param.Metadata.MambaStateBytesPerSeq == 0 {
+		g.Param.Metadata.MambaStateBytesPerSeq = computeMambaStateBytesPerSeq(g.ModelConfig)
+	}
 }
 
 // loadFromCatalog checks whether the model repo exists in the embedded catalog.
@@ -840,6 +893,7 @@ func (g *Generator) loadFromCatalog() bool {
 
 	// Populate fields that FetchModelMetadata would have set
 	g.Param.Metadata.ModelFileSize = entry.ModelFileSize
+	g.Param.Metadata.MambaStateBytesPerSeq = entry.MambaStateBytesPerSeq
 	g.Param.VLLM.ModelRunParams = make(map[string]string)
 
 	if entry.LoadFormat != "" {

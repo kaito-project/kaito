@@ -368,6 +368,7 @@ models:
   numHiddenLayers: 88
   numAttentionHeads: 32
   numKeyValueHeads: 2
+  mambaStateBytesPerSeq: 170229760
 - name: nvidia/Nemotron-Cascade-2-30B-A3B
   description: https://huggingface.co/nvidia/Nemotron-Cascade-2-30B-A3B
   license: nvidia-open-model-license
@@ -381,6 +382,7 @@ models:
   numAttentionHeads: 32
   numKeyValueHeads: 2
   headDim: 128
+  mambaStateBytesPerSeq: 49082368
 - name: nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16
   description: https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16
   license: nvidia-nemotron-open-model-license
@@ -394,6 +396,7 @@ models:
   numAttentionHeads: 32
   numKeyValueHeads: 2
   headDim: 128
+  mambaStateBytesPerSeq: 49082368
 - name: nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-BF16
   description: https://huggingface.co/nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-BF16
   license: nvidia-open-model-license
@@ -406,6 +409,7 @@ models:
   numHiddenLayers: 62
   numAttentionHeads: 40
   numKeyValueHeads: 8
+  mambaStateBytesPerSeq: 148865024
 - name: nvidia/NVIDIA-Nemotron-Nano-9B-v2
   description: https://huggingface.co/nvidia/NVIDIA-Nemotron-Nano-9B-v2
   license: nvidia-open-model-license
@@ -422,6 +426,7 @@ models:
   numAttentionHeads: 40
   numKeyValueHeads: 8
   headDim: 128
+  mambaStateBytesPerSeq: 143548416
 - name: nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16
   description: https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16
   license: nvidia-nemotron-open-model-license
@@ -437,6 +442,7 @@ models:
   numAttentionHeads: 40
   numKeyValueHeads: 8
   headDim: 128
+  mambaStateBytesPerSeq: 83801088
 - name: Qwen/Qwen3-8B-AWQ
   description: https://huggingface.co/Qwen/Qwen3-8B-AWQ
   license: apache-2.0
@@ -827,6 +833,7 @@ models:
   numAttentionHeads: 64
   numKeyValueHeads: 2
   quantMethod: MIXED_PRECISION
+  mambaStateBytesPerSeq: 407961600
 - name: deepseek-ai/DeepSeek-V3.2
   description: https://huggingface.co/deepseek-ai/DeepSeek-V3.2
   license: mit

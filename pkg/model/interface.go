@@ -129,6 +129,13 @@ type Metadata struct {
 	// +optional
 	BytesPerToken int `yaml:"bytesPerToken,omitempty"`
 
+	// MambaStateBytesPerSeq is the per-sequence Mamba-2 state cache size in bytes
+	// (single TP rank) for hybrid Mamba/Attention models (e.g. NemotronH). vLLM
+	// allocates this for every running sequence on top of the attention KV cache,
+	// so the node estimator reserves it. Zero for pure-attention models.
+	// +optional
+	MambaStateBytesPerSeq int `yaml:"mambaStateBytesPerSeq,omitempty"`
+
 	// AttnType specifies the attention implementation (e.g., MHA, GQA, MQA, MLA),
 	// computed by the preset generator from the model config.
 	// +optional
@@ -378,7 +385,7 @@ func (p *PresetParam) buildHuggingfaceInferenceCommand() []string {
 
 // defaultGPUMemoryUtilization is the --gpu-memory-utilization value KAITO passes
 // to vLLM unless the GPU model overrides it in gpuMemoryUtilizationByGPUModel.
-const defaultGPUMemoryUtilization = "0.84"
+const defaultGPUMemoryUtilization = "0.92"
 
 // gpuMemoryUtilizationByGPUModel overrides --gpu-memory-utilization for specific
 // GPU models that need extra headroom. Keyed by the exact sku.GPUConfig.GPUModel
@@ -389,6 +396,16 @@ var gpuMemoryUtilizationByGPUModel = map[string]string{
 	// (e.g. gemma-4's huge-vocab final_logit_softcapping copy), so the default
 	// 0.84 leaves too little headroom and OOMs. 0.82 leaves enough slack.
 	"NVIDIA A10": "0.82",
+}
+
+// ResolveGPUMemoryUtilization returns the --gpu-memory-utilization vLLM should be
+// launched with for the given GPU. A per-GPU-model safety cap (clamps down for
+// tight-VRAM GPUs) wins over the default.
+func ResolveGPUMemoryUtilization(gpuModel string) string {
+	if util, ok := gpuMemoryUtilizationByGPUModel[gpuModel]; ok {
+		return util
+	}
+	return defaultGPUMemoryUtilization
 }
 
 func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
@@ -417,13 +434,11 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		p.VLLM.ModelRunParams["max-model-len"] = strconv.Itoa(rc.MaxModelLen)
 	}
 
-	gpuMemoryUtilization := defaultGPUMemoryUtilization
+	gpuModel := ""
 	if rc.GPUConfig != nil {
-		if util, ok := gpuMemoryUtilizationByGPUModel[rc.GPUConfig.GPUModel]; ok {
-			gpuMemoryUtilization = util
-		}
+		gpuModel = rc.GPUConfig.GPUModel
 	}
-	p.VLLM.ModelRunParams["gpu-memory-utilization"] = gpuMemoryUtilization
+	p.VLLM.ModelRunParams["gpu-memory-utilization"] = ResolveGPUMemoryUtilization(gpuModel)
 
 	// Enable KV cache events by default so in-cluster subscribers can consume
 	// BlockStored / BlockRemoved / AllBlocksCleared events over ZMQ on the port

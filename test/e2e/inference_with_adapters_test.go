@@ -16,6 +16,7 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"strings"
 	"time"
 
@@ -475,4 +476,98 @@ var _ = Describe("Workspace Preset", func() {
 		},
 	)
 
+	It("should create a phi4 workspace with adapter successfully", utils.GinkgoLabelA100Required, func() {
+		numOfNode := 1
+		workspaceObj := createPhi4WorkspaceWithAdapterAndVLLM(numOfNode, phi4Adapter)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+
+		validateInferenceResource(workspaceObj, int32(numOfNode))
+
+		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
+		validateModelsEndpoint(workspaceObj)
+		validateChatCompletionsEndpoint(workspaceObj)
+
+		expectedInitContainers := []corev1.Container{
+			{
+				Name:  baseInitContainer.Name + "-" + phi4AdapterName,
+				Image: baseInitContainer.Image,
+			},
+		}
+		validateInitContainers(workspaceObj, expectedInitContainers)
+
+		validateAdapterLoadedInVLLM(workspaceObj, phi4AdapterName)
+	})
+
+	It("should create a phi4 workspace with volume-based adapter successfully", utils.GinkgoLabelA100Required, func() {
+		numOfNode := 1
+		volumeAdapterName := "adapter-phi-3-mini-pycoder"
+		volumeAdapterImageName := utils.GetEnv("E2E_ACR_REGISTRY") + "/" + phi4AdapterName + ":0.0.1"
+		imagePullSecret := utils.GetEnv("E2E_ACR_REGISTRY_SECRET")
+
+		By("Creating and populating a PVC with adapter weights")
+		pvcName := createAdapterPVCWithData("managed-csi", volumeAdapterImageName, imagePullSecret)
+
+		By("Creating workspace with volume-based adapter")
+		volumeAdapters := []kaitov1beta1.AdapterSpec{
+			{
+				Source: &kaitov1beta1.DataSource{
+					Name: volumeAdapterName,
+					Volume: &corev1.VolumeSource{
+						PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+							ClaimName: pvcName,
+						},
+					},
+				},
+			},
+		}
+
+		workspaceObj := createPhi4WorkspaceWithAdapterAndVLLM(numOfNode, volumeAdapters)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+
+		validateInferenceResource(workspaceObj, int32(numOfNode))
+
+		validateWorkspaceReadiness(workspaceObj)
+
+		// Key volume adapter validations
+		validateNoAdapterInitContainer(workspaceObj)
+		validatePVCMounted(workspaceObj, pvcName)
+		validateAdapterLoadedInVLLM(workspaceObj, volumeAdapterName)
+	})
+
 })
+
+func createPhi4WorkspaceWithAdapterAndVLLM(numOfNode int, validAdapters []kaitov1beta1.AdapterSpec) *kaitov1beta1.Workspace {
+	workspaceObj := &kaitov1beta1.Workspace{}
+	By("Creating a workspace CR with phi4 mini preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-phi4-", rand.Intn(1000))
+		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC24ads_A100_v4",
+			&metav1.LabelSelector{
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi4-adapter-vllm"},
+			}, nil, PresetPhi4MiniModel, nil, nil, validAdapters, "", "")
+
+		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
+		createAndValidateWorkspace(workspaceObj)
+	})
+	return workspaceObj
+}

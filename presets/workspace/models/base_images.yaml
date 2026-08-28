@@ -1,4 +1,4 @@
-models:
+images:
   # base image with no model weights
   - name: base
     tag: 0.5.0

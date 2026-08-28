@@ -415,7 +415,6 @@ func validateAdapterLoadedInVLLM(workspaceObj *kaitov1beta1.Workspace, adapterNa
 var _ = Describe("Workspace Preset", func() {
 	BeforeEach(func() {
 		loadTestEnvVars()
-		loadModelVersions()
 	})
 
 	It(

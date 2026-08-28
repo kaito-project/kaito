@@ -65,7 +65,7 @@ make generate-vllm-arch-list
 
 This invokes `hack/generate_vllm_arch_list.sh`, which:
 
-1. Reads the `base` image tag from `presets/workspace/models/supported_models.yaml`
+1. Reads the `base` image tag from `presets/workspace/models/base_images.yaml`
 2. Runs `list_supported_llm_archs.py` inside the corresponding `kaito-base` Docker image:
    ```sh
    docker run --rm --entrypoint python3 \
@@ -77,7 +77,7 @@ This invokes `hack/generate_vllm_arch_list.sh`, which:
 **Prerequisites:** `yq` and `docker` must be available in `PATH`.
 
 > The base image tag is kept in sync with the `base` entry in
-> `supported_models.yaml`, so bumping that tag and re-running the target is
+> `base_images.yaml`, so bumping that tag and re-running the target is
 > all that is needed when upgrading vLLM.
 
 ## Prerequisites

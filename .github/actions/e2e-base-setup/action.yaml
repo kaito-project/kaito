@@ -190,38 +190,20 @@ runs:
 
         echo "vllm_model_arch_list.txt is up to date."
 
-    - name: Build preset images
+    - name: Configure base image metadata
       shell: bash
       run: |
-        # For building newly introduced preset images or bumping the tags of existing ones.
-        # Without this step, the Workspace controller during e2e test will attempt to pull
-        # non-existent images from remote registry, leading to test failures.
-        python3 .github/determine_missing_preset_images.py | jq -c '.[]' | while read -r model; do
-          export MODEL_NAME=$(echo "$model" | jq -r '.name')
+        python3 .github/determine_missing_base_images.py | jq -c '.[]' | while read -r image; do
+          export IMAGE_NAME=$(echo "$image" | jq -r '.name')
 
-          # Push preset model weights as OCI artifact to ACR using ORAS
-          if [ "$MODEL_NAME" != "base" ]; then
-            export MODEL_VERSION_URL=$(echo "$model" | jq -r '.version')
-
-            # Use shared script to build and push OCI artifact
-            docker/presets/models/tfs/build_oci_artifact.sh \
-              "$MODEL_VERSION_URL" \
-              "kaito-$MODEL_NAME" \
-              "${{ env.REGISTRY }}" \
-              "${{ env.VERSION }}" \
-              "$HF_TOKEN"
-          fi
-
-          # Override image properties in supported_models.yaml for testing purposes.
-          # The updated supported_models.yaml will be read by the Workspace controller via
+          # Override base image properties for testing purposes.
+          # The updated base_images.yaml will be read by the Workspace controller via
           # go:embed in presets/workspace/models/metadata.go.
-          yq '(.models[] | select(.name == strenv(MODEL_NAME)) | .registry) = "${{ env.REGISTRY }}"' -i presets/workspace/models/supported_models.yaml
-          yq '(.models[] | select(.name == strenv(MODEL_NAME)) | .tag) = "${{ env.VERSION }}"' -i presets/workspace/models/supported_models.yaml
+          yq '(.images[] | select(.name == strenv(IMAGE_NAME)) | .registry) = "${{ env.REGISTRY }}"' -i presets/workspace/models/base_images.yaml
+          yq '(.images[] | select(.name == strenv(IMAGE_NAME)) | .tag) = "${{ env.VERSION }}"' -i presets/workspace/models/base_images.yaml
         done
 
-        cat presets/workspace/models/supported_models.yaml
-      env:
-        WEIGHTS_DIR: "/datadrive"
+        cat presets/workspace/models/base_images.yaml
 
     - name: build KAITO image
       if: ${{ inputs.isRelease == 'false' }}

@@ -16,7 +16,7 @@
 
 # Script to regenerate presets/workspace/models/vllm_model_arch_list.txt by
 # running list_supported_llm_archs.py inside the kaito-base Docker image.
-# The image tag is read from the 'base' entry in supported_models.yaml.
+# The image tag is read from the 'base' entry in base_images.yaml.
 # The resulting text file (one architecture per line) is embedded in Go via
 # //go:embed in vllm_model_arch_list.go.
 #
@@ -27,12 +27,12 @@ set -o nounset
 set -o pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SUPPORTED_MODELS_YAML="${ROOT_DIR}/presets/workspace/models/supported_models.yaml"
+BASE_IMAGES_YAML="${ROOT_DIR}/presets/workspace/models/base_images.yaml"
 OUTPUT_FILE="${ROOT_DIR}/presets/workspace/models/vllm_model_arch_list.txt"
 BASE_REGISTRY="mcr.microsoft.com/aks/kaito/kaito-base"
 
 # ---------------------------------------------------------------------------
-# 1. Read the base image tag from supported_models.yaml
+# 1. Read the base image tag from base_images.yaml
 # ---------------------------------------------------------------------------
 if ! command -v yq &>/dev/null; then
     echo "ERROR: 'yq' is required but not found in PATH" >&2
@@ -44,9 +44,9 @@ if ! command -v docker &>/dev/null; then
     exit 1
 fi
 
-BASE_TAG=$(yq '.models[] | select(.name == "base") | .tag' "${SUPPORTED_MODELS_YAML}")
+BASE_TAG=$(yq '.images[] | select(.name == "base") | .tag' "${BASE_IMAGES_YAML}")
 if [[ -z "${BASE_TAG}" ]]; then
-    echo "ERROR: could not find 'base' model tag in ${SUPPORTED_MODELS_YAML}" >&2
+    echo "ERROR: could not find 'base' image tag in ${BASE_IMAGES_YAML}" >&2
     exit 1
 fi
 

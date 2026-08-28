@@ -55,7 +55,6 @@ AZURE_KARPENTER_MSI_NAME ?= azkarpenterIdentity
 
 AI_MODELS_REGISTRY ?= modelregistry.azurecr.io
 AI_MODELS_REGISTRY_SECRET ?= modelregistry
-SUPPORTED_MODELS_YAML_PATH ?= $(ROOT_DIR)/presets/workspace/models/supported_models.yaml
 
 ## AWS parameters
 CLUSTER_CONFIG_FILE ?= ./examples/aws/clusterconfig.yaml.template
@@ -124,9 +123,9 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole, and Cus
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
-.PHONY: compare-model-configs
-compare-model-configs: ## Compare supported_models.yaml with ConfigMap template (ignoring comments).
-	@./hack/compare_model_configs.sh
+.PHONY: compare-base-image-configs
+compare-base-image-configs: ## Compare base_images.yaml with ConfigMap template (ignoring comments).
+	@./hack/compare_base_image_configs.sh
 
 .PHONY: generate-vllm-arch-list
 generate-vllm-arch-list: ## Regenerate presets/workspace/models/vllm_model_arch_list.txt.
@@ -197,7 +196,6 @@ kaito-workspace-e2e-test: $(E2E_TEST) $(GINKGO) ## Run e2e tests for KAITO Works
 	AI_MODELS_REGISTRY_SECRET=$(AI_MODELS_REGISTRY_SECRET) \
  	AI_MODELS_REGISTRY=$(AI_MODELS_REGISTRY) GPU_PROVISIONER_NAMESPACE=$(GPU_PROVISIONER_NAMESPACE) GPU_PROVISIONER_NAME=$(GPU_PROVISIONER_NAME) \
  	KARPENTER_NAMESPACE=$(KARPENTER_NAMESPACE) KAITO_NAMESPACE=$(KAITO_NAMESPACE) TEST_SUITE=$(TEST_SUITE) \
-	SUPPORTED_MODELS_YAML_PATH=$(SUPPORTED_MODELS_YAML_PATH) \
  	$(GINKGO) -v -trace $(GINKGO_ARGS) $(E2E_TEST)
 
 .PHONY: kaito-ragengine-e2e-test
@@ -205,7 +203,6 @@ kaito-ragengine-e2e-test: $(RAGENGINE_E2E_TEST) $(GINKGO) ## Run e2e tests for K
 	AI_MODELS_REGISTRY_SECRET=$(AI_MODELS_REGISTRY_SECRET) \
 	AI_MODELS_REGISTRY=$(AI_MODELS_REGISTRY) GPU_PROVISIONER_NAMESPACE=$(GPU_PROVISIONER_NAMESPACE)  GPU_PROVISIONER_NAME=$(GPU_PROVISIONER_NAME) KAITO_NAMESPACE=$(KAITO_NAMESPACE) \
 	KARPENTER_NAMESPACE=$(KARPENTER_NAMESPACE) KAITO_RAGENGINE_NAMESPACE=$(KAITO_RAGENGINE_NAMESPACE) TEST_SUITE=$(TEST_SUITE) \
-	SUPPORTED_MODELS_YAML_PATH=$(SUPPORTED_MODELS_YAML_PATH) \
 	$(GINKGO) -v -trace $(GINKGO_ARGS) $(RAGENGINE_E2E_TEST)
 
 ## --------------------------------------

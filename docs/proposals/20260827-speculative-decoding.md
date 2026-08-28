@@ -210,7 +210,9 @@ Status quo:
 
 The plumbing change this proposal adds:
 
-1. Add a `SpeculativeDecoding *SpeculativeDecodingConfig` field to `generator.CatalogEntry` (`presets/workspace/generator/model_catalog.go`) so it round-trips through `LoadCatalog` / `SaveCatalog`. `update_model_catalog/main.go` treats it as a preserved-across-refresh field (same treatment as other override-only fields) so a HF `config.json` refresh does not blow it away. Additionally, extend the `catalogFields` change-detection map in `update_model_catalog/main.go` (lines ~97-143) to include the `SpeculativeDecoding` field, so that a speculative-only override change is correctly detected and written out on refresh rather than silently reported as "no changes."
+1. Add a `SpeculativeDecoding *SpeculativeDecodingConfig` field to `generator.CatalogEntry` (`presets/workspace/generator/model_catalog.go`) so it round-trips through `LoadCatalog` / `SaveCatalog`. `update_model_catalog/main.go` treats it as a preserved-across-refresh field (same treatment as other override-only fields) so a HF `config.json` refresh does not blow it away. Two coordinated updates are required in `update_model_catalog/main.go`:
+   - Extend the `catalogFields` change-detection map (lines ~97-143) to include `SpeculativeDecoding`, so a speculative-only override change is detected on refresh rather than silently reported as "no changes."
+   - Extend the explicit field-by-field copy in `FetchCatalogEntry` (`model_catalog.go:200-232`) to copy `ovr.SpeculativeDecoding` into the generated entry. Without this, the field stays nil in the generated catalog even after the override is authored. (Alternative: replace the manual merge with a reflect-based generic merge, but that is a larger refactor and out of scope for this proposal.)
 2. Populate it via `catalogOverrides` in `presets/workspace/generator/generator.go` for the presets listed in the Model Coverage table. `catalogOverrides` is the existing hook for maintainer-authored fields whose values are not on HuggingFace.
 3. Extend `generator.Generator.Param` (`model.PresetParam`) with a `SpeculativeDecoding` field so `GeneratePreset` copies the value out of `CatalogEntry` at preset-generation time.
 4. Extend `vLLMCompatibleModel` in `presets/workspace/models/vllm_model.go` to hold the field, and make `GetInferenceParameters()` return it on the copy it hands back to the controller — this is what makes the value visible to the reconcile-time injection site in Step 3.
@@ -384,16 +386,26 @@ func vllmFormat(sd *SpeculativeDecodingConfig) (string, error) {
         m["num_speculative_tokens"] = sd.NGram.NumSpeculativeTokens
         m["prompt_lookup_max"]      = sd.NGram.PromptLookupMax
     case "dspark":
-        // dspark ships as a separate assistant checkpoint referenced via
-        // speculative_config.model. Until DSparkConfig.Model is populated
-        // (see "Ready to Onboard" model coverage), the converter must
-        // reject dspark rather than emit a method-only blob vLLM cannot
-        // resolve.
-        if sd.DSpark == nil || sd.DSpark.Model == "" {
-            return "", fmt.Errorf("method=dspark requires dspark.model (assistant checkpoint reference)")
+        // dspark can ship two ways depending on the DeepSeek-V4 variant:
+        //  1. Fused served-checkpoint variant (e.g. DeepSeek-V4-Flash-0731,
+        //     DeepSeek-V4-Flash-DSpark): the DSpark module is baked into
+        //     the served checkpoint and vLLM's own recipe emits a
+        //     method-only blob (`{"method":"dspark", ...}`) with no
+        //     `model` field. The served checkpoint identity is tracked
+        //     on the preset (`CatalogEntry.ModelName` / preset image),
+        //     not on the speculative-config blob.
+        //  2. Assistant-checkpoint variant (future / cross-preset): a
+        //     separate DSpark assistant loaded alongside a distinct base
+        //     model — represented by a non-empty `DSpark.Model`.
+        //
+        // Do NOT hard-require `DSpark.Model` here; that would reject the
+        // current official DeepSeek-V4 DSpark configuration.
+        if sd.DSpark != nil && sd.DSpark.Model != "" {
+            m["model"] = sd.DSpark.Model
         }
-        m["model"] = sd.DSpark.Model
-        m["num_speculative_tokens"] = sd.DSpark.NumSpeculativeTokens
+        if sd.DSpark != nil && sd.DSpark.NumSpeculativeTokens > 0 {
+            m["num_speculative_tokens"] = sd.DSpark.NumSpeculativeTokens
+        }
     default:
         // Belt-and-suspenders: caught earlier by unit tests over
         // supported_models.yaml, but never silently emit a method-only blob.
@@ -447,7 +459,22 @@ func validateSpeculativeDecoding(ws *Workspace) error {
     //     models, and access-secret resolution). A direct
     //     KaitoModelRegister.Get/MustGet would bypass alias
     //     normalization and fail on short preset names.
-    resolved, err := models.GetModelByName(ws.Inference.Preset.Name, ws.Inference.Preset.AccessSecret)
+    //
+    //     The repository API is:
+    //       models.GetModelByName(ctx, modelName, secretName, secretNamespace, client)
+    //     and the secret field on the preset is
+    //     `ws.Inference.Preset.PresetOptions.ModelAccessSecret`
+    //     (see `presets/workspace/models/vllm_model.go:129` and
+    //     `api/v1alpha1/workspace_types.go:109-127`). Pass the admission
+    //     ctx, ws.Namespace, and the webhook's cached client so private
+    //     catalog models resolve correctly.
+    resolved, err := models.GetModelByName(
+        ctx,
+        ws.Inference.Preset.Name,
+        ws.Inference.Preset.PresetOptions.ModelAccessSecret,
+        ws.Namespace,
+        webhookClient,
+    )
     if err != nil || resolved == nil {
         return fmt.Errorf(
             "preset %q could not be resolved; "+
@@ -681,7 +708,8 @@ These methods do not need a draft model at all — they lookup against the promp
 | Bucket | Presets | Status |
 |---|---|---|
 | **Shipping (this proposal)** | `deepseek-r1-0528`, `deepseek-v3-0324`, `deepseek-v3.2` | `mtp`, `numSpeculativeTokens: 1`, wired via `catalogOverrides` into `model_catalog.yaml` from day one |
-| **Free-to-onboard next (same `mtp` path)** | `gemma-4-{E2B,E4B,12B,26B-A4B,31B}-it`, `zai-org/GLM-5.2-FP8`, Qwen3.x MoE | Needs one re-verification + one `catalogOverrides` entry each (Gemma 4 also needs assistant-checkpoint sourcing — see Ready to Onboard) |
+| **Free-to-onboard next (same `mtp` path)** | `zai-org/GLM-5.2-FP8`, Qwen3.x MoE | Needs one re-verification + one `catalogOverrides` entry each |
+| **Assistant-checkpoint MTP (Gemma 4 IT family)** | `gemma-4-{E2B,E4B,12B,26B-A4B,31B}-it` | Requires assistant-checkpoint sourcing + node-estimator budgeting + a non-empty `MTPConfig.Model` in `catalogOverrides` — see Ready to Onboard (Gemma 4 IT) |
 | **Ready to onboard (`dspark`)** | `deepseek-v4-flash-0731`, `deepseek-v4-pro-0813` | Base presets land in the catalog, but the DSpark assistant checkpoint (`DeepSeek-V4-Flash-DSpark`) needs sourcing + node-estimator budgeting before `catalogOverrides` can attach `speculativeDecoding` |
 | **Deferred (EAGLE / MLP draft)** | Llama-3.1/3.3, Qwen3.*, Mistral-7B, etc. | Out of scope; needs draft-checkpoint sourcing design |
 | **Universal opt-in (`ngram` / `suffix`)** | Any preset | Not part of initial commitment |

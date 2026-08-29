@@ -41,7 +41,7 @@ Today, enabling speculative decoding in KAITO requires users to write a ConfigMa
 - Add a typed `SpeculativeDecoding` field to `model.PresetParam`, populated from a KAITO-authored `speculativeDecodingByPreset` Go map in `presets/workspace/generator/generator.go` (colocated with the existing per-preset maintainer maps such as `reasoningParserModeNamePrefixMap`), propagated through `Generator` / `vLLMCompatibleModel` so both the controller and the admission webhook can read it. `model_catalog.yaml` is intentionally not extended: it mirrors HuggingFace `config.json` and is not the right home for a KAITO-authored operational knob. `supported_models.yaml` is also not extended (it is being deprecated — only the `base` image entry remains actively used).
 - Preset controller reads the field **off the already-resolved `model.Model`** — via `GetInferenceParameters()` on the model object the controller already resolved through `models.GetModelByName` (which calls `GetModelByNameWithToken` internally) — and injects the vLLM `--speculative-config` flag automatically. The controller must not re-look up the preset by its short name at reconcile time: `GetModelByNameWithToken` rewrites short aliases like `deepseek-r1-0528` to `deepseek-ai/deepseek-r1-0528` before registering them (`presets/workspace/models/vllm_model.go`), so a direct `plugin.KaitoModelRegister.MustGet` keyed on the raw annotation'd preset name is not guaranteed to hit.
 - Admission webhook rejects unsupported preset + annotation combinations at `kubectl apply` time — using `models.GetModelByName(ws.Inference.Preset.Name, accessSecret)` which performs the same alias rewrite and lazy model generation as the controller; the webhook then reads `GetInferenceParameters().SpeculativeDecoding` from the resolved model.
-- Initial preset coverage: `mtp` on the two DeepSeek presets that are catalog-present today and vLLM-verified against KAITO's pinned vLLM at merge time — `deepseek-r1-0528` and `deepseek-v3-0324`. `deepseek-v3.2` is a Free-to-onboard-next candidate (same `mtp` path, no new type work) but is not in the initial ship list. DeepSeek-V4-Flash / V4-Pro land in **Ready to Onboard (`dspark`, fused)** below: the vLLM V4-Flash recipe classifies the dated releases (`DeepSeek-V4-Flash-0731`, `DeepSeek-V4-Flash-DSpark`) as fused served-checkpoint DSpark, not assistant-checkpoint — see the corrected DeepSeek-V4 section for details.
+- Initial preset coverage: `mtp` on the two DeepSeek presets that are catalog-present today and vLLM-verified against KAITO's pinned vLLM at merge time — `deepseek-r1-0528` and `deepseek-v3-0324`. `deepseek-v3.2` is a Free-to-onboard-next candidate (same `mtp` path, no new type work) but is not in the initial ship list. DeepSeek-V4-Flash (the dated releases `DeepSeek-V4-Flash-0731` and `DeepSeek-V4-Flash-DSpark`) lands in **Ready to Onboard (`dspark`, fused)** below: the vLLM V4-Flash recipe classifies both as fused served-checkpoint DSpark, not assistant-checkpoint — see the corrected DeepSeek-V4 section for details. DeepSeek-V4-Pro-0813 is **deferred**, not fused-ready — its fused-vs-assistant shape is not pinned in an upstream vLLM recipe yet, so it stays out of the initial `dspark`-fused claim until the recipe lands (see "Deferred (V4-Pro, pending recipe)" in Model Coverage).
 - Support InferenceSet via `spec.template.metadata.annotations` propagation
 
 ### Non-Goals/Future Work
@@ -71,7 +71,7 @@ vllm serve deepseek-ai/DeepSeek-R1 \
 | Method | How it drafts | Extra GPU memory? | Best-fit workload |
 |---|---|---|---|
 | `mtp` | Multi-Token Prediction head bundled in the checkpoint (DeepSeek-V3 / R1, etc.) | No | Any workload on that model family |
-| `dspark` | DeepSeek-V4's own semi-autoregressive block drafting; requires a **separately sourced assistant checkpoint** (e.g. `DeepSeek-V4-Flash-DSpark`) — not bundled in the base weights | Yes (separate assistant checkpoint loaded alongside target; requires node-estimator budgeting) | Any workload on DeepSeek-V4 |
+| `dspark` | DeepSeek-V4's own semi-autoregressive block drafting. Ships two ways: **fused** (module baked into the served checkpoint — `DeepSeek-V4-Flash-0731`, `DeepSeek-V4-Flash-DSpark`; no separate download) or **assistant** (a separately sourced draft checkpoint loaded alongside a distinct base). `DSparkConfig.Variant` discriminates the two at catalog time. V4-Pro-0813 is deferred until its upstream vLLM recipe pins which shape applies. | Fused: no extra GPU memory; Assistant: yes (draft checkpoint loaded alongside target — requires node-estimator budgeting) | Any workload on DeepSeek-V4 |
 | `eagle` / `eagle3` | Separate draft model trained to mimic the target | Yes (separate checkpoint loaded alongside target) | General-purpose; mainstream across vLLM/SGLang/TensorRT-LLM |
 | `ngram` / `suffix` | Pure lookup against prompt + generation history | No | Code completion, RAG, summarization, translation, agent tool-call echo |
 
@@ -201,7 +201,7 @@ The existing `inference_config.yaml` ConfigMap `vllm:` passthrough is **not goin
 
 ### Where the Per-Preset Config Lives in Code
 
-**The config lives in a Go map (`speculativeDecodingByPreset`) in `presets/workspace/generator/generator.go`, next to the existing per-preset maintainer-authored maps such as `reasoningParserModeNamePrefixMap` and `reasoningParserArchMap`. It is NOT added to `model_catalog.yaml`.**
+**The config lives in a Go map (`speculativeDecodingByPreset`) in `presets/workspace/generator/generator.go`, next to the existing per-preset maintainer-authored maps such as `reasoningParserModeNamePrefixMap` and `reasoningParserArchMap`. It is NOT added to `model_catalog.yaml`, and `catalogOverrides` / `CatalogEntry` are NOT extended with a `SpeculativeDecoding` field. Every step in this proposal — catalog-time validation, runtime injection, admission-webhook validation, unit tests, and preset-maintainer workflow — reads from and writes to `speculativeDecodingByPreset` only.**
 
 Status quo:
 
@@ -291,46 +291,42 @@ type Metadata struct {
 
 The typed sub-structs constrain the shape, but they do not by themselves prevent an author from pairing `Method: "mtp"` with a nil `MTP` or a populated `NGram`. Validation happens in two places:
 
-- **Catalog generation** (unit test over `model_catalog.yaml` after regeneration from `catalogOverrides`): asserts method / sub-struct exclusivity (exactly one non-nil sub-config, matching `method`), required positive fields (`numSpeculativeTokens > 0`, `promptLookupMax > 0` for `ngram`), and supported methods. For `dspark`, a typed `DSparkConfig.Variant` discriminator (`"fused"` | `"assistant"`, defaulting to `"fused"` when unset for backwards compatibility) decides whether `Model` is required: `Variant: "assistant"` requires a non-empty `Model`; `Variant: "fused"` requires `Model` to be empty. Any `MTPConfig` in Step 1 is implicitly self-contained-head; a parallel `MTPConfig.Variant` discriminator is deferred to the Gemma 4 IT assistant-checkpoint follow-up (see the caveat in [Per-Preset Config Ownership](#per-preset-config-ownership)). Fails the build if a maintainer authors a broken `catalogOverrides` entry.
+- **Catalog-time validation** (unit test over the `speculativeDecodingByPreset` map): asserts method / sub-struct exclusivity (exactly one non-nil sub-config, matching `method`), required positive fields (`numSpeculativeTokens > 0`, `promptLookupMax > 0` for `ngram`), and supported methods. For `dspark`, a typed `DSparkConfig.Variant` discriminator (`"fused"` | `"assistant"`, defaulting to `"fused"` when unset for backwards compatibility) decides whether `Model` is required: `Variant: "assistant"` requires a non-empty `Model`; `Variant: "fused"` requires `Model` to be empty. Any `MTPConfig` in Step 1 is implicitly self-contained-head; a parallel `MTPConfig.Variant` discriminator is deferred to the Gemma 4 IT assistant-checkpoint follow-up (see the caveat in [Per-Preset Config Ownership](#per-preset-config-ownership)). Fails the build if a maintainer authors a broken `speculativeDecodingByPreset` entry.
 - **Runtime** (`vllmFormat`, Step 3): returns a typed error rather than dereferencing a possibly-nil pointer.
 
 `DSpark` is included even though DeepSeek-V4 onboarding is a follow-up, so the type surface is stable when the next preset lights up.
 
 #### Step 2 — Declare per-preset config via `speculativeDecodingByPreset`
 
-Add entries to the `speculativeDecodingByPreset` map in `presets/workspace/generator/generator.go`, colocated with the existing per-preset maintainer-authored maps (`reasoningParserModeNamePrefixMap` at `generator.go:46`, `reasoningParserArchMap` at `generator.go:67`, and `catalogOverrides` at `generator.go:283`). Keys are lowercased HuggingFace repo names, matching the key convention `catalogOverrides` already uses. The map is looked up once in `Generator.loadFromCatalog` and copied onto `PresetParam.SpeculativeDecoding` for the presets that opt in; nothing is written into `model_catalog.yaml`.
+Add entries to the `speculativeDecodingByPreset` map in `presets/workspace/generator/generator.go`, colocated with the existing per-preset maintainer-authored maps (`reasoningParserModeNamePrefixMap` at `generator.go:46`, `reasoningParserArchMap` at `generator.go:67`, and `catalogOverrides` at `generator.go:283` — this proposal adds a sibling map, not a new field on `CatalogEntry`). Keys are lowercased HuggingFace repo names, matching the key convention `catalogOverrides` already uses. The map is looked up once in `Generator.loadFromCatalog` and copied onto `PresetParam.SpeculativeDecoding` for the presets that opt in; nothing is written into `model_catalog.yaml`, and `catalogOverrides` / `CatalogEntry` are untouched.
 
 `presets/workspace/generator/generator.go`:
 
 ```go
-catalogOverrides = map[string]CatalogEntry{
-    // ... existing entries ...
+// New package-level map, sibling to catalogOverrides / reasoningParser*.
+// NOT a field on CatalogEntry, and NOT surfaced in model_catalog.yaml.
+var speculativeDecodingByPreset = map[string]*model.SpeculativeDecodingConfig{
     "deepseek-ai/deepseek-r1-0528": {
-        SpeculativeDecoding: &SpeculativeDecodingConfig{
-            Method: "mtp",
-            MTP:    &MTPConfig{NumSpeculativeTokens: 1},
-        },
+        Method: "mtp",
+        MTP:    &model.MTPConfig{NumSpeculativeTokens: 1},
     },
     "deepseek-ai/deepseek-v3-0324": {
-        SpeculativeDecoding: &SpeculativeDecodingConfig{
-            Method: "mtp",
-            MTP:    &MTPConfig{NumSpeculativeTokens: 1},
-        },
+        Method: "mtp",
+        MTP:    &model.MTPConfig{NumSpeculativeTokens: 1},
     },
     // See the "Model Coverage" section for the full initial-ship list.
 }
 ```
 
-After regeneration, the corresponding `model_catalog.yaml` block looks like:
+In `Generator.loadFromCatalog`, after the existing field copies (same shape as the `reasoningParser*` lookups later in the file):
 
-```yaml
-- name: deepseek-ai/DeepSeek-R1-0528
-  # ... existing HF-derived fields (architectures, hiddenSize, etc.) ...
-  speculativeDecoding:
-    method: mtp
-    mtp:
-      numSpeculativeTokens: 1
+```go
+if sd, ok := speculativeDecodingByPreset[strings.ToLower(g.ModelRepo)]; ok {
+    g.Param.SpeculativeDecoding = sd
+}
 ```
+
+`model_catalog.yaml` gains NO new fields. Runtime callers reach the config through `plugin.KaitoModelRegister → vLLMCompatibleModel → GetInferenceParameters().SpeculativeDecoding`, which is populated by the map lookup above during preset generation — the value lives in `PresetParam`, not on disk.
 
 > **Why `numSpeculativeTokens: 1`?** Matches the evidence: vllm-project/vllm#12755 explicitly benchmarks MTP depth = 1, and current upstream vLLM guidance calls 1 a good starting default. Larger depths materially change acceptance ratios and load behavior, so lifting to 2/3 requires a KAITO-pinned benchmark before it can ship as “pre-validated.” Committed as a follow-up.
 
@@ -344,7 +340,7 @@ Two acceptable options; the design commits to option (a) because it is smaller a
 
 **(b) Move `--speculative-config` off the shell-string path.** Emit it directly into `container.Args` (argv), bypassing `BuildCmdStr` for this one flag. Larger change; called out as a follow-up if more flags need JSON payloads.
 
-> **On per-preset parameter defaults.** For presets whose vLLM recipe upstream gives concrete recommended values (e.g. DeepSeek-V4-Flash's [vLLM recipe](https://recipes.vllm.ai/deepseek-ai/DeepSeek-V4-Flash) covers `num_speculative_tokens`, tensor-parallel size, and KV-cache dtype), the `catalogOverrides` entry for that preset carries those values so the injected `--speculative-config` matches the upstream-recommended profile out of the box. When the recipe is silent, `numSpeculativeTokens: 1` is used as a safe default (see “Why 1?” in Step 2).
+> **On per-preset parameter defaults.** For presets whose vLLM recipe upstream gives concrete recommended values (e.g. DeepSeek-V4-Flash's [vLLM recipe](https://recipes.vllm.ai/deepseek-ai/DeepSeek-V4-Flash) covers `num_speculative_tokens`, tensor-parallel size, and KV-cache dtype), the `speculativeDecodingByPreset` entry for that preset carries those values so the injected `--speculative-config` matches the upstream-recommended profile out of the box. When the recipe is silent, `numSpeculativeTokens: 1` is used as a safe default (see "Why 1?" in Step 2).
 
 **Where the injection lives.** `GenerateInferencePodSpec` (`pkg/workspace/inference/preset_inferences.go:522`) is the code that builds the workload command. On line 578 it calls `ctx.Model.GetInferenceParameters().DeepCopy()` to obtain a fresh `PresetParam` for **this** pod; on line 579 it computes `runtimeName := v1beta1.GetWorkspaceRuntimeName(ctx.Workspace)`; then on line 600 it calls `inferenceParam.GetInferenceCommand(...)` which walks `inferenceParam.VLLM.ModelRunParams` to build the shell string. `GetInferenceParameters` on `vLLMCompatibleModel` allocates a new `PresetParam` on every call, so **mutating any earlier copy is lost**. The injection therefore has to run **after** the line-578 `DeepCopy()` (and after the line-579 runtime-name computation) and **before** the line-600 `GetInferenceCommand(...)`, and it has to mutate `inferenceParam.VLLM.ModelRunParams` on that exact copy — no free-floating `runParams` map, no earlier `PresetParam` snapshot. `RuntimeParam.VLLM` is a value of type `VLLMParam`, not a pointer (see `pkg/model/interface.go:233–260`), so the runtime gate is `runtimeName == pkgmodel.RuntimeNameVLLM`, not a nil check on `inferenceParam.VLLM`:
 
@@ -516,8 +512,8 @@ func vllmFormat(sd *SpeculativeDecodingConfig) (string, error) {
             m["attention_backend"] = sd.DSpark.AttentionBackend
         }
     default:
-        // Belt-and-suspenders: caught earlier by the catalog-generation
-        // validation over `model_catalog.yaml` + `catalogOverrides`
+        // Belt-and-suspenders: caught earlier by the catalog-time
+        // validation over `speculativeDecodingByPreset`
         // (the source of truth per Per-Preset Config Ownership), but
         // never silently emit a method-only blob at runtime.
         return "", fmt.Errorf("unsupported speculative decoding method %q", sd.Method)
@@ -893,10 +889,10 @@ These methods do not need a draft model at all — they lookup against the promp
 
 | Bucket | Presets | Status |
 |---|---|---|
-| **Shipping (this proposal)** | `deepseek-r1-0528`, `deepseek-v3-0324` | `mtp`, `numSpeculativeTokens: 1`, wired via `catalogOverrides` into `model_catalog.yaml` from day one |
-| **Free-to-onboard next (same `mtp` path)** | `deepseek-v3.2`, `zai-org/GLM-5.2-FP8`, Qwen3.x MoE | Needs one re-verification + one `catalogOverrides` entry each |
-| **Assistant-checkpoint MTP (Gemma 4 IT family)** | `gemma-4-{E2B,E4B,12B,26B-A4B,31B}-it` | Requires assistant-checkpoint sourcing + node-estimator budgeting + a non-empty `MTPConfig.Model` in `catalogOverrides` — see Ready to Onboard (Gemma 4 IT) |
-| **Ready to onboard (`dspark`, fused)** | `deepseek-v4-flash-0731`, `deepseek-v4-flash-dspark` | Base preset lands + a fused `DSparkConfig` (no `Model`) in `catalogOverrides`; no separate assistant checkpoint sourcing needed |
+| **Shipping (this proposal)** | `deepseek-r1-0528`, `deepseek-v3-0324` | `mtp`, `numSpeculativeTokens: 1`, wired via `speculativeDecodingByPreset` in `presets/workspace/generator/generator.go` from day one |
+| **Free-to-onboard next (same `mtp` path)** | `deepseek-v3.2`, `zai-org/GLM-5.2-FP8`, Qwen3.x MoE | Needs one re-verification + one `speculativeDecodingByPreset` entry each |
+| **Assistant-checkpoint MTP (Gemma 4 IT family)** | `gemma-4-{E2B,E4B,12B,26B-A4B,31B}-it` | Requires assistant-checkpoint sourcing + node-estimator budgeting + a non-empty `MTPConfig.Model` in the `speculativeDecodingByPreset` entry — see Ready to Onboard (Gemma 4 IT) |
+| **Ready to onboard (`dspark`, fused)** | `deepseek-v4-flash-0731`, `deepseek-v4-flash-dspark` | Base preset lands + a fused `DSparkConfig` (no `Model`) in `speculativeDecodingByPreset`; no separate assistant checkpoint sourcing needed |
 | **Ready to onboard (`mtp`, fused V4)** | `deepseek-v4-flash` (preview), `deepseek-v4-flash-nvfp4` | Same `MTPConfig` shape as R1/V3 initial ship |
 | **Deferred (V4-Pro, pending recipe)** | `deepseek-v4-pro-0813` | Onboard after upstream vLLM V4-Pro recipe pins fused-vs-assistant shape |
 | **Deferred (EAGLE / MLP draft)** | Llama-3.1/3.3, Qwen3.*, Mistral-7B, etc. | Out of scope; needs draft-checkpoint sourcing design |
@@ -905,5 +901,5 @@ These methods do not need a draft model at all — they lookup against the promp
 ## TL;DR
 
 - **User**: adds one annotation. Gets ~1.6×–1.7× interactive-latency win (QPS ≈ 1) on supported presets, degrading to ~1.2×–1.3× at QPS 2–4 and regressing under saturated traffic. Zero risk on unsupported presets (webhook rejects at `apply` time).
-- **Preset maintainer**: adds a `SpeculativeDecoding` entry to `catalogOverrides` in `presets/workspace/generator/generator.go`; `update_model_catalog` writes it into `model_catalog.yaml`, and a catalog-generation unit test validates method/sub-struct exclusivity and positive fields at build time.
+- **Preset maintainer**: adds a `SpeculativeDecoding` entry to `speculativeDecodingByPreset` in `presets/workspace/generator/generator.go` (sibling to `catalogOverrides`, not a field on it). `model_catalog.yaml` is not touched by this workflow. A unit test over the map validates method/sub-struct exclusivity and positive fields at build time.
 - **The per-preset config is not user-tunable by design.** Users who need that keep using the existing `inference_config.yaml` ConfigMap passthrough (which takes precedence — see Step 5).

@@ -283,14 +283,17 @@ type DSparkConfig struct {
 }
 
 // Added to model.PresetParam (the type served by plugin.KaitoModelRegister).
-// NOT on embedded Metadata — PresetParam is the owning type so that
-// vLLMCompatibleModel retains the value automatically via its PresetParam
-// embed, and downstream propagation (GeneratePreset → Generator → command
-// builder) requires no additional field.
 type PresetParam struct {
     // ... existing fields ...
     SpeculativeDecoding *SpeculativeDecodingConfig `yaml:"speculativeDecoding,omitempty"`
 }
+```
+
+**Implementation note on propagation.** `vLLMCompatibleModel` currently stores only `Metadata` and generated run params (`presets/workspace/models/vllm_model.go:173-176`); `registerModel` discards the rest of `PresetParam`. The implementation must:
+
+1. Add a `SpeculativeDecoding *SpeculativeDecodingConfig` field to `vLLMCompatibleModel` and populate it in `registerModel`.
+2. Extend `PresetParam.DeepCopy` to deep-copy the `SpeculativeDecoding` pointer and its nested config structs (MTP/NGram/DSpark sub-configs each contain value fields, but the outer pointers must be cloned to avoid aliasing across concurrent reconciles).
+3. Return the field through `GetInferenceParameters()` so the admission webhook and injection function can read it.
 ```
 
 The typed sub-structs constrain the shape, but they do not by themselves prevent an author from pairing `Method: "mtp"` with a nil `MTP` or a populated `NGram`. Validation happens in two places:
@@ -462,10 +465,29 @@ The reconciler reads the decision from the returned result after
   - not the validating webhook - because the webhook is `sideEffects: None`
   and can be invoked for dry-run.
 
-The decision is a typed field on the returned result struct, populated by
-the injection function only when the annotation is present, so callers that
-don't opt in observe no behavior change. See the "Reconciler status /
-event translation" note at the end of Step 3 for the exact patch.
+The decision is conveyed via a caller-owned `*SpecDecoDecision` pointer
+passed into `GenerateInferencePodSpec` (which today is `func(..., *PodSpec) error`).
+The injection modifier writes to this pointer; `GeneratePresetInference`
+allocates it before the call and copies the result into
+`PresetInferenceResult.SpeculativeDecodingDecision`:
+
+```go
+func GeneratePresetInference(...) (*PresetInferenceResult, error) {
+    var decision SpecDecoDecision
+    // ...
+    if err := GenerateInferencePodSpec(ctx, wObj, model, &podSpec, &decision); err != nil {
+        return nil, err
+    }
+    return &PresetInferenceResult{
+        Workload: statefulSet,
+        SpeculativeDecodingDecision: decision,
+    }, nil
+}
+```
+
+Callers that don't opt in pass `nil`; the injection function no-ops on a
+nil decision pointer. See the "Reconciler status / event translation" note
+at the end of Step 3 for the exact patch.
 
 ```go
 commands := inferenceParam.GetInferenceCommand(pkgmodel.RuntimeContext{ /* ... */ })
@@ -610,11 +632,19 @@ func validateSpeculativeDecoding(ws *Workspace) error {
     }
     params := resolved.GetInferenceParameters()
     if params == nil || params.SpeculativeDecoding == nil {
+        // Derive the supported-preset list from speculativeDecodingByPreset
+        // (the single source of truth) so the error message stays current
+        // as presets are onboarded.
+        supported := make([]string, 0, len(speculativeDecodingByPreset))
+        for name := range speculativeDecodingByPreset {
+            supported = append(supported, name)
+        }
+        sort.Strings(supported)
         return fmt.Errorf(
             "preset %q does not have a validated speculative decoding configuration; "+
             "remove kaito.sh/enable-speculative-decoding annotation or choose a "+
-            "supported preset (currently: deepseek-r1-0528, deepseek-v3-0324)",
-            ws.Inference.Preset.Name,
+            "supported preset (currently: %s)",
+            ws.Inference.Preset.Name, strings.Join(supported, ", "),
         )
     }
 
@@ -749,7 +779,13 @@ Two acceptable fixes; this proposal commits to (a) because it is smaller and loc
 
 **(a) Fold the annotation into `ComputeHash`.** Extend the hashed struct with a `SpecDecoAnnotation string` field populated from `ws.Annotations["kaito.sh/enable-speculative-decoding"]`. Any flip — present↔absent, `"true"`↔`"false"` — changes the revision hash, so `addOrUpdatePresetInference` proceeds with a normal StatefulSet update via the standard rollout path (the existing `updateStrategy` still governs pod replacement; no bespoke rollout code).
 
-**InferenceSet annotation propagation on update.** `NewWorkspaceForInferenceSet` copies `spec.template.metadata.annotations` only at child Workspace creation time. The current InferenceSet reconciler updates only labels on existing children (`pkg/inferenceset/inferenceset_controller.go:389-425`) and does not propagate template annotation changes. This proposal extends the InferenceSet reconciler’s update path to also sync `spec.template.metadata.annotations` from the InferenceSet template onto existing child Workspaces (alongside the existing label sync), so a template annotation flip triggers a child Workspace annotation change → hash change → StatefulSet rollout. Test coverage: `TestInferenceSetReconcile_AnnotationFlip_PropagesToExistingChildren`.
+**InferenceSet annotation propagation on update.** `NewWorkspaceForInferenceSet` copies `spec.template.metadata.annotations` only at child Workspace creation time. The current InferenceSet reconciler updates only labels on existing children (`pkg/inferenceset/inferenceset_controller.go:389-425`) and does not propagate template annotation changes. This proposal extends the InferenceSet reconciler’s update path to reconcile **only the `kaito.sh/enable-speculative-decoding` key** on existing child Workspaces — not replace the full annotation map, which would erase controller-owned annotations (e.g. revision hash, workspace-revision). Specifically:
+
+- If the key is present in `spec.template.metadata.annotations`, set it on the child.
+- If the key is absent (or removed), delete only that key from the child.
+- All other annotations on the child Workspace are left untouched.
+
+Test coverage: `TestInferenceSetReconcile_AnnotationFlip_PropagesToExistingChildren` (verifies the key is synced) and `TestInferenceSetReconcile_AnnotationSync_PreservesControllerAnnotations` (verifies revision/hash annotations survive).
 
 **The selective update path must also copy `Command`.** The revision-mismatch branch in `applyInference` (`workspace_controller.go:733–740`) currently copies only `Env`, `VolumeMounts`, `InitContainers`, and `Volumes` from the desired pod spec — it does not copy `Containers[0].Command`, where `--speculative-config` is rendered. Without this change, the hash would differ (triggering an update), but the StatefulSet pod template would retain the old command and pods would never receive the new flag. The fix extends the selective update to also set `spec.Containers[0].Command = desiredPodSpec.Containers[0].Command` (and `Args` for completeness), ensuring the rendered vLLM flags are applied alongside the other mutable fields.
 

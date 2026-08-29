@@ -282,8 +282,12 @@ type DSparkConfig struct {
     AttentionBackend     string `yaml:"attentionBackend,omitempty"`
 }
 
-// Added to model.Metadata (or PresetParam).
-type Metadata struct {
+// Added to model.PresetParam (the type served by plugin.KaitoModelRegister).
+// NOT on embedded Metadata — PresetParam is the owning type so that
+// vLLMCompatibleModel retains the value automatically via its PresetParam
+// embed, and downstream propagation (GeneratePreset → Generator → command
+// builder) requires no additional field.
+type PresetParam struct {
     // ... existing fields ...
     SpeculativeDecoding *SpeculativeDecodingConfig `yaml:"speculativeDecoding,omitempty"`
 }
@@ -493,6 +497,9 @@ func vllmFormat(sd *SpeculativeDecodingConfig) (string, error) {
         m["num_speculative_tokens"] = sd.NGram.NumSpeculativeTokens
         m["prompt_lookup_max"]      = sd.NGram.PromptLookupMax
     case "dspark":
+        if sd.DSpark == nil {
+            return "", fmt.Errorf("method=dspark requires dspark config")
+        }
         // dspark ships two ways, discriminated by DSpark.Variant:
         //  1. "fused" (default): the DSpark module is baked into the
         //     served checkpoint (e.g. DeepSeek-V4-Flash-0731,
@@ -740,7 +747,9 @@ Without further changes, flipping `kaito.sh/enable-speculative-decoding` from `"
 
 Two acceptable fixes; this proposal commits to (a) because it is smaller and localized:
 
-**(a) Fold the annotation into `ComputeHash`.** Extend the hashed struct with a `SpecDecoAnnotation string` field populated from `ws.Annotations["kaito.sh/enable-speculative-decoding"]`. Any flip — present↔absent, `"true"`↔`"false"` — changes the revision hash, so `addOrUpdatePresetInference` proceeds with a normal StatefulSet update via the standard rollout path (the existing `updateStrategy` still governs pod replacement; no bespoke rollout code). This also implicitly covers the InferenceSet template-annotation propagation path (see "InferenceSet Support"): `NewWorkspaceForInferenceSet` copies `spec.template.metadata.annotations` verbatim onto the child Workspace, so a flip on the InferenceSet template annotations changes each child's hash the same way. Alias-normalized child Workspaces produced by `models.GetModelByName` do not affect this — hash inputs are read from the Workspace object itself, not from the alias-resolved preset.
+**(a) Fold the annotation into `ComputeHash`.** Extend the hashed struct with a `SpecDecoAnnotation string` field populated from `ws.Annotations["kaito.sh/enable-speculative-decoding"]`. Any flip — present↔absent, `"true"`↔`"false"` — changes the revision hash, so `addOrUpdatePresetInference` proceeds with a normal StatefulSet update via the standard rollout path (the existing `updateStrategy` still governs pod replacement; no bespoke rollout code).
+
+**InferenceSet annotation propagation on update.** `NewWorkspaceForInferenceSet` copies `spec.template.metadata.annotations` only at child Workspace creation time. The current InferenceSet reconciler updates only labels on existing children (`pkg/inferenceset/inferenceset_controller.go:389-425`) and does not propagate template annotation changes. This proposal extends the InferenceSet reconciler’s update path to also sync `spec.template.metadata.annotations` from the InferenceSet template onto existing child Workspaces (alongside the existing label sync), so a template annotation flip triggers a child Workspace annotation change → hash change → StatefulSet rollout. Test coverage: `TestInferenceSetReconcile_AnnotationFlip_PropagesToExistingChildren`.
 
 **The selective update path must also copy `Command`.** The revision-mismatch branch in `applyInference` (`workspace_controller.go:733–740`) currently copies only `Env`, `VolumeMounts`, `InitContainers`, and `Volumes` from the desired pod spec — it does not copy `Containers[0].Command`, where `--speculative-config` is rendered. Without this change, the hash would differ (triggering an update), but the StatefulSet pod template would retain the old command and pods would never receive the new flag. The fix extends the selective update to also set `spec.Containers[0].Command = desiredPodSpec.Containers[0].Command` (and `Args` for completeness), ensuring the rendered vLLM flags are applied alongside the other mutable fields.
 
@@ -759,7 +768,12 @@ Two acceptable fixes; this proposal commits to (a) because it is smaller and loc
 
 The existing `inference_config.yaml` passthrough (`vllm.speculative-config: '...'`) stays. When both are present:
 
-- **ConfigMap wins.** The preset controller skips its own `--speculative-config` injection if the user's ConfigMap already contains a `speculative-config` key under `vllm:`. This preserves the power-user escape hatch (sweep `num_speculative_tokens`, try `eagle`) without producing two conflicting `--speculative-config` flags on the vLLM command line.
+- **ConfigMap wins at render time.** The preset controller skips its own `--speculative-config` injection if the user's ConfigMap already contains a `speculative-config` key under `vllm:`. This preserves the power-user escape hatch (sweep `num_speculative_tokens`, try `eagle`) without producing two conflicting `--speculative-config` flags on the vLLM command line.
+
+  **Limitation: in-place ConfigMap edits are not automatically detected.** The Workspace controller does not watch referenced ConfigMaps today, and editing a ConfigMap in place changes neither the Workspace revision hash nor the config name, so even an incidental reconcile returns early for the unchanged revision. This is a pre-existing limitation that affects all ConfigMap-driven overrides, not just speculative decoding. Two mitigations are proposed:
+
+  1. **Short-term (this proposal):** Document that users must trigger a rollout explicitly after editing the ConfigMap (e.g., by toggling the annotation or updating the ConfigMap reference name). The `SpeculativeDecodingConfigMapOverride` Event is emitted at render time — if the user adds `vllm.speculative-config` to an existing ConfigMap without triggering a re-render, the annotation-injected flag remains in effect until the next rollout.
+  2. **Follow-up (out of scope):** Add a ConfigMap watch to the Workspace controller so that data changes on referenced ConfigMaps trigger a reconcile. This benefits all ConfigMap-driven overrides and is tracked separately.
 - The admission webhook still enforces (b) - the annotation still requires a supported preset. This keeps the failure mode consistent regardless of ConfigMap contents.
 - When both sources are present, the **reconciler** emits a Kubernetes Event (`SpeculativeDecodingConfigMapOverride`) on the Workspace. The Event is emitted from `WorkspaceReconciler`, which is the type that holds the `record.EventRecorder` — not from inside `GenerateInferencePodSpec`, whose `WorkspaceGeneratorContext` (`pkg/utils/generator/generator.go:30`) has only `Ctx / Workspace / Model / KubeClient / NodeProvisioner` and no recorder. The injection function signals its decision on the `PresetInferenceResult` struct returned by `GeneratePresetInference` (see "Reconciler wiring for the skip signal" at the end of Step 3); the reconciler translates that signal into the Event using its own recorder. Events are only emitted from the reconcile path — not the validating webhook — because the webhook is declared with `sideEffects: None` (`charts/kaito/workspace/templates/webhooks.yaml`) and can be invoked for dry-run or retried admission requests. Emitting an Event from admission would violate the webhook contract and could produce duplicate or spurious events; the reconcile-time signal may fire on repeated reconciliations of the same generation (status updates, child-resource watches, retries). Kubernetes Events are inherently aggregated — the API server deduplicates events with the same reason/message within a window — so the emission is safe without explicit idempotency tracking. It shows up in `kubectl describe workspace` / `kubectl get events`.
 

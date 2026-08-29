@@ -721,6 +721,30 @@ func validateSpeculativeDecoding(ws *Workspace) error {
 }
 ```
 
+#### Step 4.5 — Rollout detection must include the annotation
+
+Admission-time validation on `ValidateUpdate` catches invalid values, but is not sufficient to actually apply the change to an existing Workspace. The reconciler decides whether to re-roll the StatefulSet by comparing a revision hash, and the current implementation ignores annotations entirely:
+
+- `ComputeHash(ws)` (`pkg/utils/consts/workspace_controller.go:566–572`) hashes only `ws.Spec.Resource`, `ws.Spec.Inference`, and `ws.Spec.Tuning`. Annotations are not part of the input.
+- `addOrUpdatePresetInference` (`pkg/utils/consts/workspace_controller.go:714–720`) reads the previous revision hash off the StatefulSet, compares it to the freshly computed one, and returns early with no update when they match.
+
+Without further changes, flipping `kaito.sh/enable-speculative-decoding` from `"false"` (or absent) to `"true"` on a running Workspace would (a) pass admission, (b) leave `ComputeHash` unchanged, (c) short-circuit `addOrUpdatePresetInference`, and (d) never regenerate the StatefulSet command — so `--speculative-config` would never be added to the vLLM args, and the annotation would appear to have taken effect while doing nothing.
+
+Two acceptable fixes; this proposal commits to (a) because it is smaller and localized:
+
+**(a) Fold the annotation into `ComputeHash`.** Extend the hashed struct with a `SpecDecoAnnotation string` field populated from `ws.Annotations["kaito.sh/enable-speculative-decoding"]`. Any flip — present↔absent, `"true"`↔`"false"` — changes the revision hash, so `addOrUpdatePresetInference` proceeds with a normal StatefulSet update via the standard rollout path (the existing `updateStrategy` still governs pod replacement; no bespoke rollout code). This also implicitly covers the InferenceSet template-annotation propagation path (see “InferenceSet Support”): `NewWorkspaceForInferenceSet` copies `spec.template.metadata.annotations` verbatim onto the child Workspace, so a flip on the InferenceSet template annotations changes each child’s hash the same way. Alias-normalized child Workspaces produced by `models.GetModelByName` do not affect this — hash inputs are read from the Workspace object itself, not from the alias-resolved preset.
+
+**(b) Compare the annotation explicitly at update time.** Load the current StatefulSet, parse the `--speculative-config` flag out of its command, and force an update when it disagrees with what the current Workspace would render. Larger change (introduces bespoke parsing of the runtime command); called out as an alternative if a future feature needs to trigger a rollout without changing the hash.
+
+**Selected-revision data must include the annotation too.** `addOrUpdatePresetInference` (and the reconciler's selected-revision bookkeeping) stores the rendered revision alongside the hash so subsequent reconciles can compare against a stable snapshot. When the annotation is folded into the hash, it must also be stored in the selected-revision data — otherwise a controller restart mid-rollout could recompute a different hash from the same object and cause a spurious re-roll. The revision struct gets the same `SpecDecoAnnotation` field, and the reconciler writes both together.
+
+**Test coverage for the rollout path** (added at the same time as the admission tests in Step 6):
+
+- `TestReconcile_SpecDecoAnnotation_TriggersRollout`: create Workspace without the annotation, reconcile to a stable StatefulSet, add `kaito.sh/enable-speculative-decoding: "true"`, reconcile, assert the StatefulSet's `pod-template-hash`/revision annotation changed and the container command now contains `--speculative-config=`.
+- `TestReconcile_SpecDecoAnnotation_FlipToFalse_TriggersRollout`: symmetric case, `"true"` → `"false"` (or removed) drops the flag.
+- `TestReconcile_SpecDecoAnnotation_NoOp_WhenUnchanged`: repeated reconciles with the same annotation value do NOT trigger extra rollouts (hash still stable).
+- `TestNewWorkspaceForInferenceSet_PropagatesSpecDecoAnnotation`: annotation on `InferenceSet.spec.template.metadata.annotations` lands on child Workspace and participates in `ComputeHash`.
+
 #### Step 5 — Precedence when the user also sets `speculative-config` in a ConfigMap
 
 The existing `inference_config.yaml` passthrough (`vllm.speculative-config: '...'`) stays. When both are present:

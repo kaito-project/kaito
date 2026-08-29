@@ -322,6 +322,36 @@ var speculativeDecodingByPreset = map[string]*model.SpeculativeDecodingConfig{
     },
     // See the "Model Coverage" section for the full initial-ship list.
 }
+
+// SupportedSpeculativeDecodingPresets returns the sorted, user-facing preset
+// names that currently carry a validated SpeculativeDecoding entry. It is the
+// single exported accessor for `speculativeDecodingByPreset` and is what the
+// admission webhook (in a different package) MUST call - the map itself stays
+// lowercase and package-private so tests and generator internals are the only
+// direct readers. Returned slice is a fresh copy; callers may mutate it.
+//
+// Key convention: `speculativeDecodingByPreset` is keyed by lowercased
+// HuggingFace repo name (e.g. "deepseek-ai/deepseek-r1-0528"), matching
+// `catalogOverrides`. The user-facing preset name on `Workspace.Inference.Preset.Name`
+// is the short alias (e.g. "deepseek-r1-0528"). This accessor performs the
+// alias->repo->alias round-trip via `models.GetModelByName` so the returned
+// list matches what a user would put in `Inference.Preset.Name`, not the
+// internal map key.
+func SupportedSpeculativeDecodingPresets() []string {
+    out := make([]string, 0, len(speculativeDecodingByPreset))
+    for repo := range speculativeDecodingByPreset {
+        // Reverse-lookup the user-facing alias from the repo name via the
+        // model registry. Fall back to the repo string if no alias exists
+        // (defensive: the map should only contain registered presets).
+        if alias := lookupPresetAliasByRepo(repo); alias != "" {
+            out = append(out, alias)
+        } else {
+            out = append(out, repo)
+        }
+    }
+    sort.Strings(out)
+    return out
+}
 ```
 
 In `Generator.loadFromCatalog`, after the existing field copies (same shape as the `reasoningParser*` lookups later in the file):
@@ -684,14 +714,13 @@ func validateSpeculativeDecoding(ws *Workspace) error {
     }
     params := resolved.GetInferenceParameters()
     if params == nil || params.SpeculativeDecoding == nil {
-        // Derive the supported-preset list from speculativeDecodingByPreset
-        // (the single source of truth) so the error message stays current
-        // as presets are onboarded.
-        supported := make([]string, 0, len(speculativeDecodingByPreset))
-        for name := range speculativeDecodingByPreset {
-            supported = append(supported, name)
-        }
-        sort.Strings(supported)
+        // Derive the supported-preset list via the exported accessor from
+        // `presets/workspace/generator`. The underlying map
+        // (`speculativeDecodingByPreset`) is package-private and NOT
+        // reachable from this webhook package; the accessor is the single
+        // supported entry point so the error message stays in sync as
+        // presets are onboarded, without cross-package var access.
+        supported := generator.SupportedSpeculativeDecodingPresets()
         return fmt.Errorf(
             "preset %q does not have a validated speculative decoding configuration; "+
             "remove kaito.sh/enable-speculative-decoding annotation or choose a "+

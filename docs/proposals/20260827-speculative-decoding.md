@@ -396,6 +396,11 @@ Two acceptable options; the design commits to option (a) because it is smaller a
 //     runtimeName := v1beta1.GetWorkspaceRuntimeName(ctx.Workspace)
 // and BEFORE:
 //     commands := inferenceParam.GetInferenceCommand(...)
+//
+// NOTE: the WorkspaceGeneratorContext closure exposes only `ctx` and
+// `spec`; there is no `ws` in scope. Bind it once up-front so every
+// reference below reads off the same object the caller resolved.
+ws := ctx.Workspace
 if runtimeName == pkgmodel.RuntimeNameVLLM &&
     ws.Annotations["kaito.sh/enable-speculative-decoding"] == "true" {
     // Reconcile-time guard: refuse to inject when the resolved node count
@@ -429,47 +434,73 @@ if runtimeName == pkgmodel.RuntimeNameVLLM &&
         // see pkg/model/interface.go:233-260, RuntimeParam.VLLM VLLMParam).
         // Do NOT gate on `inferenceParam.VLLM != nil` - that wouldn't compile.
         // The `runtimeName == RuntimeNameVLLM` check above is the correct gate.
-        if inferenceParam.SpeculativeDecoding != nil {
-            // Load and parse the user-provided inference ConfigMap so we can
-            // honor the escape hatch ("ConfigMap wins", Step 5). This site
-            // is downstream of the pod-spec builder that already mounts the
-            // ConfigMap by name but does NOT parse its contents, so we do the
-            // parse here explicitly. Failure semantics are conservative: if
-            // ConfigMap probe: distinguish transient errors from "user
-            // did not specify speculative-config". A transient failure
-            // (API error, network glitch) must NOT be treated as absence,
-            // because that would cause injection to proceed, revision hash
-            // to advance, and subsequent reconciles to return early
-            // (StatefulSet up-to-date). The override would then remain
-            // shadowed until another revision change. Return the probe
-            // error so the reconciler retries.
-            userSpecified, cfgErr := loadUserSpeculativeConfig(ctx.Ctx, ctx.KubeClient, ws)
-            if cfgErr != nil {
-                if apierrors.IsNotFound(cfgErr) {
-                    // ConfigMap intentionally absent -> no user override.
-                    userSpecified = false
-                } else {
-                    // Transient error: propagate so reconciler retries.
-                    // Do NOT collapse to userSpecified=false, or a durable
-                    // duplicate-config state can emerge.
-                    return fmt.Errorf("speculative decoding: probing ConfigMap for %s/%s: %w",
-                        ws.Namespace, ws.Name, cfgErr)
-                }
+        if inferenceParam.SpeculativeDecoding == nil {
+            // Annotation is set to "true" but the resolved model has no
+            // built-in SpeculativeDecoding preset. Admission catches this
+            // for freshly-created / freshly-updated Workspaces, but it
+            // does NOT protect two important cases:
+            //   1. Pre-existing Workspaces created before the annotation
+            //      was introduced that carry the annotation via an out-of-
+            //      band edit or CRD-level default.
+            //   2. Workspaces that survive a controller upgrade in which a
+            //      catalog entry lost its SpeculativeDecoding config
+            //      (config removed from the model registry).
+            // Silently no-oping in these cases would leave the user with
+            // the feature requested-but-disabled and no signal to explain
+            // why. Fail reconciliation with an explicit
+            // SpecDecoUnsupportedPreset decision so the reconciler surfaces
+            // ConditionSpeculativeDecodingDisabled with
+            // reason=UnsupportedPreset and returns a non-nil error so the
+            // reconcile is retried (and audit-visible), rather than
+            // treating an unsatisfiable feature request as success.
+            if outDecision != nil {
+                *outDecision = SpecDecoUnsupportedPreset
             }
-            if !userSpecified {
-                blob, err := vllmFormat(inferenceParam.SpeculativeDecoding)
-                if err != nil {
-                    return fmt.Errorf("speculative decoding: %w", err)
-                }
-                // ModelRunParams is walked by GetInferenceCommand below to
-                // build the shell string. It does NOT shell-quote values, so
-                // wrap the JSON in single quotes and escape embedded single
-                // quotes so /bin/sh sees exactly one argv token.
-                if inferenceParam.VLLM.ModelRunParams == nil {
-                    inferenceParam.VLLM.ModelRunParams = map[string]string{}
-                }
-                inferenceParam.VLLM.ModelRunParams["speculative-config"] = shellSingleQuote(blob)
+            return fmt.Errorf("speculative decoding: annotation kaito.sh/enable-speculative-decoding=true " +
+                "but resolved model %q has no built-in SpeculativeDecoding config; " +
+                "remove the annotation or supply vllm.speculative-config via the inference ConfigMap",
+                ws.Spec.Inference.Preset.Name)
+        }
+        // inferenceParam.SpeculativeDecoding is guaranteed non-nil below.
+        // Load and parse the user-provided inference ConfigMap so we can
+        // honor the escape hatch ("ConfigMap wins", Step 5). This site
+        // is downstream of the pod-spec builder that already mounts the
+        // ConfigMap by name but does NOT parse its contents, so we do the
+        // parse here explicitly. Failure semantics are conservative: if
+        // ConfigMap probe: distinguish transient errors from "user
+        // did not specify speculative-config". A transient failure
+        // (API error, network glitch) must NOT be treated as absence,
+        // because that would cause injection to proceed, revision hash
+        // to advance, and subsequent reconciles to return early
+        // (StatefulSet up-to-date). The override would then remain
+        // shadowed until another revision change. Return the probe
+        // error so the reconciler retries.
+        userSpecified, cfgErr := loadUserSpeculativeConfig(ctx.Ctx, ctx.KubeClient, ws)
+        if cfgErr != nil {
+            if apierrors.IsNotFound(cfgErr) {
+                // ConfigMap intentionally absent -> no user override.
+                userSpecified = false
+            } else {
+                // Transient error: propagate so reconciler retries.
+                // Do NOT collapse to userSpecified=false, or a durable
+                // duplicate-config state can emerge.
+                return fmt.Errorf("speculative decoding: probing ConfigMap for %s/%s: %w",
+                    ws.Namespace, ws.Name, cfgErr)
             }
+        }
+        if !userSpecified {
+            blob, err := vllmFormat(inferenceParam.SpeculativeDecoding)
+            if err != nil {
+                return fmt.Errorf("speculative decoding: %w", err)
+            }
+            // ModelRunParams is walked by GetInferenceCommand below to
+            // build the shell string. It does NOT shell-quote values, so
+            // wrap the JSON in single quotes and escape embedded single
+            // quotes so /bin/sh sees exactly one argv token.
+            if inferenceParam.VLLM.ModelRunParams == nil {
+                inferenceParam.VLLM.ModelRunParams = map[string]string{}
+            }
+            inferenceParam.VLLM.ModelRunParams["speculative-config"] = shellSingleQuote(blob)
         }
     }
 }
@@ -521,7 +552,7 @@ result struct alongside the `client.Object`:
 ```go
 type PresetInferenceResult struct {
 	Workload                    client.Object
-	SpeculativeDecodingDecision SpecDecoDecision // skip | injected | configmap-override | pipeline-parallelism
+	SpeculativeDecodingDecision SpecDecoDecision // skip | injected | configmap-override | pipeline-parallelism | unsupported-preset
 }
 ```
 
@@ -533,20 +564,27 @@ The reconciler reads the decision from the returned result after
   `meta.SetStatusCondition` path in `workspace_controller.go` (line 823 /
   1313 / 1448) so it lands on the persisted `WorkspaceStatus`.
 
+- `ConditionSpeculativeDecodingDisabled` with reason=`UnsupportedPreset`
+  when `GeneratePresetInference` returned `SpecDecoUnsupportedPreset`
+  alongside a non-nil error (annotation set but the resolved model has
+  no built-in SpeculativeDecoding config). The reconciler still returns
+  the error so the operation is retried and audit-visible.
+
   **Condition cleanup on transitions.** For every other decision value
   (`SpecDecoSkip`, `SpecDecoInjected`, `SpecDecoConfigMapOverride`), the
   reconciler MUST call `meta.RemoveStatusCondition(&ws.Status.Conditions,
   ConditionSpeculativeDecodingDisabled)` (or set it to
   `Status=False, Reason=NotApplicable` with the current
   `ObservedGeneration`). Otherwise a stale
-  `True/PipelineParallelism` condition survives when:
-  (a) the annotation is removed, (b) the SKU changes so
-  `targetNodes==1`, or (c) `nodeCountPerReplica` shrinks - all valid
+  `True/PipelineParallelism` or `True/UnsupportedPreset` condition
+  survives when: (a) the annotation is removed, (b) the SKU changes so
+  `targetNodes==1`, (c) `nodeCountPerReplica` shrinks, or (d) a catalog
+  update re-introduces the SpeculativeDecoding config — all valid
   transitions after which the disabled reason no longer holds. The
   cleanup must run unconditionally on every reconcile that produces a
-  non-PP decision, not only on the transition itself, because the
-  reconciler is edge-triggered on spec changes and may replay the same
-  decision multiple times.
+  non-PP / non-UnsupportedPreset decision, not only on the transition
+  itself, because the reconciler is edge-triggered on spec changes and
+  may replay the same decision multiple times.
 - A `SpeculativeDecodingConfigMapOverride` Event on the reconciler's
   `EventRecorder` when injection was skipped because the ConfigMap already
   carried `vllm.speculative-config` (Step 5). Emission is on the reconciler
@@ -574,8 +612,9 @@ there too. `GenerateInferencePodSpec` takes an `outDecision *SpecDecoDecision`
 argument; `GeneratePresetInference` allocates the decision, threads the
 pointer through, and copies the final value into
 `PresetInferenceResult.SpeculativeDecodingDecision` after the call.
-Each of the four `SpecDecoDecision` values (`SpecDecoSkip`,
-`SpecDecoPipelineParallelism`, `SpecDecoConfigMapOverride`, `SpecDecoInjected`)
+Each of the five `SpecDecoDecision` values (`SpecDecoSkip`,
+`SpecDecoPipelineParallelism`, `SpecDecoConfigMapOverride`, `SpecDecoInjected`,
+`SpecDecoUnsupportedPreset`)
 is written by exactly one branch of the inline block shown in Step 3.
 All writes are guarded by `outDecision != nil` so tuning-path callers and
 tests can pass `nil`.
@@ -592,6 +631,12 @@ Inline decision-write sites (annotations on the Step 3 code block above):
   Reconciler emits the `SpeculativeDecodingConfigMapOverride` Event.
 - Fall-through injection path (writes `ModelRunParams["speculative-config"]`):
   `*outDecision = SpecDecoInjected`.
+- Annotation `"true"` but `inferenceParam.SpeculativeDecoding == nil`
+  (pre-existing Workspace or catalog-entry removed after upgrade;
+  admission does not protect this case):
+  `*outDecision = SpecDecoUnsupportedPreset`; return a non-nil error so
+  the reconciler retries and surfaces
+  `ConditionSpeculativeDecodingDisabled` with reason=`UnsupportedPreset`.
 
 At the call site in `GeneratePresetInference`:
 
@@ -911,7 +956,7 @@ Test coverage: `TestInferenceSetReconcile_AnnotationFlip_PropagesToExistingChild
 
 **(b) Compare the annotation explicitly at update time.** Load the current StatefulSet, parse the `--speculative-config` flag out of its command, and force an update when it disagrees with what the current Workspace would render. Larger change (introduces bespoke parsing of the runtime command); called out as an alternative if a future feature needs to trigger a rollout without changing the hash.
 
-**Selected-revision data must include the annotation too.** `addOrUpdatePresetInference` (and the reconciler's selected-revision bookkeeping) stores the rendered revision alongside the hash so subsequent reconciles can compare against a stable snapshot. When the annotation is folded into the hash, it must also be stored in the selected-revision data - otherwise a controller restart mid-rollout could recompute a different hash from the same object and cause a spurious re-roll. The revision struct gets the same `SpecDecoAnnotation` field, and the reconciler writes both together.
+**Selected-revision data should include the annotation for audit completeness.** `addOrUpdatePresetInference` (and the reconciler's selected-revision bookkeeping) stores the rendered revision alongside the hash so operators can inspect what a given revision represented. Note that this is **not** required for correctness of the rollout comparison itself: `syncControllerRevision` computes the hash and revision name from the live Workspace object each reconcile, and the rollout-comparison path reads the revision-name annotation, not `ControllerRevision.Data`. Folding the annotation into `ComputeHash` (part (a) above) is what actually prevents a spurious re-roll after controller restart or hash re-computation — the stored revision struct is never fed back into the hash. Nevertheless, adding the same `SpecDecoAnnotation` field to the revision struct keeps `kubectl describe controllerrevision` self-explanatory ("why did this revision exist?") and matches how other flag-affecting fields are recorded; the reconciler writes both together.
 
 **Test coverage for the rollout path** (added at the same time as the admission tests in Step 6):
 

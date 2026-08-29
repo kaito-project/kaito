@@ -478,11 +478,37 @@ if runtimeName == pkgmodel.RuntimeNameVLLM &&
 `loadUserSpeculativeConfig` is a small helper collocated with the injection
 site: it fetches the ConfigMap named by `ws.Inference.Config` (empty name =>
 `(false, nil)`), YAML-parses the `inference_config.yaml` key into a shape
-that exposes `vllm.speculative-config`, and returns `(true, nil)` iff that
-key exists and is non-empty. It uses the same client, namespace, and
-ConfigMap-name conventions as the existing `UpdateWorkspaceTargetNodeCount`
-context-window path (`workspace_controller.go:1584-1595`) so the two
-readers never disagree on which file inside the ConfigMap is authoritative.
+that exposes `vllm.speculative-config`, and returns `(true, nil)` iff the
+`vllm.speculative-config` **key is present in the ConfigMap** — regardless
+of whether the value is empty.
+
+**Why key-presence, not non-empty value.** The vLLM runtime wrapper
+(`presets/workspace/inference/vllm/inference_api.py`) forwards every
+`vllm.*` key/value pair from the ConfigMap onto the container's argv. If
+we treated an existing but empty `speculative-config` value as "not
+specified" and injected our own, `inference_api.py` would still append
+`--speculative-config` (with empty value) from the ConfigMap side. vLLM
+would then see two `--speculative-config` flags and fail on invalid
+startup arguments. Presence is therefore the override signal here; the
+value itself only matters at admission.
+
+**Admission webhook rejects empty `speculative-config` value.** To keep
+the key-presence rule from letting users silently disable the feature by
+setting an empty string, the existing Workspace admission webhook
+(`pkg/webhook/workspace.go`, the ConfigMap validator that already parses
+`inference_config.yaml` for `max-model-len`, see the shared
+`BuildNodeEstimateInputs` in Step 4) rejects any `vllm.speculative-config`
+key whose value is empty or unparsable as JSON with a clear
+`spec.inference.config` field error. Users who want to disable speculative
+decoding remove the workspace annotation
+`kaito.sh/enable-speculative-decoding` instead of blanking the ConfigMap
+key; users who want a custom config supply a non-empty JSON body that the
+webhook validates before reconcile ever runs.
+
+This helper uses the same client, namespace, and ConfigMap-name
+conventions as the existing `UpdateWorkspaceTargetNodeCount` context-window
+path (`workspace_controller.go:1584-1595`) so the two readers never
+disagree on which file inside the ConfigMap is authoritative.
 
 #### Reconciler wiring for the skip signal
 
@@ -527,75 +553,51 @@ The reconciler reads the decision from the returned result after
   - not the validating webhook - because the webhook is `sideEffects: None`
   and can be invoked for dry-run.
 
-The decision is conveyed via a caller-owned `*SpecDecoDecision` pointer
-that the modifier **factory** captures via closure. The existing
-`TypedManifestModifier[WorkspaceGeneratorContext, corev1.PodSpec]` signature
-is strictly `func(ctx *WorkspaceGeneratorContext, spec *corev1.PodSpec) error`,
-so a three-argument modifier cannot be passed to `GenerateManifest`
-directly. Instead, `GeneratePresetInference` allocates the decision, calls
-a factory (`newSpeculativeDecodingModifier`) that returns a two-argument
-closure with the pointer captured, hands that closure to `GenerateManifest`,
-and copies the result into `PresetInferenceResult.SpeculativeDecodingDecision`
-after the call returns.
+**Why not a `TypedManifestModifier`.** An earlier revision of this proposal
+sketched a `newSpeculativeDecodingModifier` factory that returned a
+`TypedManifestModifier[WorkspaceGeneratorContext, corev1.PodSpec]`. That
+approach cannot work: `TypedManifestModifier` receives `(ctx, *PodSpec)`
+and runs **after** `GenerateInferencePodSpec` has already called
+`inferenceParam.GetInferenceCommand(...)` and materialized the container's
+`Command`/`Args`. A modifier that mutates `inferenceParam.VLLM.ModelRunParams`
+at that point is writing to a `PresetParam` copy whose command string has
+already been rendered — the injection never reaches the container. Even a
+modifier that rewrites `spec.Containers[0].Args` directly would have to
+re-implement the shell-quoting done by `GetInferenceCommand`, and would
+still lose access to the typed `PresetParam.SpeculativeDecoding` source
+of truth.
 
-The factory + closure shape (each of the four `SpecDecoDecision` values
-must show up in exactly one branch, and every branch that reaches injection
-logic must assign before returning):
+**Where the decision is set.** Because injection has to live inline in
+`GenerateInferencePodSpec` (between the line-578 `DeepCopy()` and the
+line-600 `GetInferenceCommand`, per Step 3), the decision-plumbing lives
+there too. `GenerateInferencePodSpec` takes an `outDecision *SpecDecoDecision`
+argument; `GeneratePresetInference` allocates the decision, threads the
+pointer through, and copies the final value into
+`PresetInferenceResult.SpeculativeDecodingDecision` after the call.
+Each of the four `SpecDecoDecision` values (`SpecDecoSkip`,
+`SpecDecoPipelineParallelism`, `SpecDecoConfigMapOverride`, `SpecDecoInjected`)
+is written by exactly one branch of the inline block shown in Step 3.
+All writes are guarded by `outDecision != nil` so tuning-path callers and
+tests can pass `nil`.
 
-```go
-// newSpeculativeDecodingModifier returns a TypedManifestModifier that closes
-// over `decision`. Callers that don't want the decision (e.g. tuning path,
-// tests) pass nil; every write is guarded by `decision != nil`.
-func newSpeculativeDecodingModifier(
-    ws *kaitov1beta1.Workspace,
-    inferenceParam *model.PresetParam,
-    targetNodes int,
-    decision *SpecDecoDecision,
-) TypedManifestModifier[WorkspaceGeneratorContext, corev1.PodSpec] {
-    return func(ctx *WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
-        if !hasEnableAnnotation(ws) {
-            if decision != nil {
-                *decision = SpecDecoSkip
-            }
-            return nil
-        }
-        if targetNodes > 1 {
-            // Pipeline-parallelism guard fired: injection deliberately skipped.
-            // Reconciler translates this to ConditionSpeculativeDecodingDisabled
-            // with reason=PipelineParallelism.
-            if decision != nil {
-                *decision = SpecDecoPipelineParallelism
-            }
-            return nil
-        }
-        userSpecified, cfgErr := loadUserSpeculativeConfig(ctx.Ctx, ctx.KubeClient, ws)
-        // (transient-error handling elided; see Step 3 above)
-        if userSpecified {
-            // ConfigMap already carries vllm.speculative-config: do NOT overwrite.
-            // Reconciler emits SpeculativeDecodingConfigMapOverride Event.
-            if decision != nil {
-                *decision = SpecDecoConfigMapOverride
-            }
-            return nil
-        }
-        // Fall-through: apply the built-in preset config to ModelRunParams.
-        inferenceParam.VLLM.ModelRunParams["speculative-config"] = shellSingleQuote(blob)
-        if decision != nil {
-            *decision = SpecDecoInjected
-        }
-        return nil
-    }
-}
-```
+Inline decision-write sites (annotations on the Step 3 code block above):
+
+- `runtimeName != RuntimeNameVLLM` **or** annotation absent: fall through
+  without writing (leaves the zero-value `SpecDecoSkip`).
+- `ws.Status.TargetNodeCount > 1` guard fires: `*outDecision = SpecDecoPipelineParallelism`;
+  return without injection. Reconciler translates this into
+  `ConditionSpeculativeDecodingDisabled` with reason=`PipelineParallelism`.
+- `loadUserSpeculativeConfig` returns `userSpecified == true`:
+  `*outDecision = SpecDecoConfigMapOverride`; return without injection.
+  Reconciler emits the `SpeculativeDecodingConfigMapOverride` Event.
+- Fall-through injection path (writes `ModelRunParams["speculative-config"]`):
+  `*outDecision = SpecDecoInjected`.
 
 At the call site in `GeneratePresetInference`:
 
 ```go
 var decision SpecDecoDecision
-specDecoMod := newSpeculativeDecodingModifier(wObj, inferenceParam, targetNodes, &decision)
-// specDecoMod matches TypedManifestModifier[WorkspaceGeneratorContext, corev1.PodSpec]
-// and is passed alongside the other modifiers to GenerateManifest.
-workload, err := GenerateManifest(ctx, wObj, model, ..., specDecoMod, ...)
+workload, err := GenerateInferencePodSpec(ctx, wObj, model, /* ... */, &decision)
 if err != nil {
     return nil, err
 }

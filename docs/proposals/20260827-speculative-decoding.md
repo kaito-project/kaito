@@ -452,21 +452,21 @@ if runtimeName == pkgmodel.RuntimeNameVLLM &&
             //   2. Workspaces that survive a controller upgrade in which a
             //      catalog entry lost its SpeculativeDecoding config
             //      (config removed from the model registry).
-            // Silently no-oping in these cases would leave the user with
-            // the feature requested-but-disabled and no signal to explain
-            // why. Fail reconciliation with an explicit
-            // SpecDecoUnsupportedPreset decision so the reconciler surfaces
-            // ConditionSpeculativeDecodingDisabled with
-            // reason=UnsupportedPreset and returns a non-nil error so the
-            // reconcile is retried (and audit-visible), rather than
-            // treating an unsatisfiable feature request as success.
+            //
+            // Signal the reconciler via SpecDecoUnsupportedPreset so it
+            // persists ConditionSpeculativeDecodingDisabled with
+            // reason=UnsupportedPreset. Do NOT return an error: this is a
+            // permanent configuration mismatch that a retry cannot resolve,
+            // and a retryable error would create a rate-limited
+            // reconcile/log loop. Self-healing happens naturally through
+            // the existing watches: removing the annotation, changing
+            // preset, or a catalog update that re-adds the config all
+            // enqueue a new reconcile that will run this branch again with
+            // a different decision.
             if outDecision != nil {
                 *outDecision = SpecDecoUnsupportedPreset
             }
-            return fmt.Errorf("speculative decoding: annotation kaito.sh/enable-speculative-decoding=true " +
-                "but resolved model %q has no built-in SpeculativeDecoding config; " +
-                "remove the annotation or supply vllm.speculative-config via the inference ConfigMap",
-                ws.Spec.Inference.Preset.Name)
+            return nil // skip injection; reconciler owns condition emission
         }
         // inferenceParam.SpeculativeDecoding is guaranteed non-nil below.
         // Load and parse the user-provided inference ConfigMap so we can
@@ -583,10 +583,13 @@ The reconciler reads the decision from the returned result after
   1313 / 1448) so it lands on the persisted `WorkspaceStatus`.
 
 - `ConditionSpeculativeDecodingDisabled` with reason=`UnsupportedPreset`
-  when `GeneratePresetInference` returned `SpecDecoUnsupportedPreset`
-  alongside a non-nil error (annotation set but the resolved model has
-  no built-in SpeculativeDecoding config). The reconciler still returns
-  the error so the operation is retried and audit-visible.
+  when `GeneratePresetInference` returned `SpecDecoUnsupportedPreset`.
+  This branch does **not** propagate a reconcile error — the mismatch is
+  a permanent configuration state that only spec / annotation / catalog
+  changes can resolve, and those changes already enqueue new reconciles
+  via the standard watches. Retrying on a config-error return would
+  produce an endless rate-limited reconcile/log loop with no possibility
+  of self-healing.
 
   **Condition cleanup on transitions.** For every other decision value
   (`SpecDecoSkip`, `SpecDecoInjected`, `SpecDecoConfigMapOverride`), the
@@ -652,17 +655,24 @@ Inline decision-write sites (annotations on the Step 3 code block above):
 - Annotation `"true"` but `inferenceParam.SpeculativeDecoding == nil`
   (pre-existing Workspace or catalog-entry removed after upgrade;
   admission does not protect this case):
-  `*outDecision = SpecDecoUnsupportedPreset`; return a non-nil error so
-  the reconciler retries and surfaces
-  `ConditionSpeculativeDecodingDisabled` with reason=`UnsupportedPreset`.
+  `*outDecision = SpecDecoUnsupportedPreset`; return **`nil`** (skip
+  injection). The reconciler surfaces `ConditionSpeculativeDecodingDisabled`
+  with reason=`UnsupportedPreset`. This is a permanent configuration
+  mismatch — a retryable error would create a rate-limited reconcile/log
+  loop with no path to self-heal. Recovery happens through the existing
+  watches: removing the annotation, changing the preset, or a catalog
+  update re-adding the config all enqueue a new reconcile that lands on
+  a different branch.
 
 At the call site in `GeneratePresetInference`, the decision must reach the
-reconciler **on both the success and error paths** — the
-`SpecDecoUnsupportedPreset` decision only exists on the error path, and
-discarding it would leave the reconciler unable to persist
-`ConditionSpeculativeDecodingDisabled/UnsupportedPreset`. Return the
-result (with the current decision) alongside the error and let the
-reconciler translate the decision **before** propagating the error up:
+reconciler on both the success and error paths — `SpecDecoConfigMapOverride`
+and `SpecDecoPipelineParallelism` produce the decision alongside a nil
+error, and although `SpecDecoUnsupportedPreset` also returns nil (see the
+"no-retry" rationale in Step 3), other unrelated errors from later
+injection steps (e.g. `vllmFormat` failure) can still leave a valid
+decision that the reconciler must translate. Return the result (with the
+current decision) alongside the error and let the reconciler translate
+the decision **before** propagating the error up:
 
 ```go
 var decision SpecDecoDecision
@@ -682,11 +692,9 @@ The reconciler side (`WorkspaceReconciler.applyInference` /
 `preparePresetInference`, `workspace_controller.go`) reads
 `result.SpeculativeDecodingDecision` before checking `err`, updates the
 Workspace status condition and emits any Event, then propagates `err` up
-the reconcile chain. This ordering guarantees that a
-`SpecDecoUnsupportedPreset` failure surfaces
-`ConditionSpeculativeDecodingDisabled` with reason=`UnsupportedPreset` on
-the first failed reconcile rather than only after a spurious later
-success. As an alternative, a typed error
+the reconcile chain (which for `SpecDecoUnsupportedPreset` is `nil`, so
+no retry loop; for other errors, the standard reconcile retry applies).
+As an alternative, a typed error
 (`type SpecDecoError struct { Decision SpecDecoDecision; Err error }`)
 can carry the decision inside the returned error and satisfy `errors.As`;
 the pair-return form above is preferred because it keeps the happy path

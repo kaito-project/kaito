@@ -420,7 +420,14 @@ if runtimeName == pkgmodel.RuntimeNameVLLM &&
     // A skip is silent here on purpose; the reconciler translates it into
     // status once the injection decision is available (see "Reconciler
     // wiring for the skip signal" below).
-    if ws.Status.TargetNodeCount <= 1 {
+    if ws.Status.TargetNodeCount > 1 {
+        // Pipeline-parallelism guard fired: injection deliberately skipped.
+        // Reconciler translates this into ConditionSpeculativeDecodingDisabled
+        // with reason=PipelineParallelism.
+        if outDecision != nil {
+            *outDecision = SpecDecoPipelineParallelism
+        }
+    } else {
         // Extract SpeculativeDecoding from the already-resolved model.
         // ctx.Model was resolved by the caller via models.GetModelByName
         // (which triggers GetModelByNameWithToken internally and rewrites
@@ -488,7 +495,14 @@ if runtimeName == pkgmodel.RuntimeNameVLLM &&
                     ws.Namespace, ws.Name, cfgErr)
             }
         }
-        if !userSpecified {
+        if userSpecified {
+            // ConfigMap already carries vllm.speculative-config: do NOT
+            // overwrite. Reconciler emits SpeculativeDecodingConfigMapOverride
+            // Event based on this decision (Step 5).
+            if outDecision != nil {
+                *outDecision = SpecDecoConfigMapOverride
+            }
+        } else {
             blob, err := vllmFormat(inferenceParam.SpeculativeDecoding)
             if err != nil {
                 return fmt.Errorf("speculative decoding: %w", err)
@@ -501,6 +515,10 @@ if runtimeName == pkgmodel.RuntimeNameVLLM &&
                 inferenceParam.VLLM.ModelRunParams = map[string]string{}
             }
             inferenceParam.VLLM.ModelRunParams["speculative-config"] = shellSingleQuote(blob)
+            // Fall-through injection path completed.
+            if outDecision != nil {
+                *outDecision = SpecDecoInjected
+            }
         }
     }
 }
@@ -638,19 +656,41 @@ Inline decision-write sites (annotations on the Step 3 code block above):
   the reconciler retries and surfaces
   `ConditionSpeculativeDecodingDisabled` with reason=`UnsupportedPreset`.
 
-At the call site in `GeneratePresetInference`:
+At the call site in `GeneratePresetInference`, the decision must reach the
+reconciler **on both the success and error paths** — the
+`SpecDecoUnsupportedPreset` decision only exists on the error path, and
+discarding it would leave the reconciler unable to persist
+`ConditionSpeculativeDecodingDisabled/UnsupportedPreset`. Return the
+result (with the current decision) alongside the error and let the
+reconciler translate the decision **before** propagating the error up:
 
 ```go
 var decision SpecDecoDecision
 workload, err := GenerateInferencePodSpec(ctx, wObj, model, /* ... */, &decision)
-if err != nil {
-    return nil, err
-}
-return &PresetInferenceResult{
-    Workload:                    workload,
+// Always carry the decision back to the caller so the reconciler can
+// translate SpecDecoUnsupportedPreset / SpecDecoPipelineParallelism into
+// a Workspace condition (and SpecDecoConfigMapOverride into an Event)
+// even when GenerateInferencePodSpec returned an error.
+result := &PresetInferenceResult{
+    Workload:                    workload, // nil on error, non-nil on success
     SpeculativeDecodingDecision: decision,
-}, nil
+}
+return result, err
 ```
+
+The reconciler side (`WorkspaceReconciler.applyInference` /
+`preparePresetInference`, `workspace_controller.go`) reads
+`result.SpeculativeDecodingDecision` before checking `err`, updates the
+Workspace status condition and emits any Event, then propagates `err` up
+the reconcile chain. This ordering guarantees that a
+`SpecDecoUnsupportedPreset` failure surfaces
+`ConditionSpeculativeDecodingDisabled` with reason=`UnsupportedPreset` on
+the first failed reconcile rather than only after a spurious later
+success. As an alternative, a typed error
+(`type SpecDecoError struct { Decision SpecDecoDecision; Err error }`)
+can carry the decision inside the returned error and satisfy `errors.As`;
+the pair-return form above is preferred because it keeps the happy path
+symmetric with the failure path.
 
 See the "Reconciler status / event translation" note at the end of Step 3
 for the exact status/event translation patch.

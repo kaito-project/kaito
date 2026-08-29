@@ -309,18 +309,42 @@ Add entries to the `speculativeDecodingByPreset` map in `presets/workspace/gener
 `presets/workspace/generator/generator.go`:
 
 ```go
+// specDecoEntry pairs the user-facing preset alias (what a user writes in
+// `Workspace.Inference.Preset.Name`) with the KAITO-authored config. Storing
+// the alias inline avoids a reverse repo->alias lookup, which would either
+// require calling into `presets/workspace/models` (impossible: `models`
+// already imports `generator` via `vllm_model.go:30`, so the reverse import
+// would create a Go cycle) or duplicating `plugin.LegacyBuiltinToCatalog`.
+type specDecoEntry struct {
+    UserFacing string                          // e.g. "deepseek-r1-0528"
+    Config     *model.SpeculativeDecodingConfig
+}
+
 // New package-level map, sibling to catalogOverrides / reasoningParser*.
 // NOT a field on CatalogEntry, and NOT surfaced in model_catalog.yaml.
-var speculativeDecodingByPreset = map[string]*model.SpeculativeDecodingConfig{
+// Keys are lowercased HuggingFace repo names, matching the key convention
+// `catalogOverrides` uses (so `Generator.loadFromCatalog` can look up by
+// `strings.ToLower(g.ModelRepo)` without any translation).
+var speculativeDecodingByPreset = map[string]specDecoEntry{
     "deepseek-ai/deepseek-r1-0528": {
-        Method: "mtp",
-        MTP:    &model.MTPConfig{NumSpeculativeTokens: 1},
+        UserFacing: "deepseek-r1-0528",
+        Config: &model.SpeculativeDecodingConfig{
+            Method: "mtp",
+            MTP:    &model.MTPConfig{NumSpeculativeTokens: 1},
+        },
     },
     "deepseek-ai/deepseek-v3-0324": {
-        Method: "mtp",
-        MTP:    &model.MTPConfig{NumSpeculativeTokens: 1},
+        UserFacing: "deepseek-v3-0324",
+        Config: &model.SpeculativeDecodingConfig{
+            Method: "mtp",
+            MTP:    &model.MTPConfig{NumSpeculativeTokens: 1},
+        },
     },
     // See the "Model Coverage" section for the full initial-ship list.
+    // A build-time unit test (see Step 2 validation) asserts, for each entry,
+    // that `plugin.LegacyBuiltinToCatalog[UserFacing]` equals the map key -
+    // this catches maintainer typos in either the key or the UserFacing field
+    // without importing `models`.
 }
 
 // SupportedSpeculativeDecodingPresets returns the sorted, user-facing preset
@@ -329,25 +353,10 @@ var speculativeDecodingByPreset = map[string]*model.SpeculativeDecodingConfig{
 // admission webhook (in a different package) MUST call - the map itself stays
 // lowercase and package-private so tests and generator internals are the only
 // direct readers. Returned slice is a fresh copy; callers may mutate it.
-//
-// Key convention: `speculativeDecodingByPreset` is keyed by lowercased
-// HuggingFace repo name (e.g. "deepseek-ai/deepseek-r1-0528"), matching
-// `catalogOverrides`. The user-facing preset name on `Workspace.Inference.Preset.Name`
-// is the short alias (e.g. "deepseek-r1-0528"). This accessor performs the
-// alias->repo->alias round-trip via `models.GetModelByName` so the returned
-// list matches what a user would put in `Inference.Preset.Name`, not the
-// internal map key.
 func SupportedSpeculativeDecodingPresets() []string {
     out := make([]string, 0, len(speculativeDecodingByPreset))
-    for repo := range speculativeDecodingByPreset {
-        // Reverse-lookup the user-facing alias from the repo name via the
-        // model registry. Fall back to the repo string if no alias exists
-        // (defensive: the map should only contain registered presets).
-        if alias := lookupPresetAliasByRepo(repo); alias != "" {
-            out = append(out, alias)
-        } else {
-            out = append(out, repo)
-        }
+    for _, entry := range speculativeDecodingByPreset {
+        out = append(out, entry.UserFacing)
     }
     sort.Strings(out)
     return out
@@ -357,8 +366,8 @@ func SupportedSpeculativeDecodingPresets() []string {
 In `Generator.loadFromCatalog`, after the existing field copies (same shape as the `reasoningParser*` lookups later in the file):
 
 ```go
-if sd, ok := speculativeDecodingByPreset[strings.ToLower(g.ModelRepo)]; ok {
-    g.Param.SpeculativeDecoding = sd
+if entry, ok := speculativeDecodingByPreset[strings.ToLower(g.ModelRepo)]; ok {
+    g.Param.SpeculativeDecoding = entry.Config
 }
 ```
 
@@ -519,57 +528,85 @@ The reconciler reads the decision from the returned result after
   and can be invoked for dry-run.
 
 The decision is conveyed via a caller-owned `*SpecDecoDecision` pointer
-passed into `GenerateInferencePodSpec` (which today is `func(..., *PodSpec) error`).
-The injection modifier writes to this pointer in every branch that has a
-defined outcome; `GeneratePresetInference` allocates it before the call
-and copies the result into `PresetInferenceResult.SpeculativeDecodingDecision`.
+that the modifier **factory** captures via closure. The existing
+`TypedManifestModifier[WorkspaceGeneratorContext, corev1.PodSpec]` signature
+is strictly `func(ctx *WorkspaceGeneratorContext, spec *corev1.PodSpec) error`,
+so a three-argument modifier cannot be passed to `GenerateManifest`
+directly. Instead, `GeneratePresetInference` allocates the decision, calls
+a factory (`newSpeculativeDecodingModifier`) that returns a two-argument
+closure with the pointer captured, hands that closure to `GenerateManifest`,
+and copies the result into `PresetInferenceResult.SpeculativeDecodingDecision`
+after the call returns.
 
-The modifier assigns as follows (each of the four `SpecDecoDecision` values
+The factory + closure shape (each of the four `SpecDecoDecision` values
 must show up in exactly one branch, and every branch that reaches injection
 logic must assign before returning):
 
 ```go
-// Inside the speculative-decoding modifier passed to GenerateInferencePodSpec.
-// `decision` is the caller-owned *SpecDecoDecision (nil when caller opted out).
-func(ctx *WorkspaceGeneratorContext, spec *PodSpec, decision *SpecDecoDecision) error {
-    if !hasEnableAnnotation(ws) {
+// newSpeculativeDecodingModifier returns a TypedManifestModifier that closes
+// over `decision`. Callers that don't want the decision (e.g. tuning path,
+// tests) pass nil; every write is guarded by `decision != nil`.
+func newSpeculativeDecodingModifier(
+    ws *kaitov1beta1.Workspace,
+    inferenceParam *model.PresetParam,
+    targetNodes int,
+    decision *SpecDecoDecision,
+) TypedManifestModifier[WorkspaceGeneratorContext, corev1.PodSpec] {
+    return func(ctx *WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+        if !hasEnableAnnotation(ws) {
+            if decision != nil {
+                *decision = SpecDecoSkip
+            }
+            return nil
+        }
+        if targetNodes > 1 {
+            // Pipeline-parallelism guard fired: injection deliberately skipped.
+            // Reconciler translates this to ConditionSpeculativeDecodingDisabled
+            // with reason=PipelineParallelism.
+            if decision != nil {
+                *decision = SpecDecoPipelineParallelism
+            }
+            return nil
+        }
+        userSpecified, cfgErr := loadUserSpeculativeConfig(ctx.Ctx, ctx.KubeClient, ws)
+        // (transient-error handling elided; see Step 3 above)
+        if userSpecified {
+            // ConfigMap already carries vllm.speculative-config: do NOT overwrite.
+            // Reconciler emits SpeculativeDecodingConfigMapOverride Event.
+            if decision != nil {
+                *decision = SpecDecoConfigMapOverride
+            }
+            return nil
+        }
+        // Fall-through: apply the built-in preset config to ModelRunParams.
+        inferenceParam.VLLM.ModelRunParams["speculative-config"] = shellSingleQuote(blob)
         if decision != nil {
-            *decision = SpecDecoSkip
+            *decision = SpecDecoInjected
         }
         return nil
     }
-    if targetNodes > 1 {
-        // Pipeline-parallelism guard fired: injection deliberately skipped.
-        // Reconciler translates this to ConditionSpeculativeDecodingDisabled
-        // with reason=PipelineParallelism.
-        if decision != nil {
-            *decision = SpecDecoPipelineParallelism
-        }
-        return nil
-    }
-    userSpecified, cfgErr := loadUserSpeculativeConfig(ctx.Ctx, ctx.KubeClient, ws)
-    // (transient-error handling elided; see Step 3 above)
-    if userSpecified {
-        // ConfigMap already carries vllm.speculative-config: do NOT overwrite.
-        // Reconciler emits SpeculativeDecodingConfigMapOverride Event.
-        if decision != nil {
-            *decision = SpecDecoConfigMapOverride
-        }
-        return nil
-    }
-    // Fall-through: apply the built-in preset config to ModelRunParams.
-    inferenceParam.VLLM.ModelRunParams["speculative-config"] = shellSingleQuote(blob)
-    if decision != nil {
-        *decision = SpecDecoInjected
-    }
-    return nil
 }
 ```
 
-Callers that don't opt in pass `nil`; every write is guarded by `decision != nil`
-so the injection function is safe for both call sites. See the
-"Reconciler status / event translation" note at the end of Step 3 for the
-exact patch.
+At the call site in `GeneratePresetInference`:
+
+```go
+var decision SpecDecoDecision
+specDecoMod := newSpeculativeDecodingModifier(wObj, inferenceParam, targetNodes, &decision)
+// specDecoMod matches TypedManifestModifier[WorkspaceGeneratorContext, corev1.PodSpec]
+// and is passed alongside the other modifiers to GenerateManifest.
+workload, err := GenerateManifest(ctx, wObj, model, ..., specDecoMod, ...)
+if err != nil {
+    return nil, err
+}
+return &PresetInferenceResult{
+    Workload:                    workload,
+    SpeculativeDecodingDecision: decision,
+}, nil
+```
+
+See the "Reconciler status / event translation" note at the end of Step 3
+for the exact status/event translation patch.
 
 ```go
 commands := inferenceParam.GetInferenceCommand(pkgmodel.RuntimeContext{ /* ... */ })

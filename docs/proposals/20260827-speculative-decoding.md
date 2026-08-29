@@ -294,7 +294,6 @@ type PresetParam struct {
 1. Add a `SpeculativeDecoding *SpeculativeDecodingConfig` field to `vLLMCompatibleModel` and populate it in `registerModel`.
 2. Extend `PresetParam.DeepCopy` to deep-copy the `SpeculativeDecoding` pointer and its nested config structs (MTP/NGram/DSpark sub-configs each contain value fields, but the outer pointers must be cloned to avoid aliasing across concurrent reconciles).
 3. Return the field through `GetInferenceParameters()` so the admission webhook and injection function can read it.
-```
 
 The typed sub-structs constrain the shape, but they do not by themselves prevent an author from pairing `Method: "mtp"` with a nil `MTP` or a populated `NGram`. Validation happens in two places:
 
@@ -397,17 +396,26 @@ if runtimeName == pkgmodel.RuntimeNameVLLM &&
             // is downstream of the pod-spec builder that already mounts the
             // ConfigMap by name but does NOT parse its contents, so we do the
             // parse here explicitly. Failure semantics are conservative: if
-            // the ConfigMap is missing/unreadable/malformed, we treat it as
-            // "user did not specify speculative-config" and proceed with
-            // injection - the ConfigMap mount itself will surface the error
-            // at pod start, and refusing to inject on parse failure would
-            // block the whole workload from running speculative decoding for
-            // a transient config error.
+            // ConfigMap probe: distinguish transient errors from "user
+            // did not specify speculative-config". A transient failure
+            // (API error, network glitch) must NOT be treated as absence,
+            // because that would cause injection to proceed, revision hash
+            // to advance, and subsequent reconciles to return early
+            // (StatefulSet up-to-date). The override would then remain
+            // shadowed until another revision change. Return the probe
+            // error so the reconciler retries.
             userSpecified, cfgErr := loadUserSpeculativeConfig(ctx.Ctx, ctx.KubeClient, ws)
             if cfgErr != nil {
-                klog.V(2).Infof("speculative decoding: skipping ConfigMap probe for %s/%s: %v",
-                    ws.Namespace, ws.Name, cfgErr)
-                userSpecified = false
+                if apierrors.IsNotFound(cfgErr) {
+                    // ConfigMap intentionally absent -> no user override.
+                    userSpecified = false
+                } else {
+                    // Transient error: propagate so reconciler retries.
+                    // Do NOT collapse to userSpecified=false, or a durable
+                    // duplicate-config state can emerge.
+                    return fmt.Errorf("speculative decoding: probing ConfigMap for %s/%s: %w",
+                        ws.Namespace, ws.Name, cfgErr)
+                }
             }
             if !userSpecified {
                 blob, err := vllmFormat(inferenceParam.SpeculativeDecoding)
@@ -459,6 +467,21 @@ The reconciler reads the decision from the returned result after
   when the multi-node guard fired, using the existing
   `meta.SetStatusCondition` path in `workspace_controller.go` (line 823 /
   1313 / 1448) so it lands on the persisted `WorkspaceStatus`.
+
+  **Condition cleanup on transitions.** For every other decision value
+  (`SpecDecoSkip`, `SpecDecoInjected`, `SpecDecoConfigMapOverride`), the
+  reconciler MUST call `meta.RemoveStatusCondition(&ws.Status.Conditions,
+  ConditionSpeculativeDecodingDisabled)` (or set it to
+  `Status=False, Reason=NotApplicable` with the current
+  `ObservedGeneration`). Otherwise a stale
+  `True/PipelineParallelism` condition survives when:
+  (a) the annotation is removed, (b) the SKU changes so
+  `targetNodes==1`, or (c) `nodeCountPerReplica` shrinks - all valid
+  transitions after which the disabled reason no longer holds. The
+  cleanup must run unconditionally on every reconcile that produces a
+  non-PP decision, not only on the transition itself, because the
+  reconciler is edge-triggered on spec changes and may replay the same
+  decision multiple times.
 - A `SpeculativeDecodingConfigMapOverride` Event on the reconciler's
   `EventRecorder` when injection was skipped because the ConfigMap already
   carried `vllm.speculative-config` (Step 5). Emission is on the reconciler
@@ -467,27 +490,56 @@ The reconciler reads the decision from the returned result after
 
 The decision is conveyed via a caller-owned `*SpecDecoDecision` pointer
 passed into `GenerateInferencePodSpec` (which today is `func(..., *PodSpec) error`).
-The injection modifier writes to this pointer; `GeneratePresetInference`
-allocates it before the call and copies the result into
-`PresetInferenceResult.SpeculativeDecodingDecision`:
+The injection modifier writes to this pointer in every branch that has a
+defined outcome; `GeneratePresetInference` allocates it before the call
+and copies the result into `PresetInferenceResult.SpeculativeDecodingDecision`.
+
+The modifier assigns as follows (each of the four `SpecDecoDecision` values
+must show up in exactly one branch, and every branch that reaches injection
+logic must assign before returning):
 
 ```go
-func GeneratePresetInference(...) (*PresetInferenceResult, error) {
-    var decision SpecDecoDecision
-    // ...
-    if err := GenerateInferencePodSpec(ctx, wObj, model, &podSpec, &decision); err != nil {
-        return nil, err
+// Inside the speculative-decoding modifier passed to GenerateInferencePodSpec.
+// `decision` is the caller-owned *SpecDecoDecision (nil when caller opted out).
+func(ctx *WorkspaceGeneratorContext, spec *PodSpec, decision *SpecDecoDecision) error {
+    if !hasEnableAnnotation(ws) {
+        if decision != nil {
+            *decision = SpecDecoSkip
+        }
+        return nil
     }
-    return &PresetInferenceResult{
-        Workload: statefulSet,
-        SpeculativeDecodingDecision: decision,
-    }, nil
+    if targetNodes > 1 {
+        // Pipeline-parallelism guard fired: injection deliberately skipped.
+        // Reconciler translates this to ConditionSpeculativeDecodingDisabled
+        // with reason=PipelineParallelism.
+        if decision != nil {
+            *decision = SpecDecoPipelineParallelism
+        }
+        return nil
+    }
+    userSpecified, cfgErr := loadUserSpeculativeConfig(ctx.Ctx, ctx.KubeClient, ws)
+    // (transient-error handling elided; see Step 3 above)
+    if userSpecified {
+        // ConfigMap already carries vllm.speculative-config: do NOT overwrite.
+        // Reconciler emits SpeculativeDecodingConfigMapOverride Event.
+        if decision != nil {
+            *decision = SpecDecoConfigMapOverride
+        }
+        return nil
+    }
+    // Fall-through: apply the built-in preset config to ModelRunParams.
+    inferenceParam.VLLM.ModelRunParams["speculative-config"] = shellSingleQuote(blob)
+    if decision != nil {
+        *decision = SpecDecoInjected
+    }
+    return nil
 }
 ```
 
-Callers that don't opt in pass `nil`; the injection function no-ops on a
-nil decision pointer. See the "Reconciler status / event translation" note
-at the end of Step 3 for the exact patch.
+Callers that don't opt in pass `nil`; every write is guarded by `decision != nil`
+so the injection function is safe for both call sites. See the
+"Reconciler status / event translation" note at the end of Step 3 for the
+exact patch.
 
 ```go
 commands := inferenceParam.GetInferenceCommand(pkgmodel.RuntimeContext{ /* ... */ })

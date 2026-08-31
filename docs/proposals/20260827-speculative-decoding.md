@@ -641,8 +641,9 @@ The reconciler reads the decision from the returned result after
   of self-healing.
 
   **Condition cleanup on transitions.** For every other decision value
-  (`SpecDecoSkip`, `SpecDecoInjected`, `SpecDecoConfigMapOverride`), the
-  reconciler MUST call `meta.RemoveStatusCondition(&ws.Status.Conditions,
+  (`SpecDecoSkip`, `SpecDecoInjected`, `SpecDecoConfigMapOverride`) **that
+  was actually recorded by the modifier** (see `SpecDecoNotEvaluated`
+  below), the reconciler MUST call `meta.RemoveStatusCondition(&ws.Status.Conditions,
   ConditionSpeculativeDecodingDisabled)` (or set it to
   `Status=False, Reason=NotApplicable` with the current
   `ObservedGeneration`). Otherwise a stale
@@ -652,9 +653,43 @@ The reconciler reads the decision from the returned result after
   update re-introduces the SpeculativeDecoding config — all valid
   transitions after which the disabled reason no longer holds. The
   cleanup must run unconditionally on every reconcile that produces a
-  non-PP / non-UnsupportedPreset decision, not only on the transition
-  itself, because the reconciler is edge-triggered on spec changes and
-  may replay the same decision multiple times.
+  non-PP / non-UnsupportedPreset **recorded** decision, not only on the
+  transition itself, because the reconciler is edge-triggered on spec
+  changes and may replay the same decision multiple times.
+
+  **`SpecDecoNotEvaluated` — don’t conflate “closure never ran” with
+  “closure recorded Skip”.** `GeneratePresetInference` allocates the
+  decision variable **before** `GenerateManifest` runs the modifier
+  closure. If a failure occurs *upstream* of the modifier — GPU-config
+  resolution, streaming resolution, image resolution, or any other
+  pre-`GenerateManifest` return — the closure never executes and the
+  decision variable keeps its zero value. If the zero value is
+  `SpecDecoSkip`, the cleanup rule above would incorrectly clear an
+  existing `True/PipelineParallelism` or `True/UnsupportedPreset`
+  condition on the next reconcile that hits an unrelated GPU / streaming
+  error, based on a decision the modifier never actually made.
+
+  Fix: define `SpecDecoNotEvaluated` as the **zero value** of
+  `SpecDecoDecision` (integer 0) so the uninitialized state is textually
+  distinct from `SpecDecoSkip`. The reconciler's translation table then
+  becomes:
+
+  | Decision | Reconciler action on `ConditionSpeculativeDecodingDisabled` |
+  |---|---|
+  | `SpecDecoNotEvaluated` (zero value; closure never ran) | **leave existing condition untouched** |
+  | `SpecDecoSkip` (closure ran, annotation absent or not vLLM) | remove |
+  | `SpecDecoInjected` | remove |
+  | `SpecDecoConfigMapOverride` | remove + emit `SpeculativeDecodingConfigMapOverride` Event |
+  | `SpecDecoPipelineParallelism` | set `True` / reason=`PipelineParallelism` |
+  | `SpecDecoUnsupportedPreset` | set `True` / reason=`UnsupportedPreset` |
+
+  The modifier closure is responsible for writing **exactly one**
+  non-`NotEvaluated` value on every path it runs; the fall-through
+  "annotation absent / not vLLM" branch writes `SpecDecoSkip` explicitly
+  instead of relying on the zero value. Test coverage:
+  `TestPresetInferenceResult_UpstreamErrorPreservesPriorCondition`
+  asserts that a GPU-config resolution failure leaves a pre-existing
+  `PipelineParallelism` condition in place across the failed reconcile.
 - A `SpeculativeDecodingConfigMapOverride` Event on the reconciler's
   `EventRecorder` when injection was skipped because the ConfigMap already
   carried `vllm.speculative-config` (Step 5). Emission is on the reconciler
@@ -682,17 +717,22 @@ there too. `GenerateInferencePodSpec` takes an `outDecision *SpecDecoDecision`
 argument; `GeneratePresetInference` allocates the decision, threads the
 pointer through, and copies the final value into
 `PresetInferenceResult.SpeculativeDecodingDecision` after the call.
-Each of the five `SpecDecoDecision` values (`SpecDecoSkip`,
-`SpecDecoPipelineParallelism`, `SpecDecoConfigMapOverride`, `SpecDecoInjected`,
-`SpecDecoUnsupportedPreset`)
+Each of the `SpecDecoDecision` values — the zero value
+`SpecDecoNotEvaluated` plus `SpecDecoSkip`,
+`SpecDecoPipelineParallelism`, `SpecDecoConfigMapOverride`,
+`SpecDecoInjected`, `SpecDecoUnsupportedPreset` —
 is written by exactly one branch of the inline block shown in Step 3.
 All writes are guarded by `outDecision != nil` so tuning-path callers and
 tests can pass `nil`.
 
 Inline decision-write sites (annotations on the Step 3 code block above):
 
-- `runtimeName != RuntimeNameVLLM` **or** annotation absent: fall through
-  without writing (leaves the zero-value `SpecDecoSkip`).
+- `runtimeName != RuntimeNameVLLM` **or** annotation absent: closure
+  falls through and writes `*outDecision = SpecDecoSkip` **explicitly**.
+  It does NOT rely on the zero value — the zero value
+  (`SpecDecoNotEvaluated`) is reserved for "closure never ran" so the
+  reconciler can distinguish upstream failures from a recorded skip
+  (see "`SpecDecoNotEvaluated`" note above).
 - `ws.Status.TargetNodeCount > 1` guard fires: `*outDecision = SpecDecoPipelineParallelism`;
   return without injection. Reconciler translates this into
   `ConditionSpeculativeDecodingDisabled` with reason=`PipelineParallelism`.
@@ -917,17 +957,40 @@ func validateSpeculativeDecoding(ws *Workspace) error {
     //     just by supplying arbitrary HF IDs with the annotation set.
     //
     //     `SupportedSpeculativeDecodingPresets()` returns the sorted
-    //     user-facing names; we compare against both the raw preset name
-    //     and the alias-normalized form so short aliases such as
-    //     `deepseek-r1-0528` and catalog-native full IDs such as
-    //     `deepseek-ai/deepseek-v3.2` both match without importing
-    //     `LegacyBuiltinToCatalog` (the generator's build-time assertion
-    //     already guarantees `UserFacing` is the canonical key).
+    //     user-facing names as stored in the `speculativeDecodingByPreset`
+    //     map. Because the initial entries key on legacy short aliases
+    //     (`deepseek-r1-0528`) while future catalog-native entries key
+    //     on full HF IDs (`deepseek-ai/deepseek-v3.2`), a naive string
+    //     equality check would reject the *canonical* form of legacy
+    //     presets (e.g. a user who spells out `deepseek-ai/deepseek-r1-0528`
+    //     verbatim) even though that name would resolve fine through
+    //     `models.GetModelByName`. It would also reject mixed-case
+    //     variants of the full ID.
+    //
+    //     Normalize both sides before comparing:
+    //       - lowercase the user-supplied preset name
+    //       - for each supported name S, compare against both
+    //         `strings.ToLower(S)` AND
+    //         `strings.ToLower(plugin.LegacyBuiltinToCatalog[S])`
+    //         (the latter is the canonical full HF ID when S is a legacy
+    //         alias; empty string otherwise, which naturally never matches).
+    //     This keeps the accessor's return shape untouched (still the
+    //     sorted user-facing names, used verbatim in error messages) and
+    //     costs one map lookup per entry.
     supported := generator.SupportedSpeculativeDecodingPresets()
     presetName := ws.Inference.Preset.Name
+    presetLower := strings.ToLower(presetName)
     presetSupported := false
     for _, s := range supported {
-        if s == presetName {
+        if strings.ToLower(s) == presetLower {
+            presetSupported = true
+            break
+        }
+        // Canonical full-HF-ID form for legacy short aliases. When s is
+        // itself a full HF ID (catalog-native entry), the map lookup
+        // returns "" and the comparison is a safe no-op.
+        if canonical := plugin.LegacyBuiltinToCatalog[s]; canonical != "" &&
+            strings.ToLower(canonical) == presetLower {
             presetSupported = true
             break
         }
@@ -1135,9 +1198,16 @@ Two acceptable fixes; this proposal commits to (a) because it is smaller and loc
   `InferenceSpec.Preset` is enforced immutable on the child by
   `api/v1beta1/workspace_validation.go:895-897` (`if !reflect.DeepEqual(i.Preset, old.Preset) { errs = errs.Also(apis.ErrGeneric("field is immutable", "preset")) }`), so an in-place patch that mutates both preset and annotation cannot succeed on the child — even atomically. The InferenceSet reconciler therefore treats a template preset change as a child-lifecycle event.
 
-  **Sequencing (explicit, since `InferenceSet.spec.updateStrategy` is not currently consumed by the controller):** the reconciler processes preset-mismatched children one at a time — delete a single child, wait for its finalizers to complete and for its replacement (created on the next reconcile via `NewWorkspaceForInferenceSet` with the new preset + annotation copied together) to reach `Ready`, then move on to the next child. This is the same one-at-a-time invariant already used by the surplus-replica deletion path (`pkg/inferenceset/inferenceset_controller.go:326-357`) and does not require plumbing `spec.updateStrategy.maxUnavailable` / `maxSurge` end-to-end. If future work wires `updateStrategy` through the controller, this recreate path becomes the surge=0 / maxUnavailable=1 special case of the general strategy.
+  **Sequencing (new invariant — not reusing the surplus-replica bulk path).** `InferenceSet.spec.updateStrategy` is declared (`api/v1beta1/inferenceset_types.go:140-145`) but not consumed by the controller today, and the existing surplus-replica path (`pkg/inferenceset/inferenceset_controller.go:326-357`) computes the full excess count and iterates *every* selected Workspace in a single reconcile — it does **not** enforce one-at-a-time deletion. Preset migration therefore introduces a **new** invariant that this proposal owns: the reconciler deletes exactly one preset-mismatched child per reconcile, requeues, and refuses to delete a second one until the previously deleted child's replacement (created on the next reconcile via `NewWorkspaceForInferenceSet` with the new preset + annotation copied together) reaches `Ready`. Concretely:
 
-  The selective annotation-only sync path documented above continues to run only when the preset is unchanged. Test coverage: `TestInferenceSetReconcile_PresetChange_RecreatesChildrenSerially` asserts (1) at most one child is in `Deleting` at a time, (2) a new child is only created after the previous one is `Ready`, and (3) the new child carries both the new preset and the current template annotation.
+  1. Enumerate children whose `spec.inference.preset` does not match the template. Call this set `M`.
+  2. Count children currently in `Deleting` due to a prior preset migration (identified by a controller-owned annotation, e.g. `kaito.sh/inferenceset-preset-migration=<template-hash>`, set on the child immediately before deletion). If ≥ 1, requeue and stop — do not delete another.
+  3. If 0 are deleting, pick the first (stable order) child in `M`, annotate it with `kaito.sh/inferenceset-preset-migration=<template-hash>`, delete it, requeue.
+  4. On subsequent reconciles, only advance to the next `M` member once the replacement child (matched by owner ref + template preset + `Ready` condition) exists. Requeue in between.
+
+  This is deliberately **not** reusing the surplus-deletion loop — that loop batches deletions and would take multiple replicas down together on a preset flip. If future work wires `updateStrategy.maxUnavailable` / `maxSurge` through the controller, this recreate path becomes the surge=0 / maxUnavailable=1 special case of the general strategy.
+
+  The selective annotation-only sync path documented above continues to run only when the preset is unchanged. Test coverage: `TestInferenceSetReconcile_PresetChange_RecreatesChildrenSerially` asserts (1) at most one child is in `Deleting` at a time across a preset flip that affects N replicas, (2) a new child is only created after the previous one is `Ready`, (3) the new child carries both the new preset and the current template annotation, and (4) the surplus-replica code path is not invoked during preset migration.
 
   (ii) **Immutability at the parent.** Alternatively, tighten `api/v1beta1/inferenceset_validation.go` to forbid preset changes on `spec.template.spec.inference.preset` and require a fresh InferenceSet. This is more restrictive than current behavior and is called out only as a fallback if the recreate-on-preset-change path in (i) proves too disruptive to running inference.
 

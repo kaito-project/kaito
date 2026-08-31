@@ -466,9 +466,26 @@ if runtimeName == pkgmodel.RuntimeNameVLLM &&
             if outDecision != nil {
                 *outDecision = SpecDecoUnsupportedPreset
             }
-            return nil // skip injection; reconciler owns condition emission
+            // IMPORTANT: do NOT `return nil` here. This code lives inside
+            // the `GenerateInferencePodSpec` modifier closure, so a bare
+            // `return nil` would exit the entire modifier before
+            // `GetInferenceCommand`, `setInferenceContainers`, and any
+            // downstream modifiers run — producing an incomplete pod spec
+            // (later modifiers would then index a missing container).
+            // Instead, the injection code below is guarded so this
+            // branch falls through to the modifier's tail (which returns
+            // nil to continue the normal build); command generation and
+            // container assembly still run afterwards under the
+            // generator. Concretely, gate the ConfigMap load / vLLM
+            // format / append block on `outDecision == nil ||
+            // *outDecision == SpecDecoInjected` so the else-branch
+            // (unsupported preset, ConfigMap override, pipeline
+            // parallelism, ...) records the decision and no-ops the
+            // injection while leaving the rest of the pod spec intact.
+            skipInjection = true
         }
-        // inferenceParam.SpeculativeDecoding is guaranteed non-nil below.
+        // inferenceParam.SpeculativeDecoding is guaranteed non-nil below
+        // when skipInjection is false.
         // Load and parse the user-provided inference ConfigMap so we can
         // honor the escape hatch ("ConfigMap wins", Step 5). This site
         // is downstream of the pod-spec builder that already mounts the
@@ -543,16 +560,30 @@ value itself only matters at admission.
 
 **Admission webhook rejects empty `speculative-config` value.** To keep
 the key-presence rule from letting users silently disable the feature by
-setting an empty string, the existing Workspace admission webhook
-(`pkg/webhook/workspace.go`, the ConfigMap validator that already parses
-`inference_config.yaml` for `max-model-len`, see the shared
+setting an empty string, the existing Workspace ConfigMap validator
+(`api/v1alpha1/inference_config_validation.go` and
+`api/v1beta1/inference_config_validation.go`, which already parses
+`inference_config.yaml` for `max-model-len` — see the shared
 `BuildNodeEstimateInputs` in Step 4) rejects any `vllm.speculative-config`
 key whose value is empty or unparsable as JSON with a clear
 `spec.inference.config` field error. Users who want to disable speculative
 decoding remove the workspace annotation
 `kaito.sh/enable-speculative-decoding` instead of blanking the ConfigMap
 key; users who want a custom config supply a non-empty JSON body that the
-webhook validates before reconcile ever runs.
+validator checks before reconcile ever runs.
+
+**Invoke the new check on updates, not just create.** Today
+`validateInferenceConfig` is wired into the create-time admission path
+only, but `Workspace.Spec.Inference.Config` is mutable — an operator can
+point an annotated Workspace at a fresh ConfigMap after creation.
+Without the new `vllm.speculative-config` JSON/empty-value check running
+on updates, a subsequent edit could switch the Workspace to an invalid
+ConfigMap that bypasses admission entirely and fails only when vLLM
+starts. This proposal therefore extends the v1alpha1 and v1beta1
+validators to invoke the same check from `ValidateUpdate` in addition to
+`ValidateCreate`, so any change to `spec.inference.config` — annotation
+flip or ConfigMap swap — is rejected at admission if the resulting
+`vllm.speculative-config` value is empty or unparsable.
 
 This helper uses the same client, namespace, and ConfigMap-name
 conventions as the existing `UpdateWorkspaceTargetNodeCount` context-window
@@ -674,19 +705,43 @@ decision that the reconciler must translate. Return the result (with the
 current decision) alongside the error and let the reconciler translate
 the decision **before** propagating the error up:
 
+`GenerateInferencePodSpec` is a modifier **factory** — it does not build
+the pod spec directly; it returns a closure that `generator.GenerateManifest`
+invokes through `podOpts`
+(`pkg/workspace/inference/preset_inferences.go:221-222,284-291`). The
+decision therefore has to be threaded through the factory so that the
+closure can write into it while running under the generator; the
+call site in `GeneratePresetInference` reads the decision **after**
+`GenerateManifest` returns and packages it alongside the existing
+result/error pair:
+
 ```go
+// Inside GeneratePresetInference (pkg/workspace/inference/preset_inferences.go).
 var decision SpecDecoDecision
-workload, err := GenerateInferencePodSpec(ctx, wObj, model, /* ... */, &decision)
+podOpts := []generator.PodOption{
+    // Pass &decision into the factory so the modifier closure can
+    // record which branch it took while GenerateManifest runs it.
+    GenerateInferencePodSpec(ctx, wObj, model, /* existing args */, &decision),
+    // ... other existing modifiers, unchanged ...
+}
+workload, err := generator.GenerateManifest(ctx, wObj, podOpts, stsOpts /* unchanged */)
 // Always carry the decision back to the caller so the reconciler can
 // translate SpecDecoUnsupportedPreset / SpecDecoPipelineParallelism into
 // a Workspace condition (and SpecDecoConfigMapOverride into an Event)
-// even when GenerateInferencePodSpec returned an error.
+// even when GenerateManifest returned an error (e.g. StatefulSet
+// generation failure downstream of the modifier that already recorded
+// a decision).
 result := &PresetInferenceResult{
     Workload:                    workload, // nil on error, non-nil on success
     SpeculativeDecodingDecision: decision,
 }
 return result, err
 ```
+
+The existing pod-spec / StatefulSet error returns inside
+`GeneratePresetInference` are restructured to preserve `decision` on
+both paths (currently they `return nil, err` and would drop the decision
+recorded before the failure).
 
 The reconciler side (`WorkspaceReconciler.applyInference` /
 `preparePresetInference`, `workspace_controller.go`) reads
@@ -718,7 +773,16 @@ func shellSingleQuote(s string) string {
 Where `vllmFormat` converts the typed Go struct into the JSON shape vLLM expects and fails loud on unknown methods:
 
 ```go
-func vllmFormat(sd *SpeculativeDecodingConfig) (string, error) {
+func vllmFormat(sd *pkgmodel.SpeculativeDecodingConfig) (string, error) {
+    // Nil guard: `SpeculativeDecodingConfig` is declared in `pkg/model`,
+    // and this helper lives in `pkg/workspace/inference`. Direct callers
+    // could pass nil (e.g. before the runtime gate is evaluated); return
+    // a typed error rather than panicking on the `sd.Method` dereference
+    // below, matching the "malformed configuration returns a typed error"
+    // guarantee documented above.
+    if sd == nil {
+        return "", fmt.Errorf("vllmFormat: SpeculativeDecodingConfig is nil")
+    }
     m := map[string]any{"method": sd.Method}
     switch sd.Method {
     case "mtp":
@@ -998,7 +1062,7 @@ Two acceptable fixes; this proposal commits to (a) because it is smaller and loc
 - If the key is absent (or removed), delete only that key from the child.
 - All other annotations on the child Workspace are left untouched.
 
-Test coverage: `TestInferenceSetReconcile_AnnotationFlip_PropagesToExistingChildren` (verifies the key is synced) and `TestInferenceSetReconcile_AnnotationSync_PreservesControllerAnnotations` (verifies revision/hash annotations survive).
+Test coverage: `TestInferenceSetReconcile_AnnotationFlip_PropagatesToExistingChildren` (verifies the key is synced) and `TestInferenceSetReconcile_AnnotationSync_PreservesControllerAnnotations` (verifies revision/hash annotations survive).
 
 **The selective update path must also copy `Command`.** The revision-mismatch branch in `applyInference` (`workspace_controller.go:733–740`) currently copies only `Env`, `VolumeMounts`, `InitContainers`, and `Volumes` from the desired pod spec — it does not copy `Containers[0].Command`, where `--speculative-config` is rendered. Without this change, the hash would differ (triggering an update), but the StatefulSet pod template would retain the old command and pods would never receive the new flag. The fix extends the selective update to also set `spec.Containers[0].Command = desiredPodSpec.Containers[0].Command` (and `Args` for completeness), ensuring the rendered vLLM flags are applied alongside the other mutable fields.
 
@@ -1102,7 +1166,9 @@ The initial ship list is intentionally scoped to `deepseek-r1-0528` and `deepsee
 
 Other in-catalog DeepSeek presets (`deepseek-v3.2` and any subsequent V3 point-releases sharing the same in-checkpoint MTP path) are the immediate follow-up candidates - same code path, same `MTPConfig`, no new type work - and are called out in **Free-to-Onboard Next** below.
 
-DeepSeek-V4-Flash-0731 and V4-Pro-0813 are DSpark candidates. Per the vLLM recipe, V4-Flash-0731 carries a **fused** DSpark module in its served checkpoint - no assistant checkpoint sourcing needed - so it lands in **Ready to Onboard (`dspark`, DeepSeek-V4 Family)** below as a fused `DSparkConfig` (no `Model` field). V4-Pro-0813 is deferred until the upstream V4-Pro recipe pins the exact fused-vs-assistant shape. Neither variant is in the initial ship list; see that section for the corrected onboarding steps.
+DeepSeek-V4-Flash-0731 and V4-Pro-0813 are DSpark candidates. Per the vLLM recipe, V4-Flash-0731 carries a **fused** DSpark module in its served checkpoint - no assistant checkpoint sourcing needed - so it lands in **Ready to Onboard (`dspark`, DeepSeek-V4 Family)** below as a fused `DSparkConfig` (no `Model` field). V4-Pro-0813 is deferred until the upstream V4-Pro recipe pins the exact fused-vs-assistant shape.
+
+**Scope note for the PR description.** The PR summary phrases V4-Flash-0731 as "onboarded as fused DSpark," which — read literally — implies shipping in this PR. To match this proposal's scope, that line should be read as "classified as ready to onboard (fused DSpark)": neither V4 variant is in the initial ship list, and both land in the `dspark` follow-up preset PR described in the **Ready to Onboard** section below. The PR description will be updated to use "ready to onboard" wording so scope statements agree.
 
 ⚠️ Notes:
 - The distilled presets `DeepSeek-R1-Distill-Llama-8B` and `DeepSeek-R1-Distill-Qwen-14B` are **not** MTP candidates - they are Llama / Qwen architectures with no MTP head in the checkpoint.
@@ -1151,7 +1217,7 @@ DeepSeek-V4-Pro-0813 is treated separately: it is DSpark-eligible per the vLLM f
 
 Onboarding steps for V4-Flash-0731 (and the parallel FP8 Preview / NVFP4 / -DSpark rows above):
 
-1. Add the base preset to the catalog (rename `deepseek-v4-pro` → `-0813` when it lands; add `deepseek-v4-flash-0731` alongside).
+1. `deepseek-ai/DeepSeek-V4-Flash-0731` is **already in `model_catalog.yaml:741`** — no catalog addition needed for this preset. The remaining catalog work is limited to the sibling entries: rename `deepseek-v4-pro` → `-0813` when it lands, and add the FP8 Preview / NVFP4 / -DSpark rows alongside the existing 0731 entry.
 2. Populate `DSparkConfig` - fused entries set `Variant: "fused"` (or leave unset) and need only `NumSpeculativeTokens` (and, when applicable, `DraftSampleMethod: "probabilistic"` and any hardware `AttentionBackend` override the recipe calls out). Runtime `vllmFormat` emits a method-only-plus-parameters blob; catalog-generation validation requires `Model == ""` for `Variant: "fused"`. The assistant-checkpoint case (`Variant: "assistant"` + non-empty `Model`) is defined but has no shipping preset in Step 1.
 3. Re-verify against KAITO's pinned vLLM version.
 

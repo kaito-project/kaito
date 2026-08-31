@@ -166,7 +166,7 @@ func concernInjected(ctx context.Context, kubeClient client.Client,
 		return false, fmt.Sprintf("cache not injected: %v", err)
 	}
 	if m == nil || (len(m.Labels) == 0 && len(m.EnvVars) == 0 && len(m.Volumes) == 0 &&
-		len(m.VolumeMounts) == 0 && len(m.InitContainers) == 0) {
+		len(m.VolumeMounts) == 0 && len(m.InitContainers) == 0 && len(m.Sidecars) == 0) {
 		return false, "cache configured but not injected into inference pod " +
 			"(provider not applicable to this workload or infrastructure unavailable)"
 	}
@@ -174,6 +174,19 @@ func concernInjected(ctx context.Context, kubeClient client.Client,
 	for k, v := range m.Labels {
 		if ss.Spec.Template.Labels[k] != v {
 			return false, fmt.Sprintf("expected cache label %q not present on inference pod", k)
+		}
+	}
+
+	for _, expected := range m.Sidecars {
+		found := false
+		for _, actual := range ss.Spec.Template.Spec.Containers {
+			if actual.Name == expected.Name {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false, fmt.Sprintf("expected cache sidecar %q not present on inference pod", expected.Name)
 		}
 	}
 

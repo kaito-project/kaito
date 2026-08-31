@@ -78,7 +78,6 @@ func (p *dacsTestProvider) PodMutations(_ context.Context, concern CacheConcern,
 		}
 		mutations.EnvVars = append(mutations.EnvVars,
 			corev1.EnvVar{Name: "RUNAI_STREAMER_EXPERIMENTAL_AZURE_CACHE_ENABLED", Value: "true"},
-			corev1.EnvVar{Name: "RUNAI_STREAMER_CACHE_ENABLED", Value: "true"},
 		)
 
 	case CacheConcernKVCache:
@@ -138,7 +137,6 @@ func dacsFixture() cacheProviderFixture {
 				RequiredLabels: injectLabel,
 				RequiredEnvVars: []string{
 					"RUNAI_STREAMER_EXPERIMENTAL_AZURE_CACHE_ENABLED",
-					"RUNAI_STREAMER_CACHE_ENABLED",
 				},
 			},
 			KVCache: MutationExpectation{

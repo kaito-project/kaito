@@ -50,7 +50,7 @@ func TestProvider(t *testing.T) {
 	if mutations == nil {
 		t.Fatal("PodMutations returned nil")
 	}
-	if len(mutations.Labels) != 0 || len(mutations.EnvVars) != 0 || len(mutations.Volumes) != 0 || len(mutations.VolumeMounts) != 0 || len(mutations.InitContainers) != 0 {
+	if len(mutations.Labels) != 0 || len(mutations.EnvVars) != 0 || len(mutations.Volumes) != 0 || len(mutations.VolumeMounts) != 0 || len(mutations.InitContainers) != 0 || len(mutations.Sidecars) != 0 {
 		t.Fatalf("expected empty mutations, got %+v", mutations)
 	}
 

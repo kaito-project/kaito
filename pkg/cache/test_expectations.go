@@ -57,6 +57,10 @@ type MutationExpectation struct {
 	// model container.
 	RequiredVolumeMounts []string
 
+	// RequiredSidecars lists regular container names that must be present after
+	// the model container.
+	RequiredSidecars []string
+
 	// Validate is an optional deep validator for provider-specific values or
 	// formats (e.g. a discovery URL shape or a specific env var value). It runs
 	// against the raw PodMutations produced by PodMutations.

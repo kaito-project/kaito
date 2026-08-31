@@ -83,7 +83,8 @@ func SetCacheMutations() generator.TypedManifestModifier[generator.WorkspaceGene
 			"envVars", len(mutations.EnvVars),
 			"volumes", len(mutations.Volumes),
 			"volumeMounts", len(mutations.VolumeMounts),
-			"initContainers", len(mutations.InitContainers))
+			"initContainers", len(mutations.InitContainers),
+			"sidecars", len(mutations.Sidecars))
 		for _, env := range mutations.EnvVars {
 			klog.V(4).InfoS("  cache env var", "name", env.Name, "value", env.Value)
 		}
@@ -126,7 +127,7 @@ func collectMutations(ctx context.Context, kubeClient client.Client, ws *kaitov1
 				klog.V(2).InfoS("Model weights cache provider not available, skipping mutations",
 					"provider", ws.Cache.ModelCache.Provider, "available", available, "error", availErr)
 			} else {
-				m, err := p.PodMutations(ctx, CacheConcernModelWeights, ws, modelName, modelRevision, cacheName)
+				m, err := providerPodMutations(ctx, p, CacheConcernModelWeights, ws, modelName, modelRevision, cacheName, ss)
 				if err != nil {
 					if ws.Cache.ModelCache.Mode == kaitov1beta1.CacheModeRequired {
 						return nil, fmt.Errorf("model weights cache mutations: %w", err)
@@ -163,7 +164,7 @@ func collectMutations(ctx context.Context, kubeClient client.Client, ws *kaitov1
 				klog.V(2).InfoS("KV cache provider not available, skipping mutations",
 					"provider", ws.Cache.KVCache.Provider, "available", available, "error", availErr)
 			} else {
-				m, err := p.PodMutations(ctx, CacheConcernKVCache, ws, modelName, modelRevision, cacheName)
+				m, err := providerPodMutations(ctx, p, CacheConcernKVCache, ws, modelName, modelRevision, cacheName, ss)
 				if err != nil {
 					if ws.Cache.KVCache.Mode == kaitov1beta1.CacheModeRequired {
 						return nil, fmt.Errorf("KV cache mutations: %w", err)
@@ -178,6 +179,13 @@ func collectMutations(ctx context.Context, kubeClient client.Client, ws *kaitov1
 	}
 
 	return merged, nil
+}
+
+func providerPodMutations(ctx context.Context, p Provider, concern CacheConcern, ws *kaitov1beta1.Workspace, modelName, modelRevision, cacheName string, ss *appsv1.StatefulSet) (*PodMutations, error) {
+	if workloadProvider, ok := p.(WorkloadPodMutationsProvider); ok {
+		return workloadProvider.PodMutationsForWorkload(ctx, concern, ws, modelName, modelRevision, cacheName, ss)
+	}
+	return p.PodMutations(ctx, concern, ws, modelName, modelRevision, cacheName)
 }
 
 // mergeMutations appends src mutations into dst, deduplicating env vars by name
@@ -213,6 +221,7 @@ func mergeMutations(dst, src *PodMutations) {
 	dst.Volumes = append(dst.Volumes, src.Volumes...)
 	dst.VolumeMounts = append(dst.VolumeMounts, src.VolumeMounts...)
 	dst.InitContainers = append(dst.InitContainers, src.InitContainers...)
+	dst.Sidecars = append(dst.Sidecars, src.Sidecars...)
 }
 
 // applyMutations injects the collected mutations into the pod spec.
@@ -269,6 +278,19 @@ func applyMutations(spec *corev1.PodSpec, mutations *PodMutations) {
 		if _, exists := existingInits[c.Name]; !exists {
 			spec.InitContainers = append(spec.InitContainers, c)
 			existingInits[c.Name] = struct{}{}
+		}
+	}
+
+	// Deduplicate sidecars against all regular containers by name. Existing
+	// workload containers take priority over provider-supplied sidecars.
+	existingContainers := make(map[string]struct{}, len(spec.Containers))
+	for _, c := range spec.Containers {
+		existingContainers[c.Name] = struct{}{}
+	}
+	for _, c := range mutations.Sidecars {
+		if _, exists := existingContainers[c.Name]; !exists {
+			spec.Containers = append(spec.Containers, c)
+			existingContainers[c.Name] = struct{}{}
 		}
 	}
 }
@@ -473,7 +495,8 @@ func ApplyTemplateCacheMutations(ctx context.Context, ws *kaitov1beta1.Workspace
 		"labels", mutations.Labels,
 		"envVars", len(mutations.EnvVars),
 		"volumes", len(mutations.Volumes),
-		"volumeMounts", len(mutations.VolumeMounts))
+		"volumeMounts", len(mutations.VolumeMounts),
+		"sidecars", len(mutations.Sidecars))
 	for _, env := range mutations.EnvVars {
 		klog.InfoS("  cache mutation env", "workspace", ws.Name, "name", env.Name, "value", env.Value)
 	}

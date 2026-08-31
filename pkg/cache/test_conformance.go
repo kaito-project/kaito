@@ -54,6 +54,9 @@ func AssertMutations(m *PodMutations, exp MutationExpectation) []error {
 		if len(m.InitContainers) != 0 {
 			errs = append(errs, fmt.Errorf("expected no init containers, got %d", len(m.InitContainers)))
 		}
+		if len(m.Sidecars) != 0 {
+			errs = append(errs, fmt.Errorf("expected no sidecars, got %d", len(m.Sidecars)))
+		}
 		return errs
 	}
 
@@ -102,6 +105,16 @@ func AssertMutations(m *PodMutations, exp MutationExpectation) []error {
 		}
 	}
 
+	sidecarNames := make(map[string]struct{}, len(m.Sidecars))
+	for _, sidecar := range m.Sidecars {
+		sidecarNames[sidecar.Name] = struct{}{}
+	}
+	for _, name := range exp.RequiredSidecars {
+		if _, ok := sidecarNames[name]; !ok {
+			errs = append(errs, fmt.Errorf("missing required sidecar %q", name))
+		}
+	}
+
 	// Provider-specific deep validation.
 	if exp.Validate != nil {
 		errs = append(errs, exp.Validate(m)...)
@@ -131,7 +144,7 @@ func AssertPodSpec(templateLabels map[string]string, spec *corev1.PodSpec, exp M
 	}
 
 	if spec == nil || len(spec.Containers) == 0 {
-		if len(exp.RequiredEnvVars) > 0 || len(exp.RequiredVolumeMounts) > 0 {
+		if len(exp.RequiredEnvVars) > 0 || len(exp.RequiredVolumeMounts) > 0 || len(exp.RequiredSidecars) > 0 {
 			errs = append(errs, fmt.Errorf("pod spec has no containers to validate env/mounts"))
 		}
 		return errs
@@ -164,6 +177,16 @@ func AssertPodSpec(templateLabels map[string]string, spec *corev1.PodSpec, exp M
 	for _, name := range exp.RequiredVolumeMounts {
 		if _, ok := mountNames[name]; !ok {
 			errs = append(errs, fmt.Errorf("model container missing required volume mount %q", name))
+		}
+	}
+
+	containerNames := make(map[string]struct{}, len(spec.Containers))
+	for _, container := range spec.Containers {
+		containerNames[container.Name] = struct{}{}
+	}
+	for _, name := range exp.RequiredSidecars {
+		if _, ok := containerNames[name]; !ok {
+			errs = append(errs, fmt.Errorf("pod spec missing required sidecar %q", name))
 		}
 	}
 

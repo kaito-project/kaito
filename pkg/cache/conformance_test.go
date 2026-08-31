@@ -171,6 +171,7 @@ func TestAssertPodSpec(t *testing.T) {
 		RequiredEnvVars:      []string{"CACHE_ENV"},
 		RequiredVolumes:      []string{"cache-vol"},
 		RequiredVolumeMounts: []string{"cache-mount"},
+		RequiredSidecars:     []string{"cache-sidecar"},
 	}
 
 	compliant := &corev1.PodSpec{
@@ -178,7 +179,7 @@ func TestAssertPodSpec(t *testing.T) {
 			Name:         "model",
 			Env:          []corev1.EnvVar{{Name: "CACHE_ENV", Value: "1"}},
 			VolumeMounts: []corev1.VolumeMount{{Name: "cache-mount", MountPath: "/cache"}},
-		}},
+		}, {Name: "cache-sidecar"}},
 		Volumes: []corev1.Volume{{Name: "cache-vol"}},
 	}
 
@@ -187,10 +188,10 @@ func TestAssertPodSpec(t *testing.T) {
 	}
 
 	// A pod missing every requirement must surface one error per missing item
-	// (label, env var, volume, volume mount).
+	// (label, env var, volume, volume mount, sidecar).
 	empty := &corev1.PodSpec{Containers: []corev1.Container{{Name: "model"}}}
 	errs := cache.AssertPodSpec(map[string]string{}, empty, exp)
-	if len(errs) != 4 {
-		t.Fatalf("expected 4 violations for empty pod spec, got %d: %v", len(errs), errs)
+	if len(errs) != 5 {
+		t.Fatalf("expected 5 violations for empty pod spec, got %d: %v", len(errs), errs)
 	}
 }

@@ -46,6 +46,8 @@ type PodMutations struct {
 	VolumeMounts []corev1.VolumeMount
 	// InitContainers to prepend to the pod.
 	InitContainers []corev1.Container
+	// Sidecars to append to the pod's regular containers.
+	Sidecars []corev1.Container
 }
 
 // Provider defines the interface that cache implementations must satisfy.
@@ -73,6 +75,13 @@ type Provider interface {
 
 	// Cleanup invalidates cached data associated with a workspace.
 	Cleanup(ctx context.Context, workspace *kaitov1beta1.Workspace, modelName string) error
+}
+
+// WorkloadPodMutationsProvider is an optional interface for providers whose
+// mutations depend on the fully rendered workload, such as a sidecar that needs
+// the resolved model URI from the inference container command.
+type WorkloadPodMutationsProvider interface {
+	PodMutationsForWorkload(ctx context.Context, concern CacheConcern, workspace *kaitov1beta1.Workspace, modelName, modelRevision, cacheName string, workload *appsv1.StatefulSet) (*PodMutations, error)
 }
 
 // EventTarget is an optional interface providers can implement to return a

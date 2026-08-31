@@ -221,6 +221,10 @@ cache:
       # so the inference/base image using the cache MUST be glibc >= 2.35
       # (Ubuntu 22.04+), otherwise the library fails to load at runtime.
       clientImage: ""
+      # Optional CPU-only run:ai streamer image used by an ordinal-0 DACS model
+      # warmer sidecar. Use an immutable digest that workspace pods can pull
+      # without additional imagePullSecrets; empty disables the sidecar.
+      modelWarmerImage: ""
 dacs:
   cacheServer:
     nodeSelectorLabelKey: nexus.azure.com/processing-unit

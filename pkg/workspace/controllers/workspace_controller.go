@@ -737,10 +737,14 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 
 	currentRevisionStr, ok := annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
 	baseImageUpgrade := shouldUpgradeBaseImage(wObj, existingObj, desiredStatefulSet)
+	cacheSidecarUpdate := desiredSidecarsNeedUpdate(
+		&existingObj.Spec.Template.Spec,
+		&desiredStatefulSet.Spec.Template.Spec,
+	)
 
 	// If the current workload revision matches the one in Workspace and no upgrade is pending,
 	// we do not need to update it.
-	if ok && currentRevisionStr == revisionStr && !baseImageUpgrade {
+	if ok && currentRevisionStr == revisionStr && !baseImageUpgrade && !cacheSidecarUpdate {
 		return nil
 	}
 
@@ -762,6 +766,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		spec.Containers[0].VolumeMounts = desiredPodSpec.Containers[0].VolumeMounts
 		spec.InitContainers = desiredPodSpec.InitContainers
 		spec.Volumes = desiredPodSpec.Volumes
+		mergeDesiredSidecars(spec, &desiredPodSpec)
 	}
 
 	annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = revisionStr
@@ -782,6 +787,48 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		}
 	}
 	return nil
+}
+
+func desiredSidecarsNeedUpdate(existing, desired *corev1.PodSpec) bool {
+	if existing == nil || desired == nil || len(desired.Containers) < 2 {
+		return false
+	}
+	for _, desiredSidecar := range desired.Containers[1:] {
+		found := false
+		for _, existingContainer := range existing.Containers {
+			if existingContainer.Name != desiredSidecar.Name {
+				continue
+			}
+			found = true
+			if !apiequality.Semantic.DeepEqual(existingContainer, desiredSidecar) {
+				return true
+			}
+			break
+		}
+		if !found {
+			return true
+		}
+	}
+	return false
+}
+
+func mergeDesiredSidecars(existing, desired *corev1.PodSpec) {
+	if existing == nil || desired == nil || len(desired.Containers) < 2 {
+		return
+	}
+	for _, desiredSidecar := range desired.Containers[1:] {
+		replaced := false
+		for i := range existing.Containers {
+			if existing.Containers[i].Name == desiredSidecar.Name {
+				existing.Containers[i] = desiredSidecar
+				replaced = true
+				break
+			}
+		}
+		if !replaced {
+			existing.Containers = append(existing.Containers, desiredSidecar)
+		}
+	}
 }
 
 // shouldUpgradeBaseImage checks if an auto-upgrade has been requested via the upgrade label

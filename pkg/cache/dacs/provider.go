@@ -56,6 +56,9 @@ const (
 	ClientMountPath  = "/opt/cache-client"
 	ClientLibPath    = ClientMountPath + "/usr/local/lib/python3.10/dist-packages/dacs_client/libStorageDirect.so"
 
+	ModelWarmerContainerName = "dacs-model-warmer"
+	ModelWarmerScriptPath    = "/usr/local/bin/dacs-model-warmer.py"
+
 	// runaiStreamerMarker identifies a workload that loads model weights through
 	// the run:ai model streamer (e.g. --load-format=runai_streamer). DACS's
 	// model-weights cache hooks that streamer's read path, so it can only engage
@@ -113,6 +116,10 @@ type Config struct {
 	// otherwise the runai streamer will fail to dlopen the library at runtime.
 	ClientImage string
 
+	// ModelWarmerImage enables an ordinal-0 sidecar that streams the model once
+	// through DACS while vLLM performs its non-streaming startup work.
+	ModelWarmerImage string
+
 	// KVCacheEnabled controls whether KV caching is supported.
 	KVCacheEnabled bool
 
@@ -149,6 +156,7 @@ type Provider struct {
 var _ cache.Provider = (*Provider)(nil)
 var _ cache.EventTarget = (*Provider)(nil)
 var _ cache.DefaultConfigProvider = (*Provider)(nil)
+var _ cache.WorkloadPodMutationsProvider = (*Provider)(nil)
 
 // New creates a DACS cache provider with the given dynamic client and config.
 func New(client dynamic.Interface, cfg Config) *Provider {
@@ -331,6 +339,16 @@ func (p *Provider) DefaultConfig(concern string) map[string]string {
 // The DACS mutating webhook handles all library injection when it sees the label.
 // For KVCache: adds the injection label and the vLLM KV transfer config env var.
 func (p *Provider) PodMutations(ctx context.Context, concern cache.CacheConcern, workspace *kaitov1beta1.Workspace, modelName, modelRevision, cacheName string) (*cache.PodMutations, error) {
+	return p.podMutations(ctx, concern, workspace, modelName, modelRevision, cacheName, nil)
+}
+
+// PodMutationsForWorkload provides the rendered StatefulSet so DACS can wire
+// the optional model warmer with the resolved streaming model path.
+func (p *Provider) PodMutationsForWorkload(ctx context.Context, concern cache.CacheConcern, workspace *kaitov1beta1.Workspace, modelName, modelRevision, cacheName string, workload *appsv1.StatefulSet) (*cache.PodMutations, error) {
+	return p.podMutations(ctx, concern, workspace, modelName, modelRevision, cacheName, workload)
+}
+
+func (p *Provider) podMutations(_ context.Context, concern cache.CacheConcern, _ *kaitov1beta1.Workspace, modelName, _ string, cacheName string, workload *appsv1.StatefulSet) (*cache.PodMutations, error) {
 	mutations := &cache.PodMutations{}
 
 	switch concern {
@@ -398,6 +416,9 @@ func (p *Provider) PodMutations(ctx context.Context, concern cache.CacheConcern,
 		env := upsertEnv(fixedEnv, p.config.StreamerEnv)
 		env = upsertEnv(env, map[string]string{runaiChunkEnv: chunkVal, siChunkEnv: chunkVal})
 		mutations.EnvVars = append(mutations.EnvVars, env...)
+		if sidecar, ok := p.modelWarmerSidecar(workload, env); ok {
+			mutations.Sidecars = append(mutations.Sidecars, sidecar)
+		}
 
 	case cache.CacheConcernKVCache:
 		if !p.config.KVCacheEnabled {
@@ -419,6 +440,64 @@ func (p *Provider) PodMutations(ctx context.Context, concern cache.CacheConcern,
 	}
 
 	return mutations, nil
+}
+
+func (p *Provider) modelWarmerSidecar(workload *appsv1.StatefulSet, dacsEnv []corev1.EnvVar) (corev1.Container, bool) {
+	if p.config.ModelWarmerImage == "" || workload == nil || len(workload.Spec.Template.Spec.Containers) == 0 {
+		return corev1.Container{}, false
+	}
+
+	mainContainer := workload.Spec.Template.Spec.Containers[0]
+	modelPath := streamingModelPath(mainContainer)
+	if !strings.HasPrefix(modelPath, "az://") {
+		return corev1.Container{}, false
+	}
+
+	env := make([]corev1.EnvVar, 0, len(dacsEnv)+3)
+	for _, item := range mainContainer.Env {
+		if item.Name == "AZURE_STORAGE_ACCOUNT_NAME" {
+			env = append(env, item)
+			break
+		}
+	}
+	env = append(env, dacsEnv...)
+	env = append(env,
+		corev1.EnvVar{Name: "KAITO_MODEL_PATH", Value: modelPath},
+		corev1.EnvVar{
+			Name: "POD_NAME",
+			ValueFrom: &corev1.EnvVarSource{
+				FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.name"},
+			},
+		},
+	)
+
+	return corev1.Container{
+		Name:            ModelWarmerContainerName,
+		Image:           p.config.ModelWarmerImage,
+		ImagePullPolicy: corev1.PullIfNotPresent,
+		Command:         []string{"python", "-u", ModelWarmerScriptPath},
+		Env:             env,
+		VolumeMounts: []corev1.VolumeMount{
+			{Name: ClientVolumeName, MountPath: ClientMountPath, ReadOnly: true},
+		},
+	}, true
+}
+
+func streamingModelPath(container corev1.Container) string {
+	var fields []string
+	for _, commandPart := range append(append([]string{}, container.Command...), container.Args...) {
+		fields = append(fields, strings.Fields(commandPart)...)
+	}
+	for i, field := range fields {
+		field = strings.Trim(field, `"'`)
+		if path, found := strings.CutPrefix(field, "--model="); found {
+			return strings.Trim(path, `"'`)
+		}
+		if field == "--model" && i+1 < len(fields) {
+			return strings.Trim(fields[i+1], `"'`)
+		}
+	}
+	return ""
 }
 
 // AppliesTo implements cache.PodApplicabilityChecker. DACS's model-weights cache
@@ -544,6 +623,9 @@ func ConfigFromEnv() Config {
 	}
 	if v := os.Getenv("DACS_CLIENT_IMAGE"); v != "" {
 		cfg.ClientImage = v
+	}
+	if v := os.Getenv("DACS_MODEL_WARMER_IMAGE"); v != "" {
+		cfg.ModelWarmerImage = v
 	}
 
 	// Load DACS_ENV_<NAME> passthrough vars once at bootstrap. Each is stripped of

@@ -342,8 +342,17 @@ var speculativeDecodingByPreset = map[string]specDecoEntry{
     },
     // See the "Model Coverage" section for the full initial-ship list.
     // A build-time unit test (see Step 2 validation) asserts, for each entry,
-    // that `plugin.LegacyBuiltinToCatalog[UserFacing]` equals the map key -
-    // this catches maintainer typos in either the key or the UserFacing field
+    // one of the following (in order):
+    //   1. `plugin.LegacyBuiltinToCatalog[UserFacing]` equals the map key
+    //      (covers legacy short aliases like `deepseek-r1-0528` →
+    //      `deepseek-ai/deepseek-r1-0528`), OR
+    //   2. `UserFacing` equals the map key (covers catalog-native presets
+    //      that ship the full HuggingFace ID as their user-facing name, e.g.
+    //      `deepseek-ai/deepseek-v3.2`, since `LegacyBuiltinToCatalog` is
+    //      frozen and cannot take new entries — see
+    //      `pkg/utils/plugin/plugin.go:46` "Please don't introduce new
+    //      entries to LegacyBuiltinToCatalog").
+    // Either match catches maintainer typos in the key or `UserFacing`
     // without importing `models`.
 }
 
@@ -401,6 +410,13 @@ Two acceptable options; the design commits to option (a) because it is smaller a
 // `spec`; there is no `ws` in scope. Bind it once up-front so every
 // reference below reads off the same object the caller resolved.
 ws := ctx.Workspace
+
+// Declared here (outside the annotation guard) so both the injection
+// block below and the tail of the modifier can read it. Every branch
+// that decides "do not inject" sets this to true; every other branch
+// leaves it false and falls through to the injection code.
+skipInjection := false
+
 if runtimeName == pkgmodel.RuntimeNameVLLM &&
     ws.Annotations["kaito.sh/enable-speculative-decoding"] == "true" {
     // Reconcile-time guard: refuse to inject when the resolved node count
@@ -427,6 +443,7 @@ if runtimeName == pkgmodel.RuntimeNameVLLM &&
         if outDecision != nil {
             *outDecision = SpecDecoPipelineParallelism
         }
+        skipInjection = true
     } else {
         // Extract SpeculativeDecoding from the already-resolved model.
         // ctx.Model was resolved by the caller via models.GetModelByName
@@ -1074,9 +1091,11 @@ Two acceptable fixes; this proposal commits to (a) because it is smaller and loc
 
 **Preset changes must be reconciled before (or atomically with) the annotation.** The InferenceSet template preset is currently mutable (`api/v1beta1/inferenceset_validation.go:75-82` allows it), but existing children retain the old preset until the reconciler rolls them forward. If the same update flips both `spec.template.spec.inference.preset` **and** the annotation to `"true"` — e.g. moving to an unsupported preset while enabling the annotation — selectively syncing the annotation onto an old child whose preset is still unsupported would trip the child Workspace webhook (which validates the preset/annotation pair) and stall reconciliation on that child. Two acceptable ways to close this gap; this proposal commits to (i):
 
-  (i) **Reconcile preset and annotation atomically on the child.** When both the template preset and the annotation changed in the same InferenceSet update, the reconciler applies both to the child in a single patch (or reject-and-retry until both match template), so the child webhook validates the *new* preset/annotation pair rather than an old-preset + new-annotation mix. The selective annotation-only path documented above continues to run only when the preset is unchanged.
+  (i) **Recreate the child Workspace when the template preset changes.**
+  `InferenceSpec.Preset` is enforced immutable on the child by
+  `api/v1beta1/workspace_validation.go:895-897` (`if !reflect.DeepEqual(i.Preset, old.Preset) { errs = errs.Also(apis.ErrGeneric("field is immutable", "preset")) }`), so an in-place patch that mutates both preset and annotation cannot succeed on the child — even atomically. The InferenceSet reconciler therefore treats a template preset change as a child-lifecycle event: delete the existing child Workspace (respecting `deletionGracePeriodSeconds` and the InferenceSet's existing rolling-update semantics) and let the next reconcile re-create it via `NewWorkspaceForInferenceSet` with the new preset + annotation copied together. The selective annotation-only sync path documented above continues to run only when the preset is unchanged.
 
-  (ii) **Immutability at the parent.** Alternatively, tighten `api/v1beta1/inferenceset_validation.go` to forbid preset changes on `spec.template.spec.inference.preset` and require a fresh InferenceSet. This is more restrictive than current behavior and is called out only as a fallback if atomic child updates prove unworkable.
+  (ii) **Immutability at the parent.** Alternatively, tighten `api/v1beta1/inferenceset_validation.go` to forbid preset changes on `spec.template.spec.inference.preset` and require a fresh InferenceSet. This is more restrictive than current behavior and is called out only as a fallback if the recreate-on-preset-change path in (i) proves too disruptive to running inference.
 
 Test coverage: `TestInferenceSetReconcile_AnnotationFlip_PropagatesToExistingChildren` (verifies the key is synced) and `TestInferenceSetReconcile_AnnotationSync_PreservesControllerAnnotations` (verifies revision/hash annotations survive).
 

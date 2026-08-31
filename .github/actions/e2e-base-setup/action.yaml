@@ -78,6 +78,17 @@ runs:
       shell: bash
       run: |
         az login --identity
+        if [ -z "${E2E_SUBSCRIPTION_ID:-}" ]; then
+          echo "::error::E2E_SUBSCRIPTION_ID is not configured"
+          exit 1
+        fi
+        az account set --subscription "$E2E_SUBSCRIPTION_ID"
+        ACTIVE_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+        if [ "$ACTIVE_SUBSCRIPTION_ID" != "$E2E_SUBSCRIPTION_ID" ]; then
+          echo "::error::Failed to select E2E subscription $E2E_SUBSCRIPTION_ID; active subscription is $ACTIVE_SUBSCRIPTION_ID"
+          exit 1
+        fi
+        echo "Using E2E subscription $ACTIVE_SUBSCRIPTION_ID"
 
     - name: Install Helm
       uses: azure/setup-helm@v4

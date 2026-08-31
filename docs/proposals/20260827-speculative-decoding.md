@@ -472,21 +472,21 @@ if runtimeName == pkgmodel.RuntimeNameVLLM &&
             // `GetInferenceCommand`, `setInferenceContainers`, and any
             // downstream modifiers run — producing an incomplete pod spec
             // (later modifiers would then index a missing container).
-            // Instead, the injection code below is guarded so this
-            // branch falls through to the modifier's tail (which returns
-            // nil to continue the normal build); command generation and
-            // container assembly still run afterwards under the
-            // generator. Concretely, gate the ConfigMap load / vLLM
-            // format / append block on `outDecision == nil ||
-            // *outDecision == SpecDecoInjected` so the else-branch
-            // (unsupported preset, ConfigMap override, pipeline
-            // parallelism, ...) records the decision and no-ops the
-            // injection while leaving the rest of the pod spec intact.
+            // Instead, the injection code below is guarded by
+            // `if !skipInjection { ... }` so this branch falls through
+            // to the modifier's tail (which returns nil to continue the
+            // normal build); command generation and container assembly
+            // still run afterwards under the generator. The other
+            // decision-recording branches (ConfigMap override, pipeline
+            // parallelism, ...) do the same — they record the decision
+            // and let the injection block no-op via `skipInjection`,
+            // leaving the rest of the pod spec intact.
             skipInjection = true
         }
         // inferenceParam.SpeculativeDecoding is guaranteed non-nil below
         // when skipInjection is false.
-        // Load and parse the user-provided inference ConfigMap so we can
+        if !skipInjection {
+            // Load and parse the user-provided inference ConfigMap so we can
         // honor the escape hatch ("ConfigMap wins", Step 5). This site
         // is downstream of the pod-spec builder that already mounts the
         // ConfigMap by name but does NOT parse its contents, so we do the
@@ -537,6 +537,7 @@ if runtimeName == pkgmodel.RuntimeNameVLLM &&
                 *outDecision = SpecDecoInjected
             }
         }
+        } // end of `if !skipInjection`
     }
 }
 ```
@@ -741,14 +742,23 @@ return result, err
 The existing pod-spec / StatefulSet error returns inside
 `GeneratePresetInference` are restructured to preserve `decision` on
 both paths (currently they `return nil, err` and would drop the decision
-recorded before the failure).
+recorded before the failure). Concretely, `GeneratePresetInference`
+allocates `result := &PresetInferenceResult{}` at function entry and
+every early return — GPU-config resolution, streaming resolution, and
+any other pre-`GenerateManifest` failure — returns `result, err` instead
+of `nil, err`. This guarantees the reconciler never receives a nil
+`result` on the error path.
 
 The reconciler side (`WorkspaceReconciler.applyInference` /
-`preparePresetInference`, `workspace_controller.go`) reads
-`result.SpeculativeDecodingDecision` before checking `err`, updates the
-Workspace status condition and emits any Event, then propagates `err` up
-the reconcile chain (which for `SpecDecoUnsupportedPreset` is `nil`, so
-no retry loop; for other errors, the standard reconcile retry applies).
+`preparePresetInference`, `workspace_controller.go`) defensively
+nil-checks the result before dereferencing (`if result != nil {
+... translate result.SpeculativeDecodingDecision ... }`), then
+propagates `err` up the reconcile chain (which for
+`SpecDecoUnsupportedPreset` is `nil`, so no retry loop; for other
+errors, the standard reconcile retry applies). The nil-check is a
+belt-and-suspenders guard against future callers that skip the
+entry-point allocation; the entry-point allocation itself is what
+actually preserves the decision on today's error paths.
 As an alternative, a typed error
 (`type SpecDecoError struct { Decision SpecDecoDecision; Err error }`)
 can carry the decision inside the returned error and satisfy `errors.As`;
@@ -1061,6 +1071,12 @@ Two acceptable fixes; this proposal commits to (a) because it is smaller and loc
 - If the key is present in `spec.template.metadata.annotations`, set it on the child.
 - If the key is absent (or removed), delete only that key from the child.
 - All other annotations on the child Workspace are left untouched.
+
+**Preset changes must be reconciled before (or atomically with) the annotation.** The InferenceSet template preset is currently mutable (`api/v1beta1/inferenceset_validation.go:75-82` allows it), but existing children retain the old preset until the reconciler rolls them forward. If the same update flips both `spec.template.spec.inference.preset` **and** the annotation to `"true"` — e.g. moving to an unsupported preset while enabling the annotation — selectively syncing the annotation onto an old child whose preset is still unsupported would trip the child Workspace webhook (which validates the preset/annotation pair) and stall reconciliation on that child. Two acceptable ways to close this gap; this proposal commits to (i):
+
+  (i) **Reconcile preset and annotation atomically on the child.** When both the template preset and the annotation changed in the same InferenceSet update, the reconciler applies both to the child in a single patch (or reject-and-retry until both match template), so the child webhook validates the *new* preset/annotation pair rather than an old-preset + new-annotation mix. The selective annotation-only path documented above continues to run only when the preset is unchanged.
+
+  (ii) **Immutability at the parent.** Alternatively, tighten `api/v1beta1/inferenceset_validation.go` to forbid preset changes on `spec.template.spec.inference.preset` and require a fresh InferenceSet. This is more restrictive than current behavior and is called out only as a fallback if atomic child updates prove unworkable.
 
 Test coverage: `TestInferenceSetReconcile_AnnotationFlip_PropagatesToExistingChildren` (verifies the key is synced) and `TestInferenceSetReconcile_AnnotationSync_PreservesControllerAnnotations` (verifies revision/hash annotations survive).
 

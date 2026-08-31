@@ -901,13 +901,56 @@ func validateSpeculativeDecoding(ws *Workspace) error {
         )
     }
 
-    // (b) Preset must have a validated config in the catalog. Use
-    //     models.GetModelByName (which calls GetModelByNameWithToken
-    //     internally, handling alias rewrites like deepseek-r1-0528 ->
-    //     deepseek-ai/deepseek-r1-0528, lazy-generation of catalog
-    //     models, and access-secret resolution). A direct
-    //     KaitoModelRegister.Get/MustGet would bypass alias
-    //     normalization and fail on short preset names.
+    // (b) Preset must have a validated config in the catalog.
+    //
+    //     Resolve membership in the local supported-preset map BEFORE calling
+    //     `models.GetModelByName`. Rationale: for any preset that is not a
+    //     legacy alias and not already registered, `GetModelByName` falls
+    //     through to `generateHuggingFaceModel`, which performs outbound
+    //     HuggingFace requests with 30-second timeouts and registers the
+    //     result (`presets/workspace/models/vllm_model.go:129-166`,
+    //     `presets/workspace/generator/generator.go:351-365`). Doing that
+    //     inside the admission webhook would (i) tie admission latency and
+    //     availability to huggingface.co for an object we will ultimately
+    //     reject, and (ii) let unauthenticated Workspace CREATE traffic
+    //     trigger unbounded catalog generation inside the webhook process
+    //     just by supplying arbitrary HF IDs with the annotation set.
+    //
+    //     `SupportedSpeculativeDecodingPresets()` returns the sorted
+    //     user-facing names; we compare against both the raw preset name
+    //     and the alias-normalized form so short aliases such as
+    //     `deepseek-r1-0528` and catalog-native full IDs such as
+    //     `deepseek-ai/deepseek-v3.2` both match without importing
+    //     `LegacyBuiltinToCatalog` (the generator's build-time assertion
+    //     already guarantees `UserFacing` is the canonical key).
+    supported := generator.SupportedSpeculativeDecodingPresets()
+    presetName := ws.Inference.Preset.Name
+    presetSupported := false
+    for _, s := range supported {
+        if s == presetName {
+            presetSupported = true
+            break
+        }
+    }
+    if !presetSupported {
+        return fmt.Errorf(
+            "preset %q does not have a validated speculative decoding configuration; "+
+            "remove kaito.sh/enable-speculative-decoding annotation or choose a "+
+            "supported preset (currently: %s)",
+            presetName, strings.Join(supported, ", "),
+        )
+    }
+
+    //     Only after the preset is known-supported do we call
+    //     `models.GetModelByName` — supported presets are shipped in the
+    //     catalog and resolve without any HuggingFace round-trip. The
+    //     result is still used to double-check `SpeculativeDecoding` on
+    //     the resolved `PresetParam` (defence-in-depth against a supported
+    //     entry whose catalog config was pruned).
+    //
+    //     A direct KaitoModelRegister.Get/MustGet would bypass alias
+    //     normalization and fail on short preset names, so we still route
+    //     through `models.GetModelByName` here.
     //
     //     The repository API is:
     //       models.GetModelByName(ctx, modelName, secretName, secretNamespace, client)
@@ -923,7 +966,7 @@ func validateSpeculativeDecoding(ws *Workspace) error {
     //     internally.
     resolved, err := models.GetModelByName(
         ctx,
-        ws.Inference.Preset.Name,
+        presetName,
         accessSecret, // explicit input, see helper signature comment above
         ws.Namespace,
         webhookClient,
@@ -932,23 +975,20 @@ func validateSpeculativeDecoding(ws *Workspace) error {
         return fmt.Errorf(
             "preset %q could not be resolved; "+
             "remove kaito.sh/enable-speculative-decoding annotation or choose a supported preset",
-            ws.Inference.Preset.Name,
+            presetName,
         )
     }
     params := resolved.GetInferenceParameters()
     if params == nil || params.SpeculativeDecoding == nil {
-        // Derive the supported-preset list via the exported accessor from
-        // `presets/workspace/generator`. The underlying map
-        // (`speculativeDecodingByPreset`) is package-private and NOT
-        // reachable from this webhook package; the accessor is the single
-        // supported entry point so the error message stays in sync as
-        // presets are onboarded, without cross-package var access.
-        supported := generator.SupportedSpeculativeDecodingPresets()
+        // Supported list said yes but the resolved catalog entry has no
+        // SpeculativeDecoding config; treat as an internal catalog drift
+        // and fail closed so the mismatch is caught at admission time
+        // rather than at reconcile.
         return fmt.Errorf(
-            "preset %q does not have a validated speculative decoding configuration; "+
-            "remove kaito.sh/enable-speculative-decoding annotation or choose a "+
-            "supported preset (currently: %s)",
-            ws.Inference.Preset.Name, strings.Join(supported, ", "),
+            "preset %q is listed as supporting speculative decoding but the resolved "+
+            "catalog entry has no SpeculativeDecoding config; "+
+            "this is a KAITO catalog inconsistency, please file an issue",
+            presetName,
         )
     }
 
@@ -1091,9 +1131,13 @@ Two acceptable fixes; this proposal commits to (a) because it is smaller and loc
 
 **Preset changes must be reconciled before (or atomically with) the annotation.** The InferenceSet template preset is currently mutable (`api/v1beta1/inferenceset_validation.go:75-82` allows it), but existing children retain the old preset until the reconciler rolls them forward. If the same update flips both `spec.template.spec.inference.preset` **and** the annotation to `"true"` — e.g. moving to an unsupported preset while enabling the annotation — selectively syncing the annotation onto an old child whose preset is still unsupported would trip the child Workspace webhook (which validates the preset/annotation pair) and stall reconciliation on that child. Two acceptable ways to close this gap; this proposal commits to (i):
 
-  (i) **Recreate the child Workspace when the template preset changes.**
+  (i) **Recreate the child Workspace when the template preset changes, one at a time.**
   `InferenceSpec.Preset` is enforced immutable on the child by
-  `api/v1beta1/workspace_validation.go:895-897` (`if !reflect.DeepEqual(i.Preset, old.Preset) { errs = errs.Also(apis.ErrGeneric("field is immutable", "preset")) }`), so an in-place patch that mutates both preset and annotation cannot succeed on the child — even atomically. The InferenceSet reconciler therefore treats a template preset change as a child-lifecycle event: delete the existing child Workspace (respecting `deletionGracePeriodSeconds` and the InferenceSet's existing rolling-update semantics) and let the next reconcile re-create it via `NewWorkspaceForInferenceSet` with the new preset + annotation copied together. The selective annotation-only sync path documented above continues to run only when the preset is unchanged.
+  `api/v1beta1/workspace_validation.go:895-897` (`if !reflect.DeepEqual(i.Preset, old.Preset) { errs = errs.Also(apis.ErrGeneric("field is immutable", "preset")) }`), so an in-place patch that mutates both preset and annotation cannot succeed on the child — even atomically. The InferenceSet reconciler therefore treats a template preset change as a child-lifecycle event.
+
+  **Sequencing (explicit, since `InferenceSet.spec.updateStrategy` is not currently consumed by the controller):** the reconciler processes preset-mismatched children one at a time — delete a single child, wait for its finalizers to complete and for its replacement (created on the next reconcile via `NewWorkspaceForInferenceSet` with the new preset + annotation copied together) to reach `Ready`, then move on to the next child. This is the same one-at-a-time invariant already used by the surplus-replica deletion path (`pkg/inferenceset/inferenceset_controller.go:326-357`) and does not require plumbing `spec.updateStrategy.maxUnavailable` / `maxSurge` end-to-end. If future work wires `updateStrategy` through the controller, this recreate path becomes the surge=0 / maxUnavailable=1 special case of the general strategy.
+
+  The selective annotation-only sync path documented above continues to run only when the preset is unchanged. Test coverage: `TestInferenceSetReconcile_PresetChange_RecreatesChildrenSerially` asserts (1) at most one child is in `Deleting` at a time, (2) a new child is only created after the previous one is `Ready`, and (3) the new child carries both the new preset and the current template annotation.
 
   (ii) **Immutability at the parent.** Alternatively, tighten `api/v1beta1/inferenceset_validation.go` to forbid preset changes on `spec.template.spec.inference.preset` and require a fresh InferenceSet. This is more restrictive than current behavior and is called out only as a fallback if the recreate-on-preset-change path in (i) proves too disruptive to running inference.
 

@@ -272,3 +272,50 @@ func TestMultiRoleInference_validateUpdate(t *testing.T) {
 		})
 	}
 }
+
+func TestMultiRoleInferenceValidateSpeculativeDecoding(t *testing.T) {
+	newMRI := func(annotations map[string]string, modelName string) *MultiRoleInference {
+		return &MultiRoleInference{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:        "mri",
+				Namespace:   "default",
+				Annotations: annotations,
+			},
+			Spec: MultiRoleInferenceSpec{
+				Model: MultiRoleInferenceModelSpec{Name: modelName},
+			},
+		}
+	}
+	tests := []struct {
+		name        string
+		annotations map[string]string
+		modelName   string
+		wantErr     bool
+	}{
+		{"no annotation - pass", nil, "deepseek-r1-0528", false},
+		{"false - pass", map[string]string{AnnotationEnableSpeculativeDecoding: "false"}, "deepseek-r1-0528", false},
+		{"invalid value - rejected", map[string]string{AnnotationEnableSpeculativeDecoding: "yes"}, "deepseek-r1-0528", true},
+		{"true supported preset - pass", map[string]string{AnnotationEnableSpeculativeDecoding: "true"}, "deepseek-r1-0528", false},
+		{"true second supported preset - pass", map[string]string{AnnotationEnableSpeculativeDecoding: "true"}, "deepseek-v3-0324", false},
+		{"true unsupported preset - rejected", map[string]string{AnnotationEnableSpeculativeDecoding: "true"}, "llama-3.1-8b-instruct", true},
+		{"true empty model - rejected", map[string]string{AnnotationEnableSpeculativeDecoding: "true"}, "", true},
+		{
+			name: "true with non-vllm runtime - rejected",
+			annotations: map[string]string{
+				AnnotationEnableSpeculativeDecoding: "true",
+				AnnotationWorkspaceRuntime:          "huggingface-transformers",
+			},
+			modelName: "deepseek-r1-0528",
+			wantErr:   true,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			m := newMRI(tc.annotations, tc.modelName)
+			errs := m.validateSpeculativeDecoding()
+			if (errs != nil) != tc.wantErr {
+				t.Errorf("validateSpeculativeDecoding() err=%v wantErr=%v", errs, tc.wantErr)
+			}
+		})
+	}
+}

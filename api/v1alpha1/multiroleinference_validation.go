@@ -23,7 +23,10 @@ import (
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 
+	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/presets/workspace/generator"
 )
 
 func (m *MultiRoleInference) SupportedVerbs() []admissionregistrationv1.OperationType {
@@ -68,6 +71,10 @@ func (m *MultiRoleInference) validateCreate() (errs *apis.FieldError) {
 	// Validate roles.
 	errs = errs.Also(m.validateRoles())
 
+	// Validate speculative-decoding opt-in (annotation propagates to child
+	// InferenceSets -> Workspaces via the MRI controller).
+	errs = errs.Also(m.validateSpeculativeDecoding())
+
 	return errs
 }
 
@@ -82,6 +89,7 @@ func (m *MultiRoleInference) validateUpdate(old *MultiRoleInference) (errs *apis
 
 	// Validate roles (same as create).
 	errs = errs.Also(m.validateRoles())
+	errs = errs.Also(m.validateSpeculativeDecoding())
 
 	return errs
 }
@@ -147,6 +155,88 @@ func (m *MultiRoleInference) validateRoles() (errs *apis.FieldError) {
 	if !hasDecode {
 		errs = errs.Also(apis.ErrMissingField("roles", "missing decode role"))
 	}
+
+	return errs
+}
+
+// validateSpeculativeDecoding mirrors the Workspace/InferenceSet validators
+// for the kaito.sh/enable-speculative-decoding opt-in. The MRI controller
+// propagates m.Annotations onto each child InferenceSet's Spec.Template.
+// Metadata, which the InferenceSet controller then clones onto each child
+// Workspace. Gating at MRI admission avoids surfacing a valid MRI whose
+// generated workspaces would silently drop speculative decoding.
+func (m *MultiRoleInference) validateSpeculativeDecoding() (errs *apis.FieldError) {
+	val, present := m.Annotations[AnnotationEnableSpeculativeDecoding]
+	if !present {
+		return nil
+	}
+	switch val {
+	case "false":
+		return nil
+	case "true":
+		// fall through to preset/runtime checks
+	default:
+		return errs.Also(apis.ErrGeneric(
+			fmt.Sprintf(
+				"kaito.sh/enable-speculative-decoding must be \"true\" or \"false\"; got %q",
+				val,
+			),
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+	}
+
+	// Preset must be set (MRI's shared model).
+	presetName := m.Spec.Model.Name
+	if presetName == "" {
+		return errs.Also(apis.ErrGeneric(
+			"kaito.sh/enable-speculative-decoding requires spec.model.name",
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+	}
+
+	// Preset must be in the supported list.
+	supported := generator.SupportedSpeculativeDecodingPresets()
+	presetLower := strings.ToLower(presetName)
+	presetSupported := false
+	for _, s := range supported {
+		if strings.ToLower(s) == presetLower {
+			presetSupported = true
+			break
+		}
+		if canonical := plugin.LegacyBuiltinToCatalog[s]; canonical != "" &&
+			strings.ToLower(canonical) == presetLower {
+			presetSupported = true
+			break
+		}
+	}
+	if !presetSupported {
+		return errs.Also(apis.ErrGeneric(
+			fmt.Sprintf(
+				"preset %q does not have a validated speculative decoding configuration; "+
+					"remove kaito.sh/enable-speculative-decoding annotation or choose a "+
+					"supported preset (currently: %s)",
+				presetName, strings.Join(supported, ", "),
+			),
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+	}
+
+	// Runtime must be vLLM.
+	if v, ok := m.Annotations[AnnotationWorkspaceRuntime]; ok &&
+		v != "" && v != string(model.RuntimeNameVLLM) {
+		return errs.Also(apis.ErrGeneric(
+			fmt.Sprintf(
+				"kaito.sh/enable-speculative-decoding requires the vLLM runtime; "+
+					"preset %q is annotated for a different runtime (%q)",
+				presetName, v,
+			),
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+	}
+
+	// Note: MRI is inherently multi-role (prefill + decode) and typically
+	// single-node per role. Pipeline-parallelism guard is enforced at the
+	// child Workspace layer (Resource.Count > 1).
 
 	return errs
 }

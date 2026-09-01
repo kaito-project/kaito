@@ -197,9 +197,9 @@ func (m *Metadata) Validate() error {
 // speculativeDecodingByPreset map and injected into the vLLM command line
 // when the user enables speculative decoding via annotation.
 type SpeculativeDecodingConfig struct {
-	Method string       `yaml:"method"`         // "mtp" / "ngram" / "dspark" / ...
-	MTP    *MTPConfig   `yaml:"mtp,omitempty"`
-	NGram  *NGramConfig `yaml:"ngram,omitempty"`
+	Method string        `yaml:"method"` // "mtp" / "ngram" / "dspark" / ...
+	MTP    *MTPConfig    `yaml:"mtp,omitempty"`
+	NGram  *NGramConfig  `yaml:"ngram,omitempty"`
 	DSpark *DSparkConfig `yaml:"dspark,omitempty"`
 	// future: EAGLE *EAGLEConfig
 }

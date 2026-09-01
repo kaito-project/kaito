@@ -41,7 +41,7 @@ const (
 
 // specDecoEntry pairs the user-facing preset alias with the KAITO-authored config.
 type specDecoEntry struct {
-	UserFacing string                          // e.g. "deepseek-r1-0528"
+	UserFacing string // e.g. "deepseek-r1-0528"
 	Config     *model.SpeculativeDecodingConfig
 }
 

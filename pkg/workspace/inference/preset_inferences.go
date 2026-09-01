@@ -1212,7 +1212,8 @@ func needsRoutingSidecar(ws *v1beta1.Workspace) bool {
 }
 
 // shellSingleQuote wraps s in single quotes, escaping any embedded
-// single quote as '\''. Safe for /bin/sh -c "cmd --key=<value>".
+// single quote via the standard POSIX close-escape-open pattern.
+// Safe for /bin/sh -c "cmd --key=<value>".
 func shellSingleQuote(s string) string {
 	return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'"
 }

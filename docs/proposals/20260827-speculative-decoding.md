@@ -76,6 +76,69 @@ vllm serve deepseek-ai/DeepSeek-R1 \
 | `eagle` / `eagle3` | Separate draft model trained to mimic the target | Yes (separate checkpoint loaded alongside target) | General-purpose; mainstream across vLLM/SGLang/TensorRT-LLM |
 | `ngram` / `suffix` | Pure lookup against prompt + generation history | No | Code completion, RAG, summarization, translation, agent tool-call echo |
 
+#### Method Deep Dive
+
+The rest of this section explains each method in more depth: what the draft actually is, how vLLM verifies it, why the memory/latency cost lands where it does, and which KAITO presets it maps to. This is the reasoning that drives the per-preset `SpeculativeDecoding` map in [Per-Preset Config Ownership](#per-preset-config-ownership).
+
+##### `mtp` — Multi-Token Prediction
+
+**How it drafts.** The base checkpoint ships extra transformer heads (the "MTP heads") trained to predict the *next N* tokens in parallel from the *same* hidden state as the normal LM head. At serve time, vLLM asks the MTP head for K speculative continuations, then verifies them against the true LM head in a single batched forward pass. Accepted tokens are committed; the first rejected token triggers a re-decode from that point.
+
+**Why it's free.** The MTP heads are already inside the served weights — no separate draft checkpoint, no additional GPU memory, no extra HuggingFace download. The only cost is a bit more compute per verification step, which is usually more than repaid by 1.5–2× fewer autoregressive steps.
+
+**Where it applies.** DeepSeek-V3 / R1 family (`deepseek-v3-0324`, `deepseek-r1-0528`). Upstream vLLM benchmark: [vllm-project/vllm#12755](https://github.com/vllm-project/vllm/pull/12755). Tuned config in this PR: `{"method":"mtp","num_speculative_tokens":1}` — conservative because the DeepSeek recipe is only trained to depth 1.
+
+**Caveats.** Requires an MTP-head-bearing checkpoint. Not every model family trains one — e.g. Llama / Qwen 2.5 don't ship MTP heads today, so they use `ngram` (universal fallback) instead.
+
+##### `dspark` — DeepSeek-V4 Semi-Autoregressive Block Drafting
+
+**How it drafts.** DeepSeek's own successor to MTP for the V4 family. Instead of predicting a fixed number of next tokens, the DSpark module drafts a *variable-length block* per step using semi-autoregressive attention, then vLLM verifies the block in one shot. Longer accepted runs on high-agreement prefixes; shorter (or empty) drafts when the model is uncertain.
+
+**Two ship shapes.** vLLM exposes DSpark in two flavors, discriminated by `DSparkConfig.Variant` at catalog time:
+- **Fused** (`DeepSeek-V4-Flash-0731`, `DeepSeek-V4-Flash-DSpark`): DSpark module is baked into the served checkpoint. No extra download, no extra GPU memory — the same free-lunch shape as `mtp`.
+- **Assistant** (`DeepSeek-V4-Pro-0813` — pending upstream recipe): DSpark module lives in a separately sourced draft checkpoint, loaded alongside the base. Needs draft weight download and its own KV cache budget — the node-estimator has to account for it (see [Deferred Follow-Ups](#deferred-followups)).
+
+**Where it applies.** DeepSeek-V4 family. Not shipped in this PR; tracked in *Ready to Onboard (`dspark`, DeepSeek-V4 Family)*.
+
+**Caveats.** `V4-Pro-0813` is deferred until upstream vLLM pins the recipe (fused vs assistant, which draft checkpoint, which verification depth).
+
+##### `eagle` / `eagle3` — Trained Draft Model
+
+**How it drafts.** A *separate*, smaller draft model is trained to mimic the target model's hidden-state trajectory (EAGLE-1 conditions on the target's last hidden state; EAGLE-3 adds multi-layer feature reuse). The draft proposes K tokens; the target verifies them in one batched forward, rewinding on the first rejection.
+
+**Why it costs GPU memory.** The draft checkpoint is loaded alongside the target on the same GPU (or the same node in TP setups) and needs its own KV cache slice. Depending on draft-to-target size ratio, this can eat 3–10% of GPU memory. Node-estimator has to know about it before scheduling.
+
+**Why we still care.** EAGLE/EAGLE-3 is the most portable of the four — it's the mainstream path in vLLM, SGLang, and TensorRT-LLM, and draft checkpoints exist (or can be trained) for any target family. For general-purpose (non-code, non-lookup-friendly) workloads it's often the highest-quality speculative option.
+
+**Where it applies.** Any preset where a compatible EAGLE draft checkpoint is available. Not shipped in this PR — tracked in *Deferred - EAGLE / EAGLE-3 (Separate Draft Checkpoint)* because it needs new catalog schema for the draft-checkpoint reference, node-estimator memory budgeting, and a per-target compatibility matrix.
+
+**Caveats.** Draft-target compatibility is *not* automatic; you need the specific EAGLE checkpoint that was trained against that target. Version drift between the two breaks acceptance rates silently.
+
+##### `ngram` / `suffix` — Universal Prompt Lookup
+
+**How it drafts.** Zero neural draft. On each step, vLLM scans the prompt + generation-history window for the longest n-gram suffix (up to `prompt_lookup_max`) that matches the last few emitted tokens, and proposes the next `num_speculative_tokens` tokens from that match. Verification is the normal target forward pass.
+
+**Why it's universal.** No draft checkpoint, no MTP head, no extra GPU memory, no catalog-schema changes. It works on *any* preset that vLLM can serve. This is why it's the fallback path when the toggle is on but the preset has no per-preset config — see the current PR (#2312).
+
+**Where it wins.** Any workload with high self-repetition:
+- code completion (repeated identifiers, imports, boilerplate)
+- RAG (the answer often quotes the context back)
+- summarization / translation (source-token re-emission)
+- agent tool-call echo (the model repeats tool arguments)
+
+**Where it doesn't help.** Free-form creative generation with low prompt overlap; there's simply nothing to look up. Acceptance rate collapses to near zero and you just pay the (small) lookup cost.
+
+**Why the KAITO default is `{num_speculative_tokens:5, prompt_lookup_max:4}`.** These match vLLM's documented `ngram` baseline. `num_speculative_tokens=5` is aggressive enough to see gains on repetition-heavy workloads but not so large that verification cost dominates on more open-ended generation. `prompt_lookup_max=4` caps the lookup window so the scan stays `O(prompt_len * 4)` even on very long contexts.
+
+#### Method → Preset Selection Rule
+
+At annotation-opt-in time, KAITO picks the method for the user:
+
+1. If the preset has an entry in [`speculativeDecodingByPreset`](#per-preset-config-ownership) (`mtp` today, `dspark` after DeepSeek-V4 lands) → use the preset-tuned config.
+2. Otherwise → use the universal `ngram` default.
+
+`eagle` / `eagle3` never selects itself automatically — it needs schema work first (draft-checkpoint reference in `model_catalog.yaml`, node-estimator memory budgeting) and is intentionally left out of the automatic selection until that lands.
+
 #### Why It Isn't Always On
 
 Throughput can *regress* at high QPS (draft is wasted work when the batch is already saturated). It has to stay **opt-in**, never default. Several vLLM compatibility caveats also exist (pipeline parallelism, prefix caching, chunked prefill, logprob stability, LoRA/tool-calling) that need per-preset re-verification against KAITO's pinned vLLM version.

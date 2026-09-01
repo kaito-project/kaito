@@ -15,8 +15,10 @@ package inference
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
+	"github.com/kaito-project/kaito/api/v1beta1"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 )
 
@@ -171,5 +173,118 @@ func TestShellSingleQuote(t *testing.T) {
 		if got != tc.want {
 			t.Errorf("shellSingleQuote(%q) = %q, want %q", tc.input, got, tc.want)
 		}
+	}
+}
+
+func TestApplySpeculativeDecoding(t *testing.T) {
+	presetWithSD := func() *pkgmodel.PresetParam {
+		return &pkgmodel.PresetParam{
+			RuntimeParam: pkgmodel.RuntimeParam{
+				VLLM: pkgmodel.VLLMParam{
+					ModelRunParams: map[string]string{},
+				},
+			},
+			SpeculativeDecoding: &pkgmodel.SpeculativeDecodingConfig{
+				Method: "mtp",
+				MTP:    &pkgmodel.MTPConfig{NumSpeculativeTokens: 1},
+			},
+		}
+	}
+	presetNoSD := func() *pkgmodel.PresetParam {
+		return &pkgmodel.PresetParam{
+			RuntimeParam: pkgmodel.RuntimeParam{
+				VLLM: pkgmodel.VLLMParam{ModelRunParams: map[string]string{}},
+			},
+		}
+	}
+	newWS := func(annVal string, targetNodes int32) *v1beta1.Workspace {
+		ws := &v1beta1.Workspace{}
+		if annVal != "" {
+			ws.Annotations = map[string]string{v1beta1.AnnotationEnableSpeculativeDecoding: annVal}
+		}
+		ws.Status.TargetNodeCount = targetNodes
+		return ws
+	}
+
+	tests := []struct {
+		name         string
+		ws           *v1beta1.Workspace
+		runtime      pkgmodel.RuntimeName
+		preset       *pkgmodel.PresetParam
+		wantDecision SpecDecoDecision
+		wantInjected bool
+	}{
+		{
+			name:         "annotation absent -> skip, no flag",
+			ws:           newWS("", 1),
+			runtime:      pkgmodel.RuntimeNameVLLM,
+			preset:       presetWithSD(),
+			wantDecision: SpecDecoSkip,
+			wantInjected: false,
+		},
+		{
+			name:         "annotation false -> skip, no flag",
+			ws:           newWS("false", 1),
+			runtime:      pkgmodel.RuntimeNameVLLM,
+			preset:       presetWithSD(),
+			wantDecision: SpecDecoSkip,
+			wantInjected: false,
+		},
+		{
+			name:         "annotation true + non-vllm runtime -> skip",
+			ws:           newWS("true", 1),
+			runtime:      pkgmodel.RuntimeNameHuggingfaceTransformers,
+			preset:       presetWithSD(),
+			wantDecision: SpecDecoSkip,
+			wantInjected: false,
+		},
+		{
+			name:         "annotation true + preset without SD -> unsupported preset",
+			ws:           newWS("true", 1),
+			runtime:      pkgmodel.RuntimeNameVLLM,
+			preset:       presetNoSD(),
+			wantDecision: SpecDecoUnsupportedPreset,
+			wantInjected: false,
+		},
+		{
+			name:         "annotation true + multi-node -> pipeline parallelism",
+			ws:           newWS("true", 2),
+			runtime:      pkgmodel.RuntimeNameVLLM,
+			preset:       presetWithSD(),
+			wantDecision: SpecDecoPipelineParallelism,
+			wantInjected: false,
+		},
+		{
+			name:         "annotation true + supported preset + single-node -> injected",
+			ws:           newWS("true", 1),
+			runtime:      pkgmodel.RuntimeNameVLLM,
+			preset:       presetWithSD(),
+			wantDecision: SpecDecoInjected,
+			wantInjected: true,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := applySpeculativeDecoding(tc.ws, tc.runtime, tc.preset)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if got != tc.wantDecision {
+				t.Errorf("decision = %v, want %v", got, tc.wantDecision)
+			}
+			flag, injected := tc.preset.VLLM.ModelRunParams["speculative-config"]
+			if injected != tc.wantInjected {
+				t.Errorf("speculative-config injected = %v, want %v (flag=%q)", injected, tc.wantInjected, flag)
+			}
+			if tc.wantInjected {
+				// Value should be a shell-quoted JSON blob containing method=mtp.
+				if !strings.Contains(flag, `"method":"mtp"`) {
+					t.Errorf("speculative-config value %q missing method=mtp", flag)
+				}
+				if !strings.HasPrefix(flag, "'") || !strings.HasSuffix(flag, "'") {
+					t.Errorf("speculative-config value %q not shell-single-quoted", flag)
+				}
+			}
+		})
 	}
 }

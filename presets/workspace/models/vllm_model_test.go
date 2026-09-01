@@ -1167,4 +1167,3 @@ func TestGetModelByName_DeepSeekV30324_SpeculativeDecodingMTP(t *testing.T) {
 	}
 	assert.Equal(t, 1, params.SpeculativeDecoding.MTP.NumSpeculativeTokens)
 }
-

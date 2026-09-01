@@ -25,7 +25,10 @@ import (
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 
+	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/presets/workspace/generator"
 )
 
 func (is *InferenceSet) SupportedVerbs() []admissionregistrationv1.OperationType {
@@ -69,17 +72,114 @@ func (is *InferenceSet) validateCreate() (errs *apis.FieldError) {
 	}
 	errs = errs.Also(is.validateInstanceType().ViaField("template"))
 	errs = errs.Also(validateInferenceSetMaintenanceWindow(is.Spec.AutoUpgrade))
+	errs = errs.Also(is.validateSpeculativeDecoding())
 	return errs
 }
 
 func (is *InferenceSet) validateUpdate(old *InferenceSet) (errs *apis.FieldError) {
 	errs = errs.Also(is.validateInstanceType().ViaField("template"))
 	errs = errs.Also(validateInferenceSetMaintenanceWindow(is.Spec.AutoUpgrade))
+	errs = errs.Also(is.validateSpeculativeDecoding())
 	// Partition config is immutable once set.
 	if !apiequality.Semantic.DeepEqual(is.Spec.Template.Resource.Partition, old.Spec.Template.Resource.Partition) {
 		errs = errs.Also(apis.ErrGeneric("field is immutable", "template", "resource", "partition"))
 	}
 	return errs
+}
+
+// validateSpeculativeDecoding mirrors the Workspace validator for the
+// kaito.sh/enable-speculative-decoding opt-in. The InferenceSet controller
+// clones Spec.Template.Annotations onto each child Workspace, so gating at
+// admission avoids surfacing a valid InferenceSet whose replicas would then
+// silently drop speculative decoding.
+func (is *InferenceSet) validateSpeculativeDecoding() (errs *apis.FieldError) {
+	val, present := is.Spec.Template.Annotations[AnnotationEnableSpeculativeDecoding]
+	if !present {
+		return nil
+	}
+	switch val {
+	case "false":
+		return nil
+	case "true":
+		// fall through to preset/runtime checks
+	default:
+		return errs.Also(apis.ErrGeneric(
+			fmt.Sprintf(
+				"kaito.sh/enable-speculative-decoding must be \"true\" or \"false\"; got %q",
+				val,
+			),
+			fmt.Sprintf("spec.template.metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+	}
+
+	inf := is.Spec.Template.Inference
+	if inf.Preset == nil || inf.Preset.Name == "" {
+		return errs.Also(apis.ErrGeneric(
+			"kaito.sh/enable-speculative-decoding requires a preset inference; "+
+				"remove the annotation or set spec.template.inference.preset.name",
+			fmt.Sprintf("spec.template.metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+	}
+
+	supported := generator.SupportedSpeculativeDecodingPresets()
+	presetName := string(inf.Preset.Name)
+	presetLower := strings.ToLower(presetName)
+	presetSupported := false
+	for _, s := range supported {
+		if strings.ToLower(s) == presetLower {
+			presetSupported = true
+			break
+		}
+		if canonical := plugin.LegacyBuiltinToCatalog[s]; canonical != "" &&
+			strings.ToLower(canonical) == presetLower {
+			presetSupported = true
+			break
+		}
+	}
+	if !presetSupported {
+		return errs.Also(apis.ErrGeneric(
+			fmt.Sprintf(
+				"preset %q does not have a validated speculative decoding configuration; "+
+					"remove kaito.sh/enable-speculative-decoding annotation or choose a "+
+					"supported preset (currently: %s)",
+				presetName, strings.Join(supported, ", "),
+			),
+			fmt.Sprintf("spec.template.metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+	}
+
+	// Runtime must be vLLM. InferenceSet doesn't itself carry a runtime
+	// override, but the preset name still fixes the runtime through the
+	// GetInferenceRuntime path used by the child Workspace validator; use the
+	// same helper by constructing a minimal Workspace wrapper here would
+	// import-cycle, so instead we mirror the check inline.
+	if runtime := runtimeFromInferenceAnnotations(is.Spec.Template.Annotations); runtime != model.RuntimeNameVLLM {
+		return errs.Also(apis.ErrGeneric(
+			fmt.Sprintf(
+				"kaito.sh/enable-speculative-decoding requires the vLLM runtime; "+
+					"preset %q is annotated for a different runtime",
+				presetName,
+			),
+			fmt.Sprintf("spec.template.metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+	}
+	return errs
+}
+
+// runtimeFromInferenceAnnotations returns the effective inference runtime
+// declared on Spec.Template.Annotations. Defaults to vLLM to mirror
+// GetWorkspaceRuntimeName; a non-vLLM runtime is only produced when the user
+// explicitly requests it via AnnotationWorkspaceRuntime.
+func runtimeFromInferenceAnnotations(anns map[string]string) model.RuntimeName {
+	if v, ok := anns[AnnotationWorkspaceRuntime]; ok {
+		switch v {
+		case string(model.RuntimeNameHuggingfaceTransformers):
+			return model.RuntimeNameHuggingfaceTransformers
+		case string(model.RuntimeNameVLLM):
+			return model.RuntimeNameVLLM
+		}
+	}
+	return model.RuntimeNameVLLM
 }
 
 func validateInferenceSetMaintenanceWindow(autoUpgrade *AutoUpgradePolicy) (errs *apis.FieldError) {

@@ -222,3 +222,85 @@ func TestInferenceSet_validateInstanceType(t *testing.T) {
 		})
 	}
 }
+
+func TestInferenceSetValidateSpeculativeDecoding(t *testing.T) {
+	presetTpl := func(name string) InferenceSetTemplate {
+		return InferenceSetTemplate{
+			Inference: InferenceSpec{
+				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName(name)}},
+			},
+		}
+	}
+	tests := []struct {
+		name        string
+		annotations map[string]string
+		template    InferenceSetTemplate
+		wantErr     bool
+	}{
+		{
+			name:        "no annotation - pass",
+			annotations: nil,
+			template:    presetTpl("deepseek-r1-0528"),
+			wantErr:     false,
+		},
+		{
+			name:        "false - pass",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "false"},
+			template:    presetTpl("deepseek-r1-0528"),
+			wantErr:     false,
+		},
+		{
+			name:        "invalid value - rejected",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "yes"},
+			template:    presetTpl("deepseek-r1-0528"),
+			wantErr:     true,
+		},
+		{
+			name:        "true with supported preset - pass",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
+			template:    presetTpl("deepseek-r1-0528"),
+			wantErr:     false,
+		},
+		{
+			name:        "true with second supported preset - pass",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
+			template:    presetTpl("deepseek-v3-0324"),
+			wantErr:     false,
+		},
+		{
+			name:        "true with unsupported preset - rejected",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
+			template:    presetTpl("llama-3.1-8b-instruct"),
+			wantErr:     true,
+		},
+		{
+			name:        "true without preset - rejected",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
+			template:    InferenceSetTemplate{},
+			wantErr:     true,
+		},
+		{
+			name: "true with non-vllm runtime annotation - rejected",
+			annotations: map[string]string{
+				AnnotationEnableSpeculativeDecoding: "true",
+				AnnotationWorkspaceRuntime:          "huggingface-transformers",
+			},
+			template: presetTpl("deepseek-r1-0528"),
+			wantErr:  true,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			tpl := tc.template
+			tpl.Annotations = tc.annotations
+			is := &InferenceSet{
+				ObjectMeta: metav1.ObjectMeta{Name: "is", Namespace: "default"},
+				Spec:       InferenceSetSpec{Template: tpl},
+			}
+			errs := is.validateSpeculativeDecoding()
+			if (errs != nil) != tc.wantErr {
+				t.Errorf("validateSpeculativeDecoding() err=%v wantErr=%v", errs, tc.wantErr)
+			}
+		})
+	}
+}

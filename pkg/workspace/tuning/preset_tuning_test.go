@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -30,6 +31,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
+	workloadtolerations "github.com/kaito-project/kaito/pkg/utils/tolerations"
 	"github.com/kaito-project/kaito/pkg/workspace/image"
 )
 
@@ -671,6 +673,20 @@ func TestDefaultTolerations(t *testing.T) {
 			assert.Equal(t, tc.expectSpot, hasSpot)
 		})
 	}
+}
+
+func TestDefaultTolerationsIncludesCustomConfigured(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AWSCloudName)
+	require.NoError(t, workloadtolerations.SetFromJSON(`[
+		{"key":"workload-class","operator":"Equal","value":"batch","effect":"NoSchedule"},
+		{"key":"tenant","operator":"Exists"}
+	]`))
+	t.Cleanup(func() { require.NoError(t, workloadtolerations.SetFromJSON("")) })
+
+	actual := defaultTolerations()
+	assert.Equal(t, "workload-class", actual[len(actual)-2].Key)
+	assert.Equal(t, corev1.TolerationOpEqual, actual[len(actual)-2].Operator)
+	assert.Equal(t, "tenant", actual[len(actual)-1].Key)
 }
 
 // mockModel implements pkgmodel.Model for testing

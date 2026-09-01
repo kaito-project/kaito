@@ -51,6 +51,9 @@ spec:
             {{- if .Values.modelMirrorDownloadMemory }}
             - --model-mirror-download-memory={{ .Values.modelMirrorDownloadMemory }}
             {{- end }}
+            {{- with .Values.customTaints.tolerations }}
+            - {{ printf "--custom-workload-tolerations=%s" (. | toJson) | quote }}
+            {{- end }}
             {{- if .Values.defaultNodeImageFamily }}
             - --default-node-image-family={{ .Values.defaultNodeImageFamily }}
             {{- end }}

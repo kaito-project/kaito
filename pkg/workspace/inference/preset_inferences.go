@@ -42,6 +42,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/mig"
 	"github.com/kaito-project/kaito/pkg/utils/nodes"
+	workloadtolerations "github.com/kaito-project/kaito/pkg/utils/tolerations"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/registry"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
@@ -132,7 +133,7 @@ func defaultTolerations(ws *v1beta1.Workspace) []corev1.Toleration {
 		})
 	}
 
-	return tolerations
+	return workloadtolerations.Append(tolerations)
 }
 
 func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1beta1.Workspace) []corev1.LocalObjectReference {

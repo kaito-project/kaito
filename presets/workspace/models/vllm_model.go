@@ -91,6 +91,7 @@ func registerModel(hfModelCardID string, param *model.PresetParam) model.Model {
 	model := &vLLMCompatibleModel{
 		model:              param.Metadata,
 		generatedRunParams: param.VLLM.ModelRunParams,
+		speculativeDecoding: param.SpeculativeDecoding,
 	}
 	r := &plugin.Registration{
 		Name:     hfModelCardID,
@@ -173,6 +174,7 @@ func generateHuggingFaceModel(modelName, token string) (model.Model, error) {
 type vLLMCompatibleModel struct {
 	model              model.Metadata
 	generatedRunParams map[string]string // vLLM run params produced by the generator
+	speculativeDecoding *model.SpeculativeDecodingConfig
 }
 
 func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
@@ -243,6 +245,7 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 			Transformers: tfsParam,
 			VLLM:         vllmParam,
 		},
+		SpeculativeDecoding: m.speculativeDecoding,
 		ReadinessTimeout: readinessTimeoutForModelSize(m.model.ModelFileSize),
 	}
 

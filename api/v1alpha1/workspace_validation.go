@@ -34,6 +34,8 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/presets/workspace/generator"
+	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 const (
@@ -62,6 +64,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 	if base == nil {
 		klog.InfoS("Validate creation", "workspace", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
 		errs = errs.Also(w.validateCreate().ViaField("spec"))
+		errs = errs.Also(w.validateSpeculativeDecoding())
 		if w.Inference != nil {
 			// Check if the bypass resource checks annotation is set
 			bypassResourceChecks := false
@@ -94,10 +97,76 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		if w.Inference != nil {
 			errs = errs.Also(w.Inference.validateUpdate(old.Inference).ViaField("inference"))
 		}
+		errs = errs.Also(w.validateSpeculativeDecoding())
 		if w.Tuning != nil {
 			errs = errs.Also(w.Tuning.validateUpdate(old.Tuning).ViaField("tuning"))
 		}
 	}
+	return errs
+}
+
+func (w *Workspace) validateSpeculativeDecoding() (errs *apis.FieldError) {
+	annotations := w.GetAnnotations()
+	val, present := annotations[AnnotationEnableSpeculativeDecoding]
+	if !present || val == "false" {
+		return nil
+	}
+	if val != "true" {
+		errs = errs.Also(apis.ErrInvalidValue(
+			fmt.Sprintf("annotation %s has invalid value %q; expected \"true\" or \"false\"", AnnotationEnableSpeculativeDecoding, val),
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+		return errs
+	}
+
+	if w.Inference == nil || w.Inference.Preset == nil || w.Inference.Preset.Name == "" {
+		errs = errs.Also(apis.ErrGeneric(
+			"kaito.sh/enable-speculative-decoding requires a preset inference; "+
+				"remove the annotation or set inference.preset.name",
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+		return errs
+	}
+
+	supported := generator.SupportedSpeculativeDecodingPresets()
+	presetName := w.Inference.Preset.Name
+	presetLower := strings.ToLower(presetName)
+	presetSupported := false
+	for _, s := range supported {
+		if strings.ToLower(s) == presetLower {
+			presetSupported = true
+			break
+		}
+		if canonical := plugin.LegacyBuiltinToCatalog[s]; canonical != "" &&
+			strings.ToLower(canonical) == presetLower {
+			presetSupported = true
+			break
+		}
+	}
+	if !presetSupported {
+		errs = errs.Also(apis.ErrGeneric(
+			fmt.Sprintf(
+				"preset %q does not have a validated speculative decoding configuration; "+
+					"remove kaito.sh/enable-speculative-decoding annotation or choose a "+
+					"supported preset (currently: %s)",
+				presetName, strings.Join(supported, ", "),
+			),
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+		return errs
+	}
+
+	if GetWorkspaceRuntimeName(w) != model.RuntimeNameVLLM {
+		errs = errs.Also(apis.ErrGeneric(
+			fmt.Sprintf(
+				"kaito.sh/enable-speculative-decoding requires the vLLM runtime; "+
+					"preset %q is configured for a different runtime",
+				w.Inference.Preset.Name,
+			),
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+	}
+
 	return errs
 }
 

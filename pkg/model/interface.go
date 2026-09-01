@@ -192,6 +192,40 @@ func (m *Metadata) Validate() error {
 }
 
 // PresetParam defines the preset inference parameters for a model.
+// SpeculativeDecodingConfig defines the speculative decoding configuration
+// for a preset model. It is populated by KAITO maintainers in the
+// speculativeDecodingByPreset map and injected into the vLLM command line
+// when the user enables speculative decoding via annotation.
+type SpeculativeDecodingConfig struct {
+	Method string       `yaml:"method"`         // "mtp" / "ngram" / "dspark" / ...
+	MTP    *MTPConfig   `yaml:"mtp,omitempty"`
+	NGram  *NGramConfig `yaml:"ngram,omitempty"`
+	DSpark *DSparkConfig `yaml:"dspark,omitempty"`
+	// future: EAGLE *EAGLEConfig
+}
+
+// MTPConfig covers the self-contained-head case only (DeepSeek R1/V3
+// family), where the MTP head is bundled in the served checkpoint.
+// Assistant-checkpoint MTP (Gemma 4 IT family) is future work.
+type MTPConfig struct {
+	NumSpeculativeTokens int `yaml:"numSpeculativeTokens"`
+}
+
+// NGramConfig covers the n-gram lookup speculative decoding method.
+type NGramConfig struct {
+	NumSpeculativeTokens int `yaml:"numSpeculativeTokens"`
+	PromptLookupMax      int `yaml:"promptLookupMax"`
+}
+
+// DSparkConfig covers the DeepSeek-V4 DSpark speculative decoding method.
+type DSparkConfig struct {
+	Variant              string `yaml:"variant,omitempty"` // "" | "fused" | "assistant"
+	Model                string `yaml:"model,omitempty"`
+	NumSpeculativeTokens int    `yaml:"numSpeculativeTokens"`
+	DraftSampleMethod    string `yaml:"draftSampleMethod,omitempty"`
+	AttentionBackend     string `yaml:"attentionBackend,omitempty"`
+}
+
 type PresetParam struct {
 	Metadata
 
@@ -208,6 +242,10 @@ type PresetParam struct {
 	ModelTokenLimit               int            // Maximum number of tokens (context window) supported by the model. Maps to 'max_position_embeddings' in the model's Hugging Face config.json.
 
 	RuntimeParam
+
+	// SpeculativeDecoding holds the preset-driven speculative decoding
+	// configuration. Nil means the preset does not support speculative decoding.
+	SpeculativeDecoding *SpeculativeDecodingConfig `yaml:"speculativeDecoding,omitempty"`
 
 	// ReadinessTimeout defines the maximum duration for creating the workload.
 	// This timeout accommodates the size of the image, ensuring pull completion
@@ -257,6 +295,22 @@ func (p *PresetParam) DeepCopy() *PresetParam {
 	*out = *p
 	out.RuntimeParam = p.RuntimeParam.DeepCopy()
 	out.TuningPerGPUMemoryRequirement = maps.Clone(p.TuningPerGPUMemoryRequirement)
+	if p.SpeculativeDecoding != nil {
+		sd := *p.SpeculativeDecoding
+		if p.SpeculativeDecoding.MTP != nil {
+			mtp := *p.SpeculativeDecoding.MTP
+			sd.MTP = &mtp
+		}
+		if p.SpeculativeDecoding.NGram != nil {
+			ng := *p.SpeculativeDecoding.NGram
+			sd.NGram = &ng
+		}
+		if p.SpeculativeDecoding.DSpark != nil {
+			ds := *p.SpeculativeDecoding.DSpark
+			sd.DSpark = &ds
+		}
+		out.SpeculativeDecoding = &sd
+	}
 	return out
 }
 

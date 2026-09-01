@@ -191,7 +191,6 @@ func (m *Metadata) Validate() error {
 	return err
 }
 
-// PresetParam defines the preset inference parameters for a model.
 // SpeculativeDecodingConfig defines the speculative decoding configuration
 // for a preset model. It is populated by KAITO maintainers in the
 // speculativeDecodingByPreset map and injected into the vLLM command line
@@ -226,6 +225,7 @@ type DSparkConfig struct {
 	AttentionBackend     string `yaml:"attentionBackend,omitempty"`
 }
 
+// PresetParam defines the preset inference parameters for a model.
 type PresetParam struct {
 	Metadata
 

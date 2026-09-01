@@ -243,8 +243,13 @@ type PresetParam struct {
 
 	RuntimeParam
 
-	// SpeculativeDecoding holds the preset-driven speculative decoding
-	// configuration. Nil means the preset does not support speculative decoding.
+	// SpeculativeDecoding holds the preset-tuned speculative decoding
+	// configuration for this preset (e.g. mtp/dspark). A nil value does NOT
+	// mean the preset lacks speculative-decoding support: when a workload
+	// opts in via kaito.sh/enable-speculative-decoding and this field is nil,
+	// applySpeculativeDecoding falls back to the universal ngram default
+	// (see docs/proposals/20260827-speculative-decoding.md). Callers must
+	// not use nil as a feature-support signal.
 	SpeculativeDecoding *SpeculativeDecodingConfig `yaml:"speculativeDecoding,omitempty"`
 
 	// ReadinessTimeout defines the maximum duration for creating the workload.

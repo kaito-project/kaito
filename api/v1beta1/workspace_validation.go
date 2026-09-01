@@ -247,7 +247,29 @@ func (w *Workspace) validateSpeculativeDecoding(ctx context.Context) (errs *apis
 		))
 	}
 
-	// TODO(#2303-followup): Add pipeline parallelism check via estimator callback.
+	// (d) Reject multi-node opt-in at admission time. Speculative decoding is
+	// currently mutually exclusive with pipeline parallelism (see proposal #2303).
+	// Rejecting here avoids silently discarding the opt-in during pod-spec
+	// generation. Note: this covers the explicit user-declared node count. When
+	// the estimator promotes a workload to multiple nodes at runtime, the
+	// injection helper still returns SpecDecoPipelineParallelism; surfacing that
+	// as a status condition is tracked as follow-up (see below).
+	//nolint:staticcheck //SA1019: deprecate Resource.Count field
+	if w.Resource.Count != nil && *w.Resource.Count > 1 {
+		errs = errs.Also(apis.ErrGeneric(
+			fmt.Sprintf(
+				"kaito.sh/enable-speculative-decoding is not supported with resource.count > 1 "+
+					"(pipeline parallelism); requested %d nodes",
+				*w.Resource.Count,
+			),
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+	}
+
+	// TODO(#2303-followup): Add estimator-callback based multi-node rejection
+	// (covers the case where user did not set resource.count but the estimator
+	// picks multi-node) and surface SpecDecoPipelineParallelism as a
+	// SpeculativeDecodingDisabled(PipelineParallelism) status condition + event.
 	// TODO(#2303-followup): Defence-in-depth: resolve model via models.GetModelByName
 	// and verify GetInferenceParameters().SpeculativeDecoding is non-nil.
 

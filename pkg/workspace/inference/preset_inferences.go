@@ -15,12 +15,15 @@ package inference
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/samber/lo"
+	"gopkg.in/yaml.v2"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
@@ -46,8 +49,41 @@ import (
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/registry"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
+	presetgen "github.com/kaito-project/kaito/presets/workspace/generator"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
+
+// SpecDecoDecision tracks which branch the speculative decoding injection took.
+type SpecDecoDecision int
+
+const (
+	// SpecDecoNotEvaluated is the zero value: the injection closure never ran.
+	SpecDecoNotEvaluated SpecDecoDecision = iota
+	// SpecDecoSkip means the annotation is absent or runtime is not vLLM.
+	SpecDecoSkip
+	// SpecDecoPipelineParallelism means injection was skipped due to multi-node.
+	SpecDecoPipelineParallelism
+	// SpecDecoConfigMapOverride means the user's ConfigMap already has speculative-config.
+	SpecDecoConfigMapOverride
+	// SpecDecoInjected means the preset config was injected successfully.
+	SpecDecoInjected
+	// SpecDecoUnsupportedPreset means the annotation is set but the preset has no config.
+	// Retained for backwards compatibility with the enum ordering; unreachable at
+	// runtime now that unsupported presets fall through to the universal ngram
+	// default (see SpecDecoInjectedNGramFallback).
+	SpecDecoUnsupportedPreset
+	// SpecDecoInjectedNGramFallback means the preset has no per-preset config so
+	// the universal ngram default (num_speculative_tokens=5, prompt_lookup_max=4)
+	// was injected. Kept as a distinct decision so telemetry / events can
+	// distinguish "preset-tuned" from "universal fallback" injections.
+	SpecDecoInjectedNGramFallback
+)
+
+// PresetInferenceResult wraps the workload object and the speculative decoding decision.
+type PresetInferenceResult struct {
+	Workload                    client.Object
+	SpeculativeDecodingDecision SpecDecoDecision
+}
 
 const (
 	ProbePath = "/health"
@@ -178,7 +214,7 @@ func GenerateModelWeightsCacheVolume(ctx context.Context, workspaceObj *v1beta1.
 }
 
 func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace, revisionNum string,
-	model pkgmodel.Model, kubeClient client.Client, provisioner nodeprovision.NodeProvisioner) (client.Object, error) {
+	model pkgmodel.Model, kubeClient client.Client, provisioner nodeprovision.NodeProvisioner) (*PresetInferenceResult, error) {
 
 	gctx := &generator.WorkspaceGeneratorContext{
 		Ctx:             ctx,
@@ -219,8 +255,10 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	// instead of being downloaded from HuggingFace or streamed from blob storage.
 	localModelWeightsPath := v1beta1.GetLocalWeightsPath(workspaceObj)
 
+	var specDecoDecision SpecDecoDecision
+
 	podOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec]{
-		GenerateInferencePodSpec(gpuConfig, numNodes, streamingModelPath, streamingLoadFormat, localModelWeightsPath),
+		GenerateInferencePodSpec(gpuConfig, numNodes, streamingModelPath, streamingLoadFormat, localModelWeightsPath, &specDecoDecision),
 		SetProvisionerNodeSelector,
 		SetHFToken,
 	}
@@ -278,12 +316,17 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 
 	podSpec, err := generator.GenerateManifest(gctx, podOpts...)
 	if err != nil {
-		return nil, err
+		return &PresetInferenceResult{SpeculativeDecodingDecision: specDecoDecision}, err
 	}
 
 	ssOpts = append(ssOpts, manifests.SetStatefulSetPodSpec(podSpec))
 
-	return generator.GenerateManifest(gctx, ssOpts...)
+	workload, err := generator.GenerateManifest(gctx, ssOpts...)
+	result := &PresetInferenceResult{
+		Workload:                    workload,
+		SpeculativeDecodingDecision: specDecoDecision,
+	}
+	return result, err
 }
 
 func getGPUConfig(ctx *generator.WorkspaceGeneratorContext) (*sku.GPUConfig, error) {
@@ -514,7 +557,7 @@ func GetPresetQuantization(presetName string) string {
 	return m.QuantMethod
 }
 
-func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingModelPath, streamingLoadFormat, localModelWeightsPath string) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
+func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingModelPath, streamingLoadFormat, localModelWeightsPath string, outDecision *SpecDecoDecision) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 		// additional volume
 		var volumes []corev1.Volume
@@ -572,6 +615,25 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		// inference command
 		inferenceParam := ctx.Model.GetInferenceParameters().DeepCopy()
 		runtimeName := v1beta1.GetWorkspaceRuntimeName(ctx.Workspace)
+
+		// --- Speculative decoding injection ---
+		userConfigHasSpeculativeOverride := false
+		if runtimeName == pkgmodel.RuntimeNameVLLM &&
+			ctx.Workspace.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding] == "true" {
+			override, err := loadUserSpeculativeConfig(ctx.Ctx, ctx.KubeClient, ctx.Workspace)
+			if err != nil {
+				return fmt.Errorf("speculative decoding: %w", err)
+			}
+			userConfigHasSpeculativeOverride = override
+		}
+		decision, err := applySpeculativeDecoding(ctx.Workspace, runtimeName, inferenceParam, userConfigHasSpeculativeOverride)
+		if err != nil {
+			return fmt.Errorf("speculative decoding: %w", err)
+		}
+		if outDecision != nil {
+			*outDecision = decision
+		}
+		// --- End speculative decoding injection ---
 
 		// Context-length sizing is delegated to vLLM's native auto-fit logic by
 		// passing --max-model-len=auto (https://docs.vllm.ai/en/latest/configuration/engine_args/#-max-model-len).
@@ -1198,4 +1260,159 @@ func resolveMaxNumSeqs(workspaceName string, params *pkgmodel.PresetParam, gpuCo
 		NumNodes:        numNodes,
 	})
 	return maxNumSeqs
+}
+
+// shellSingleQuote wraps s in single quotes, escaping any embedded
+// single quote as ''' . Safe for /bin/sh -c "cmd --key=<value>".
+func shellSingleQuote(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", `'''`) + "'"
+}
+
+// defaultFallbackNGramConfig returns the universal ngram fallback used when the
+// annotation is enabled on a preset that has no per-preset speculative decoding
+// entry. The parameters mirror the vLLM upstream ngram example (see proposal
+// PR #2303 "Background - Speculative Decoding Methods") and are intentionally
+// conservative so they are safe on any preset in the catalog:
+//
+//   - num_speculative_tokens=5: matches vLLM's documented ngram baseline;
+//     large enough to see gains on repetition-heavy workloads (code, RAG,
+//     summarization, translation, agent tool-call echo) without dominating
+//     verification cost on more open-ended generation.
+//   - prompt_lookup_max=4: matches vLLM's documented default and caps the
+//     lookup window so lookup cost stays O(prompt_len * 4).
+//
+// ngram is preset-agnostic ("pure lookup against prompt + generation history",
+// no draft checkpoint, no extra GPU memory), so we can safely apply the same
+// defaults to any preset the user opts in.
+func defaultFallbackNGramConfig() *pkgmodel.SpeculativeDecodingConfig {
+	return &pkgmodel.SpeculativeDecodingConfig{
+		Method: "ngram",
+		NGram: &pkgmodel.NGramConfig{
+			NumSpeculativeTokens: 5,
+			PromptLookupMax:      4,
+		},
+	}
+}
+
+type rawInferenceConfig struct {
+	VLLM map[string]any `yaml:"vllm"`
+}
+
+// loadUserSpeculativeConfig returns true when the user-provided inference
+// ConfigMap already sets vllm.speculative-config. Callers should only invoke it
+// on the vLLM + annotation=true path so unrelated workloads do not gain a new
+// dependency on ConfigMap readability/parsing.
+func loadUserSpeculativeConfig(ctx context.Context, kubeClient client.Client, ws *v1beta1.Workspace) (bool, error) {
+	if ws == nil || ws.Inference == nil || ws.Inference.Config == "" {
+		return false, nil
+	}
+	if kubeClient == nil {
+		return false, fmt.Errorf("kube client is required to read inference config %q", ws.Inference.Config)
+	}
+
+	var cm corev1.ConfigMap
+	if err := kubeClient.Get(ctx, client.ObjectKey{Name: ws.Inference.Config, Namespace: ws.Namespace}, &cm); err != nil {
+		return false, fmt.Errorf("get inference config ConfigMap %s/%s: %w", ws.Namespace, ws.Inference.Config, err)
+	}
+
+	inferenceConfigYAML, ok := cm.Data[pkgmodel.ConfigfileNameVLLM]
+	if !ok {
+		return false, fmt.Errorf("ConfigMap %s/%s missing %q", ws.Namespace, ws.Inference.Config, pkgmodel.ConfigfileNameVLLM)
+	}
+
+	var cfg rawInferenceConfig
+	if err := yaml.Unmarshal([]byte(inferenceConfigYAML), &cfg); err != nil {
+		return false, fmt.Errorf("parse %s/%s %q: %w", ws.Namespace, ws.Inference.Config, pkgmodel.ConfigfileNameVLLM, err)
+	}
+	if cfg.VLLM == nil {
+		return false, nil
+	}
+	_, ok = cfg.VLLM["speculative-config"]
+	return ok, nil
+}
+
+// applySpeculativeDecoding evaluates the speculative-decoding annotation and,
+// when applicable, mutates inferenceParam.VLLM.ModelRunParams to include the
+// --speculative-config flag. The decision is returned so callers (and tests)
+// can assert the reason without inspecting the ModelRunParams map.
+func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.RuntimeName, inferenceParam *pkgmodel.PresetParam, userConfigHasSpeculativeOverride bool) (SpecDecoDecision, error) {
+	if runtimeName != pkgmodel.RuntimeNameVLLM ||
+		ws.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding] != "true" {
+		return SpecDecoSkip, nil
+	}
+	if ws.Status.TargetNodeCount > 1 {
+		// PP compatibility depends on the resolved method. ngram (universal
+		// fallback) and mtp (the tuned DeepSeek presets' baked-in heads placed on the
+		// last PP stage by vLLM) still run under PP; eagle / eagle3 do not.
+		// See proposal #2303 for the full truth table.
+		method := presetgen.SpeculativeDecodingFallbackMethod
+		if inferenceParam.SpeculativeDecoding != nil && inferenceParam.SpeculativeDecoding.Method != "" {
+			method = inferenceParam.SpeculativeDecoding.Method
+		}
+		if !presetgen.SpeculativeDecodingMethodSupportsPipelineParallelism(method) {
+			// TODO(#2303-followup): surface as ConditionSpeculativeDecodingDisabled(PipelineParallelism).
+			return SpecDecoPipelineParallelism, nil
+		}
+		// TODO(#2303-followup): for ngram / mtp under PP, emit a Warning
+		// event (SpeculativeDecodingReducedUnderPP) so operators know
+		// the realized speedup is smaller than single-node. Each
+		// iteration eats a full pipeline round-trip for the accept/
+		// reject signal, and single-request spec decoding cannot hide
+		// PP bubbles.
+	}
+	if userConfigHasSpeculativeOverride {
+		return SpecDecoConfigMapOverride, nil
+	}
+
+	// Preset-tuned entry wins when present (e.g. mtp for DeepSeek R1/V3/V3.2). Otherwise
+	// fall back to the universal ngram default so any preset the user opts into
+	// still gets a working speculative-config injection.
+	sdCfg := inferenceParam.SpeculativeDecoding
+	fallback := false
+	if sdCfg == nil {
+		sdCfg = defaultFallbackNGramConfig()
+		fallback = true
+	}
+	blob, err := vllmFormat(sdCfg)
+	if err != nil {
+		return SpecDecoNotEvaluated, err
+	}
+	if inferenceParam.VLLM.ModelRunParams == nil {
+		inferenceParam.VLLM.ModelRunParams = map[string]string{}
+	}
+	inferenceParam.VLLM.ModelRunParams["speculative-config"] = shellSingleQuote(blob)
+	if fallback {
+		return SpecDecoInjectedNGramFallback, nil
+	}
+	return SpecDecoInjected, nil
+}
+
+// vllmFormat converts a typed SpeculativeDecodingConfig into the JSON shape
+// vLLM expects for --speculative-config.
+func vllmFormat(sd *pkgmodel.SpeculativeDecodingConfig) (string, error) {
+	if sd == nil {
+		return "", fmt.Errorf("vllmFormat: SpeculativeDecodingConfig is nil")
+	}
+	m := map[string]any{"method": sd.Method}
+	switch sd.Method {
+	case "mtp":
+		if sd.MTP == nil {
+			return "", fmt.Errorf("method=mtp requires mtp config")
+		}
+		m["num_speculative_tokens"] = sd.MTP.NumSpeculativeTokens
+	case "ngram":
+		if sd.NGram == nil {
+			return "", fmt.Errorf("method=ngram requires ngram config")
+		}
+		m["num_speculative_tokens"] = sd.NGram.NumSpeculativeTokens
+		m["prompt_lookup_max"] = sd.NGram.PromptLookupMax
+	default:
+		return "", fmt.Errorf("unsupported speculative decoding method %q", sd.Method)
+	}
+	b, err := json.Marshal(m)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}
 }

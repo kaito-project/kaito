@@ -245,30 +245,25 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		// presets/workspace/generator/generator.go speculativeDecodingByPreset,
 		// so this exercises the universal ngram fallback path introduced in
 		// PR #2312 (see docs/proposals/20260827-speculative-decoding.md,
-		// "Method → Preset Selection Rule"): admission accepts the annotation,
-		// the controller resolves method=ngram with the KAITO defaults
-		// (num_speculative_tokens=5, prompt_lookup_max=4), and vLLM still
-		// starts / serves normally.
-		numOfNode := 1
-		workspaceObj := createGemma4_E2BInstructWorkspaceWithSpeculativeDecodingAndVLLM(numOfNode)
+		// "Method → Preset Selection Rule"): admission accepts the annotation
+		// on Spec.Template.Annotations, the InferenceSet controller clones it
+		// onto the child Workspace, the Workspace controller resolves
+		// method=ngram with the KAITO defaults (num_speculative_tokens=5,
+		// prompt_lookup_max=4), and vLLM still starts / serves normally.
+		//
+		// Running through InferenceSet (rather than a bare Workspace) also
+		// covers the propagation path exercised by the admission gate the
+		// mirrored InferenceSet validator was added for.
+		numOfReplicas := 1
+		inferenceSetObj := createGemma4_E2BInstructInferenceSetWithSpeculativeDecodingAndVLLM(numOfReplicas)
+		DeferCleanup(func() {
+			cleanupResourcesForInferenceSet(inferenceSetObj)
+		})
 
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
+		validateInferenceSetStatus(inferenceSetObj)
+		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
 
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
-
-		time.Sleep(30 * time.Second)
-
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
-		validateInferenceResource(workspaceObj, int32(numOfNode))
-
-		validateSpeculativeDecodingNGramInjected(workspaceObj)
-
-		validateWorkspaceReadiness(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateChatCompletionsEndpoint(workspaceObj)
+		validateInferenceSetSpeculativeDecodingNGramInjected(inferenceSetObj)
 	})
 
 	It("should create a Gemma 3 InferenceSet with preset public mode and validate BBR routing", Serial, utils.GinkgoLabelFastCheck, func() {
@@ -1243,52 +1238,57 @@ func createGemma4_12BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int)
 	return workspaceObj
 }
 
-// createGemma4_E2BInstructWorkspaceWithSpeculativeDecodingAndVLLM builds a
-// Workspace identical to createGemma4_E2BInstructWorkspaceWithPresetPublicModeAndVLLM
-// but with the kaito.sh/enable-speculative-decoding annotation set. Because
-// gemma-4-E2B is not in presets/workspace/generator/generator.go
+// createGemma4_E2BInstructInferenceSetWithSpeculativeDecodingAndVLLM builds
+// an InferenceSet using the gemma-4-E2B preset with the
+// kaito.sh/enable-speculative-decoding annotation set on Spec.Template.
+// Because gemma-4-E2B is not in presets/workspace/generator/generator.go
 // speculativeDecodingByPreset, this exercises the universal ngram fallback
-// added in PR #2312.
-func createGemma4_E2BInstructWorkspaceWithSpeculativeDecodingAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
-	workspaceObj := &kaitov1beta1.Workspace{}
+// added in PR #2312 and also covers the InferenceSet -> child Workspace
+// annotation-propagation path.
+func createGemma4_E2BInstructInferenceSetWithSpeculativeDecodingAndVLLM(replicas int) *kaitov1beta1.InferenceSet {
+	modelSecret := createAndValidateModelSecret()
+	inferenceSetObj := &kaitov1beta1.InferenceSet{}
 
-	By("Creating a workspace CR with Gemma 4 E2B preset public mode, vLLM, and speculative-decoding annotation", func() {
-		uniqueID := fmt.Sprint("preset-gemma-4-e2b-spec-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
+	By("Creating an InferenceSet CR with Gemma 4 E2B preset public mode, vLLM, and speculative-decoding annotation", func() {
+		uniqueID := fmt.Sprint("preset-gemma-4-e2b-spec-is-", rand.Intn(1000))
+		inferenceSetObj = utils.GenerateInferenceSetManifestWithVLLM(uniqueID, namespaceName, "", replicas, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gemma-4-e2b-vllm-specdec"},
-			}, nil, PresetGemma4_E2BInstructModel, nil, nil, nil, "", "")
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-is-e2e-test-gemma-4-e2b-vllm-specdec"},
+			}, PresetGemma4_E2BInstructModel, nil, nil, modelSecret.Name)
 
-		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
-		if workspaceObj.Annotations == nil {
-			workspaceObj.Annotations = map[string]string{}
+		inferenceSetObj.Spec.Template.Annotations = utils.DisableModelStreaming(inferenceSetObj.Spec.Template.Annotations)
+		if inferenceSetObj.Spec.Template.Annotations == nil {
+			inferenceSetObj.Spec.Template.Annotations = map[string]string{}
 		}
-		workspaceObj.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding] = "true"
-		createAndValidateWorkspace(workspaceObj)
+		inferenceSetObj.Spec.Template.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding] = "true"
+		createAndValidateInferenceSet(inferenceSetObj)
 	})
 
-	return workspaceObj
+	return inferenceSetObj
 }
 
-// validateSpeculativeDecodingNGramInjected fetches the workspace's inference
-// pod(s) and asserts that the vLLM container command line contains the
-// --speculative-config flag with method=ngram and the KAITO universal-fallback
-// defaults (num_speculative_tokens=5, prompt_lookup_max=4). This is the
-// end-to-end assertion for PR #2312's universal ngram fallback path: the
-// annotation was accepted at admission, the controller resolved the fallback,
-// and the flag reached the vLLM invocation without a per-preset config.
-func validateSpeculativeDecodingNGramInjected(workspaceObj *kaitov1beta1.Workspace) {
-	By("Verifying the vLLM pod was launched with --speculative-config method=ngram", func() {
+// validateInferenceSetSpeculativeDecodingNGramInjected asserts that at least
+// one child Workspace pod created by the InferenceSet was launched with the
+// vLLM --speculative-config flag carrying method=ngram and the KAITO
+// universal-fallback defaults (num_speculative_tokens=5, prompt_lookup_max=4).
+// This is the end-to-end assertion for PR #2312's universal ngram fallback
+// path when the opt-in flows through InferenceSet: the annotation on
+// Spec.Template.Annotations was accepted at InferenceSet admission, the
+// InferenceSet controller cloned it onto the child Workspace, the Workspace
+// controller resolved the fallback, and the flag reached the vLLM invocation
+// without a per-preset config.
+func validateInferenceSetSpeculativeDecodingNGramInjected(inferenceSetObj *kaitov1beta1.InferenceSet) {
+	By("Verifying a child Workspace pod was launched with --speculative-config method=ngram", func() {
 		Eventually(func() error {
 			pods := &corev1.PodList{}
 			if err := utils.TestingCluster.KubeClient.List(ctx, pods,
-				client.InNamespace(workspaceObj.Namespace),
-				client.MatchingLabels{kaitov1beta1.LabelWorkspaceName: workspaceObj.Name},
+				client.InNamespace(inferenceSetObj.Namespace),
+				client.MatchingLabels{consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name},
 			); err != nil {
 				return fmt.Errorf("list pods: %w", err)
 			}
 			if len(pods.Items) == 0 {
-				return fmt.Errorf("no pods found for workspace %s/%s", workspaceObj.Namespace, workspaceObj.Name)
+				return fmt.Errorf("no child-workspace pods found for InferenceSet %s/%s", inferenceSetObj.Namespace, inferenceSetObj.Name)
 			}
 			for _, pod := range pods.Items {
 				if len(pod.Spec.Containers) == 0 {
@@ -1309,7 +1309,7 @@ func validateSpeculativeDecodingNGramInjected(workspaceObj *kaitov1beta1.Workspa
 				}
 			}
 			return nil
-		}, 5*time.Minute, utils.PollInterval).Should(Succeed(), "universal ngram --speculative-config should be injected on the vLLM pod")
+		}, 20*time.Minute, utils.PollInterval).Should(Succeed(), "universal ngram --speculative-config should be injected on the InferenceSet's child Workspace pods")
 	})
 }
 

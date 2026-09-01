@@ -264,6 +264,15 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
 
 		validateInferenceSetSpeculativeDecodingNGramInjected(inferenceSetObj)
+
+		// A vLLM start-up that carries --speculative-config but errors on the
+		// first request would still pass the flag-injection assertion above.
+		// Drive a real /v1/chat/completions round-trip through a child
+		// Workspace so the ngram proposer actually runs during decoding.
+		childWS := getFirstInferenceSetChildWorkspace(inferenceSetObj)
+		validateWorkspaceReadiness(childWS)
+		validateModelsEndpoint(childWS)
+		validateChatCompletionsEndpoint(childWS)
 	})
 
 	It("should create a Gemma 3 InferenceSet with preset public mode and validate BBR routing", Serial, utils.GinkgoLabelFastCheck, func() {
@@ -1311,6 +1320,34 @@ func validateInferenceSetSpeculativeDecodingNGramInjected(inferenceSetObj *kaito
 			return nil
 		}, 20*time.Minute, utils.PollInterval).Should(Succeed(), "universal ngram --speculative-config should be injected on the InferenceSet's child Workspace pods")
 	})
+}
+
+// getFirstInferenceSetChildWorkspace returns the first Workspace created by
+// the InferenceSet controller. It is used by the ngram-fallback e2e to reuse
+// the existing Workspace-based validators (validateModelsEndpoint,
+// validateChatCompletionsEndpoint) against a child Workspace so a real
+// /v1/chat/completions round-trip catches ngram-proposer runtime failures
+// that would slip past pure flag-injection assertions.
+func getFirstInferenceSetChildWorkspace(inferenceSetObj *kaitov1beta1.InferenceSet) *kaitov1beta1.Workspace {
+	var childWS *kaitov1beta1.Workspace
+	By(fmt.Sprintf("Fetching a child Workspace for InferenceSet %s", inferenceSetObj.Name), func() {
+		Eventually(func() bool {
+			wsList := &kaitov1beta1.WorkspaceList{}
+			if err := utils.TestingCluster.KubeClient.List(ctx, wsList,
+				client.InNamespace(inferenceSetObj.Namespace),
+				client.MatchingLabels{consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name},
+			); err != nil {
+				return false
+			}
+			if len(wsList.Items) == 0 {
+				return false
+			}
+			childWS = &wsList.Items[0]
+			return true
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(),
+			"expected at least one child Workspace for InferenceSet %s", inferenceSetObj.Name)
+	})
+	return childWS
 }
 
 func createQwen3_8_27BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {

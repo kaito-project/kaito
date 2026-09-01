@@ -3269,10 +3269,10 @@ func TestWorkspaceValidateSpeculativeDecoding(t *testing.T) {
 			wantErr:     false,
 		},
 		{
-			name:        "true with unsupported preset",
+			name:        "true with unsupported preset - accepted (falls back to ngram)",
 			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
 			inference:   &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "llama-3.1-8b-instruct"}}},
-			wantErr:     true,
+			wantErr:     false,
 		},
 		{
 			name:        "true with no preset",

@@ -45,7 +45,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/mig"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/kaito-project/kaito/presets/workspace/generator"
 	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
@@ -206,34 +205,9 @@ func (w *Workspace) validateSpeculativeDecoding(ctx context.Context) (errs *apis
 		return errs
 	}
 
-	// (b) Preset must be in the supported list.
-	supported := generator.SupportedSpeculativeDecodingPresets()
-	presetName := string(w.Inference.Preset.Name)
-	presetLower := strings.ToLower(presetName)
-	presetSupported := false
-	for _, s := range supported {
-		if strings.ToLower(s) == presetLower {
-			presetSupported = true
-			break
-		}
-		if canonical := plugin.LegacyBuiltinToCatalog[s]; canonical != "" &&
-			strings.ToLower(canonical) == presetLower {
-			presetSupported = true
-			break
-		}
-	}
-	if !presetSupported {
-		errs = errs.Also(apis.ErrGeneric(
-			fmt.Sprintf(
-				"preset %q does not have a validated speculative decoding configuration; "+
-					"remove kaito.sh/enable-speculative-decoding annotation or choose a "+
-					"supported preset (currently: %s)",
-				presetName, strings.Join(supported, ", "),
-			),
-			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
-		))
-		return errs
-	}
+	// (b) Any preset is accepted: presets registered in generator.speculativeDecodingByPreset
+	// get their preset-tuned config (e.g. mtp for DeepSeek R1/V3); everything else
+	// falls back to the universal ngram default at pod-spec generation time.
 
 	// (c) Runtime must be vLLM.
 	if GetWorkspaceRuntimeName(w) != model.RuntimeNameVLLM {

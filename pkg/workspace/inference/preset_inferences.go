@@ -65,7 +65,15 @@ const (
 	// SpecDecoInjected means the preset config was injected successfully.
 	SpecDecoInjected
 	// SpecDecoUnsupportedPreset means the annotation is set but the preset has no config.
+	// Retained for backwards compatibility with the enum ordering; unreachable at
+	// runtime now that unsupported presets fall through to the universal ngram
+	// default (see SpecDecoInjectedNGramFallback).
 	SpecDecoUnsupportedPreset
+	// SpecDecoInjectedNGramFallback means the preset has no per-preset config so
+	// the universal ngram default (num_speculative_tokens=5, prompt_lookup_max=4)
+	// was injected. Kept as a distinct decision so telemetry / events can
+	// distinguish "preset-tuned" from "universal fallback" injections.
+	SpecDecoInjectedNGramFallback
 )
 
 // PresetInferenceResult wraps the workload object and the speculative decoding decision.
@@ -1191,6 +1199,32 @@ func shellSingleQuote(s string) string {
 	return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'"
 }
 
+// defaultFallbackNGramConfig returns the universal ngram fallback used when the
+// annotation is enabled on a preset that has no per-preset speculative decoding
+// entry. The parameters mirror the vLLM upstream ngram example (see proposal
+// PR #2303 "Background - Speculative Decoding Methods") and are intentionally
+// conservative so they are safe on any preset in the catalog:
+//
+//   - num_speculative_tokens=5: matches vLLM's documented ngram baseline;
+//     large enough to see gains on repetition-heavy workloads (code, RAG,
+//     summarization, translation, agent tool-call echo) without dominating
+//     verification cost on more open-ended generation.
+//   - prompt_lookup_max=4: matches vLLM's documented default and caps the
+//     lookup window so lookup cost stays O(prompt_len * 4).
+//
+// ngram is preset-agnostic ("pure lookup against prompt + generation history",
+// no draft checkpoint, no extra GPU memory), so we can safely apply the same
+// defaults to any preset the user opts in.
+func defaultFallbackNGramConfig() *pkgmodel.SpeculativeDecodingConfig {
+	return &pkgmodel.SpeculativeDecodingConfig{
+		Method: "ngram",
+		NGram: &pkgmodel.NGramConfig{
+			NumSpeculativeTokens: 5,
+			PromptLookupMax:      4,
+		},
+	}
+}
+
 // applySpeculativeDecoding evaluates the speculative-decoding annotation and,
 // when applicable, mutates inferenceParam.VLLM.ModelRunParams to include the
 // --speculative-config flag. The decision is returned so callers (and tests)
@@ -1200,16 +1234,23 @@ func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.Runtim
 		ws.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding] != "true" {
 		return SpecDecoSkip, nil
 	}
-	if inferenceParam.SpeculativeDecoding == nil {
-		return SpecDecoUnsupportedPreset, nil
-	}
 	if ws.Status.TargetNodeCount > 1 {
 		// TODO(#2303-followup): surface as ConditionSpeculativeDecodingDisabled(PipelineParallelism).
 		return SpecDecoPipelineParallelism, nil
 	}
 	// TODO(#2303-followup): honor ConfigMap-provided speculative-config override
 	// (return SpecDecoConfigMapOverride and emit a SpeculativeDecodingConfigMapOverride event).
-	blob, err := vllmFormat(inferenceParam.SpeculativeDecoding)
+
+	// Preset-tuned entry wins when present (e.g. mtp for DeepSeek R1/V3). Otherwise
+	// fall back to the universal ngram default so any preset the user opts into
+	// still gets a working speculative-config injection.
+	sdCfg := inferenceParam.SpeculativeDecoding
+	fallback := false
+	if sdCfg == nil {
+		sdCfg = defaultFallbackNGramConfig()
+		fallback = true
+	}
+	blob, err := vllmFormat(sdCfg)
 	if err != nil {
 		return SpecDecoNotEvaluated, err
 	}
@@ -1217,6 +1258,9 @@ func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.Runtim
 		inferenceParam.VLLM.ModelRunParams = map[string]string{}
 	}
 	inferenceParam.VLLM.ModelRunParams["speculative-config"] = shellSingleQuote(blob)
+	if fallback {
+		return SpecDecoInjectedNGramFallback, nil
+	}
 	return SpecDecoInjected, nil
 }
 

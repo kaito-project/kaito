@@ -27,8 +27,6 @@ import (
 
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/kaito-project/kaito/presets/workspace/generator"
 )
 
 func (is *InferenceSet) SupportedVerbs() []admissionregistrationv1.OperationType {
@@ -121,38 +119,11 @@ func (is *InferenceSet) validateSpeculativeDecoding() (errs *apis.FieldError) {
 		))
 	}
 
-	supported := generator.SupportedSpeculativeDecodingPresets()
+	// Any preset is accepted: presets registered in generator.speculativeDecodingByPreset
+	// get their preset-tuned config (e.g. mtp for DeepSeek R1/V3); everything else
+	// falls back to the universal ngram default at pod-spec generation time.
 	presetName := string(inf.Preset.Name)
-	presetLower := strings.ToLower(presetName)
-	presetSupported := false
-	for _, s := range supported {
-		if strings.ToLower(s) == presetLower {
-			presetSupported = true
-			break
-		}
-		if canonical := plugin.LegacyBuiltinToCatalog[s]; canonical != "" &&
-			strings.ToLower(canonical) == presetLower {
-			presetSupported = true
-			break
-		}
-	}
-	if !presetSupported {
-		return errs.Also(apis.ErrGeneric(
-			fmt.Sprintf(
-				"preset %q does not have a validated speculative decoding configuration; "+
-					"remove kaito.sh/enable-speculative-decoding annotation or choose a "+
-					"supported preset (currently: %s)",
-				presetName, strings.Join(supported, ", "),
-			),
-			fmt.Sprintf("spec.template.metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
-		))
-	}
 
-	// Runtime must be vLLM. InferenceSet doesn't itself carry a runtime
-	// override, but the preset name still fixes the runtime through the
-	// GetInferenceRuntime path used by the child Workspace validator; use the
-	// same helper by constructing a minimal Workspace wrapper here would
-	// import-cycle, so instead we mirror the check inline.
 	// Runtime must be vLLM. Uses the same helper the runtime layer uses,
 	// so a workload that would resolve to HuggingFace at pod-spec generation
 	// time (e.g. because the FeatureFlagVLLM feature gate is disabled) is

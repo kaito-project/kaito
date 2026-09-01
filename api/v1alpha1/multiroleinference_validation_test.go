@@ -298,7 +298,7 @@ func TestMultiRoleInferenceValidateSpeculativeDecoding(t *testing.T) {
 		{"invalid value - rejected", map[string]string{AnnotationEnableSpeculativeDecoding: "yes"}, "deepseek-r1-0528", true},
 		{"true supported preset - pass", map[string]string{AnnotationEnableSpeculativeDecoding: "true"}, "deepseek-r1-0528", false},
 		{"true second supported preset - pass", map[string]string{AnnotationEnableSpeculativeDecoding: "true"}, "deepseek-v3-0324", false},
-		{"true unsupported preset - rejected", map[string]string{AnnotationEnableSpeculativeDecoding: "true"}, "llama-3.1-8b-instruct", true},
+		{"true unsupported preset - accepted (ngram fallback)", map[string]string{AnnotationEnableSpeculativeDecoding: "true"}, "llama-3.1-8b-instruct", false},
 		{"true empty model - rejected", map[string]string{AnnotationEnableSpeculativeDecoding: "true"}, "", true},
 		{
 			name: "true with non-vllm runtime - rejected",

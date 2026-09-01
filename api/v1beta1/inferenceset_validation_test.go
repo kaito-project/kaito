@@ -269,10 +269,10 @@ func TestInferenceSetValidateSpeculativeDecoding(t *testing.T) {
 			wantErr:     false,
 		},
 		{
-			name:        "true with unsupported preset - rejected",
+			name:        "true with unsupported preset - accepted (falls back to ngram)",
 			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
 			template:    presetTpl("llama-3.1-8b-instruct"),
-			wantErr:     true,
+			wantErr:     false,
 		},
 		{
 			name:        "true without preset - rejected",

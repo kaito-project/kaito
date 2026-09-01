@@ -303,7 +303,7 @@ func TestMultiRoleInferenceValidateSpeculativeDecoding(t *testing.T) {
 			name: "true with non-vllm runtime - rejected",
 			annotations: map[string]string{
 				AnnotationEnableSpeculativeDecoding: "true",
-				AnnotationWorkspaceRuntime:          "huggingface-transformers",
+				AnnotationWorkspaceRuntime:          "transformers",
 			},
 			modelName: "deepseek-r1-0528",
 			wantErr:   true,

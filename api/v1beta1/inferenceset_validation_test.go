@@ -283,7 +283,7 @@ func TestInferenceSetValidateSpeculativeDecoding(t *testing.T) {
 			name: "true with non-vllm runtime annotation - rejected",
 			annotations: map[string]string{
 				AnnotationEnableSpeculativeDecoding: "true",
-				AnnotationWorkspaceRuntime:          "huggingface-transformers",
+				AnnotationWorkspaceRuntime:          "transformers",
 			},
 			template: presetTpl("deepseek-r1-0528"),
 			wantErr:  true,

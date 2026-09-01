@@ -29,9 +29,9 @@ def read_yaml(file_path):
         return None
 
 
-supported_models_yaml = "presets/workspace/models/supported_models.yaml"
-supported_models = read_yaml(supported_models_yaml)
-MODELS = {model["name"]: model for model in supported_models["models"]}
+base_images_yaml = "presets/workspace/models/base_images.yaml"
+base_images = read_yaml(base_images_yaml)
+BASE_IMAGES = {image["name"]: image for image in base_images["images"]}
 
 
 def set_multiline_output(name, value):
@@ -45,9 +45,9 @@ def set_multiline_output(name, value):
         print(delimiter, file=fh)
 
 
-def create_matrix(models_list):
+def create_matrix(image_names):
     """Create GitHub Matrix"""
-    matrix = [MODELS[model] for model in models_list]
+    matrix = [BASE_IMAGES[name] for name in image_names]
     return json.dumps(matrix)
 
 
@@ -65,24 +65,21 @@ def run_command(command):
         return None
 
 
-def models_to_build():
-    models = []
-    for model in supported_models["models"]:
-        if model.get("downloadAtRuntime", False):
-            continue
-
-        # `crane ls` lists all existing tags for the given preset image
+def base_images_to_build():
+    images = []
+    for image in base_images["images"]:
+        # `crane ls` lists all existing tags for the given base image
         existing_tags = run_command(
-            f"crane ls mcr.microsoft.com/aks/kaito/kaito-{model['name']}"
+            f"crane ls mcr.microsoft.com/aks/kaito/kaito-{image['name']}"
         )
-        if not existing_tags or model["tag"] not in existing_tags:
-            models.append(model["name"])
-    return models
+        if not existing_tags or image["tag"] not in existing_tags:
+            images.append(image["name"])
+    return images
 
 
 def main():
-    # Convert the list of models into JSON matrix format
-    matrix = create_matrix(models_to_build())
+    # Convert the list of base images into JSON matrix format
+    matrix = create_matrix(base_images_to_build())
     print(matrix)
 
     # Set the matrix as an output for the GitHub Actions workflow

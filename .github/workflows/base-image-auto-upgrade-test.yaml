@@ -55,7 +55,7 @@ jobs:
         run: |
           # Build the base image directly with the actual version tag (e.g. 0.3.2)
           # so the auto-upgrade label shows the real version instead of a random CI ID.
-          BASE_TAG=$(git show HEAD:presets/workspace/models/supported_models.yaml | yq '.models[] | select(.name == "base") | .tag')
+          BASE_TAG=$(git show HEAD:presets/workspace/models/base_images.yaml | yq '.images[] | select(.name == "base") | .tag')
           echo "Building base image: $REGISTRY/kaito-base:$BASE_TAG"
 
           docker buildx build \
@@ -65,9 +65,9 @@ jobs:
             --output "type=image,name=$REGISTRY/kaito-base:$BASE_TAG,push=true,compression=zstd" \
             -f ./docker/presets/models/tfs/Dockerfile .
 
-          # Ensure supported_models.yaml points to test ACR with the semantic tag
-          yq -i "(.models[] | select(.name == \"base\") | .tag) = \"$BASE_TAG\"" presets/workspace/models/supported_models.yaml
-          yq -i "(.models[] | select(.name == \"base\") | .registry) = \"$REGISTRY\"" presets/workspace/models/supported_models.yaml
+          # Ensure base_images.yaml points to test ACR with the semantic tag
+          yq -i "(.images[] | select(.name == \"base\") | .tag) = \"$BASE_TAG\"" presets/workspace/models/base_images.yaml
+          yq -i "(.images[] | select(.name == \"base\") | .registry) = \"$REGISTRY\"" presets/workspace/models/base_images.yaml
           echo "Base model config: registry=$REGISTRY, tag=$BASE_TAG"
 
       - name: Build workspace controller
@@ -203,8 +203,8 @@ jobs:
           WS_NAME=$(kubectl get workspace -l inferenceset.kaito.sh/created-by=auto-upgrade-test -o jsonpath='{.items[0].metadata.name}')
 
           # The expected new base tag is what e2e-base-setup embedded in the controller
-          # (e2e-base-setup overrides supported_models.yaml to use test ACR + $VERSION tag)
-          NEW_TAG=$(yq '.models[] | select(.name == "base") | .tag' presets/workspace/models/supported_models.yaml)
+          # (e2e-base-setup overrides base_images.yaml to use test ACR + $VERSION tag)
+          NEW_TAG=$(yq '.images[] | select(.name == "base") | .tag' presets/workspace/models/base_images.yaml)
           echo "Expected new base tag: $NEW_TAG"
 
           end=$((SECONDS+600))
@@ -229,7 +229,7 @@ jobs:
         shell: bash
         run: |
           WS_NAME=$(kubectl get workspace -l inferenceset.kaito.sh/created-by=auto-upgrade-test -o jsonpath='{.items[0].metadata.name}')
-          NEW_TAG=$(yq '.models[] | select(.name == "base") | .tag' presets/workspace/models/supported_models.yaml)
+          NEW_TAG=$(yq '.images[] | select(.name == "base") | .tag' presets/workspace/models/base_images.yaml)
           echo "Waiting for workspace $WS_NAME to finish upgrade (new tag: $NEW_TAG)..."
 
           # First, wait for the upgrade to actually start (InferenceReady goes False)
@@ -375,7 +375,7 @@ jobs:
         run: |
           # Build the base image directly with the actual version tag (e.g. 0.3.2)
           # so the auto-upgrade label shows the real version instead of a random CI ID.
-          BASE_TAG=$(git show HEAD:presets/workspace/models/supported_models.yaml | yq '.models[] | select(.name == "base") | .tag')
+          BASE_TAG=$(git show HEAD:presets/workspace/models/base_images.yaml | yq '.images[] | select(.name == "base") | .tag')
           echo "Building base image: $REGISTRY/kaito-base:$BASE_TAG"
 
           docker buildx build \
@@ -385,9 +385,9 @@ jobs:
             --output "type=image,name=$REGISTRY/kaito-base:$BASE_TAG,push=true,compression=zstd" \
             -f ./docker/presets/models/tfs/Dockerfile .
 
-          # Ensure supported_models.yaml points to test ACR with the semantic tag
-          yq -i "(.models[] | select(.name == \"base\") | .tag) = \"$BASE_TAG\"" presets/workspace/models/supported_models.yaml
-          yq -i "(.models[] | select(.name == \"base\") | .registry) = \"$REGISTRY\"" presets/workspace/models/supported_models.yaml
+          # Ensure base_images.yaml points to test ACR with the semantic tag
+          yq -i "(.images[] | select(.name == \"base\") | .tag) = \"$BASE_TAG\"" presets/workspace/models/base_images.yaml
+          yq -i "(.images[] | select(.name == \"base\") | .registry) = \"$REGISTRY\"" presets/workspace/models/base_images.yaml
           echo "Base model config: registry=$REGISTRY, tag=$BASE_TAG"
 
       - name: Build workspace controller
@@ -520,7 +520,7 @@ jobs:
       - name: Verify a new workspace is created on the new base image
         shell: bash
         run: |
-          NEW_TAG=$(yq '.models[] | select(.name == "base") | .tag' presets/workspace/models/supported_models.yaml)
+          NEW_TAG=$(yq '.images[] | select(.name == "base") | .tag' presets/workspace/models/base_images.yaml)
           echo "Expected new base tag: $NEW_TAG"
           echo "Old workspace: $OLD_WS"
           echo "Waiting for the auto-upgrade runner to create a new (surge) workspace..."
@@ -563,7 +563,7 @@ jobs:
       - name: Verify no downtime - old stays ready until the new workspace is ready
         shell: bash
         run: |
-          NEW_TAG=$(yq '.models[] | select(.name == "base") | .tag' presets/workspace/models/supported_models.yaml)
+          NEW_TAG=$(yq '.images[] | select(.name == "base") | .tag' presets/workspace/models/base_images.yaml)
           echo "Old: $OLD_WS  New: $NEW_WS"
 
           # The new workspace should run the NEW base image. The Workspace controller
@@ -650,7 +650,7 @@ jobs:
 
           # After cutover, exactly one replica should remain: the new workspace,
           # on the new tag and ready.
-          NEW_TAG=$(yq '.models[] | select(.name == "base") | .tag' presets/workspace/models/supported_models.yaml)
+          NEW_TAG=$(yq '.images[] | select(.name == "base") | .tag' presets/workspace/models/base_images.yaml)
           echo "Waiting for the InferenceSet to settle at 1 ready replica on $NEW_TAG..."
           end=$((SECONDS+2400))
           while [ $SECONDS -lt $end ]; do

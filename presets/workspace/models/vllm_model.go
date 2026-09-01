@@ -178,10 +178,7 @@ type vLLMCompatibleModel struct {
 func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 	metaData := &model.Metadata{
 		Name:                  m.model.Name,
-		ModelType:             "text-generation",
 		Version:               m.model.Version,
-		Runtime:               "tfs",
-		DownloadAtRuntime:     true,
 		DownloadAuthRequired:  m.model.DownloadAuthRequired,
 		Architectures:         m.model.Architectures,
 		QuantMethod:           m.model.QuantMethod,
@@ -257,8 +254,10 @@ func (m *vLLMCompatibleModel) GetTuningParameters() *model.PresetParam {
 	if !ok {
 		return nil
 	}
+	transformers := tc.Transformers.DeepCopy()
+	transformers.Tag = defaultTuningModelArtifactTag
 	return &model.PresetParam{
-		Metadata:                      MustGet(m.model.Name),
+		Metadata:                      m.model,
 		DiskStorageRequirement:        tc.DiskStorageRequirement,
 		TotalSafeTensorFileSize:       tc.TotalSafeTensorFileSize,
 		ModelTokenLimit:               tc.ModelTokenLimit,
@@ -266,7 +265,7 @@ func (m *vLLMCompatibleModel) GetTuningParameters() *model.PresetParam {
 		TuningPerGPUMemoryRequirement: tc.TuningPerGPUMemoryRequirement,
 		ReadinessTimeout:              tc.ReadinessTimeout,
 		RuntimeParam: model.RuntimeParam{
-			Transformers: tc.Transformers,
+			Transformers: transformers,
 		},
 	}
 }

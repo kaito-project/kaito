@@ -66,16 +66,15 @@ func TestGeneratePresetInference(t *testing.T) {
 	baseImage := metadata.MustGet("base")
 	baseImageName := fmt.Sprintf("test-registry/kaito-base:%s", baseImage.Tag)
 	testcases := map[string]struct {
-		workspace          *v1beta1.Workspace
-		nodeCount          int
-		modelName          string
-		callMocks          func(c *test.MockClient)
-		expectedCmd        string
-		hasAdapters        bool
-		inferenceConfig    string
-		expectedModelImage string
-		expectedVolume     string
-		expectedEnvVars    []corev1.EnvVar
+		workspace       *v1beta1.Workspace
+		nodeCount       int
+		modelName       string
+		callMocks       func(c *test.MockClient)
+		expectedCmd     string
+		hasAdapters     bool
+		inferenceConfig string
+		expectedVolume  string
+		expectedEnvVars []corev1.EnvVar
 	}{
 		"test-model/vllm": {
 			workspace: test.MockWorkspaceWithPresetVLLM,
@@ -85,7 +84,6 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
 			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.92 --max-model-len=auto --tensor-parallel-size=1 --served-model-name=mymodel",
@@ -101,7 +99,6 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
 			// User-provided Inference.Config should mount the configmap and append
 			// --kaito-config-file pointing at the in-pod mount path.
 			inferenceConfig: "my-inference-config",
@@ -118,7 +115,6 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			expectedModelImage: "test-registry/kaito-test-no-tensor-parallel-model:1.0.0",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
 			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.92 --max-model-len=auto --tensor-parallel-size=1",
@@ -134,7 +130,6 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			expectedModelImage: "test-registry/kaito-test-no-lora-support-model:1.0.0",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
 			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.92 --max-model-len=auto --tensor-parallel-size=1",
@@ -150,10 +145,9 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
-			expectedCmd:        "/bin/sh -c python3 /workspace/vllm/inference_api.py --enable-lora --gpu-memory-utilization=0.92 --max-model-len=auto --tensor-parallel-size=1 --served-model-name=mymodel",
-			hasAdapters:        true,
-			expectedVolume:     "adapter-volume",
+			expectedCmd:    "/bin/sh -c python3 /workspace/vllm/inference_api.py --enable-lora --gpu-memory-utilization=0.92 --max-model-len=auto --tensor-parallel-size=1 --served-model-name=mymodel",
+			hasAdapters:    true,
+			expectedVolume: "adapter-volume",
 			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar, {
 				Name:  "Adapter-1",
 				Value: "0.5",
@@ -168,7 +162,6 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
 			expectedCmd: "/bin/sh -c accelerate launch /workspace/tfs/inference_api.py",
@@ -183,10 +176,9 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			expectedModelImage: "test-registry/kaito-test-model:1.0.0",
-			expectedCmd:        "/bin/sh -c accelerate launch /workspace/tfs/inference_api.py",
-			hasAdapters:        true,
-			expectedVolume:     "adapter-volume",
+			expectedCmd:    "/bin/sh -c accelerate launch /workspace/tfs/inference_api.py",
+			hasAdapters:    true,
+			expectedVolume: "adapter-volume",
 			expectedEnvVars: []corev1.EnvVar{{
 				Name:  "Adapter-1",
 				Value: "0.5",
@@ -380,27 +372,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			statefulset := createdObject.(*appsv1.StatefulSet)
 			image := statefulset.Spec.Template.Spec.Containers[0].Image
 			envVars := statefulset.Spec.Template.Spec.Containers[0].Env
-			initContainer := statefulset.Spec.Template.Spec.InitContainers
 
-			if tc.expectedModelImage != "" {
-				var pullerContainer corev1.Container
-				for _, container := range initContainer {
-					if container.Name == "model-weights-downloader" {
-						pullerContainer = container
-						break
-					}
-				}
-				expectedPullerCmd := []string{
-					"oras",
-					"pull",
-					tc.expectedModelImage,
-					"-o",
-					utils.DefaultWeightsVolumePath,
-				}
-				if !reflect.DeepEqual(pullerContainer.Command, expectedPullerCmd) {
-					t.Errorf("%s: Puller command is not expected, got %v, expect %v", k, pullerContainer.Command, expectedPullerCmd)
-				}
-			}
 			if image != baseImageName {
 				t.Errorf("%s: image is not expected, got %s, expect %s", k, image, baseImageName)
 			}
@@ -1195,195 +1167,6 @@ func TestSetAdapterPuller(t *testing.T) {
 	}
 }
 
-func TestSetModelDownloadInfo(t *testing.T) {
-	test.RegisterTestModel()
-
-	testcases := map[string]struct {
-		workspace             *v1beta1.Workspace
-		modelName             string
-		spec                  *corev1.PodSpec
-		expectedEnvVars       []corev1.EnvVar
-		expectedInitContainer int
-		expectError           bool
-		expectedErrorMsg      string
-	}{
-		"download at runtime - no env vars (HF_TOKEN handled by SetHFToken)": {
-			workspace: &v1beta1.Workspace{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "test-workspace",
-					Namespace: "default",
-				},
-				Inference: &v1beta1.InferenceSpec{
-					Preset: &v1beta1.PresetSpec{
-						PresetMeta: v1beta1.PresetMeta{
-							Name: "test-model-download",
-						},
-						PresetOptions: v1beta1.PresetOptions{
-							ModelAccessSecret: "hf-secret",
-						},
-					},
-				},
-			},
-			modelName: "test-model-download",
-			spec: &corev1.PodSpec{
-				Containers: []corev1.Container{
-					{
-						Name: "test-workspace",
-					},
-				},
-			},
-			expectedEnvVars:       []corev1.EnvVar{},
-			expectedInitContainer: 0,
-			expectError:           false,
-		},
-		"download at runtime with sidecar - no env vars (HF_TOKEN handled by SetHFToken)": {
-			workspace: &v1beta1.Workspace{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "test-workspace",
-					Namespace: "default",
-				},
-				Inference: &v1beta1.InferenceSpec{
-					Preset: &v1beta1.PresetSpec{
-						PresetMeta: v1beta1.PresetMeta{
-							Name: "test-model-download",
-						},
-						PresetOptions: v1beta1.PresetOptions{
-							ModelAccessSecret: "hf-secret",
-						},
-					},
-				},
-			},
-			modelName: "test-model-download",
-			spec: &corev1.PodSpec{
-				Containers: []corev1.Container{
-					{
-						Name: "test-workspace",
-					},
-					{
-						Name: "llm-d-routing-sidecar",
-					},
-				},
-			},
-			expectedEnvVars:       []corev1.EnvVar{},
-			expectedInitContainer: 0,
-			expectError:           false,
-		},
-		"model puller - add init containers": {
-			workspace: &v1beta1.Workspace{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "test-workspace",
-					Namespace: "default",
-				},
-				Inference: &v1beta1.InferenceSpec{
-					Preset: &v1beta1.PresetSpec{
-						PresetMeta: v1beta1.PresetMeta{
-							Name: "test-model",
-						},
-					},
-				},
-			},
-			modelName: "test-model",
-			spec: &corev1.PodSpec{
-				Containers: []corev1.Container{
-					{
-						Name: "test-workspace",
-					},
-				},
-			},
-			expectedEnvVars:       []corev1.EnvVar{},
-			expectedInitContainer: 1, // Expecting model-weights-downloader
-			expectError:           false,
-		},
-	}
-
-	for name, tc := range testcases {
-		t.Run(name, func(t *testing.T) {
-			model := plugin.KaitoModelRegister.MustGet(tc.modelName)
-
-			ctx := &generator.WorkspaceGeneratorContext{
-				Ctx:       context.TODO(),
-				Workspace: tc.workspace,
-				Model:     model,
-			}
-
-			// Store original state
-			originalInitContainerCount := len(tc.spec.InitContainers)
-
-			err := SetModelDownloadInfo(ctx, tc.spec)
-
-			// Check error
-			if tc.expectError {
-				if err == nil {
-					t.Errorf("expected error but got nil")
-				} else if tc.expectedErrorMsg != "" && err.Error() != tc.expectedErrorMsg {
-					t.Errorf("expected error message %q, got %q", tc.expectedErrorMsg, err.Error())
-				}
-			} else if err != nil {
-				t.Errorf("unexpected error: %v", err)
-			}
-
-			// Skip further checks if error is expected
-			if tc.expectError {
-				return
-			}
-
-			// Check environment variables if expected
-			if len(tc.expectedEnvVars) > 0 {
-				// HF_TOKEN should only be on the main container (matching workspace name)
-				mainContainerName := tc.workspace.Name
-				for i, container := range tc.spec.Containers {
-					found := false
-					for _, env := range container.Env {
-						if env.Name == "HF_TOKEN" {
-							found = true
-							if !reflect.DeepEqual(env, tc.expectedEnvVars[0]) {
-								t.Errorf("container %d (%s): HF_TOKEN env var mismatch: expected %+v, got %+v",
-									i, container.Name, tc.expectedEnvVars[0], env)
-							}
-						}
-					}
-					if container.Name == mainContainerName && !found {
-						t.Errorf("container %d (%s): HF_TOKEN env var not found on main container", i, container.Name)
-					}
-					if container.Name != mainContainerName && found {
-						t.Errorf("container %d (%s): HF_TOKEN should not be on non-main container", i, container.Name)
-					}
-				}
-			} else {
-				// Verify no HF_TOKEN env vars were added
-				for i, container := range tc.spec.Containers {
-					for _, env := range container.Env {
-						if env.Name == "HF_TOKEN" {
-							t.Errorf("container %d: unexpected HF_TOKEN env var found", i)
-						}
-					}
-				}
-			}
-
-			// Check init containers
-			actualInitContainerCount := len(tc.spec.InitContainers) - originalInitContainerCount
-			if actualInitContainerCount != tc.expectedInitContainer {
-				t.Errorf("init container count mismatch: expected %d new containers, got %d",
-					tc.expectedInitContainer, actualInitContainerCount)
-			}
-
-			if tc.expectedInitContainer > 0 {
-				// Look for model-weights-downloader container
-				found := false
-				for _, initContainer := range tc.spec.InitContainers {
-					if initContainer.Name == "model-weights-downloader" {
-						found = true
-						break
-					}
-				}
-				if !found {
-					t.Errorf("expected model-weights-downloader init container not found")
-				}
-			}
-		})
-	}
-}
-
 func TestDefaultTolerations(t *testing.T) {
 	testcases := map[string]struct {
 		cloudProvider string
@@ -1887,13 +1670,6 @@ func TestGeneratePresetInferenceNodeImageWeights(t *testing.T) {
 	}
 	if _, ok := mountsByPath[utils.DefaultWeightsVolumePath]; ok {
 		t.Errorf("did not expect default weights mount at %s", utils.DefaultWeightsVolumePath)
-	}
-
-	// No model puller init container.
-	for _, ic := range podSpec.InitContainers {
-		if ic.Name == "model-weights-downloader" {
-			t.Errorf("did not expect model puller init container when loading from node image")
-		}
 	}
 
 	// No prewarm init container: local weights load via the RunAI streamer, whose

@@ -1,0 +1,40 @@
+images:
+  # base image with no model weights
+  - name: base
+    tag: 0.5.0
+    runtimeVersion:
+      vllm: 0.25.1
+      transformers: 5.14.1
+    # Tag history:
+    # 0.5.0 - bump vllm to 0.26.0, lmcache to 0.5.2, transformers to 5.14.1; pin nixl-cu12 to 1.3.2
+    # 0.4.5 - DeepSeek-V4 support: bookworm base + g++ and runtime CUDA toolkit install (cuda-provision.sh) for DeepGEMM; bump transformers to 5.8.1
+    # 0.4.4 - use torch.cuda.mem_get_info() instead of pynvml for default gpu_memory_utilization
+    # 0.4.3 - add export_sas_token_for_streaming.sh transparent wrapper for SAS-authenticated blob streaming
+    # 0.4.2 - add runai-model-streamer for model streaming from cloud blob storage, add KAITO_PROCESSOR benchmark support
+    # 0.4.1 - pass trust_remote_code=true to GuideLLM benchmark
+    # 0.4.0 - bump vllm to 0.22.1, torch to 2.11.0
+    # 0.3.3 - add model download monitor
+    # 0.3.2 - make Worker nodes always ready in distributed inference to unblock StatefulSet rolling upgrade. bump lmcache to 0.4.6 and use its CUDA 12.9 wheel
+    # 0.3.1 - add NixlConnector kv_transfer_config for P/D disaggregation
+    # 0.3.0 - bump vllm to 0.19.1, transformers to 5.6.0
+    # 0.2.8 - update benchmark_entrypoint.py to poll kv cache size for concurrency calculation and pin venv transformer to 5.3.0
+    # 0.2.7 - bump vllm to 0.17.1
+    # 0.2.6 - update benchmark_entrypoint.py: re-emit config before result, add max_concurrency output
+    # 0.2.5 - remove uv after installation to fix CVEs in uv package
+    # 0.2.4 - fix CVEs in kaito-base image
+    # 0.2.3 - add benchmark exec startup probe support
+    # 0.2.2 - bump vllm to 0.14.1
+    # 0.2.1 - fix adapter loading logs
+    # 0.2.0 - switch transformers runtime to OpenAI-compatible serve engine (transformers[serving])
+    # 0.1.2 - fix unknown severity vulnerability in kaito-base image
+    # 0.1.1 - bump ray to 2.52.1
+    # 0.1.0 - bump vLLM to 0.12.0. remove the support for vllm v0
+    # 0.0.9 - bump pip to 25.3
+    # 0.0.8 - Fix multi-node-health-check issue
+    # 0.0.7 - bump lmcache to 0.3.5
+    # 0.0.6 - bump vLLM to 0.10.1.1, transformers to 4.55.2, torch to 2.7.1, lmcache to 0.3.3, ray to 2.48.0, accelerate to 1.3.0
+    # 0.0.5 - update chat-template for new models
+    # 0.0.4 - bump vLLM to 0.9.0.
+    # 0.0.3 - add dependencies to support vLLM multi-node distributed inference
+    # 0.0.2 - bump vLLM to 0.8.5. Tool chat template added.
+    # 0.0.1 - Initial Release

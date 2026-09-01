@@ -1112,3 +1112,56 @@ func parseMTBenchScores(t *testing.T, filename string) map[string]bool {
 	}
 	return scores
 }
+
+// TestGetModelByName_DeepSeekR10528_SpeculativeDecodingMTP asserts that the
+// generator-to-model wiring for preset-tuned speculative decoding is preserved:
+// registerModel copies param.SpeculativeDecoding onto vLLMCompatibleModel, and
+// GetInferenceParameters must surface the exact MTP config produced by the
+// generator for deepseek-r1-0528.
+//
+// This is a regression guard for the assignment at presets/workspace/models/
+// vllm_model.go around line 94: if that field wiring or the corresponding
+// return field in GetInferenceParameters regresses, tuned DeepSeek presets
+// would silently receive the universal ngram fallback instead of MTP, and
+// all injection-level unit tests would still pass.
+func TestGetModelByName_DeepSeekR10528_SpeculativeDecodingMTP(t *testing.T) {
+	m, err := GetModelByNameWithToken(context.Background(), "deepseek-ai/DeepSeek-R1-0528", "")
+	assert.NoError(t, err)
+	if !assert.NotNil(t, m) {
+		return
+	}
+
+	params := m.GetInferenceParameters()
+	if !assert.NotNil(t, params.SpeculativeDecoding, "preset-tuned SpeculativeDecoding must survive registration") {
+		return
+	}
+	assert.Equal(t, "mtp", params.SpeculativeDecoding.Method,
+		"registered MTP method for deepseek-r1-0528 must be preserved")
+	if !assert.NotNil(t, params.SpeculativeDecoding.MTP, "MTP config must survive registration") {
+		return
+	}
+	assert.Equal(t, 1, params.SpeculativeDecoding.MTP.NumSpeculativeTokens,
+		"generator-supplied NumSpeculativeTokens must be preserved")
+}
+
+// TestGetModelByName_DeepSeekV30324_SpeculativeDecodingMTP is the sibling
+// regression guard for the deepseek-v3-0324 tuned MTP config; see the
+// deepseek-r1-0528 test above for rationale.
+func TestGetModelByName_DeepSeekV30324_SpeculativeDecodingMTP(t *testing.T) {
+	m, err := GetModelByNameWithToken(context.Background(), "deepseek-ai/DeepSeek-V3-0324", "")
+	assert.NoError(t, err)
+	if !assert.NotNil(t, m) {
+		return
+	}
+
+	params := m.GetInferenceParameters()
+	if !assert.NotNil(t, params.SpeculativeDecoding, "preset-tuned SpeculativeDecoding must survive registration") {
+		return
+	}
+	assert.Equal(t, "mtp", params.SpeculativeDecoding.Method)
+	if !assert.NotNil(t, params.SpeculativeDecoding.MTP) {
+		return
+	}
+	assert.Equal(t, 1, params.SpeculativeDecoding.MTP.NumSpeculativeTokens)
+}
+

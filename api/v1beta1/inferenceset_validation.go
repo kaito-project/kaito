@@ -52,6 +52,10 @@ func (is *InferenceSet) Validate(ctx context.Context) (errs *apis.FieldError) {
 			is.validateUpdate(old).ViaField("spec"),
 		)
 	}
+	// Speculative-decoding opt-in is reported using paths rooted at
+	// spec.template.metadata.annotations, so it must be invoked outside the
+	// spec wrapper to avoid a doubled spec.spec.template... path.
+	errs = errs.Also(is.validateSpeculativeDecoding())
 	if ValidateInferenceSetWorkspace != nil {
 		errs = errs.Also(ValidateInferenceSetWorkspace(ctx, is).ViaField("spec", "template"))
 	}
@@ -70,14 +74,12 @@ func (is *InferenceSet) validateCreate() (errs *apis.FieldError) {
 	}
 	errs = errs.Also(is.validateInstanceType().ViaField("template"))
 	errs = errs.Also(validateInferenceSetMaintenanceWindow(is.Spec.AutoUpgrade))
-	errs = errs.Also(is.validateSpeculativeDecoding())
 	return errs
 }
 
 func (is *InferenceSet) validateUpdate(old *InferenceSet) (errs *apis.FieldError) {
 	errs = errs.Also(is.validateInstanceType().ViaField("template"))
 	errs = errs.Also(validateInferenceSetMaintenanceWindow(is.Spec.AutoUpgrade))
-	errs = errs.Also(is.validateSpeculativeDecoding())
 	// Partition config is immutable once set.
 	if !apiequality.Semantic.DeepEqual(is.Spec.Template.Resource.Partition, old.Spec.Template.Resource.Partition) {
 		errs = errs.Also(apis.ErrGeneric("field is immutable", "template", "resource", "partition"))

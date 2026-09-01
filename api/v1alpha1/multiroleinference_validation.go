@@ -50,6 +50,12 @@ func (m *MultiRoleInference) Validate(ctx context.Context) (errs *apis.FieldErro
 		old := base.(*MultiRoleInference)
 		errs = errs.Also(m.validateUpdate(old).ViaField("spec"))
 	}
+	// Speculative-decoding opt-in is validated against top-level metadata
+	// (annotation propagates to child InferenceSets -> Workspaces via the
+	// MRI controller). Invoke outside the spec wrapper so field paths like
+	// metadata.annotations[...] are reported correctly, matching the
+	// Workspace validators.
+	errs = errs.Also(m.validateSpeculativeDecoding())
 	return errs
 }
 
@@ -69,10 +75,6 @@ func (m *MultiRoleInference) validateCreate() (errs *apis.FieldError) {
 	// Validate roles.
 	errs = errs.Also(m.validateRoles())
 
-	// Validate speculative-decoding opt-in (annotation propagates to child
-	// InferenceSets -> Workspaces via the MRI controller).
-	errs = errs.Also(m.validateSpeculativeDecoding())
-
 	return errs
 }
 
@@ -87,7 +89,6 @@ func (m *MultiRoleInference) validateUpdate(old *MultiRoleInference) (errs *apis
 
 	// Validate roles (same as create).
 	errs = errs.Also(m.validateRoles())
-	errs = errs.Also(m.validateSpeculativeDecoding())
 
 	return errs
 }

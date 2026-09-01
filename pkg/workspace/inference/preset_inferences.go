@@ -606,39 +606,12 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		runtimeName := v1beta1.GetWorkspaceRuntimeName(ctx.Workspace)
 
 		// --- Speculative decoding injection ---
-		ws := ctx.Workspace
-		if runtimeName == pkgmodel.RuntimeNameVLLM &&
-			ws.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding] == "true" {
-			if inferenceParam.SpeculativeDecoding == nil {
-				// Annotation set but preset has no speculative decoding config.
-				if outDecision != nil {
-					*outDecision = SpecDecoUnsupportedPreset
-				}
-				// Fall through — do not inject, but let the rest of the pod spec build.
-			} else if ws.Status.TargetNodeCount > 1 {
-				// Pipeline parallelism guard.
-				if outDecision != nil {
-					*outDecision = SpecDecoPipelineParallelism
-				}
-			} else {
-				// TODO(#2303-followup): check ConfigMap for user-specified speculative-config override.
-				// For now, always inject the preset config.
-				blob, err := vllmFormat(inferenceParam.SpeculativeDecoding)
-				if err != nil {
-					return fmt.Errorf("speculative decoding: %w", err)
-				}
-				if inferenceParam.VLLM.ModelRunParams == nil {
-					inferenceParam.VLLM.ModelRunParams = map[string]string{}
-				}
-				inferenceParam.VLLM.ModelRunParams["speculative-config"] = shellSingleQuote(blob)
-				if outDecision != nil {
-					*outDecision = SpecDecoInjected
-				}
-			}
-		} else {
-			if outDecision != nil {
-				*outDecision = SpecDecoSkip
-			}
+		decision, err := applySpeculativeDecoding(ctx.Workspace, runtimeName, inferenceParam)
+		if err != nil {
+			return fmt.Errorf("speculative decoding: %w", err)
+		}
+		if outDecision != nil {
+			*outDecision = decision
 		}
 		// --- End speculative decoding injection ---
 
@@ -1216,6 +1189,35 @@ func needsRoutingSidecar(ws *v1beta1.Workspace) bool {
 // Safe for /bin/sh -c "cmd --key=<value>".
 func shellSingleQuote(s string) string {
 	return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'"
+}
+
+// applySpeculativeDecoding evaluates the speculative-decoding annotation and,
+// when applicable, mutates inferenceParam.VLLM.ModelRunParams to include the
+// --speculative-config flag. The decision is returned so callers (and tests)
+// can assert the reason without inspecting the ModelRunParams map.
+func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.RuntimeName, inferenceParam *pkgmodel.PresetParam) (SpecDecoDecision, error) {
+	if runtimeName != pkgmodel.RuntimeNameVLLM ||
+		ws.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding] != "true" {
+		return SpecDecoSkip, nil
+	}
+	if inferenceParam.SpeculativeDecoding == nil {
+		return SpecDecoUnsupportedPreset, nil
+	}
+	if ws.Status.TargetNodeCount > 1 {
+		// TODO(#2303-followup): surface as ConditionSpeculativeDecodingDisabled(PipelineParallelism).
+		return SpecDecoPipelineParallelism, nil
+	}
+	// TODO(#2303-followup): honor ConfigMap-provided speculative-config override
+	// (return SpecDecoConfigMapOverride and emit a SpeculativeDecodingConfigMapOverride event).
+	blob, err := vllmFormat(inferenceParam.SpeculativeDecoding)
+	if err != nil {
+		return SpecDecoNotEvaluated, err
+	}
+	if inferenceParam.VLLM.ModelRunParams == nil {
+		inferenceParam.VLLM.ModelRunParams = map[string]string{}
+	}
+	inferenceParam.VLLM.ModelRunParams["speculative-config"] = shellSingleQuote(blob)
+	return SpecDecoInjected, nil
 }
 
 // vllmFormat converts a typed SpeculativeDecodingConfig into the JSON shape

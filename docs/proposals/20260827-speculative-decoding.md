@@ -15,7 +15,7 @@ see-also:
 
 ## Summary
 
-This proposal introduces a preset-driven speculative decoding toggle for KAITO. Users enable speculative decoding with a single annotation (`kaito.sh/enable-speculative-decoding: "true"`) on a Workspace or InferenceSet. The per-preset configuration (method, parameters) is maintained by KAITO preset maintainers in the model catalog, not exposed as a user knob. The preset controller injects the appropriate vLLM `--speculative-config` flag automatically, and the admission webhook rejects unsupported preset + annotation combinations at `kubectl apply` time.
+This proposal introduces a preset-driven speculative decoding toggle for KAITO. Users enable speculative decoding with a single annotation (`kaito.sh/enable-speculative-decoding: "true"`) on a Workspace, InferenceSet, or MultiRoleInference. The per-preset configuration (method, parameters) is maintained by KAITO preset maintainers in the model catalog, not exposed as a user knob. The preset controller injects the appropriate vLLM `--speculative-config` flag automatically, and the admission webhook rejects unsupported preset + annotation combinations at `kubectl apply` time. When the annotation is set on an InferenceSet or MultiRoleInference, it propagates down the resource chain (`MRI → InferenceSet → Workspace`) so a single opt-in reaches every generated pod without any change to the runtime injection code path.
 
 ## Motivation
 
@@ -43,6 +43,7 @@ Today, enabling speculative decoding in KAITO requires users to write a ConfigMa
 - Admission webhook rejects unsupported preset + annotation combinations at `kubectl apply` time - using `models.GetModelByName(ws.Inference.Preset.Name, accessSecret)` which performs the same alias rewrite and lazy model generation as the controller; the webhook then reads `GetInferenceParameters().SpeculativeDecoding` from the resolved model.
 - Initial preset coverage: `mtp` on the two DeepSeek presets that are catalog-present today and vLLM-verified against KAITO's pinned vLLM at merge time - `deepseek-r1-0528` and `deepseek-v3-0324`. `deepseek-v3.2` is a Free-to-onboard-next candidate (same `mtp` path, no new type work) but is not in the initial ship list. DeepSeek-V4-Flash (the dated releases `DeepSeek-V4-Flash-0731` and `DeepSeek-V4-Flash-DSpark`) lands in **Ready to Onboard (`dspark`, fused)** below: the vLLM V4-Flash recipe classifies both as fused served-checkpoint DSpark, not assistant-checkpoint - see the corrected DeepSeek-V4 section for details. DeepSeek-V4-Pro-0813 is **deferred**, not fused-ready - its fused-vs-assistant shape is not pinned in an upstream vLLM recipe yet, so it stays out of the initial `dspark`-fused claim until the recipe lands (see "Deferred (V4-Pro, pending recipe)" in Model Coverage).
 - Support InferenceSet via `spec.template.metadata.annotations` propagation
+- Support MultiRoleInference via `metadata.annotations` propagation (annotation is cloned onto each child InferenceSet's `Spec.Template.Annotations` by the MRI controller, then onto each child Workspace by the InferenceSet controller)
 
 ### Non-Goals/Future Work
 
@@ -1297,6 +1298,67 @@ Either way, rejection happens at `apply` time on both served versions, and the c
 #### Scaling Implication (Unchanged)
 
 Speculative decoding is a **per-replica** speedup - MTP verifies within a single vLLM engine. Turning it on across an InferenceSet's replicas just means every replica gets the same per-request latency win. It does **not** share draft state across replicas and does **not** replace autoscaling - you still want KEDA / auto-provision to grow replicas under high QPS, because the throughput of speculative decoding degrades toward 1.0× as QPS climbs. The two features are complementary.
+
+### MultiRoleInference Support
+
+For MultiRoleInference, the annotation goes on the top-level `metadata.annotations` (there is no `spec.template` at the MRI layer — the MRI controller synthesises one InferenceSet per role from `spec.roles`, and MRI-level annotations are what propagate onto each generated InferenceSet's `spec.template.metadata.annotations`):
+
+```yaml
+apiVersion: kaito.sh/v1alpha1
+kind: MultiRoleInference
+metadata:
+  name: deepseek-r1-pd
+  namespace: default
+  # ← Speculative-decoding opt-in goes here. Propagated verbatim onto each
+  #   child InferenceSet's Spec.Template.Annotations by the MRI controller,
+  #   which the InferenceSet controller then clones onto every Workspace.
+  annotations:
+    kaito.sh/enable-speculative-decoding: "true"
+spec:
+  labelSelector:
+    matchLabels:
+      apps: deepseek-r1-pd
+  model:
+    name: deepseek-r1-0528
+  roles:
+  - type: prefill
+    replicas: 1
+    instanceType: Standard_ND96isr_H200_v5
+  - type: decode
+    replicas: 1
+    instanceType: Standard_ND96isr_H200_v5
+```
+
+Both the prefill and the decode role get the same `--speculative-config` injected into their vLLM command line. Because MTP verifies within a single vLLM engine, this remains a per-replica speedup on each side of the disaggregation — it does **not** couple the prefill and decode engines' draft state.
+
+#### Propagation Chain
+
+```
+MRI.metadata.annotations
+  → InferenceSet.spec.template.metadata.annotations   (MRI controller: pkg/controllers/multiroleinference/controller.go, cloneMRIAnnotationsOntoTemplate)
+    → Workspace.metadata.annotations                  (InferenceSet controller: pkg/utils/inferenceset/inferenceset.go, NewWorkspaceForInferenceSet)
+      → vLLM `--speculative-config` flag              (preset controller: pkg/workspace/inference/preset_inferences.go, applySpeculativeDecoding)
+```
+
+Runtime injection happens **once**, at the Workspace layer. Neither the MRI controller nor the InferenceSet controller inspects the speculative-decoding annotation — they just propagate it verbatim. This keeps the injection code path and its test surface single-owner (Step 3 in this proposal).
+
+#### Which Annotations Go Where
+
+| Annotation location | Purpose | Reaches child Workspace? |
+|---|---|---|
+| `MultiRoleInference.metadata.annotations` | Fleet-level per-Workspace behavior propagated across **both** prefill and decode roles (**this is where `kaito.sh/enable-speculative-decoding` goes**) | ✅ Yes - cloned onto every generated InferenceSet's `spec.template.metadata.annotations`, then onto every Workspace |
+
+(MRI has no top-level `spec.template` and no separate per-role annotation surface today — a per-role opt-in would require an API addition and is called out as a follow-up below.)
+
+#### Rejection Semantics for MultiRoleInference
+
+MRI is served as `v1alpha1`. The MRI admission webhook mirrors the version-neutral speculative-decoding helper documented in the InferenceSet section (option (a)): it reads `metadata.annotations[kaito.sh/enable-speculative-decoding]` together with `spec.model.name` and `metadata.annotations[kaito.sh/runtime]`, and rejects at `kubectl apply -f <MultiRoleInference>` time if the annotation value is malformed, the model is empty, the preset is not in `SupportedSpeculativeDecodingPresets()`, or the runtime is not vLLM. Both `ValidateCreate` and `ValidateUpdate` invoke the check — an existing MRI cannot add the annotation post-hoc and bypass validation, matching the create/update parity requirement from Step 4.
+
+Defence-in-depth also applies: even if a malformed MRI slipped past its own webhook, the generated InferenceSets and Workspaces each re-run their own speculative-decoding validation on admission (Step 4 for Workspace; the InferenceSet variant documented above). The MRI-level check exists so users see the rejection at the top of the resource chain instead of tracing it through synthesised children.
+
+#### Per-Role Opt-In (Deferred)
+
+A reasonable follow-up is to let the user opt in per role — e.g. decode only, prefill only — to isolate the throughput/latency tradeoff. Today `MultiRoleInferenceRoleSpec` has no annotation map, so this would require an API addition (e.g. `RoleSpec.Annotations` merged with the top-level MRI annotations by the MRI controller). Called out here so the current "all roles or none" semantics are an explicit design choice, not an oversight.
 
 ## Model Coverage
 

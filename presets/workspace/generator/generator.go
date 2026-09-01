@@ -38,6 +38,13 @@ const (
 )
 
 // Please update the following model-specific configurations when adding new models to model catalog
+
+// specDecoEntry pairs the user-facing preset alias with the KAITO-authored config.
+type specDecoEntry struct {
+	UserFacing string                          // e.g. "deepseek-r1-0528"
+	Config     *model.SpeculativeDecodingConfig
+}
+
 var (
 	safetensorRegex = regexp.MustCompile(`.*\.safetensors`)
 	binRegex        = regexp.MustCompile(`.*\.bin`)
@@ -299,7 +306,40 @@ var (
 			PipelineTag:   "text-generation",
 		},
 	}
+
+	// speculativeDecodingByPreset maps lowercased HuggingFace repo names to
+	// their validated speculative decoding configuration. This map is the
+	// single source of truth for which presets support speculative decoding
+	// and what parameters to use. Keys follow the same convention as
+	// catalogOverrides.
+	speculativeDecodingByPreset = map[string]specDecoEntry{
+		"deepseek-ai/deepseek-r1-0528": {
+			UserFacing: "deepseek-r1-0528",
+			Config: &model.SpeculativeDecodingConfig{
+				Method: "mtp",
+				MTP:    &model.MTPConfig{NumSpeculativeTokens: 1},
+			},
+		},
+		"deepseek-ai/deepseek-v3-0324": {
+			UserFacing: "deepseek-v3-0324",
+			Config: &model.SpeculativeDecodingConfig{
+				Method: "mtp",
+				MTP:    &model.MTPConfig{NumSpeculativeTokens: 1},
+			},
+		},
+	}
 )
+
+// SupportedSpeculativeDecodingPresets returns the sorted, user-facing preset
+// names that currently carry a validated SpeculativeDecoding entry.
+func SupportedSpeculativeDecodingPresets() []string {
+	out := make([]string, 0, len(speculativeDecodingByPreset))
+	for _, entry := range speculativeDecodingByPreset {
+		out = append(out, entry.UserFacing)
+	}
+	sort.Strings(out)
+	return out
+}
 
 type Generator struct {
 	ModelRepo      string
@@ -911,6 +951,11 @@ func (g *Generator) loadFromCatalog() bool {
 		g.TokenizerMode = entry.LoadFormat
 	}
 
+	// Populate speculative decoding config from the per-preset map.
+	if sdEntry, ok := speculativeDecodingByPreset[strings.ToLower(g.ModelRepo)]; ok {
+		g.Param.SpeculativeDecoding = sdEntry.Config
+	}
+
 	return true
 }
 
@@ -918,6 +963,10 @@ func (g *Generator) Generate() (*model.PresetParam, error) {
 	if !g.loadFromCatalog() {
 		if err := g.FetchModelMetadata(); err != nil {
 			return nil, err
+		}
+		// Populate speculative decoding config for the non-catalog path.
+		if sdEntry, ok := speculativeDecodingByPreset[strings.ToLower(g.ModelRepo)]; ok {
+			g.Param.SpeculativeDecoding = sdEntry.Config
 		}
 	}
 	g.ParseModelMetadata()

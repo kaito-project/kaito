@@ -92,6 +92,10 @@ const (
 	// Only supported when the vLLM runtime is used.
 	AnnotationPerformanceMode = KAITOPrefix + "performance-mode"
 
+	// AnnotationEnableSpeculativeDecoding enables preset-driven speculative
+	// decoding on a Workspace. Only "true" and "false" are valid values.
+	AnnotationEnableSpeculativeDecoding = KAITOPrefix + "enable-speculative-decoding"
+
 	// AnnotationUseLocalWeights makes the inference workload load model weights that
 	// are already present on the node instead of downloading them from HuggingFace at
 	// runtime. Set it to "true" to enable. When enabled, KAITO reads the weights from

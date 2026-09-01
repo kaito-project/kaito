@@ -687,12 +687,16 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	}
 
 	revisionStr := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
-	workloadObj, err := inference.GeneratePresetInference(ctx, wObj, revisionStr, model, c.Client, c.nodeProvisioner)
+	result, err := inference.GeneratePresetInference(ctx, wObj, revisionStr, model, c.Client, c.nodeProvisioner)
 	if err != nil {
 		return err
 	}
+	// TODO(#2303-followup): translate result.SpeculativeDecodingDecision into
+	// Workspace conditions and Events (ConditionSpeculativeDecodingDisabled,
+	// SpeculativeDecodingConfigMapOverride Event).
+	_ = result.SpeculativeDecodingDecision
 
-	desiredStatefulSet, ok := workloadObj.(*appsv1.StatefulSet)
+	desiredStatefulSet, ok := result.Workload.(*appsv1.StatefulSet)
 	if !ok {
 		return fmt.Errorf("failed to generate statefulset workload for inference")
 	}
@@ -700,7 +704,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	existingObj := &appsv1.StatefulSet{}
 	if err := resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, existingObj); err != nil {
 		if apierrors.IsNotFound(err) {
-			return resources.CreateResource(ctx, workloadObj, c.Client)
+			return resources.CreateResource(ctx, result.Workload, c.Client)
 		}
 		return err
 	}

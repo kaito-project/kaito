@@ -45,6 +45,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/mig"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/presets/workspace/generator"
 	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
@@ -91,6 +92,9 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		if w.Inference != nil {
 			errs = errs.Also(w.Inference.validateUpdate(old.Inference).ViaField("inference"))
 		}
+		// Validate speculative decoding annotation on updates too.
+		errs = errs.Also(w.validateAnnotations())
+		errs = errs.Also(w.validateSpeculativeDecoding(ctx))
 		if w.Tuning != nil {
 			errs = errs.Also(w.Tuning.validateUpdate(old.Tuning).ViaField("tuning"))
 		}
@@ -105,6 +109,7 @@ func (w *Workspace) ValidateCreate(ctx context.Context) (errs *apis.FieldError) 
 	errs = errs.Also(w.validateCreate().ViaField("spec"))
 	errs = errs.Also(w.validateAnnotations())
 	errs = errs.Also(w.validateNodeClassNameAnnotation())
+	errs = errs.Also(w.validateSpeculativeDecoding(ctx))
 	if w.Inference != nil {
 		bypassResourceChecks := false
 		if w.GetAnnotations() != nil {
@@ -157,6 +162,85 @@ func (w *Workspace) validateAnnotations() (errs *apis.FieldError) {
 			))
 		}
 	}
+	// enable-speculative-decoding is a boolean opt-in; accept only "true" or "false".
+	if v, ok := annotations[AnnotationEnableSpeculativeDecoding]; ok {
+		if v != "true" && v != "false" {
+			errs = errs.Also(apis.ErrInvalidValue(
+				fmt.Sprintf("annotation %s has invalid value %q; expected \"true\" or \"false\"", AnnotationEnableSpeculativeDecoding, v),
+				fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+			))
+		}
+	}
+	return errs
+}
+
+func (w *Workspace) validateSpeculativeDecoding(ctx context.Context) (errs *apis.FieldError) {
+	annotations := w.GetAnnotations()
+	val, present := annotations[AnnotationEnableSpeculativeDecoding]
+	if !present || val == "false" {
+		return nil
+	}
+	// Invalid annotation values are already caught by validateAnnotations;
+	// proceed only for "true".
+	if val != "true" {
+		return nil
+	}
+
+	// (a) Must have preset inference.
+	if w.Inference == nil || w.Inference.Preset == nil || w.Inference.Preset.Name == "" {
+		errs = errs.Also(apis.ErrGeneric(
+			"kaito.sh/enable-speculative-decoding requires a preset inference; "+
+				"remove the annotation or set inference.preset.name",
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+		return errs
+	}
+
+	// (b) Preset must be in the supported list.
+	supported := generator.SupportedSpeculativeDecodingPresets()
+	presetName := w.Inference.Preset.Name
+	presetLower := strings.ToLower(presetName)
+	presetSupported := false
+	for _, s := range supported {
+		if strings.ToLower(s) == presetLower {
+			presetSupported = true
+			break
+		}
+		if canonical := plugin.LegacyBuiltinToCatalog[s]; canonical != "" &&
+			strings.ToLower(canonical) == presetLower {
+			presetSupported = true
+			break
+		}
+	}
+	if !presetSupported {
+		errs = errs.Also(apis.ErrGeneric(
+			fmt.Sprintf(
+				"preset %q does not have a validated speculative decoding configuration; "+
+					"remove kaito.sh/enable-speculative-decoding annotation or choose a "+
+					"supported preset (currently: %s)",
+				presetName, strings.Join(supported, ", "),
+			),
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+		return errs
+	}
+
+	// (c) Runtime must be vLLM.
+	if GetWorkspaceRuntimeName(w) != model.RuntimeNameVLLM {
+		errs = errs.Also(apis.ErrGeneric(
+			fmt.Sprintf(
+				"kaito.sh/enable-speculative-decoding requires the vLLM runtime; "+
+					"preset %q is configured for a different runtime",
+				w.Inference.Preset.Name,
+			),
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+	}
+
+	// TODO(#2303-followup): Add pipeline parallelism check via estimator callback.
+	// TODO(#2303-followup): Defence-in-depth: resolve model via models.GetModelByName
+	// and verify GetInferenceParameters().SpeculativeDecoding is non-nil.
+
 	return errs
 }
 

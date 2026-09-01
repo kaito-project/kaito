@@ -15,9 +15,11 @@ package inference
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/samber/lo"
@@ -48,8 +50,36 @@ import (
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
+// SpecDecoDecision tracks which branch the speculative decoding injection took.
+type SpecDecoDecision int
+
+const (
+	// SpecDecoNotEvaluated is the zero value: the injection closure never ran.
+	SpecDecoNotEvaluated SpecDecoDecision = iota
+	// SpecDecoSkip means the annotation is absent or runtime is not vLLM.
+	SpecDecoSkip
+	// SpecDecoPipelineParallelism means injection was skipped due to multi-node.
+	SpecDecoPipelineParallelism
+	// SpecDecoConfigMapOverride means the user's ConfigMap already has speculative-config.
+	SpecDecoConfigMapOverride
+	// SpecDecoInjected means the preset config was injected successfully.
+	SpecDecoInjected
+	// SpecDecoUnsupportedPreset means the annotation is set but the preset has no config.
+	SpecDecoUnsupportedPreset
+)
+
+// PresetInferenceResult wraps the workload object and the speculative decoding decision.
+type PresetInferenceResult struct {
+	Workload                    client.Object
+	SpeculativeDecodingDecision SpecDecoDecision
+}
+
 const (
 	ProbePath = "/health"
+
+	// defaultStartupProbeTimeout is the startup probe timeout for models that do not
+	// specify ReadinessTimeout. 30 minutes covers all current models.
+	defaultStartupProbeTimeout = 30 * time.Minute
 
 	// defaultStartupProbeTimeout is the startup probe timeout for models that do not
 	// specify ReadinessTimeout. 30 minutes covers all current models.
@@ -177,7 +207,7 @@ func GenerateModelWeightsCacheVolume(ctx context.Context, workspaceObj *v1beta1.
 }
 
 func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspace, revisionNum string,
-	model pkgmodel.Model, kubeClient client.Client, provisioner nodeprovision.NodeProvisioner) (client.Object, error) {
+	model pkgmodel.Model, kubeClient client.Client, provisioner nodeprovision.NodeProvisioner) (*PresetInferenceResult, error) {
 
 	gctx := &generator.WorkspaceGeneratorContext{
 		Ctx:             ctx,
@@ -218,8 +248,10 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	// instead of being downloaded from HuggingFace or streamed from blob storage.
 	localModelWeightsPath := v1beta1.GetLocalWeightsPath(workspaceObj)
 
+	var specDecoDecision SpecDecoDecision
+
 	podOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec]{
-		GenerateInferencePodSpec(gpuConfig, numNodes, streamingModelPath, streamingLoadFormat, localModelWeightsPath),
+		GenerateInferencePodSpec(gpuConfig, numNodes, streamingModelPath, streamingLoadFormat, localModelWeightsPath, &specDecoDecision),
 		SetProvisionerNodeSelector,
 		SetHFToken,
 	}
@@ -277,12 +309,17 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 
 	podSpec, err := generator.GenerateManifest(gctx, podOpts...)
 	if err != nil {
-		return nil, err
+		return &PresetInferenceResult{SpeculativeDecodingDecision: specDecoDecision}, err
 	}
 
 	ssOpts = append(ssOpts, manifests.SetStatefulSetPodSpec(podSpec))
 
-	return generator.GenerateManifest(gctx, ssOpts...)
+	workload, err := generator.GenerateManifest(gctx, ssOpts...)
+	result := &PresetInferenceResult{
+		Workload:                    workload,
+		SpeculativeDecodingDecision: specDecoDecision,
+	}
+	return result, err
 }
 
 func getGPUConfig(ctx *generator.WorkspaceGeneratorContext) (*sku.GPUConfig, error) {
@@ -513,7 +550,7 @@ func GetPresetQuantization(presetName string) string {
 	return m.QuantMethod
 }
 
-func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingModelPath, streamingLoadFormat, localModelWeightsPath string) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
+func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingModelPath, streamingLoadFormat, localModelWeightsPath string, outDecision *SpecDecoDecision) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 		// additional volume
 		var volumes []corev1.Volume
@@ -571,6 +608,43 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		// inference command
 		inferenceParam := ctx.Model.GetInferenceParameters().DeepCopy()
 		runtimeName := v1beta1.GetWorkspaceRuntimeName(ctx.Workspace)
+
+		// --- Speculative decoding injection ---
+		ws := ctx.Workspace
+		if runtimeName == pkgmodel.RuntimeNameVLLM &&
+			ws.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding] == "true" {
+			if inferenceParam.SpeculativeDecoding == nil {
+				// Annotation set but preset has no speculative decoding config.
+				if outDecision != nil {
+					*outDecision = SpecDecoUnsupportedPreset
+				}
+				// Fall through — do not inject, but let the rest of the pod spec build.
+			} else if ws.Status.TargetNodeCount > 1 {
+				// Pipeline parallelism guard.
+				if outDecision != nil {
+					*outDecision = SpecDecoPipelineParallelism
+				}
+			} else {
+				// TODO(#2303-followup): check ConfigMap for user-specified speculative-config override.
+				// For now, always inject the preset config.
+				blob, err := vllmFormat(inferenceParam.SpeculativeDecoding)
+				if err != nil {
+					return fmt.Errorf("speculative decoding: %w", err)
+				}
+				if inferenceParam.VLLM.ModelRunParams == nil {
+					inferenceParam.VLLM.ModelRunParams = map[string]string{}
+				}
+				inferenceParam.VLLM.ModelRunParams["speculative-config"] = shellSingleQuote(blob)
+				if outDecision != nil {
+					*outDecision = SpecDecoInjected
+				}
+			}
+		} else {
+			if outDecision != nil {
+				*outDecision = SpecDecoSkip
+			}
+		}
+		// --- End speculative decoding injection ---
 
 		// Context-length sizing is delegated to vLLM's native auto-fit logic by
 		// passing --max-model-len=auto (https://docs.vllm.ai/en/latest/configuration/engine_args/#-max-model-len).
@@ -1139,4 +1213,55 @@ func needsRoutingSidecar(ws *v1beta1.Workspace) bool {
 		return false
 	}
 	return v1beta1.GetWorkspaceRuntimeName(ws) == pkgmodel.RuntimeNameVLLM
+}
+
+// shellSingleQuote wraps s in single quotes, escaping any embedded
+// single quote as '\''. Safe for /bin/sh -c "cmd --key=<value>".
+func shellSingleQuote(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'"
+}
+
+// vllmFormat converts a typed SpeculativeDecodingConfig into the JSON shape
+// vLLM expects for --speculative-config.
+func vllmFormat(sd *pkgmodel.SpeculativeDecodingConfig) (string, error) {
+	if sd == nil {
+		return "", fmt.Errorf("vllmFormat: SpeculativeDecodingConfig is nil")
+	}
+	m := map[string]any{"method": sd.Method}
+	switch sd.Method {
+	case "mtp":
+		if sd.MTP == nil {
+			return "", fmt.Errorf("method=mtp requires mtp config")
+		}
+		m["num_speculative_tokens"] = sd.MTP.NumSpeculativeTokens
+	case "ngram":
+		if sd.NGram == nil {
+			return "", fmt.Errorf("method=ngram requires ngram config")
+		}
+		m["num_speculative_tokens"] = sd.NGram.NumSpeculativeTokens
+		m["prompt_lookup_max"] = sd.NGram.PromptLookupMax
+	case "dspark":
+		if sd.DSpark == nil {
+			return "", fmt.Errorf("method=dspark requires dspark config")
+		}
+		if sd.DSpark.Variant == "assistant" {
+			m["model"] = sd.DSpark.Model
+		}
+		if sd.DSpark.NumSpeculativeTokens > 0 {
+			m["num_speculative_tokens"] = sd.DSpark.NumSpeculativeTokens
+		}
+		if sd.DSpark.DraftSampleMethod != "" {
+			m["draft_sample_method"] = sd.DSpark.DraftSampleMethod
+		}
+		if sd.DSpark.AttentionBackend != "" {
+			m["attention_backend"] = sd.DSpark.AttentionBackend
+		}
+	default:
+		return "", fmt.Errorf("unsupported speculative decoding method %q", sd.Method)
+	}
+	b, err := json.Marshal(m)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
 }

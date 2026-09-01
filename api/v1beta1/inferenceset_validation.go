@@ -153,33 +153,22 @@ func (is *InferenceSet) validateSpeculativeDecoding() (errs *apis.FieldError) {
 	// GetInferenceRuntime path used by the child Workspace validator; use the
 	// same helper by constructing a minimal Workspace wrapper here would
 	// import-cycle, so instead we mirror the check inline.
-	if runtime := runtimeFromInferenceAnnotations(is.Spec.Template.Annotations); runtime != model.RuntimeNameVLLM {
+	// Runtime must be vLLM. Uses the same helper the runtime layer uses,
+	// so a workload that would resolve to HuggingFace at pod-spec generation
+	// time (e.g. because the FeatureFlagVLLM feature gate is disabled) is
+	// rejected here instead of being admitted only to be rejected later at
+	// the Workspace layer.
+	if runtime := EffectiveInferenceRuntime(is.Spec.Template.Annotations); runtime != model.RuntimeNameVLLM {
 		return errs.Also(apis.ErrGeneric(
 			fmt.Sprintf(
 				"kaito.sh/enable-speculative-decoding requires the vLLM runtime; "+
-					"preset %q is annotated for a different runtime",
-				presetName,
+					"effective runtime resolves to %q (preset %q)",
+				runtime, presetName,
 			),
 			fmt.Sprintf("spec.template.metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
 		))
 	}
 	return errs
-}
-
-// runtimeFromInferenceAnnotations returns the effective inference runtime
-// declared on Spec.Template.Annotations. Defaults to vLLM to mirror
-// GetWorkspaceRuntimeName; a non-vLLM runtime is only produced when the user
-// explicitly requests it via AnnotationWorkspaceRuntime.
-func runtimeFromInferenceAnnotations(anns map[string]string) model.RuntimeName {
-	if v, ok := anns[AnnotationWorkspaceRuntime]; ok {
-		switch v {
-		case string(model.RuntimeNameHuggingfaceTransformers):
-			return model.RuntimeNameHuggingfaceTransformers
-		case string(model.RuntimeNameVLLM):
-			return model.RuntimeNameVLLM
-		}
-	}
-	return model.RuntimeNameVLLM
 }
 
 func validateInferenceSetMaintenanceWindow(autoUpgrade *AutoUpgradePolicy) (errs *apis.FieldError) {

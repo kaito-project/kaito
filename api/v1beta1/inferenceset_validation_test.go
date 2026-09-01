@@ -20,6 +20,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -303,4 +304,23 @@ func TestInferenceSetValidateSpeculativeDecoding(t *testing.T) {
 			}
 		})
 	}
+
+	// Feature-gate-off case: with the vLLM feature gate disabled,
+	// EffectiveInferenceRuntime resolves to HuggingFace regardless of the
+	// annotation, so the spec-decoding opt-in must be rejected.
+	t.Run("vllm feature gate disabled - rejected", func(t *testing.T) {
+		orig := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+		featuregates.FeatureGates[consts.FeatureFlagVLLM] = false
+		defer func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = orig }()
+
+		tpl := presetTpl("deepseek-r1-0528")
+		tpl.Annotations = map[string]string{AnnotationEnableSpeculativeDecoding: "true"}
+		is := &InferenceSet{
+			ObjectMeta: metav1.ObjectMeta{Name: "is", Namespace: "default"},
+			Spec:       InferenceSetSpec{Template: tpl},
+		}
+		if errs := is.validateSpeculativeDecoding(); errs == nil {
+			t.Fatalf("expected rejection when vLLM feature gate is disabled")
+		}
+	})
 }

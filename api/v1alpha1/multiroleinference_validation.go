@@ -221,14 +221,16 @@ func (m *MultiRoleInference) validateSpeculativeDecoding() (errs *apis.FieldErro
 		))
 	}
 
-	// Runtime must be vLLM.
-	if v, ok := m.Annotations[AnnotationWorkspaceRuntime]; ok &&
-		v != "" && v != string(model.RuntimeNameVLLM) {
+	// Runtime must be vLLM. Uses the same helper the runtime layer uses,
+	// so a workload that would resolve to HuggingFace at pod-spec generation
+	// time (e.g. because the FeatureFlagVLLM feature gate is disabled) is
+	// rejected at the MRI boundary instead of only at the child Workspace.
+	if runtime := EffectiveInferenceRuntime(m.Annotations); runtime != model.RuntimeNameVLLM {
 		return errs.Also(apis.ErrGeneric(
 			fmt.Sprintf(
 				"kaito.sh/enable-speculative-decoding requires the vLLM runtime; "+
-					"preset %q is annotated for a different runtime (%q)",
-				presetName, v,
+					"effective runtime resolves to %q (preset %q)",
+				runtime, presetName,
 			),
 			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
 		))

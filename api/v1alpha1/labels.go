@@ -82,6 +82,25 @@ const (
 	LabelUpgradeToVersion = KAITOPrefix + "upgrade-to-version"
 )
 
+// EffectiveInferenceRuntime returns the runtime that a generated Workspace
+// with the given annotations would resolve to via GetWorkspaceRuntimeName.
+// Kept here so admission paths that project a set of annotations onto a
+// Workspace can share the exact same effective-runtime computation used at
+// runtime (including the FeatureFlagVLLM gate).
+func EffectiveInferenceRuntime(annotations map[string]string) model.RuntimeName {
+	if !featuregates.FeatureGates[consts.FeatureFlagVLLM] {
+		return model.RuntimeNameHuggingfaceTransformers
+	}
+	runtime := model.RuntimeNameVLLM
+	switch annotations[AnnotationWorkspaceRuntime] {
+	case string(model.RuntimeNameHuggingfaceTransformers):
+		runtime = model.RuntimeNameHuggingfaceTransformers
+	case string(model.RuntimeNameVLLM):
+		runtime = model.RuntimeNameVLLM
+	}
+	return runtime
+}
+
 // GetWorkspaceRuntimeName returns the runtime name of the workspace.
 func GetWorkspaceRuntimeName(ws *Workspace) model.RuntimeName {
 	if ws == nil {

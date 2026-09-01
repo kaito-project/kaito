@@ -213,6 +213,7 @@ func TestApplySpeculativeDecoding(t *testing.T) {
 		preset       *pkgmodel.PresetParam
 		wantDecision SpecDecoDecision
 		wantInjected bool
+		wantContains string // required substring in the injected --speculative-config blob; "" defaults to method=mtp
 	}{
 		{
 			name:         "annotation absent -> skip, no flag",
@@ -239,12 +240,13 @@ func TestApplySpeculativeDecoding(t *testing.T) {
 			wantInjected: false,
 		},
 		{
-			name:         "annotation true + preset without SD -> unsupported preset",
+			name:         "annotation true + preset without SD -> ngram fallback",
 			ws:           newWS("true", 1),
 			runtime:      pkgmodel.RuntimeNameVLLM,
 			preset:       presetNoSD(),
-			wantDecision: SpecDecoUnsupportedPreset,
-			wantInjected: false,
+			wantDecision: SpecDecoInjectedNGramFallback,
+			wantInjected: true,
+			wantContains: `"method":"ngram"`,
 		},
 		{
 			name:         "annotation true + multi-node -> pipeline parallelism",
@@ -277,9 +279,12 @@ func TestApplySpeculativeDecoding(t *testing.T) {
 				t.Errorf("speculative-config injected = %v, want %v (flag=%q)", injected, tc.wantInjected, flag)
 			}
 			if tc.wantInjected {
-				// Value should be a shell-quoted JSON blob containing method=mtp.
-				if !strings.Contains(flag, `"method":"mtp"`) {
-					t.Errorf("speculative-config value %q missing method=mtp", flag)
+				want := tc.wantContains
+				if want == "" {
+					want = `"method":"mtp"`
+				}
+				if !strings.Contains(flag, want) {
+					t.Errorf("speculative-config value %q missing %q", flag, want)
 				}
 				if !strings.HasPrefix(flag, "'") || !strings.HasSuffix(flag, "'") {
 					t.Errorf("speculative-config value %q not shell-single-quoted", flag)

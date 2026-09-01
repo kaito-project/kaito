@@ -129,7 +129,7 @@ func (w *Workspace) validateSpeculativeDecoding() (errs *apis.FieldError) {
 	}
 
 	supported := generator.SupportedSpeculativeDecodingPresets()
-	presetName := w.Inference.Preset.Name
+	presetName := string(w.Inference.Preset.Name)
 	presetLower := strings.ToLower(presetName)
 	presetSupported := false
 	for _, s := range supported {

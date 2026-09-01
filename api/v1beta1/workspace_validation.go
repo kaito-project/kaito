@@ -198,7 +198,7 @@ func (w *Workspace) validateSpeculativeDecoding(ctx context.Context) (errs *apis
 
 	// (b) Preset must be in the supported list.
 	supported := generator.SupportedSpeculativeDecodingPresets()
-	presetName := w.Inference.Preset.Name
+	presetName := string(w.Inference.Preset.Name)
 	presetLower := strings.ToLower(presetName)
 	presetSupported := false
 	for _, s := range supported {

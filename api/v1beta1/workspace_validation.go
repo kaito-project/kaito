@@ -177,13 +177,23 @@ func (w *Workspace) validateAnnotations() (errs *apis.FieldError) {
 func (w *Workspace) validateSpeculativeDecoding(ctx context.Context) (errs *apis.FieldError) {
 	annotations := w.GetAnnotations()
 	val, present := annotations[AnnotationEnableSpeculativeDecoding]
-	if !present || val == "false" {
+	if !present {
 		return nil
 	}
-	// Invalid annotation values are already caught by validateAnnotations;
-	// proceed only for "true".
-	if val != "true" {
+	switch val {
+	case "false":
 		return nil
+	case "true":
+		// fall through to preset/runtime checks
+	default:
+		errs = errs.Also(apis.ErrGeneric(
+			fmt.Sprintf(
+				"kaito.sh/enable-speculative-decoding must be \"true\" or \"false\"; got %q",
+				val,
+			),
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+		return errs
 	}
 
 	// (a) Must have preset inference.

@@ -167,6 +167,19 @@ func (w *Workspace) validateSpeculativeDecoding() (errs *apis.FieldError) {
 		))
 	}
 
+	// Reject multi-node opt-in at admission time. Speculative decoding is
+	// currently mutually exclusive with pipeline parallelism.
+	if w.Resource.Count != nil && *w.Resource.Count > 1 {
+		errs = errs.Also(apis.ErrGeneric(
+			fmt.Sprintf(
+				"kaito.sh/enable-speculative-decoding is not supported with resource.count > 1 "+
+					"(pipeline parallelism); requested %d nodes",
+				*w.Resource.Count,
+			),
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+	}
+
 	return errs
 }
 

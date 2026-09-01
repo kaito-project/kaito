@@ -3292,10 +3292,12 @@ func TestWorkspaceValidateStreamingCSIDriver(t *testing.T) {
 }
 
 func TestWorkspaceValidateSpeculativeDecoding(t *testing.T) {
+	intPtr := func(i int) *int { return &i }
 	tests := []struct {
 		name        string
 		annotations map[string]string
 		inference   *InferenceSpec
+		count       *int
 		wantErr     bool
 	}{
 		{
@@ -3346,6 +3348,20 @@ func TestWorkspaceValidateSpeculativeDecoding(t *testing.T) {
 			inference:   nil,
 			wantErr:     true,
 		},
+		{
+			name:        "true with resource.count>1 rejected",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
+			inference:   &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "deepseek-r1-0528"}}},
+			count:       intPtr(2),
+			wantErr:     true,
+		},
+		{
+			name:        "true with resource.count=1 pass",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
+			inference:   &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "deepseek-r1-0528"}}},
+			count:       intPtr(1),
+			wantErr:     false,
+		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -3356,6 +3372,10 @@ func TestWorkspaceValidateSpeculativeDecoding(t *testing.T) {
 					Annotations: tc.annotations,
 				},
 				Inference: tc.inference,
+			}
+			if tc.count != nil {
+				//nolint:staticcheck //SA1019: deprecate Resource.Count field
+				w.Resource.Count = tc.count
 			}
 			errs := w.validateSpeculativeDecoding(context.Background())
 			if (errs != nil) != tc.wantErr {

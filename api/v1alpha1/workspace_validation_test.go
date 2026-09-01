@@ -2028,3 +2028,71 @@ other_field: value
 		})
 	}
 }
+
+func TestWorkspaceValidateSpeculativeDecoding_v1alpha1(t *testing.T) {
+	tests := []struct {
+		name        string
+		annotations map[string]string
+		inference   *InferenceSpec
+		wantErr     bool
+	}{
+		{
+			name:        "no annotation - pass",
+			annotations: map[string]string{},
+			inference:   &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "deepseek-r1-0528"}}},
+			wantErr:     false,
+		},
+		{
+			name:        "false annotation - pass",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "false"},
+			inference:   &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "deepseek-r1-0528"}}},
+			wantErr:     false,
+		},
+		{
+			name:        "invalid annotation value",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "yes"},
+			inference:   &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "deepseek-r1-0528"}}},
+			wantErr:     true,
+		},
+		{
+			name:        "true with supported preset - pass",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
+			inference:   &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "deepseek-r1-0528"}}},
+			wantErr:     false,
+		},
+		{
+			name:        "true with second supported preset - pass",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
+			inference:   &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "deepseek-v3-0324"}}},
+			wantErr:     false,
+		},
+		{
+			name:        "true with unsupported preset",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
+			inference:   &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "llama-3.1-8b-instruct"}}},
+			wantErr:     true,
+		},
+		{
+			name:        "true with no preset",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
+			inference:   nil,
+			wantErr:     true,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			w := &Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:        "ws",
+					Namespace:   "default",
+					Annotations: tc.annotations,
+				},
+				Inference: tc.inference,
+			}
+			errs := w.validateSpeculativeDecoding()
+			if (errs != nil) != tc.wantErr {
+				t.Errorf("validateSpeculativeDecoding() err=%v wantErr=%v", errs, tc.wantErr)
+			}
+		})
+	}
+}

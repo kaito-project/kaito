@@ -56,6 +56,10 @@ const (
 	// AnnotationBypassResourceChecks allows bypassing resource requirement checks like GPU memory.
 	AnnotationBypassResourceChecks = KAITOPrefix + "bypass-resource-checks"
 
+	// AnnotationEnableSpeculativeDecoding enables preset-driven speculative
+	// decoding on a Workspace. Only "true" and "false" are valid values.
+	AnnotationEnableSpeculativeDecoding = KAITOPrefix + "enable-speculative-decoding"
+
 	// AnnotationNodeImageFamily specifies node image family used by generated NodeClaim.
 	AnnotationNodeImageFamily = KAITOPrefix + "node-image-family"
 

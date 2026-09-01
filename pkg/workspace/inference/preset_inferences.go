@@ -81,10 +81,6 @@ const (
 	// specify ReadinessTimeout. 30 minutes covers all current models.
 	defaultStartupProbeTimeout = 30 * time.Minute
 
-	// defaultStartupProbeTimeout is the startup probe timeout for models that do not
-	// specify ReadinessTimeout. 30 minutes covers all current models.
-	defaultStartupProbeTimeout = 30 * time.Minute
-
 	// cudaToolkitHostVolumeName is the name of the hostPath volume that exposes the
 	// node's CUDA toolkit to the pod. The main container mounts it read-only; the
 	// provisioner init container mounts it read-write to install the toolkit when the

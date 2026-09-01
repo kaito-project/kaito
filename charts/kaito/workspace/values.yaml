@@ -109,6 +109,16 @@ affinity: {}
 # Values can be "azure" or "aws" or "arc"
 cloudProviderName: "azure"
 clusterName: "kaito"
+# Overrides for the OCI chart and EPP image used by Gateway API Inference Extension.
+inferencePool:
+  chart:
+    url: "oci://ghcr.io/llm-d/charts/llm-d-router-gateway"
+    tag: "v0.9.0"
+  epp:
+    image:
+      registry: "mcr.microsoft.com/oss/v2/llm-d"
+      repository: "llm-d-router-endpoint-picker"
+      tag: "v0.9.0"
 # Set values for the Flux controller to only install the Helm controller
 flux2:
   helmController:

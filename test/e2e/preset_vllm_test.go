@@ -94,9 +94,9 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateMultiRoleInferencePDDisaggregation(mriObj)
 	})
 
-	It("should create a gpt-oss-20b two-node workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should create a gemma-4-12B-it two-node workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 2
-		workspaceObj := createGPTOss20BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+		workspaceObj := createGemma4_12BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)
@@ -117,9 +117,9 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a gemma-4-E2B-it workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should create a gpt-oss-20b workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
-		workspaceObj := createGemma4_E2BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+		workspaceObj := createGPTOss20BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)
@@ -1194,15 +1194,16 @@ func validateMultiRoleInferenceKVEvents(mriObj *kaitov1alpha1.MultiRoleInference
 	})
 }
 
-func createGemma4_E2BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+func createGemma4_12BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+	modelSecret := createAndValidateModelSecret()
 	workspaceObj := &kaitov1beta1.Workspace{}
 
-	By("Creating a workspace CR with Gemma 4 E2B preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-gemma-4-e2b-", rand.Intn(1000))
+	By("Creating a workspace CR with Gemma 4 12B preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-gemma-4-12b-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gemma-4-e2b-vllm"},
-			}, nil, PresetGemma4_E2BInstructModel, nil, nil, nil, "", "")
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gemma-4-12b-vllm"},
+			}, nil, PresetGemma4_12BInstructModel, nil, nil, nil, modelSecret.Name, "")
 
 		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
 		createAndValidateWorkspace(workspaceObj)

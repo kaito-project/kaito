@@ -140,7 +140,7 @@ models:
   description: https://huggingface.co/openai/gpt-oss-20b
   license: apache-2.0
   pipelineTag: text-generation
-  modelFileSize: 25.63Gi
+  modelFileSize: 12.82Gi
   architectures:
   - GptOssForCausalLM
   modelTokenLimit: 131072
@@ -154,7 +154,7 @@ models:
   description: https://huggingface.co/openai/gpt-oss-120b
   license: apache-2.0
   pipelineTag: text-generation
-  modelFileSize: 121.54Gi
+  modelFileSize: 60.77Gi
   architectures:
   - GptOssForCausalLM
   modelTokenLimit: 131072

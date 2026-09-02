@@ -659,8 +659,7 @@ func TestNodeEstimator_EstimateNodeCount_RealCatalogModels_A100(t *testing.T) {
 		a100_2GPU = "Standard_NC48ads_A100_v4"
 	)
 	runRealCatalogModelCases(t, []realCatalogModelCase{
-		{"gpt-oss-120b/1xA100", "openai/gpt-oss-120b", a100_1GPU, 2},                          // 121.54Gi
-		{"gpt-oss-120b/2xA100", "openai/gpt-oss-120b", a100_2GPU, 1},                          // 121.54Gi
+		{"gpt-oss-120b/1xA100", "openai/gpt-oss-120b", a100_1GPU, 1},                          // 60.77Gi
 		{"DeepSeek-V4-Flash-0731/1xA100", "deepseek-ai/DeepSeek-V4-Flash-0731", a100_1GPU, 3}, // 155.43Gi
 		{"DeepSeek-V4-Flash-0731/2xA100", "deepseek-ai/DeepSeek-V4-Flash-0731", a100_2GPU, 2}, // 155.43Gi
 		{"Qwen3.8-27B/1xA100", "Qwen/Qwen3.8-27B", a100_1GPU, 1},                              // 51.75Gi
@@ -678,8 +677,7 @@ func TestNodeEstimator_EstimateNodeCount_RealCatalogModels_H100(t *testing.T) {
 		h100_2GPU = "Standard_NC80adis_H100_v5"
 	)
 	runRealCatalogModelCases(t, []realCatalogModelCase{
-		{"gpt-oss-120b/1xH100", "openai/gpt-oss-120b", h100_1GPU, 2},                          // 121.54Gi
-		{"gpt-oss-120b/2xH100", "openai/gpt-oss-120b", h100_2GPU, 1},                          // 121.54Gi
+		{"gpt-oss-120b/1xH100", "openai/gpt-oss-120b", h100_1GPU, 1},                          // 60.77Gi
 		{"DeepSeek-V4-Flash-0731/1xH100", "deepseek-ai/DeepSeek-V4-Flash-0731", h100_1GPU, 2}, // 155.43Gi
 		{"DeepSeek-V4-Flash-0731/2xH100", "deepseek-ai/DeepSeek-V4-Flash-0731", h100_2GPU, 1}, // 155.43Gi
 		{"Qwen3.8-27B/1xH100", "Qwen/Qwen3.8-27B", h100_1GPU, 1},                              // 51.75Gi
@@ -697,8 +695,7 @@ func TestNodeEstimator_EstimateNodeCount_RealCatalogModels_A10(t *testing.T) {
 		a10_2GPU = "Standard_NV72ads_A10_v5"
 	)
 	runRealCatalogModelCases(t, []realCatalogModelCase{
-		{"gpt-oss-20b/1xA10", "openai/gpt-oss-20b", a10_1GPU, 2},                        // 25.63Gi
-		{"gpt-oss-20b/2xA10", "openai/gpt-oss-20b", a10_2GPU, 1},                        // 25.63Gi
+		{"gpt-oss-20b/1xA10", "openai/gpt-oss-20b", a10_1GPU, 1},                        // 12.82Gi                      // 12.82Gi
 		{"gemma-4-12B-it/1xA10", "google/gemma-4-12B-it", a10_1GPU, 2},                  // 22.28Gi
 		{"gemma-4-12B-it/2xA10", "google/gemma-4-12B-it", a10_2GPU, 1},                  // 22.28Gi
 		{"granite-4.1-8b/1xA10", "ibm-granite/granite-4.1-8b", a10_1GPU, 1},             // 16.38Gi

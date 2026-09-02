@@ -8,24 +8,7 @@ KAITO supports tool calling, allowing you to integrate external tools into your 
 
 ### Supported Inference Runtimes
 
-Currently, tool calling is only supported with the vLLM inference runtime.
-
-### Supported Models
-
-The following preset models are configured to support tool calling:
-- `phi-4-mini-instruct`
-- `phi-4`
-- `llama-3.1-8b-instruct`
-- `llama-3.3-70b-instruct`
-- `mistral-7b`
-- `mistral-7b-instruct`
-- `qwen2.5-coder-7b-instruct`
-- `qwen2.5-coder-32b-instruct`
-- `deepseek-r1-0528`
-- `deepseek-v3-0324`
-
-
-For more details on the inference configuration, refer to [vLLM tool calling documentation](https://docs.vllm.ai/en/latest/features/tool_calling.html).
+Currently, tool calling is only supported with the vLLM inference runtime. For more details on the inference configuration, refer to [vLLM tool calling documentation](https://docs.vllm.ai/en/latest/features/tool_calling.html).
 
 ## Examples
 
@@ -200,10 +183,10 @@ In the GitHub repository 'kaito-project/kaito', how many preset models are there
 [FunctionCall(id='chatcmpl-tool-4e22b15c32d34430b80078a3acc41f0d', arguments='{"repoName": "kaito-project/kaito", "question": "How many preset models are there?"}', name='ask_question')]
 
 ---------- ToolCallExecutionEvent (deepwiki) ----------
-[FunctionExecutionResult(content='[{"type": "text", "text": "There are 16 preset models in the Kaito project.  These models are defined in the `supported_models.yaml` file  and registered programmatically within the codebase. ...", "annotations": null, "meta": null}]', name='ask_question', call_id='chatcmpl-tool-4e22b15c32d34430b80078a3acc41f0d', is_error=False)]
+[FunctionExecutionResult(content='[{"type": "text", "text": "There are 16 preset models in the Kaito project. These models are defined in the `model_catalog.yaml` file. ...", "annotations": null, "meta": null}]', name='ask_question', call_id='chatcmpl-tool-4e22b15c32d34430b80078a3acc41f0d', is_error=False)]
 
 ---------- ToolCallSummaryMessage (deepwiki) ----------
-[{"type": "text", "text": "There are 16 preset models in the Kaito project.  These models are defined in the `supported_models.yaml` file  and registered programmatically within the codebase. ...", "annotations": null, "meta": null}]
+[{"type": "text", "text": "There are 16 preset models in the Kaito project. These models are defined in the `model_catalog.yaml` file. ...", "annotations": null, "meta": null}]
 ```
 
 [^1]: https://www.dailydoseofds.com/p/function-calling-mcp-for-llms/

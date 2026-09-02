@@ -2,7 +2,7 @@
 
 ## Overview
 
-`model_catalog.yaml` is the registry of all models that KAITO provides first-class support for. It is **auto-generated** by the tool at `presets/workspace/generator/update_model_catalog/main.go` and should not be edited manually. NOTE: `presets/workspace/models/supported_models.yaml` is only used for version tracking of KAITO's base image. Other contents in the file are deprecated. 
+`model_catalog.yaml` is the registry of all models that KAITO provides first-class support for. It is **auto-generated** by the tool at `presets/workspace/generator/update_model_catalog/main.go` and should not be edited manually. Base image versions are tracked separately in `presets/workspace/models/base_images.yaml`.
 
 ## Catalog Entry Fields
 

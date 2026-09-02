@@ -32,7 +32,6 @@ import (
 var _ = Describe("Workspace Preset AzureLinux", utils.GinkgoLabelAzureLinux, func() {
 	BeforeEach(func() {
 		loadTestEnvVars()
-		loadModelVersions()
 	})
 
 	It("should create a phi4 workspace with vllm on azure linux successfully", func() {

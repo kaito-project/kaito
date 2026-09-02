@@ -142,11 +142,10 @@ func TestGetInferenceCommandHuggingfaceWithModelName(t *testing.T) {
 	assert.Contains(t, cmd[2], "test-served-model")
 }
 
-func TestGetInferenceCommandHuggingfaceDownloadAtRuntime(t *testing.T) {
+func TestGetInferenceCommandHuggingfaceModel(t *testing.T) {
 	p := &PresetParam{
 		Metadata: Metadata{
-			Version:           "https://huggingface.co/microsoft/phi-3-mini-128k-instruct",
-			DownloadAtRuntime: true,
+			Version: "https://huggingface.co/microsoft/phi-3-mini-128k-instruct",
 		},
 		RuntimeParam: RuntimeParam{
 			Transformers: HuggingfaceTransformersParam{
@@ -164,11 +163,10 @@ func TestGetInferenceCommandHuggingfaceDownloadAtRuntime(t *testing.T) {
 	assert.Contains(t, cmd[2], "allow_remote_files")
 }
 
-func TestGetInferenceCommandHuggingfaceDownloadAtRuntimeWithRevision(t *testing.T) {
+func TestGetInferenceCommandHuggingfaceModelWithRevision(t *testing.T) {
 	p := &PresetParam{
 		Metadata: Metadata{
-			Version:           "https://huggingface.co/microsoft/phi-3-mini-128k-instruct/commit/abc123",
-			DownloadAtRuntime: true,
+			Version: "https://huggingface.co/microsoft/phi-3-mini-128k-instruct/commit/abc123",
 		},
 		RuntimeParam: RuntimeParam{
 			Transformers: HuggingfaceTransformersParam{
@@ -194,8 +192,7 @@ func TestGetInferenceCommandVLLMLocalModelWeightsPath(t *testing.T) {
 	// and omit --download-dir / --code-revision.
 	p := &PresetParam{
 		Metadata: Metadata{
-			Version:           "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash/commit/abc123",
-			DownloadAtRuntime: true,
+			Version: "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash/commit/abc123",
 		},
 		RuntimeParam: RuntimeParam{
 			VLLM: VLLMParam{

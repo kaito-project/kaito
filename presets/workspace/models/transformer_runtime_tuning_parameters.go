@@ -31,7 +31,10 @@ type TuningConfig struct {
 	ReadinessTimeout              time.Duration
 }
 
-const defaultTuningBaseCommand = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
+const (
+	defaultTuningBaseCommand      = "cd /workspace/tfs/ && python3 metrics_server.py & accelerate launch"
+	defaultTuningModelArtifactTag = "0.2.0"
+)
 
 // TransformerTuningParameters maps preset model names to their tuning
 // configuration. Only models that support tuning have entries here.

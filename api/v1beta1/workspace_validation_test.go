@@ -102,7 +102,6 @@ func (*testModelDownload) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata: model.Metadata{
 			Version:              "https://huggingface.co/test-repo/test-model/commit/test-revision",
-			DownloadAtRuntime:    true,
 			DownloadAuthRequired: true,
 		},
 		TotalSafeTensorFileSize: "32Gi",
@@ -762,18 +761,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			errContent:         "matchLabels must contain at least one non-reserved label",
 			testNodes:          []v1.Node{},
 			useFeatureGate:     true,
-		},
-		{
-			name: "Deprecated Model",
-			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NV36ads_A10_v5",
-				Count:        pointerToInt(1),
-			},
-			preset:             true,
-			presetNameOverride: "phi-2",
-			runtime:            model.RuntimeNameVLLM,
-			expectErrs:         true,
-			errContent:         "Model phi-2 is deprecated and no longer supported",
 		},
 		{
 			name: "Empty TotalSafeTensorFileSize skips GPU memory validation",
@@ -1522,7 +1509,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			expectErrs: true,
 		},
 		{
-			name: "Preset with model weights packaged but with access secret",
+			name: "public preset with optional access secret",
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
 					PresetMeta: PresetMeta{
@@ -1533,8 +1520,6 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 					},
 				},
 			},
-			errContent: "This preset does not require a modelAccessSecret with HF_TOKEN key under presetOptions",
-			expectErrs: true,
 		},
 	}
 

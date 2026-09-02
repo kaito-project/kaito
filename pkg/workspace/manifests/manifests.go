@@ -14,7 +14,6 @@
 package manifests
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"path"
@@ -355,38 +354,6 @@ func GenerateManifestWithPodTemplate(workspaceObj *kaitov1beta1.Workspace, toler
 			Template: *templateCopy,
 		},
 	}
-}
-
-func GetModelImageName(presetObj *pkgmodel.PresetParam) string {
-	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
-}
-
-// GenerateModelPullerContainer creates an init container that pulls model images using ORAS
-func GenerateModelPullerContainer(ctx context.Context, workspaceObj *kaitov1beta1.Workspace, presetObj *pkgmodel.PresetParam) []corev1.Container {
-	if presetObj.DownloadAtRuntime {
-		// If the preset is set to download at runtime, we don't need to pull the model weights.
-		return nil
-	}
-
-	puller := corev1.Container{
-		Name:  "model-weights-downloader",
-		Image: utils.DefaultORASToolImage,
-		Command: []string{
-			"oras",
-			"pull",
-			GetModelImageName(presetObj),
-			"-o",
-			utils.DefaultWeightsVolumePath,
-		},
-		VolumeMounts: []corev1.VolumeMount{
-			{
-				Name:      "model-weights-volume",
-				MountPath: utils.DefaultWeightsVolumePath,
-			},
-		},
-	}
-
-	return []corev1.Container{puller}
 }
 
 // GenerateInferencePoolOCIRepository generates a Flux OCIRepository for the inference pool.

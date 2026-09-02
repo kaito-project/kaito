@@ -522,11 +522,17 @@ if runtimeName == pkgmodel.RuntimeNameVLLM &&
     // wiring for the skip signal" below).
     if ws.Status.TargetNodeCount > 1 {
         // Pipeline-parallelism guard is method-aware. ngram (universal
-        // fallback) and mtp (DeepSeek-V3/R1 baked-in heads) compose with
-        // PP; eagle / eagle3 in vLLM do not. Resolve the method from the
-        // already-resolved PresetParam (falling back to the ngram
-        // constant used by defaultFallbackNGramConfig) and only skip
-        // injection when the method actually can't run under PP.
+        // fallback) and mtp (DeepSeek-V3/R1, MTP head placed on the
+        // last PP stage by vLLM) run under PP; eagle / eagle3 in vLLM
+        // do not. Resolve the method from the already-resolved
+        // PresetParam (falling back to the ngram constant used by
+        // defaultFallbackNGramConfig) and only skip injection when the
+        // method actually can't run under PP. For ngram / mtp the
+        // reconciler additionally emits a
+        // SpeculativeDecodingReducedUnderPP Warning event: per-
+        // iteration pipeline round-trips are not hidden by single-
+        // request spec decoding, so realized speedup is smaller than
+        // single-node.
         method := generator.SpeculativeDecodingFallbackMethod
         if inferenceParam.SpeculativeDecoding != nil && inferenceParam.SpeculativeDecoding.Method != "" {
             method = inferenceParam.SpeculativeDecoding.Method
@@ -1173,13 +1179,24 @@ func validateSpeculativeDecoding(ws *Workspace) error {
     //     ride on top of PP is method-specific:
     //
     //       * ngram: CPU-side prompt lookup, does not touch the target
-    //         model's execution graph, composes with PP (reduced speedup).
-    //       * mtp: MTP heads are baked into the DeepSeek-V3/R1 checkpoint
-    //         and sharded together with the model; vLLM supports MTP
-    //         under PP. This is required for correctness because
-    //         DeepSeek-V3 / R1 (671B) physically need multi-node PP to
-    //         serve at all - a blanket rejection would make those
-    //         `speculativeDecodingByPreset` entries unreachable.
+    //         model's execution graph, composes with PP (reduced
+    //         speedup because per-iteration pipeline round-trips are
+    //         not hidden by single-request spec decoding).
+    //       * mtp: MTP head is baked into the DeepSeek-V3/R1 checkpoint
+    //         and vLLM places it on the last PP stage, so
+    //         `method=mtp` + `--pipeline-parallel-size>1` starts
+    //         correctly. Realized speedup under PP is typically
+    //         materially smaller than single-node and is not
+    //         benchmarked in-tree — the strong serial dependency
+    //         (draft → verify → accept/reject → next draft) means
+    //         every iteration eats a pipeline round-trip. We admit
+    //         `mtp` under PP anyway because DeepSeek-V3 / R1 (671B)
+    //         physically require multi-node PP to serve at all — a
+    //         blanket rejection would make those
+    //         `speculativeDecodingByPreset` entries unreachable. The
+    //         reconciler emits a SpeculativeDecodingReducedUnderPP
+    //         Warning event alongside ngram+PP so operators are not
+    //         surprised by the reduced speedup.
     //       * eagle / eagle3: vLLM's implementation assumes the draft
     //         head co-locates with a TP-sharded target; EAGLE-3 also
     //         fuses shallow/middle/deep target features that would
@@ -1278,9 +1295,12 @@ func validateSpeculativeDecoding(ws *Workspace) error {
                 method, ws.Inference.Preset.Name, ws.Resource.InstanceType, targetNodes,
             )
         }
-        // ngram / mtp fall through: reduced speedup for ngram (optional
-        // Warning event may be emitted by the reconciler), full support
-        // for mtp because MTP heads are sharded with the target.
+        // ngram / mtp fall through: reconciler emits a
+        // SpeculativeDecodingReducedUnderPP Warning event for both,
+        // because both suffer the per-iteration pipeline round-trip
+        // cost under PP. Neither is rejected — ngram is universal and
+        // mtp is admitted for reachability of the DeepSeek-V3/R1
+        // entries (which require multi-node PP to serve at all).
     }
 
     return nil

@@ -428,8 +428,10 @@ func TestPodMutations_ModelWeightsWarmerSidecar(t *testing.T) {
 	cfg.ClientImage = "test.azurecr.io/dacs-client@sha256:def"
 	cfg.ModelWarmerImage = "test.azurecr.io/runai-warmer@sha256:abc"
 	p := New(newFakeProvider().client, cfg)
+	replicas := int32(3)
 	workload := &appsv1.StatefulSet{
 		Spec: appsv1.StatefulSetSpec{
+			Replicas: &replicas,
 			Template: corev1.PodTemplateSpec{
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
@@ -489,6 +491,9 @@ func TestPodMutations_ModelWeightsWarmerSidecar(t *testing.T) {
 	}
 	if env["RUNAI_STREAMER_EXPERIMENTAL_AZURE_CACHE_LIB"] != ClientLibPath {
 		t.Errorf("cache library: got %q", env["RUNAI_STREAMER_EXPERIMENTAL_AZURE_CACHE_LIB"])
+	}
+	if env[ModelWarmerPartitionsEnv] != "3" {
+		t.Errorf("%s: got %q, want 3", ModelWarmerPartitionsEnv, env[ModelWarmerPartitionsEnv])
 	}
 	podName := sidecar.Env[len(sidecar.Env)-1]
 	if podName.Name != "POD_NAME" || podName.ValueFrom == nil ||

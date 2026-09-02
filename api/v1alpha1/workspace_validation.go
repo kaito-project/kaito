@@ -146,8 +146,10 @@ func (w *Workspace) validateSpeculativeDecoding() (errs *apis.FieldError) {
 	}
 
 	// Reject multi-node opt-in only for methods that don't compose with
-	// pipeline parallelism (currently eagle / eagle3 in vLLM). ngram and mtp
-	// support PP. See proposal #2303 for the truth table.
+	// pipeline parallelism (currently eagle / eagle3 in vLLM). ngram works
+	// with PP at reduced speedup; mtp is allowed because DeepSeek-V3/R1
+	// (671B) physically require multi-node PP — realized speedup is
+	// smaller than single-node. See proposal #2303 for the truth table.
 	method := generator.ResolveSpeculativeDecodingMethod(string(w.Inference.Preset.Name))
 	if w.Resource.Count != nil && *w.Resource.Count > 1 &&
 		!generator.SpeculativeDecodingMethodSupportsPipelineParallelism(method) {

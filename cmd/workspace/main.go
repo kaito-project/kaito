@@ -117,6 +117,11 @@ func main() {
 	var defaultStreamingServiceAccount string
 	var modelMirrorDownloadCPU string
 	var modelMirrorDownloadMemory string
+	var inferencePoolChartURL string
+	var inferencePoolChartTag string
+	var eppImageRegistry string
+	var eppImageRepository string
+	var eppImageTag string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.IntVar(&kubeClientQPS, "kube-client-qps", kubeClientQPS, "the rate of qps to kube-apiserver.")
@@ -139,6 +144,11 @@ func main() {
 	flag.StringVar(&defaultStreamingServiceAccount, "default-streaming-service-account", "", "Default ServiceAccount for streaming inference pods.")
 	flag.StringVar(&modelMirrorDownloadCPU, "model-mirror-download-cpu", "", "CPU request==limit for the ModelMirror download Job container. Empty uses the built-in default (3).")
 	flag.StringVar(&modelMirrorDownloadMemory, "model-mirror-download-memory", "", "Memory request==limit for the ModelMirror download Job container. Empty uses the built-in default (8Gi).")
+	flag.StringVar(&inferencePoolChartURL, "inference-pool-chart-url", consts.InferencePoolChartURL, "OCI source URL for the auto-provisioned InferencePool chart.")
+	flag.StringVar(&inferencePoolChartTag, "inference-pool-chart-tag", consts.InferencePoolChartVersion, "Tag for the auto-provisioned InferencePool chart.")
+	flag.StringVar(&eppImageRegistry, "epp-image-registry", consts.EPPImageRegistry, "Container registry for the auto-provisioned EPP image.")
+	flag.StringVar(&eppImageRepository, "epp-image-repository", consts.EPPImageRepository, "Container repository for the auto-provisioned EPP image.")
+	flag.StringVar(&eppImageTag, "epp-image-tag", consts.EPPImageTag, "Tag for the auto-provisioned EPP image.")
 	opts := zap.Options{
 		Development: true,
 	}
@@ -350,12 +360,19 @@ func main() {
 
 	// MultiRoleInference controller — requires enableMultiRoleInferenceController.
 	if featuregates.FeatureGates[consts.FeatureFlagEnableMultiRoleInferenceController] {
-		mriReconciler := multiroleinference.NewMultiRoleInferenceReconciler(
+		mriReconciler := multiroleinference.NewMultiRoleInferenceReconcilerWithConfig(
 			kClient,
 			mgr.GetScheme(),
 			log.Log.WithName("controllers").WithName("MultiRoleInference"),
 			mgr.GetEventRecorderFor("KAITO-MultiRoleInference-controller"),
 			featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension],
+			multiroleinference.InferencePoolConfig{
+				ChartURL:         inferencePoolChartURL,
+				ChartTag:         inferencePoolChartTag,
+				EPPImageRegistry: eppImageRegistry,
+				EPPImageRepo:     eppImageRepository,
+				EPPImageTag:      eppImageTag,
+			},
 		)
 		if err = mriReconciler.SetupWithManager(mgr); err != nil {
 			klog.ErrorS(err, "unable to create controller", "controller", "MultiRoleInference")

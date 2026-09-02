@@ -60,16 +60,61 @@ type MultiRoleInferenceReconciler struct {
 	Scheme                       *runtime.Scheme
 	Recorder                     record.EventRecorder
 	EnableGatewayAPIInferenceExt bool
+	InferencePoolConfig          InferencePoolConfig
+}
+
+// InferencePoolConfig controls the OCI source and EPP image used by the
+// auto-provisioned Gateway API Inference Extension resources.
+type InferencePoolConfig struct {
+	ChartURL         string
+	ChartTag         string
+	EPPImageRegistry string
+	EPPImageRepo     string
+	EPPImageTag      string
+}
+
+// DefaultInferencePoolConfig returns the built-in InferencePool configuration.
+func DefaultInferencePoolConfig() InferencePoolConfig {
+	return InferencePoolConfig{
+		ChartURL:         consts.InferencePoolChartURL,
+		ChartTag:         consts.InferencePoolChartVersion,
+		EPPImageRegistry: consts.EPPImageRegistry,
+		EPPImageRepo:     consts.EPPImageRepository,
+		EPPImageTag:      consts.EPPImageTag,
+	}
 }
 
 // NewMultiRoleInferenceReconciler creates a new reconciler.
 func NewMultiRoleInferenceReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, recorder record.EventRecorder, enableGWIE bool) *MultiRoleInferenceReconciler {
+	return NewMultiRoleInferenceReconcilerWithConfig(client, scheme, log, recorder, enableGWIE, DefaultInferencePoolConfig())
+}
+
+// NewMultiRoleInferenceReconcilerWithConfig creates a reconciler with
+// configurable InferencePool source and EPP image settings.
+func NewMultiRoleInferenceReconcilerWithConfig(client client.Client, scheme *runtime.Scheme, log logr.Logger, recorder record.EventRecorder, enableGWIE bool, config InferencePoolConfig) *MultiRoleInferenceReconciler {
+	defaults := DefaultInferencePoolConfig()
+	if config.ChartURL == "" {
+		config.ChartURL = defaults.ChartURL
+	}
+	if config.ChartTag == "" {
+		config.ChartTag = defaults.ChartTag
+	}
+	if config.EPPImageRegistry == "" {
+		config.EPPImageRegistry = defaults.EPPImageRegistry
+	}
+	if config.EPPImageRepo == "" {
+		config.EPPImageRepo = defaults.EPPImageRepo
+	}
+	if config.EPPImageTag == "" {
+		config.EPPImageTag = defaults.EPPImageTag
+	}
 	return &MultiRoleInferenceReconciler{
 		Client:                       client,
 		Scheme:                       scheme,
 		Log:                          log,
 		Recorder:                     recorder,
 		EnableGatewayAPIInferenceExt: enableGWIE,
+		InferencePoolConfig:          config,
 	}
 }
 
@@ -601,10 +646,10 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 			return err
 		}
 		ociRepo.Spec = sourcev1.OCIRepositorySpec{
-			URL:      consts.InferencePoolChartURL,
+			URL:      r.InferencePoolConfig.ChartURL,
 			Interval: metav1.Duration{Duration: 10 * time.Minute},
 			Reference: &sourcev1.OCIRepositoryRef{
-				Tag: consts.InferencePoolChartVersion,
+				Tag: r.InferencePoolConfig.ChartTag,
 			},
 		}
 		return nil
@@ -631,9 +676,9 @@ func (r *MultiRoleInferenceReconciler) reconcileInferencePool(
 	// Build EPP extension values with llm-d image and P/D plugins config.
 	eppValues := map[string]any{
 		"image": map[string]string{
-			"registry":   consts.EPPImageRegistry,
-			"repository": consts.EPPImageRepository,
-			"tag":        consts.EPPImageTag,
+			"registry":   r.InferencePoolConfig.EPPImageRegistry,
+			"repository": r.InferencePoolConfig.EPPImageRepo,
+			"tag":        r.InferencePoolConfig.EPPImageTag,
 			"pullPolicy": string(corev1.PullIfNotPresent),
 		},
 	}

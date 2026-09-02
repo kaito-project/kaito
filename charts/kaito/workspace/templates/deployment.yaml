@@ -51,6 +51,21 @@ spec:
             {{- if .Values.modelMirrorDownloadMemory }}
             - --model-mirror-download-memory={{ .Values.modelMirrorDownloadMemory }}
             {{- end }}
+            {{- with .Values.inferencePool.chart.url }}
+            - {{ printf "--inference-pool-chart-url=%s" . | quote }}
+            {{- end }}
+            {{- with .Values.inferencePool.chart.tag }}
+            - {{ printf "--inference-pool-chart-tag=%s" . | quote }}
+            {{- end }}
+            {{- with .Values.inferencePool.epp.image.registry }}
+            - {{ printf "--epp-image-registry=%s" . | quote }}
+            {{- end }}
+            {{- with .Values.inferencePool.epp.image.repository }}
+            - {{ printf "--epp-image-repository=%s" . | quote }}
+            {{- end }}
+            {{- with .Values.inferencePool.epp.image.tag }}
+            - {{ printf "--epp-image-tag=%s" . | quote }}
+            {{- end }}
             {{- if .Values.defaultNodeImageFamily }}
             - --default-node-image-family={{ .Values.defaultNodeImageFamily }}
             {{- end }}

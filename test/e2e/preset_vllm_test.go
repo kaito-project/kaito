@@ -269,10 +269,14 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		// first request would still pass the flag-injection assertion above.
 		// Drive a real /v1/chat/completions round-trip through a child
 		// Workspace so the ngram proposer actually runs during decoding.
+		// NOTE: when a Workspace is created by an InferenceSet, vLLM's
+		// served-model-name is the InferenceSet name (not the preset id),
+		// so the /v1/models grep must match `"id":"<InferenceSet name>"`
+		// and the /v1/chat/completions payload must use the same name.
 		childWS := getFirstInferenceSetChildWorkspace(inferenceSetObj)
 		validateWorkspaceReadiness(childWS)
-		validateModelsEndpoint(childWS)
-		validateChatCompletionsEndpoint(childWS)
+		validateInferenceSetModelsEndpoint(childWS, inferenceSetObj.Name)
+		validateInferenceSetChatCompletionsEndpoint(childWS, inferenceSetObj.Name)
 	})
 
 	It("should create a Gemma 3 InferenceSet with preset public mode and validate BBR routing", Serial, utils.GinkgoLabelFastCheck, func() {
@@ -1348,6 +1352,101 @@ func getFirstInferenceSetChildWorkspace(inferenceSetObj *kaitov1beta1.InferenceS
 			"expected at least one child Workspace for InferenceSet %s", inferenceSetObj.Name)
 	})
 	return childWS
+}
+
+// validateInferenceSetModelsEndpoint is a variant of validateModelsEndpoint
+// that grep's /v1/models for the InferenceSet-supplied served-model-name
+// (rather than the preset-derived id used by validateModelsEndpoint). When a
+// Workspace carries WorkspaceCreatedByInferenceSetLabel, vLLM is launched
+// with --served-model-name=<InferenceSet name>, so /v1/models advertises the
+// InferenceSet name, not the preset id.
+func validateInferenceSetModelsEndpoint(workspaceObj *kaitov1beta1.Workspace, servedModelName string) {
+	deploymentName := workspaceObj.Name
+	expectedModelID := fmt.Sprintf(`"id":"%s"`, servedModelName)
+
+	execOption := corev1.PodExecOptions{
+		Command: []string{"bash", "-c", fmt.Sprintf(
+			`apt-get update && apt-get install curl -y; curl -s -X GET http://%s.%s.svc.cluster.local:80/v1/models | grep -e '%s'`,
+			workspaceObj.Name, workspaceObj.Namespace, expectedModelID)},
+		Container: deploymentName,
+		Stdout:    true,
+		Stderr:    true,
+	}
+
+	By(fmt.Sprintf("Validating the /v1/models endpoint advertises served-model-name=%s", servedModelName), func() {
+		Eventually(func() bool {
+			coreClient, err := utils.GetK8sClientset()
+			if err != nil {
+				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
+				return false
+			}
+			podName, err := utils.GetPodNameForWorkspace(coreClient, workspaceObj.Namespace, deploymentName)
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get pod name for deployment %s: %v\n", deploymentName, err)
+				return false
+			}
+			k8sConfig, err := utils.GetK8sConfig()
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get k8s config: %v\n", err)
+				return false
+			}
+			execCtx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+			defer cancel()
+			if _, err := utils.ExecSync(execCtx, k8sConfig, coreClient, workspaceObj.Namespace, podName, execOption); err != nil {
+				GinkgoWriter.Printf("validate command fails: %v\n", err)
+				return false
+			}
+			return true
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(),
+			"Failed to wait for /v1/models endpoint to advertise served-model-name=%s", servedModelName)
+	})
+}
+
+// validateInferenceSetChatCompletionsEndpoint is a variant of
+// validateChatCompletionsEndpoint that sends the InferenceSet-supplied
+// served-model-name in the request body (rather than the preset-derived id).
+// This is what a real client would send to a child Workspace of an
+// InferenceSet, and it is required so the ngram proposer runs during decoding
+// under the same model id that vLLM is serving.
+func validateInferenceSetChatCompletionsEndpoint(workspaceObj *kaitov1beta1.Workspace, servedModelName string) {
+	deploymentName := workspaceObj.Name
+	expectedCompletion := `"object":"chat.completion`
+	execOption := corev1.PodExecOptions{
+		Command: []string{"bash", "-c", fmt.Sprintf(
+			`apt-get update && apt-get install curl -y; curl -s --max-time 30 -X POST -H "Content-Type: application/json" -d '{"model":"%s","messages":[{"role":"user","content":"What is Kubernetes?"}],"max_tokens":7,"temperature":0}' http://%s.%s.svc.cluster.local:80/v1/chat/completions | grep -e '%s'`,
+			servedModelName, workspaceObj.Name, workspaceObj.Namespace, expectedCompletion)},
+		Container: deploymentName,
+		Stdout:    true,
+		Stderr:    true,
+	}
+
+	By(fmt.Sprintf("Validating the /v1/chat/completions endpoint with served-model-name=%s", servedModelName), func() {
+		Eventually(func() bool {
+			coreClient, err := utils.GetK8sClientset()
+			if err != nil {
+				GinkgoWriter.Printf("Failed to create core client: %v\n", err)
+				return false
+			}
+			podName, err := utils.GetPodNameForWorkspace(coreClient, workspaceObj.Namespace, deploymentName)
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get pod name for deployment %s: %v\n", deploymentName, err)
+				return false
+			}
+			k8sConfig, err := utils.GetK8sConfig()
+			if err != nil {
+				GinkgoWriter.Printf("Failed to get k8s config: %v\n", err)
+				return false
+			}
+			execCtx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+			defer cancel()
+			if _, err := utils.ExecSync(execCtx, k8sConfig, coreClient, workspaceObj.Namespace, podName, execOption); err != nil {
+				GinkgoWriter.Printf("validate command fails: %v\n", err)
+				return false
+			}
+			return true
+		}, 5*time.Minute, utils.PollInterval).Should(BeTrue(),
+			"Failed to wait for /v1/chat/completions endpoint to serve model=%s", servedModelName)
+	})
 }
 
 func createQwen3_8_27BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {

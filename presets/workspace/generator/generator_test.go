@@ -673,6 +673,30 @@ func TestSelectWeightFiles(t *testing.T) {
 			expectedIsMistral: false,
 		},
 		{
+			name: "prefers root weights over alternate safetensors in subdirectories",
+			files: []FileInfo{
+				{Path: "model-00001-of-00002.safetensors", Size: 5000},
+				{Path: "model-00002-of-00002.safetensors", Size: 5000},
+				{Path: "original/model-00001-of-00002.safetensors", Size: 5000},
+				{Path: "original/model-00002-of-00002.safetensors", Size: 5000},
+				{Path: "metal/model.bin", Size: 10000},
+			},
+			expectedPaths: []string{
+				"model-00001-of-00002.safetensors",
+				"model-00002-of-00002.safetensors",
+			},
+			expectedIsMistral: false,
+		},
+		{
+			name: "ignores nested safetensors when no root weights exist",
+			files: []FileInfo{
+				{Path: "weights/model-00001-of-00002.safetensors", Size: 5000},
+				{Path: "weights/model-00002-of-00002.safetensors", Size: 5000},
+			},
+			expectedPaths:     nil,
+			expectedIsMistral: false,
+		},
+		{
 			name: "no weight files returns empty",
 			files: []FileInfo{
 				{Path: "config.json", Size: 100},

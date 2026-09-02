@@ -425,8 +425,8 @@ func (g *Generator) listRepoFiles() ([]FileInfo, error) {
 	return files, nil
 }
 
-// selectWeightFiles picks the model weight files to use and detects whether
-// the model uses Mistral format. For Mistral-format models (those with
+// selectWeightFiles picks root-level model weight files and detects whether the
+// model uses Mistral format. For Mistral-format models (those with
 // consolidated*.safetensors), it sets g.IsMistralModel and returns only the
 // consolidated files. For standard models, it prefers .safetensors over .bin
 // when both are present.
@@ -434,6 +434,9 @@ func (g *Generator) selectWeightFiles(files []FileInfo) []FileInfo {
 	var safetensors, bins, mistral []FileInfo
 
 	for _, f := range files {
+		if strings.Contains(f.Path, "/") {
+			continue
+		}
 		if mistralRegex.MatchString(f.Path) {
 			mistral = append(mistral, f)
 		}

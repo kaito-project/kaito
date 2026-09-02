@@ -42,12 +42,12 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
-	presetgen "github.com/kaito-project/kaito/presets/workspace/generator"
 	"github.com/kaito-project/kaito/pkg/utils/mig"
 	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/registry"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
+	presetgen "github.com/kaito-project/kaito/presets/workspace/generator"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 

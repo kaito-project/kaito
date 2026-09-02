@@ -50,7 +50,6 @@ import (
 var _ = Describe("Workspace Preset on vllm runtime", func() {
 	BeforeEach(func() {
 		loadTestEnvVars()
-		loadModelVersions()
 	})
 
 	// MRI and InferenceSet tests run first so they are not interrupted by

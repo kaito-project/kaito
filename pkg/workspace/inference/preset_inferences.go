@@ -227,16 +227,10 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 
 	shouldDownloadWeightsFromHF := !streamingEnabled && localModelWeightsPath == ""
 
-	// Model source (mutually exclusive): streaming (az://) > node-image weights
-	// (host path) > download-at-runtime (HF repo).
-	switch {
-	case streamingEnabled:
+	// Streaming requires provider-specific pod configuration. Node-image and
+	// Hugging Face sources are fully configured by GenerateInferencePodSpec.
+	if streamingEnabled {
 		podOpts = append(podOpts, modelstreaming.SetStreamingConfig(streamingCfg, modelID, modelstreaming.StreamingDefaults.ServiceAccount))
-	case localModelWeightsPath != "":
-		// Weights are mounted from the node (see GenerateInferencePodSpec); no
-		// puller/download setup is needed.
-	default:
-		podOpts = append(podOpts, SetModelDownloadInfo)
 	}
 
 	podOpts = append(podOpts, SetAdapterPuller)
@@ -868,19 +862,6 @@ func SetHFToken(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) 
 			break
 		}
 	}
-	return nil
-}
-
-func SetModelDownloadInfo(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
-	if ctx.Model.GetInferenceParameters().DownloadAtRuntime {
-		// HF_TOKEN is handled by SetHFToken.
-		// DAR models just need the token present. no other download setup needed.
-		return nil
-	}
-
-	// additional initContainers
-	initContainers := manifests.GenerateModelPullerContainer(ctx.Ctx, ctx.Workspace, ctx.Model.GetInferenceParameters())
-	spec.InitContainers = append(spec.InitContainers, initContainers...)
 	return nil
 }
 

@@ -28,7 +28,6 @@ import (
 	"time"
 
 	"github.com/samber/lo"
-	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -63,22 +62,6 @@ func GenerateRandomString() string {
 	newRand := rand.New(rand.NewSource(time.Now().UnixNano()))
 	randomNumber := newRand.Intn(1001) // Generate a random number between 0 and 1000
 	return fmt.Sprintf("%d", randomNumber)
-}
-
-func GetModelConfigInfo(configFilePath string) (map[string]interface{}, error) {
-	var data map[string]interface{}
-
-	yamlData, err := os.ReadFile(configFilePath)
-	if err != nil {
-		return nil, fmt.Errorf("error reading YAML file: %w", err)
-	}
-
-	err = yaml.Unmarshal(yamlData, &data)
-	if err != nil {
-		return nil, fmt.Errorf("error unmarshalling YAML: %w", err)
-	}
-
-	return data, nil
 }
 
 func GetPodNameForWorkspace(coreClient *kubernetes.Clientset, namespace, workspaceName string) (string, error) {
@@ -236,35 +219,6 @@ func CopySecret(original *corev1.Secret, targetNamespace string) *corev1.Secret 
 		Type: original.Type,
 	}
 	return newSecret
-}
-
-func ExtractModelVersion(configs map[string]interface{}) (map[string]string, error) {
-	modelsInfo := make(map[string]string)
-	models, ok := configs["models"].([]interface{})
-	if !ok {
-		return nil, fmt.Errorf("'models' key not found or is not a slice")
-	}
-
-	for _, modelItem := range models {
-		model, ok := modelItem.(map[interface{}]interface{})
-		if !ok {
-			return nil, fmt.Errorf("model item is not a map")
-		}
-
-		modelName, ok := model["name"].(string)
-		if !ok {
-			return nil, fmt.Errorf("model name is not a string or not found")
-		}
-
-		modelTag, ok := model["tag"].(string) // Using 'tag' as the version
-		if !ok {
-			return nil, fmt.Errorf("model version for %s is not a string or not found", modelName)
-		}
-
-		modelsInfo[modelName] = modelTag
-	}
-
-	return modelsInfo, nil
 }
 
 func GenerateInferenceWorkspaceManifest(name, namespace, imageName string, resourceCount int, instanceType string,

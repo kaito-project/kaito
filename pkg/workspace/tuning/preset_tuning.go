@@ -186,10 +186,11 @@ func CreatePresetTuning(ctx context.Context, workspaceObj *kaitov1beta1.Workspac
 
 func GenerateBasicTuningPodSpec(skuNumGPUs int) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
+		tuningParam := ctx.Model.GetTuningParameters().DeepCopy()
+
 		// additional volume
 		var volumes []corev1.Volume
 		var volumeMounts []corev1.VolumeMount
-		var initContainers []corev1.Container
 
 		// add share memory for cross process communication
 		shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
@@ -199,7 +200,7 @@ func GenerateBasicTuningPodSpec(skuNumGPUs int) func(*generator.WorkspaceGenerat
 		// Add volume for model weights access
 		volumes = append(volumes, utils.DefaultModelWeightsVolume)
 		volumeMounts = append(volumeMounts, utils.DefaultModelWeightsVolumeMount)
-		initContainers = append(initContainers, manifests.GenerateModelPullerContainer(ctx.Ctx, ctx.Workspace, ctx.Model.GetTuningParameters())...)
+		spec.InitContainers = append(spec.InitContainers, generateTuningModelPullerContainer(tuningParam))
 
 		// resource requirements
 		resourceRequirements := corev1.ResourceRequirements{
@@ -229,13 +230,11 @@ func GenerateBasicTuningPodSpec(skuNumGPUs int) func(*generator.WorkspaceGenerat
 		})
 
 		// tuning commands
-		tuningParam := ctx.Model.GetTuningParameters().DeepCopy()
 		commands := tuningParam.GetTuningCommand(pkgmodel.RuntimeContext{
 			SKUNumGPUs: skuNumGPUs,
 		})
 
 		spec.Tolerations = defaultTolerations()
-		spec.InitContainers = append(spec.InitContainers, initContainers...)
 		spec.Containers = []corev1.Container{
 			{
 				Name:         ctx.Workspace.Name,
@@ -278,6 +277,22 @@ func GenerateBasicTuningPodSpec(skuNumGPUs int) func(*generator.WorkspaceGenerat
 		}
 
 		return nil
+	}
+}
+
+func generateTuningModelPullerContainer(params *pkgmodel.PresetParam) corev1.Container {
+	modelImage := utils.GetPresetImageName(params.Registry, params.Transformers.ModelName, params.Transformers.Tag)
+	return corev1.Container{
+		Name:  "model-weights-downloader",
+		Image: utils.DefaultORASToolImage,
+		Command: []string{
+			"oras",
+			"pull",
+			modelImage,
+			"-o",
+			utils.DefaultWeightsVolumePath,
+		},
+		VolumeMounts: []corev1.VolumeMount{utils.DefaultModelWeightsVolumeMount},
 	}
 }
 

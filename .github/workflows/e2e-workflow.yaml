@@ -76,7 +76,7 @@ jobs:
       - name: Set BUILD_KAITO_BASE_IMAGE
         run: |
           # Check if we are missing the kaito-base image. If we are, we should run full e2e tests. Otherwise, run fast e2e tests.
-          BUILD_KAITO_BASE_IMAGE=$(python3 .github/determine_missing_preset_images.py | jq -r '.[] | select(.name == "base") | length > 0')
+          BUILD_KAITO_BASE_IMAGE=$(python3 .github/determine_missing_base_images.py | jq -r '.[] | select(.name == "base") | length > 0')
           echo "BUILD_KAITO_BASE_IMAGE=${BUILD_KAITO_BASE_IMAGE}" >> $GITHUB_ENV
 
       - name: Run e2e-base-setup composite action

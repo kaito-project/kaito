@@ -17,7 +17,6 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -71,24 +70,8 @@ func loadTestEnvVars() {
 	aiModelsRegistrySecret = utils.GetEnv("AI_MODELS_REGISTRY_SECRET")
 	// Currently required for uploading fine-tuning results
 	e2eACRSecret = utils.GetEnv("E2E_ACR_REGISTRY_SECRET")
-	supportedModelsYamlPath = utils.GetEnv("SUPPORTED_MODELS_YAML_PATH")
 	azureClusterName = strings.ToLower(utils.GetEnv("AZURE_CLUSTER_NAME"))
 	hfToken = utils.GetEnv("HF_TOKEN")
-}
-
-func loadModelVersions() {
-	// Load stable model versions
-	configs, err := utils.GetModelConfigInfo(supportedModelsYamlPath)
-	if err != nil {
-		fmt.Printf("Failed to load model configs: %v\n", err)
-		os.Exit(1)
-	}
-
-	modelInfo, err = utils.ExtractModelVersion(configs)
-	if err != nil {
-		fmt.Printf("Failed to extract stable model versions: %v\n", err)
-		os.Exit(1)
-	}
 }
 
 func createCustomWorkspaceWithAdapter(numOfNode int, validAdapters []kaitov1beta1.AdapterSpec) *kaitov1beta1.Workspace {
@@ -1309,8 +1292,6 @@ func createOutputVolume(storageClassName string) *corev1.Volume {
 var aiModelsRegistry string
 var aiModelsRegistrySecret string
 var e2eACRSecret string
-var supportedModelsYamlPath string
-var modelInfo map[string]string
 var azureClusterName string
 var hfToken string
 
@@ -1394,7 +1375,6 @@ var _ = Describe("Karpenter Bootstrap", func() {
 var _ = Describe("Workspace Preset", func() {
 	BeforeEach(func() {
 		loadTestEnvVars()
-		loadModelVersions()
 	})
 
 	It("should create a custom template workspace successfully", utils.GinkgoLabelFastCheck, func() {

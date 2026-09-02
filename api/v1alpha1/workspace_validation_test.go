@@ -2081,11 +2081,11 @@ func TestWorkspaceValidateSpeculativeDecoding_v1alpha1(t *testing.T) {
 			wantErr:     true,
 		},
 		{
-			name:        "true with resource.count>1 rejected",
+			name:        "true with resource.count>1 + mtp preset allowed (PP-compatible)",
 			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
 			inference:   &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "deepseek-r1-0528"}}},
 			count:       intPtr(3),
-			wantErr:     true,
+			wantErr:     false,
 		},
 	}
 	for _, tc := range tests {

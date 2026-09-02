@@ -34,6 +34,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/presets/workspace/generator"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
@@ -144,14 +145,17 @@ func (w *Workspace) validateSpeculativeDecoding() (errs *apis.FieldError) {
 		))
 	}
 
-	// Reject multi-node opt-in at admission time. Speculative decoding is
-	// currently mutually exclusive with pipeline parallelism.
-	if w.Resource.Count != nil && *w.Resource.Count > 1 {
+	// Reject multi-node opt-in only for methods that don't compose with
+	// pipeline parallelism (currently eagle / eagle3 in vLLM). ngram and mtp
+	// support PP. See proposal #2303 for the truth table.
+	method := generator.ResolveSpeculativeDecodingMethod(string(w.Inference.Preset.Name))
+	if w.Resource.Count != nil && *w.Resource.Count > 1 &&
+		!generator.SpeculativeDecodingMethodSupportsPipelineParallelism(method) {
 		errs = errs.Also(apis.ErrGeneric(
 			fmt.Sprintf(
-				"kaito.sh/enable-speculative-decoding is not supported with resource.count > 1 "+
+				"kaito.sh/enable-speculative-decoding method %q is not supported with resource.count > 1 "+
 					"(pipeline parallelism); requested %d nodes",
-				*w.Resource.Count,
+				method, *w.Resource.Count,
 			),
 			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
 		))

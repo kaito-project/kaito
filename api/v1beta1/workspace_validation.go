@@ -224,9 +224,12 @@ func (w *Workspace) validateSpeculativeDecoding(ctx context.Context) (errs *apis
 
 	// (d) Reject multi-node opt-in only for methods that don't compose with
 	// pipeline parallelism (currently eagle / eagle3 in vLLM). ngram is a
-	// CPU-side lookup and works with PP; mtp heads are baked into the
-	// DeepSeek-V3/R1 checkpoints and are sharded together with the model,
-	// so PP is also supported. See proposal #2303 for the truth table.
+	// CPU-side lookup and works with PP (reduced speedup). mtp is placed
+	// on the last PP stage by vLLM and is allowed here because the
+	// DeepSeek-V3/R1 presets in speculativeDecodingByPreset physically
+	// require multi-node PP; realized speedup under PP is smaller than
+	// single-node and callers should emit a Warning event to surface that.
+	// See proposal #2303 for the full truth table.
 	method := generator.ResolveSpeculativeDecodingMethod(string(w.Inference.Preset.Name))
 	//nolint:staticcheck //SA1019: deprecate Resource.Count field
 	if w.Resource.Count != nil && *w.Resource.Count > 1 &&

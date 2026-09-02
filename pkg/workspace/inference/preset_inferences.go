@@ -1237,8 +1237,9 @@ func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.Runtim
 	}
 	if ws.Status.TargetNodeCount > 1 {
 		// PP compatibility depends on the resolved method. ngram (universal
-		// fallback) and mtp (DeepSeek-V3/R1 baked-in heads) compose with PP;
-		// eagle / eagle3 in vLLM do not (see proposal #2303).
+		// fallback) and mtp (DeepSeek-V3/R1 baked-in heads placed on the
+		// last PP stage by vLLM) still run under PP; eagle / eagle3 do not.
+		// See proposal #2303 for the full truth table.
 		method := presetgen.SpeculativeDecodingFallbackMethod
 		if inferenceParam.SpeculativeDecoding != nil && inferenceParam.SpeculativeDecoding.Method != "" {
 			method = inferenceParam.SpeculativeDecoding.Method
@@ -1247,6 +1248,12 @@ func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.Runtim
 			// TODO(#2303-followup): surface as ConditionSpeculativeDecodingDisabled(PipelineParallelism).
 			return SpecDecoPipelineParallelism, nil
 		}
+		// TODO(#2303-followup): for ngram / mtp under PP, emit a Warning
+		// event (SpeculativeDecodingReducedUnderPP) so operators know
+		// the realized speedup is smaller than single-node. Each
+		// iteration eats a full pipeline round-trip for the accept/
+		// reject signal, and single-request spec decoding cannot hide
+		// PP bubbles.
 	}
 	// TODO(#2303-followup): honor ConfigMap-provided speculative-config override
 	// (return SpecDecoConfigMapOverride and emit a SpeculativeDecodingConfigMapOverride event).

@@ -366,9 +366,17 @@ func ResolveSpeculativeDecodingMethod(presetHFRepo string) string {
 // the truth table lives in a single place.
 //
 //   - ngram: CPU-side string matching over the context; does not touch the
-//     target model's execution graph, composes with PP (reduced speedup).
-//   - mtp: MTP heads are baked into DeepSeek-V3/R1 checkpoints and are
-//     sharded together with the model, so PP is supported by vLLM.
+//     target model's execution graph, composes with PP (reduced speedup —
+//     PP bubbles are not hidden by single-request spec decoding).
+//   - mtp: MTP heads are baked into DeepSeek-V3/R1 checkpoints and vLLM
+//     places them on the last PP stage, so startup does not fail. The
+//     end-to-end speedup under PP is typically smaller than single-node
+//     (each iteration eats a full pipeline round-trip for the
+//     accept/reject signal) and is not benchmarked here. We still allow
+//     it because DeepSeek-V3/R1 (671B) physically require multi-node PP
+//     to serve — blanket-rejecting Count>1 would make the mtp entries
+//     in speculativeDecodingByPreset unreachable. Callers should emit a
+//     Warning event so operators know the speedup is reduced.
 //   - eagle / eagle3: trained draft heads assumed to co-locate with a
 //     TP-sharded target; vLLM does not currently support PP for these.
 func SpeculativeDecodingMethodSupportsPipelineParallelism(method string) bool {

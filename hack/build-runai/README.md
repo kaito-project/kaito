@@ -30,3 +30,8 @@ run this script when `cache.providers.dacs.modelWarmerImage` is configured.
 Before streaming, the warmer waits until `CACHE_DISCOVERY_URL` and
 `CACHE_SERVER_PORT` accept a TCP connection so a cold-node cache startup does
 not cause the warm to fall back to remote storage.
+
+KAITO sets `KAITO_MODEL_WARMER_PARTITION_COUNT` to the StatefulSet replica
+count. Each warmer uses its pod ordinal to stream a disjoint, striped partition
+of the model's sorted safetensor files. If the variable is absent, the warmer
+retains the ordinal-zero-only behavior for compatibility.

@@ -18,6 +18,61 @@ from unittest import mock
 import model_warmer
 
 
+class SelectWeightFilesTest(unittest.TestCase):
+    def test_stripes_sorted_files_across_partitions(self):
+        weight_files = [
+            "model-00004.safetensors",
+            "model-00001.safetensors",
+            "model-00003.safetensors",
+            "model-00002.safetensors",
+            "model-00005.safetensors",
+        ]
+
+        self.assertEqual(
+            model_warmer.select_weight_files(weight_files, 0, 2),
+            [
+                "model-00001.safetensors",
+                "model-00003.safetensors",
+                "model-00005.safetensors",
+            ],
+        )
+        self.assertEqual(
+            model_warmer.select_weight_files(weight_files, 1, 2),
+            [
+                "model-00002.safetensors",
+                "model-00004.safetensors",
+            ],
+        )
+
+    def test_rejects_invalid_partition(self):
+        with self.assertRaisesRegex(ValueError, "outside"):
+            model_warmer.select_weight_files(["model.safetensors"], 2, 2)
+
+
+class WarmerPartitionTest(unittest.TestCase):
+    @mock.patch.dict(
+        os.environ,
+        {"KAITO_MODEL_WARMER_PARTITION_COUNT": "3"},
+        clear=True,
+    )
+    def test_uses_pod_ordinal_when_partitioning_is_enabled(self):
+        self.assertEqual(model_warmer.warmer_partition("model-2"), (2, 3))
+
+    @mock.patch.dict(os.environ, {}, clear=True)
+    def test_defaults_to_ordinal_zero_only(self):
+        self.assertEqual(model_warmer.warmer_partition("model-0"), (0, 1))
+        self.assertIsNone(model_warmer.warmer_partition("model-1"))
+
+    @mock.patch.dict(
+        os.environ,
+        {"KAITO_MODEL_WARMER_PARTITION_COUNT": "2"},
+        clear=True,
+    )
+    def test_rejects_ordinal_outside_partition_count(self):
+        with self.assertRaisesRegex(ValueError, "outside"):
+            model_warmer.warmer_partition("model-2")
+
+
 class WaitForCacheTest(unittest.TestCase):
     @mock.patch.dict(
         os.environ,

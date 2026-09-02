@@ -139,9 +139,29 @@ At annotation-opt-in time, KAITO picks the method for the user:
 
 `eagle` / `eagle3` never selects itself automatically — it needs schema work first (draft-checkpoint reference in `model_catalog.yaml`, node-estimator memory budgeting) and is intentionally left out of the automatic selection until that lands.
 
+#### Pipeline Parallelism Compatibility
+
+Speculative decoding and pipeline parallelism (PP) have a fundamental tension: the spec-decoding loop is `draft k → verify k → accept/reject → repeat`, which is strongly serial across iterations, while PP extracts throughput by keeping the pipeline full with many in-flight micro-batches. Under single-request spec-decoding there is effectively one in-flight micro-batch, so PP bubbles are not hidden, and every iteration pays for one full pipeline round-trip to move the accept/reject decision from the last stage back to stage 0. As a result, whether a given drafting method composes with PP is method-specific, not global:
+
+| Method | TP | PP (target Count > 1) | Notes |
+|---|---|---|---|
+| `ngram` | ✅ | ✅ (reduced speedup) | Drafter is CPU-side string matching over the context; it does not touch the target model's execution graph. Runs correctly under PP; combined speedup is smaller than TP-only + `ngram`, but stable. |
+| `mtp` | ✅ | ✅ | MTP heads are baked into the DeepSeek-V3 / R1 checkpoint and are sharded together with the model; vLLM supports MTP under PP. This matters because DeepSeek-V3/R1 (671B) physically require multi-node PP to serve, so blanket-rejecting PP would make the `mtp` presets unreachable. |
+| `dspark` | ✅ | ⚠️ deferred | Fused vs assistant variants place the drafter differently; PP behaviour is not yet validated against a pinned vLLM. Treat as unsupported until V4 recipes land. |
+| `eagle` / `eagle3` | ✅ | ❌ | vLLM's EAGLE implementation assumes the draft head co-locates with a TP-sharded target on the same set of GPUs. EAGLE-3 additionally fuses shallow / middle / deep target features that would now live on different PP stages. Gathering them per iteration is prohibitively expensive. Known upstream limitation. |
+
+Because vLLM does not fail loudly for the unsupported combinations, KAITO must own this validation. The rule is method-aware, not blanket:
+
+1. Resolve the effective method at admission time using the same source of truth as pod-spec generation: look up `speculativeDecodingByPreset[strings.ToLower(preset)]` and fall back to `"ngram"` when the preset is not registered.
+2. If the resolved method is `ngram` or `mtp` and `Resource.Count > 1` → allow. Optionally emit a `Warning` event noting that PP reduces spec-decoding speedup for `ngram`.
+3. If the resolved method is `eagle` / `eagle3` (or any future method flagged as PP-incompatible) and `Resource.Count > 1` → reject with a message that names the resolved method and points at this limitation.
+4. Same check applies to the child-Workspace layer for InferenceSet and MultiRoleInference; the parent-level validators do not need their own PP check because the propagated child Workspace's `Resource.Count` is what actually determines PP.
+
+The shared truth table lives with the `speculativeDecodingByPreset` map (`ResolveSpeculativeDecodingMethod` + `SpeculativeDecodingMethodSupportsPipelineParallelism` in `presets/workspace/generator/generator.go`) so the admission webhook and the pod-spec injection helper cannot drift.
+
 #### Why It Isn't Always On
 
-Throughput can *regress* at high QPS (draft is wasted work when the batch is already saturated). It has to stay **opt-in**, never default. Several vLLM compatibility caveats also exist (pipeline parallelism, prefix caching, chunked prefill, logprob stability, LoRA/tool-calling) that need per-preset re-verification against KAITO's pinned vLLM version.
+Throughput can *regress* at high QPS (draft is wasted work when the batch is already saturated). It has to stay **opt-in**, never default. Several vLLM compatibility caveats also exist (pipeline parallelism as covered above, prefix caching, chunked prefill, logprob stability, LoRA/tool-calling) that need per-preset re-verification against KAITO's pinned vLLM version.
 
 ### User Experience
 
@@ -501,14 +521,27 @@ if runtimeName == pkgmodel.RuntimeNameVLLM &&
     // status once the injection decision is available (see "Reconciler
     // wiring for the skip signal" below).
     if ws.Status.TargetNodeCount > 1 {
-        // Pipeline-parallelism guard fired: injection deliberately skipped.
-        // Reconciler translates this into ConditionSpeculativeDecodingDisabled
-        // with reason=PipelineParallelism.
-        if outDecision != nil {
-            *outDecision = SpecDecoPipelineParallelism
+        // Pipeline-parallelism guard is method-aware. ngram (universal
+        // fallback) and mtp (DeepSeek-V3/R1 baked-in heads) compose with
+        // PP; eagle / eagle3 in vLLM do not. Resolve the method from the
+        // already-resolved PresetParam (falling back to the ngram
+        // constant used by defaultFallbackNGramConfig) and only skip
+        // injection when the method actually can't run under PP.
+        method := generator.SpeculativeDecodingFallbackMethod
+        if inferenceParam.SpeculativeDecoding != nil && inferenceParam.SpeculativeDecoding.Method != "" {
+            method = inferenceParam.SpeculativeDecoding.Method
         }
-        skipInjection = true
-    } else {
+        if !generator.SpeculativeDecodingMethodSupportsPipelineParallelism(method) {
+            // Reconciler translates this into
+            // ConditionSpeculativeDecodingDisabled with
+            // reason=PipelineParallelism.
+            if outDecision != nil {
+                *outDecision = SpecDecoPipelineParallelism
+            }
+            skipInjection = true
+        }
+    }
+    if !skipInjection {
         // Extract SpeculativeDecoding from the already-resolved model.
         // ctx.Model was resolved by the caller via models.GetModelByName
         // (which triggers GetModelByNameWithToken internally and rewrites
@@ -1131,39 +1164,50 @@ func validateSpeculativeDecoding(ws *Workspace) error {
         )
     }
 
-    // (d) Reject pipeline parallelism.
+    // (d) Reject pipeline parallelism only for methods that don't
+    //     compose with PP in vLLM.
     //     Rationale: KAITO's cross-node runtime today is pipeline
     //     parallelism (see workspace_controller.go lines 1578-1621, where
     //     multi-node presets are resolved and PP is what gets configured
-    //     when the resolved node count > 1). Upstream vLLM's own
-    //     speculative-decoding docs likewise gate their per-method
-    //     recipes on single-node deployments, and MTP / DSpark PP
-    //     support is still being landed / stabilized in vLLM at the time
-    //     of this proposal (see vLLM issues tracking
-    //     speculative-decoding+PP). Enabling `--speculative-config` on a
-    //     PP layout in the current KAITO+vLLM combination would either
-    //     hard-fail vLLM startup or silently disable speculation on the
-    //     non-first stages, neither of which we want to route through
-    //     `enable-speculative-decoding: "true"`.
+    //     when the resolved node count > 1). Whether spec-decoding can
+    //     ride on top of PP is method-specific:
     //
-    //     Note this is a conservative admission-time gate, not an
-    //     upstream compatibility statement. When vLLM's PP support for a
-    //     given method stabilizes and we've verified it on a KAITO PP
-    //     layout, the gate is lifted per-method (a `PPCompatible bool`
-    //     on `SpeculativeDecodingConfig` is the natural extension).
+    //       * ngram: CPU-side prompt lookup, does not touch the target
+    //         model's execution graph, composes with PP (reduced speedup).
+    //       * mtp: MTP heads are baked into the DeepSeek-V3/R1 checkpoint
+    //         and sharded together with the model; vLLM supports MTP
+    //         under PP. This is required for correctness because
+    //         DeepSeek-V3 / R1 (671B) physically need multi-node PP to
+    //         serve at all - a blanket rejection would make those
+    //         `speculativeDecodingByPreset` entries unreachable.
+    //       * eagle / eagle3: vLLM's implementation assumes the draft
+    //         head co-locates with a TP-sharded target; EAGLE-3 also
+    //         fuses shallow/middle/deep target features that would
+    //         cross PP stages. Not supported upstream, so we reject.
+    //
+    //     The gate is a per-method decision, not a blanket count-based
+    //     one. The truth table lives in one place
+    //     (generator.SpeculativeDecodingMethodSupportsPipelineParallelism)
+    //     so admission and pod-spec injection cannot drift.
     //
     //     resource.count is NOT the resolved vLLM node count - the
     //     controller computes status.targetNodeCount from model size and
     //     SKU AFTER admission. A nil or 1 count can still become
-    //     multiple nodes and pull in PP. So we enforce single-node
-    //     compatibility using the same estimator the controller uses,
-    //     and add a reconcile-time guard before injection.
+    //     multiple nodes and pull in PP. So we enforce PP compatibility
+    //     using the same estimator the controller uses, and add a
+    //     reconcile-time guard before injection.
     //
-    //     Admission time (this webhook): reject if the resource estimator
-    //     already knows the preset requires PP for the resolved SKU.
+    //     Admission time (this webhook): resolve the method that the
+    //     pod-spec layer would inject (via
+    //     generator.ResolveSpeculativeDecodingMethod, falling back to
+    //     "ngram" when the preset is not in speculativeDecodingByPreset)
+    //     and reject if the resource estimator says the preset will run
+    //     under PP for the resolved SKU AND the resolved method is not
+    //     PP-compatible.
     //     Reconcile time (Step 3 injection site): re-check
-    //     status.targetNodeCount and refuse to inject if it exceeds 1,
-    //     emitting a Workspace condition explaining why.
+    //     status.targetNodeCount against the same method-aware truth
+    //     table and refuse to inject if the current method is not
+    //     PP-compatible, emitting a Workspace condition explaining why.
     //
     //     The admission webhook cannot import
     //     `pkg/workspace/estimator/nodesestimator` directly - that package
@@ -1225,12 +1269,18 @@ func validateSpeculativeDecoding(ws *Workspace) error {
         )
     }
     if targetNodes > 1 {
-        return fmt.Errorf(
-            "kaito.sh/enable-speculative-decoding is incompatible with "+
-            "multi-node distributed inference (pipeline parallelism); "+
-            "preset %q on SKU %q resolves to %d nodes",
-            ws.Inference.Preset.Name, ws.Resource.InstanceType, targetNodes,
-        )
+        method := generator.ResolveSpeculativeDecodingMethod(string(ws.Inference.Preset.Name))
+        if !generator.SpeculativeDecodingMethodSupportsPipelineParallelism(method) {
+            return fmt.Errorf(
+                "kaito.sh/enable-speculative-decoding method %q is incompatible with "+
+                "multi-node distributed inference (pipeline parallelism); "+
+                "preset %q on SKU %q resolves to %d nodes",
+                method, ws.Inference.Preset.Name, ws.Resource.InstanceType, targetNodes,
+            )
+        }
+        // ngram / mtp fall through: reduced speedup for ngram (optional
+        // Warning event may be emitted by the reconciler), full support
+        // for mtp because MTP heads are sharded with the target.
     }
 
     return nil

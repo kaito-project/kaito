@@ -341,6 +341,48 @@ func SupportedSpeculativeDecodingPresets() []string {
 	return out
 }
 
+// SpeculativeDecodingFallbackMethod is the method used when a preset is not
+// registered in speculativeDecodingByPreset. Kept in sync with
+// defaultFallbackNGramConfig() in pkg/workspace/inference.
+const SpeculativeDecodingFallbackMethod = "ngram"
+
+// ResolveSpeculativeDecodingMethod returns the speculative-decoding method
+// that would be injected for the given preset HuggingFace repo name. Presets
+// registered in speculativeDecodingByPreset return their per-preset method
+// (e.g. "mtp" for DeepSeek R1/V3); everything else falls back to the
+// universal ngram default applied at pod-spec generation time. Admission
+// webhooks use this to make PP-compatibility decisions consistent with what
+// the pod-spec layer will actually inject.
+func ResolveSpeculativeDecodingMethod(presetHFRepo string) string {
+	if entry, ok := speculativeDecodingByPreset[strings.ToLower(presetHFRepo)]; ok && entry.Config != nil {
+		return entry.Config.Method
+	}
+	return SpeculativeDecodingFallbackMethod
+}
+
+// SpeculativeDecodingMethodSupportsPipelineParallelism reports whether the
+// given resolved method is safe to run with pipeline parallelism (more than
+// one target-model node). Kept next to ResolveSpeculativeDecodingMethod so
+// the truth table lives in a single place.
+//
+//   - ngram: CPU-side string matching over the context; does not touch the
+//     target model's execution graph, composes with PP (reduced speedup).
+//   - mtp: MTP heads are baked into DeepSeek-V3/R1 checkpoints and are
+//     sharded together with the model, so PP is supported by vLLM.
+//   - eagle / eagle3: trained draft heads assumed to co-locate with a
+//     TP-sharded target; vLLM does not currently support PP for these.
+func SpeculativeDecodingMethodSupportsPipelineParallelism(method string) bool {
+	switch method {
+	case "ngram", "mtp":
+		return true
+	case "eagle", "eagle3":
+		return false
+	default:
+		// Conservative for unknown methods.
+		return false
+	}
+}
+
 type Generator struct {
 	ModelRepo      string
 	Token          string

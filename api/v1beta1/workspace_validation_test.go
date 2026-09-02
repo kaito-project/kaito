@@ -3287,11 +3287,18 @@ func TestWorkspaceValidateSpeculativeDecoding(t *testing.T) {
 			wantErr:     true,
 		},
 		{
-			name:        "true with resource.count>1 rejected",
+			name:        "true with resource.count>1 + mtp preset allowed (PP-compatible)",
 			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
 			inference:   &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "deepseek-r1-0528"}}},
 			count:       intPtr(2),
-			wantErr:     true,
+			wantErr:     false,
+		},
+		{
+			name:        "true with resource.count>1 + ngram fallback allowed (PP-compatible)",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
+			inference:   &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "llama-3.1-8b-instruct"}}},
+			count:       intPtr(2),
+			wantErr:     false,
 		},
 		{
 			name:        "true with resource.count=1 pass",

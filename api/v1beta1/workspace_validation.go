@@ -45,6 +45,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/mig"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/presets/workspace/generator"
 	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
@@ -221,20 +222,20 @@ func (w *Workspace) validateSpeculativeDecoding(ctx context.Context) (errs *apis
 		))
 	}
 
-	// (d) Reject multi-node opt-in at admission time. Speculative decoding is
-	// currently mutually exclusive with pipeline parallelism (see proposal #2303).
-	// Rejecting here avoids silently discarding the opt-in during pod-spec
-	// generation. Note: this covers the explicit user-declared node count. When
-	// the estimator promotes a workload to multiple nodes at runtime, the
-	// injection helper still returns SpecDecoPipelineParallelism; surfacing that
-	// as a status condition is tracked as follow-up (see below).
+	// (d) Reject multi-node opt-in only for methods that don't compose with
+	// pipeline parallelism (currently eagle / eagle3 in vLLM). ngram is a
+	// CPU-side lookup and works with PP; mtp heads are baked into the
+	// DeepSeek-V3/R1 checkpoints and are sharded together with the model,
+	// so PP is also supported. See proposal #2303 for the truth table.
+	method := generator.ResolveSpeculativeDecodingMethod(string(w.Inference.Preset.Name))
 	//nolint:staticcheck //SA1019: deprecate Resource.Count field
-	if w.Resource.Count != nil && *w.Resource.Count > 1 {
+	if w.Resource.Count != nil && *w.Resource.Count > 1 &&
+		!generator.SpeculativeDecodingMethodSupportsPipelineParallelism(method) {
 		errs = errs.Also(apis.ErrGeneric(
 			fmt.Sprintf(
-				"kaito.sh/enable-speculative-decoding is not supported with resource.count > 1 "+
+				"kaito.sh/enable-speculative-decoding method %q is not supported with resource.count > 1 "+
 					"(pipeline parallelism); requested %d nodes",
-				*w.Resource.Count,
+				method, *w.Resource.Count,
 			),
 			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
 		))

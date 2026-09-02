@@ -42,6 +42,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
+	presetgen "github.com/kaito-project/kaito/presets/workspace/generator"
 	"github.com/kaito-project/kaito/pkg/utils/mig"
 	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
@@ -1235,8 +1236,17 @@ func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.Runtim
 		return SpecDecoSkip, nil
 	}
 	if ws.Status.TargetNodeCount > 1 {
-		// TODO(#2303-followup): surface as ConditionSpeculativeDecodingDisabled(PipelineParallelism).
-		return SpecDecoPipelineParallelism, nil
+		// PP compatibility depends on the resolved method. ngram (universal
+		// fallback) and mtp (DeepSeek-V3/R1 baked-in heads) compose with PP;
+		// eagle / eagle3 in vLLM do not (see proposal #2303).
+		method := presetgen.SpeculativeDecodingFallbackMethod
+		if inferenceParam.SpeculativeDecoding != nil && inferenceParam.SpeculativeDecoding.Method != "" {
+			method = inferenceParam.SpeculativeDecoding.Method
+		}
+		if !presetgen.SpeculativeDecodingMethodSupportsPipelineParallelism(method) {
+			// TODO(#2303-followup): surface as ConditionSpeculativeDecodingDisabled(PipelineParallelism).
+			return SpecDecoPipelineParallelism, nil
+		}
 	}
 	// TODO(#2303-followup): honor ConfigMap-provided speculative-config override
 	// (return SpecDecoConfigMapOverride and emit a SpeculativeDecodingConfigMapOverride event).

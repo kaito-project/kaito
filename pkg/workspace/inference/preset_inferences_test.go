@@ -61,6 +61,11 @@ var deepGEMMEnvVar = corev1.EnvVar{
 	Value: "0",
 }
 
+var wsl2PinMemoryEnvVar = corev1.EnvVar{
+	Name:  consts.VLLMWSL2EnablePinMemoryEnvName,
+	Value: "1",
+}
+
 func TestGeneratePresetInference(t *testing.T) {
 	test.RegisterTestModel()
 	baseImage := metadata.MustGet("base")
@@ -377,12 +382,10 @@ func TestGeneratePresetInference(t *testing.T) {
 				t.Errorf("%s: image is not expected, got %s, expect %s", k, image, baseImageName)
 			}
 
-			// For vLLM, production injects VLLM_USE_DEEP_GEMM=0 immediately after the
-			// FlashInfer sampler env. Mirror that here so the per-case expectations only
-			// need to list the FlashInfer env plus any case-specific vars.
+			// Mirror the default vLLM env prefix so cases only list case-specific vars.
 			expectedEnvVars := tc.expectedEnvVars
 			if len(expectedEnvVars) > 0 && expectedEnvVars[0] == flashInferSamplerEnvVar {
-				withDefaults := []corev1.EnvVar{flashInferSamplerEnvVar, deepGEMMEnvVar}
+				withDefaults := []corev1.EnvVar{flashInferSamplerEnvVar, deepGEMMEnvVar, wsl2PinMemoryEnvVar}
 				expectedEnvVars = append(withDefaults, expectedEnvVars[1:]...)
 			}
 

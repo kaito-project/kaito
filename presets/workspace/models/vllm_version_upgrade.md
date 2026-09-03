@@ -81,9 +81,10 @@ Maps to reconcile:
 
 Checklist:
 
-1. **Every VALUE** in all four maps must still be a registered parser name. A
-   value that vLLM removed/renamed → the pod fails at engine init with an invalid
-   `--reasoning-parser` / `--tool-call-parser`.
+1. **Every non-empty VALUE** in all four maps must still be a registered parser
+  name. An empty name-prefix value intentionally falls through to the architecture
+  map. A value that vLLM removed/renamed → the pod fails at engine init with an
+  invalid `--reasoning-parser` / `--tool-call-parser`.
 2. **Name-prefix takes precedence over the arch map** (name is matched first,
    then arch as a fallback). A too-broad prefix key can shadow an onboarded
    model and give it the wrong parser — prefer specific prefixes.

@@ -761,6 +761,11 @@ func buildMainContainerEnv(runtimeName pkgmodel.RuntimeName, inferenceParam *pkg
 			Name:  consts.VLLMUseDeepGEMMEnvName,
 			Value: deepGEMMValue,
 		})
+		// vLLM scans the pod hostname for "microsoft" and can falsely detect WSL2.
+		env = append(env, corev1.EnvVar{
+			Name:  consts.VLLMWSL2EnablePinMemoryEnvName,
+			Value: "1",
+		})
 	}
 
 	// When a CUDA toolkit is provided (installed via init container or mounted

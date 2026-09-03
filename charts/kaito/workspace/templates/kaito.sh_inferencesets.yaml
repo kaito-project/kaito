@@ -372,6 +372,11 @@ spec:
                   - type
                   type: object
                 type: array
+              maxModelLen:
+                description: MaxModelLen is set when all ready workspaces report the
+                  same runtime limit.
+                format: int32
+                type: integer
               performance:
                 description: Performance holds aggregated performance characteristics
                   across all workspace replicas.
@@ -812,6 +817,11 @@ spec:
                   - type
                   type: object
                 type: array
+              maxModelLen:
+                description: MaxModelLen is set when all ready workspaces report the
+                  same runtime limit.
+                format: int32
+                type: integer
               performance:
                 description: Performance holds aggregated performance characteristics
                   across all workspace replicas.

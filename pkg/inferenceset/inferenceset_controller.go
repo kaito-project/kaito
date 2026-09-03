@@ -432,6 +432,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	if err = inferenceset.UpdateInferenceSetStatus(ctx, c.Client, &client.ObjectKey{Name: iObj.Name, Namespace: iObj.Namespace}, func(status *kaitov1beta1.InferenceSetStatus) error {
 		status.Replicas = int(desiredReplicas)
 		status.ReadyReplicas = readyReplicas
+		status.MaxModelLen = controllers.AggregateMaxModelLen(wsList.Items)
 		// set selector for HPA/VPA
 		status.Selector = fmt.Sprintf("%s=%s", consts.WorkspaceCreatedByInferenceSetLabel, iObj.Name)
 		runtimeName := kaitov1beta1.GetInferenceSetRuntimeName(iObj)

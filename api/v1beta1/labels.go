@@ -262,7 +262,6 @@ func SanitizedMatchLabels(selector *metav1.LabelSelector) map[string]string {
 	return out
 }
 
-// GetInferenceSetRuntimeName returns the runtime name for an InferenceSet.
 // EffectiveInferenceRuntime returns the runtime that a generated Workspace
 // with the given annotations would resolve to via GetWorkspaceRuntimeName.
 // Kept here (rather than inline in the InferenceSet webhook) so any admission
@@ -282,6 +281,7 @@ func EffectiveInferenceRuntime(annotations map[string]string) model.RuntimeName 
 	return runtime
 }
 
+// GetInferenceSetRuntimeName returns the runtime name for an InferenceSet.
 func GetInferenceSetRuntimeName(iObj *InferenceSet) model.RuntimeName {
 	if iObj == nil {
 		panic("inferenceset is nil")

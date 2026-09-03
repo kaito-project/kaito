@@ -230,7 +230,7 @@ func (w *Workspace) validateSpeculativeDecoding(ctx context.Context) (errs *apis
 	// require multi-node PP; realized speedup under PP is smaller than
 	// single-node and callers should emit a Warning event to surface that.
 	// See proposal #2303 for the full truth table.
-	method := generator.ResolveSpeculativeDecodingMethod(string(w.Inference.Preset.Name))
+	method := generator.ResolveSpeculativeDecodingMethodForPresetName(string(w.Inference.Preset.Name))
 	//nolint:staticcheck //SA1019: deprecate Resource.Count field
 	if w.Resource.Count != nil && *w.Resource.Count > 1 &&
 		!generator.SpeculativeDecodingMethodSupportsPipelineParallelism(method) {

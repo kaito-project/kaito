@@ -29,6 +29,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 const (
@@ -365,6 +366,14 @@ func ResolveSpeculativeDecodingMethod(presetHFRepo string) string {
 		return entry.Config.Method
 	}
 	return SpeculativeDecodingFallbackMethod
+}
+
+// ResolveSpeculativeDecodingMethodForPresetName first normalizes a user-facing
+// preset name (including legacy short aliases such as "deepseek-r1-0528") to
+// its canonical HuggingFace repo ID, then resolves the speculative-decoding
+// method that would be injected for that preset.
+func ResolveSpeculativeDecodingMethodForPresetName(presetName string) string {
+	return ResolveSpeculativeDecodingMethod(plugin.ResolveHFModelID(presetName))
 }
 
 // SpeculativeDecodingMethodSupportsPipelineParallelism reports whether the

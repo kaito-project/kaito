@@ -1237,7 +1237,7 @@ func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.Runtim
 	}
 	if ws.Status.TargetNodeCount > 1 {
 		// PP compatibility depends on the resolved method. ngram (universal
-		// fallback) and mtp (DeepSeek-V3/R1 baked-in heads placed on the
+		// fallback) and mtp (the tuned DeepSeek presets' baked-in heads placed on the
 		// last PP stage by vLLM) still run under PP; eagle / eagle3 do not.
 		// See proposal #2303 for the full truth table.
 		method := presetgen.SpeculativeDecodingFallbackMethod
@@ -1258,7 +1258,7 @@ func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.Runtim
 	// TODO(#2303-followup): honor ConfigMap-provided speculative-config override
 	// (return SpecDecoConfigMapOverride and emit a SpeculativeDecodingConfigMapOverride event).
 
-	// Preset-tuned entry wins when present (e.g. mtp for DeepSeek R1/V3). Otherwise
+	// Preset-tuned entry wins when present (e.g. mtp for DeepSeek R1/V3/V3.2). Otherwise
 	// fall back to the universal ngram default so any preset the user opts into
 	// still gets a working speculative-config injection.
 	sdCfg := inferenceParam.SpeculativeDecoding

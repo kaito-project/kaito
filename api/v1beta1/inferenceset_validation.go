@@ -122,7 +122,7 @@ func (is *InferenceSet) validateSpeculativeDecoding() (errs *apis.FieldError) {
 	}
 
 	// Any preset is accepted: presets registered in generator.speculativeDecodingByPreset
-	// get their preset-tuned config (e.g. mtp for DeepSeek R1/V3); everything else
+	// get their preset-tuned config (e.g. mtp for DeepSeek R1/V3/V3.2); everything else
 	// falls back to the universal ngram default at pod-spec generation time.
 	presetName := string(inf.Preset.Name)
 

@@ -129,7 +129,7 @@ func (w *Workspace) validateSpeculativeDecoding() (errs *apis.FieldError) {
 	}
 
 	// Any preset is accepted: presets registered in generator.speculativeDecodingByPreset
-	// get their preset-tuned config (e.g. mtp for DeepSeek R1/V3); everything else
+	// get their preset-tuned config (e.g. mtp for DeepSeek R1/V3/V3.2); everything else
 	// falls back to the universal ngram default at pod-spec generation time
 	// (pkg/workspace/inference/preset_inferences.go applySpeculativeDecoding).
 	// So there is no admission-time "preset must be in the supported list" gate.
@@ -147,7 +147,7 @@ func (w *Workspace) validateSpeculativeDecoding() (errs *apis.FieldError) {
 
 	// Reject multi-node opt-in only for methods that don't compose with
 	// pipeline parallelism (currently eagle / eagle3 in vLLM). ngram works
-	// with PP at reduced speedup; mtp is allowed because DeepSeek-V3/R1
+	// with PP at reduced speedup; mtp is allowed because the large DeepSeek
 	// (671B) physically require multi-node PP — realized speedup is
 	// smaller than single-node. See proposal #2303 for the truth table.
 	method := generator.ResolveSpeculativeDecodingMethod(string(w.Inference.Preset.Name))

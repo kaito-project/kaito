@@ -1164,3 +1164,25 @@ func TestGetModelByName_DeepSeekV30324_SpeculativeDecodingMTP(t *testing.T) {
 	}
 	assert.Equal(t, 1, params.SpeculativeDecoding.MTP.NumSpeculativeTokens)
 }
+
+// TestGetModelByName_DeepSeekV32_SpeculativeDecodingMTP is the regression
+// guard for the deepseek-v3.2 tuned MTP config; like the R1/V3-0324 tests,
+// it ensures the generator-assigned per-preset config survives model
+// registration and GetInferenceParameters().
+func TestGetModelByName_DeepSeekV32_SpeculativeDecodingMTP(t *testing.T) {
+	m, err := GetModelByNameWithToken(context.Background(), "deepseek-ai/DeepSeek-V3.2", "")
+	assert.NoError(t, err)
+	if !assert.NotNil(t, m) {
+		return
+	}
+
+	params := m.GetInferenceParameters()
+	if !assert.NotNil(t, params.SpeculativeDecoding, "preset-tuned SpeculativeDecoding must survive registration") {
+		return
+	}
+	assert.Equal(t, "mtp", params.SpeculativeDecoding.Method)
+	if !assert.NotNil(t, params.SpeculativeDecoding.MTP) {
+		return
+	}
+	assert.Equal(t, 1, params.SpeculativeDecoding.MTP.NumSpeculativeTokens)
+}

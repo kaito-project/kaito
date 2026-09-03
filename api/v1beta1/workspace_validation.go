@@ -207,7 +207,7 @@ func (w *Workspace) validateSpeculativeDecoding(ctx context.Context) (errs *apis
 	}
 
 	// (b) Any preset is accepted: presets registered in generator.speculativeDecodingByPreset
-	// get their preset-tuned config (e.g. mtp for DeepSeek R1/V3); everything else
+	// get their preset-tuned config (e.g. mtp for DeepSeek R1/V3/V3.2); everything else
 	// falls back to the universal ngram default at pod-spec generation time.
 
 	// (c) Runtime must be vLLM.
@@ -226,7 +226,7 @@ func (w *Workspace) validateSpeculativeDecoding(ctx context.Context) (errs *apis
 	// pipeline parallelism (currently eagle / eagle3 in vLLM). ngram is a
 	// CPU-side lookup and works with PP (reduced speedup). mtp is placed
 	// on the last PP stage by vLLM and is allowed here because the
-	// DeepSeek-V3/R1 presets in speculativeDecodingByPreset physically
+	// The large DeepSeek MTP presets in speculativeDecodingByPreset physically
 	// require multi-node PP; realized speedup under PP is smaller than
 	// single-node and callers should emit a Warning event to surface that.
 	// See proposal #2303 for the full truth table.

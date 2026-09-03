@@ -35,7 +35,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/presets/workspace/generator"
-	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 const (

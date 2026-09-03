@@ -45,6 +45,7 @@ const (
 	PresetPhi4Model                 = "phi-4"
 	PresetGemma3_4BInstructModel    = "google/gemma-3-4b-it"
 	PresetGemma3_27BInstructModel   = "google/gemma-3-27b-it"
+	PresetGemma4_E2BInstructModel   = "google/gemma-4-E2B-it"
 	PresetGemma4_12BInstructModel   = "google/gemma-4-12B-it"
 	PresetQwen3_8_27BModel          = "Qwen/Qwen3.8-27B"
 	PresetGPT_OSS_20BModel          = "gpt-oss-20b"

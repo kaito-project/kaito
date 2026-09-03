@@ -28,6 +28,7 @@ func TestResolveSpeculativeDecodingMethod(t *testing.T) {
 	}{
 		{"registered mtp preset (R1)", "deepseek-ai/deepseek-r1-0528", "mtp", true},
 		{"registered mtp preset (V3)", "deepseek-ai/DeepSeek-V3-0324", "mtp", true},
+		{"registered mtp preset (V3.2)", "deepseek-ai/DeepSeek-V3.2", "mtp", true},
 		{"unregistered preset falls back to ngram", "meta-llama/Llama-3.1-8B-Instruct", "ngram", true},
 		{"empty preset falls back to ngram", "", "ngram", true},
 	}
@@ -63,12 +64,12 @@ func TestSpeculativeDecodingMethodSupportsPipelineParallelism(t *testing.T) {
 func TestSupportedSpeculativeDecodingPresets(t *testing.T) {
 	presets := SupportedSpeculativeDecodingPresets()
 
-	if len(presets) != 2 {
-		t.Fatalf("expected 2 supported presets, got %d: %v", len(presets), presets)
+	if len(presets) != 3 {
+		t.Fatalf("expected 3 supported presets, got %d: %v", len(presets), presets)
 	}
 
 	// Should be sorted
-	if presets[0] != "deepseek-r1-0528" || presets[1] != "deepseek-v3-0324" {
+	if presets[0] != "deepseek-r1-0528" || presets[1] != "deepseek-v3-0324" || presets[2] != "deepseek-v3.2" {
 		t.Fatalf("unexpected presets: %v", presets)
 	}
 }
@@ -80,6 +81,7 @@ func TestSpeculativeDecodingByPresetEntries(t *testing.T) {
 	}{
 		{"deepseek-ai/deepseek-r1-0528", "deepseek-r1-0528"},
 		{"deepseek-ai/deepseek-v3-0324", "deepseek-v3-0324"},
+		{"deepseek-ai/deepseek-v3.2", "deepseek-v3.2"},
 	}
 
 	for _, tc := range tests {

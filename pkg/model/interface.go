@@ -203,8 +203,8 @@ type SpeculativeDecodingConfig struct {
 	// future: EAGLE *EAGLEConfig
 }
 
-// MTPConfig covers the self-contained-head case only (DeepSeek R1/V3
-// family), where the MTP head is bundled in the served checkpoint.
+// MTPConfig covers the self-contained-head case only (the current DeepSeek
+// MTP family), where the MTP head is bundled in the served checkpoint.
 // Assistant-checkpoint MTP (Gemma 4 IT family) is future work.
 type MTPConfig struct {
 	NumSpeculativeTokens int `yaml:"numSpeculativeTokens"`

@@ -45,6 +45,27 @@ func TestResolveSpeculativeDecodingMethod(t *testing.T) {
 	}
 }
 
+func TestResolveSpeculativeDecodingMethodForPresetName(t *testing.T) {
+	tests := []struct {
+		name       string
+		presetName string
+		wantMethod string
+	}{
+		{"legacy short alias resolves to mtp", "deepseek-r1-0528", "mtp"},
+		{"second legacy short alias resolves to mtp", "deepseek-v3-0324", "mtp"},
+		{"canonical repo name still resolves", "deepseek-ai/deepseek-v3.2", "mtp"},
+		{"non-tuned preset falls back to ngram", "llama-3.1-8b-instruct", "ngram"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := ResolveSpeculativeDecodingMethodForPresetName(tc.presetName)
+			if got != tc.wantMethod {
+				t.Errorf("ResolveSpeculativeDecodingMethodForPresetName(%q) = %q, want %q", tc.presetName, got, tc.wantMethod)
+			}
+		})
+	}
+}
+
 func TestSpeculativeDecodingMethodSupportsPipelineParallelism(t *testing.T) {
 	cases := map[string]bool{
 		"ngram":   true,

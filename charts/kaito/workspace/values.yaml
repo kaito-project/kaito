@@ -230,3 +230,9 @@ dacs:
   cacheServer:
     nodeSelectorLabelKey: nexus.azure.com/processing-unit
     nodeSelectorLabelValues: [ "cpu" ]
+  cache:
+    name: cache-sample
+    dynamic:
+      percentageOfNodesToUse: 75
+      minServers: 1
+      maxServers: 100

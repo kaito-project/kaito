@@ -30,6 +30,9 @@ func TestResolveSpeculativeDecodingMethod(t *testing.T) {
 		{"registered mtp preset (V3)", "deepseek-ai/DeepSeek-V3-0324", "mtp", true},
 		{"registered mtp preset (V3.2)", "deepseek-ai/DeepSeek-V3.2", "mtp", true},
 		{"registered mtp preset (GLM-5.2-FP8)", "zai-org/GLM-5.2-FP8", "mtp", true},
+		{"registered non-catalog mtp preset (DeepSeek-V4-Flash preview)", "deepseek-ai/DeepSeek-V4-Flash", "mtp", true},
+		{"registered non-catalog mtp preset (DeepSeek-V4-Flash NVFP4)", "nvidia/DeepSeek-V4-Flash-NVFP4", "mtp", true},
+		{"registered non-catalog mtp preset (MiMo-7B-Base)", "XiaomiMiMo/MiMo-7B-Base", "mtp", true},
 		{"unregistered preset falls back to ngram", "meta-llama/Llama-3.1-8B-Instruct", "ngram", true},
 		{"empty preset falls back to ngram", "", "ngram", true},
 	}
@@ -56,6 +59,9 @@ func TestResolveSpeculativeDecodingMethodForPresetName(t *testing.T) {
 		{"second legacy short alias resolves to mtp", "deepseek-v3-0324", "mtp"},
 		{"canonical repo name still resolves", "deepseek-ai/deepseek-v3.2", "mtp"},
 		{"in-catalog canonical repo with mtp resolves", "zai-org/GLM-5.2-FP8", "mtp"},
+		{"non-catalog DeepSeek V4 preview exact repo resolves", "deepseek-ai/DeepSeek-V4-Flash", "mtp"},
+		{"non-catalog DeepSeek V4 NVFP4 exact repo resolves", "nvidia/DeepSeek-V4-Flash-NVFP4", "mtp"},
+		{"non-catalog MiMo exact repo resolves", "XiaomiMiMo/MiMo-7B-Base", "mtp"},
 		{"non-tuned preset falls back to ngram", "llama-3.1-8b-instruct", "ngram"},
 	}
 	for _, tc := range tests {
@@ -86,14 +92,27 @@ func TestSpeculativeDecodingMethodSupportsPipelineParallelism(t *testing.T) {
 
 func TestSupportedSpeculativeDecodingPresets(t *testing.T) {
 	presets := SupportedSpeculativeDecodingPresets()
-
-	if len(presets) != 4 {
-		t.Fatalf("expected 4 supported presets, got %d: %v", len(presets), presets)
+	want := map[string]bool{
+		"deepseek-r1-0528":                   true,
+		"deepseek-v3-0324":                  true,
+		"deepseek-v3.2":                     true,
+		"zai-org/GLM-5.2-FP8":              true,
+		"deepseek-ai/DeepSeek-V4-Flash":     true,
+		"nvidia/DeepSeek-V4-Flash-NVFP4":   true,
+		"XiaomiMiMo/MiMo-7B-Base":          true,
 	}
 
-	// Should be sorted
-	if presets[0] != "deepseek-r1-0528" || presets[1] != "deepseek-v3-0324" || presets[2] != "deepseek-v3.2" || presets[3] != "zai-org/GLM-5.2-FP8" {
-		t.Fatalf("unexpected presets: %v", presets)
+	if len(presets) != len(want) {
+		t.Fatalf("expected %d supported presets, got %d: %v", len(want), len(presets), presets)
+	}
+	for _, preset := range presets {
+		if !want[preset] {
+			t.Fatalf("unexpected preset in supported list: %q (full=%v)", preset, presets)
+		}
+		delete(want, preset)
+	}
+	if len(want) != 0 {
+		t.Fatalf("missing supported presets: %v", want)
 	}
 }
 
@@ -107,6 +126,9 @@ func TestSpeculativeDecodingByPresetEntries(t *testing.T) {
 		{"deepseek-ai/deepseek-v3-0324", "deepseek-v3-0324", 1},
 		{"deepseek-ai/deepseek-v3.2", "deepseek-v3.2", 1},
 		{"zai-org/glm-5.2-fp8", "zai-org/GLM-5.2-FP8", 5},
+		{"deepseek-ai/deepseek-v4-flash", "deepseek-ai/DeepSeek-V4-Flash", 3},
+		{"nvidia/deepseek-v4-flash-nvfp4", "nvidia/DeepSeek-V4-Flash-NVFP4", 3},
+		{"xiaomimo/mimo-7b-base", "XiaomiMiMo/MiMo-7B-Base", 1},
 	}
 
 	for _, tc := range tests {

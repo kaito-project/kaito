@@ -35,6 +35,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
+	workloadtolerations "github.com/kaito-project/kaito/pkg/utils/tolerations"
 	"github.com/kaito-project/kaito/pkg/workspace/image"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
@@ -81,7 +82,7 @@ func defaultTolerations() []corev1.Toleration {
 		})
 	}
 
-	return tolerations
+	return workloadtolerations.Append(tolerations)
 }
 
 func GetTuningImageInfo() string {

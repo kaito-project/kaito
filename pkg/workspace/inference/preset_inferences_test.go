@@ -22,7 +22,9 @@ import (
 	"time"
 
 	"github.com/samber/lo"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
@@ -40,6 +42,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/test"
+	workloadtolerations "github.com/kaito-project/kaito/pkg/utils/tolerations"
 	workspaceutil "github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/estimator/nodesestimator"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
@@ -1205,6 +1208,20 @@ func TestDefaultTolerations(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestDefaultTolerationsIncludesCustomConfigured(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AWSCloudName)
+	require.NoError(t, workloadtolerations.SetFromJSON(`[
+		{"key":"workload-class","operator":"Equal","value":"batch","effect":"NoSchedule"},
+		{"key":"tenant","operator":"Exists"}
+	]`))
+	t.Cleanup(func() { require.NoError(t, workloadtolerations.SetFromJSON("")) })
+
+	actual := defaultTolerations(&v1beta1.Workspace{})
+	assert.Equal(t, "workload-class", actual[len(actual)-2].Key)
+	assert.Equal(t, corev1.TolerationOpEqual, actual[len(actual)-2].Operator)
+	assert.Equal(t, "tenant", actual[len(actual)-1].Key)
 }
 
 func toParameterMap(in []string) map[string]string {

@@ -105,6 +105,10 @@ resources:
 nodeSelector:
   kubernetes.io/os: linux
 tolerations: []
+# Additional tolerations for generated inference and tuning workload pods.
+# These are appended to the provider-specific tolerations selected by KAITO.
+customTaints:
+  tolerations: []
 affinity: {}
 # Values can be "azure" or "aws" or "arc"
 cloudProviderName: "azure"

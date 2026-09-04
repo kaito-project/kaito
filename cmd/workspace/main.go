@@ -59,6 +59,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	karpenterutils "github.com/kaito-project/kaito/pkg/utils/karpenter"
+	"github.com/kaito-project/kaito/pkg/utils/tolerations"
 	"github.com/kaito-project/kaito/pkg/version"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
@@ -117,6 +118,7 @@ func main() {
 	var defaultStreamingServiceAccount string
 	var modelMirrorDownloadCPU string
 	var modelMirrorDownloadMemory string
+	var customWorkloadTolerations string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.IntVar(&kubeClientQPS, "kube-client-qps", kubeClientQPS, "the rate of qps to kube-apiserver.")
@@ -139,6 +141,7 @@ func main() {
 	flag.StringVar(&defaultStreamingServiceAccount, "default-streaming-service-account", "", "Default ServiceAccount for streaming inference pods.")
 	flag.StringVar(&modelMirrorDownloadCPU, "model-mirror-download-cpu", "", "CPU request==limit for the ModelMirror download Job container. Empty uses the built-in default (3).")
 	flag.StringVar(&modelMirrorDownloadMemory, "model-mirror-download-memory", "", "Memory request==limit for the ModelMirror download Job container. Empty uses the built-in default (8Gi).")
+	flag.StringVar(&customWorkloadTolerations, "custom-workload-tolerations", "", "JSON array of additional Kubernetes tolerations for generated workload pods.")
 	opts := zap.Options{
 		Development: true,
 	}
@@ -148,6 +151,10 @@ func main() {
 	if printVersionAndExit {
 		fmt.Println(version.VersionInfo())
 		os.Exit(0)
+	}
+	if err := tolerations.SetFromJSON(customWorkloadTolerations); err != nil {
+		klog.ErrorS(err, "unable to parse custom workload tolerations")
+		exitWithErrorFunc()
 	}
 	klog.Info("version: ", version.VersionInfo())
 

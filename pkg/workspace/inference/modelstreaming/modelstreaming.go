@@ -19,6 +19,8 @@ import (
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
@@ -94,6 +96,20 @@ func ModelMirrorCRName(modelID string) string {
 	return sha256First6(modelID)
 }
 
+// ModelMirrorKey is the key of the ModelMirror a workspace uses.
+func ModelMirrorKey(ws *v1beta1.Workspace) client.ObjectKey {
+	return client.ObjectKey{
+		Namespace: ws.Namespace,
+		Name:      ModelMirrorCRName(ResolveHFModelID(ws)),
+	}
+}
+
+// ModelMirrorObjectMeta is the ObjectMeta for a ModelMirror a workspace creates.
+func ModelMirrorObjectMeta(ws *v1beta1.Workspace) metav1.ObjectMeta {
+	key := ModelMirrorKey(ws)
+	return metav1.ObjectMeta{Name: key.Name, Namespace: key.Namespace}
+}
+
 // ResolveHFModelID resolves the HuggingFace model ID from a workspace's preset name.
 // Returns "" if the workspace has no inference preset.
 func ResolveHFModelID(ws *v1beta1.Workspace) string {
@@ -147,9 +163,8 @@ func buildCommonStreamingEnvVars(modelID string) []corev1.EnvVar {
 //   - When the provider supplies init containers (SAS path): appends the shared volume, mounts
 //     it in the main container, and prepends the transparent entrypoint wrapper.
 //
-// Note: weights volume mount removal and init container skipping are handled upstream —
-// GenerateInferencePodSpec skips the mount when streamingModelPath is set, and
-// SetModelDownloadInfo returns early when streaming is enabled.
+// Note: weight-volume handling is performed upstream. GenerateInferencePodSpec
+// skips the default mount when streamingModelPath is set.
 func SetStreamingConfig(streamingCfg *StreamingConfig, modelID, defaultSA string) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 		mainIdx := -1

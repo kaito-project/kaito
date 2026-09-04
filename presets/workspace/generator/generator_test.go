@@ -25,7 +25,7 @@ import (
 )
 
 func TestGeneratePreset(t *testing.T) {
-	// These expected values are derived from presets/workspace/generator/preset_generator_test.py
+	// These expected values cover representative Hugging Face model configurations.
 	cases := []struct {
 		modelRepo     string
 		expectedParam model.PresetParam
@@ -37,9 +37,7 @@ func TestGeneratePreset(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "phi-4-mini-instruct",
 					Architectures:          []string{"Phi3ForCausalLM"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "microsoft/Phi-4-mini-instruct"),
-					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "7.15Gi",
 					BytesPerToken:          131072,
@@ -64,9 +62,7 @@ func TestGeneratePreset(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "falcon-7b-instruct",
 					Architectures:          []string{"FalconForCausalLM"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "tiiuae/falcon-7b-instruct"),
-					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "13.44Gi", // Python test expects 27Gi due to double counting (bin+safetensors). We fix this to use safetensors only.
 					BytesPerToken:          8192,
@@ -91,9 +87,7 @@ func TestGeneratePreset(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "ministral-3-8b-instruct-2512",
 					Architectures:          []string{"Mistral3ForConditionalGeneration"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Ministral-3-8B-Instruct-2512"),
-					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "9.70Gi",
 					BytesPerToken:          139264,
@@ -119,9 +113,7 @@ func TestGeneratePreset(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "mistral-large-3-675b-instruct-2512",
 					Architectures:          []string{"MistralLarge3ForCausalLM"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Mistral-Large-3-675B-Instruct-2512"),
-					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "634.70Gi",
 					BytesPerToken:          70272,
@@ -148,9 +140,7 @@ func TestGeneratePreset(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "qwen3-coder-30b-a3b-instruct",
 					Architectures:          []string{"Qwen3MoeForCausalLM"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "Qwen/Qwen3-Coder-30B-A3B-Instruct"),
-					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "56.87Gi",
 					BytesPerToken:          98304,
@@ -177,9 +167,7 @@ func TestGeneratePreset(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "qwen3-8b",
 					Architectures:          []string{"Qwen3ForCausalLM"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "Qwen/Qwen3-8B"),
-					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "15.26Gi",
 					BytesPerToken:          147456,
@@ -206,9 +194,7 @@ func TestGeneratePreset(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "deepseek-v3.1",
 					Architectures:          []string{"DeepseekV3ForCausalLM"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "deepseek-ai/DeepSeek-V3.1"),
-					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "641.30Gi",
 					BytesPerToken:          70272,
@@ -236,9 +222,7 @@ func TestGeneratePreset(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "deepseek-v3",
 					Architectures:          []string{"DeepseekV3ForCausalLM"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "deepseek-ai/DeepSeek-V3"),
-					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "641.30Gi",
 					BytesPerToken:          70272,
@@ -261,14 +245,66 @@ func TestGeneratePreset(t *testing.T) {
 			},
 		},
 		{
+			modelRepo: "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
+			expectedParam: model.PresetParam{
+				Metadata: model.Metadata{
+					Name:                   "deepseek-r1-distill-llama-8b",
+					Architectures:          []string{"LlamaForCausalLM"},
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"),
+					DownloadAuthRequired:   false,
+					ModelFileSize:          "14.96Gi",
+					BytesPerToken:          131072,
+					ModelTokenLimit:        131072,
+					DiskStorageRequirement: "94Gi",
+					ReasoningParser:        "deepseek_r1",
+					ToolCallParser:         "llama3_json",
+					AttnType:               "GQA",
+				},
+			},
+			expectedVLLM: model.VLLMParam{
+				ModelName: "deepseek-r1-distill-llama-8b",
+				ModelRunParams: map[string]string{
+					"load_format":    "auto",
+					"config_format":  "auto",
+					"tokenizer_mode": "deepseek_v32",
+				},
+				DisallowLoRA: false,
+			},
+		},
+		{
+			modelRepo: "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
+			expectedParam: model.PresetParam{
+				Metadata: model.Metadata{
+					Name:                   "deepseek-r1-distill-qwen-14b",
+					Architectures:          []string{"Qwen2ForCausalLM"},
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"),
+					DownloadAuthRequired:   false,
+					ModelFileSize:          "27.51Gi",
+					BytesPerToken:          196608,
+					ModelTokenLimit:        131072,
+					DiskStorageRequirement: "107Gi",
+					ReasoningParser:        "deepseek_r1",
+					ToolCallParser:         "hermes",
+					AttnType:               "GQA",
+				},
+			},
+			expectedVLLM: model.VLLMParam{
+				ModelName: "deepseek-r1-distill-qwen-14b",
+				ModelRunParams: map[string]string{
+					"load_format":    "auto",
+					"config_format":  "auto",
+					"tokenizer_mode": "deepseek_v32",
+				},
+				DisallowLoRA: false,
+			},
+		},
+		{
 			modelRepo: "nvidia/Nemotron-Orchestrator-8B",
 			expectedParam: model.PresetParam{
 				Metadata: model.Metadata{
 					Name:                   "nemotron-orchestrator-8b",
 					Architectures:          []string{"Qwen3ForCausalLM"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "nvidia/Nemotron-Orchestrator-8B"),
-					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "30.51Gi",
 					BytesPerToken:          147456,
@@ -295,9 +331,7 @@ func TestGeneratePreset(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "qwen3-8b-awq",
 					Architectures:          []string{"Qwen3ForCausalLM"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "Qwen/Qwen3-8B-AWQ"),
-					DownloadAtRuntime:      true,
 					DownloadAuthRequired:   false,
 					ModelFileSize:          "5.68Gi",
 					BytesPerToken:          147456,
@@ -331,9 +365,7 @@ func TestGeneratePreset(t *testing.T) {
 			// Metadata checks
 			assert.Equal(t, tc.expectedParam.Name, param.Name)
 			assert.Equal(t, tc.expectedParam.Architectures, param.Architectures)
-			assert.Equal(t, tc.expectedParam.ModelType, param.ModelType)
 			assert.Equal(t, tc.expectedParam.Version, param.Version)
-			assert.Equal(t, tc.expectedParam.DownloadAtRuntime, param.DownloadAtRuntime)
 			assert.Equal(t, tc.expectedParam.DownloadAuthRequired, param.DownloadAuthRequired)
 			assert.Equal(t, tc.expectedParam.Metadata.ModelFileSize, param.Metadata.ModelFileSize)
 			assert.Equal(t, tc.expectedParam.Metadata.BytesPerToken, param.Metadata.BytesPerToken)
@@ -483,9 +515,7 @@ func TestLoadFromCatalog(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "phi-4-mini-instruct",
 					Architectures:          []string{"Phi3ForCausalLM"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "microsoft/Phi-4-mini-instruct"),
-					DownloadAtRuntime:      true,
 					ModelFileSize:          "7.15Gi",
 					BytesPerToken:          131072,
 					ModelTokenLimit:        131072,
@@ -501,9 +531,7 @@ func TestLoadFromCatalog(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "phi-4",
 					Architectures:          []string{"Phi3ForCausalLM"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "microsoft/phi-4"),
-					DownloadAtRuntime:      true,
 					ModelFileSize:          "27.31Gi",
 					BytesPerToken:          204800,
 					ModelTokenLimit:        16384,
@@ -519,9 +547,7 @@ func TestLoadFromCatalog(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "gemma-3-4b-it",
 					Architectures:          []string{"Gemma3ForConditionalGeneration"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "google/gemma-3-4b-it"),
-					DownloadAtRuntime:      true,
 					ModelFileSize:          "8.01Gi",
 					BytesPerToken:          139264,
 					ModelTokenLimit:        131072,
@@ -538,9 +564,7 @@ func TestLoadFromCatalog(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "mistral-7b-v0.3",
 					Architectures:          []string{"MistralForCausalLM"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Mistral-7B-v0.3"),
-					DownloadAtRuntime:      true,
 					ModelFileSize:          "13.50Gi",
 					BytesPerToken:          131072,
 					ModelTokenLimit:        32768,
@@ -557,9 +581,7 @@ func TestLoadFromCatalog(t *testing.T) {
 				Metadata: model.Metadata{
 					Name:                   "ministral-3-8b-instruct-2512",
 					Architectures:          []string{"Mistral3ForConditionalGeneration"},
-					ModelType:              "tfs",
 					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Ministral-3-8B-Instruct-2512"),
-					DownloadAtRuntime:      true,
 					ModelFileSize:          "9.70Gi",
 					BytesPerToken:          139264,
 					ModelTokenLimit:        262144,
@@ -594,9 +616,7 @@ func TestLoadFromCatalog(t *testing.T) {
 
 			assert.Equal(t, tc.expectedParam.Name, gen.Param.Name)
 			assert.Equal(t, tc.expectedParam.Architectures, gen.Param.Architectures)
-			assert.Equal(t, tc.expectedParam.ModelType, gen.Param.ModelType)
 			assert.Equal(t, tc.expectedParam.Version, gen.Param.Version)
-			assert.Equal(t, tc.expectedParam.DownloadAtRuntime, gen.Param.DownloadAtRuntime)
 			assert.Equal(t, tc.expectedParam.Metadata.ModelFileSize, gen.Param.Metadata.ModelFileSize)
 			assert.Equal(t, tc.expectedParam.Metadata.BytesPerToken, gen.Param.Metadata.BytesPerToken)
 			assert.Equal(t, tc.expectedParam.Metadata.ModelTokenLimit, gen.Param.Metadata.ModelTokenLimit)
@@ -704,6 +724,30 @@ func TestSelectWeightFiles(t *testing.T) {
 				{Path: "pytorch_model.bin", Size: 5000},
 			},
 			expectedPaths:     []string{"model.safetensors"},
+			expectedIsMistral: false,
+		},
+		{
+			name: "prefers root weights over alternate safetensors in subdirectories",
+			files: []FileInfo{
+				{Path: "model-00001-of-00002.safetensors", Size: 5000},
+				{Path: "model-00002-of-00002.safetensors", Size: 5000},
+				{Path: "original/model-00001-of-00002.safetensors", Size: 5000},
+				{Path: "original/model-00002-of-00002.safetensors", Size: 5000},
+				{Path: "metal/model.bin", Size: 10000},
+			},
+			expectedPaths: []string{
+				"model-00001-of-00002.safetensors",
+				"model-00002-of-00002.safetensors",
+			},
+			expectedIsMistral: false,
+		},
+		{
+			name: "ignores nested safetensors when no root weights exist",
+			files: []FileInfo{
+				{Path: "weights/model-00001-of-00002.safetensors", Size: 5000},
+				{Path: "weights/model-00002-of-00002.safetensors", Size: 5000},
+			},
+			expectedPaths:     nil,
 			expectedIsMistral: false,
 		},
 		{

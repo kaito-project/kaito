@@ -112,49 +112,51 @@ var (
 	// source: https://github.com/vllm-project/vllm/blob/main/vllm/tool_parsers/__init__.py
 	// key is model name prefix, value is ToolCallParser mode name
 	toolCallParserModeNamePrefixMap = map[string]string{
-		"hermes-2":      "hermes",
-		"hermes-3":      "hermes",
-		"mistral":       "mistral",
-		"meta-llama-3":  "llama3_json",
-		"meta-llama-4":  "llama4_pythonic",
-		"granite-3":     "granite",
-		"granite-4":     "granite4",
-		"internlm":      "internlm",
-		"ai21-jamba":    "jamba",
-		"llama-xlama":   "xlam",
-		"xlam":          "xlam",
-		"qwq-32b":       "hermes",
-		"qwen2.5":       "hermes",
-		"laguna":        "poolside_v1",
-		"minimax-m2":    "minimax_m2",
-		"minimax-m3":    "minimax_m3",
-		"mimo":          "mimo",
-		"lfm2":          "lfm2",
-		"apertus":       "apertus",
-		"deepseek-r1":   "deepseek_v3",
-		"deepseek-v3":   "deepseek_v3",
-		"deepseek-v3.1": "deepseek_v31",
-		"deepseek-v3.2": "deepseek_v32",
-		"deepseek-v4":   "deepseek_v4",
-		"kimi_k2":       "kimi_k2",
-		"hunyuan-a13b":  "hunyuan_a13b",
-		"longcat":       "longcat",
-		"glm-4":         "glm45",
-		"glm-4.7":       "glm47",
-		"qwen3":         "hermes",
-		"qwen3-coder":   "qwen3_xml",
-		"qwen3.5":       "qwen3_coder",
-		"qwen3.6":       "qwen3_coder",
-		"qwen3.8":       "qwen3_coder",
-		"olmo-3":        "olmo3",
-		"gigachat3":     "gigachat3",
-		"ernie-4.5":     "ernie45",
-		"phi4-mini":     "phi4_mini_json",
-		"step3p5":       "step3p5",
-		"step3":         "step3",
-		"seed-oss":      "seed_oss",
-		"gemma-3":       "functiongemma",
-		"gemma-4":       "gemma4",
+		"hermes-2":     "hermes",
+		"hermes-3":     "hermes",
+		"mistral":      "mistral",
+		"meta-llama-3": "llama3_json",
+		"meta-llama-4": "llama4_pythonic",
+		"granite-3":    "granite",
+		"granite-4":    "granite4",
+		"internlm":     "internlm",
+		"ai21-jamba":   "jamba",
+		"llama-xlama":  "xlam",
+		"xlam":         "xlam",
+		"qwq-32b":      "hermes",
+		"qwen2.5":      "hermes",
+		"laguna":       "poolside_v1",
+		"minimax-m2":   "minimax_m2",
+		"minimax-m3":   "minimax_m3",
+		"mimo":         "mimo",
+		"lfm2":         "lfm2",
+		"apertus":      "apertus",
+		// Distill models use their base architecture's tokenizer and tool parser.
+		"deepseek-r1-distill": "",
+		"deepseek-r1":         "deepseek_v3",
+		"deepseek-v3":         "deepseek_v3",
+		"deepseek-v3.1":       "deepseek_v31",
+		"deepseek-v3.2":       "deepseek_v32",
+		"deepseek-v4":         "deepseek_v4",
+		"kimi_k2":             "kimi_k2",
+		"hunyuan-a13b":        "hunyuan_a13b",
+		"longcat":             "longcat",
+		"glm-4":               "glm45",
+		"glm-4.7":             "glm47",
+		"qwen3":               "hermes",
+		"qwen3-coder":         "qwen3_xml",
+		"qwen3.5":             "qwen3_coder",
+		"qwen3.6":             "qwen3_coder",
+		"qwen3.8":             "qwen3_coder",
+		"olmo-3":              "olmo3",
+		"gigachat3":           "gigachat3",
+		"ernie-4.5":           "ernie45",
+		"phi4-mini":           "phi4_mini_json",
+		"step3p5":             "step3p5",
+		"step3":               "step3",
+		"seed-oss":            "seed_oss",
+		"gemma-3":             "functiongemma",
+		"gemma-4":             "gemma4",
 	}
 
 	// key is model architecture name, value is ToolCallParser mode name
@@ -329,9 +331,7 @@ func NewGenerator(modelRepo, token string) *Generator {
 
 	// Initialize default PresetParam
 	gen.Param.Metadata.Name = modelNameSafe
-	gen.Param.Metadata.ModelType = "tfs"
 	gen.Param.Metadata.Version = fmt.Sprintf("%s/%s", HuggingFaceWebsite, modelRepo)
-	gen.Param.Metadata.DownloadAtRuntime = true
 	gen.Param.Metadata.DiskStorageRequirement = fmt.Sprintf("%dGi", SystemFileDiskSizeGiB)
 	gen.Param.Metadata.ModelFileSize = "0Gi"
 
@@ -427,8 +427,8 @@ func (g *Generator) listRepoFiles() ([]FileInfo, error) {
 	return files, nil
 }
 
-// selectWeightFiles picks the model weight files to use and detects whether
-// the model uses Mistral format. For Mistral-format models (those with
+// selectWeightFiles picks root-level model weight files and detects whether the
+// model uses Mistral format. For Mistral-format models (those with
 // consolidated*.safetensors), it sets g.IsMistralModel and returns only the
 // consolidated files. For standard models, it prefers .safetensors over .bin
 // when both are present.
@@ -436,6 +436,9 @@ func (g *Generator) selectWeightFiles(files []FileInfo) []FileInfo {
 	var safetensors, bins, mistral []FileInfo
 
 	for _, f := range files {
+		if strings.Contains(f.Path, "/") {
+			continue
+		}
 		if mistralRegex.MatchString(f.Path) {
 			mistral = append(mistral, f)
 		}
@@ -708,6 +711,54 @@ func (g *Generator) calculateKVCacheTokenSize() (int, string) {
 	return tokenSize, attnType
 }
 
+// computeMambaStateBytesPerSeq returns the per-sequence Mamba-2 state cache size
+// in bytes (for a single TP rank) for hybrid Mamba/Attention models such as
+// NemotronH, or 0 for pure-attention models. vLLM allocates this state for every
+// running sequence in addition to the attention KV cache, so it must be reserved
+// when sizing GPUs. The conv state uses the model dtype (2 bytes); the SSM
+// temporal state uses float32 (4 bytes), matching vLLM's mamba cache.
+func computeMambaStateBytesPerSeq(config map[string]interface{}) int {
+	ssmStateSize := getInt(config, []string{"ssm_state_size", "mamba_state_dim", "mamba_d_state", "state_size"}, 0)
+	convKernel := getInt(config, []string{"conv_kernel", "mamba_d_conv"}, 0)
+	mambaNumHeads := getInt(config, []string{"mamba_num_heads"}, 0)
+	mambaHeadDim := getInt(config, []string{"mamba_head_dim"}, 0)
+	if ssmStateSize == 0 || convKernel <= 1 || mambaNumHeads == 0 || mambaHeadDim == 0 {
+		return 0
+	}
+	nGroups := getInt(config, []string{"n_groups", "mamba_num_groups"}, 1)
+	if nGroups == 0 {
+		nGroups = 1
+	}
+
+	// Count Mamba layers from the hybrid layer pattern ("M" = mamba block).
+	numMambaLayers := 0
+	if pattern, ok := config["hybrid_override_pattern"].(string); ok {
+		numMambaLayers = strings.Count(pattern, "M")
+	}
+	if numMambaLayers == 0 {
+		if lbt, ok := config["layers_block_type"].([]interface{}); ok {
+			for _, l := range lbt {
+				if s, ok := l.(string); ok && strings.Contains(strings.ToLower(s), "mamba") {
+					numMambaLayers++
+				}
+			}
+		}
+	}
+	if numMambaLayers == 0 {
+		return 0
+	}
+
+	const convDtypeBytes = 2 // model dtype (bf16)
+	const ssmDtypeBytes = 4  // vLLM keeps the SSM temporal state in float32
+
+	mambaIntermediate := mambaNumHeads * mambaHeadDim
+	convDim := mambaIntermediate + 2*nGroups*ssmStateSize
+	convStateBytes := convDim * (convKernel - 1) * convDtypeBytes
+	ssmStateBytes := mambaNumHeads * mambaHeadDim * ssmStateSize * ssmDtypeBytes
+
+	return numMambaLayers * (convStateBytes + ssmStateBytes)
+}
+
 func (g *Generator) FinalizeParams() {
 	g.Param.Metadata.DiskStorageRequirement = g.calculateStorageSize()
 
@@ -777,6 +828,11 @@ func (g *Generator) FinalizeParams() {
 	bpt, attnType := g.calculateKVCacheTokenSize()
 	g.Param.Metadata.BytesPerToken = bpt
 	g.Param.Metadata.AttnType = attnType
+
+	// Catalog models get this from loadFromCatalog; compute it for the HF path.
+	if g.Param.Metadata.MambaStateBytesPerSeq == 0 {
+		g.Param.Metadata.MambaStateBytesPerSeq = computeMambaStateBytesPerSeq(g.ModelConfig)
+	}
 }
 
 // loadFromCatalog checks whether the model repo exists in the embedded catalog.
@@ -840,6 +896,7 @@ func (g *Generator) loadFromCatalog() bool {
 
 	// Populate fields that FetchModelMetadata would have set
 	g.Param.Metadata.ModelFileSize = entry.ModelFileSize
+	g.Param.Metadata.MambaStateBytesPerSeq = entry.MambaStateBytesPerSeq
 	g.Param.VLLM.ModelRunParams = make(map[string]string)
 
 	if entry.LoadFormat != "" {

@@ -50,7 +50,6 @@ import (
 var _ = Describe("Workspace Preset on vllm runtime", func() {
 	BeforeEach(func() {
 		loadTestEnvVars()
-		loadModelVersions()
 	})
 
 	// MRI and InferenceSet tests run first so they are not interrupted by
@@ -95,10 +94,9 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateMultiRoleInferencePDDisaggregation(mriObj)
 	})
 
-	It("should create a qwen3-coder-30b-a3b-instruct two-node workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
-		Skip("temporarily skip this multi-node test due to e2e env GPU quota issue, will re-enable it after the e2e env is fixed")
+	It("should create a gemma-4-12B-it two-node workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 2
-		workspaceObj := createQWen3Coder30BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+		workspaceObj := createGemma4_12BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)
@@ -119,208 +117,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a single-node llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
-		numOfNode := 1
-		workspaceObj := createLlama3_1_8BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode, "Standard_NV36ads_A10_v5")
-
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
-
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
-
-		time.Sleep(30 * time.Second)
-
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
-
-		validateInferenceResource(workspaceObj, int32(numOfNode))
-
-		validateWorkspaceReadiness(workspaceObj)
-		validateWorkspaceBenchmarkCompleted(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateChatCompletionsEndpoint(workspaceObj)
-	})
-
-	It("should create a multi-node llama-3.1-8b-instruct workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
-		Skip("temporarily skip this multi-node test due to e2e env GPU quota issue, will re-enable it after the e2e env is fixed")
-		// Need 2 Standard_NC6s_v3 nodes to run Llama 3.1-8B Instruct model.
-		// Each node has 1 V100 GPU, so total 2 GPUs are used
-		numOfNode := 2
-		workspaceObj := createLlama3_1_8BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode, "Standard_NV36ads_A10_v5")
-
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
-
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
-
-		time.Sleep(30 * time.Second)
-
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
-
-		validateInferenceResource(workspaceObj, int32(numOfNode))
-
-		time.Sleep(1 * time.Minute)
-		validateWorkspaceReadiness(workspaceObj)
-		validateWorkspaceBenchmarkCompleted(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateChatCompletionsEndpoint(workspaceObj)
-	})
-
-	It("should create a phi4 workspace with adapter successfully", utils.GinkgoLabelA100Required, func() {
-		numOfNode := 1
-		workspaceObj := createPhi4WorkspaceWithAdapterAndVLLM(numOfNode, phi4Adapter)
-
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
-
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
-
-		time.Sleep(30 * time.Second)
-
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
-
-		validateInferenceResource(workspaceObj, int32(numOfNode))
-
-		validateWorkspaceReadiness(workspaceObj)
-		validateWorkspaceBenchmarkCompleted(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateChatCompletionsEndpoint(workspaceObj)
-
-		expectedInitContainers := []corev1.Container{
-			{
-				Name:  baseInitContainer.Name + "-" + phi4AdapterName,
-				Image: baseInitContainer.Image,
-			},
-		}
-		validateInitContainers(workspaceObj, expectedInitContainers)
-
-		validateAdapterLoadedInVLLM(workspaceObj, phi4AdapterName)
-	})
-
-	It("should create a phi4 workspace with volume-based adapter successfully", utils.GinkgoLabelA100Required, func() {
-		numOfNode := 1
-		volumeAdapterName := "adapter-phi-3-mini-pycoder"
-		volumeAdapterImageName := utils.GetEnv("E2E_ACR_REGISTRY") + "/" + phi4AdapterName + ":0.0.1"
-		imagePullSecret := utils.GetEnv("E2E_ACR_REGISTRY_SECRET")
-
-		By("Creating and populating a PVC with adapter weights")
-		pvcName := createAdapterPVCWithData("managed-csi", volumeAdapterImageName, imagePullSecret)
-
-		By("Creating workspace with volume-based adapter")
-		volumeAdapters := []kaitov1beta1.AdapterSpec{
-			{
-				Source: &kaitov1beta1.DataSource{
-					Name: volumeAdapterName,
-					Volume: &corev1.VolumeSource{
-						PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-							ClaimName: pvcName,
-						},
-					},
-				},
-			},
-		}
-
-		workspaceObj := createPhi4WorkspaceWithAdapterAndVLLM(numOfNode, volumeAdapters)
-
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
-
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
-
-		time.Sleep(30 * time.Second)
-
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
-
-		validateInferenceResource(workspaceObj, int32(numOfNode))
-
-		validateWorkspaceReadiness(workspaceObj)
-
-		// Key volume adapter validations
-		validateNoAdapterInitContainer(workspaceObj)
-		validatePVCMounted(workspaceObj, pvcName)
-		validateAdapterLoadedInVLLM(workspaceObj, volumeAdapterName)
-	})
-
-	It("should create a llama-3.3-70b-instruct workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
-		Skip("temporarily skip this multi-node test due to e2e env GPU quota issue, will re-enable it after the e2e env is fixed")
-		// Need 2 Standard_NC48ads_A100_v4 nodes to run Llama 3.3-70B Instruct model.
-		// Each node has 2 A100 GPUs, so total 4 GPUs are used
-		numOfNode := 2
-		workspaceObj := createLlama3_3_70BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
-
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
-
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
-
-		time.Sleep(30 * time.Second)
-
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
-
-		validateInferenceResource(workspaceObj, int32(numOfNode))
-
-		validateWorkspaceReadiness(workspaceObj)
-		validateWorkspaceBenchmarkCompleted(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateChatCompletionsEndpoint(workspaceObj)
-	})
-
-	It("should create a gemma-4-E2B-it workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
-		numOfNode := 1
-		workspaceObj := createGemma4_E2BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
-
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
-
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
-
-		time.Sleep(30 * time.Second)
-
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
-
-		validateInferenceResource(workspaceObj, int32(numOfNode))
-
-		validateWorkspaceReadiness(workspaceObj)
-		validateWorkspaceBenchmarkCompleted(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateChatCompletionsEndpoint(workspaceObj)
-	})
-
-	It("should create a gemma-4-26B-A4B-it workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
-		numOfNode := 1
-		workspaceObj := createGemma4_26BA4BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
-
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
-
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
-
-		time.Sleep(30 * time.Second)
-
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
-
-		validateInferenceResource(workspaceObj, int32(numOfNode))
-
-		validateWorkspaceReadiness(workspaceObj)
-		validateWorkspaceBenchmarkCompleted(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateChatCompletionsEndpoint(workspaceObj)
-	})
-
-	It("should create a gpt-oss-20b workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
+	It("should create a gpt-oss-20b workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
 		workspaceObj := createGPTOss20BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
@@ -343,8 +140,30 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
+	It("should create a qwen3.8-27b workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
+		numOfNode := 1
+		workspaceObj := createQwen3_8_27BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+
+		defer cleanupResources(workspaceObj)
+		time.Sleep(30 * time.Second)
+
+		validateCreateNode(workspaceObj, numOfNode)
+		validateResourceStatus(workspaceObj)
+
+		time.Sleep(30 * time.Second)
+
+		validateAssociatedService(workspaceObj)
+		validateInferenceConfig(workspaceObj)
+
+		validateInferenceResource(workspaceObj, int32(numOfNode))
+
+		validateWorkspaceReadiness(workspaceObj)
+		validateWorkspaceBenchmarkCompleted(workspaceObj)
+		validateModelsEndpoint(workspaceObj)
+		validateChatCompletionsEndpoint(workspaceObj)
+	})
+
 	It("should create a gpt-oss-120b workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
-		Skip("Skipping GPT-OSS-120B test temporarily due to OOM issues, will re-enable after mem estimator have better support for quantized models")
 		numOfNode := 1
 		workspaceObj := createGPTOss120BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
@@ -367,21 +186,21 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a qwen3-8b-awq workspace with AWQ quantization successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should create a granite-4.1-8b workspace with model streaming successfully", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
 
 		// Create the federated identity credential for this process's namespace.
 		createStreamingFIC(namespaceName)
 		defer deleteStreamingFIC(namespaceName)
 
-		workspaceObj := createQwen3_8BAWQWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+		workspaceObj := createGranite4_1_8BStreamingWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
-		defer cleanupStreamingResources(workspaceObj, "Qwen/Qwen3-8B-AWQ")
+		defer cleanupStreamingResources(workspaceObj, "ibm-granite/granite-4.1-8b")
 		time.Sleep(30 * time.Second)
 
 		validateCreateNode(workspaceObj, numOfNode)
-		validateModelMirrorResources("Qwen/Qwen3-8B-AWQ", workspaceObj.Namespace)
-		validateModelMirrorReady(workspaceObj, "Qwen/Qwen3-8B-AWQ")
+		validateModelMirrorResources("ibm-granite/granite-4.1-8b", workspaceObj.Namespace)
+		validateModelMirrorReady(workspaceObj, "ibm-granite/granite-4.1-8b")
 		validateResourceStatus(workspaceObj)
 
 		time.Sleep(30 * time.Second)
@@ -391,16 +210,16 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
-		validateStreamingPodShape(workspaceObj, "Qwen/Qwen3-8B-AWQ", false)
+		validateStreamingPodShape(workspaceObj, "ibm-granite/granite-4.1-8b", false)
 		validateWorkspaceReadiness(workspaceObj)
 		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a qwen3.5-2b workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, utils.GinkgoLabelMinimumRequired, func() {
+	It("should create a NVIDIA-Nemotron-3-Nano-4B-BF16 workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, utils.GinkgoLabelMinimumRequired, func() {
 		numOfNode := 1
-		workspaceObj := createQwen3_5_2BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+		workspaceObj := createNemotron3Nano4BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)
@@ -963,21 +782,6 @@ func validateBBRRouting(inferenceSetObj *kaitov1beta1.InferenceSet, modelName, i
 	})
 }
 
-func createPhi4WorkspaceWithAdapterAndVLLM(numOfNode int, validAdapters []kaitov1beta1.AdapterSpec) *kaitov1beta1.Workspace {
-	workspaceObj := &kaitov1beta1.Workspace{}
-	By("Creating a workspace CR with phi4 mini preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-phi4-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC24ads_A100_v4",
-			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-phi4-adapter-vllm"},
-			}, nil, PresetPhi4MiniModel, nil, nil, validAdapters, "", "")
-
-		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
-		createAndValidateWorkspace(workspaceObj)
-	})
-	return workspaceObj
-}
-
 func createGemma3InferenceSetWithPresetPublicModeAndVLLM(replicas int) *kaitov1beta1.InferenceSet {
 	modelSecret := createAndValidateModelSecret()
 	inferenceSetObj := &kaitov1beta1.InferenceSet{}
@@ -1390,45 +1194,16 @@ func validateMultiRoleInferenceKVEvents(mriObj *kaitov1alpha1.MultiRoleInference
 	})
 }
 
-func createLlama3_1_8BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int, instanceType string) *kaitov1beta1.Workspace {
+func createGemma4_12BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
 	modelSecret := createAndValidateModelSecret()
 	workspaceObj := &kaitov1beta1.Workspace{}
-	By("Creating a workspace CR with Llama 3.1-8B Instruct preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-llama3-1-8b-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, instanceType,
-			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": uniqueID},
-			}, nil, PresetLlama3_1_8BInstruct, nil, nil, nil, modelSecret.Name, "") // Llama 3.1-8B Instruct model requires a model access secret
-		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
-		createAndValidateWorkspace(workspaceObj)
-	})
-	return workspaceObj
-}
 
-func createLlama3_3_70BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
-	modelSecret := createAndValidateModelSecret()
-	workspaceObj := &kaitov1beta1.Workspace{}
-	By("Creating a workspace CR with Llama 3.3-70B Instruct preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-llama3-3-70b-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC48ads_A100_v4",
-			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-llama3-3-70b-vllm"},
-			}, nil, PresetLlama3_3_70BInstruct, nil, nil, nil, modelSecret.Name, "") // Llama 3.3-70B Instruct model requires a model access secret
-		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
-		createAndValidateWorkspace(workspaceObj)
-	})
-	return workspaceObj
-}
-
-func createGemma4_E2BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
-	workspaceObj := &kaitov1beta1.Workspace{}
-
-	By("Creating a workspace CR with Gemma 4 E2B preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-gemma-4-e2b-", rand.Intn(1000))
+	By("Creating a workspace CR with Gemma 4 12B preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-gemma-4-12b-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gemma-4-e2b-vllm"},
-			}, nil, PresetGemma4_E2BInstructModel, nil, nil, nil, "", "")
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gemma-4-12b-vllm"},
+			}, nil, PresetGemma4_12BInstructModel, nil, nil, nil, modelSecret.Name, "")
 
 		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
 		createAndValidateWorkspace(workspaceObj)
@@ -1437,32 +1212,15 @@ func createGemma4_E2BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int)
 	return workspaceObj
 }
 
-func createGemma4_26BA4BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+func createQwen3_8_27BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}
 
-	By("Creating a workspace CR with Gemma 4 26B-A4B preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-gemma-4-26b-a4b-", rand.Intn(1000))
+	By("Creating a workspace CR with Qwen3.8-27B preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-qwen3-8-27b-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC24ads_A100_v4",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gemma-4-26b-a4b-vllm"},
-			}, nil, PresetGemma4_26BA4BInstructModel, nil, nil, nil, "", "")
-
-		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
-		createAndValidateWorkspace(workspaceObj)
-	})
-
-	return workspaceObj
-}
-
-func createGPTOss20BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
-	workspaceObj := &kaitov1beta1.Workspace{}
-
-	By("Creating a workspace CR with GPT-OSS-20B preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-gpt-oss-20b-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC24ads_A100_v4",
-			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gpt-oss-20b-vllm"},
-			}, nil, PresetGPT_OSS_20BModel, nil, nil, nil, "", "")
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-qwen3-8-27b-vllm"},
+			}, nil, PresetQwen3_8_27BModel, nil, nil, nil, "", "")
 
 		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
 		createAndValidateWorkspace(workspaceObj)
@@ -1475,7 +1233,7 @@ func createGPTOss120BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov
 	workspaceObj := &kaitov1beta1.Workspace{}
 	By("Creating a workspace CR with GPT-OSS-120B preset public mode and vLLM", func() {
 		uniqueID := fmt.Sprint("preset-gpt-oss-120b-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC24ads_A100_v4",
+		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NC48ads_A100_v4",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gpt-oss-120b-vllm"},
 			}, nil, PresetGPT_OSS_120BModel, nil, nil, nil, "", "")
@@ -1486,25 +1244,14 @@ func createGPTOss120BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov
 	return workspaceObj
 }
 
-func createCustomInferenceConfigMapForE2E(name string) *corev1.ConfigMap {
-	configMap := utils.GenerateE2EInferenceConfigMapManifest(name, namespaceName)
-
-	By("Creating a custom workspace inference configmap for E2E", func() {
-		createAndValidateConfigMap(configMap)
-	})
-
-	return configMap
-}
-
-func createQWen3Coder30BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+func createGPTOss20BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}
-	By("Creating a workspace CR with Qwen3 Coder 30B preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-qwen3-coder-30b-", rand.Intn(1000))
-		configMap := createCustomInferenceConfigMapForE2E(fmt.Sprintf("%s-%s", "preset-qwen3-coder-30b", uniqueID))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV72ads_A10_v5",
+	By("Creating a workspace CR with GPT-OSS-20B preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-gpt-oss-20b-", rand.Intn(1000))
+		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-qwen3-coder-30b-vllm"},
-			}, nil, PresetQwen3_Coder30BModel, nil, nil, nil, "", configMap.Name)
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gpt-oss-20b-vllm"},
+			}, nil, PresetGPT_OSS_20BModel, nil, nil, nil, "", "")
 
 		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
 		createAndValidateWorkspace(workspaceObj)
@@ -1527,32 +1274,35 @@ func createMinistral3_3BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode i
 	return workspaceObj
 }
 
-func createQwen3_8BAWQWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+func createNemotron3Nano4BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}
-	By("Creating a workspace CR with Qwen3-8B-AWQ preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-qwen3-8b-awq-", rand.Intn(1000))
+	// NVIDIA-Nemotron-3-Nano-4B-BF16 is a NemotronH hybrid model that interleaves Mamba-2
+	// state-space layers with a few self-attention layers instead of using full attention
+	// on every layer, so it exercises the preset path on a non-standard architecture.
+	By("Creating a workspace CR with NVIDIA-Nemotron-3-Nano-4B-BF16 preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-nemotron-3-nano-4b-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-qwen3-8b-awq-vllm"},
-			}, nil, PresetQwen3_8BAWQModel, nil, nil, nil, "", "")
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-nemotron-3-nano-4b-vllm"},
+			}, nil, PresetNemotron3Nano4BModel, nil, nil, nil, "", "")
 
-		// STREAMING TEST: intentionally NOT setting kaito.sh/model-streaming=disabled.
-		// With the gate on, this workspace streams from blob (az://).
+		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
 }
 
-func createQwen3_5_2BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+func createGranite4_1_8BStreamingWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}
-	By("Creating a workspace CR with Qwen3.5-2B preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-qwen3-5-2b-", rand.Intn(1000))
+	By("Creating a workspace CR with granite-4.1-8b preset public mode and vLLM (streaming)", func() {
+		uniqueID := fmt.Sprint("preset-granite-4-1-8b-stream-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-qwen3-5-2b-vllm"},
-			}, nil, PresetQwen3_5_2BModel, nil, nil, nil, "", "")
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-granite-4-1-8b-stream-vllm"},
+			}, nil, PresetGranite4_1_8BModel, nil, nil, nil, "", "")
 
-		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
+		// STREAMING TEST: intentionally NOT setting kaito.sh/model-streaming=disabled.
+		// With the gate on, this workspace streams from blob (az://).
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj

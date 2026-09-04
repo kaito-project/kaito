@@ -168,21 +168,15 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 	}
 
 	modelID := modelstreaming.ResolveHFModelID(wObj)
-	crName := modelstreaming.ModelMirrorCRName(modelID)
+	mirrorKey := modelstreaming.ModelMirrorKey(wObj)
+	crName := mirrorKey.Name
+	staticRequested := modelstreaming.StaticModelMirrorEnabled(wObj.Annotations)
 
 	// Check if CR already exists
 	existing := &kaitov1alpha1.ModelMirror{}
-	err := c.Client.Get(ctx, client.ObjectKey{Name: crName}, existing)
+	err := c.Client.Get(ctx, mirrorKey, existing)
 	if err == nil {
-		// CR exists — verify it's for the same model (collision check).
-		if existing.Spec.Source != nil && existing.Spec.Source.ModelID != modelID {
-			return &streamingValidationError{
-				reason: reasonModelMirrorCreateFailed,
-				err: fmt.Errorf("ModelMirror CR name collision: %s maps to both %q and %q",
-					crName, existing.Spec.Source.ModelID, modelID),
-			}
-		}
-		return nil
+		return c.validateExistingModelMirror(wObj, existing, modelID, staticRequested)
 	}
 	if !apierrors.IsNotFound(err) {
 		return &streamingValidationError{
@@ -191,17 +185,17 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 		}
 	}
 
-	if modelstreaming.StaticModelMirrorEnabled(wObj.Annotations) {
+	if staticRequested {
 		if err := registry.SelectModelStreamer(wObj).ValidateAuth(ctx, wObj, c.Client, modelstreaming.StreamingDefaults.ServiceAccount); err != nil {
 			return &streamingValidationError{reason: reasonModelStreamingServiceAccountInvalid, err: err}
 		}
 		staticCR := &kaitov1alpha1.ModelMirror{
-			ObjectMeta: metav1.ObjectMeta{Name: crName},
+			ObjectMeta: modelstreaming.ModelMirrorObjectMeta(wObj),
 			Spec:       kaitov1alpha1.ModelMirrorSpec{Mode: kaitov1alpha1.ModelMirrorModeStatic},
 		}
 		if err := c.Client.Create(ctx, staticCR); err != nil {
 			if apierrors.IsAlreadyExists(err) {
-				return nil // Race condition
+				return errModelMirrorRaced
 			}
 			return &streamingValidationError{
 				reason: reasonModelMirrorCreateFailed,
@@ -262,35 +256,26 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 		}
 	}
 
-	var accessSecret *corev1.ObjectReference
-	if wObj.Inference.Preset.PresetOptions.ModelAccessSecret != "" {
-		accessSecret = &corev1.ObjectReference{
-			Name:      wObj.Inference.Preset.PresetOptions.ModelAccessSecret,
-			Namespace: wObj.Namespace,
-		}
-	}
-
 	cr := &kaitov1alpha1.ModelMirror{
-		ObjectMeta: metav1.ObjectMeta{Name: crName},
+		ObjectMeta: modelstreaming.ModelMirrorObjectMeta(wObj),
 		Spec: kaitov1alpha1.ModelMirrorSpec{
 			Mode: kaitov1alpha1.ModelMirrorModeManaged,
 			Source: &kaitov1alpha1.ModelMirrorSource{
-				Registry:     kaitov1alpha1.RegistryHuggingFace,
-				ModelID:      modelID,
-				AccessSecret: accessSecret,
+				Registry:         kaitov1alpha1.RegistryHuggingFace,
+				ModelID:          modelID,
+				AccessSecretName: wObj.Inference.Preset.PresetOptions.ModelAccessSecret,
 			},
 			Storage: &kaitov1alpha1.ModelMirrorStorage{
 				Size:             modelSize,
 				StorageClassName: ptr.To(storageClass),
 			},
-			JobNamespace:       wObj.Namespace,
 			ServiceAccountName: serviceAccount,
 		},
 	}
 
 	if err := c.Client.Create(ctx, cr); err != nil {
 		if apierrors.IsAlreadyExists(err) {
-			return nil // Race condition
+			return errModelMirrorRaced
 		}
 		return &streamingValidationError{
 			reason: reasonModelMirrorCreateFailed,
@@ -302,19 +287,97 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 	return nil
 }
 
+// validateExistingModelMirror checks that a mirror already present in the workspace's
+// namespace describes the same model, mode and storage this workspace asks for. A mirror is
+// shared by every workspace in the namespace that uses the same model, so a disagreement
+// means one of them would silently stream from the wrong place.
+func (c *WorkspaceReconciler) validateExistingModelMirror(wObj *kaitov1beta1.Workspace,
+	existing *kaitov1alpha1.ModelMirror, modelID string, staticRequested bool) error {
+	crName := existing.Name
+
+	// A mirror on its way out still holds the name, so a replacement cannot be created yet.
+	// Deleting one while workspaces still use it is not a supported operation; this only
+	// keeps the workspace from binding to storage that is about to disappear.
+	if !existing.DeletionTimestamp.IsZero() {
+		return &streamingValidationError{
+			reason: reasonModelMirrorDeleting,
+			err: fmt.Errorf("ModelMirror %s in namespace %s is being deleted; waiting for it to be removed before recreating it",
+				crName, existing.Namespace),
+		}
+	}
+
+	if existing.Spec.Source != nil && existing.Spec.Source.ModelID != modelID {
+		return &streamingValidationError{
+			reason: reasonModelMirrorCreateFailed,
+			err: fmt.Errorf("ModelMirror CR name collision: %s maps to both %q and %q",
+				crName, existing.Spec.Source.ModelID, modelID),
+		}
+	}
+
+	// A static mirror has no Source, so the model check above cannot catch a mode mismatch.
+	// Left unchecked, a managed workspace adopts a static mirror, sees it Ready, and then
+	// fails looking for a PVC that a static mirror never creates.
+	existingStatic := existing.Spec.Mode == kaitov1alpha1.ModelMirrorModeStatic
+	if existingStatic != staticRequested {
+		return &streamingValidationError{
+			reason: reasonModelMirrorCreateFailed,
+			err: fmt.Errorf("ModelMirror %s in namespace %s has mode %q but this workspace requires mode %q; "+
+				"delete the existing ModelMirror or move this workspace to another namespace",
+				crName, existing.Namespace, mirrorMode(existingStatic), mirrorMode(staticRequested)),
+		}
+	}
+
+	if staticRequested {
+		return nil
+	}
+
+	want, err := modelstreaming.ResolveStorageClass(wObj, modelstreaming.StreamingDefaults.StorageClass)
+	if err != nil {
+		return &streamingValidationError{reason: reasonModelStreamingStorageClassNotFound, err: err}
+	}
+	if got := existingStorageClass(existing); got != want {
+		return &streamingValidationError{
+			reason: reasonModelMirrorCreateFailed,
+			err: fmt.Errorf("ModelMirror %s in namespace %s uses StorageClass %q but this workspace requires %q; "+
+				"delete the existing ModelMirror or align the %s annotation",
+				crName, existing.Namespace, got, want, mmconsts.AnnotationModelMirrorStorageClass),
+		}
+	}
+	return nil
+}
+
+func mirrorMode(static bool) kaitov1alpha1.ModelMirrorMode {
+	if static {
+		return kaitov1alpha1.ModelMirrorModeStatic
+	}
+	return kaitov1alpha1.ModelMirrorModeManaged
+}
+
+func existingStorageClass(cr *kaitov1alpha1.ModelMirror) string {
+	if cr.Spec.Storage == nil || cr.Spec.Storage.StorageClassName == nil {
+		return ""
+	}
+	return *cr.Spec.Storage.StorageClassName
+}
+
 // waitForModelMirror checks if the ModelMirror CR is Ready.
 // Returns (nil, nil) to proceed, or (*Result, err) to stop — same pattern as reconcileNodes.
 func (c *WorkspaceReconciler) waitForModelMirror(ctx context.Context, wObj *kaitov1beta1.Workspace) (result *reconcile.Result, err error) {
-	modelID := modelstreaming.ResolveHFModelID(wObj)
-	crName := modelstreaming.ModelMirrorCRName(modelID)
+	mirrorKey := modelstreaming.ModelMirrorKey(wObj)
+	crName := mirrorKey.Name
 
 	cr := &kaitov1alpha1.ModelMirror{}
-	if err := c.Client.Get(ctx, client.ObjectKey{Name: crName}, cr); err != nil {
+	if err := c.Client.Get(ctx, mirrorKey, cr); err != nil {
 		if apierrors.IsNotFound(err) {
 			// CR was deleted externally; ensureModelMirror will recreate on next reconcile
 			return &reconcile.Result{}, nil
 		}
 		return &reconcile.Result{}, fmt.Errorf("failed to get ModelMirror CR %s: %w", crName, err)
+	}
+
+	if !cr.DeletionTimestamp.IsZero() {
+		klog.InfoS("ModelMirror CR is being deleted, gating inference", "name", crName)
+		return &reconcile.Result{RequeueAfter: modelMirrorDrainRetryInterval}, nil
 	}
 
 	if cr.Status.Phase != kaitov1alpha1.ModelMirrorPhaseReady {
@@ -357,6 +420,11 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 	// Ensure ModelMirror CR exists (starts download in parallel with node provisioning).
 	if modelstreaming.ModelStreamingEnabled(wObj) && wObj.Inference != nil && wObj.Inference.Preset != nil {
 		if err := c.ensureModelMirror(ctx, wObj); err != nil {
+			var sve *streamingValidationError
+			if errors.Is(err, errModelMirrorRaced) ||
+				(errors.As(err, &sve) && sve.reason == reasonModelMirrorDeleting) {
+				return reconcile.Result{RequeueAfter: modelMirrorDrainRetryInterval}, nil
+			}
 			return reconcile.Result{}, err
 		}
 	}
@@ -774,11 +842,11 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 		if wObj.Inference != nil {
 			if modelstreaming.ModelStreamingEnabled(wObj) && wObj.Inference.Preset != nil {
 
-				modelID := modelstreaming.ResolveHFModelID(wObj)
-				crName := modelstreaming.ModelMirrorCRName(modelID)
+				mirrorKey := modelstreaming.ModelMirrorKey(wObj)
+				crName := mirrorKey.Name
 
 				cr := &kaitov1alpha1.ModelMirror{}
-				if err := c.Get(ctx, client.ObjectKey{Name: crName}, cr); err != nil {
+				if err := c.Get(ctx, mirrorKey, cr); err != nil {
 					if !apierrors.IsNotFound(err) {
 						klog.ErrorS(err, "failed to get ModelMirror CR for status sync", "cr", crName)
 					}
@@ -788,23 +856,16 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 						kaitov1beta1.ConditionTypeResourceStatus,
 						metav1.ConditionFalse, "ModelMirrorNotReady", "Model download has not started")
 				} else {
-					if cr.Status.Phase == kaitov1alpha1.ModelMirrorPhaseReady {
-						setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
-							kaitov1beta1.WorkspaceConditionTypeModelMirrorReady,
-							metav1.ConditionTrue, "ModelMirrorReady", "Model download complete")
-					} else {
-						msg := "Model download in progress"
-						if cr.Status.FailureMessage != "" {
-							msg = cr.Status.FailureMessage
-						}
-						setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
-							kaitov1beta1.WorkspaceConditionTypeModelMirrorReady,
-							metav1.ConditionFalse, modelMirrorPendingReason(cr), msg)
+					mirrorStatus, mirrorReason, mirrorMsg := modelMirrorCondition(cr, infFailReason, infFailMsg)
+					setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
+						kaitov1beta1.WorkspaceConditionTypeModelMirrorReady,
+						mirrorStatus, mirrorReason, mirrorMsg)
+					if mirrorStatus != metav1.ConditionTrue {
 						// Model weights not ready — override ResourceReady
 						resourceConditionStatus = metav1.ConditionFalse
 						setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
 							kaitov1beta1.ConditionTypeResourceStatus,
-							metav1.ConditionFalse, "ModelMirrorNotReady", msg)
+							metav1.ConditionFalse, "ModelMirrorNotReady", mirrorMsg)
 					}
 				}
 			}
@@ -912,7 +973,17 @@ const (
 	reasonModelStreamingServiceAccountInvalid = "ModelStreamingServiceAccountInvalid"
 	reasonModelStreamingInvalidAnnotations    = "ModelStreamingInvalidAnnotations"
 	reasonModelMirrorCreateFailed             = "ModelMirrorCreateFailed"
+	reasonModelMirrorDeleting                 = "ModelMirrorDeleting"
 )
+
+// modelMirrorDrainRetryInterval paces retries while a mirror finishes tearing down.
+const modelMirrorDrainRetryInterval = 5 * time.Second
+
+// errModelMirrorRaced reports a mirror that appeared between this workspace's cached read
+// and its create. It was built from another workspace's spec, so this one must still run
+// validateExistingModelMirror against it; that happens on the next pass, once the cache
+// catches up and the Get path is taken.
+var errModelMirrorRaced = errors.New("ModelMirror was created concurrently")
 
 type streamingValidationError struct {
 	reason string
@@ -1178,6 +1249,28 @@ func modelMirrorPendingReason(cr *kaitov1alpha1.ModelMirror) string {
 		return reasonModelMirrorPending
 	}
 	return cond.Reason
+}
+
+// modelMirrorCondition reports the ModelMirrorReady condition for cr. A mirror this
+// workspace was refused the use of is not ready for it regardless of its own phase.
+func modelMirrorCondition(cr *kaitov1alpha1.ModelMirror, infFailReason, infFailMsg string) (metav1.ConditionStatus, string, string) {
+	if infFailReason == reasonModelMirrorCreateFailed {
+		return metav1.ConditionFalse, infFailReason, infFailMsg
+	}
+	// Reported here rather than off the reconcile error, which is a requeue and so never
+	// reaches the status sync.
+	if !cr.DeletionTimestamp.IsZero() {
+		return metav1.ConditionFalse, reasonModelMirrorDeleting,
+			fmt.Sprintf("ModelMirror %s in namespace %s is being deleted", cr.Name, cr.Namespace)
+	}
+	if cr.Status.Phase == kaitov1alpha1.ModelMirrorPhaseReady {
+		return metav1.ConditionTrue, "ModelMirrorReady", "Model download complete"
+	}
+	msg := "Model download in progress"
+	if cr.Status.FailureMessage != "" {
+		msg = cr.Status.FailureMessage
+	}
+	return metav1.ConditionFalse, modelMirrorPendingReason(cr), msg
 }
 
 // streamingValidationReason promotes a model-streaming validation failure carried on

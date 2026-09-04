@@ -14,6 +14,7 @@
 package progress
 
 import (
+	"io"
 	"strings"
 	"testing"
 
@@ -76,4 +77,31 @@ model_mirror_download_remaining_seconds -1
 	require.NoError(t, err)
 	assert.Equal(t, int64(0), got.SpeedBytesPerSecond)
 	assert.Equal(t, int64(-1), got.RemainingSeconds)
+}
+
+// countingReader records how many bytes were actually consumed.
+type countingReader struct {
+	r io.Reader
+	n int64
+}
+
+func (c *countingReader) Read(p []byte) (int, error) {
+	n, err := c.r.Read(p)
+	c.n += int64(n)
+	return n, err
+}
+
+func TestParseLimitedStopsAtMaxMetricsBytes(t *testing.T) {
+	// An endpoint that never stops producing output must not be read unbounded.
+	endless := &countingReader{r: strings.NewReader(strings.Repeat("# padding\n", 1<<20))}
+
+	_, err := ParseLimited(endless)
+	require.Error(t, err, "a payload with no metrics must not parse")
+	assert.LessOrEqual(t, endless.n, int64(maxMetricsBytes))
+}
+
+func TestParseLimitedReadsValidPayload(t *testing.T) {
+	got, err := ParseLimited(strings.NewReader(validPayload))
+	require.NoError(t, err)
+	assert.Equal(t, int64(418920000), got.SpeedBytesPerSecond)
 }

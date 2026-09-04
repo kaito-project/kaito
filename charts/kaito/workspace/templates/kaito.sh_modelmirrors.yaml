@@ -12,7 +12,7 @@ spec:
     listKind: ModelMirrorList
     plural: modelmirrors
     singular: modelmirror
-  scope: Cluster
+  scope: Namespaced
   versions:
   - additionalPrinterColumns:
     - jsonPath: .spec.source.modelID
@@ -27,8 +27,9 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: ModelMirror represents a cached copy of a model from a remote
-          registry.
+        description: |-
+          ModelMirror represents a cached copy of a model from a remote registry. The PVC and
+          download Job are created in the ModelMirror's own namespace.
         properties:
           apiVersion:
             description: |-
@@ -49,11 +50,6 @@ spec:
             type: object
           spec:
             properties:
-              jobNamespace:
-                description: |-
-                  JobNamespace is the namespace where the PVC and download Job will be created;
-                  omit entirely for static mirrors.
-                type: string
               mode:
                 default: Managed
                 description: |-
@@ -69,57 +65,19 @@ spec:
               serviceAccountName:
                 description: |-
                   ServiceAccountName is the ServiceAccount used by the workload identity that the download
-                  Job pod runs as. Empty (the default) runs the Job under the namespace default ServiceAccount.
+                  Job pod runs as. It is resolved in the ModelMirror's namespace. Empty (the default) runs
+                  the Job under the namespace default ServiceAccount.
                 type: string
               source:
                 description: |-
                   Source describes where to download the model weights from. Required for a Managed
                   mirror; omit entirely for a Static mirror.
                 properties:
-                  accessSecret:
-                    description: AccessSecret references a secret containing authentication
-                      credentials.
-                    properties:
-                      apiVersion:
-                        description: API version of the referent.
-                        type: string
-                      fieldPath:
-                        description: |-
-                          If referring to a piece of an object instead of an entire object, this string
-                          should contain a valid JSON/Go field access statement, such as desiredState.manifest.containers[2].
-                          For example, if the object reference is to a container within a pod, this would take on a value like:
-                          "spec.containers{name}" (where "name" refers to the name of the container that triggered
-                          the event) or if no container name is specified "spec.containers[2]" (container with
-                          index 2 in this pod). This syntax is chosen only to have some well-defined way of
-                          referencing a part of an object.
-                        type: string
-                      kind:
-                        description: |-
-                          Kind of the referent.
-                          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-                        type: string
-                      name:
-                        description: |-
-                          Name of the referent.
-                          More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                        type: string
-                      namespace:
-                        description: |-
-                          Namespace of the referent.
-                          More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/
-                        type: string
-                      resourceVersion:
-                        description: |-
-                          Specific resourceVersion to which this reference is made, if any.
-                          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
-                        type: string
-                      uid:
-                        description: |-
-                          UID of the referent.
-                          More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#uids
-                        type: string
-                    type: object
-                    x-kubernetes-map-type: atomic
+                  accessSecretName:
+                    description: |-
+                      AccessSecretName is the name of a secret in the ModelMirror's namespace holding the
+                      registry credentials under the HF_TOKEN key.
+                    type: string
                   modelID:
                     description: ModelID is the model identifier (e.g. "Qwen/Qwen2.5-Coder-32B-Instruct").
                     type: string

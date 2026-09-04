@@ -14,18 +14,18 @@
 package v1alpha1
 
 import (
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:path=modelmirrors,scope=Cluster
+// +kubebuilder:resource:path=modelmirrors,scope=Namespaced
 // +kubebuilder:printcolumn:name="Model",type=string,JSONPath=`.spec.source.modelID`
 // +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 
-// ModelMirror represents a cached copy of a model from a remote registry.
+// ModelMirror represents a cached copy of a model from a remote registry. The PVC and
+// download Job are created in the ModelMirror's own namespace.
 type ModelMirror struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -51,12 +51,9 @@ type ModelMirrorSpec struct {
 	// mirror; omit entirely for a Static mirror.
 	// +optional
 	Storage *ModelMirrorStorage `json:"storage,omitempty"`
-	// JobNamespace is the namespace where the PVC and download Job will be created;
-	// omit entirely for static mirrors.
-	// +optional
-	JobNamespace string `json:"jobNamespace,omitempty"`
 	// ServiceAccountName is the ServiceAccount used by the workload identity that the download
-	// Job pod runs as. Empty (the default) runs the Job under the namespace default ServiceAccount.
+	// Job pod runs as. It is resolved in the ModelMirror's namespace. Empty (the default) runs
+	// the Job under the namespace default ServiceAccount.
 	// +optional
 	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 }
@@ -89,9 +86,10 @@ type ModelMirrorSource struct {
 	// ModelID is the model identifier (e.g. "Qwen/Qwen2.5-Coder-32B-Instruct").
 	// +kubebuilder:validation:Required
 	ModelID string `json:"modelID"`
-	// AccessSecret references a secret containing authentication credentials.
+	// AccessSecretName is the name of a secret in the ModelMirror's namespace holding the
+	// registry credentials under the HF_TOKEN key.
 	// +optional
-	AccessSecret *corev1.ObjectReference `json:"accessSecret,omitempty"`
+	AccessSecretName string `json:"accessSecretName,omitempty"`
 }
 
 type ModelMirrorStorage struct {

@@ -22,20 +22,20 @@ node `imagePullPolicy` is `IfNotPresent`, so reusing a tag won't re-pull). See
 the build itself; the Dockerfile is [`docker/presets/models/tfs/Dockerfile`](../../../docker/presets/models/tfs/Dockerfile).
 
 Then bump the tag and the recorded engine version in **both** of these files
-(they are hand-maintained mirrors and are diffed by `make compare-model-configs`):
+(they are hand-maintained mirrors and are diffed by `make compare-base-image-configs`):
 
-- [`presets/workspace/models/supported_models.yaml`](supported_models.yaml) — the `base` entry:
+- [`presets/workspace/models/base_images.yaml`](base_images.yaml) — the `base` entry:
   - `tag:` → the new base image tag,
   - `runtimeVersion.vllm:` → the new vLLM version,
   - `runtimeVersion.transformers:` → the transformers version if it changed,
   - add a line to the `# Tag history` comment block.
-- [`charts/kaito/workspace/templates/supported-models-configmap.yaml`](../../../charts/kaito/workspace/templates/supported-models-configmap.yaml) — mirror the `tag:` and `runtimeVersion` changes.
+- [`charts/kaito/workspace/templates/base-images-configmap.yaml`](../../../charts/kaito/workspace/templates/base-images-configmap.yaml) — mirror the `tag:` and `runtimeVersion` changes.
 
 ```bash
-make compare-model-configs   # must pass (compares the two files, ignoring comments)
+make compare-base-image-configs   # must pass (compares the two files, ignoring comments)
 ```
 
-The controller embeds `supported_models.yaml` via `go:embed`, so the controller
+The controller embeds `base_images.yaml` via `go:embed`, so the controller
 must be rebuilt for the new tag/version to take effect.
 
 ## 3. Regenerate the supported-architecture allowlist
@@ -50,7 +50,7 @@ regenerate it against the **new** base image:
 ```
 
 The script runs `list_supported_llm_archs.py` inside the kaito-base image whose
-tag it reads from `supported_models.yaml` — so run it **after** step 2 (the tag
+tag it reads from `base_images.yaml` — so run it **after** step 2 (the tag
 bump), and after the new base image is published/pullable. Commit the diff.
 
 > Architectures dropped by the new vLLM (moved to `_PREVIOUSLY_SUPPORTED_MODELS`)
@@ -81,9 +81,10 @@ Maps to reconcile:
 
 Checklist:
 
-1. **Every VALUE** in all four maps must still be a registered parser name. A
-   value that vLLM removed/renamed → the pod fails at engine init with an invalid
-   `--reasoning-parser` / `--tool-call-parser`.
+1. **Every non-empty VALUE** in all four maps must still be a registered parser
+  name. An empty name-prefix value intentionally falls through to the architecture
+  map. A value that vLLM removed/renamed → the pod fails at engine init with an
+  invalid `--reasoning-parser` / `--tool-call-parser`.
 2. **Name-prefix takes precedence over the arch map** (name is matched first,
    then arch as a fallback). A too-broad prefix key can shadow an onboarded
    model and give it the wrong parser — prefer specific prefixes.
@@ -113,7 +114,7 @@ just the import:
 
 ```bash
 make fmt vet lint unit-test          # Go: includes generator + model tests
-make compare-model-configs           # supported_models.yaml vs configmap
+make compare-base-image-configs      # base_images.yaml vs configmap
 ruff check --output-format=github .  # Python
 ruff format --check .
 make inference-api-e2e               # Python inference wrapper tests
@@ -130,8 +131,8 @@ reaches `Ready` and answers a chat completion.
 | --- | --- |
 | Pinned vLLM version + deps | [`presets/workspace/dependencies/requirements.txt`](../dependencies/requirements.txt) |
 | Base image build | [`docker/presets/models/tfs/Dockerfile`](../../../docker/presets/models/tfs/Dockerfile) |
-| Base image tag + `runtimeVersion` | [`presets/workspace/models/supported_models.yaml`](supported_models.yaml) |
-| Base image tag mirror | [`charts/kaito/workspace/templates/supported-models-configmap.yaml`](../../../charts/kaito/workspace/templates/supported-models-configmap.yaml) |
+| Base image tag + `runtimeVersion` | [`presets/workspace/models/base_images.yaml`](base_images.yaml) |
+| Base image tag mirror | [`charts/kaito/workspace/templates/base-images-configmap.yaml`](../../../charts/kaito/workspace/templates/base-images-configmap.yaml) |
 | Supported-arch allowlist | [`presets/workspace/models/vllm_model_arch_list.txt`](vllm_model_arch_list.txt) |
 | Arch-list generator | [`hack/generate_vllm_arch_list.sh`](../../../hack/generate_vllm_arch_list.sh) |
 | Parser maps + engine-arg overrides | [`presets/workspace/generator/generator.go`](../generator/generator.go) |

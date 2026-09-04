@@ -142,11 +142,10 @@ func TestGetInferenceCommandHuggingfaceWithModelName(t *testing.T) {
 	assert.Contains(t, cmd[2], "test-served-model")
 }
 
-func TestGetInferenceCommandHuggingfaceDownloadAtRuntime(t *testing.T) {
+func TestGetInferenceCommandHuggingfaceModel(t *testing.T) {
 	p := &PresetParam{
 		Metadata: Metadata{
-			Version:           "https://huggingface.co/microsoft/phi-3-mini-128k-instruct",
-			DownloadAtRuntime: true,
+			Version: "https://huggingface.co/microsoft/phi-3-mini-128k-instruct",
 		},
 		RuntimeParam: RuntimeParam{
 			Transformers: HuggingfaceTransformersParam{
@@ -164,11 +163,10 @@ func TestGetInferenceCommandHuggingfaceDownloadAtRuntime(t *testing.T) {
 	assert.Contains(t, cmd[2], "allow_remote_files")
 }
 
-func TestGetInferenceCommandHuggingfaceDownloadAtRuntimeWithRevision(t *testing.T) {
+func TestGetInferenceCommandHuggingfaceModelWithRevision(t *testing.T) {
 	p := &PresetParam{
 		Metadata: Metadata{
-			Version:           "https://huggingface.co/microsoft/phi-3-mini-128k-instruct/commit/abc123",
-			DownloadAtRuntime: true,
+			Version: "https://huggingface.co/microsoft/phi-3-mini-128k-instruct/commit/abc123",
 		},
 		RuntimeParam: RuntimeParam{
 			Transformers: HuggingfaceTransformersParam{
@@ -194,8 +192,7 @@ func TestGetInferenceCommandVLLMLocalModelWeightsPath(t *testing.T) {
 	// and omit --download-dir / --code-revision.
 	p := &PresetParam{
 		Metadata: Metadata{
-			Version:           "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash/commit/abc123",
-			DownloadAtRuntime: true,
+			Version: "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash/commit/abc123",
 		},
 		RuntimeParam: RuntimeParam{
 			VLLM: VLLMParam{
@@ -260,7 +257,7 @@ func TestGetInferenceCommandVLLMGpuMemoryUtilization(t *testing.T) {
 	require.Len(t, cmdA10, 3)
 	assert.Contains(t, cmdA10[2], "--gpu-memory-utilization=0.82")
 
-	// A100 and nil GPUConfig fall back to the default 0.84.
+	// A100 and nil GPUConfig fall back to the default 0.92.
 	p2 := &PresetParam{RuntimeParam: RuntimeParam{VLLM: VLLMParam{BaseCommand: "vllm serve", ModelRunParams: map[string]string{}}}}
 	cmdA100 := p2.GetInferenceCommand(RuntimeContext{
 		RuntimeName: RuntimeNameVLLM,
@@ -269,7 +266,7 @@ func TestGetInferenceCommandVLLMGpuMemoryUtilization(t *testing.T) {
 		GPUConfig:   &sku.GPUConfig{GPUModel: "NVIDIA A100"},
 	})
 	require.Len(t, cmdA100, 3)
-	assert.Contains(t, cmdA100[2], "--gpu-memory-utilization=0.84")
+	assert.Contains(t, cmdA100[2], "--gpu-memory-utilization=0.92")
 
 	p3 := &PresetParam{RuntimeParam: RuntimeParam{VLLM: VLLMParam{BaseCommand: "vllm serve", ModelRunParams: map[string]string{}}}}
 	cmdNil := p3.GetInferenceCommand(RuntimeContext{
@@ -278,7 +275,7 @@ func TestGetInferenceCommandVLLMGpuMemoryUtilization(t *testing.T) {
 		NumNodes:    1,
 	})
 	require.Len(t, cmdNil, 3)
-	assert.Contains(t, cmdNil[2], "--gpu-memory-utilization=0.84")
+	assert.Contains(t, cmdNil[2], "--gpu-memory-utilization=0.92")
 }
 
 func TestGetInferenceCommandVLLMKVCacheEventsDefault(t *testing.T) {

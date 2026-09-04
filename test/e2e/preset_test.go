@@ -17,7 +17,6 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -41,22 +40,19 @@ import (
 )
 
 const (
-	PresetLlama3_1_8BInstruct        = "llama-3.1-8b-instruct"
-	PresetLlama3_3_70BInstruct       = "llama-3.3-70b-instruct"
-	PresetQwen3_Coder30BModel        = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
-	PresetPhi3Mini128kModel          = "phi-3-mini-128k-instruct"
-	PresetPhi4MiniModel              = "phi-4-mini-instruct"
-	PresetPhi4Model                  = "phi-4"
-	PresetGemma3_4BInstructModel     = "google/gemma-3-4b-it"
-	PresetGemma3_27BInstructModel    = "google/gemma-3-27b-it"
-	PresetGemma4_E2BInstructModel    = "google/gemma-4-E2B-it"
-	PresetGemma4_26BA4BInstructModel = "google/gemma-4-26B-A4B-it"
-	PresetGPT_OSS_20BModel           = "gpt-oss-20b"
-	PresetGPT_OSS_120BModel          = "gpt-oss-120b"
-	PresetMinistral33BInstructModel  = "mistralai/ministral-3-3b-instruct-2512"
-	PresetQwen3_8BAWQModel           = "Qwen/Qwen3-8B-AWQ"
-	PresetQwen3_5_2BModel            = "Qwen/Qwen3.5-2B"
-	WorkspaceHashAnnotation          = "workspace.kaito.io/hash"
+	PresetPhi3Mini128kModel         = "phi-3-mini-128k-instruct"
+	PresetPhi4MiniModel             = "phi-4-mini-instruct"
+	PresetPhi4Model                 = "phi-4"
+	PresetGemma3_4BInstructModel    = "google/gemma-3-4b-it"
+	PresetGemma3_27BInstructModel   = "google/gemma-3-27b-it"
+	PresetGemma4_12BInstructModel   = "google/gemma-4-12B-it"
+	PresetQwen3_8_27BModel          = "Qwen/Qwen3.8-27B"
+	PresetGPT_OSS_20BModel          = "gpt-oss-20b"
+	PresetGPT_OSS_120BModel         = "gpt-oss-120b"
+	PresetMinistral33BInstructModel = "mistralai/ministral-3-3b-instruct-2512"
+	PresetGranite4_1_8BModel        = "ibm-granite/granite-4.1-8b"
+	PresetNemotron3Nano4BModel      = "nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16"
+	WorkspaceHashAnnotation         = "workspace.kaito.io/hash"
 	// WorkspaceRevisionAnnotation represents the revision number of the workload managed by the workspace
 	WorkspaceRevisionAnnotation = "workspace.kaito.io/revision"
 )
@@ -74,24 +70,8 @@ func loadTestEnvVars() {
 	aiModelsRegistrySecret = utils.GetEnv("AI_MODELS_REGISTRY_SECRET")
 	// Currently required for uploading fine-tuning results
 	e2eACRSecret = utils.GetEnv("E2E_ACR_REGISTRY_SECRET")
-	supportedModelsYamlPath = utils.GetEnv("SUPPORTED_MODELS_YAML_PATH")
 	azureClusterName = strings.ToLower(utils.GetEnv("AZURE_CLUSTER_NAME"))
 	hfToken = utils.GetEnv("HF_TOKEN")
-}
-
-func loadModelVersions() {
-	// Load stable model versions
-	configs, err := utils.GetModelConfigInfo(supportedModelsYamlPath)
-	if err != nil {
-		fmt.Printf("Failed to load model configs: %v\n", err)
-		os.Exit(1)
-	}
-
-	modelInfo, err = utils.ExtractModelVersion(configs)
-	if err != nil {
-		fmt.Printf("Failed to extract stable model versions: %v\n", err)
-		os.Exit(1)
-	}
 }
 
 func createCustomWorkspaceWithAdapter(numOfNode int, validAdapters []kaitov1beta1.AdapterSpec) *kaitov1beta1.Workspace {
@@ -1312,8 +1292,6 @@ func createOutputVolume(storageClassName string) *corev1.Volume {
 var aiModelsRegistry string
 var aiModelsRegistrySecret string
 var e2eACRSecret string
-var supportedModelsYamlPath string
-var modelInfo map[string]string
 var azureClusterName string
 var hfToken string
 
@@ -1397,7 +1375,6 @@ var _ = Describe("Karpenter Bootstrap", func() {
 var _ = Describe("Workspace Preset", func() {
 	BeforeEach(func() {
 		loadTestEnvVars()
-		loadModelVersions()
 	})
 
 	It("should create a custom template workspace successfully", utils.GinkgoLabelFastCheck, func() {

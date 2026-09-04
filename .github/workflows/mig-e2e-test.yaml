@@ -97,7 +97,7 @@ jobs:
         run: |
           # e2e-base-setup rewrites the base entry to the test ACR + $VERSION tag; it must
           # also build+push that image when the current base tag isn't already published.
-          BUILD_KAITO_BASE_IMAGE=$(python3 .github/determine_missing_preset_images.py | jq -r '.[] | select(.name == "base") | length > 0')
+          BUILD_KAITO_BASE_IMAGE=$(python3 .github/determine_missing_base_images.py | jq -r '.[] | select(.name == "base") | length > 0')
           echo "BUILD_KAITO_BASE_IMAGE=${BUILD_KAITO_BASE_IMAGE}" >> $GITHUB_ENV
 
       - name: Run e2e-base-setup composite action

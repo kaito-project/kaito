@@ -28,7 +28,7 @@ import (
 func TestSamplerSidecar(t *testing.T) {
 	cr := &kaitov1alpha1.ModelMirror{}
 	cr.Name = "mirror-abc123"
-	cr.Spec.JobNamespace = "kaito-workspace"
+	cr.Namespace = "kaito-workspace"
 	cr.Spec.Source = &kaitov1alpha1.ModelMirrorSource{ModelID: "meta-llama/Llama-3.1-8B-Instruct"}
 
 	job := BuildDownloadJob(cr, mmconsts.DefaultDownloadJobResources(), nil)
@@ -96,8 +96,8 @@ func TestSamplerSidecarHFToken(t *testing.T) {
 	cr := &kaitov1alpha1.ModelMirror{}
 	cr.Name = "mirror-abc123"
 	cr.Spec.Source = &kaitov1alpha1.ModelMirrorSource{
-		ModelID:      "meta-llama/Llama-3.1-8B-Instruct",
-		AccessSecret: &corev1.ObjectReference{Name: "hf-token"},
+		ModelID:          "meta-llama/Llama-3.1-8B-Instruct",
+		AccessSecretName: "hf-token",
 	}
 
 	job := BuildDownloadJob(cr, mmconsts.DefaultDownloadJobResources(), nil)

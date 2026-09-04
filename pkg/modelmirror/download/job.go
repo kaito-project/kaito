@@ -71,12 +71,12 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 
 	// Always declare HF_TOKEN — optional:true means Kubernetes silently skips it
 	// if the secret doesn't exist.
-	if cr.Spec.Source.AccessSecret != nil {
+	if cr.Spec.Source.AccessSecretName != "" {
 		envVars = append(envVars, corev1.EnvVar{
 			Name: "HF_TOKEN",
 			ValueFrom: &corev1.EnvVarSource{
 				SecretKeyRef: &corev1.SecretKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{Name: cr.Spec.Source.AccessSecret.Name},
+					LocalObjectReference: corev1.LocalObjectReference{Name: cr.Spec.Source.AccessSecretName},
 					Key:                  "HF_TOKEN",
 					Optional:             ptr.To(true),
 				},
@@ -108,7 +108,7 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: cr.Name + "-download-",
-			Namespace:    cr.Spec.JobNamespace,
+			Namespace:    cr.Namespace,
 			Labels: map[string]string{
 				mmconsts.LabelModelMirrorName: cr.Name,
 			},

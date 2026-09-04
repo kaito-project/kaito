@@ -54,17 +54,16 @@ func testScheme() *runtime.Scheme {
 // newTestReconciler builds a reconciler over the given client, matching how the
 // production code constructs it.
 func newTestReconciler(c client.Client) *ModelMirrorReconciler {
-	return NewModelMirrorReconciler(c, zap.New(zap.UseDevMode(true)), mmconsts.DefaultDownloadJobResources())
+	return NewModelMirrorReconciler(c, c, zap.New(zap.UseDevMode(true)), mmconsts.DefaultDownloadJobResources())
 }
 
 // newManagedTestCR returns a Managed-mode ModelMirror CR with the minimum spec
 // the controller requires (source and storage are both mandatory for Managed).
 func newManagedTestCR(name string) *kaitov1alpha1.ModelMirror {
 	return &kaitov1alpha1.ModelMirror{
-		ObjectMeta: metav1.ObjectMeta{Name: name},
+		ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: "default"},
 		Spec: kaitov1alpha1.ModelMirrorSpec{
-			Mode:         kaitov1alpha1.ModelMirrorModeManaged,
-			JobNamespace: "default",
+			Mode: kaitov1alpha1.ModelMirrorModeManaged,
 			Source: &kaitov1alpha1.ModelMirrorSource{
 				Registry: "huggingface",
 				ModelID:  "microsoft/Phi-3-mini-4k-instruct",
@@ -78,32 +77,25 @@ func newManagedTestCR(name string) *kaitov1alpha1.ModelMirror {
 }
 
 func TestReconcile_AlreadyReady(t *testing.T) {
-	scheme := runtime.NewScheme()
-	_ = kaitov1alpha1.AddToScheme(scheme)
-	_ = batchv1.AddToScheme(scheme)
-	_ = corev1.AddToScheme(scheme)
-	_ = storagev1.AddToScheme(scheme)
-
-	cr := &kaitov1alpha1.ModelMirror{
-		ObjectMeta: metav1.ObjectMeta{Name: "abc123"},
-		Status:     kaitov1alpha1.ModelMirrorStatus{Phase: kaitov1alpha1.ModelMirrorPhaseReady},
-	}
-
-	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(cr).Build()
-	r := NewModelMirrorReconciler(client, zap.New(zap.UseDevMode(true)), mmconsts.DefaultDownloadJobResources())
+	cr := newManagedTestCR("abc123")
+	cr.UID = "live-uid"
+	cr.Status.Phase = kaitov1alpha1.ModelMirrorPhaseReady
+	c := fake.NewClientBuilder().WithScheme(testScheme()).
+		WithObjects(cr).WithStatusSubresource(cr).Build()
+	r := newTestReconciler(c)
 
 	result, err := r.Reconcile(context.Background(), ctrl.Request{
-		NamespacedName: types.NamespacedName{Name: "abc123"},
+		NamespacedName: types.NamespacedName{Name: "abc123", Namespace: "default"},
 	})
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if result.RequeueAfter != 0 {
-		t.Errorf("expected no requeue for Ready CR, got %+v", result)
-	}
+	require.NoError(t, err)
+	assert.Zero(t, result.RequeueAfter, "a Ready mirror is a no-op")
+
+	pvcs := &corev1.PersistentVolumeClaimList{}
+	require.NoError(t, c.List(context.Background(), pvcs))
+	assert.Empty(t, pvcs.Items, "a Ready mirror must not provision anything further")
 }
 
-func TestReconcile_AddsFinalizer(t *testing.T) {
+func TestReconcile_OwnsPVC(t *testing.T) {
 	scheme := runtime.NewScheme()
 	_ = kaitov1alpha1.AddToScheme(scheme)
 	_ = batchv1.AddToScheme(scheme)
@@ -111,40 +103,52 @@ func TestReconcile_AddsFinalizer(t *testing.T) {
 	_ = storagev1.AddToScheme(scheme)
 
 	cr := &kaitov1alpha1.ModelMirror{
-		ObjectMeta: metav1.ObjectMeta{Name: "abc123"},
+		ObjectMeta: metav1.ObjectMeta{Name: "abc123", Namespace: "default", UID: "mirror-uid"},
 		Spec: kaitov1alpha1.ModelMirrorSpec{
-			Source:       &kaitov1alpha1.ModelMirrorSource{Registry: "huggingface", ModelID: "test/model"},
-			Storage:      &kaitov1alpha1.ModelMirrorStorage{StorageClassName: ptr.To("blob-nfs"), Size: "10Gi"},
-			JobNamespace: "default",
+			Source:  &kaitov1alpha1.ModelMirrorSource{Registry: "huggingface", ModelID: "test/model"},
+			Storage: &kaitov1alpha1.ModelMirrorStorage{StorageClassName: ptr.To("blob-nfs"), Size: "10Gi"},
 		},
 		Status: kaitov1alpha1.ModelMirrorStatus{Phase: kaitov1alpha1.ModelMirrorPhasePending},
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(cr).Build()
-	r := NewModelMirrorReconciler(client, zap.New(zap.UseDevMode(true)), mmconsts.DefaultDownloadJobResources())
+	r := NewModelMirrorReconciler(client, client, zap.New(zap.UseDevMode(true)), mmconsts.DefaultDownloadJobResources())
 
-	result, err := r.Reconcile(context.Background(), ctrl.Request{
-		NamespacedName: types.NamespacedName{Name: "abc123"},
-	})
-	if err != nil {
+	if _, err := r.Reconcile(context.Background(), ctrl.Request{
+		NamespacedName: types.NamespacedName{Name: "abc123", Namespace: "default"},
+	}); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if result.RequeueAfter == 0 {
-		t.Error("expected requeue after adding finalizer")
+
+	pvc := &corev1.PersistentVolumeClaim{}
+	if err := client.Get(context.Background(), types.NamespacedName{Name: "abc123", Namespace: "default"}, pvc); err != nil {
+		t.Fatalf("PVC not created: %v", err)
+	}
+	assert.Equal(t, "default", pvc.Namespace, "PVC must be created in the mirror's namespace")
+
+	ref := metav1.GetControllerOf(pvc)
+	require.NotNil(t, ref, "PVC must carry a controller ownerReference so GC can reap it")
+	assert.Equal(t, "ModelMirror", ref.Kind)
+	assert.Equal(t, "abc123", ref.Name)
+	assert.Equal(t, cr.UID, ref.UID)
+}
+
+// The cleanup finalizer is what holds the name while children are torn down, so a mirror
+// without one would let a replacement be created alongside the old generation's storage.
+func TestReconcile_AddsCleanupFinalizer(t *testing.T) {
+	cr := newManagedTestCR("mirror-1")
+	c := fake.NewClientBuilder().WithScheme(testScheme()).
+		WithObjects(cr).WithStatusSubresource(cr).Build()
+	r := newTestReconciler(c)
+	key := types.NamespacedName{Name: "mirror-1", Namespace: "default"}
+
+	if _, err := r.Reconcile(context.Background(), ctrl.Request{NamespacedName: key}); err != nil {
+		t.Fatalf("reconcile failed: %v", err)
 	}
 
-	// Verify finalizer was added
-	updated := &kaitov1alpha1.ModelMirror{}
-	_ = client.Get(context.Background(), types.NamespacedName{Name: "abc123"}, updated)
-	found := false
-	for _, f := range updated.Finalizers {
-		if f == mmconsts.ModelMirrorFinalizer {
-			found = true
-		}
-	}
-	if !found {
-		t.Error("finalizer not added to CR")
-	}
+	got := &kaitov1alpha1.ModelMirror{}
+	require.NoError(t, c.Get(context.Background(), key, got))
+	assert.Contains(t, got.Finalizers, mmconsts.ModelMirrorFinalizer)
 }
 
 func TestJobRetryInterval(t *testing.T) {
@@ -162,7 +166,8 @@ func TestReconcile_Static_SetsReadyNoProvision(t *testing.T) {
 
 	cr := &kaitov1alpha1.ModelMirror{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "abc123",
+			Name:      "abc123",
+			Namespace: "default",
 		},
 		Spec: kaitov1alpha1.ModelMirrorSpec{
 			// A static mirror sets only Mode — no Source, no Storage (BYO storage; nothing to download).
@@ -170,13 +175,13 @@ func TestReconcile_Static_SetsReadyNoProvision(t *testing.T) {
 		},
 	}
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(cr).WithStatusSubresource(cr).Build()
-	r := NewModelMirrorReconciler(client, zap.New(zap.UseDevMode(true)), mmconsts.DefaultDownloadJobResources())
+	r := NewModelMirrorReconciler(client, client, zap.New(zap.UseDevMode(true)), mmconsts.DefaultDownloadJobResources())
 
-	_, err := r.Reconcile(context.Background(), ctrl.Request{NamespacedName: types.NamespacedName{Name: "abc123"}})
+	_, err := r.Reconcile(context.Background(), ctrl.Request{NamespacedName: types.NamespacedName{Name: "abc123", Namespace: "default"}})
 	assert.NoError(t, err)
 
 	got := &kaitov1alpha1.ModelMirror{}
-	assert.NoError(t, client.Get(context.Background(), types.NamespacedName{Name: "abc123"}, got))
+	assert.NoError(t, client.Get(context.Background(), types.NamespacedName{Name: "abc123", Namespace: "default"}, got))
 	assert.Equal(t, kaitov1alpha1.ModelMirrorPhaseReady, got.Status.Phase)
 	// A static mirror stored the weights nowhere locally, so ModelPath is empty.
 	assert.Empty(t, got.Status.ModelPath)
@@ -206,9 +211,15 @@ func TestReconcile_Static_SetsReadyNoProvision(t *testing.T) {
 
 func TestEnsurePVC_PendingSetsStorageReadyFalse(t *testing.T) {
 	cr := newManagedTestCR("mirror-1")
+	cr.UID = "mirror-uid"
 	pvc := &corev1.PersistentVolumeClaim{
-		ObjectMeta: metav1.ObjectMeta{Name: "mirror-1", Namespace: "default"},
-		Status:     corev1.PersistentVolumeClaimStatus{Phase: corev1.ClaimPending},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            "mirror-1",
+			Namespace:       "default",
+			OwnerReferences: []metav1.OwnerReference{mirrorOwnerRef("mirror-1", "mirror-uid")},
+		},
+		Spec:   corev1.PersistentVolumeClaimSpec{StorageClassName: ptr.To("kaito-model-mirror")},
+		Status: corev1.PersistentVolumeClaimStatus{Phase: corev1.ClaimPending},
 	}
 	c := fake.NewClientBuilder().WithScheme(testScheme()).
 		WithObjects(cr, pvc).WithStatusSubresource(cr).Build()
@@ -243,6 +254,71 @@ func TestEnsurePVC_CreateFailureSetsConditionAndReturnsError(t *testing.T) {
 	cond := meta.FindStatusCondition(cr.Status.Conditions, mmconsts.ConditionTypeStorageReady)
 	require.NotNil(t, cond)
 	assert.Equal(t, mmconsts.ReasonPVCCreateFailed, cond.Reason)
+}
+
+// mirrorOwnerRef builds the controller ownerReference a ModelMirror stamps on its PVC.
+func mirrorOwnerRef(name string, uid types.UID) metav1.OwnerReference {
+	return metav1.OwnerReference{
+		APIVersion: kaitov1alpha1.GroupVersion.String(),
+		Kind:       "ModelMirror",
+		Name:       name,
+		UID:        uid,
+		Controller: ptr.To(true),
+	}
+}
+
+// The mirror must not be released while its storage survives, or a replacement could be
+// created against the previous generation's PVC.
+func TestFinalizeMirror_HoldsCRWhileChildrenSurvive(t *testing.T) {
+	now := metav1.Now()
+	cr := newManagedTestCR("mirror-1")
+	cr.UID = "live-uid"
+	cr.Finalizers = []string{mmconsts.ModelMirrorFinalizer}
+	cr.DeletionTimestamp = &now
+	pvc := &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            "mirror-1",
+			Namespace:       "default",
+			Finalizers:      []string{"kubernetes.io/pvc-protection"},
+			OwnerReferences: []metav1.OwnerReference{mirrorOwnerRef("mirror-1", "live-uid")},
+		},
+	}
+	c := fake.NewClientBuilder().WithScheme(testScheme()).
+		WithObjects(cr, pvc).WithStatusSubresource(cr).Build()
+	r := newTestReconciler(c)
+	key := types.NamespacedName{Name: "mirror-1", Namespace: "default"}
+
+	res, err := r.Reconcile(context.Background(), ctrl.Request{NamespacedName: key})
+	require.NoError(t, err)
+	assert.Equal(t, deletionRetryInterval, res.RequeueAfter)
+
+	got := &kaitov1alpha1.ModelMirror{}
+	require.NoError(t, c.Get(context.Background(), key, got), "the CR must outlive its PVC")
+	assert.Contains(t, got.Finalizers, mmconsts.ModelMirrorFinalizer)
+
+	stale := &corev1.PersistentVolumeClaim{}
+	require.NoError(t, c.Get(context.Background(), key, stale))
+	assert.False(t, stale.DeletionTimestamp.IsZero(), "the PVC must have been asked to go")
+}
+
+// Once the children are gone the finalizer comes off, which is what frees the name.
+func TestFinalizeMirror_ReleasesCROnceChildrenAreGone(t *testing.T) {
+	now := metav1.Now()
+	cr := newManagedTestCR("mirror-1")
+	cr.UID = "live-uid"
+	cr.Finalizers = []string{mmconsts.ModelMirrorFinalizer}
+	cr.DeletionTimestamp = &now
+	c := fake.NewClientBuilder().WithScheme(testScheme()).
+		WithObjects(cr).WithStatusSubresource(cr).Build()
+	r := newTestReconciler(c)
+	key := types.NamespacedName{Name: "mirror-1", Namespace: "default"}
+
+	res, err := r.Reconcile(context.Background(), ctrl.Request{NamespacedName: key})
+	require.NoError(t, err)
+	assert.Zero(t, res.RequeueAfter, "nothing left to wait for")
+
+	err = c.Get(context.Background(), key, &kaitov1alpha1.ModelMirror{})
+	assert.True(t, apierrors.IsNotFound(err), "the CR must be released once its children are gone")
 }
 
 func TestClassifyDownloadFailure(t *testing.T) {
@@ -429,6 +505,7 @@ func TestCheckJobStatus_FailedJobSetsReadyFalse(t *testing.T) {
 			Namespace:         "default",
 			CreationTimestamp: metav1.Now(),
 			Labels:            map[string]string{mmconsts.LabelModelMirrorName: cr.Name},
+			OwnerReferences:   []metav1.OwnerReference{*metav1.NewControllerRef(cr, kaitov1alpha1.GroupVersion.WithKind("ModelMirror"))},
 		},
 		Status: batchv1.JobStatus{
 			Failed: 4,
@@ -449,7 +526,7 @@ func TestCheckJobStatus_FailedJobSetsReadyFalse(t *testing.T) {
 	require.NoError(t, err)
 
 	got := &kaitov1alpha1.ModelMirror{}
-	require.NoError(t, c.Get(context.Background(), client.ObjectKey{Name: cr.Name}, got))
+	require.NoError(t, c.Get(context.Background(), client.ObjectKeyFromObject(cr), got))
 
 	cond := meta.FindStatusCondition(got.Status.Conditions, mmconsts.ConditionTypeReady)
 	require.NotNil(t, cond, "a failed download Job must surface a Ready condition")
@@ -509,7 +586,7 @@ func TestHandleJobSuccessZeroesDownloadMetrics(t *testing.T) {
 		WithObjects(cr, job).WithStatusSubresource(cr).Build()
 	r := newTestReconciler(c)
 
-	_, err := r.handleJobSuccess(context.Background(), cr, job, zap.New(zap.UseDevMode(true)))
+	_, err := r.handleJobSuccess(context.Background(), cr, zap.New(zap.UseDevMode(true)))
 	require.NoError(t, err)
 
 	assert.Equal(t, kaitov1alpha1.ModelMirrorPhaseReady, cr.Status.Phase)

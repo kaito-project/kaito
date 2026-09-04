@@ -1056,7 +1056,11 @@ func TestEnsureModelMirror_ManagedStampsServiceAccount(t *testing.T) {
 	})
 	mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&corev1.ServiceAccount{}), mock.Anything).Return(nil)
 	mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
-	mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&kaitov1alpha1.ModelMirror{}), mock.Anything).Return(test.NotFoundError())
+	// Matching the key rather than mock.Anything is what makes this test able to fail if
+	// the mirror is ever looked up outside the workspace's namespace.
+	mockClient.On("Get", mock.Anything,
+		mock.MatchedBy(func(key client.ObjectKey) bool { return key.Namespace == "default" }),
+		mock.IsType(&kaitov1alpha1.ModelMirror{}), mock.Anything).Return(test.NotFoundError())
 	mockClient.On("Create", mock.Anything, mock.IsType(&kaitov1alpha1.ModelMirror{}), mock.Anything).Return(nil)
 
 	ws := &v1beta1.Workspace{
@@ -1082,6 +1086,60 @@ func TestEnsureModelMirror_ManagedStampsServiceAccount(t *testing.T) {
 	assert.NotNil(t, created, "a ModelMirror CR should have been created")
 	assert.Equal(t, kaitov1alpha1.ModelMirrorModeManaged, created.Spec.Mode)
 	assert.Equal(t, saName, created.Spec.ServiceAccountName)
+	assert.Equal(t, ws.Namespace, created.Namespace, "the mirror must be created in the workspace's namespace")
+}
+
+// TestEnsureModelMirror_StaticCreatedInWorkspaceNamespace guards the static path, which
+// builds its own ModelMirror literal and so cannot be covered by the managed test above.
+func TestEnsureModelMirror_StaticCreatedInWorkspaceNamespace(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+	const saName = "kaito-model-streamer"
+	prevSA := modelstreaming.StreamingDefaults.ServiceAccount
+	modelstreaming.StreamingDefaults.ServiceAccount = saName
+	t.Cleanup(func() { modelstreaming.StreamingDefaults.ServiceAccount = prevSA })
+
+	mockClient := test.NewClient()
+	mockClient.CreateOrUpdateObjectInMap(&corev1.ServiceAccount{
+		ObjectMeta: v1.ObjectMeta{
+			Name:        saName,
+			Namespace:   "other-ns",
+			Annotations: map[string]string{"azure.workload.identity/client-id": "00000000-0000-0000-0000-000000000000"},
+		},
+	})
+	mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&corev1.ServiceAccount{}), mock.Anything).Return(nil)
+	mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&kaitov1alpha1.ModelMirror{}), mock.Anything).Return(test.NotFoundError())
+	mockClient.On("Create", mock.Anything, mock.IsType(&kaitov1alpha1.ModelMirror{}), mock.Anything).Return(nil)
+
+	ws := &v1beta1.Workspace{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      "ws-static",
+			Namespace: "other-ns",
+			Annotations: map[string]string{
+				modelstreaming.AnnotationStaticModelMirror:      "true",
+				modelstreaming.AnnotationStreamDatarefsURL:      "https://example.blob.core.windows.net/models",
+				modelstreaming.AnnotationStreamIdentityClientID: "00000000-0000-0000-0000-000000000000",
+				modelstreaming.AnnotationStreamSourceType:       "public",
+			},
+		},
+		Inference: &v1beta1.InferenceSpec{
+			Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "phi-4"}},
+		},
+	}
+
+	reconciler := &WorkspaceReconciler{Client: mockClient}
+	require.NoError(t, reconciler.ensureModelMirror(context.Background(), ws))
+
+	var created *kaitov1alpha1.ModelMirror
+	for _, obj := range mockClient.CreateMapWithType(&kaitov1alpha1.ModelMirror{}) {
+		if mm, ok := obj.(*kaitov1alpha1.ModelMirror); ok {
+			created = mm
+			break
+		}
+	}
+	require.NotNil(t, created, "a static ModelMirror CR should have been created")
+	assert.Equal(t, kaitov1alpha1.ModelMirrorModeStatic, created.Spec.Mode)
+	assert.Equal(t, "other-ns", created.Namespace, "the mirror must be created in the workspace's namespace")
 }
 
 func TestSyncWorkspaceStatus(t *testing.T) {
@@ -2115,6 +2173,43 @@ func TestStreamingValidationError(t *testing.T) {
 	var sve *streamingValidationError
 	require.True(t, errors.As(error(err), &sve))
 	assert.Equal(t, reasonModelStreamingStorageClassNotFound, sve.reason)
+}
+
+func TestModelMirrorCondition(t *testing.T) {
+	ready := &kaitov1alpha1.ModelMirror{
+		Status: kaitov1alpha1.ModelMirrorStatus{Phase: kaitov1alpha1.ModelMirrorPhaseReady},
+	}
+
+	t.Run("ready mirror is ready", func(t *testing.T) {
+		st, reason, msg := modelMirrorCondition(ready, "", "")
+		assert.Equal(t, v1.ConditionTrue, st)
+		assert.Equal(t, "ModelMirrorReady", reason)
+		assert.Equal(t, "Model download complete", msg)
+	})
+
+	// A Static mirror a managed workspace may not use reports Ready on its own account.
+	t.Run("refused mirror is not ready despite its phase", func(t *testing.T) {
+		st, reason, msg := modelMirrorCondition(ready, reasonModelMirrorCreateFailed,
+			`ModelMirror abc123 in namespace ns has mode "Static" but this workspace requires mode "Managed"`)
+		assert.Equal(t, v1.ConditionFalse, st)
+		assert.Equal(t, reasonModelMirrorCreateFailed, reason)
+		assert.Contains(t, msg, "Static")
+	})
+
+	t.Run("download failure surfaces", func(t *testing.T) {
+		cr := &kaitov1alpha1.ModelMirror{
+			Status: kaitov1alpha1.ModelMirrorStatus{FailureMessage: "download job failed"},
+		}
+		st, _, msg := modelMirrorCondition(cr, "", "")
+		assert.Equal(t, v1.ConditionFalse, st)
+		assert.Equal(t, "download job failed", msg)
+	})
+
+	t.Run("unrelated inference failure does not mask a ready mirror", func(t *testing.T) {
+		st, reason, _ := modelMirrorCondition(ready, inferenceReasonOOMKilled, "container was OOMKilled")
+		assert.Equal(t, v1.ConditionTrue, st)
+		assert.Equal(t, "ModelMirrorReady", reason)
+	})
 }
 
 func TestStreamingValidationReasonFallback(t *testing.T) {

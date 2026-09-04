@@ -46,6 +46,9 @@ type CatalogEntry struct {
 	QKRopeHeadDim     int      `yaml:"qkRopeHeadDim,omitempty"`
 	QuantMethod       string   `yaml:"quantMethod,omitempty"`
 	QuantBits         int      `yaml:"quantBits,omitempty"`
+	// MambaStateBytesPerSeq is the per-sequence Mamba-2 state cache size in bytes
+	// (single TP rank) for hybrid Mamba/Attention models (e.g. NemotronH).
+	MambaStateBytesPerSeq int `yaml:"mambaStateBytesPerSeq,omitempty"`
 }
 
 // ModelCatalog holds the list of pre-computed model entries.
@@ -185,6 +188,9 @@ func FetchCatalogEntry(repo, token string) (*CatalogEntry, error) {
 		entry.QuantMethod = getString(qc, optionalKeyMap["quantMethod"])
 		entry.QuantBits = getInt(qc, []string{"bits"}, 0)
 	}
+
+	// Reserve Mamba-2 state for hybrid Mamba/Attention models (e.g. NemotronH).
+	entry.MambaStateBytesPerSeq = computeMambaStateBytesPerSeq(config)
 
 	// Copy format fields from generator (only when non-default)
 	if g.LoadFormat != "auto" {

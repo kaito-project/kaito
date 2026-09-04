@@ -57,6 +57,79 @@ import (
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/registry"
 )
 
+func TestDesiredSidecarsNeedUpdate(t *testing.T) {
+	desired := &corev1.PodSpec{
+		Containers: []corev1.Container{
+			{Name: "model"},
+			{Name: "dacs-model-warmer", Image: "warmer@sha256:new"},
+		},
+	}
+
+	tests := []struct {
+		name     string
+		existing *corev1.PodSpec
+		want     bool
+	}{
+		{
+			name:     "missing sidecar",
+			existing: &corev1.PodSpec{Containers: []corev1.Container{{Name: "model"}}},
+			want:     true,
+		},
+		{
+			name: "changed sidecar",
+			existing: &corev1.PodSpec{Containers: []corev1.Container{
+				{Name: "model"},
+				{Name: "dacs-model-warmer", Image: "warmer@sha256:old"},
+			}},
+			want: true,
+		},
+		{
+			name: "matching sidecar",
+			existing: &corev1.PodSpec{Containers: []corev1.Container{
+				{Name: "model"},
+				{Name: "dacs-model-warmer", Image: "warmer@sha256:new"},
+			}},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := desiredSidecarsNeedUpdate(tt.existing, desired); got != tt.want {
+				t.Fatalf("desiredSidecarsNeedUpdate() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMergeDesiredSidecarsPreservesUserContainers(t *testing.T) {
+	existing := &corev1.PodSpec{
+		Containers: []corev1.Container{
+			{Name: "model"},
+			{Name: "user-sidecar", Image: "user"},
+			{Name: "dacs-model-warmer", Image: "warmer@sha256:old"},
+		},
+	}
+	desired := &corev1.PodSpec{
+		Containers: []corev1.Container{
+			{Name: "model"},
+			{Name: "dacs-model-warmer", Image: "warmer@sha256:new"},
+		},
+	}
+
+	mergeDesiredSidecars(existing, desired)
+
+	if len(existing.Containers) != 3 {
+		t.Fatalf("expected three containers, got %d", len(existing.Containers))
+	}
+	if existing.Containers[1].Name != "user-sidecar" || existing.Containers[1].Image != "user" {
+		t.Errorf("user sidecar was changed: %v", existing.Containers[1])
+	}
+	if existing.Containers[2].Image != "warmer@sha256:new" {
+		t.Errorf("DACS sidecar was not updated: %v", existing.Containers[2])
+	}
+}
+
 func TestSelectWorkspaceNodes(t *testing.T) {
 	test.RegisterTestModel()
 	testcases := map[string]struct {

@@ -116,11 +116,15 @@ var _ = BeforeSuite(func() {
 
 	loadTestEnvVars()
 
-	err = copySecretToNamespace(aiModelsRegistrySecret, namespaceName)
-	Expect(err).NotTo(HaveOccurred())
+	if aiModelsRegistrySecret != "" {
+		err = copySecretToNamespace(aiModelsRegistrySecret, namespaceName)
+		Expect(err).NotTo(HaveOccurred())
+	}
 
-	err = copySecretToNamespace(e2eACRSecret, namespaceName)
-	Expect(err).NotTo(HaveOccurred())
+	if e2eACRSecret != "" {
+		err = copySecretToNamespace(e2eACRSecret, namespaceName)
+		Expect(err).NotTo(HaveOccurred())
+	}
 })
 
 var _ = ReportAfterSuite("Print pod logs on failure", func(report Report) {

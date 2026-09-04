@@ -705,7 +705,6 @@ The in-pod consumer of cached model weights is the **[run:ai model streamer](htt
 
 **Provider-injected configuration** (via `PodMutations` env vars):
 ```
-RUNAI_STREAMER_CACHE_ENABLED=true
 RUNAI_STREAMER_CACHE_ENDPOINT=http://cache-discovery.<ns>.svc.cluster.local:<port>
 ```
 

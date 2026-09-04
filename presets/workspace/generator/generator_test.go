@@ -245,6 +245,60 @@ func TestGeneratePreset(t *testing.T) {
 			},
 		},
 		{
+			modelRepo: "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
+			expectedParam: model.PresetParam{
+				Metadata: model.Metadata{
+					Name:                   "deepseek-r1-distill-llama-8b",
+					Architectures:          []string{"LlamaForCausalLM"},
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"),
+					DownloadAuthRequired:   false,
+					ModelFileSize:          "14.96Gi",
+					BytesPerToken:          131072,
+					ModelTokenLimit:        131072,
+					DiskStorageRequirement: "94Gi",
+					ReasoningParser:        "deepseek_r1",
+					ToolCallParser:         "llama3_json",
+					AttnType:               "GQA",
+				},
+			},
+			expectedVLLM: model.VLLMParam{
+				ModelName: "deepseek-r1-distill-llama-8b",
+				ModelRunParams: map[string]string{
+					"load_format":    "auto",
+					"config_format":  "auto",
+					"tokenizer_mode": "deepseek_v32",
+				},
+				DisallowLoRA: false,
+			},
+		},
+		{
+			modelRepo: "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
+			expectedParam: model.PresetParam{
+				Metadata: model.Metadata{
+					Name:                   "deepseek-r1-distill-qwen-14b",
+					Architectures:          []string{"Qwen2ForCausalLM"},
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"),
+					DownloadAuthRequired:   false,
+					ModelFileSize:          "27.51Gi",
+					BytesPerToken:          196608,
+					ModelTokenLimit:        131072,
+					DiskStorageRequirement: "107Gi",
+					ReasoningParser:        "deepseek_r1",
+					ToolCallParser:         "hermes",
+					AttnType:               "GQA",
+				},
+			},
+			expectedVLLM: model.VLLMParam{
+				ModelName: "deepseek-r1-distill-qwen-14b",
+				ModelRunParams: map[string]string{
+					"load_format":    "auto",
+					"config_format":  "auto",
+					"tokenizer_mode": "deepseek_v32",
+				},
+				DisallowLoRA: false,
+			},
+		},
+		{
 			modelRepo: "nvidia/Nemotron-Orchestrator-8B",
 			expectedParam: model.PresetParam{
 				Metadata: model.Metadata{

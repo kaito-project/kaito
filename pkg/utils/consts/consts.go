@@ -199,6 +199,9 @@ const (
 	// Set to "0" to keep FP8 models on their non-DeepGEMM kernel path.
 	VLLMUseDeepGEMMEnvName = "VLLM_USE_DEEP_GEMM"
 
+	// VLLMWSL2EnablePinMemoryEnvName enables pinned memory when vLLM detects WSL2.
+	VLLMWSL2EnablePinMemoryEnvName = "VLLM_WSL2_ENABLE_PIN_MEMORY"
+
 	// ConditionReady is the condition type for a ready condition.
 	ConditionReady = "Ready"
 

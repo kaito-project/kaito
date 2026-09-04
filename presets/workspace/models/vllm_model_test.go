@@ -1186,3 +1186,26 @@ func TestGetModelByName_DeepSeekV32_SpeculativeDecodingMTP(t *testing.T) {
 	}
 	assert.Equal(t, 1, params.SpeculativeDecoding.MTP.NumSpeculativeTokens)
 }
+
+// TestGetModelByName_GLM52FP8_SpeculativeDecodingMTP guards the catalog-backed
+// GLM-5.2-FP8 tuned MTP entry. Upstream vLLM's GLM-5.2 recipe documents native
+// MTP with depth 5 on the FP8 checkpoint, so this asserts that KAITO's
+// generator-to-model wiring preserves that exact preset-tuned config rather
+// than silently degrading to the universal ngram fallback.
+func TestGetModelByName_GLM52FP8_SpeculativeDecodingMTP(t *testing.T) {
+	m, err := GetModelByNameWithToken(context.Background(), "zai-org/GLM-5.2-FP8", "")
+	assert.NoError(t, err)
+	if !assert.NotNil(t, m) {
+		return
+	}
+
+	params := m.GetInferenceParameters()
+	if !assert.NotNil(t, params.SpeculativeDecoding, "preset-tuned SpeculativeDecoding must survive registration") {
+		return
+	}
+	assert.Equal(t, "mtp", params.SpeculativeDecoding.Method)
+	if !assert.NotNil(t, params.SpeculativeDecoding.MTP) {
+		return
+	}
+	assert.Equal(t, 5, params.SpeculativeDecoding.MTP.NumSpeculativeTokens)
+}

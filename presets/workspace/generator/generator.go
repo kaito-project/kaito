@@ -335,6 +335,13 @@ var (
 				MTP:    &model.MTPConfig{NumSpeculativeTokens: 1},
 			},
 		},
+		"zai-org/glm-5.2-fp8": {
+			UserFacing: "zai-org/GLM-5.2-FP8",
+			Config: &model.SpeculativeDecodingConfig{
+				Method: "mtp",
+				MTP:    &model.MTPConfig{NumSpeculativeTokens: 5},
+			},
+		},
 	}
 )
 
@@ -384,13 +391,14 @@ func ResolveSpeculativeDecodingMethodForPresetName(presetName string) string {
 //   - ngram: CPU-side string matching over the context; does not touch the
 //     target model's execution graph, composes with PP (reduced speedup —
 //     PP bubbles are not hidden by single-request spec decoding).
-//   - mtp: MTP heads are baked into the currently tuned DeepSeek
-//     checkpoints (DeepSeek-R1-0528, DeepSeek-V3-0324, DeepSeek-V3.2) and vLLM
-//     places them on the last PP stage, so startup does not fail. The
+//   - mtp: MTP heads are baked into the currently tuned self-contained
+//     checkpoints (DeepSeek-R1-0528, DeepSeek-V3-0324, DeepSeek-V3.2,
+//     Z.AI GLM-5.2-FP8) and vLLM places them on the last PP stage, so startup
+//     does not fail. The
 //     end-to-end speedup under PP is typically smaller than single-node
 //     (each iteration eats a full pipeline round-trip for the
 //     accept/reject signal) and is not benchmarked here. We still allow
-//     it because the large DeepSeek MTP presets physically require multi-node PP
+//     it because some large tuned MTP presets physically require multi-node PP
 //     to serve — blanket-rejecting Count>1 would make the mtp entries
 //     in speculativeDecodingByPreset unreachable. Callers should emit a
 //     Warning event so operators know the speedup is reduced.

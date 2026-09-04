@@ -29,6 +29,7 @@ func TestResolveSpeculativeDecodingMethod(t *testing.T) {
 		{"registered mtp preset (R1)", "deepseek-ai/deepseek-r1-0528", "mtp", true},
 		{"registered mtp preset (V3)", "deepseek-ai/DeepSeek-V3-0324", "mtp", true},
 		{"registered mtp preset (V3.2)", "deepseek-ai/DeepSeek-V3.2", "mtp", true},
+		{"registered mtp preset (GLM-5.2-FP8)", "zai-org/GLM-5.2-FP8", "mtp", true},
 		{"unregistered preset falls back to ngram", "meta-llama/Llama-3.1-8B-Instruct", "ngram", true},
 		{"empty preset falls back to ngram", "", "ngram", true},
 	}
@@ -54,6 +55,7 @@ func TestResolveSpeculativeDecodingMethodForPresetName(t *testing.T) {
 		{"legacy short alias resolves to mtp", "deepseek-r1-0528", "mtp"},
 		{"second legacy short alias resolves to mtp", "deepseek-v3-0324", "mtp"},
 		{"canonical repo name still resolves", "deepseek-ai/deepseek-v3.2", "mtp"},
+		{"in-catalog canonical repo with mtp resolves", "zai-org/GLM-5.2-FP8", "mtp"},
 		{"non-tuned preset falls back to ngram", "llama-3.1-8b-instruct", "ngram"},
 	}
 	for _, tc := range tests {
@@ -85,24 +87,26 @@ func TestSpeculativeDecodingMethodSupportsPipelineParallelism(t *testing.T) {
 func TestSupportedSpeculativeDecodingPresets(t *testing.T) {
 	presets := SupportedSpeculativeDecodingPresets()
 
-	if len(presets) != 3 {
-		t.Fatalf("expected 3 supported presets, got %d: %v", len(presets), presets)
+	if len(presets) != 4 {
+		t.Fatalf("expected 4 supported presets, got %d: %v", len(presets), presets)
 	}
 
 	// Should be sorted
-	if presets[0] != "deepseek-r1-0528" || presets[1] != "deepseek-v3-0324" || presets[2] != "deepseek-v3.2" {
+	if presets[0] != "deepseek-r1-0528" || presets[1] != "deepseek-v3-0324" || presets[2] != "deepseek-v3.2" || presets[3] != "zai-org/GLM-5.2-FP8" {
 		t.Fatalf("unexpected presets: %v", presets)
 	}
 }
 
 func TestSpeculativeDecodingByPresetEntries(t *testing.T) {
 	tests := []struct {
-		repoKey  string
-		wantUser string
+		repoKey   string
+		wantUser  string
+		wantDepth int
 	}{
-		{"deepseek-ai/deepseek-r1-0528", "deepseek-r1-0528"},
-		{"deepseek-ai/deepseek-v3-0324", "deepseek-v3-0324"},
-		{"deepseek-ai/deepseek-v3.2", "deepseek-v3.2"},
+		{"deepseek-ai/deepseek-r1-0528", "deepseek-r1-0528", 1},
+		{"deepseek-ai/deepseek-v3-0324", "deepseek-v3-0324", 1},
+		{"deepseek-ai/deepseek-v3.2", "deepseek-v3.2", 1},
+		{"zai-org/glm-5.2-fp8", "zai-org/GLM-5.2-FP8", 5},
 	}
 
 	for _, tc := range tests {
@@ -125,8 +129,8 @@ func TestSpeculativeDecodingByPresetEntries(t *testing.T) {
 			t.Errorf("entry %q: MTP is nil", tc.repoKey)
 			continue
 		}
-		if entry.Config.MTP.NumSpeculativeTokens != 1 {
-			t.Errorf("entry %q: NumSpeculativeTokens = %d, want 1", tc.repoKey, entry.Config.MTP.NumSpeculativeTokens)
+		if entry.Config.MTP.NumSpeculativeTokens != tc.wantDepth {
+			t.Errorf("entry %q: NumSpeculativeTokens = %d, want %d", tc.repoKey, entry.Config.MTP.NumSpeculativeTokens, tc.wantDepth)
 		}
 	}
 }

@@ -146,8 +146,8 @@ func (w *Workspace) validateSpeculativeDecoding() (errs *apis.FieldError) {
 
 	// Reject multi-node opt-in only for methods that don't compose with
 	// pipeline parallelism (currently eagle / eagle3 in vLLM). ngram works
-	// with PP at reduced speedup; mtp is allowed because the large DeepSeek
-	// (671B) physically require multi-node PP — realized speedup is
+	// with PP at reduced speedup; mtp is allowed because some large tuned
+	// MTP presets physically require multi-node PP — realized speedup is
 	// smaller than single-node. See proposal #2303 for the truth table.
 	method := generator.ResolveSpeculativeDecodingMethodForPresetName(string(w.Inference.Preset.Name))
 	if w.Resource.Count != nil && *w.Resource.Count > 1 &&

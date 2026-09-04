@@ -67,6 +67,12 @@ const (
 )
 
 var (
+	// DownloadedWeightsDefaults holds cluster-wide defaults for the classic
+	// download-at-runtime path (non-streaming, non-local-hostpath).
+	DownloadedWeightsDefaults = struct {
+		StorageClass string
+	}{}
+
 	containerPorts = []corev1.ContainerPort{
 		{
 			Name:          "http",
@@ -150,12 +156,10 @@ func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1beta1.Workspace)
 }
 
 // GenerateModelFileCacheVolume generates a volume for caching model files.
-// These files would be stored in the local pv and its lifetime is tied to the pod.
-// Use NVMe for storage acceleration if it's available.
-//
-// notes: no capacity check here because NVMe is typically a TiB level storage,
-// which is sufficient for almost all models. check it if this assumption is not true.
-func GenerateModelWeightsCacheVolume(ctx context.Context, workspaceObj *v1beta1.Workspace, model pkgmodel.Model) corev1.PersistentVolumeClaim {
+// These files are stored in a PVC whose lifetime is tied to the pod. The
+// caller resolves the StorageClass: explicit workspace/controller override wins;
+// otherwise KAITO falls back to the local NVMe StorageClass when available.
+func GenerateModelWeightsCacheVolume(ctx context.Context, workspaceObj *v1beta1.Workspace, model pkgmodel.Model, storageClassName string) corev1.PersistentVolumeClaim {
 	return corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "model-weights-volume",
@@ -165,7 +169,7 @@ func GenerateModelWeightsCacheVolume(ctx context.Context, workspaceObj *v1beta1.
 		},
 		Spec: corev1.PersistentVolumeClaimSpec{
 			AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-			StorageClassName: &consts.LocalNVMeStorageClass,
+			StorageClassName: ptr.To(storageClassName),
 			Resources: corev1.VolumeResourceRequirements{
 				Requests: corev1.ResourceList{
 					// place model files in this volume
@@ -254,8 +258,12 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	// are mounted via hostPath (both handled in GenerateInferencePodSpec), so
 	// neither needs the default download/cache weights volume.
 	if shouldDownloadWeightsFromHF {
-		if checkIfNVMeAvailable(ctx, gpuConfig, kubeClient) {
-			ssOpts = append(ssOpts, manifests.AddStatefulSetVolumeClaimTemplates(GenerateModelWeightsCacheVolume(ctx, workspaceObj, model)))
+		weightsStorageClass, usePVC, resolveErr := resolveDownloadedWeightsStorageClass(ctx, workspaceObj, gpuConfig, kubeClient)
+		if resolveErr != nil {
+			return nil, resolveErr
+		}
+		if usePVC {
+			ssOpts = append(ssOpts, manifests.AddStatefulSetVolumeClaimTemplates(GenerateModelWeightsCacheVolume(ctx, workspaceObj, model, weightsStorageClass)))
 		} else {
 			podOpts = append(podOpts, SetDefaultModelWeightsVolume)
 		}
@@ -351,6 +359,21 @@ func checkIfNVMeAvailable(ctx context.Context, gpuConfig *sku.GPUConfig, kubeCli
 		klog.ErrorS(err, "Failed to check for NVMe storage class. Assuming it's available.")
 	}
 	return true
+}
+
+func resolveDownloadedWeightsStorageClass(ctx context.Context, workspaceObj *v1beta1.Workspace, gpuConfig *sku.GPUConfig, kubeClient client.Client) (string, bool, error) {
+	if storageClass := v1beta1.GetModelWeightsStorageClass(workspaceObj, DownloadedWeightsDefaults.StorageClass); storageClass != "" {
+		sc := &storagev1.StorageClass{}
+		if err := kubeClient.Get(ctx, client.ObjectKey{Name: storageClass}, sc); err != nil {
+			return "", false, fmt.Errorf("downloaded model weights storage class %q not found: %w", storageClass, err)
+		}
+		return storageClass, true, nil
+	}
+
+	if checkIfNVMeAvailable(ctx, gpuConfig, kubeClient) {
+		return consts.LocalNVMeStorageClass, true, nil
+	}
+	return "", false, nil
 }
 
 // getDistributedInferenceProbe returns a container probe configuration for the distributed inference workload.

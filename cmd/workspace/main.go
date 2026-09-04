@@ -61,6 +61,7 @@ import (
 	karpenterutils "github.com/kaito-project/kaito/pkg/utils/karpenter"
 	"github.com/kaito-project/kaito/pkg/version"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
+	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/registry"
 	"github.com/kaito-project/kaito/pkg/workspace/webhooks"
@@ -114,6 +115,7 @@ func main() {
 	var kubeClientBurst int = 50
 	var printVersionAndExit bool
 	var defaultModelMirrorStorageClass string
+	var defaultModelWeightsStorageClass string
 	var defaultStreamingServiceAccount string
 	var modelMirrorDownloadCPU string
 	var modelMirrorDownloadMemory string
@@ -136,6 +138,7 @@ func main() {
 	flag.StringVar(&karpenterNodeClasses, "karpenter-node-classes", "", `JSON array of NodeClasses KAITO creates and lets Workspaces select, e.g. [{"name":"image-family-ubuntu","default":true,"spec":{...}}]. "spec" is passed through to the provider's NodeClass unchanged. Exactly one entry must be default. Required when node-provisioner=karpenter.`)
 	flag.BoolVar(&printVersionAndExit, "version", false, "Print version and exit.")
 	flag.StringVar(&defaultModelMirrorStorageClass, "default-model-mirror-storage-class", "", "StorageClass for ModelMirror PVCs.")
+	flag.StringVar(&defaultModelWeightsStorageClass, "default-model-weights-storage-class", "", "Default StorageClass for downloaded model-weights PVCs on the classic HuggingFace download path.")
 	flag.StringVar(&defaultStreamingServiceAccount, "default-streaming-service-account", "", "Default ServiceAccount for streaming inference pods.")
 	flag.StringVar(&modelMirrorDownloadCPU, "model-mirror-download-cpu", "", "CPU request==limit for the ModelMirror download Job container. Empty uses the built-in default (3).")
 	flag.StringVar(&modelMirrorDownloadMemory, "model-mirror-download-memory", "", "Memory request==limit for the ModelMirror download Job container. Empty uses the built-in default (8Gi).")
@@ -284,6 +287,9 @@ func main() {
 		klog.ErrorS(err, "failed to start node provisioner")
 		exitWithErrorFunc()
 	}
+
+	// Set classic download-path defaults once at startup.
+	inference.DownloadedWeightsDefaults.StorageClass = defaultModelWeightsStorageClass
 
 	// Set streaming defaults once at startup (read by the modelstreaming package via StreamingDefaults).
 	if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {

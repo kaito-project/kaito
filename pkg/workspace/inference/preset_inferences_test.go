@@ -1720,6 +1720,133 @@ func TestGeneratePresetInferenceNodeImageWeights(t *testing.T) {
 	}
 }
 
+func TestResolveDownloadedWeightsStorageClass(t *testing.T) {
+	workspace := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+
+	t.Run("workspace annotation overrides controller default", func(t *testing.T) {
+		prev := DownloadedWeightsDefaults.StorageClass
+		DownloadedWeightsDefaults.StorageClass = "managed-csi"
+		defer func() { DownloadedWeightsDefaults.StorageClass = prev }()
+
+		workspace := workspace.DeepCopy()
+		workspace.Annotations = map[string]string{v1beta1.AnnotationModelWeightsStorageClass: "fast-disk"}
+
+		mockClient := test.NewClient()
+		mockClient.CreateOrUpdateObjectInMap(&storagev1.StorageClass{ObjectMeta: metav1.ObjectMeta{Name: "fast-disk"}})
+		mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+
+		sc, usePVC, err := resolveDownloadedWeightsStorageClass(context.TODO(), workspace, &sku.GPUConfig{NVMeDiskEnabled: true}, mockClient)
+		if err != nil {
+			t.Fatalf("resolveDownloadedWeightsStorageClass returned error: %v", err)
+		}
+		if !usePVC || sc != "fast-disk" {
+			t.Fatalf("expected annotation override fast-disk with PVC=true, got sc=%q usePVC=%v", sc, usePVC)
+		}
+	})
+
+	t.Run("controller default is used when annotation is absent", func(t *testing.T) {
+		prev := DownloadedWeightsDefaults.StorageClass
+		DownloadedWeightsDefaults.StorageClass = "managed-csi"
+		defer func() { DownloadedWeightsDefaults.StorageClass = prev }()
+
+		workspace := workspace.DeepCopy()
+		workspace.Annotations = nil
+
+		mockClient := test.NewClient()
+		mockClient.CreateOrUpdateObjectInMap(&storagev1.StorageClass{ObjectMeta: metav1.ObjectMeta{Name: "managed-csi"}})
+		mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+
+		sc, usePVC, err := resolveDownloadedWeightsStorageClass(context.TODO(), workspace, &sku.GPUConfig{NVMeDiskEnabled: false}, mockClient)
+		if err != nil {
+			t.Fatalf("resolveDownloadedWeightsStorageClass returned error: %v", err)
+		}
+		if !usePVC || sc != "managed-csi" {
+			t.Fatalf("expected controller default managed-csi with PVC=true, got sc=%q usePVC=%v", sc, usePVC)
+		}
+	})
+
+	t.Run("missing configured storage class returns error", func(t *testing.T) {
+		prev := DownloadedWeightsDefaults.StorageClass
+		DownloadedWeightsDefaults.StorageClass = ""
+		defer func() { DownloadedWeightsDefaults.StorageClass = prev }()
+
+		workspace := workspace.DeepCopy()
+		workspace.Annotations = map[string]string{v1beta1.AnnotationModelWeightsStorageClass: "missing-sc"}
+
+		mockClient := test.NewClient()
+		mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(fmt.Errorf("not found"))
+
+		_, _, err := resolveDownloadedWeightsStorageClass(context.TODO(), workspace, &sku.GPUConfig{NVMeDiskEnabled: false}, mockClient)
+		if err == nil || !strings.Contains(err.Error(), "missing-sc") {
+			t.Fatalf("expected missing storage class error mentioning missing-sc, got %v", err)
+		}
+	})
+
+	t.Run("falls back to emptyDir when no override and no nvme", func(t *testing.T) {
+		prev := DownloadedWeightsDefaults.StorageClass
+		DownloadedWeightsDefaults.StorageClass = ""
+		defer func() { DownloadedWeightsDefaults.StorageClass = prev }()
+
+		workspace := workspace.DeepCopy()
+		workspace.Annotations = nil
+
+		mockClient := test.NewClient()
+		sc, usePVC, err := resolveDownloadedWeightsStorageClass(context.TODO(), workspace, &sku.GPUConfig{NVMeDiskEnabled: false}, mockClient)
+		if err != nil {
+			t.Fatalf("resolveDownloadedWeightsStorageClass returned error: %v", err)
+		}
+		if usePVC || sc != "" {
+			t.Fatalf("expected emptyDir fallback, got sc=%q usePVC=%v", sc, usePVC)
+		}
+	})
+}
+
+func TestGeneratePresetInferenceUsesConfiguredModelWeightsStorageClass(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv("PRESET_REGISTRY_NAME", "test-registry")
+	t.Setenv("RELEASE_NAMESPACE", "kaito")
+	test.RegisterTestModel()
+
+	prev := DownloadedWeightsDefaults.StorageClass
+	DownloadedWeightsDefaults.StorageClass = "managed-csi"
+	defer func() { DownloadedWeightsDefaults.StorageClass = prev }()
+
+	mockClient := test.NewClient()
+	mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+	mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+	mockClient.CreateOrUpdateObjectInMap(&storagev1.StorageClass{ObjectMeta: metav1.ObjectMeta{Name: "managed-csi"}})
+
+	workspace := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+	nodeCount := 1
+	workspace.Resource.Count = &nodeCount
+	workspace.Status.WorkerNodes = []string{"test-node-1"}
+	workspace.Status.TargetNodeCount = 1
+	workspace.Inference.Adapters = nil
+	workspace.Inference.Config = ""
+	workspace.Annotations = nil
+
+	svc := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{Name: workspace.Name, Namespace: workspace.Namespace},
+		Spec:       corev1.ServiceSpec{ClusterIP: "10.0.0.1"},
+	}
+	mockClient.CreateOrUpdateObjectInMap(svc)
+
+	model := plugin.KaitoModelRegister.MustGet("test-model")
+	createdObject, err := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, model, mockClient, nil)
+	if err != nil {
+		t.Fatalf("GeneratePresetInference returned error: %v", err)
+	}
+
+	ss := createdObject.(*appsv1.StatefulSet)
+	if len(ss.Spec.VolumeClaimTemplates) != 1 {
+		t.Fatalf("expected 1 volumeClaimTemplate, got %d", len(ss.Spec.VolumeClaimTemplates))
+	}
+	got := ss.Spec.VolumeClaimTemplates[0].Spec.StorageClassName
+	if got == nil || *got != "managed-csi" {
+		t.Fatalf("expected model-weights PVC StorageClass managed-csi, got %v", got)
+	}
+}
+
 // TestGeneratePresetInferenceCUDAToolkitProvisioner verifies that CUDA toolkit
 // provisioning is gated on models that require DeepGEMM: such a model gets a
 // cuda-toolkit-provisioner init container and a read-write hostPath at the

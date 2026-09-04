@@ -48,6 +48,7 @@ featureGates:
   ModelStreaming: false
   enableBaseImageAutoUpgrade: false
 defaultModelMirrorStorageClass: ""
+defaultModelWeightsStorageClass: ""
 defaultStreamingServiceAccount: ""
 # CPU/memory request==limit for the ModelMirror download Job. Empty uses the controller
 # defaults (3 CPU / 8Gi). Lower for resource-constrained clusters (e.g. e2e on small nodes).

@@ -101,6 +101,12 @@ const (
 	// skipping the HuggingFace download entirely.
 	AnnotationUseLocalWeights = KAITOPrefix + "use-local-weights"
 
+	// AnnotationModelWeightsStorageClass overrides the StorageClass used for the
+	// downloaded model-weights PVC when the workspace pulls weights from HuggingFace
+	// at runtime. When unset, KAITO keeps its default behavior: prefer the local NVMe
+	// StorageClass when available and otherwise fall back to an emptyDir volume.
+	AnnotationModelWeightsStorageClass = KAITOPrefix + "model-weights-storage-class"
+
 	// LocalWeightsHostPathPrefix is the node directory under which baked model
 	// weights live, one subdirectory per preset (see GetLocalWeightsPath). Used
 	// when kaito.sh/use-local-weights is enabled.
@@ -194,6 +200,19 @@ func GetLocalWeightsPath(ws *Workspace) string {
 		return ""
 	}
 	return path.Join(LocalWeightsHostPathPrefix, segment)
+}
+
+// GetModelWeightsStorageClass returns the explicit StorageClass override for the
+// downloaded model-weights PVC, falling back to defaultStorageClass when the
+// workspace annotation is absent.
+func GetModelWeightsStorageClass(ws *Workspace, defaultStorageClass string) string {
+	if ws == nil {
+		return defaultStorageClass
+	}
+	if v := ws.Annotations[AnnotationModelWeightsStorageClass]; v != "" {
+		return v
+	}
+	return defaultStorageClass
 }
 
 // sanitizePresetName maps a preset model id to a single path segment: lowercased

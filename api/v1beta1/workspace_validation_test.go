@@ -2037,6 +2037,16 @@ func TestWorkspaceValidatePerformanceModeAnnotation(t *testing.T) {
 			annotations: map[string]string{AnnotationUseLocalWeights: "yes"},
 			wantErr:     true,
 		},
+		{
+			name:        "model weights storage class is valid",
+			annotations: map[string]string{AnnotationModelWeightsStorageClass: "managed-csi"},
+			wantErr:     false,
+		},
+		{
+			name:        "empty model weights storage class is invalid",
+			annotations: map[string]string{AnnotationModelWeightsStorageClass: "   "},
+			wantErr:     true,
+		},
 	}
 
 	for _, tt := range tests {

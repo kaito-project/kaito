@@ -42,6 +42,9 @@ spec:
             {{- if .Values.defaultModelMirrorStorageClass }}
             - --default-model-mirror-storage-class={{ .Values.defaultModelMirrorStorageClass }}
             {{- end }}
+            {{- if .Values.defaultModelWeightsStorageClass }}
+            - --default-model-weights-storage-class={{ .Values.defaultModelWeightsStorageClass }}
+            {{- end }}
             {{- if .Values.defaultStreamingServiceAccount }}
             - --default-streaming-service-account={{ .Values.defaultStreamingServiceAccount }}
             {{- end }}

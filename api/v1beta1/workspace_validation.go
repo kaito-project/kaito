@@ -157,6 +157,12 @@ func (w *Workspace) validateAnnotations() (errs *apis.FieldError) {
 			))
 		}
 	}
+	if v, ok := annotations[AnnotationModelWeightsStorageClass]; ok && strings.TrimSpace(v) == "" {
+		errs = errs.Also(apis.ErrInvalidValue(
+			"must be a non-empty StorageClass name",
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationModelWeightsStorageClass),
+		))
+	}
 	return errs
 }
 

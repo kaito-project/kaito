@@ -1,0 +1,7 @@
+action: block
+blockMessage: "Blocked."
+scanners:
+  - type: json
+    action: block
+    required_elements: 0
+    repair: true

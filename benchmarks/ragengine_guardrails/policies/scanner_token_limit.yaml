@@ -1,0 +1,7 @@
+action: block
+blockMessage: "Blocked."
+scanners:
+  - type: token_limit
+    action: block
+    limit: 4096
+    encoding_name: cl100k_base

@@ -1,0 +1,14 @@
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: bench-llama70b
+spec:
+  resource:
+    instanceType: Standard_NC96ads_A100_v4
+    count: 1
+    labelSelector:
+      matchLabels:
+        apps: bench-llama70b
+  inference:
+    preset:
+      name: llama-3.3-70b-instruct

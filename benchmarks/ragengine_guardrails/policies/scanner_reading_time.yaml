@@ -1,0 +1,7 @@
+action: block
+blockMessage: "Blocked."
+scanners:
+  - type: reading_time
+    action: block
+    max_time: 5.0
+    truncate: false

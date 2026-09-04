@@ -1,0 +1,15 @@
+{
+  "description": "Clean content that should pass through unchanged",
+  "cases": [
+    {
+      "name": "safe_short",
+      "response_text": "Machine learning enables efficient data processing and analysis.",
+      "expected_action": "allow"
+    },
+    {
+      "name": "safe_medium",
+      "response_text": "Kubernetes orchestrates containerized applications at scale. The platform provides automated deployment, scaling, and management of containers across clusters. RAG combines retrieval with language models to produce grounded answers based on relevant documents.",
+      "expected_action": "allow"
+    }
+  ]
+}

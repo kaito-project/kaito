@@ -1,0 +1,14 @@
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: bench-phi4
+spec:
+  resource:
+    instanceType: Standard_NV36ads_A10_v5
+    count: 1
+    labelSelector:
+      matchLabels:
+        apps: bench-phi4
+  inference:
+    preset:
+      name: phi-4

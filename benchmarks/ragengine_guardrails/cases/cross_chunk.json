@@ -1,0 +1,37 @@
+{
+  "description": "Cross-chunk boundary tests for streaming guardrails",
+  "cases": [
+    {
+      "name": "split_middle",
+      "description": "SECRET_ | PROJECT — word split in the middle",
+      "prefix_padding": 50,
+      "split_position": 7,
+      "banned_word": "SECRET_PROJECT",
+      "expected_action": "block"
+    },
+    {
+      "name": "split_first_char",
+      "description": "S | ECRET_PROJECT — only first char in chunk 1",
+      "prefix_padding": 50,
+      "split_position": 1,
+      "banned_word": "SECRET_PROJECT",
+      "expected_action": "block"
+    },
+    {
+      "name": "split_last_char",
+      "description": "SECRET_PROJEC | T — only last char in chunk 2",
+      "prefix_padding": 50,
+      "split_position": 13,
+      "banned_word": "SECRET_PROJECT",
+      "expected_action": "block"
+    },
+    {
+      "name": "embedded_no_boundary",
+      "description": "MY_SECRET_PROJECT_ARCHIVE — no word boundary, should not match",
+      "prefix_padding": 50,
+      "banned_word": "SECRET_PROJECT",
+      "embedded_in": "MY_SECRET_PROJECT_ARCHIVE",
+      "expected_action": "allow"
+    }
+  ]
+}

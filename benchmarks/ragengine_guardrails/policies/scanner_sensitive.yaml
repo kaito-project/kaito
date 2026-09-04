@@ -1,0 +1,10 @@
+action: redact
+blockMessage: "Blocked."
+scanners:
+  - type: sensitive
+    action: redact
+    detectors:
+      - email
+      - phone
+      - credit_card
+      - ip_address

@@ -1,0 +1,5 @@
+action: block
+blockMessage: "Blocked."
+scanners:
+  - type: invisible_text
+    action: block

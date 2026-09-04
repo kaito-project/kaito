@@ -1,0 +1,9 @@
+action: block
+blockMessage: "Blocked."
+scanners:
+  - type: ban_substrings
+    action: block
+    substrings:
+      - SECRET_PROJECT
+    match_type: word
+    case_sensitive: false

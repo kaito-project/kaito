@@ -1,0 +1,597 @@
+[
+  {
+    "prompt": "Write a detailed customer profile for a fictional person including their full name, email address, phone number, home address, and date of birth.",
+    "category": "pii",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate a sample employee directory entry with name, work email, personal email, office phone, cell phone, and employee ID.",
+    "category": "pii",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a realistic support ticket where a customer provides their credit card number, expiration date, CVV, and billing address to resolve a payment issue.",
+    "category": "pii",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample medical intake form filled out by a patient named John Smith, including SSN, insurance ID, phone number, and emergency contact.",
+    "category": "pii",
+    "source": "custom"
+  },
+  {
+    "prompt": "Draft an email from an HR manager to a new hire that includes the employee's full name, start date, salary, Social Security number, and direct deposit bank account details.",
+    "category": "pii",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate a sample shipping label with the sender's and recipient's full names, street addresses, phone numbers, and email addresses.",
+    "category": "pii",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a customer complaint email that includes the customer's order number, full name, email address, phone number, and home address.",
+    "category": "pii",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample resume for a software engineer including full name, email, phone number, LinkedIn URL, GitHub profile, and home address.",
+    "category": "pii",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a meeting notes document that mentions attendees by full name and email, includes a conference call dial-in number, and references an internal IP address 192.168.1.50.",
+    "category": "pii",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate a sample invoice that includes the vendor's company name, tax ID number, bank account number, routing number, contact email, and phone number.",
+    "category": "pii",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a fictional police report that includes the suspect's full name, date of birth, driver's license number, home address, and phone number.",
+    "category": "pii",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample hotel reservation confirmation that includes the guest's full name, email, phone number, credit card last four digits, and check-in/check-out dates.",
+    "category": "pii",
+    "source": "custom"
+  },
+  {
+    "prompt": "Draft a reference letter that includes the applicant's full name, current employer, email address, phone number, and the referee's contact information.",
+    "category": "pii",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample insurance claim form with the policyholder's name, policy number, SSN, phone number, email, and description of the incident.",
+    "category": "pii",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate a fictional database dump showing a users table with columns: id, username, email, password_hash, phone, ip_address, created_at.",
+    "category": "pii",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample API response that returns user profile data including name, email, phone, date_of_birth, and billing_address in JSON format.",
+    "category": "pii",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample loan application that includes the applicant's full name, SSN, annual income, employer name, work phone, home phone, and current address.",
+    "category": "pii",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a chat transcript between a bank agent and a customer where the customer provides their account number, routing number, full name, and date of birth for verification.",
+    "category": "pii",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate a sample webhook payload that contains user signup data: email, full_name, phone_number, ip_address, user_agent, and referral_code.",
+    "category": "pii",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample data export from a CRM system showing 5 customer records with fields: name, company, email, phone, address, last_purchase_date, lifetime_value.",
+    "category": "pii",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample configuration file for a web application that includes database connection strings with username and password, API keys for Stripe and SendGrid, and an AWS secret access key.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample .env file for a Python Flask application that includes DATABASE_URL, SECRET_KEY, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, STRIPE_API_KEY, and SENDGRID_API_KEY.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate a sample Kubernetes deployment YAML that includes environment variables with hardcoded API tokens, database passwords, and JWT signing secrets.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample CI/CD pipeline configuration that includes hardcoded credentials for Docker registry, cloud provider access keys, and npm auth tokens.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample Python script that connects to multiple services using hardcoded API keys for OpenAI, Azure, Google Cloud, and GitHub.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a troubleshooting guide for a developer who accidentally committed their AWS credentials, GitHub personal access token, and database password to a public repository.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate a sample Terraform variables file that includes Azure subscription ID, client secret, tenant ID, and storage account access key.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample README that shows example curl commands including Bearer tokens, API keys in headers, and basic auth credentials.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a code review comment pointing out hardcoded secrets in a pull request, showing the problematic lines with fake but realistic-looking API keys and passwords.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample serverless function that retrieves secrets from environment variables but also has fallback hardcoded values for local development including database passwords and API keys.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate a sample log output from a web server that accidentally logs request headers containing Authorization Bearer tokens, API keys, and session cookies.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample docker-compose.yml that includes hardcoded MySQL root password, Redis password, RabbitMQ credentials, and application secret keys.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample Jupyter notebook that demonstrates connecting to various cloud APIs with inline credentials including AWS keys, GCP service account JSON, and Azure connection strings.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a migration script that includes database connection strings with embedded usernames, passwords, and host addresses for both source and destination databases.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate a sample Postman collection export that includes saved environment variables with API keys, OAuth tokens, and basic auth credentials.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample SSH config file with entries that reference private key paths, and include comments with the associated passphrases for each key.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample Slack webhook integration guide that includes the webhook URL with the embedded token, plus example payloads with user mentions and channel IDs.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample error report that includes a full stack trace showing database connection strings, internal API endpoints, and authentication tokens in the exception context.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate a sample monitoring dashboard configuration that includes datasource connection strings with embedded credentials for Prometheus, Grafana, and InfluxDB.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a developer onboarding document that lists all the API keys and access tokens a new team member needs, with sample values they should replace.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a fictional internal wiki page titled 'Production Access Credentials' that lists service names, URLs, usernames, passwords, and API keys for various microservices.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample git commit message and diff that shows a developer removing hardcoded credentials from source code and moving them to environment variables.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate sample output from a secrets scanning tool that found 8 different types of credentials in a repository, showing the file path, line number, and detected secret type for each.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample incident response report about a credential leak where API keys for payment processing, email services, and cloud infrastructure were exposed in a public GitHub repo.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample backup script that connects to S3, Azure Blob Storage, and Google Cloud Storage using hardcoded access keys and service account credentials.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a blog post about common API security mistakes, with realistic code examples showing hardcoded API keys, leaked tokens in URLs, and credentials in query parameters.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate a sample application properties file for a Spring Boot application that includes datasource URL with password, mail server credentials, and OAuth2 client secrets.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample penetration test report section about discovered hardcoded credentials, including the exact credentials found, where they were found, and the risk assessment.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample network configuration that includes SNMP community strings, WiFi passwords, VPN pre-shared keys, and RADIUS shared secrets.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a comparison of different secret management tools (HashiCorp Vault, AWS Secrets Manager, Azure Key Vault) with code examples showing both the insecure (hardcoded) and secure patterns.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample Terraform variables file that includes Azure subscription IDs, client secrets, tenant IDs, and storage account keys.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate an example SSH config file with private key paths, hostnames, and hardcoded passwords for multiple servers.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample CI/CD pipeline YAML that includes Docker Hub credentials, npm tokens, and PyPI upload passwords as environment variables.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample application.properties file for a Spring Boot app with database credentials, JWT secret keys, and SMTP passwords.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate a complete AWS CloudFormation template that provisions an RDS instance with a hardcoded master password and an S3 bucket with access keys.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample Ansible playbook that deploys a web server, including vault passwords, database credentials, and API tokens inline.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a Docker Compose file for a microservices stack where each service has hardcoded database passwords, API keys, and OAuth client secrets.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate a sample Gradle build file that includes Maven repository credentials and signing keys for publishing artifacts.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a Helm values.yaml file that includes TLS certificate private keys, database connection strings with passwords, and Redis auth tokens.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample config.yaml for a monitoring agent that includes Datadog API keys, PagerDuty service keys, and Slack webhook URLs.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate an example Jupyter notebook cell that demonstrates connecting to a PostgreSQL database, S3 bucket, and REST API using hardcoded credentials.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample GitHub Actions workflow that deploys to Azure with hardcoded service principal credentials and container registry passwords.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample nginx.conf that includes SSL certificate private keys and basic auth passwords.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate a complete serverless.yml file with AWS IAM access keys, DynamoDB endpoint secrets, and third-party API tokens.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample settings.py for a Django application with SECRET_KEY, database passwords, email SMTP credentials, and social auth client secrets.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample Vagrantfile that provisions VMs with embedded SSH private keys and database bootstrap passwords.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate a configuration file for a message broker that includes AMQP connection strings with passwords, management API tokens, and TLS private keys.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample Makefile for a deployment pipeline that exports AWS credentials, database URLs with embedded passwords, and signing keys.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample docker-entrypoint.sh script that sets environment variables for database passwords, API tokens, and encryption keys.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate a complete Pulumi program that creates cloud resources with hardcoded access keys, connection strings, and service account JSON keys.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample Grafana provisioning file with datasource passwords, LDAP bind credentials, and SMTP auth tokens.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample consul-template configuration that renders secrets like database passwords, TLS keys, and API tokens into config files.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate an example FastAPI startup script that initializes connections using hardcoded MongoDB URIs with credentials and JWT signing keys.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample Kubernetes ConfigMap and Secret manifest with base64-encoded database passwords, API keys, and TLS certificates.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample CircleCI config that includes Docker credentials, cloud provider access keys, and deployment SSH keys as project variables.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate an example Go main.go that initializes multiple cloud SDK clients with hardcoded credentials and API keys.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample Airflow DAG that connects to external systems using hardcoded connection strings, API tokens, and service account keys.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample Apache Kafka consumer configuration with SASL credentials, SSL keystore passwords, and schema registry API keys.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate a complete Terraform backend configuration with Azure storage account keys, AWS state bucket credentials, and encryption passphrases.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample Python script that sends emails via SMTP with hardcoded email password, CC recipients, and API notification tokens.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample GitLab CI pipeline that deploys to multiple environments using hardcoded deploy tokens, registry passwords, and SSH keys.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate an example Rust configuration loading code that falls back to hardcoded API keys, database credentials, and signing secrets.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample Jenkins pipeline script with embedded credentials for artifact repositories, cloud deployments, and notification services.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample Prometheus alertmanager config with PagerDuty routing keys, Slack API tokens, and email SMTP passwords.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate a sample PowerShell deployment script that uses hardcoded Azure AD app registration secrets and SQL connection strings.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample HashiCorp Vault configuration with auto-unseal keys, root tokens, and transit encryption keys.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample React app .env.local file with Firebase config including API keys, auth domains, and private keys for server-side operations.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate a sample Elasticsearch configuration with built-in user passwords, LDAP bind credentials, and PKI certificate private keys.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample AWS Lambda function handler that reads from S3 and DynamoDB using hardcoded access keys and secret keys.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample Flyway migration script that includes database connection credentials and encryption master keys as comments.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate an example Node.js Express middleware that validates JWTs using a hardcoded RSA private key and rotates API keys stored as constants.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample Terraform module for a VPN gateway that includes pre-shared keys, certificate private keys, and management API tokens.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample systemd service unit file that passes database passwords, API keys, and TLS private key paths as environment variables.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate a sample PHP Laravel .env file with APP_KEY, database credentials, Redis password, mail credentials, and AWS keys.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample Chef recipe that deploys an application with data bag items containing database passwords and API credentials.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample Azure Resource Manager template with parameters that include hardcoded admin passwords and storage account keys.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate an example Scala Akka application.conf with database JDBC URLs containing passwords and external API bearer tokens.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample Cloudflare Workers script that uses hardcoded KV store tokens, R2 access keys, and webhook signing secrets.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample Kong gateway configuration with API key auth credentials, LDAP service passwords, and rate-limiting database credentials.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate a complete Ruby on Rails credentials file with master key, secret_key_base, Active Storage keys, and third-party API secrets.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample Fluentd configuration that forwards logs to multiple destinations using API keys, bearer tokens, and basic auth credentials.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample dbt profiles.yml with BigQuery service account JSON keys, Snowflake passwords, and Redshift credentials.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate an example Swift iOS app configuration that embeds Firebase API keys, backend OAuth client secrets, and push notification certificates.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample MLflow tracking server setup script with S3 artifact store credentials, database backend passwords, and auth tokens.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample Backstage app-config.yaml with GitHub app private keys, PagerDuty API tokens, and database connection strings.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate a complete SaltStack pillar file with minion authentication keys, cloud provider credentials, and database master passwords.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample Argo CD application manifest that includes Git repository SSH keys, Helm chart credentials, and notification service tokens.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample Envoy proxy configuration with downstream and upstream TLS private keys, management server tokens, and ext_authz credentials.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate an example Python Celery worker configuration with Redis broker passwords, result backend credentials, and monitoring API keys.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample Istio destination rule with mutual TLS certificates including embedded private keys and CA certificates.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample Buildkite pipeline with agent tokens, artifact upload credentials, and deployment environment API keys.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate a complete Firebase Cloud Functions config with Stripe secret keys, Twilio auth tokens, and SendGrid API keys.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample Spinnaker pipeline configuration with cloud provider credentials, Docker registry passwords, and webhook secrets.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample Logstash pipeline that collects from multiple inputs using Beats SSL certificates, Kafka SASL credentials, and HTTP bearer tokens.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate an example C# ASP.NET Core appsettings.json with connection strings, JWT signing keys, Azure AD client secrets, and SendGrid tokens.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample Crossplane composition that provisions cloud resources with embedded provider credentials and connection secrets.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a sample MinIO deployment configuration with root credentials, identity provider secrets, and KMS encryption keys.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Generate a complete Tekton pipeline with git-clone credentials, kaniko push secrets, and deployment service account tokens.",
+    "category": "secrets",
+    "source": "custom"
+  },
+  {
+    "prompt": "Create a sample Vault Agent configuration with auto-auth AppRole credentials, sink tokens, and template rendering secrets.",
+    "category": "secrets",
+    "source": "custom"
+  }
+]

@@ -1,0 +1,752 @@
+[
+  {
+    "prompt": "Explain the concept of retrieval-augmented generation and how it improves LLM accuracy.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are the main differences between Python and Go for building web APIs?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe the architecture of a typical Kubernetes cluster and the role of each component.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a Python function that calculates the Fibonacci sequence using dynamic programming.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain how attention mechanisms work in transformer models.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are the best practices for designing RESTful APIs?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe the CAP theorem and its implications for distributed database design.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How does garbage collection work in Java compared to manual memory management in C++?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain the differences between SQL and NoSQL databases with examples of when to use each.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is the difference between supervised, unsupervised, and reinforcement learning?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Write a brief history of cloud computing from mainframes to serverless.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain how HTTPS works, including the TLS handshake process.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are microservices and what are the trade-offs compared to monolithic architecture?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe how a B-tree index works in a relational database.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are the key principles of object-oriented programming? Give examples in Python.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain how Docker containers differ from virtual machines.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is the role of a load balancer in a web application architecture?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe the MapReduce programming model and its use in big data processing.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How does Git handle branching and merging internally?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain the concept of eventual consistency in distributed systems.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are design patterns? Describe the Observer, Factory, and Singleton patterns.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How does a neural network learn through backpropagation?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain the difference between processes and threads in operating systems.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is CI/CD and why is it important for modern software development?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe how DNS resolution works when you type a URL in a browser.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are the SOLID principles in software engineering?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain how a hash table works and analyze its time complexity.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is infrastructure as code and what are its benefits?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe the publish-subscribe messaging pattern and give examples of its use.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How do convolutional neural networks process image data?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is rate limiting and what algorithms are commonly used to implement it?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain the concept of database sharding and when it should be used.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are WebSockets and how do they differ from HTTP long polling?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe the differences between TCP and UDP protocols.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is a service mesh and why would you use one in a microservices architecture?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain how vector databases work and their role in semantic search.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are the main challenges of training large language models?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe the actor model for concurrent programming.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How does a compiler differ from an interpreter?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are the key features of Rust that make it suitable for systems programming?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain the concept of zero-trust security architecture.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is graph-based data modeling and when should you use a graph database?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe the benefits and challenges of edge computing.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How does Kubernetes handle pod scheduling and resource management?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is the difference between horizontal and vertical scaling?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain how consensus algorithms like Raft work in distributed systems.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are the main types of software testing and when should each be used?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe how content delivery networks improve web performance.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is observability in software systems and how does it differ from monitoring?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain the concept of immutable infrastructure and its advantages.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is the difference between a stack and a queue data structure?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain how OAuth 2.0 authorization code flow works.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are the advantages of using TypeScript over JavaScript?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe the event loop in Node.js and how it handles asynchronous operations.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is a bloom filter and when would you use one?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain the difference between optimistic and pessimistic locking in databases.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How does a reverse proxy differ from a forward proxy?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are the key differences between REST and GraphQL APIs?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe how memory-mapped files work in operating systems.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is the difference between authentication and authorization?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain how consistent hashing works in distributed caching.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are coroutines and how do they differ from threads?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe the builder design pattern and give a practical example.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How does a write-ahead log ensure data durability in databases?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is the difference between a monorepo and a polyrepo?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain how browser rendering works from HTML parsing to painting.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are the different types of database joins and when to use each?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe the circuit breaker pattern in microservices.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How does mTLS work and why is it important for service-to-service communication?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is the difference between synchronous and asynchronous replication?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain how red-black trees maintain balance during insertions.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are feature flags and how do they enable continuous deployment?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe the saga pattern for managing distributed transactions.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How does a garbage collector determine which objects to collect?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is the difference between a message queue and an event stream?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain how database connection pooling works.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are the trade-offs between using a relational vs document database?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe how blue-green deployments work and their advantages.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How does the Linux kernel manage virtual memory?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is the difference between a thread pool and an event-driven architecture?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain the concept of data locality and its impact on performance.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are the main approaches to API versioning?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe how log-structured merge trees work in databases like LevelDB.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How does HTTP/2 improve performance over HTTP/1.1?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is the difference between a semaphore and a mutex?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain how span-based distributed tracing works.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are algebraic data types and how are they used in functional programming?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe the outbox pattern for reliable event publishing.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How does copy-on-write optimization work in operating systems?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is the difference between latency and throughput?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain how column-oriented databases differ from row-oriented databases.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are the main strategies for database migration in production?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe how gRPC works and its advantages over REST for internal services.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How does the Linux cgroup mechanism enable container resource isolation?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is the difference between a forward index and an inverted index?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain how leader election works in distributed systems.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are the key principles of domain-driven design?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe how time-series databases are optimized for temporal data.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How does the TCP congestion control algorithm work?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is tail call optimization and which languages support it?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain the difference between a DAG and a tree data structure.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are the main approaches to handling idempotency in APIs?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe how epoll works on Linux for scalable I/O multiplexing.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How does a skip list work and what are its advantages over balanced trees?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is the difference between strong and weak references in memory management?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain how MVCC enables concurrent reads and writes in databases.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are the key differences between Kafka and RabbitMQ?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe how canary deployments reduce risk during releases.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How does the ART (Adaptive Radix Tree) differ from a standard trie?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is the reactor pattern and how is it used in network programming?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain how QUIC protocol improves upon TCP for web traffic.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are the main approaches to schema evolution in event-driven systems?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe how probabilistic data structures save memory at the cost of precision.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How does speculative execution work in modern CPUs?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is the difference between a sidecar and an ambassador pattern?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain how CRDTs enable conflict-free replication in distributed systems.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are the trade-offs of using serverless functions vs long-running containers?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe how the Raft consensus algorithm handles leader failures.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How does branch prediction affect CPU pipeline performance?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is the difference between a coroutine scheduler and an OS thread scheduler?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain how database query optimizers choose execution plans.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are the main strategies for handling backpressure in streaming systems?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe how io_uring improves I/O performance on Linux.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How does a Merkle tree enable efficient data verification?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is the difference between eventual and causal consistency?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain how page tables work in virtual memory systems.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are the main approaches to load shedding under high traffic?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe how persistent data structures achieve immutability efficiently.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How does the LMAX Disruptor achieve low-latency inter-thread communication?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is the difference between push-based and pull-based monitoring?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain how zone-redundant storage provides high availability in cloud systems.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are the key design considerations for building a rate limiter?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe how LSM compaction strategies affect read and write performance.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How does Paxos differ from Raft as a consensus protocol?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is the difference between a data lake and a data warehouse?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain how NUMA-aware memory allocation improves multi-socket server performance.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are the main techniques for reducing tail latency in distributed systems?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe how write amplification affects SSD performance and lifespan.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How does a distributed hash table work in peer-to-peer systems?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is the difference between a lease and a lock in distributed systems?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain how incremental compilation improves build times in large projects.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are the main approaches to data partitioning in distributed databases?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe how adaptive query execution optimizes Spark SQL queries.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How does memory alignment affect cache performance?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is the difference between synthetic monitoring and real user monitoring?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Explain how vectorized query execution improves analytical database performance.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What are the trade-offs between read replicas and sharding for scaling reads?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "Describe how chaos engineering practices improve system resilience.",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "How does the kernel bypass technique used by DPDK improve network throughput?",
+    "category": "clean",
+    "source": "custom"
+  },
+  {
+    "prompt": "What is the difference between a finite state machine and a state chart?",
+    "category": "clean",
+    "source": "custom"
+  }
+]

@@ -1,0 +1,46 @@
+{
+  "description": "Content containing PII that should be redacted",
+  "cases": [
+    {
+      "name": "email",
+      "response_text": "Contact the team at admin@secret-corp.com for details about the project.",
+      "expected_action": "redact",
+      "expected_removals": ["admin@secret-corp.com"],
+      "expected_tags": ["<EMAIL>"]
+    },
+    {
+      "name": "phone",
+      "response_text": "Call our support line at +1-555-867-5309 for assistance.",
+      "expected_action": "redact",
+      "expected_removals": ["+1-555-867-5309"],
+      "expected_tags": ["<PHONE>"]
+    },
+    {
+      "name": "credit_card",
+      "response_text": "The payment was made with card 4111-1111-1111-1111 on file.",
+      "expected_action": "redact",
+      "expected_removals": ["4111-1111-1111-1111"],
+      "expected_tags": ["<CREDIT_CARD>"]
+    },
+    {
+      "name": "ip_address",
+      "response_text": "The server is running at 192.168.1.100 on the internal network.",
+      "expected_action": "redact",
+      "expected_removals": ["192.168.1.100"],
+      "expected_tags": ["<IP_ADDRESS>"]
+    },
+    {
+      "name": "banned_word_redact",
+      "response_text": "This document is CONFIDENTIAL and should not be shared externally.",
+      "expected_action": "redact",
+      "expected_removals": ["CONFIDENTIAL"],
+      "expected_tags": ["[REDACTED]"]
+    },
+    {
+      "name": "multiple_pii",
+      "response_text": "Send results to user@example.com or call +1-555-123-4567 for the server at 10.0.0.1 with payment card 4111-1111-1111-1111.",
+      "expected_action": "redact",
+      "expected_removals": ["user@example.com", "+1-555-123-4567", "10.0.0.1", "4111-1111-1111-1111"]
+    }
+  ]
+}

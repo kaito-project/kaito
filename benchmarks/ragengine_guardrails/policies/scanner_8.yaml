@@ -1,0 +1,41 @@
+action: redact
+blockMessage: "Blocked."
+scanners:
+  - type: ban_substrings
+    action: block
+    substrings:
+      - SECRET_PROJECT
+      - INTERNAL_ONLY
+      - CLASSIFIED_DATA
+      - TOP_SECRET
+    match_type: word
+    case_sensitive: false
+  - type: ban_substrings
+    action: redact
+    substrings:
+      - CONFIDENTIAL
+      - PROPRIETARY
+      - RESTRICTED
+      - DRAFT_ONLY
+    match_type: word
+    case_sensitive: false
+  - type: sensitive
+    action: redact
+    detectors:
+      - email
+  - type: sensitive
+    action: redact
+    detectors:
+      - phone
+  - type: sensitive
+    action: redact
+    detectors:
+      - credit_card
+  - type: sensitive
+    action: redact
+    detectors:
+      - ip_address
+  - type: invisible_text
+    action: block
+  - type: invisible_text
+    action: redact

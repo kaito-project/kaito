@@ -1,0 +1,11 @@
+action: block
+blockMessage: "Blocked."
+scanners:
+  - type: regex
+    action: block
+    patterns:
+      - "\\b\\d{3}-\\d{2}-\\d{4}\\b"
+      - "https?://\\S+"
+      - "\\bpassword\\s*[:=]\\s*\\S+"
+    is_blocked: true
+    match_type: search

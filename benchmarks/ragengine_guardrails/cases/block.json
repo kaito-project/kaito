@@ -1,0 +1,29 @@
+{
+  "description": "Content containing banned words that should trigger blocking",
+  "cases": [
+    {
+      "name": "single_banned_word",
+      "response_text": "The details about SECRET_PROJECT are documented in the internal wiki.",
+      "expected_action": "block",
+      "banned_word": "SECRET_PROJECT"
+    },
+    {
+      "name": "another_banned_word",
+      "response_text": "This information is INTERNAL_ONLY and should not be disclosed.",
+      "expected_action": "block",
+      "banned_word": "INTERNAL_ONLY"
+    },
+    {
+      "name": "banned_word_at_start",
+      "response_text": "SECRET_PROJECT documentation is available online.",
+      "expected_action": "block",
+      "banned_word": "SECRET_PROJECT"
+    },
+    {
+      "name": "banned_word_at_end",
+      "response_text": "The code name for this initiative is SECRET_PROJECT",
+      "expected_action": "block",
+      "banned_word": "SECRET_PROJECT"
+    }
+  ]
+}

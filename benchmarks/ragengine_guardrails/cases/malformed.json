@@ -1,0 +1,32 @@
+{
+  "description": "Malformed or edge-case SSE events for failure path testing",
+  "cases": [
+    {
+      "name": "malformed_json",
+      "description": "SSE event with invalid JSON payload",
+      "raw_sse": "data: {invalid json}\n\n",
+      "expected_behavior": "streaming_refusal"
+    },
+    {
+      "name": "multi_choice",
+      "description": "SSE event with n>1 choices",
+      "raw_sse_payload": {
+        "choices": [
+          {"index": 0, "delta": {"content": "hello"}, "finish_reason": null},
+          {"index": 1, "delta": {"content": "world"}, "finish_reason": null}
+        ]
+      },
+      "expected_behavior": "streaming_refusal"
+    },
+    {
+      "name": "non_zero_index",
+      "description": "SSE event with choice index != 0",
+      "raw_sse_payload": {
+        "choices": [
+          {"index": 1, "delta": {"content": "hello"}, "finish_reason": null}
+        ]
+      },
+      "expected_behavior": "streaming_refusal"
+    }
+  ]
+}

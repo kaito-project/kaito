@@ -93,13 +93,13 @@ func TestSpeculativeDecodingMethodSupportsPipelineParallelism(t *testing.T) {
 func TestSupportedSpeculativeDecodingPresets(t *testing.T) {
 	presets := SupportedSpeculativeDecodingPresets()
 	want := map[string]bool{
-		"deepseek-r1-0528":                   true,
-		"deepseek-v3-0324":                  true,
-		"deepseek-v3.2":                     true,
-		"zai-org/GLM-5.2-FP8":              true,
-		"deepseek-ai/DeepSeek-V4-Flash":     true,
-		"nvidia/DeepSeek-V4-Flash-NVFP4":   true,
-		"XiaomiMiMo/MiMo-7B-Base":          true,
+		"deepseek-r1-0528":               true,
+		"deepseek-v3-0324":               true,
+		"deepseek-v3.2":                  true,
+		"zai-org/GLM-5.2-FP8":            true,
+		"deepseek-ai/DeepSeek-V4-Flash":  true,
+		"nvidia/DeepSeek-V4-Flash-NVFP4": true,
+		"XiaomiMiMo/MiMo-7B-Base":        true,
 	}
 
 	if len(presets) != len(want) {
@@ -128,7 +128,7 @@ func TestSpeculativeDecodingByPresetEntries(t *testing.T) {
 		{"zai-org/glm-5.2-fp8", "zai-org/GLM-5.2-FP8", 5},
 		{"deepseek-ai/deepseek-v4-flash", "deepseek-ai/DeepSeek-V4-Flash", 3},
 		{"nvidia/deepseek-v4-flash-nvfp4", "nvidia/DeepSeek-V4-Flash-NVFP4", 3},
-		{"xiaomimo/mimo-7b-base", "XiaomiMiMo/MiMo-7B-Base", 1},
+		{"xiaomimimo/mimo-7b-base", "XiaomiMiMo/MiMo-7B-Base", 1},
 	}
 
 	for _, tc := range tests {

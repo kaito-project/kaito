@@ -356,7 +356,7 @@ var (
 				MTP:    &model.MTPConfig{NumSpeculativeTokens: 3},
 			},
 		},
-		"xiaomimo/mimo-7b-base": {
+		"xiaomimimo/mimo-7b-base": {
 			UserFacing: "XiaomiMiMo/MiMo-7B-Base",
 			Config: &model.SpeculativeDecodingConfig{
 				Method: "mtp",

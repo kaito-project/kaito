@@ -29,6 +29,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 const (
@@ -38,6 +39,13 @@ const (
 )
 
 // Please update the following model-specific configurations when adding new models to model catalog
+
+// specDecoEntry pairs the user-facing preset alias with the KAITO-authored config.
+type specDecoEntry struct {
+	UserFacing string // e.g. "deepseek-r1-0528"
+	Config     *model.SpeculativeDecodingConfig
+}
+
 var (
 	safetensorRegex = regexp.MustCompile(`.*\.safetensors`)
 	binRegex        = regexp.MustCompile(`.*\.bin`)
@@ -301,7 +309,135 @@ var (
 			PipelineTag:   "text-generation",
 		},
 	}
+
+	// speculativeDecodingByPreset maps lowercased HuggingFace repo names to
+	// their validated speculative decoding configuration. This map is the
+	// single source of truth for which presets support speculative decoding
+	// and what parameters to use. Keys follow the same convention as
+	// catalogOverrides.
+	speculativeDecodingByPreset = map[string]specDecoEntry{
+		"deepseek-ai/deepseek-r1-0528": {
+			UserFacing: "deepseek-r1-0528",
+			Config: &model.SpeculativeDecodingConfig{
+				Method: "mtp",
+				MTP:    &model.MTPConfig{NumSpeculativeTokens: 1},
+			},
+		},
+		"deepseek-ai/deepseek-v3-0324": {
+			UserFacing: "deepseek-v3-0324",
+			Config: &model.SpeculativeDecodingConfig{
+				Method: "mtp",
+				MTP:    &model.MTPConfig{NumSpeculativeTokens: 1},
+			},
+		},
+		"deepseek-ai/deepseek-v3.2": {
+			UserFacing: "deepseek-v3.2",
+			Config: &model.SpeculativeDecodingConfig{
+				Method: "mtp",
+				MTP:    &model.MTPConfig{NumSpeculativeTokens: 1},
+			},
+		},
+		"zai-org/glm-5.2-fp8": {
+			UserFacing: "zai-org/GLM-5.2-FP8",
+			Config: &model.SpeculativeDecodingConfig{
+				Method: "mtp",
+				MTP:    &model.MTPConfig{NumSpeculativeTokens: 5},
+			},
+		},
+		"deepseek-ai/deepseek-v4-flash": {
+			UserFacing: "deepseek-ai/DeepSeek-V4-Flash",
+			Config: &model.SpeculativeDecodingConfig{
+				Method: "mtp",
+				MTP:    &model.MTPConfig{NumSpeculativeTokens: 3},
+			},
+		},
+		"nvidia/deepseek-v4-flash-nvfp4": {
+			UserFacing: "nvidia/DeepSeek-V4-Flash-NVFP4",
+			Config: &model.SpeculativeDecodingConfig{
+				Method: "mtp",
+				MTP:    &model.MTPConfig{NumSpeculativeTokens: 3},
+			},
+		},
+		"xiaomimimo/mimo-7b-base": {
+			UserFacing: "XiaomiMiMo/MiMo-7B-Base",
+			Config: &model.SpeculativeDecodingConfig{
+				Method: "mtp",
+				MTP:    &model.MTPConfig{NumSpeculativeTokens: 1},
+			},
+		},
+	}
 )
+
+// SupportedSpeculativeDecodingPresets returns the sorted, user-facing preset
+// names that currently carry a validated SpeculativeDecoding entry.
+func SupportedSpeculativeDecodingPresets() []string {
+	out := make([]string, 0, len(speculativeDecodingByPreset))
+	for _, entry := range speculativeDecodingByPreset {
+		out = append(out, entry.UserFacing)
+	}
+	sort.Strings(out)
+	return out
+}
+
+// SpeculativeDecodingFallbackMethod is the method used when a preset is not
+// registered in speculativeDecodingByPreset. Kept in sync with
+// defaultFallbackNGramConfig() in pkg/workspace/inference.
+const SpeculativeDecodingFallbackMethod = "ngram"
+
+// ResolveSpeculativeDecodingMethod returns the speculative-decoding method
+// that would be injected for the given preset HuggingFace repo name. Presets
+// registered in speculativeDecodingByPreset return their per-preset method
+// (e.g. "mtp" for DeepSeek R1/V3); everything else falls back to the
+// universal ngram default applied at pod-spec generation time. Admission
+// webhooks use this to make PP-compatibility decisions consistent with what
+// the pod-spec layer will actually inject.
+func ResolveSpeculativeDecodingMethod(presetHFRepo string) string {
+	if entry, ok := speculativeDecodingByPreset[strings.ToLower(presetHFRepo)]; ok && entry.Config != nil {
+		return entry.Config.Method
+	}
+	return SpeculativeDecodingFallbackMethod
+}
+
+// ResolveSpeculativeDecodingMethodForPresetName first normalizes a user-facing
+// preset name (including legacy short aliases such as "deepseek-r1-0528") to
+// its canonical HuggingFace repo ID, then resolves the speculative-decoding
+// method that would be injected for that preset.
+func ResolveSpeculativeDecodingMethodForPresetName(presetName string) string {
+	return ResolveSpeculativeDecodingMethod(plugin.ResolveHFModelID(presetName))
+}
+
+// SpeculativeDecodingMethodSupportsPipelineParallelism reports whether the
+// given resolved method is safe to run with pipeline parallelism (more than
+// one target-model node). Kept next to ResolveSpeculativeDecodingMethod so
+// the truth table lives in a single place.
+//
+//   - ngram: CPU-side string matching over the context; does not touch the
+//     target model's execution graph, composes with PP (reduced speedup —
+//     PP bubbles are not hidden by single-request spec decoding).
+//   - mtp: MTP heads are baked into the currently tuned self-contained
+//     checkpoints (DeepSeek-R1-0528, DeepSeek-V3-0324, DeepSeek-V3.2,
+//     Z.AI GLM-5.2-FP8, DeepSeek-V4-Flash preview / NVFP4, MiMo-7B-Base) and
+//     vLLM places them on the last PP stage, so startup does not fail. The
+//     end-to-end speedup under PP is typically smaller than single-node
+//     (each iteration eats a full pipeline round-trip for the
+//     accept/reject signal) and is not benchmarked here. We still allow
+//     it because some large tuned MTP presets physically require multi-node PP
+//     to serve — blanket-rejecting Count>1 would make the mtp entries
+//     in speculativeDecodingByPreset unreachable. Callers should emit a
+//     Warning event so operators know the speedup is reduced.
+//   - eagle / eagle3: trained draft heads assumed to co-locate with a
+//     TP-sharded target; vLLM does not currently support PP for these.
+func SpeculativeDecodingMethodSupportsPipelineParallelism(method string) bool {
+	switch method {
+	case "ngram", "mtp":
+		return true
+	case "eagle", "eagle3":
+		return false
+	default:
+		// Conservative for unknown methods.
+		return false
+	}
+}
 
 type Generator struct {
 	ModelRepo      string
@@ -913,6 +1049,11 @@ func (g *Generator) loadFromCatalog() bool {
 		g.TokenizerMode = entry.LoadFormat
 	}
 
+	// Populate speculative decoding config from the per-preset map.
+	if sdEntry, ok := speculativeDecodingByPreset[strings.ToLower(g.ModelRepo)]; ok {
+		g.Param.SpeculativeDecoding = sdEntry.Config
+	}
+
 	return true
 }
 
@@ -920,6 +1061,10 @@ func (g *Generator) Generate() (*model.PresetParam, error) {
 	if !g.loadFromCatalog() {
 		if err := g.FetchModelMetadata(); err != nil {
 			return nil, err
+		}
+		// Populate speculative decoding config for the non-catalog path.
+		if sdEntry, ok := speculativeDecodingByPreset[strings.ToLower(g.ModelRepo)]; ok {
+			g.Param.SpeculativeDecoding = sdEntry.Config
 		}
 	}
 	g.ParseModelMetadata()

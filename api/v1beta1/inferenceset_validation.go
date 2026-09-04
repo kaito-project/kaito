@@ -25,6 +25,7 @@ import (
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 
+	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -51,6 +52,10 @@ func (is *InferenceSet) Validate(ctx context.Context) (errs *apis.FieldError) {
 			is.validateUpdate(old).ViaField("spec"),
 		)
 	}
+	// Speculative-decoding opt-in is reported using paths rooted at
+	// spec.template.metadata.annotations, so it must be invoked outside the
+	// spec wrapper to avoid a doubled spec.spec.template... path.
+	errs = errs.Also(is.validateSpeculativeDecoding())
 	if ValidateInferenceSetWorkspace != nil {
 		errs = errs.Also(ValidateInferenceSetWorkspace(ctx, is).ViaField("spec", "template"))
 	}
@@ -78,6 +83,63 @@ func (is *InferenceSet) validateUpdate(old *InferenceSet) (errs *apis.FieldError
 	// Partition config is immutable once set.
 	if !apiequality.Semantic.DeepEqual(is.Spec.Template.Resource.Partition, old.Spec.Template.Resource.Partition) {
 		errs = errs.Also(apis.ErrGeneric("field is immutable", "template", "resource", "partition"))
+	}
+	return errs
+}
+
+// validateSpeculativeDecoding mirrors the Workspace validator for the
+// kaito.sh/enable-speculative-decoding opt-in. The InferenceSet controller
+// clones Spec.Template.Annotations onto each child Workspace, so gating at
+// admission avoids surfacing a valid InferenceSet whose replicas would then
+// silently drop speculative decoding.
+func (is *InferenceSet) validateSpeculativeDecoding() (errs *apis.FieldError) {
+	val, present := is.Spec.Template.Annotations[AnnotationEnableSpeculativeDecoding]
+	if !present {
+		return nil
+	}
+	switch val {
+	case "false":
+		return nil
+	case "true":
+		// fall through to preset/runtime checks
+	default:
+		return errs.Also(apis.ErrGeneric(
+			fmt.Sprintf(
+				"kaito.sh/enable-speculative-decoding must be \"true\" or \"false\"; got %q",
+				val,
+			),
+			fmt.Sprintf("spec.template.metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+	}
+
+	inf := is.Spec.Template.Inference
+	if inf.Preset == nil || inf.Preset.Name == "" {
+		return errs.Also(apis.ErrGeneric(
+			"kaito.sh/enable-speculative-decoding requires a preset inference; "+
+				"remove the annotation or set spec.template.inference.preset.name",
+			fmt.Sprintf("spec.template.metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+	}
+
+	// Any preset is accepted: presets registered in generator.speculativeDecodingByPreset
+	// get their preset-tuned config (e.g. mtp for DeepSeek R1/V3/V3.2); everything else
+	// falls back to the universal ngram default at pod-spec generation time.
+	presetName := string(inf.Preset.Name)
+
+	// Runtime must be vLLM. Uses the same helper the runtime layer uses,
+	// so a workload that would resolve to HuggingFace at pod-spec generation
+	// time (e.g. because the FeatureFlagVLLM feature gate is disabled) is
+	// rejected here instead of being admitted only to be rejected later at
+	// the Workspace layer.
+	if runtime := EffectiveInferenceRuntime(is.Spec.Template.Annotations); runtime != model.RuntimeNameVLLM {
+		return errs.Also(apis.ErrGeneric(
+			fmt.Sprintf(
+				"kaito.sh/enable-speculative-decoding requires the vLLM runtime; "+
+					"effective runtime resolves to %q (preset %q)",
+				runtime, presetName,
+			),
+			fmt.Sprintf("spec.template.metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
 	}
 	return errs
 }

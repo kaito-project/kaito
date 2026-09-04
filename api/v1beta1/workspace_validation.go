@@ -45,6 +45,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/mig"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/presets/workspace/generator"
 	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
@@ -91,6 +92,9 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		if w.Inference != nil {
 			errs = errs.Also(w.Inference.validateUpdate(old.Inference).ViaField("inference"))
 		}
+		// Validate speculative decoding annotation on updates too.
+		errs = errs.Also(w.validateAnnotations())
+		errs = errs.Also(w.validateSpeculativeDecoding(ctx))
 		if w.Tuning != nil {
 			errs = errs.Also(w.Tuning.validateUpdate(old.Tuning).ViaField("tuning"))
 		}
@@ -105,6 +109,7 @@ func (w *Workspace) ValidateCreate(ctx context.Context) (errs *apis.FieldError) 
 	errs = errs.Also(w.validateCreate().ViaField("spec"))
 	errs = errs.Also(w.validateAnnotations())
 	errs = errs.Also(w.validateNodeClassNameAnnotation())
+	errs = errs.Also(w.validateSpeculativeDecoding(ctx))
 	if w.Inference != nil {
 		bypassResourceChecks := false
 		if w.GetAnnotations() != nil {
@@ -157,6 +162,95 @@ func (w *Workspace) validateAnnotations() (errs *apis.FieldError) {
 			))
 		}
 	}
+	// enable-speculative-decoding is a boolean opt-in; accept only "true" or "false".
+	if v, ok := annotations[AnnotationEnableSpeculativeDecoding]; ok {
+		if v != "true" && v != "false" {
+			errs = errs.Also(apis.ErrInvalidValue(
+				fmt.Sprintf("annotation %s has invalid value %q; expected \"true\" or \"false\"", AnnotationEnableSpeculativeDecoding, v),
+				fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+			))
+		}
+	}
+	return errs
+}
+
+func (w *Workspace) validateSpeculativeDecoding(ctx context.Context) (errs *apis.FieldError) {
+	annotations := w.GetAnnotations()
+	val, present := annotations[AnnotationEnableSpeculativeDecoding]
+	if !present {
+		return nil
+	}
+	switch val {
+	case "false":
+		return nil
+	case "true":
+		// fall through to preset/runtime checks
+	default:
+		errs = errs.Also(apis.ErrGeneric(
+			fmt.Sprintf(
+				"kaito.sh/enable-speculative-decoding must be \"true\" or \"false\"; got %q",
+				val,
+			),
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+		return errs
+	}
+
+	// (a) Must have preset inference.
+	if w.Inference == nil || w.Inference.Preset == nil || w.Inference.Preset.Name == "" {
+		errs = errs.Also(apis.ErrGeneric(
+			"kaito.sh/enable-speculative-decoding requires a preset inference; "+
+				"remove the annotation or set inference.preset.name",
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+		return errs
+	}
+
+	// (b) Any preset is accepted: presets registered in generator.speculativeDecodingByPreset
+	// get their preset-tuned config (e.g. mtp for DeepSeek R1/V3/V3.2); everything else
+	// falls back to the universal ngram default at pod-spec generation time.
+
+	// (c) Runtime must be vLLM.
+	if GetWorkspaceRuntimeName(w) != model.RuntimeNameVLLM {
+		errs = errs.Also(apis.ErrGeneric(
+			fmt.Sprintf(
+				"kaito.sh/enable-speculative-decoding requires the vLLM runtime; "+
+					"preset %q is configured for a different runtime",
+				w.Inference.Preset.Name,
+			),
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+	}
+
+	// (d) Reject multi-node opt-in only for methods that don't compose with
+	// pipeline parallelism (currently eagle / eagle3 in vLLM). ngram is a
+	// CPU-side lookup and works with PP (reduced speedup). mtp is placed
+	// on the last PP stage by vLLM and is allowed here because some large
+	// tuned MTP presets in speculativeDecodingByPreset physically require
+	// multi-node PP; realized speedup under PP is smaller than single-node
+	// and callers should emit a Warning event to surface that.
+	// See proposal #2303 for the full truth table.
+	method := generator.ResolveSpeculativeDecodingMethodForPresetName(string(w.Inference.Preset.Name))
+	//nolint:staticcheck //SA1019: deprecate Resource.Count field
+	if w.Resource.Count != nil && *w.Resource.Count > 1 &&
+		!generator.SpeculativeDecodingMethodSupportsPipelineParallelism(method) {
+		errs = errs.Also(apis.ErrGeneric(
+			fmt.Sprintf(
+				"kaito.sh/enable-speculative-decoding method %q is not supported with resource.count > 1 "+
+					"(pipeline parallelism); requested %d nodes",
+				method, *w.Resource.Count,
+			),
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+	}
+
+	// TODO(#2303-followup): Add estimator-callback based multi-node rejection
+	// (covers the case where user did not set resource.count but the estimator
+	// picks multi-node) and surface SpecDecoPipelineParallelism as a
+	// SpeculativeDecodingDisabled(PipelineParallelism) status condition + event.
+	// TODO(#2303-followup): Defence-in-depth: resolve model via models.GetModelByName
+	// and verify GetInferenceParameters().SpeculativeDecoding is non-nil.
+
 	return errs
 }
 

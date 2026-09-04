@@ -3228,3 +3228,104 @@ func TestWorkspaceValidateStreamingCSIDriver(t *testing.T) {
 		})
 	}
 }
+
+func TestWorkspaceValidateSpeculativeDecoding(t *testing.T) {
+	intPtr := func(i int) *int { return &i }
+	tests := []struct {
+		name        string
+		annotations map[string]string
+		inference   *InferenceSpec
+		count       *int
+		wantErr     bool
+	}{
+		{
+			name:        "no annotation - pass",
+			annotations: map[string]string{},
+			inference:   &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "deepseek-r1-0528"}}},
+			wantErr:     false,
+		},
+		{
+			name:        "false annotation - pass",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "false"},
+			inference:   &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "deepseek-r1-0528"}}},
+			wantErr:     false,
+		},
+		{
+			name:        "invalid annotation value",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "yes"},
+			inference:   &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "deepseek-r1-0528"}}},
+			wantErr:     true,
+		},
+		{
+			name:        "true with supported preset - pass",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
+			inference:   &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "deepseek-r1-0528"}}},
+			wantErr:     false,
+		},
+		{
+			name:        "true with second supported preset - pass",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
+			inference:   &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "deepseek-v3-0324"}}},
+			wantErr:     false,
+		},
+		{
+			name:        "true with unsupported preset - accepted (falls back to ngram)",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
+			inference:   &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "llama-3.1-8b-instruct"}}},
+			wantErr:     false,
+		},
+		{
+			name:        "true with no preset",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
+			inference:   nil,
+			wantErr:     true,
+		},
+		{
+			name:        "true with tuning only (no inference)",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
+			inference:   nil,
+			wantErr:     true,
+		},
+		{
+			name:        "true with resource.count>1 + mtp preset allowed (PP-compatible)",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
+			inference:   &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "deepseek-r1-0528"}}},
+			count:       intPtr(2),
+			wantErr:     false,
+		},
+		{
+			name:        "true with resource.count>1 + ngram fallback allowed (PP-compatible)",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
+			inference:   &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "llama-3.1-8b-instruct"}}},
+			count:       intPtr(2),
+			wantErr:     false,
+		},
+		{
+			name:        "true with resource.count=1 pass",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
+			inference:   &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "deepseek-r1-0528"}}},
+			count:       intPtr(1),
+			wantErr:     false,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			w := &Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:        "ws",
+					Namespace:   "default",
+					Annotations: tc.annotations,
+				},
+				Inference: tc.inference,
+			}
+			if tc.count != nil {
+				//nolint:staticcheck //SA1019: deprecate Resource.Count field
+				w.Resource.Count = tc.count
+			}
+			errs := w.validateSpeculativeDecoding(context.Background())
+			if (errs != nil) != tc.wantErr {
+				t.Errorf("validateSpeculativeDecoding() err=%v wantErr=%v", errs, tc.wantErr)
+			}
+		})
+	}
+}

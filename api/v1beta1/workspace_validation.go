@@ -45,7 +45,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/mig"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/kaito-project/kaito/presets/workspace/generator"
 	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
@@ -212,32 +211,9 @@ func (w *Workspace) validateSpeculativeDecoding(ctx context.Context) (errs *apis
 		))
 	}
 
-	// (d) Reject multi-node opt-in only for methods that don't compose with
-	// pipeline parallelism (currently eagle / eagle3 in vLLM). ngram is a
-	// CPU-side lookup and works with PP (reduced speedup). mtp is placed
-	// on the last PP stage by vLLM and is allowed here because several
-	// MTP presets in speculativeDecodingByPreset physically require
-	// multi-node PP; realized speedup under PP is smaller than
-	// single-node and callers should emit a Warning event to surface that.
-	// See proposal PR #2303 for the full truth table.
-	method := generator.ResolveSpeculativeDecodingMethodForPresetName(string(w.Inference.Preset.Name))
-	//nolint:staticcheck //SA1019: deprecate Resource.Count field
-	if w.Resource.Count != nil && *w.Resource.Count > 1 &&
-		!generator.SpeculativeDecodingMethodSupportsPipelineParallelism(method) {
-		errs = errs.Also(apis.ErrGeneric(
-			fmt.Sprintf(
-				"kaito.sh/enable-speculative-decoding method %q is not supported with resource.count > 1 "+
-					"(pipeline parallelism); requested %d nodes",
-				method, *w.Resource.Count,
-			),
-			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
-		))
-	}
-
-	// TODO(#2303-followup): Add estimator-callback based multi-node rejection
-	// (covers the case where user did not set resource.count but the estimator
-	// picks multi-node) and surface SpecDecoPipelineParallelism as a
-	// SpeculativeDecodingDisabled(PipelineParallelism) status condition + event.
+	// Current reachable methods in this PR are only preset-tuned mtp and the
+	// universal ngram fallback; both are allowed under pipeline parallelism.
+	// Keep a follow-up hook here if KAITO later adds a method that is not PP-safe.
 	// TODO(#2303-followup): Defence-in-depth: resolve model via models.GetModelByName
 	// and verify GetInferenceParameters().SpeculativeDecoding is non-nil.
 

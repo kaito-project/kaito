@@ -420,38 +420,62 @@ func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
 // --------------------------------------------------------------------------
 
 func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
-	iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
-	iObj.Labels = map[string]string{
-		v1beta1.LabelInferenceRole: "prefill",
-	}
-	iObj.Spec.Template.Labels = map[string]string{
-		"team": "serving",
-	}
-	iObj.Spec.Template.Annotations = map[string]string{
-		v1beta1.AnnotationEnableSpeculativeDecoding: "true",
-	}
+	t.Run("updates speculative decoding annotation without clobbering unrelated child annotations", func(t *testing.T) {
+		iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
+		iObj.Labels = map[string]string{
+			v1beta1.LabelInferenceRole: "prefill",
+		}
+		iObj.Spec.Template.Labels = map[string]string{
+			"team": "serving",
+		}
+		iObj.Spec.Template.Annotations = map[string]string{
+			v1beta1.AnnotationEnableSpeculativeDecoding: "true",
+		}
 
-	desired := utilsinferenceset.NewWorkspaceForInferenceSet(iObj)
-	ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
-	ws.Labels = map[string]string{
-		"team":  "old-team",
-		"extra": "keep-me",
-	}
-	ws.Annotations = map[string]string{
-		v1beta1.AnnotationEnableSpeculativeDecoding: "false",
-		v1beta1.AnnotationDisableBenchmark:          "true",
-		"example.com/stale":                         "remove-me",
-	}
+		desired := utilsinferenceset.NewWorkspaceForInferenceSet(iObj)
+		ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+		ws.Labels = map[string]string{
+			"team":  "old-team",
+			"extra": "keep-me",
+		}
+		ws.Annotations = map[string]string{
+			v1beta1.AnnotationEnableSpeculativeDecoding: "false",
+			v1beta1.AnnotationDisableBenchmark:          "true",
+			"workspace.kaito.io/hash":                   "hash",
+			"workspace.kaito.io/revision":               "3",
+			"kaito.sh/upgrade-start-time":               "ts",
+			"example.com/stale":                         "keep-me",
+		}
 
-	updated := reconcileExistingWorkspaceMetadata(ws, desired)
-	assert.True(t, updated)
-	assert.Equal(t, "serving", ws.Labels["team"])
-	assert.Equal(t, "prefill", ws.Labels[v1beta1.LabelInferenceRole])
-	assert.Equal(t, iObj.Name, ws.Labels[consts.WorkspaceCreatedByInferenceSetLabel])
-	assert.Equal(t, "keep-me", ws.Labels["extra"], "non-InferenceSet labels should remain additive")
-	assert.Equal(t, desired.Annotations, ws.Annotations, "annotations should exactly match the current desired child workspace state")
+		updated := reconcileExistingWorkspaceMetadata(ws, desired)
+		assert.True(t, updated)
+		assert.Equal(t, "serving", ws.Labels["team"])
+		assert.Equal(t, "prefill", ws.Labels[v1beta1.LabelInferenceRole])
+		assert.Equal(t, iObj.Name, ws.Labels[consts.WorkspaceCreatedByInferenceSetLabel])
+		assert.Equal(t, "keep-me", ws.Labels["extra"], "non-InferenceSet labels should remain additive")
+		assert.Equal(t, "true", ws.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding])
+		assert.Equal(t, "hash", ws.Annotations["workspace.kaito.io/hash"])
+		assert.Equal(t, "3", ws.Annotations["workspace.kaito.io/revision"])
+		assert.Equal(t, "ts", ws.Annotations["kaito.sh/upgrade-start-time"])
+		assert.Equal(t, "keep-me", ws.Annotations["example.com/stale"])
 
-	assert.False(t, reconcileExistingWorkspaceMetadata(ws, desired), "already-reconciled workspace metadata should be a no-op")
+		assert.False(t, reconcileExistingWorkspaceMetadata(ws, desired), "already-reconciled workspace metadata should be a no-op")
+	})
+
+	t.Run("removes speculative decoding annotation when no longer desired", func(t *testing.T) {
+		iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
+		desired := utilsinferenceset.NewWorkspaceForInferenceSet(iObj)
+		ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+		ws.Annotations = map[string]string{
+			v1beta1.AnnotationEnableSpeculativeDecoding: "true",
+			"workspace.kaito.io/hash":                   "hash",
+		}
+
+		updated := reconcileExistingWorkspaceMetadata(ws, desired)
+		assert.True(t, updated)
+		assert.NotContains(t, ws.Annotations, v1beta1.AnnotationEnableSpeculativeDecoding)
+		assert.Equal(t, "hash", ws.Annotations["workspace.kaito.io/hash"])
+	})
 }
 
 func TestInferenceSetBenchmarkAggregation(t *testing.T) {

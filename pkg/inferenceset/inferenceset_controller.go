@@ -16,7 +16,6 @@ package inferenceset
 import (
 	"context"
 	"fmt"
-	"maps"
 	"sort"
 	"strconv"
 	"time"
@@ -332,8 +331,18 @@ func reconcileExistingWorkspaceMetadata(ws *kaitov1beta1.Workspace, desired *kai
 		}
 	}
 
-	if !maps.Equal(ws.Annotations, desired.Annotations) {
-		ws.Annotations = maps.Clone(desired.Annotations)
+	desiredSpecDecoValue, desiredHasSpecDeco := desired.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding]
+	currentSpecDecoValue, currentHasSpecDeco := ws.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding]
+	if desiredHasSpecDeco {
+		if ws.Annotations == nil {
+			ws.Annotations = make(map[string]string)
+		}
+		if !currentHasSpecDeco || currentSpecDecoValue != desiredSpecDecoValue {
+			ws.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding] = desiredSpecDecoValue
+			needsUpdate = true
+		}
+	} else if currentHasSpecDeco {
+		delete(ws.Annotations, kaitov1beta1.AnnotationEnableSpeculativeDecoding)
 		needsUpdate = true
 	}
 
@@ -428,10 +437,10 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	}
 
 	// Reconcile existing child workspace metadata against the current InferenceSet template.
-	// Labels remain additive because other controllers may add their own labels, but
-	// annotations are controller-owned for InferenceSet children and must match the
-	// source-of-truth object exactly so annotation additions, changes, removals,
-	// and metadata repairs roll out without recreating the child.
+	// Labels remain additive because other controllers may add their own labels.
+	// For annotations, only reconcile kaito.sh/enable-speculative-decoding here:
+	// child Workspaces also carry controller-owned annotations such as hash/revision
+	// and auto-upgrade markers, so replacing the whole map would fight those controllers.
 	desiredWorkspace := inferenceset.NewWorkspaceForInferenceSet(iObj)
 	for i := range wsList.Items {
 		ws := &wsList.Items[i]

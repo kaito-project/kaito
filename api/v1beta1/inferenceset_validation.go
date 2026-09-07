@@ -52,10 +52,12 @@ func (is *InferenceSet) Validate(ctx context.Context) (errs *apis.FieldError) {
 			is.validateUpdate(old).ViaField("spec"),
 		)
 	}
-	// Speculative-decoding opt-in is reported using paths rooted at
-	// spec.template.metadata.annotations, so it must be invoked outside the
-	// spec wrapper to avoid a doubled spec.spec.template... path.
-	errs = errs.Also(is.validateSpeculativeDecoding())
+	// Speculative-decoding validation is normally handled by the projected
+	// child-Workspace validation path below. Keep the direct mirror only as a
+	// fallback when that hook is not wired (for example, in narrow unit tests).
+	if ValidateInferenceSetWorkspace == nil {
+		errs = errs.Also(is.validateSpeculativeDecoding())
+	}
 	if ValidateInferenceSetWorkspace != nil {
 		errs = errs.Also(ValidateInferenceSetWorkspace(ctx, is).ViaField("spec", "template"))
 	}

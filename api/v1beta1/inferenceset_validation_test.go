@@ -15,10 +15,13 @@ package v1beta1
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"knative.dev/pkg/apis"
 
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -344,4 +347,34 @@ func TestInferenceSetValidateSpeculativeDecoding(t *testing.T) {
 			t.Fatalf("expected rejection when vLLM feature gate is disabled")
 		}
 	})
+}
+
+func TestInferenceSetValidate_SpeculativeDecodingReportedOnceWhenWorkspaceHookPresent(t *testing.T) {
+	orig := ValidateInferenceSetWorkspace
+	defer func() { ValidateInferenceSetWorkspace = orig }()
+
+	ValidateInferenceSetWorkspace = func(ctx context.Context, is *InferenceSet) *apis.FieldError {
+		return apis.ErrInvalidValue(
+			fmt.Sprintf("annotation %s has invalid value %q; expected \"true\" or \"false\"", AnnotationEnableSpeculativeDecoding, "yes"),
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		)
+	}
+
+	is := &InferenceSet{
+		ObjectMeta: metav1.ObjectMeta{Name: "is", Namespace: "default"},
+		Spec: InferenceSetSpec{Template: InferenceSetTemplate{
+			ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "yes"}},
+			Inference:  InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("deepseek-r1-0528")}}},
+			Resource:   InferenceSetResourceSpec{InstanceType: "Standard_NC24ads_A100_v4"},
+		}},
+	}
+
+	errs := is.Validate(context.Background())
+	if errs == nil {
+		t.Fatal("Validate() expected error, got nil")
+	}
+	fieldRef := fmt.Sprintf("spec.template.metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding)
+	if got := strings.Count(errs.Error(), fieldRef); got != 1 {
+		t.Fatalf("expected exactly one validation error for %s, got %d: %v", fieldRef, got, errs)
+	}
 }

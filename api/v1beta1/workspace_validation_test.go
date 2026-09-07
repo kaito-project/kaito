@@ -3379,3 +3379,26 @@ func TestWorkspaceValidateSpeculativeDecoding(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateCreate_InvalidSpeculativeDecodingValueReportedOnce(t *testing.T) {
+	w := &Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "ws",
+			Namespace: "default",
+			Annotations: map[string]string{
+				AnnotationEnableSpeculativeDecoding: "yes",
+			},
+		},
+		Resource:  ResourceSpec{InstanceType: "Standard_NC24ads_A100_v4"},
+		Inference: &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "deepseek-r1-0528"}}},
+	}
+
+	errs := w.ValidateCreate(context.Background())
+	if errs == nil {
+		t.Fatal("ValidateCreate() expected error, got nil")
+	}
+	fieldRef := fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding)
+	if got := strings.Count(errs.Error(), fieldRef); got != 1 {
+		t.Fatalf("expected exactly one validation error for %s, got %d: %v", fieldRef, got, errs)
+	}
+}

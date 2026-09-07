@@ -107,6 +107,5 @@ func TestReconcileInferenceSetClearsAnnotationsWhenMRIAnnotationsRemoved(t *test
 
 	got := &kaitov1beta1.InferenceSet{}
 	require.NoError(t, cl.Get(context.Background(), client.ObjectKey{Name: "mri-test-prefill", Namespace: "default"}, got))
-	assert.Empty(t, got.Spec.Template.Annotations)
-	assert.NotContains(t, got.Spec.Template.Annotations, kaitov1alpha1.AnnotationEnableSpeculativeDecoding)
+	assert.Nil(t, got.Spec.Template.Annotations)
 }

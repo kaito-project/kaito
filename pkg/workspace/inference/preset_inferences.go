@@ -63,11 +63,6 @@ const (
 	SpecDecoConfigMapOverride
 	// SpecDecoInjected means the preset config was injected successfully.
 	SpecDecoInjected
-	// SpecDecoUnsupportedPreset means the annotation is set but the preset has no config.
-	// Retained for backwards compatibility with the enum ordering; unreachable at
-	// runtime now that unsupported presets fall through to the universal ngram
-	// default (see SpecDecoInjectedNGramFallback).
-	SpecDecoUnsupportedPreset
 	// SpecDecoInjectedNGramFallback means the preset has no per-preset config so
 	// the universal ngram default (num_speculative_tokens=5, prompt_lookup_max=4)
 	// was injected. Kept as a distinct decision so telemetry / events can

@@ -90,7 +90,7 @@ func TestSupportedSpeculativeDecodingPresets(t *testing.T) {
 	}
 
 	// Should be sorted
-	if presets[0] != "deepseek-r1-0528" || presets[1] != "deepseek-v3-0324" || presets[2] != "deepseek-v3.2" {
+	if presets[0] != "deepseek-ai/DeepSeek-V3.2" || presets[1] != "deepseek-r1-0528" || presets[2] != "deepseek-v3-0324" {
 		t.Fatalf("unexpected presets: %v", presets)
 	}
 }
@@ -102,7 +102,7 @@ func TestSpeculativeDecodingByPresetEntries(t *testing.T) {
 	}{
 		{"deepseek-ai/deepseek-r1-0528", "deepseek-r1-0528"},
 		{"deepseek-ai/deepseek-v3-0324", "deepseek-v3-0324"},
-		{"deepseek-ai/deepseek-v3.2", "deepseek-v3.2"},
+		{"deepseek-ai/deepseek-v3.2", "deepseek-ai/DeepSeek-V3.2"},
 	}
 
 	for _, tc := range tests {

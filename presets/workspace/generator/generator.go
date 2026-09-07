@@ -42,7 +42,7 @@ const (
 
 // specDecoEntry pairs the user-facing preset alias with the KAITO-authored config.
 type specDecoEntry struct {
-	UserFacing string // e.g. "deepseek-r1-0528"
+	UserFacing string // preset name accepted by GetModelByName, e.g. "deepseek-r1-0528"
 	Config     *model.SpeculativeDecodingConfig
 }
 
@@ -331,7 +331,7 @@ var (
 			},
 		},
 		"deepseek-ai/deepseek-v3.2": {
-			UserFacing: "deepseek-v3.2",
+			UserFacing: "deepseek-ai/DeepSeek-V3.2",
 			Config: &model.SpeculativeDecodingConfig{
 				Method: "mtp",
 				MTP:    &model.MTPConfig{NumSpeculativeTokens: 1},
@@ -340,8 +340,9 @@ var (
 	}
 )
 
-// SupportedSpeculativeDecodingPresets returns the sorted, user-facing preset
-// names that currently carry a validated SpeculativeDecoding entry.
+// SupportedSpeculativeDecodingPresets returns the sorted preset names that
+// currently carry a validated SpeculativeDecoding entry. Every returned name
+// must be accepted by GetModelByName.
 func SupportedSpeculativeDecodingPresets() []string {
 	out := make([]string, 0, len(speculativeDecodingByPreset))
 	for _, entry := range speculativeDecodingByPreset {

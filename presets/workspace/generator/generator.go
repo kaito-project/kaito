@@ -33,9 +33,11 @@ import (
 )
 
 const (
-	SystemFileDiskSizeGiB  = 80
-	DefaultModelTokenLimit = 2048
-	HuggingFaceWebsite     = "https://huggingface.co"
+	SystemFileDiskSizeGiB            = 80
+	DefaultModelTokenLimit           = 2048
+	HuggingFaceWebsite               = "https://huggingface.co"
+	SpeculativeDecodingMethodMTP     = "mtp"
+	mtpSpeculativeDecodingTokenCount = 1
 )
 
 // Please update the following model-specific configurations when adding new models to model catalog
@@ -44,6 +46,16 @@ const (
 type specDecoEntry struct {
 	UserFacing string // preset name accepted by GetModelByName, e.g. "deepseek-r1-0528"
 	Config     *model.SpeculativeDecodingConfig
+}
+
+func mtpSpecDecoEntry(userFacing string) specDecoEntry {
+	return specDecoEntry{
+		UserFacing: userFacing,
+		Config: &model.SpeculativeDecodingConfig{
+			Method: SpeculativeDecodingMethodMTP,
+			MTP:    &model.MTPConfig{NumSpeculativeTokens: mtpSpeculativeDecodingTokenCount},
+		},
+	}
 }
 
 var (
@@ -314,55 +326,13 @@ var (
 	// and what parameters to use. Keys follow the same convention as
 	// catalogOverrides.
 	speculativeDecodingByPreset = map[string]specDecoEntry{
-		"deepseek-ai/deepseek-r1-0528": {
-			UserFacing: "deepseek-r1-0528",
-			Config: &model.SpeculativeDecodingConfig{
-				Method: "mtp",
-				MTP:    &model.MTPConfig{NumSpeculativeTokens: 1},
-			},
-		},
-		"deepseek-ai/deepseek-v3-0324": {
-			UserFacing: "deepseek-v3-0324",
-			Config: &model.SpeculativeDecodingConfig{
-				Method: "mtp",
-				MTP:    &model.MTPConfig{NumSpeculativeTokens: 1},
-			},
-		},
-		"deepseek-ai/deepseek-v3.2": {
-			UserFacing: "deepseek-ai/DeepSeek-V3.2",
-			Config: &model.SpeculativeDecodingConfig{
-				Method: "mtp",
-				MTP:    &model.MTPConfig{NumSpeculativeTokens: 1},
-			},
-		},
-		"zai-org/glm-5.2-fp8": {
-			UserFacing: "zai-org/GLM-5.2-FP8",
-			Config: &model.SpeculativeDecodingConfig{
-				Method: "mtp",
-				MTP:    &model.MTPConfig{NumSpeculativeTokens: 1},
-			},
-		},
-		"deepseek-ai/deepseek-v4-flash": {
-			UserFacing: "deepseek-ai/DeepSeek-V4-Flash",
-			Config: &model.SpeculativeDecodingConfig{
-				Method: "mtp",
-				MTP:    &model.MTPConfig{NumSpeculativeTokens: 1},
-			},
-		},
-		"nvidia/deepseek-v4-flash-nvfp4": {
-			UserFacing: "nvidia/DeepSeek-V4-Flash-NVFP4",
-			Config: &model.SpeculativeDecodingConfig{
-				Method: "mtp",
-				MTP:    &model.MTPConfig{NumSpeculativeTokens: 1},
-			},
-		},
-		"xiaomimimo/mimo-7b-base": {
-			UserFacing: "XiaomiMiMo/MiMo-7B-Base",
-			Config: &model.SpeculativeDecodingConfig{
-				Method: "mtp",
-				MTP:    &model.MTPConfig{NumSpeculativeTokens: 1},
-			},
-		},
+		"deepseek-ai/deepseek-r1-0528":   mtpSpecDecoEntry("deepseek-r1-0528"),
+		"deepseek-ai/deepseek-v3-0324":   mtpSpecDecoEntry("deepseek-v3-0324"),
+		"deepseek-ai/deepseek-v3.2":      mtpSpecDecoEntry("deepseek-ai/DeepSeek-V3.2"),
+		"zai-org/glm-5.2-fp8":            mtpSpecDecoEntry("zai-org/GLM-5.2-FP8"),
+		"deepseek-ai/deepseek-v4-flash":  mtpSpecDecoEntry("deepseek-ai/DeepSeek-V4-Flash"),
+		"nvidia/deepseek-v4-flash-nvfp4": mtpSpecDecoEntry("nvidia/DeepSeek-V4-Flash-NVFP4"),
+		"xiaomimimo/mimo-7b-base":        mtpSpecDecoEntry("XiaomiMiMo/MiMo-7B-Base"),
 	}
 )
 

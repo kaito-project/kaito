@@ -16,6 +16,7 @@ package inferenceset
 import (
 	"context"
 	"fmt"
+	"maps"
 	"sort"
 	"strconv"
 	"time"
@@ -318,6 +319,27 @@ func repairInvalidWorkspaceCapacityType(ws *kaitov1beta1.Workspace, desired stri
 	return true
 }
 
+func reconcileExistingWorkspaceMetadata(ws *kaitov1beta1.Workspace, desired *kaitov1beta1.Workspace) bool {
+	needsUpdate := false
+
+	if ws.Labels == nil {
+		ws.Labels = make(map[string]string)
+	}
+	for k, v := range desired.Labels {
+		if ws.Labels[k] != v {
+			ws.Labels[k] = v
+			needsUpdate = true
+		}
+	}
+
+	if !maps.Equal(ws.Annotations, desired.Annotations) {
+		ws.Annotations = maps.Clone(desired.Annotations)
+		needsUpdate = true
+	}
+
+	return needsUpdate
+}
+
 func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iObj *kaitov1beta1.InferenceSet) (reconcile.Result, error) {
 	if iObj == nil {
 		return reconcile.Result{}, nil
@@ -405,45 +427,21 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 		}
 	}
 
-	// Reconcile labels on existing workspaces by additively propagating InferenceSet metadata labels.
-	// Note: this only adds/updates desired labels; it does not remove stale labels to avoid
-	// conflicting with labels managed by other controllers.
-	// This ensures label changes (e.g., adding kaito.sh/inference-role) propagate
-	// to workspaces that were created before the label was set.
-	desiredLabels := make(map[string]string)
-	for k, v := range iObj.Spec.Template.Labels {
-		desiredLabels[k] = v
-	}
-	// Propagate inference-role from InferenceSet metadata (reliable even if template labels are pruned).
-	if role, ok := iObj.Labels[kaitov1beta1.LabelInferenceRole]; ok {
-		desiredLabels[kaitov1beta1.LabelInferenceRole] = role
-	}
-	if mriParent, ok := iObj.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent]; ok {
-		desiredLabels[kaitov1alpha1.LabelMultiRoleInferenceParent] = mriParent
-	}
-	desiredCapacityType := iObj.Spec.Template.Annotations[kaitov1beta1.AnnotationCapacityType]
+	// Reconcile existing child workspace metadata against the current InferenceSet template.
+	// Labels remain additive because other controllers may add their own labels, but
+	// annotations are controller-owned for InferenceSet children and must match the
+	// source-of-truth object exactly so annotation additions, changes, removals,
+	// and metadata repairs roll out without recreating the child.
+	desiredWorkspace := inferenceset.NewWorkspaceForInferenceSet(iObj)
 	for i := range wsList.Items {
 		ws := &wsList.Items[i]
-		needsUpdate := false
-		if ws.Labels == nil {
-			ws.Labels = make(map[string]string)
+		if !reconcileExistingWorkspaceMetadata(ws, desiredWorkspace) {
+			continue
 		}
-		for k, v := range desiredLabels {
-			if ws.Labels[k] != v {
-				ws.Labels[k] = v
-				needsUpdate = true
-			}
-		}
-		if consts.IsKarpenterProvisioner() &&
-			repairInvalidWorkspaceCapacityType(ws, desiredCapacityType) {
-			needsUpdate = true
-		}
-		if needsUpdate {
-			klog.InfoS("Reconciling workspace metadata", "workspace", klog.KObj(ws))
-			if err := c.Client.Update(ctx, ws); err != nil {
-				klog.ErrorS(err, "failed to update workspace metadata", "workspace", klog.KObj(ws))
-				return ctrl.Result{}, err
-			}
+		klog.InfoS("Reconciling workspace metadata", "workspace", klog.KObj(ws))
+		if err := c.Client.Update(ctx, ws); err != nil {
+			klog.ErrorS(err, "failed to update workspace metadata", "workspace", klog.KObj(ws))
+			return ctrl.Result{}, err
 		}
 	}
 

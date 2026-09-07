@@ -64,3 +64,47 @@ func TestReconcileInferenceSetPropagatesAnnotations(t *testing.T) {
 	assert.Equal(t, "disabled", got.Spec.Template.Annotations["kaito.sh/model-streaming"])
 	assert.Equal(t, "true", got.Spec.Template.Annotations["kaito.sh/disable-benchmark"])
 }
+
+func TestReconcileInferenceSetClearsAnnotationsWhenMRIAnnotationsRemoved(t *testing.T) {
+	scheme := runtime.NewScheme()
+	require.NoError(t, kaitov1alpha1.AddToScheme(scheme))
+	require.NoError(t, kaitov1beta1.AddToScheme(scheme))
+
+	mri := &kaitov1alpha1.MultiRoleInference{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "mri-test",
+			Namespace: "default",
+		},
+		Spec: kaitov1alpha1.MultiRoleInferenceSpec{
+			LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"app": "mri-test"}},
+			Model:         kaitov1alpha1.MultiRoleInferenceModelSpec{Name: "gemma-3-4b-instruct"},
+		},
+	}
+	role := kaitov1alpha1.MultiRoleInferenceRoleSpec{
+		Type:         kaitov1alpha1.MultiRoleInferenceRolePrefill,
+		InstanceType: "Standard_NV36ads_A10_v5",
+	}
+	is := &kaitov1beta1.InferenceSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "mri-test-prefill",
+			Namespace: "default",
+		},
+		Spec: kaitov1beta1.InferenceSetSpec{
+			Template: kaitov1beta1.InferenceSetTemplate{
+				ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{
+					kaitov1alpha1.AnnotationEnableSpeculativeDecoding: "true",
+				}},
+			},
+		},
+	}
+
+	cl := fake.NewClientBuilder().WithScheme(scheme).WithObjects(mri, is).Build()
+	r := &MultiRoleInferenceReconciler{Client: cl, Scheme: scheme}
+
+	require.NoError(t, r.reconcileInferenceSet(context.Background(), mri, role))
+
+	got := &kaitov1beta1.InferenceSet{}
+	require.NoError(t, cl.Get(context.Background(), client.ObjectKey{Name: "mri-test-prefill", Namespace: "default"}, got))
+	assert.Empty(t, got.Spec.Template.Annotations)
+	assert.NotContains(t, got.Spec.Template.Annotations, kaitov1alpha1.AnnotationEnableSpeculativeDecoding)
+}

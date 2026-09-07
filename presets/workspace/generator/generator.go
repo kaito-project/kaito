@@ -29,7 +29,6 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 const (
@@ -347,66 +346,6 @@ func SupportedSpeculativeDecodingPresets() []string {
 	}
 	sort.Strings(out)
 	return out
-}
-
-// SpeculativeDecodingFallbackMethod is the method used when a preset is not
-// registered in speculativeDecodingByPreset. Kept in sync with
-// defaultFallbackNGramConfig() in pkg/workspace/inference.
-const SpeculativeDecodingFallbackMethod = "ngram"
-
-// ResolveSpeculativeDecodingMethod returns the speculative-decoding method
-// that would be injected for the given preset HuggingFace repo name. Presets
-// registered in speculativeDecodingByPreset return their per-preset method
-// (e.g. "mtp" for DeepSeek R1/V3); everything else falls back to the
-// universal ngram default applied at pod-spec generation time. Admission
-// webhooks use this to make PP-compatibility decisions consistent with what
-// the pod-spec layer will actually inject.
-func ResolveSpeculativeDecodingMethod(presetHFRepo string) string {
-	if entry, ok := speculativeDecodingByPreset[strings.ToLower(presetHFRepo)]; ok && entry.Config != nil {
-		return entry.Config.Method
-	}
-	return SpeculativeDecodingFallbackMethod
-}
-
-// ResolveSpeculativeDecodingMethodForPresetName first normalizes a user-facing
-// preset name (including legacy short aliases such as "deepseek-r1-0528") to
-// its canonical HuggingFace repo ID, then resolves the speculative-decoding
-// method that would be injected for that preset.
-func ResolveSpeculativeDecodingMethodForPresetName(presetName string) string {
-	return ResolveSpeculativeDecodingMethod(plugin.ResolveHFModelID(presetName))
-}
-
-// SpeculativeDecodingMethodSupportsPipelineParallelism reports whether the
-// given resolved method is safe to run with pipeline parallelism (more than
-// one target-model node). Kept next to ResolveSpeculativeDecodingMethod so
-// the truth table lives in a single place.
-//
-//   - ngram: CPU-side string matching over the context; does not touch the
-//     target model's execution graph, composes with PP (reduced speedup —
-//     PP bubbles are not hidden by single-request spec decoding).
-//   - mtp: MTP heads are baked into the currently tuned checkpoints in
-//     speculativeDecodingByPreset (DeepSeek R1/V3/V3.2, GLM-5.2-FP8,
-//     DeepSeek-V4-Flash-NVFP4, MiMo-7B-Base) and vLLM
-//     places them on the last PP stage, so startup does not fail. The
-//     end-to-end speedup under PP is typically smaller than single-node
-//     (each iteration eats a full pipeline round-trip for the
-//     accept/reject signal) and is not benchmarked here. We still allow
-//     it because several of these MTP presets physically require multi-node PP
-//     to serve — blanket-rejecting Count>1 would make the mtp entries
-//     in speculativeDecodingByPreset unreachable. Callers should emit a
-//     Warning event so operators know the speedup is reduced.
-//   - eagle / eagle3: trained draft heads assumed to co-locate with a
-//     TP-sharded target; vLLM does not currently support PP for these.
-func SpeculativeDecodingMethodSupportsPipelineParallelism(method string) bool {
-	switch method {
-	case "ngram", "mtp":
-		return true
-	case "eagle", "eagle3":
-		return false
-	default:
-		// Conservative for unknown methods.
-		return false
-	}
 }
 
 type Generator struct {

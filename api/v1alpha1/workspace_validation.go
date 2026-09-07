@@ -34,7 +34,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/kaito-project/kaito/presets/workspace/generator"
 )
 
 const (
@@ -144,23 +143,9 @@ func (w *Workspace) validateSpeculativeDecoding() (errs *apis.FieldError) {
 		))
 	}
 
-	// Reject multi-node opt-in only for methods that don't compose with
-	// pipeline parallelism (currently eagle / eagle3 in vLLM). ngram works
-	// with PP at reduced speedup; mtp is allowed because the large DeepSeek
-	// (671B) physically require multi-node PP — realized speedup is
-	// smaller than single-node. See proposal #2303 for the truth table.
-	method := generator.ResolveSpeculativeDecodingMethodForPresetName(string(w.Inference.Preset.Name))
-	if w.Resource.Count != nil && *w.Resource.Count > 1 &&
-		!generator.SpeculativeDecodingMethodSupportsPipelineParallelism(method) {
-		errs = errs.Also(apis.ErrGeneric(
-			fmt.Sprintf(
-				"kaito.sh/enable-speculative-decoding method %q is not supported with resource.count > 1 "+
-					"(pipeline parallelism); requested %d nodes",
-				method, *w.Resource.Count,
-			),
-			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
-		))
-	}
+	// Current reachable methods in this PR are only preset-tuned mtp and the
+	// universal ngram fallback; both are allowed under pipeline parallelism.
+	// Keep a follow-up hook here if KAITO later adds a method that is not PP-safe.
 
 	return errs
 }

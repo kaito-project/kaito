@@ -72,7 +72,6 @@ func TestSpeculativeDecodingMethodSupportsPipelineParallelism(t *testing.T) {
 		"mtp":     true,
 		"eagle":   false,
 		"eagle3":  false,
-		"dspark":  false, // conservative default for unknown/experimental
 		"unknown": false,
 	}
 	for method, want := range cases {
@@ -154,19 +153,12 @@ func TestSpeculativeDecodingConfigConsistency(t *testing.T) {
 			if cfg.NGram != nil {
 				t.Errorf("%s: method=mtp but NGram is non-nil", key)
 			}
-			if cfg.DSpark != nil {
-				t.Errorf("%s: method=mtp but DSpark is non-nil", key)
-			}
 			if cfg.MTP != nil && cfg.MTP.NumSpeculativeTokens <= 0 {
 				t.Errorf("%s: mtp.NumSpeculativeTokens must be > 0", key)
 			}
 		case "ngram":
 			if cfg.NGram == nil {
 				t.Errorf("%s: method=ngram but NGram is nil", key)
-			}
-		case "dspark":
-			if cfg.DSpark == nil {
-				t.Errorf("%s: method=dspark but DSpark is nil", key)
 			}
 		default:
 			t.Errorf("%s: unsupported method %q", key, cfg.Method)

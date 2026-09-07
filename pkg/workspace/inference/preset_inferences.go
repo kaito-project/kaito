@@ -1225,8 +1225,8 @@ func shellSingleQuote(s string) string {
 //     large enough to see gains on repetition-heavy workloads (code, RAG,
 //     summarization, translation, agent tool-call echo) without dominating
 //     verification cost on more open-ended generation.
-//   - prompt_lookup_max=4: matches vLLM's documented default and caps the
-//     lookup window so lookup cost stays O(prompt_len * 4).
+//   - prompt_lookup_max=4: matches vLLM's documented ngram example/baseline
+//     and caps the lookup window so lookup cost stays O(prompt_len * 4).
 //
 // ngram is preset-agnostic ("pure lookup against prompt + generation history",
 // no draft checkpoint, no extra GPU memory), so we can safely apply the same
@@ -1287,18 +1287,15 @@ func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.Runtim
 		ws.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding] != "true" {
 		return SpecDecoSkip, nil
 	}
-	if ws.Status.TargetNodeCount > 1 {
-		// Current reachable methods in this PR are only preset-tuned mtp and the
-		// universal ngram fallback; both still run under PP, albeit with reduced
-		// realized speedup compared to single-node. If KAITO later wires a method
-		// that is not PP-safe, add an explicit guard here before injection.
-		// TODO(#2303-followup): for ngram / mtp under PP, emit a Warning
-		// event (SpeculativeDecodingReducedUnderPP) so operators know
-		// the realized speedup is smaller than single-node. Each
-		// iteration eats a full pipeline round-trip for the accept/
-		// reject signal, and single-request spec decoding cannot hide
-		// PP bubbles.
-	}
+	// Current reachable methods in this PR are only preset-tuned mtp and the
+	// universal ngram fallback; both still run under PP, albeit with reduced
+	// realized speedup compared to single-node. If KAITO later wires a method
+	// that is not PP-safe, add an explicit guard here before injection.
+	// TODO(#2303-followup): when ws.Status.TargetNodeCount > 1 for ngram / mtp,
+	// emit a Warning event (SpeculativeDecodingReducedUnderPP) so operators know
+	// the realized speedup is smaller than single-node. Each iteration eats a
+	// full pipeline round-trip for the accept/reject signal, and single-request
+	// spec decoding cannot hide PP bubbles.
 	if userConfigHasSpeculativeOverride {
 		return SpecDecoConfigMapOverride, nil
 	}

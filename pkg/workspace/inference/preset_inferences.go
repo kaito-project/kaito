@@ -1300,22 +1300,6 @@ func vllmFormat(sd *pkgmodel.SpeculativeDecodingConfig) (string, error) {
 		}
 		m["num_speculative_tokens"] = sd.NGram.NumSpeculativeTokens
 		m["prompt_lookup_max"] = sd.NGram.PromptLookupMax
-	case "dspark":
-		if sd.DSpark == nil {
-			return "", fmt.Errorf("method=dspark requires dspark config")
-		}
-		if sd.DSpark.Variant == "assistant" {
-			m["model"] = sd.DSpark.Model
-		}
-		if sd.DSpark.NumSpeculativeTokens > 0 {
-			m["num_speculative_tokens"] = sd.DSpark.NumSpeculativeTokens
-		}
-		if sd.DSpark.DraftSampleMethod != "" {
-			m["draft_sample_method"] = sd.DSpark.DraftSampleMethod
-		}
-		if sd.DSpark.AttentionBackend != "" {
-			m["attention_backend"] = sd.DSpark.AttentionBackend
-		}
 	default:
 		return "", fmt.Errorf("unsupported speculative decoding method %q", sd.Method)
 	}

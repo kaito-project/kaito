@@ -779,6 +779,42 @@ func TestGetModelByName_GLM52FP8(t *testing.T) {
 	assert.True(t, params.RequiresDeepGEMM())
 }
 
+// TestGetModelByName_DeepSeekV4FlashNVFP4 verifies the NVIDIA NVFP4 variant
+// resolves and inherits the same DeepSeek-V4 parser wiring plus fp8 kv-cache.
+func TestGetModelByName_DeepSeekV4FlashNVFP4(t *testing.T) {
+	m, err := GetModelByNameWithToken(context.Background(), "nvidia/DeepSeek-V4-Flash-NVFP4", "")
+	assert.NoError(t, err)
+	if !assert.NotNil(t, m) {
+		return
+	}
+
+	params := m.GetInferenceParameters()
+	runParams := params.RuntimeParam.VLLM.ModelRunParams
+	assert.Equal(t, "deepseek_v4", runParams["reasoning-parser"])
+	assert.Equal(t, "deepseek_v4", runParams["tool-call-parser"])
+	assert.Equal(t, "", runParams["enable-auto-tool-choice"])
+	assert.Equal(t, "deepseek_v4", runParams["tokenizer_mode"])
+	assert.Equal(t, "fp8", runParams["kv-cache-dtype"])
+}
+
+// TestGetModelByName_MiMo7BBase verifies MiMo-7B-Base resolves and wires the
+// MiMo-specific reasoning and tool-call parser settings. It intentionally keeps
+// tokenizer_mode at the default auto path today.
+func TestGetModelByName_MiMo7BBase(t *testing.T) {
+	m, err := GetModelByNameWithToken(context.Background(), "XiaomiMiMo/MiMo-7B-Base", "")
+	assert.NoError(t, err)
+	if !assert.NotNil(t, m) {
+		return
+	}
+
+	params := m.GetInferenceParameters()
+	runParams := params.RuntimeParam.VLLM.ModelRunParams
+	assert.Equal(t, "mimo", runParams["reasoning-parser"])
+	assert.Equal(t, "mimo", runParams["tool-call-parser"])
+	assert.Equal(t, "", runParams["enable-auto-tool-choice"])
+	assert.Equal(t, "auto", runParams["tokenizer_mode"])
+}
+
 func TestGetModelByName_BuiltinModels(t *testing.T) {
 	tests := []struct {
 		name          string

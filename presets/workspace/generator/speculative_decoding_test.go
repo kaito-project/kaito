@@ -30,9 +30,9 @@ func TestResolveSpeculativeDecodingMethod(t *testing.T) {
 		{"registered mtp preset (V3)", "deepseek-ai/DeepSeek-V3-0324", "mtp", true},
 		{"registered mtp preset (V3.2)", "deepseek-ai/DeepSeek-V3.2", "mtp", true},
 		{"registered mtp preset (GLM-5.2-FP8)", "zai-org/GLM-5.2-FP8", "mtp", true},
-		{"registered mtp preset (DeepSeek-V4-Flash)", "deepseek-ai/DeepSeek-V4-Flash", "mtp", true},
 		{"registered mtp preset (DeepSeek-V4-Flash-NVFP4)", "nvidia/DeepSeek-V4-Flash-NVFP4", "mtp", true},
 		{"registered mtp preset (MiMo-7B-Base)", "XiaomiMiMo/MiMo-7B-Base", "mtp", true},
+		{"dspark preset without KAITO support falls back to ngram", "deepseek-ai/DeepSeek-V4-Flash", "ngram", true},
 		{"unregistered preset falls back to ngram", "meta-llama/Llama-3.1-8B-Instruct", "ngram", true},
 		{"empty preset falls back to ngram", "", "ngram", true},
 	}
@@ -59,9 +59,9 @@ func TestResolveSpeculativeDecodingMethodForPresetName(t *testing.T) {
 		{"second legacy short alias resolves to mtp", "deepseek-v3-0324", "mtp"},
 		{"canonical repo name still resolves", "deepseek-ai/deepseek-v3.2", "mtp"},
 		{"GLM repo name resolves", "zai-org/GLM-5.2-FP8", "mtp"},
-		{"V4 Flash repo name resolves", "deepseek-ai/DeepSeek-V4-Flash", "mtp"},
 		{"V4 NVFP4 repo name resolves", "nvidia/DeepSeek-V4-Flash-NVFP4", "mtp"},
 		{"MiMo repo name resolves", "XiaomiMiMo/MiMo-7B-Base", "mtp"},
+		{"DeepSeek-V4-Flash now falls back to ngram", "deepseek-ai/DeepSeek-V4-Flash", "ngram"},
 		{"non-tuned preset falls back to ngram", "llama-3.1-8b-instruct", "ngram"},
 	}
 	for _, tc := range tests {
@@ -95,7 +95,6 @@ func TestSupportedSpeculativeDecodingPresets(t *testing.T) {
 	want := []string{
 		"XiaomiMiMo/MiMo-7B-Base",
 		"deepseek-ai/DeepSeek-V3.2",
-		"deepseek-ai/DeepSeek-V4-Flash",
 		"deepseek-r1-0528",
 		"deepseek-v3-0324",
 		"nvidia/DeepSeek-V4-Flash-NVFP4",
@@ -120,7 +119,6 @@ func TestSpeculativeDecodingByPresetEntries(t *testing.T) {
 		{"deepseek-ai/deepseek-v3-0324", "deepseek-v3-0324"},
 		{"deepseek-ai/deepseek-v3.2", "deepseek-ai/DeepSeek-V3.2"},
 		{"zai-org/glm-5.2-fp8", "zai-org/GLM-5.2-FP8"},
-		{"deepseek-ai/deepseek-v4-flash", "deepseek-ai/DeepSeek-V4-Flash"},
 		{"nvidia/deepseek-v4-flash-nvfp4", "nvidia/DeepSeek-V4-Flash-NVFP4"},
 		{"xiaomimimo/mimo-7b-base", "XiaomiMiMo/MiMo-7B-Base"},
 	}

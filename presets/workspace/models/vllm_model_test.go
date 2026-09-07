@@ -781,7 +781,55 @@ func TestGetModelByName_GLM52FP8(t *testing.T) {
 
 // TestGetModelByName_DeepSeekV4FlashNVFP4 verifies the NVIDIA NVFP4 variant
 // resolves and inherits the same DeepSeek-V4 parser wiring plus fp8 kv-cache.
+const hermeticSpeculativeDecodingCatalogYAML = `models:
+- name: nvidia/DeepSeek-V4-Flash-NVFP4
+  description: https://huggingface.co/nvidia/DeepSeek-V4-Flash-NVFP4
+  pipelineTag: text-generation
+  modelFileSize: 155.28Gi
+  architectures:
+  - DeepseekV4ForCausalLM
+  modelTokenLimit: 1048576
+  hiddenSize: 4096
+  numHiddenLayers: 43
+  numAttentionHeads: 64
+  numKeyValueHeads: 1
+  headDim: 512
+  qkRopeHeadDim: 64
+  quantMethod: fp8
+- name: XiaomiMiMo/MiMo-7B-Base
+  description: https://huggingface.co/XiaomiMiMo/MiMo-7B-Base
+  pipelineTag: text-generation
+  modelFileSize: 7.30Gi
+  architectures:
+  - MiMoForCausalLM
+  modelTokenLimit: 32768
+  hiddenSize: 4096
+  numHiddenLayers: 36
+  numAttentionHeads: 32
+  numKeyValueHeads: 8
+  headDim: 128
+`
+
+func registerHermeticSpeculativeDecodingTestModels(t *testing.T) {
+	t.Helper()
+	for _, modelName := range []string{"nvidia/DeepSeek-V4-Flash-NVFP4", "XiaomiMiMo/MiMo-7B-Base"} {
+		key := strings.ToLower(modelName)
+		if plugin.KaitoModelRegister.MustGet(key) != nil {
+			continue
+		}
+		param, err := generator.GeneratePreset(modelName, "", []byte(hermeticSpeculativeDecodingCatalogYAML))
+		if !assert.NoError(t, err) {
+			continue
+		}
+		if assert.NotNil(t, param) {
+			registerModel(key, param)
+		}
+	}
+}
+
 func TestGetModelByName_DeepSeekV4FlashNVFP4(t *testing.T) {
+	registerHermeticSpeculativeDecodingTestModels(t)
+
 	m, err := GetModelByNameWithToken(context.Background(), "nvidia/DeepSeek-V4-Flash-NVFP4", "")
 	assert.NoError(t, err)
 	if !assert.NotNil(t, m) {
@@ -801,6 +849,8 @@ func TestGetModelByName_DeepSeekV4FlashNVFP4(t *testing.T) {
 // MiMo-specific reasoning and tool-call parser settings. It intentionally keeps
 // tokenizer_mode at the default auto path today.
 func TestGetModelByName_MiMo7BBase(t *testing.T) {
+	registerHermeticSpeculativeDecodingTestModels(t)
+
 	m, err := GetModelByNameWithToken(context.Background(), "XiaomiMiMo/MiMo-7B-Base", "")
 	assert.NoError(t, err)
 	if !assert.NotNil(t, m) {
@@ -1088,6 +1138,8 @@ func TestGetModelByNameWithToken_ShortNameRedirectsToCatalog(t *testing.T) {
 }
 
 func TestSupportedSpeculativeDecodingPresetsResolveViaGetModelByName(t *testing.T) {
+	registerHermeticSpeculativeDecodingTestModels(t)
+
 	for _, presetName := range generator.SupportedSpeculativeDecodingPresets() {
 		t.Run(presetName, func(t *testing.T) {
 			result, err := GetModelByName(context.Background(), presetName, "", "", nil)

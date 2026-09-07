@@ -196,11 +196,10 @@ func (m *Metadata) Validate() error {
 // speculativeDecodingByPreset map and injected into the vLLM command line
 // when the user enables speculative decoding via annotation.
 type SpeculativeDecodingConfig struct {
-	Method string        `yaml:"method"` // "mtp" / "ngram" / "dspark" / ...
-	MTP    *MTPConfig    `yaml:"mtp,omitempty"`
-	NGram  *NGramConfig  `yaml:"ngram,omitempty"`
-	DSpark *DSparkConfig `yaml:"dspark,omitempty"`
-	// future: EAGLE *EAGLEConfig
+	Method string       `yaml:"method"` // "mtp" / "ngram" / ...
+	MTP    *MTPConfig   `yaml:"mtp,omitempty"`
+	NGram  *NGramConfig `yaml:"ngram,omitempty"`
+	// future: add method-specific sub-configs as real support lands.
 }
 
 // MTPConfig covers the self-contained-head case only (the current DeepSeek
@@ -214,15 +213,6 @@ type MTPConfig struct {
 type NGramConfig struct {
 	NumSpeculativeTokens int `yaml:"numSpeculativeTokens"`
 	PromptLookupMax      int `yaml:"promptLookupMax"`
-}
-
-// DSparkConfig covers the DeepSeek-V4 DSpark speculative decoding method.
-type DSparkConfig struct {
-	Variant              string `yaml:"variant,omitempty"` // "" | "fused" | "assistant"
-	Model                string `yaml:"model,omitempty"`
-	NumSpeculativeTokens int    `yaml:"numSpeculativeTokens"`
-	DraftSampleMethod    string `yaml:"draftSampleMethod,omitempty"`
-	AttentionBackend     string `yaml:"attentionBackend,omitempty"`
 }
 
 // PresetParam defines the preset inference parameters for a model.
@@ -244,7 +234,7 @@ type PresetParam struct {
 	RuntimeParam
 
 	// SpeculativeDecoding holds the preset-tuned speculative decoding
-	// configuration for this preset (e.g. mtp/dspark). A nil value does NOT
+	// configuration for this preset (e.g. mtp/ngram). A nil value does NOT
 	// mean the preset lacks speculative-decoding support: when a workload
 	// opts in via kaito.sh/enable-speculative-decoding and this field is nil,
 	// applySpeculativeDecoding falls back to the universal ngram default
@@ -309,10 +299,6 @@ func (p *PresetParam) DeepCopy() *PresetParam {
 		if p.SpeculativeDecoding.NGram != nil {
 			ng := *p.SpeculativeDecoding.NGram
 			sd.NGram = &ng
-		}
-		if p.SpeculativeDecoding.DSpark != nil {
-			ds := *p.SpeculativeDecoding.DSpark
-			sd.DSpark = &ds
 		}
 		out.SpeculativeDecoding = &sd
 	}

@@ -83,55 +83,6 @@ func TestVllmFormat(t *testing.T) {
 			},
 		},
 		{
-			name: "dspark fused",
-			sd: &pkgmodel.SpeculativeDecodingConfig{
-				Method: "dspark",
-				DSpark: &pkgmodel.DSparkConfig{
-					Variant:              "fused",
-					NumSpeculativeTokens: 3,
-					DraftSampleMethod:    "probabilistic",
-				},
-			},
-			check: func(t *testing.T, jsonStr string) {
-				var m map[string]any
-				if err := json.Unmarshal([]byte(jsonStr), &m); err != nil {
-					t.Fatalf("invalid JSON: %v", err)
-				}
-				if m["method"] != "dspark" {
-					t.Errorf("method = %v, want dspark", m["method"])
-				}
-				if _, ok := m["model"]; ok {
-					t.Error("fused dspark should not have 'model' field")
-				}
-				if m["num_speculative_tokens"] != float64(3) {
-					t.Errorf("num_speculative_tokens = %v, want 3", m["num_speculative_tokens"])
-				}
-				if m["draft_sample_method"] != "probabilistic" {
-					t.Errorf("draft_sample_method = %v, want probabilistic", m["draft_sample_method"])
-				}
-			},
-		},
-		{
-			name: "dspark assistant",
-			sd: &pkgmodel.SpeculativeDecodingConfig{
-				Method: "dspark",
-				DSpark: &pkgmodel.DSparkConfig{
-					Variant:              "assistant",
-					Model:                "deepseek-ai/DeepSeek-V4-Flash-DSpark",
-					NumSpeculativeTokens: 2,
-				},
-			},
-			check: func(t *testing.T, jsonStr string) {
-				var m map[string]any
-				if err := json.Unmarshal([]byte(jsonStr), &m); err != nil {
-					t.Fatalf("invalid JSON: %v", err)
-				}
-				if m["model"] != "deepseek-ai/DeepSeek-V4-Flash-DSpark" {
-					t.Errorf("model = %v, want deepseek-ai/DeepSeek-V4-Flash-DSpark", m["model"])
-				}
-			},
-		},
-		{
 			name: "unknown method",
 			sd: &pkgmodel.SpeculativeDecodingConfig{
 				Method: "eagle",

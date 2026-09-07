@@ -244,8 +244,8 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		// Uses gemma-4-E2B (A10) because it has NO entry in
 		// presets/workspace/generator/generator.go speculativeDecodingByPreset,
 		// so this exercises the universal ngram fallback path introduced in
-		// PR #2312 (see docs/proposals/20260827-speculative-decoding.md,
-		// "Method → Preset Selection Rule"): admission accepts the annotation
+		// PR #2312 / proposal PR #2303 ("Method → Preset Selection Rule"):
+		// admission accepts the annotation
 		// on Spec.Template.Annotations, the InferenceSet controller clones it
 		// onto the child Workspace, the Workspace controller resolves
 		// method=ngram with the KAITO defaults (num_speculative_tokens=5,

@@ -14,12 +14,18 @@
 package inference
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"github.com/kaito-project/kaito/api/v1beta1"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
 func TestVllmFormat(t *testing.T) {
@@ -127,6 +133,65 @@ func TestShellSingleQuote(t *testing.T) {
 	}
 }
 
+func TestLoadUserSpeculativeConfig(t *testing.T) {
+	newWS := func(configName string) *v1beta1.Workspace {
+		return &v1beta1.Workspace{
+			ObjectMeta: metav1.ObjectMeta{Name: "ws", Namespace: "default"},
+			Inference:  &v1beta1.InferenceSpec{Config: configName},
+		}
+	}
+
+	t.Run("no config returns false", func(t *testing.T) {
+		got, err := loadUserSpeculativeConfig(context.Background(), nil, newWS(""))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if got {
+			t.Fatal("expected no override")
+		}
+	})
+
+	t.Run("config with speculative-config returns true", func(t *testing.T) {
+		mockClient := test.NewClient()
+		cm := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{Name: "cfg", Namespace: "default"},
+			Data: map[string]string{
+				pkgmodel.ConfigfileNameVLLM: "vllm:\n  speculative-config: '{\"method\":\"ngram\"}'\n",
+			},
+		}
+		mockClient.CreateOrUpdateObjectInMap(cm)
+		mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+
+		got, err := loadUserSpeculativeConfig(context.Background(), mockClient, newWS("cfg"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if !got {
+			t.Fatal("expected override to be detected")
+		}
+	})
+
+	t.Run("config without speculative-config returns false", func(t *testing.T) {
+		mockClient := test.NewClient()
+		cm := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{Name: "cfg", Namespace: "default"},
+			Data: map[string]string{
+				pkgmodel.ConfigfileNameVLLM: "vllm:\n  max-model-len: \"4096\"\n",
+			},
+		}
+		mockClient.CreateOrUpdateObjectInMap(cm)
+		mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+
+		got, err := loadUserSpeculativeConfig(context.Background(), mockClient, newWS("cfg"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if got {
+			t.Fatal("expected no override")
+		}
+	})
+}
+
 func TestApplySpeculativeDecoding(t *testing.T) {
 	presetWithSD := func() *pkgmodel.PresetParam {
 		return &pkgmodel.PresetParam{
@@ -174,6 +239,7 @@ func TestApplySpeculativeDecoding(t *testing.T) {
 		ws           *v1beta1.Workspace
 		runtime      pkgmodel.RuntimeName
 		preset       *pkgmodel.PresetParam
+		userOverride bool
 		wantDecision SpecDecoDecision
 		wantInjected bool
 		wantContains string // required substring in the injected --speculative-config blob; "" defaults to method=mtp
@@ -212,6 +278,16 @@ func TestApplySpeculativeDecoding(t *testing.T) {
 			wantContains: `"method":"ngram"`,
 		},
 		{
+			name:         "annotation true + user config override -> skip injection",
+			ws:           newWS("true", 1),
+			runtime:      pkgmodel.RuntimeNameVLLM,
+			preset:       presetWithSD(),
+			userOverride: true,
+			wantDecision: SpecDecoConfigMapOverride,
+			wantInjected: false,
+			wantContains: "",
+		},
+		{
 			name:         "annotation true + multi-node + mtp -> injected (PP-compatible)",
 			ws:           newWS("true", 2),
 			runtime:      pkgmodel.RuntimeNameVLLM,
@@ -247,7 +323,7 @@ func TestApplySpeculativeDecoding(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			got, err := applySpeculativeDecoding(tc.ws, tc.runtime, tc.preset)
+			got, err := applySpeculativeDecoding(tc.ws, tc.runtime, tc.preset, tc.userOverride)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}

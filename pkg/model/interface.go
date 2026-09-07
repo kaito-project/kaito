@@ -238,7 +238,7 @@ type PresetParam struct {
 	// mean the preset lacks speculative-decoding support: when a workload
 	// opts in via kaito.sh/enable-speculative-decoding and this field is nil,
 	// applySpeculativeDecoding falls back to the universal ngram default
-	// (see docs/proposals/20260827-speculative-decoding.md). Callers must
+	// (see proposal PR #2303). Callers must
 	// not use nil as a feature-support signal.
 	SpeculativeDecoding *SpeculativeDecodingConfig `yaml:"speculativeDecoding,omitempty"`
 

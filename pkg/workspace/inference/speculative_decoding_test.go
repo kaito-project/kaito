@@ -213,18 +213,6 @@ func TestApplySpeculativeDecoding(t *testing.T) {
 			},
 		}
 	}
-	presetWithEagle := func() *pkgmodel.PresetParam {
-		return &pkgmodel.PresetParam{
-			RuntimeParam: pkgmodel.RuntimeParam{
-				VLLM: pkgmodel.VLLMParam{
-					ModelRunParams: map[string]string{},
-				},
-			},
-			SpeculativeDecoding: &pkgmodel.SpeculativeDecodingConfig{
-				Method: "eagle",
-			},
-		}
-	}
 	newWS := func(annVal string, targetNodes int32) *v1beta1.Workspace {
 		ws := &v1beta1.Workspace{}
 		if annVal != "" {
@@ -303,14 +291,6 @@ func TestApplySpeculativeDecoding(t *testing.T) {
 			wantDecision: SpecDecoInjectedNGramFallback,
 			wantInjected: true,
 			wantContains: `"method":"ngram"`,
-		},
-		{
-			name:         "annotation true + multi-node + eagle -> pipeline parallelism",
-			ws:           newWS("true", 2),
-			runtime:      pkgmodel.RuntimeNameVLLM,
-			preset:       presetWithEagle(),
-			wantDecision: SpecDecoPipelineParallelism,
-			wantInjected: false,
 		},
 		{
 			name:         "annotation true + supported preset + single-node -> injected",

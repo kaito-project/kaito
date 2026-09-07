@@ -48,7 +48,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/registry"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
-	presetgen "github.com/kaito-project/kaito/presets/workspace/generator"
 	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
@@ -60,7 +59,8 @@ const (
 	SpecDecoNotEvaluated SpecDecoDecision = iota
 	// SpecDecoSkip means the annotation is absent or runtime is not vLLM.
 	SpecDecoSkip
-	// SpecDecoPipelineParallelism means injection was skipped due to multi-node.
+	// SpecDecoPipelineParallelism is retained for enum stability but is currently
+	// unreachable now that all reachable methods in this PR remain PP-compatible.
 	SpecDecoPipelineParallelism
 	// SpecDecoConfigMapOverride means the user's ConfigMap already has speculative-config.
 	SpecDecoConfigMapOverride
@@ -1288,18 +1288,10 @@ func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.Runtim
 		return SpecDecoSkip, nil
 	}
 	if ws.Status.TargetNodeCount > 1 {
-		// PP compatibility depends on the resolved method. ngram (universal
-		// fallback) and mtp (the tuned DeepSeek presets' baked-in heads placed on the
-		// last PP stage by vLLM) still run under PP; eagle / eagle3 do not.
-		// See proposal #2303 for the full truth table.
-		method := presetgen.SpeculativeDecodingFallbackMethod
-		if inferenceParam.SpeculativeDecoding != nil && inferenceParam.SpeculativeDecoding.Method != "" {
-			method = inferenceParam.SpeculativeDecoding.Method
-		}
-		if !presetgen.SpeculativeDecodingMethodSupportsPipelineParallelism(method) {
-			// TODO(#2303-followup): surface as ConditionSpeculativeDecodingDisabled(PipelineParallelism).
-			return SpecDecoPipelineParallelism, nil
-		}
+		// Current reachable methods in this PR are only preset-tuned mtp and the
+		// universal ngram fallback; both still run under PP, albeit with reduced
+		// realized speedup compared to single-node. If KAITO later wires a method
+		// that is not PP-safe, add an explicit guard here before injection.
 		// TODO(#2303-followup): for ngram / mtp under PP, emit a Warning
 		// event (SpeculativeDecodingReducedUnderPP) so operators know
 		// the realized speedup is smaller than single-node. Each

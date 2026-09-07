@@ -70,10 +70,9 @@ const (
 	SpecDecoInjectedNGramFallback
 )
 
-// PresetInferenceResult wraps the workload object and the speculative decoding decision.
+// PresetInferenceResult wraps the generated workload object.
 type PresetInferenceResult struct {
-	Workload                    client.Object
-	SpeculativeDecodingDecision SpecDecoDecision
+	Workload client.Object
 }
 
 const (
@@ -246,10 +245,8 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	// instead of being downloaded from HuggingFace or streamed from blob storage.
 	localModelWeightsPath := v1beta1.GetLocalWeightsPath(workspaceObj)
 
-	var specDecoDecision SpecDecoDecision
-
 	podOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec]{
-		GenerateInferencePodSpec(gpuConfig, numNodes, streamingModelPath, streamingLoadFormat, localModelWeightsPath, &specDecoDecision),
+		GenerateInferencePodSpec(gpuConfig, numNodes, streamingModelPath, streamingLoadFormat, localModelWeightsPath),
 		SetProvisionerNodeSelector,
 		SetHFToken,
 	}
@@ -307,16 +304,13 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 
 	podSpec, err := generator.GenerateManifest(gctx, podOpts...)
 	if err != nil {
-		return &PresetInferenceResult{SpeculativeDecodingDecision: specDecoDecision}, err
+		return &PresetInferenceResult{}, err
 	}
 
 	ssOpts = append(ssOpts, manifests.SetStatefulSetPodSpec(podSpec))
 
 	workload, err := generator.GenerateManifest(gctx, ssOpts...)
-	result := &PresetInferenceResult{
-		Workload:                    workload,
-		SpeculativeDecodingDecision: specDecoDecision,
-	}
+	result := &PresetInferenceResult{Workload: workload}
 	return result, err
 }
 
@@ -548,7 +542,7 @@ func GetPresetQuantization(presetName string) string {
 	return m.QuantMethod
 }
 
-func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingModelPath, streamingLoadFormat, localModelWeightsPath string, outDecision *SpecDecoDecision) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
+func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingModelPath, streamingLoadFormat, localModelWeightsPath string) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 		// additional volume
 		var volumes []corev1.Volume
@@ -617,12 +611,9 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			}
 			userConfigHasSpeculativeOverride = override
 		}
-		decision, err := applySpeculativeDecoding(ctx.Workspace, runtimeName, inferenceParam, userConfigHasSpeculativeOverride)
+		_, err := applySpeculativeDecoding(ctx.Workspace, runtimeName, inferenceParam, userConfigHasSpeculativeOverride)
 		if err != nil {
 			return fmt.Errorf("speculative decoding: %w", err)
-		}
-		if outDecision != nil {
-			*outDecision = decision
 		}
 		// --- End speculative decoding injection ---
 

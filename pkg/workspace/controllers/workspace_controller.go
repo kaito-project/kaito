@@ -692,10 +692,6 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	if err != nil {
 		return err
 	}
-	// TODO(#2303-followup): translate result.SpeculativeDecodingDecision into
-	// Workspace conditions and Events (ConditionSpeculativeDecodingDisabled,
-	// SpeculativeDecodingConfigMapOverride Event).
-	_ = result.SpeculativeDecodingDecision
 
 	desiredStatefulSet, ok := result.Workload.(*appsv1.StatefulSet)
 	if !ok {

@@ -569,6 +569,7 @@ func ComputeHash(w *kaitov1beta1.Workspace) string {
 	encoder.Encode(w.Resource)
 	encoder.Encode(w.Inference)
 	encoder.Encode(w.Tuning)
+	encoder.Encode(w.GetAnnotations()[kaitov1beta1.AnnotationEnableSpeculativeDecoding])
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
@@ -736,12 +737,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	} else {
 		// Selectively update the pod spec fields that are relevant to inference,
 		// and leave the rest unchanged in case user has customized them.
-		desiredPodSpec := desiredStatefulSet.Spec.Template.Spec
-		spec := &existingObj.Spec.Template.Spec
-		spec.Containers[0].Env = desiredPodSpec.Containers[0].Env
-		spec.Containers[0].VolumeMounts = desiredPodSpec.Containers[0].VolumeMounts
-		spec.InitContainers = desiredPodSpec.InitContainers
-		spec.Volumes = desiredPodSpec.Volumes
+		syncInferenceMutablePodSpec(&existingObj.Spec.Template.Spec, &desiredStatefulSet.Spec.Template.Spec)
 	}
 
 	annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = revisionStr
@@ -762,6 +758,15 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		}
 	}
 	return nil
+}
+
+func syncInferenceMutablePodSpec(existingSpec, desiredSpec *corev1.PodSpec) {
+	existingSpec.Containers[0].Command = desiredSpec.Containers[0].Command
+	existingSpec.Containers[0].Args = desiredSpec.Containers[0].Args
+	existingSpec.Containers[0].Env = desiredSpec.Containers[0].Env
+	existingSpec.Containers[0].VolumeMounts = desiredSpec.Containers[0].VolumeMounts
+	existingSpec.InitContainers = desiredSpec.InitContainers
+	existingSpec.Volumes = desiredSpec.Volumes
 }
 
 // shouldUpgradeBaseImage checks if an auto-upgrade has been requested via the upgrade label

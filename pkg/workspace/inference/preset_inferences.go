@@ -59,9 +59,6 @@ const (
 	SpecDecoNotEvaluated SpecDecoDecision = iota
 	// SpecDecoSkip means the annotation is absent or runtime is not vLLM.
 	SpecDecoSkip
-	// SpecDecoPipelineParallelism is retained for enum stability but is currently
-	// unreachable now that all reachable methods in this PR remain PP-compatible.
-	SpecDecoPipelineParallelism
 	// SpecDecoConfigMapOverride means the user's ConfigMap already has speculative-config.
 	SpecDecoConfigMapOverride
 	// SpecDecoInjected means the preset config was injected successfully.

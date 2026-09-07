@@ -228,7 +228,7 @@ func (w *Workspace) validateSpeculativeDecoding(ctx context.Context) (errs *apis
 	// pipeline parallelism (currently eagle / eagle3 in vLLM). ngram is a
 	// CPU-side lookup and works with PP (reduced speedup). mtp is placed
 	// on the last PP stage by vLLM and is allowed here because the
-	// The large DeepSeek MTP presets in speculativeDecodingByPreset physically
+	// large DeepSeek MTP presets in speculativeDecodingByPreset physically
 	// require multi-node PP; realized speedup under PP is smaller than
 	// single-node and callers should emit a Warning event to surface that.
 	// See proposal #2303 for the full truth table.

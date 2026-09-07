@@ -332,7 +332,6 @@ var (
 		"deepseek-ai/deepseek-v3-0324":   mtpSpecDecoEntry("deepseek-v3-0324"),
 		"deepseek-ai/deepseek-v3.2":      mtpSpecDecoEntry("deepseek-ai/DeepSeek-V3.2"),
 		"zai-org/glm-5.2-fp8":            mtpSpecDecoEntry("zai-org/GLM-5.2-FP8"),
-		"deepseek-ai/deepseek-v4-flash":  mtpSpecDecoEntry("deepseek-ai/DeepSeek-V4-Flash"),
 		"nvidia/deepseek-v4-flash-nvfp4": mtpSpecDecoEntry("nvidia/DeepSeek-V4-Flash-NVFP4"),
 		"xiaomimimo/mimo-7b-base":        mtpSpecDecoEntry("XiaomiMiMo/MiMo-7B-Base"),
 	}
@@ -387,7 +386,7 @@ func ResolveSpeculativeDecodingMethodForPresetName(presetName string) string {
 //     PP bubbles are not hidden by single-request spec decoding).
 //   - mtp: MTP heads are baked into the currently tuned checkpoints in
 //     speculativeDecodingByPreset (DeepSeek R1/V3/V3.2, GLM-5.2-FP8,
-//     DeepSeek-V4-Flash, DeepSeek-V4-Flash-NVFP4, MiMo-7B-Base) and vLLM
+//     DeepSeek-V4-Flash-NVFP4, MiMo-7B-Base) and vLLM
 //     places them on the last PP stage, so startup does not fail. The
 //     end-to-end speedup under PP is typically smaller than single-node
 //     (each iteration eats a full pipeline round-trip for the

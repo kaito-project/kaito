@@ -463,11 +463,15 @@ func (r *MultiRoleInferenceReconciler) reconcileInferenceSet(
 		// Template metadata annotations: propagate the MRI's own annotations so opt-outs
 		// (e.g. kaito.sh/model-streaming, kaito.sh/disable-benchmark) reach child workspaces.
 		// The InferenceSet controller clones Spec.Template.Annotations onto each workspace.
-		// Always reconcile this field, even when the MRI annotation map is empty, so
-		// removing the last annotation propagates through MRI -> InferenceSet -> Workspace.
-		templateAnnotations := make(map[string]string, len(mri.Annotations))
-		for k, v := range mri.Annotations {
-			templateAnnotations[k] = v
+		// Preserve nil for the empty case so CreateOrUpdate does not fight API-server
+		// round-tripping of empty maps, while still assigning nil to clear previously
+		// propagated annotations through MRI -> InferenceSet -> Workspace.
+		var templateAnnotations map[string]string
+		if len(mri.Annotations) > 0 {
+			templateAnnotations = make(map[string]string, len(mri.Annotations))
+			for k, v := range mri.Annotations {
+				templateAnnotations[k] = v
+			}
 		}
 		desired.Spec.Template.Annotations = templateAnnotations
 

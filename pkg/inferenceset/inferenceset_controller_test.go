@@ -44,6 +44,58 @@ import (
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 )
 
+func TestRepairInvalidWorkspaceCapacityType(t *testing.T) {
+	tests := []struct {
+		name        string
+		current     string
+		desired     string
+		wantChanged bool
+		wantValue   string
+		wantPresent bool
+	}{
+		{
+			name:        "repair invalid value to spot",
+			current:     "reserved",
+			desired:     consts.KarpenterCapacityTypeSpot,
+			wantChanged: true,
+			wantValue:   consts.KarpenterCapacityTypeSpot,
+			wantPresent: true,
+		},
+		{
+			name:        "repair invalid value to default",
+			current:     "reserved",
+			wantChanged: true,
+		},
+		{
+			name:        "do not mutate valid value",
+			current:     consts.KarpenterCapacityTypeSpot,
+			desired:     consts.KarpenterCapacityTypeOnDemand,
+			wantValue:   consts.KarpenterCapacityTypeSpot,
+			wantPresent: true,
+		},
+		{
+			name:        "do not propagate invalid desired value",
+			current:     "reserved",
+			desired:     "unsupported",
+			wantValue:   "reserved",
+			wantPresent: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ws := &v1beta1.Workspace{ObjectMeta: v1.ObjectMeta{Annotations: map[string]string{
+				v1beta1.AnnotationCapacityType: tt.current,
+			}}}
+			changed := repairInvalidWorkspaceCapacityType(ws, tt.desired)
+			assert.Equal(t, tt.wantChanged, changed)
+			value, present := ws.Annotations[v1beta1.AnnotationCapacityType]
+			assert.Equal(t, tt.wantPresent, present)
+			assert.Equal(t, tt.wantValue, value)
+		})
+	}
+}
+
 func TestInferenceSetSyncControllerRevision(t *testing.T) {
 	testcases := map[string]struct {
 		callMocks     func(c *test.MockClient)

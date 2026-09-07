@@ -285,6 +285,42 @@ func TestProvisionNodes_NoBYONodes_CreatesWithFullReplicas(t *testing.T) {
 	assert.Equal(t, int64(2), *np.Spec.Replicas)
 }
 
+func TestProvisionNodes_InvalidCapacityTypeFailsNewNodePool(t *testing.T) {
+	nodeClass := makeNodeClassUnstructured("image-family-ubuntu")
+	c := newFakeClient(nodeClass)
+	p := NewKarpenterProvisioner(c, testConfig)
+	ws := newTestWorkspace("default", "ws1", "Standard_NC24ads_A100_v4", 1, nil, map[string]string{
+		kaitov1beta1.AnnotationCapacityType: "reserved",
+	})
+
+	err := p.ProvisionNodes(context.Background(), ws)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), kaitov1beta1.AnnotationCapacityType)
+
+	np := &karpenterv1.NodePool{}
+	err = c.Get(context.Background(), client.ObjectKey{Name: "default-ws1"}, np)
+	assert.True(t, apierrors.IsNotFound(err))
+}
+
+func TestProvisionNodes_DoesNotRepairExistingNodePoolCapacityType(t *testing.T) {
+	nodeClass := makeNodeClassUnstructured("image-family-ubuntu")
+	existingNP := &karpenterv1.NodePool{
+		ObjectMeta: metav1.ObjectMeta{Name: "default-ws1"},
+		Spec:       karpenterv1.NodePoolSpec{Replicas: lo.ToPtr(int64(1))},
+	}
+	c := newFakeClient(nodeClass, existingNP)
+	p := NewKarpenterProvisioner(c, testConfig)
+	ws := newTestWorkspace("default", "ws1", "Standard_NC24ads_A100_v4", 1, nil, map[string]string{
+		kaitov1beta1.AnnotationCapacityType: "reserved",
+	})
+
+	require.NoError(t, p.ProvisionNodes(context.Background(), ws))
+
+	np := &karpenterv1.NodePool{}
+	require.NoError(t, c.Get(context.Background(), client.ObjectKey{Name: "default-ws1"}, np))
+	assert.Len(t, np.Spec.Template.Spec.Requirements, 0)
+}
+
 func TestProvisionNodes_DeltaWithBYONodes(t *testing.T) {
 	nodeClass := makeNodeClassUnstructured("image-family-ubuntu")
 	byoNode := makeReadyNode("byo-1", "Standard_NC24ads_A100_v4", nil)

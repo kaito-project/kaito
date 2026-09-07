@@ -22,6 +22,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/pkg/apis"
 
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -271,4 +272,23 @@ func TestMultiRoleInference_validateUpdate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestMultiRoleInferenceCapacityTypeAnnotation(t *testing.T) {
+	originalProvisioner := consts.ActiveNodeProvisioner
+	consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
+	t.Cleanup(func() { consts.ActiveNodeProvisioner = originalProvisioner })
+
+	makeMRI := func(value string) *MultiRoleInference {
+		return &MultiRoleInference{ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{kaitov1beta1.AnnotationCapacityType: value},
+		}}
+	}
+
+	assert.Nil(t, makeMRI(consts.KarpenterCapacityTypeSpot).validateCapacityTypeAnnotation())
+	assert.NotNil(t, makeMRI("reserved").validateCapacityTypeAnnotation())
+	assert.NotNil(t, makeMRI(consts.KarpenterCapacityTypeSpot).
+		validateCapacityTypeAnnotationUpdate(makeMRI(consts.KarpenterCapacityTypeOnDemand)))
+	assert.Nil(t, makeMRI(consts.KarpenterCapacityTypeOnDemand).
+		validateCapacityTypeAnnotationUpdate(makeMRI("reserved")))
 }

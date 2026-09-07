@@ -85,6 +85,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		if w.GetAnnotations()[AnnotationNodeClassName] != old.GetAnnotations()[AnnotationNodeClassName] {
 			errs = errs.Also(w.validateNodeClassNameAnnotation())
 		}
+		errs = errs.Also(w.validateCapacityTypeAnnotationUpdate(old))
 		if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
 			errs = errs.Also(w.validateModelStreamingAnnotationImmutable(old))
 		}
@@ -105,6 +106,7 @@ func (w *Workspace) ValidateCreate(ctx context.Context) (errs *apis.FieldError) 
 	errs = errs.Also(w.validateCreate().ViaField("spec"))
 	errs = errs.Also(w.validateAnnotations())
 	errs = errs.Also(w.validateNodeClassNameAnnotation())
+	errs = errs.Also(w.validateCapacityTypeAnnotation())
 	if w.Inference != nil {
 		bypassResourceChecks := false
 		if w.GetAnnotations() != nil {
@@ -231,6 +233,39 @@ func (w *Workspace) validateNodeClassNameAnnotation() *apis.FieldError {
 		)
 	}
 	return nil
+}
+
+func (w *Workspace) validateCapacityTypeAnnotation() *apis.FieldError {
+	if !consts.IsKarpenterProvisioner() {
+		return nil
+	}
+	capacityType := w.GetAnnotations()[AnnotationCapacityType]
+	if consts.IsSupportedKarpenterCapacityType(capacityType) {
+		return nil
+	}
+	return apis.ErrInvalidValue(
+		fmt.Sprintf("%q is not a supported capacity type; choose one of: %s, %s",
+			capacityType, consts.KarpenterCapacityTypeOnDemand, consts.KarpenterCapacityTypeSpot),
+		fmt.Sprintf("metadata.annotations[%s]", AnnotationCapacityType),
+	)
+}
+
+func (w *Workspace) validateCapacityTypeAnnotationUpdate(old *Workspace) *apis.FieldError {
+	if !consts.IsKarpenterProvisioner() {
+		return nil
+	}
+	oldValue := old.GetAnnotations()[AnnotationCapacityType]
+	newValue := w.GetAnnotations()[AnnotationCapacityType]
+	if oldValue == newValue {
+		return nil
+	}
+	if !consts.IsSupportedKarpenterCapacityType(oldValue) {
+		return w.validateCapacityTypeAnnotation()
+	}
+	return apis.ErrGeneric(
+		fmt.Sprintf("annotation %s is immutable after creation", AnnotationCapacityType),
+		fmt.Sprintf("metadata.annotations[%s]", AnnotationCapacityType),
+	)
 }
 
 func (w *Workspace) validateUpdate(old *Workspace) (errs *apis.FieldError) {

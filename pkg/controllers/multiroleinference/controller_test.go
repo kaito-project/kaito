@@ -38,8 +38,9 @@ func TestReconcileInferenceSetPropagatesAnnotations(t *testing.T) {
 			Name:      "mri-test",
 			Namespace: "default",
 			Annotations: map[string]string{
-				"kaito.sh/model-streaming":   "disabled",
-				"kaito.sh/disable-benchmark": "true",
+				"kaito.sh/model-streaming":          "disabled",
+				"kaito.sh/disable-benchmark":        "true",
+				kaitov1beta1.AnnotationCapacityType: "spot",
 			},
 		},
 		Spec: kaitov1alpha1.MultiRoleInferenceSpec{
@@ -63,4 +64,5 @@ func TestReconcileInferenceSetPropagatesAnnotations(t *testing.T) {
 
 	assert.Equal(t, "disabled", got.Spec.Template.Annotations["kaito.sh/model-streaming"])
 	assert.Equal(t, "true", got.Spec.Template.Annotations["kaito.sh/disable-benchmark"])
+	assert.Equal(t, "spot", got.Spec.Template.Annotations[kaitov1beta1.AnnotationCapacityType])
 }

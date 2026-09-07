@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/samber/lo"
+	"gopkg.in/yaml.v2"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
@@ -615,7 +616,16 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		runtimeName := v1beta1.GetWorkspaceRuntimeName(ctx.Workspace)
 
 		// --- Speculative decoding injection ---
-		decision, err := applySpeculativeDecoding(ctx.Workspace, runtimeName, inferenceParam)
+		userConfigHasSpeculativeOverride := false
+		if runtimeName == pkgmodel.RuntimeNameVLLM &&
+			ctx.Workspace.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding] == "true" {
+			override, err := loadUserSpeculativeConfig(ctx.Ctx, ctx.KubeClient, ctx.Workspace)
+			if err != nil {
+				return fmt.Errorf("speculative decoding: %w", err)
+			}
+			userConfigHasSpeculativeOverride = override
+		}
+		decision, err := applySpeculativeDecoding(ctx.Workspace, runtimeName, inferenceParam, userConfigHasSpeculativeOverride)
 		if err != nil {
 			return fmt.Errorf("speculative decoding: %w", err)
 		}
@@ -1226,11 +1236,48 @@ func defaultFallbackNGramConfig() *pkgmodel.SpeculativeDecodingConfig {
 	}
 }
 
+type rawInferenceConfig struct {
+	VLLM map[string]any `yaml:"vllm"`
+}
+
+// loadUserSpeculativeConfig returns true when the user-provided inference
+// ConfigMap already sets vllm.speculative-config. Callers should only invoke it
+// on the vLLM + annotation=true path so unrelated workloads do not gain a new
+// dependency on ConfigMap readability/parsing.
+func loadUserSpeculativeConfig(ctx context.Context, kubeClient client.Client, ws *v1beta1.Workspace) (bool, error) {
+	if ws == nil || ws.Inference == nil || ws.Inference.Config == "" {
+		return false, nil
+	}
+	if kubeClient == nil {
+		return false, fmt.Errorf("kube client is required to read inference config %q", ws.Inference.Config)
+	}
+
+	var cm corev1.ConfigMap
+	if err := kubeClient.Get(ctx, client.ObjectKey{Name: ws.Inference.Config, Namespace: ws.Namespace}, &cm); err != nil {
+		return false, fmt.Errorf("get inference config ConfigMap %s/%s: %w", ws.Namespace, ws.Inference.Config, err)
+	}
+
+	inferenceConfigYAML, ok := cm.Data[pkgmodel.ConfigfileNameVLLM]
+	if !ok {
+		return false, fmt.Errorf("ConfigMap %s/%s missing %q", ws.Namespace, ws.Inference.Config, pkgmodel.ConfigfileNameVLLM)
+	}
+
+	var cfg rawInferenceConfig
+	if err := yaml.Unmarshal([]byte(inferenceConfigYAML), &cfg); err != nil {
+		return false, fmt.Errorf("parse %s/%s %q: %w", ws.Namespace, ws.Inference.Config, pkgmodel.ConfigfileNameVLLM, err)
+	}
+	if cfg.VLLM == nil {
+		return false, nil
+	}
+	_, ok = cfg.VLLM["speculative-config"]
+	return ok, nil
+}
+
 // applySpeculativeDecoding evaluates the speculative-decoding annotation and,
 // when applicable, mutates inferenceParam.VLLM.ModelRunParams to include the
 // --speculative-config flag. The decision is returned so callers (and tests)
 // can assert the reason without inspecting the ModelRunParams map.
-func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.RuntimeName, inferenceParam *pkgmodel.PresetParam) (SpecDecoDecision, error) {
+func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.RuntimeName, inferenceParam *pkgmodel.PresetParam, userConfigHasSpeculativeOverride bool) (SpecDecoDecision, error) {
 	if runtimeName != pkgmodel.RuntimeNameVLLM ||
 		ws.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding] != "true" {
 		return SpecDecoSkip, nil
@@ -1255,8 +1302,9 @@ func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.Runtim
 		// reject signal, and single-request spec decoding cannot hide
 		// PP bubbles.
 	}
-	// TODO(#2303-followup): honor ConfigMap-provided speculative-config override
-	// (return SpecDecoConfigMapOverride and emit a SpeculativeDecodingConfigMapOverride event).
+	if userConfigHasSpeculativeOverride {
+		return SpecDecoConfigMapOverride, nil
+	}
 
 	// Preset-tuned entry wins when present (e.g. mtp for DeepSeek R1/V3/V3.2). Otherwise
 	// fall back to the universal ngram default so any preset the user opts into

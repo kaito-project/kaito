@@ -38,6 +38,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	utilsinferenceset "github.com/kaito-project/kaito/pkg/utils/inferenceset"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
@@ -365,6 +366,41 @@ func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
 // TestInferenceSetBenchmarkAggregation covers the TPM sum and BenchmarkCompleted
 // condition logic inside addOrUpdateInferenceSet.
 // --------------------------------------------------------------------------
+
+func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
+	iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
+	iObj.Labels = map[string]string{
+		v1beta1.LabelInferenceRole: "prefill",
+	}
+	iObj.Spec.Template.Labels = map[string]string{
+		"team": "serving",
+	}
+	iObj.Spec.Template.Annotations = map[string]string{
+		v1beta1.AnnotationEnableSpeculativeDecoding: "true",
+	}
+
+	desired := utilsinferenceset.NewWorkspaceForInferenceSet(iObj)
+	ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+	ws.Labels = map[string]string{
+		"team":  "old-team",
+		"extra": "keep-me",
+	}
+	ws.Annotations = map[string]string{
+		v1beta1.AnnotationEnableSpeculativeDecoding: "false",
+		v1beta1.AnnotationDisableBenchmark:          "true",
+		"example.com/stale":                         "remove-me",
+	}
+
+	updated := reconcileExistingWorkspaceMetadata(ws, desired)
+	assert.True(t, updated)
+	assert.Equal(t, "serving", ws.Labels["team"])
+	assert.Equal(t, "prefill", ws.Labels[v1beta1.LabelInferenceRole])
+	assert.Equal(t, iObj.Name, ws.Labels[consts.WorkspaceCreatedByInferenceSetLabel])
+	assert.Equal(t, "keep-me", ws.Labels["extra"], "non-InferenceSet labels should remain additive")
+	assert.Equal(t, desired.Annotations, ws.Annotations, "annotations should exactly match the current desired child workspace state")
+
+	assert.False(t, reconcileExistingWorkspaceMetadata(ws, desired), "already-reconciled workspace metadata should be a no-op")
+}
 
 func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 	makeWorkspace := func(name string, tpm string) v1beta1.Workspace {

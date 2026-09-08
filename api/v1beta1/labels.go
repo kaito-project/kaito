@@ -66,6 +66,10 @@ const (
 	// --karpenter-node-classes flag. When unset, the default NodeClass is used.
 	AnnotationNodeClassName = KAITOPrefix + "node-class-name"
 
+	// AnnotationCapacityType selects on-demand or spot capacity for a Karpenter NodePool.
+	// When unset or empty, on-demand capacity is used.
+	AnnotationCapacityType = KAITOPrefix + "capacity-type"
+
 	// AnnotationDisableBenchmark disables the post-load throughput benchmark stage.
 	// The benchmark is enabled by default. Set to "true" on a Workspace to
 	// disable it; when absent or any other value, the benchmark runs.

@@ -74,16 +74,38 @@ func isInferenceSetWorkspace(ws *kaitov1beta1.Workspace) bool {
 	return ok
 }
 
+func resolveCapacityType(ws *kaitov1beta1.Workspace) (string, error) {
+	capacityType := ws.Annotations[kaitov1beta1.AnnotationCapacityType]
+	if capacityType == "" {
+		return consts.KarpenterCapacityTypeOnDemand, nil
+	}
+	switch capacityType {
+	case consts.KarpenterCapacityTypeOnDemand, consts.KarpenterCapacityTypeSpot:
+		return capacityType, nil
+	default:
+		return "", fmt.Errorf("annotation %s=%q is invalid: supported values are %q and %q",
+			kaitov1beta1.AnnotationCapacityType,
+			capacityType,
+			consts.KarpenterCapacityTypeOnDemand,
+			consts.KarpenterCapacityTypeSpot)
+	}
+}
+
 // nodePoolRequirements builds the NodePool requirements list.
-// The instance-type requirement is always included. Provider-specific
+// The instance-type and capacity-type requirements are always included. Provider-specific
 // requirements (e.g. Azure placement scope) are added based on the
 // NodeClassConfig group.
-func nodePoolRequirements(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) []karpenterv1.NodeSelectorRequirementWithMinValues {
+func nodePoolRequirements(ws *kaitov1beta1.Workspace, cfg NodeClassConfig, capacityType string) []karpenterv1.NodeSelectorRequirementWithMinValues {
 	reqs := []karpenterv1.NodeSelectorRequirementWithMinValues{
 		{
 			Key:      corev1.LabelInstanceTypeStable,
 			Operator: corev1.NodeSelectorOpIn,
 			Values:   []string{ws.Resource.InstanceType},
+		},
+		{
+			Key:      consts.KarpenterCapacityTypeLabel,
+			Operator: corev1.NodeSelectorOpIn,
+			Values:   []string{capacityType},
 		},
 	}
 	// Azure Karpenter requires regional placement scope.
@@ -98,7 +120,7 @@ func nodePoolRequirements(ws *kaitov1beta1.Workspace, cfg NodeClassConfig) []kar
 }
 
 // generateNodePool builds a karpenter NodePool manifest for the given Workspace.
-func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig, nodeClassName string) *karpenterv1.NodePool {
+func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig, nodeClassName, capacityType string) *karpenterv1.NodePool {
 	nodePoolName := NodePoolName(ws.Namespace, ws.Name)
 
 	// Drift budget: InferenceSet workspaces start with "0" (blocked),
@@ -156,7 +178,7 @@ func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig, nodeClass
 						Kind:  cfg.Kind,
 						Name:  nodeClassName,
 					},
-					Requirements: nodePoolRequirements(ws, cfg),
+					Requirements: nodePoolRequirements(ws, cfg, capacityType),
 					Taints: []corev1.Taint{
 						{
 							Key:    consts.SKUString,

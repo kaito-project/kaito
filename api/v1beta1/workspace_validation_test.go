@@ -2166,6 +2166,56 @@ func TestWorkspaceValidateNodeClassNameAnnotation(t *testing.T) {
 	})
 }
 
+func TestWorkspaceCapacityTypeAnnotation(t *testing.T) {
+	originalProvisioner := consts.ActiveNodeProvisioner
+	consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
+	t.Cleanup(func() { consts.ActiveNodeProvisioner = originalProvisioner })
+
+	for _, value := range []string{"", consts.KarpenterCapacityTypeOnDemand, consts.KarpenterCapacityTypeSpot} {
+		ws := &Workspace{ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{AnnotationCapacityType: value},
+		}}
+		if errs := ws.validateCapacityTypeAnnotation(); errs != nil {
+			t.Errorf("validateCapacityTypeAnnotation() rejected %q: %v", value, errs)
+		}
+	}
+
+	invalid := &Workspace{ObjectMeta: metav1.ObjectMeta{
+		Annotations: map[string]string{AnnotationCapacityType: "reserved"},
+	}}
+	if errs := invalid.validateCapacityTypeAnnotation(); errs == nil {
+		t.Fatal("validateCapacityTypeAnnotation() accepted an unsupported value")
+	}
+
+	t.Run("valid value is immutable", func(t *testing.T) {
+		old := &Workspace{ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{AnnotationCapacityType: consts.KarpenterCapacityTypeOnDemand},
+		}}
+		updated := old.DeepCopy()
+		updated.Annotations[AnnotationCapacityType] = consts.KarpenterCapacityTypeSpot
+		if errs := updated.validateCapacityTypeAnnotationUpdate(old); errs == nil {
+			t.Fatal("validateCapacityTypeAnnotationUpdate() allowed a valid capacity type to change")
+		}
+	})
+
+	t.Run("invalid legacy value can be repaired", func(t *testing.T) {
+		old := invalid.DeepCopy()
+		updated := old.DeepCopy()
+		updated.Annotations[AnnotationCapacityType] = consts.KarpenterCapacityTypeOnDemand
+		if errs := updated.validateCapacityTypeAnnotationUpdate(old); errs != nil {
+			t.Errorf("validateCapacityTypeAnnotationUpdate() rejected legacy repair: %v", errs)
+		}
+	})
+
+	t.Run("annotation is inert outside karpenter", func(t *testing.T) {
+		consts.ActiveNodeProvisioner = consts.NodeProvisionerBYO
+		defer func() { consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter }()
+		if errs := invalid.validateCapacityTypeAnnotation(); errs != nil {
+			t.Errorf("validateCapacityTypeAnnotation() rejected inert annotation: %v", errs)
+		}
+	})
+}
+
 func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 	RegisterValidationTestModels()
 

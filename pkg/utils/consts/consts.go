@@ -98,6 +98,12 @@ func IsKarpenterProvisioner() bool {
 	return ActiveNodeProvisioner == NodeProvisionerKarpenter
 }
 
+// IsSupportedKarpenterCapacityType reports whether a Workspace annotation value
+// can be used as a Karpenter capacity-type requirement. Empty selects the default.
+func IsSupportedKarpenterCapacityType(value string) bool {
+	return value == "" || value == KarpenterCapacityTypeOnDemand || value == KarpenterCapacityTypeSpot
+}
+
 // allowedNodeClassNames is the sorted set of NodeClass names declared via
 // --karpenter-node-classes. Set once during startup in main.go; read by the Workspace
 // admission webhook to validate the node-class-name annotation. Unexported so callers
@@ -122,11 +128,14 @@ const (
 	NodeClassName                 = "default"
 
 	// Karpenter provisioner related consts
-	KarpenterLabelManagedBy    = "karpenter.kaito.sh/managed-by"
-	KarpenterManagedByValue    = "kaito"
-	AKSNodeClassUbuntuName     = "image-family-ubuntu"
-	AKSNodeClassAzureLinuxName = "image-family-azure-linux"
-	AKSNodeClassOSDiskSizeGB   = 300
+	KarpenterLabelManagedBy       = "karpenter.kaito.sh/managed-by"
+	KarpenterManagedByValue       = "kaito"
+	KarpenterCapacityTypeLabel    = "karpenter.sh/capacity-type"
+	KarpenterCapacityTypeOnDemand = "on-demand"
+	KarpenterCapacityTypeSpot     = "spot"
+	AKSNodeClassUbuntuName        = "image-family-ubuntu"
+	AKSNodeClassAzureLinuxName    = "image-family-azure-linux"
+	AKSNodeClassOSDiskSizeGB      = 300
 
 	// machine related consts
 	ProvisionerName           = "default"

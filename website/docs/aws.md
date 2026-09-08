@@ -216,6 +216,23 @@ kubectl run -it --rm --restart=Never curl --image=curlimages/curl -- \
   -d '{"model":"phi-4-mini-instruct","messages":[{"role":"user","content":"Say hello in one short sentence."}],"max_tokens":40}'
 ```
 
+### Select a Capacity Type
+
+KAITO uses on-demand capacity for every new Karpenter `NodePool` by default. To opt a
+`Workspace` into Spot capacity, set the following annotation when creating it:
+
+```yaml
+metadata:
+  annotations:
+    kaito.sh/capacity-type: spot
+```
+
+The supported values are `on-demand` and `spot`. An absent or empty annotation means
+`on-demand`. The annotation is immutable after creation and does not modify existing
+NodePools. For an `InferenceSet`, place it under
+`spec.template.metadata.annotations`. For a `MultiRoleInference`, place it in the
+resource's top-level `metadata.annotations`; the selection applies to every role.
+
 ## Supported AWS GPU Instance Types
 
 KAITO supports various AWS GPU SKUs; see the [supported options here](https://github.com/kaito-project/kaito/blob/main/pkg/sku/aws_sku_handler.go).

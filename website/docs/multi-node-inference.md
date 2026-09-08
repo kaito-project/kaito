@@ -89,11 +89,15 @@ Each pod learns its role from a `POD_INDEX` environment variable, projected from
 
 ```sh
 if [ "${POD_INDEX}" = "0" ]; then
-  /workspace/vllm/multi-node-serving.sh leader ...   # Ray head + vLLM API
+  /workspace/vllm/multi-node-serving.sh leader ... && python3 /workspace/vllm/inference_api.py ...
 else
   /workspace/vllm/multi-node-serving.sh worker ...   # Ray worker joins leader
 fi
 ```
+
+The leader's two commands are chained with `&&`, not `;`: `multi-node-serving.sh leader` blocks
+until `ray_cluster_size` nodes have joined and exits non-zero on timeout, so the API server is
+only launched against a fully formed cluster.
 
 Workers find the leader through a **headless Service** that gives every pod a stable DNS name. The leader address is constructed as (`GetRayLeaderHost`):
 
@@ -102,6 +106,23 @@ Workers find the leader through a **headless Service** that gives every pod a st
 ```
 
 Ray cluster communication uses port **6379** (`PortRayCluster`), and the leader is told the expected `ray_cluster_size` so it waits for all workers to join before initialization completes.
+
+### Object-storage model assets on workers
+
+When the model is served straight from object storage (`az://`, `s3://`, `gs://` via the Run:ai
+streamer), vLLM downloads the non-weight files — `config.json`, tokenizer, processor and
+`trust_remote_code` modules — only on the node that builds `ModelConfig`, then passes the
+resolved *local* directory to the remote workers. Because KAITO runs `inference_api.py` on the
+leader only, workers would otherwise start against an empty directory
+([vllm#50616](https://github.com/vllm-project/vllm/issues/50616)).
+
+Before starting the server, the leader therefore fans out a short Ray task to **every** node that
+pulls the same non-weight files into that node's `$VLLM_ASSETS_CACHE/model_streamer/<hash>`
+directory. The directory name is derived from the model URI alone, so each node ends up with the
+assets at exactly the path the driver hands to its workers. Weight files are excluded — the
+Run:ai streamer reads those directly from object storage. Use
+`--kaito-model-asset-prefetch-timeout` (default 600s) to bound the barrier. This is a temporary
+workaround and will be removed once the upstream fix ships.
 
 ## Services and ports
 

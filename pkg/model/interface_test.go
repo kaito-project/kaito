@@ -14,6 +14,7 @@
 package model
 
 import (
+	"os/exec"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -459,6 +460,38 @@ func TestGetInferenceCommandVLLMMultiNode(t *testing.T) {
 	require.Len(t, cmd, 3)
 	// Multi-node path wraps in if/else on POD_INDEX
 	assert.Contains(t, cmd[2], "POD_INDEX")
+	assert.Contains(t, cmd[2], "--ray_cluster_size=2")
+	assert.Contains(t, cmd[2], " && vllm serve")
+}
+
+func TestMultiNodeRayCommandRequiresReadyCluster(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		leader  string
+		started bool
+	}{
+		{name: "ready", leader: "true", started: true},
+		{name: "failed", leader: "false", started: false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			p := &PresetParam{RuntimeParam: RuntimeParam{VLLM: VLLMParam{
+				BaseCommand:          "printf server-started",
+				ModelRunParams:       map[string]string{},
+				RayLeaderBaseCommand: tc.leader,
+				RayWorkerBaseCommand: "true",
+			}}}
+			t.Setenv("POD_INDEX", "0")
+			args := p.buildMultiNodeRayCommand(RuntimeContext{NumNodes: 2})
+			output, err := exec.Command(args[0], args[1:]...).CombinedOutput()
+			if tc.started {
+				require.NoError(t, err)
+				assert.Equal(t, "server-started", string(output))
+			} else {
+				require.Error(t, err)
+				assert.Empty(t, output)
+			}
+		})
+	}
 }
 
 func TestGetInferenceCommandUnknownRuntime(t *testing.T) {

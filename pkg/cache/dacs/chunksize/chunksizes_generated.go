@@ -566,6 +566,70 @@ var recommendedChunkSizes = map[string]int{
 	"mistral-7b-instruct-v0.3": 33554432,
 	"mistral-7b-instruct":      33554432, // alias (preset name)
 
+	// === mistral-small-4-119b-2603-nvfp4 ===
+	// repo:    mistralai/Mistral-Small-4-119B-2603-NVFP4 @ 45331841b631f4e281df8e959ea3cc9beb84298a
+	// tensors: 56,313   total: 70,801,959,560 B (65.94 GiB)
+	//
+	//      count       size(bytes)        size  dtype  shape            tensor
+	//       4608         4,194,304   4.000 MiB  U8     (2048, 2048)     layers.N.experts.N.w1.weight_packed
+	//       4608         4,194,304   4.000 MiB  U8     (4096, 1024)     layers.N.experts.N.w2.weight_packed
+	//       4608         4,194,304   4.000 MiB  U8     (2048, 2048)     layers.N.experts.N.w3.weight_packed
+	//       4608           524,288   0.500 MiB  F8_E4M3 (2048, 256)      layers.N.experts.N.w1.weight_scale
+	//       4608           524,288   0.500 MiB  F8_E4M3 (4096, 128)      layers.N.experts.N.w2.weight_scale
+	//       4608           524,288   0.500 MiB  F8_E4M3 (2048, 256)      layers.N.experts.N.w3.weight_scale
+	//         36        33,554,432  32.000 MiB  BF16   (4096, 4096)     layers.N.attention.wo.weight
+	//          1     1,073,741,824  1024.000 MiB  BF16   (131072, 4096)   output.weight
+	//          1     1,073,741,824  1024.000 MiB  BF16   (131072, 4096)   tok_embeddings.weight
+	//         36         8,388,608   8.000 MiB  BF16   (1024, 4096)     layers.N.attention.wq_a.weight
+	//         36         8,388,608   8.000 MiB  BF16   (4096, 1024)     layers.N.attention.wq_b.weight
+	//         24         8,388,608   8.000 MiB  BF16   (4096, 1024)     vision_encoder.transformer.layers.N.feed_forward.w1.weight
+	//         24         8,388,608   8.000 MiB  BF16   (1024, 4096)     vision_encoder.transformer.layers.N.feed_forward.w2.weight
+	//         24         8,388,608   8.000 MiB  BF16   (4096, 1024)     vision_encoder.transformer.layers.N.feed_forward.w3.weight
+	//         36         4,194,304   4.000 MiB  U8     (2048, 2048)     layers.N.shared_experts.w1.weight_packed
+	//         36         4,194,304   4.000 MiB  U8     (4096, 1024)     layers.N.shared_experts.w2.weight_packed
+	//         36         4,194,304   4.000 MiB  U8     (2048, 2048)     layers.N.shared_experts.w3.weight_packed
+	//         36         3,145,728   3.000 MiB  BF16   (6144, 256)      layers.N.attention.wkv_b.weight
+	//         36         2,621,440   2.500 MiB  BF16   (320, 4096)      layers.N.attention.wkv_a_with_mqa.weight
+	//         24         2,097,152   2.000 MiB  BF16   (1024, 1024)     vision_encoder.transformer.layers.N.attention.wk.weight
+	//         24         2,097,152   2.000 MiB  BF16   (1024, 1024)     vision_encoder.transformer.layers.N.attention.wo.weight
+	//         24         2,097,152   2.000 MiB  BF16   (1024, 1024)     vision_encoder.transformer.layers.N.attention.wq.weight
+	//         24         2,097,152   2.000 MiB  BF16   (1024, 1024)     vision_encoder.transformer.layers.N.attention.wv.weight
+	//         36         1,048,576   1.000 MiB  BF16   (128, 4096)      layers.N.gate.weight
+	//          1        33,554,432  32.000 MiB  BF16   (4096, 4096)     vision_language_adapter.w_out.weight
+	//         36           524,288   0.500 MiB  F8_E4M3 (2048, 256)      layers.N.shared_experts.w1.weight_scale
+	//         36           524,288   0.500 MiB  F8_E4M3 (4096, 128)      layers.N.shared_experts.w2.weight_scale
+	//         36           524,288   0.500 MiB  F8_E4M3 (2048, 256)      layers.N.shared_experts.w3.weight_scale
+	//          1         8,388,608   8.000 MiB  BF16   (1024, 4096)     patch_merger.merging_layer.weight
+	//          1         8,388,608   8.000 MiB  BF16   (4096, 1024)     vision_language_adapter.w_in.weight
+	//          1         1,204,224   1.148 MiB  BF16   (1024, 3, 14, 14) vision_encoder.patch_conv.weight
+	//         36             8,192   0.008 MiB  BF16   (4096,)          layers.N.attention_norm.weight
+	//         36             8,192   0.008 MiB  BF16   (4096,)          layers.N.ffn_norm.weight
+	//         36             2,048   0.002 MiB  BF16   (1024,)          layers.N.attention.q_a_norm.weight
+	//         24             2,048   0.002 MiB  BF16   (1024,)          vision_encoder.transformer.layers.N.attention_norm.weight
+	//         24             2,048   0.002 MiB  BF16   (1024,)          vision_encoder.transformer.layers.N.ffn_norm.weight
+	//         36               512   0.000 MiB  BF16   (256,)           layers.N.attention.kv_a_norm.weight
+	//       4608                 4   0.000 MiB  F32    (1,)             layers.N.experts.N.w1.input_global_scale  <= modal (most tensors at this size)
+	//       4608                 4   0.000 MiB  F32    (1,)             layers.N.experts.N.w1.weight_global_scale  <= modal (most tensors at this size)
+	//       4608                 4   0.000 MiB  F32    (1,)             layers.N.experts.N.w2.input_global_scale  <= modal (most tensors at this size)
+	//       4608                 4   0.000 MiB  F32    (1,)             layers.N.experts.N.w2.weight_global_scale  <= modal (most tensors at this size)
+	//       4608                 4   0.000 MiB  F32    (1,)             layers.N.experts.N.w3.input_global_scale  <= modal (most tensors at this size)
+	//       4608                 4   0.000 MiB  F32    (1,)             layers.N.experts.N.w3.weight_global_scale  <= modal (most tensors at this size)
+	//          1             8,192   0.008 MiB  BF16   (4096,)          norm.weight
+	//          1             2,048   0.002 MiB  BF16   (1024,)          pre_mm_projector_norm.weight
+	//          1             2,048   0.002 MiB  BF16   (1024,)          vision_encoder.ln_pre.weight
+	//         36                 4   0.000 MiB  F32    (1,)             layers.N.shared_experts.w1.weight_global_scale  <= modal (most tensors at this size)
+	//         36                 4   0.000 MiB  F32    (1,)             layers.N.shared_experts.w2.weight_global_scale  <= modal (most tensors at this size)
+	//         36                 4   0.000 MiB  F32    (1,)             layers.N.shared_experts.w3.weight_global_scale  <= modal (most tensors at this size)
+	//         36                 2   0.000 MiB  BF16   (1,)             layers.N.shared_experts.w1.input_global_scale
+	//         36                 2   0.000 MiB  BF16   (1,)             layers.N.shared_experts.w2.input_global_scale
+	//         36                 2   0.000 MiB  BF16   (1,)             layers.N.shared_experts.w3.input_global_scale
+	//
+	// modal size: 4 B (0.000 MiB) shared by the most tensors (27,756 tensors at
+	// this size, tensors larger than 32 MiB counted as 32 MiB).
+	// recommended: 2,097,152 B (2.000 MiB) — raised to the 2 MiB minimum chunk floor.
+	// The full tensor layout above is retained verbatim; no rows are filtered out.
+	"mistral-small-4-119b-2603-nvfp4": 2097152,
+
 	// === ministral-3-3b-instruct ===
 	// repo:    mistralai/Ministral-3-3B-Instruct-2512 @ 83e15808ff6a115f18ff8e68123db3ab35035714
 	// tensors: 822   total: 4,671,990,488 B (4.35 GiB)

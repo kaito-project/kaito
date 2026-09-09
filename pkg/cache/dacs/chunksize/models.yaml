@@ -17,7 +17,9 @@
 # repo/revision to read headers from.
 #
 # Pin `revision` to a commit SHA for reproducible generation (the generated Go
-# file is checked in; CI does not refetch). Regenerate with:
+# file is checked in; CI does not refetch). Existing generated blocks with the
+# same name, repo, and revision are reused; only new or changed entries fetch
+# tensor metadata. Regenerate with:
 #
 #   make generate-chunksizes
 #
@@ -104,6 +106,10 @@ models:
   - name: mistral-7b-instruct
     repo: mistralai/Mistral-7B-Instruct-v0.3
     revision: e0bc86c23ce5aae1db576c8cca6f06f1f73af2db
+
+  - name: mistral-small-4-119b-2603-nvfp4
+    repo: mistralai/Mistral-Small-4-119B-2603-NVFP4
+    revision: 45331841b631f4e281df8e959ea3cc9beb84298a
 
   - name: ministral-3-3b-instruct
     repo: mistralai/Ministral-3-3B-Instruct-2512

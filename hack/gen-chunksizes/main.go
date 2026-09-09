@@ -61,6 +61,12 @@ type modelList struct {
 	Models []modelEntry `json:"models"`
 }
 
+type generatedBlockKey struct {
+	name     string
+	repo     string
+	revision string
+}
+
 // cacheEntry is the on-disk cache of a model's fetched tensor stats, keyed by
 // repo@revision so re-runs of the generator skip the (slow) HuggingFace fetch.
 type cacheEntry struct {
@@ -162,9 +168,16 @@ func main() {
 
 	client := &http.Client{Timeout: 120 * time.Second}
 
+	existingBlocks, err := readGeneratedBlocks(*outPath)
+	if err != nil {
+		log.Fatalf("read existing generated output %s: %v", *outPath, err)
+	}
+
 	var b strings.Builder
 	writeHeader(&b, *modelsPath)
 	seen := map[string]string{} // map key -> model name that first produced it
+	reused := 0
+	generated := 0
 	for _, m := range list.Models {
 		if m.Name == "" || m.Repo == "" {
 			log.Fatalf("model entry missing name or repo: %+v", m)
@@ -173,13 +186,6 @@ func main() {
 		if rev == "" {
 			rev = "main"
 		}
-		log.Printf("processing %s (%s @ %s)", m.Name, m.Repo, rev)
-		stats, totalTensors, totalBytes, err := readModelCached(client, *cacheDir, m.Repo, rev)
-		if err != nil {
-			log.Fatalf("read %s: %v", m.Name, err)
-		}
-		modal, modalCount := modalSize(stats)
-		recommended := applyFloor(modal)
 
 		// The runtime model name (PresetParam.Name) is the lowercased final path
 		// segment of the HuggingFace repo (see presets generator), so key the map
@@ -196,7 +202,24 @@ func main() {
 			}
 			seen[alias] = m.Name
 		}
+
+		blockKey := generatedBlockKey{name: m.Name, repo: m.Repo, revision: rev}
+		if block, ok := existingBlocks[blockKey]; ok {
+			log.Printf("reusing %s (%s @ %s)", m.Name, m.Repo, rev)
+			b.WriteString(block)
+			reused++
+			continue
+		}
+
+		log.Printf("processing new or changed model %s (%s @ %s)", m.Name, m.Repo, rev)
+		stats, totalTensors, totalBytes, err := readModelCached(client, *cacheDir, m.Repo, rev)
+		if err != nil {
+			log.Fatalf("read %s: %v", m.Name, err)
+		}
+		modal, modalCount := modalSize(stats)
+		recommended := applyFloor(modal)
 		writeModelBlock(&b, m, rev, key, alias, stats, totalTensors, totalBytes, modal, recommended, modalCount)
+		generated++
 	}
 	b.WriteString("}\n")
 
@@ -207,7 +230,45 @@ func main() {
 	if err := os.WriteFile(*outPath, src, 0o644); err != nil {
 		log.Fatalf("write %s: %v", *outPath, err)
 	}
-	log.Printf("wrote %s (%d models)", *outPath, len(list.Models))
+	log.Printf("wrote %s (%d models: %d reused, %d generated)", *outPath, len(list.Models), reused, generated)
+}
+
+// readGeneratedBlocks loads previously generated model blocks so unchanged
+// repo revisions remain authoritative and do not require another network fetch.
+func readGeneratedBlocks(path string) (map[generatedBlockKey]string, error) {
+	blocks := map[generatedBlockKey]string{}
+	rawBytes, err := os.ReadFile(path)
+	if os.IsNotExist(err) {
+		return blocks, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	raw := string(rawBytes)
+	markerRE := regexp.MustCompile(`(?m)^\t// === ([^\n]+) ===\n`)
+	repoRE := regexp.MustCompile(`(?m)^\t// repo:\s+(\S+) @ (\S+)\n`)
+	matches := markerRE.FindAllStringSubmatchIndex(raw, -1)
+	for i, match := range matches {
+		end := len(raw)
+		if i+1 < len(matches) {
+			end = matches[i+1][0]
+		} else if closing := strings.LastIndex(raw, "\n}"); closing >= match[0] {
+			end = closing + 1
+		}
+		block := raw[match[0]:end]
+		repoMatch := repoRE.FindStringSubmatch(block)
+		if len(repoMatch) != 3 {
+			continue
+		}
+		key := generatedBlockKey{
+			name:     raw[match[2]:match[3]],
+			repo:     repoMatch[1],
+			revision: repoMatch[2],
+		}
+		blocks[key] = block
+	}
+	return blocks, nil
 }
 
 // repoBasenameKey returns the lowercased final path segment of a HuggingFace
@@ -306,18 +367,25 @@ func readModel(client *http.Client, repo, revision string) (stats []kindStat, to
 	return stats, totalTensors, totalBytes, nil
 }
 
-// listShards returns the set of .safetensors shard filenames for the model,
-// using model.safetensors.index.json when present and falling back to a single
-// model.safetensors file.
+// listShards returns the set of .safetensors shard filenames for the model.
+// Hugging Face models generally use model.safetensors.index.json, while
+// native Mistral layouts use consolidated.safetensors.index.json.
 func listShards(client *http.Client, base string) ([]string, error) {
-	body, status, err := httpGet(client, base+"model.safetensors.index.json", nil)
-	if err != nil {
-		return nil, err
-	}
-	if status == http.StatusOK {
+	for _, indexName := range []string{"model.safetensors.index.json", "consolidated.safetensors.index.json"} {
+		body, status, err := httpGet(client, base+indexName, nil)
+		if err != nil {
+			return nil, err
+		}
+		if status == http.StatusNotFound {
+			continue
+		}
+		if status != http.StatusOK {
+			return nil, fmt.Errorf("%s GET status %d", indexName, status)
+		}
+
 		var idx safetensorsIndex
 		if err := json.Unmarshal(body, &idx); err != nil {
-			return nil, fmt.Errorf("parse index.json: %w", err)
+			return nil, fmt.Errorf("parse %s: %w", indexName, err)
 		}
 		set := map[string]struct{}{}
 		for _, shard := range idx.WeightMap {
@@ -330,6 +398,7 @@ func listShards(client *http.Client, base string) ([]string, error) {
 		sort.Strings(shards)
 		return shards, nil
 	}
+
 	// Single-file model.
 	return []string{"model.safetensors"}, nil
 }

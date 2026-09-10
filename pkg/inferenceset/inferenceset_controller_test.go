@@ -421,6 +421,10 @@ func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
 
 func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
 	t.Run("updates speculative decoding annotation without clobbering unrelated child annotations", func(t *testing.T) {
+		prevProvisioner := consts.ActiveNodeProvisioner
+		consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
+		defer func() { consts.ActiveNodeProvisioner = prevProvisioner }()
+
 		iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
 		iObj.Labels = map[string]string{
 			v1beta1.LabelInferenceRole: "prefill",
@@ -430,6 +434,7 @@ func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
 		}
 		iObj.Spec.Template.Annotations = map[string]string{
 			v1beta1.AnnotationEnableSpeculativeDecoding: "true",
+			v1beta1.AnnotationCapacityType:              consts.KarpenterCapacityTypeSpot,
 		}
 
 		desired := utilsinferenceset.NewWorkspaceForInferenceSet(iObj)
@@ -440,6 +445,7 @@ func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
 		}
 		ws.Annotations = map[string]string{
 			v1beta1.AnnotationEnableSpeculativeDecoding: "false",
+			v1beta1.AnnotationCapacityType:              "reserved",
 			v1beta1.AnnotationDisableBenchmark:          "true",
 			"workspace.kaito.io/hash":                   "hash",
 			"workspace.kaito.io/revision":               "3",
@@ -454,6 +460,7 @@ func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
 		assert.Equal(t, iObj.Name, ws.Labels[consts.WorkspaceCreatedByInferenceSetLabel])
 		assert.Equal(t, "keep-me", ws.Labels["extra"], "non-InferenceSet labels should remain additive")
 		assert.Equal(t, "true", ws.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding])
+		assert.Equal(t, consts.KarpenterCapacityTypeSpot, ws.Annotations[v1beta1.AnnotationCapacityType])
 		assert.Equal(t, "hash", ws.Annotations["workspace.kaito.io/hash"])
 		assert.Equal(t, "3", ws.Annotations["workspace.kaito.io/revision"])
 		assert.Equal(t, "ts", ws.Annotations["kaito.sh/upgrade-start-time"])

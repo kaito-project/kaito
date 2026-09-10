@@ -21,8 +21,9 @@ script resolves everything else at pod runtime using the workload identity:
   3. Derive the storage account and container from the blobUri.
   4. Mint a SAS at the mint endpoint with {blobUri[, assetId]} -> SAS token.
   5. List the container with the SAS to discover the safetensors subpath -> model streaming URI.
-  6. Write AZURE_STORAGE_SAS_TOKEN, AZURE_STORAGE_ACCOUNT_NAME, and STREAM_MODEL_URI to the
-     shared env file so the main container's entrypoint wrapper can source them.
+  6. Prefetch non-weight model files into the shared volume's vLLM asset cache.
+  7. Write credentials, STREAM_MODEL_URI, and cache settings to the shared env file
+     so the main container's entrypoint wrapper can source them.
 
 Required environment variables:
     STREAM_DATAREFS_URL       - model endpoint URL. For public: the datarefs (mint) URL. For byo:
@@ -32,18 +33,23 @@ Required environment variables:
     STREAM_ENV_FILE           - file path to write the env file (KEY=value lines)
 """
 
+import hashlib
 import json
 import os
-import re
+import shutil
 import sys
+import tempfile
 import urllib.parse
 import urllib.request
-import xml.sax.saxutils
+import xml.etree.ElementTree as ET
 
 from azure.identity import WorkloadIdentityCredential
 
 SOURCE_PUBLIC = "public"
 SOURCE_BYO = "byo"
+
+# Match vLLM ModelConfig.maybe_pull_model_tokenizer_for_runai.
+WEIGHT_SUFFIXES = (".pt", ".safetensors", ".bin", ".tensors", ".pth")
 
 # Token audience per source type (fixed Azure AAD resource identifiers).
 AUDIENCE_BY_TYPE = {
@@ -131,34 +137,92 @@ def account_and_container(blob_uri: str) -> "tuple[str, str]":
     return account, container
 
 
-def discover_subpath(sas_uri: str) -> str:
-    """List the container via the SAS and return the common directory prefix of the
-    safetensors files (empty string when they are at the container root).
-
-    Pages through the full listing (Azure returns at most 5000 blobs per page plus a
-    NextMarker) and unescapes XML entities in blob names so paths with '&' etc. are correct.
-    """
+def list_blobs(sas_uri: str) -> list[str]:
+    """List blob names across all pages, decoding XML entities in names and markers."""
     base = sas_uri + "&restype=container&comp=list&include=metadata"
-    names: list = []
+    names: list[str] = []
     marker = ""
     while True:
-        url = base + ("&marker=" + urllib.parse.quote(marker) if marker else "")
-        with urllib.request.urlopen(url, timeout=30) as resp:
-            body = resp.read().decode("utf-8", errors="replace")
-        names.extend(
-            xml.sax.saxutils.unescape(n)
-            for n in re.findall(r"<Name>(.*?)</Name>", body)
+        url = base + (
+            "&marker=" + urllib.parse.quote(marker, safe="") if marker else ""
         )
-        m = re.search(r"<NextMarker>(.*?)</NextMarker>", body)
-        marker = xml.sax.saxutils.unescape(m.group(1)) if m and m.group(1) else ""
+        with urllib.request.urlopen(url, timeout=30) as resp:
+            page = ET.fromstring(resp.read())
+        for name in page.findall("./Blobs/Blob/Name"):
+            if not name.text:
+                raise ValueError("Blob listing contains an empty name")
+            names.append(name.text)
+        marker = page.findtext("NextMarker") or ""
         if not marker:
             break
+    return names
+
+
+def discover_subpath(names: list[str]) -> str:
+    """Return the common safetensors directory, or empty for the container root."""
     safetensors = [n for n in names if n.endswith(".safetensors")]
     if not safetensors:
         return ""
     if len(safetensors) == 1:
         return os.path.dirname(safetensors[0])
     return os.path.commonpath(safetensors)
+
+
+# TODO: Remove this prefetch workaround and its cache env exports once KAITO's
+# vLLM version includes the upstream fix for worker-side auxiliary-file downloads:
+# https://github.com/vllm-project/vllm/issues/50616
+def download_model_assets(
+    sas_uri: str, model_uri: str, subpath: str, names: list[str], cache_dir: str
+) -> None:
+    """Populate this pod's vLLM cache without downloading tensor files."""
+    model_hash = hashlib.sha256(model_uri.encode()).hexdigest()[:8]
+    destination = os.path.realpath(
+        os.path.join(cache_dir, "model_streamer", model_hash)
+    )
+    prefix = subpath + "/" if subpath else ""
+    source = urllib.parse.urlsplit(sas_uri)
+    downloaded = 0
+    for name in names:
+        if not name.startswith(prefix) or name.endswith(WEIGHT_SUFFIXES):
+            continue
+        relative_name = name[len(prefix) :]
+        if (
+            any(part in ("", ".", "..") for part in name.split("/"))
+            or "\\" in name
+            or "\x00" in name
+        ):
+            raise ValueError(f"Unsafe model asset path: {name!r}")
+        path = os.path.realpath(os.path.join(destination, relative_name))
+        if os.path.commonpath((destination, path)) != destination:
+            raise ValueError(f"Model asset escapes cache directory: {name!r}")
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        url = urllib.parse.urlunsplit(
+            (
+                source.scheme,
+                source.netloc,
+                source.path.rstrip("/") + "/" + urllib.parse.quote(name, safe="/"),
+                source.query,
+                "",
+            )
+        )
+        # Always re-download on init retries; never trust a partially populated cache.
+        with tempfile.TemporaryDirectory(dir=os.path.dirname(path)) as staging:
+            temporary_path = os.path.join(staging, "download")
+            with (
+                urllib.request.urlopen(url, timeout=30) as resp,
+                open(temporary_path, "wb") as output,
+            ):
+                shutil.copyfileobj(resp, output)
+                expected_size = resp.headers.get("Content-Length")
+                if expected_size is not None and output.tell() != int(expected_size):
+                    raise OSError(f"Incomplete model asset download: {name!r}")
+            os.replace(temporary_path, path)
+        downloaded += 1
+    if not downloaded:
+        raise ValueError(
+            "No non-weight model assets found at the streaming model prefix"
+        )
+    print(f"Downloaded {downloaded} model assets to {destination}")
 
 
 def write_env_file(out_path: str, values: dict) -> None:
@@ -214,8 +278,12 @@ def main() -> int:
     sas_token = sas_uri.split("?", 1)[1]
 
     # Discover the safetensors subpath and build the az:// model URI.
-    subpath = discover_subpath(sas_uri)
+    names = list_blobs(sas_uri)
+    subpath = discover_subpath(names)
     model_uri = f"az://{container}/{subpath}" if subpath else f"az://{container}"
+
+    cache_dir = os.path.join(os.path.dirname(os.path.abspath(out_path)), "assets")
+    download_model_assets(sas_uri, model_uri, subpath, names, cache_dir)
 
     write_env_file(
         out_path,
@@ -223,6 +291,8 @@ def main() -> int:
             "AZURE_STORAGE_SAS_TOKEN": sas_token,
             "AZURE_STORAGE_ACCOUNT_NAME": account,
             "STREAM_MODEL_URI": model_uri,
+            "VLLM_ASSETS_CACHE": cache_dir,
+            "VLLM_ASSETS_CACHE_MODEL_CLEAN": "0",
         },
     )
     print(f"SAS env file written to {out_path} (model_uri={model_uri})")

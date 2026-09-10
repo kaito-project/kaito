@@ -346,6 +346,13 @@ func reconcileExistingWorkspaceMetadata(ws *kaitov1beta1.Workspace, desired *kai
 		needsUpdate = true
 	}
 
+	if consts.IsKarpenterProvisioner() {
+		desiredCapacityType := desired.Annotations[kaitov1beta1.AnnotationCapacityType]
+		if repairInvalidWorkspaceCapacityType(ws, desiredCapacityType) {
+			needsUpdate = true
+		}
+	}
+
 	return needsUpdate
 }
 

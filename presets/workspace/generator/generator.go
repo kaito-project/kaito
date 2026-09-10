@@ -322,10 +322,10 @@ var (
 	}
 
 	// speculativeDecodingByPreset maps lowercased HuggingFace repo names to
-	// their validated speculative decoding configuration. This map is the
-	// single source of truth for which presets support speculative decoding
-	// and what parameters to use. Keys follow the same convention as
-	// catalogOverrides.
+	// their validated, preset-tuned speculative decoding configuration.
+	// Presets absent from this map can still opt into the universal ngram
+	// fallback; this map is only the source of truth for per-preset tuning.
+	// Keys follow the same convention as catalogOverrides.
 	speculativeDecodingByPreset = map[string]specDecoEntry{
 		"deepseek-ai/deepseek-r1-0528":   mtpSpecDecoEntry("deepseek-r1-0528"),
 		"deepseek-ai/deepseek-v3-0324":   mtpSpecDecoEntry("deepseek-v3-0324"),

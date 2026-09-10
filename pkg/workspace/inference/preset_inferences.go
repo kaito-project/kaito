@@ -1275,14 +1275,9 @@ func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.Runtim
 	}
 
 	// Current reachable injected methods in this PR are only preset-tuned mtp
-	// and the universal ngram fallback; both still run under PP, albeit with
-	// reduced realized speedup compared to single-node. If KAITO later wires a
-	// method that is not PP-safe, add an explicit guard here before injection.
-	// TODO(#2303-followup): when ws.Status.TargetNodeCount > 1 for ngram / mtp,
-	// emit a Warning event (SpeculativeDecodingReducedUnderPP) so operators know
-	// the realized speedup is smaller than single-node. Each iteration eats a
-	// full pipeline round-trip for the accept/reject signal, and single-request
-	// spec decoding cannot hide PP bubbles.
+	// and the universal ngram fallback; both are allowed under pipeline
+	// parallelism. If KAITO later wires a method that is not PP-safe, add an
+	// explicit guard here before injection.
 	// Preset-tuned entry wins when present (e.g. mtp for DeepSeek R1/V3/V3.2). Otherwise
 	// fall back to the universal ngram default so any preset the user opts into
 	// still gets a working speculative-config injection.

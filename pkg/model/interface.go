@@ -584,8 +584,8 @@ func (p *PresetParam) buildMultiNodeRayCommand(rc RuntimeContext) []string {
 	rayLeaderCommand := utils.BuildCmdStr(p.VLLM.RayLeaderBaseCommand, p.VLLM.RayLeaderParams)
 	modelRunCommand := utils.BuildCmdStr(p.VLLM.BaseCommand, p.VLLM.ModelRunParams)
 	result := utils.BuildIfElseCmdStr(
-		`[ "${POD_INDEX}" = "0" ]`,                                      // leader if pod index is 0, otherwise worker
-		strings.Join([]string{rayLeaderCommand, modelRunCommand}, "; "), // leader: start ray head + model
+		`[ "${POD_INDEX}" = "0" ]`,                                        // leader if pod index is 0, otherwise worker
+		strings.Join([]string{rayLeaderCommand, modelRunCommand}, " && "), // start model only after Ray is ready
 		map[string]string{},
 		p.VLLM.RayWorkerBaseCommand, // worker: join the cluster
 		p.VLLM.RayWorkerParams,

@@ -38,7 +38,6 @@ const (
 	// length: a representative serving batch rather than vLLM's max_num_seqs.
 	mambaStateReferenceConcurrency = 64
 )
-
 // NodeEstimator estimates node count based on SKU memory and model memory requirement
 type NodeEstimator struct {
 	// no fields needed

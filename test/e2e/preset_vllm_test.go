@@ -279,6 +279,29 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceSetChatCompletionsEndpoint(childWS, inferenceSetObj.Name)
 	})
 
+	It("should create a XiaomiMiMo/MiMo-7B-Base InferenceSet with speculative decoding enabled", utils.GinkgoLabelFastCheck, utils.GinkgoLabelMinimumRequired, func() {
+		// XiaomiMiMo/MiMo-7B-Base is in speculativeDecodingByPreset, so the
+		// InferenceSet -> child Workspace propagation path should inject the
+		// preset-tuned MTP configuration instead of the universal ngram
+		// fallback. This complements the Gemma fallback test above by proving
+		// a supported preset survives admission, replica creation, and a real
+		// inference round-trip with speculative decoding enabled.
+		numOfReplicas := 1
+		inferenceSetObj := createMiMo7BBaseInferenceSetWithSpeculativeDecodingAndVLLM(numOfReplicas)
+		DeferCleanup(func() {
+			cleanupResourcesForInferenceSet(inferenceSetObj)
+		})
+
+		validateInferenceSetStatus(inferenceSetObj)
+		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
+		validateInferenceSetSpeculativeDecodingMTPInjected(inferenceSetObj)
+
+		childWS := getFirstInferenceSetChildWorkspace(inferenceSetObj)
+		validateWorkspaceReadiness(childWS)
+		validateInferenceSetModelsEndpoint(childWS, inferenceSetObj.Name)
+		validateInferenceSetChatCompletionsEndpoint(childWS, inferenceSetObj.Name)
+	})
+
 	It("should create a Gemma 3 InferenceSet with preset public mode and validate BBR routing", Serial, utils.GinkgoLabelFastCheck, func() {
 		Expect(isIstioCRDAvailable()).To(BeTrue(), "Istio CRDs must be available for BBR routing validation")
 
@@ -1280,6 +1303,28 @@ func createGemma4_E2BInstructInferenceSetWithSpeculativeDecodingAndVLLM(replicas
 	return inferenceSetObj
 }
 
+func createMiMo7BBaseInferenceSetWithSpeculativeDecodingAndVLLM(replicas int) *kaitov1beta1.InferenceSet {
+	modelSecret := createAndValidateModelSecret()
+	inferenceSetObj := &kaitov1beta1.InferenceSet{}
+
+	By("Creating an InferenceSet CR with XiaomiMiMo/MiMo-7B-Base preset public mode, vLLM, and speculative-decoding annotation", func() {
+		uniqueID := fmt.Sprint("preset-mimo-7b-spec-is-", rand.Intn(1000))
+		inferenceSetObj = utils.GenerateInferenceSetManifestWithVLLM(uniqueID, namespaceName, "", replicas, "Standard_NV36ads_A10_v5",
+			&metav1.LabelSelector{
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-is-e2e-test-mimo-7b-vllm-specdec"},
+			}, PresetMiMo7BBaseModel, nil, nil, modelSecret.Name)
+
+		inferenceSetObj.Spec.Template.Annotations = utils.DisableModelStreaming(inferenceSetObj.Spec.Template.Annotations)
+		if inferenceSetObj.Spec.Template.Annotations == nil {
+			inferenceSetObj.Spec.Template.Annotations = map[string]string{}
+		}
+		inferenceSetObj.Spec.Template.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding] = "true"
+		createAndValidateInferenceSet(inferenceSetObj)
+	})
+
+	return inferenceSetObj
+}
+
 // validateInferenceSetSpeculativeDecodingNGramInjected asserts that at least
 // one child Workspace pod created by the InferenceSet was launched with the
 // vLLM --speculative-config flag carrying method=ngram and the KAITO
@@ -1323,6 +1368,39 @@ func validateInferenceSetSpeculativeDecodingNGramInjected(inferenceSetObj *kaito
 			}
 			return nil
 		}, 20*time.Minute, utils.PollInterval).Should(Succeed(), "universal ngram --speculative-config should be injected on the InferenceSet's child Workspace pods")
+	})
+}
+
+func validateInferenceSetSpeculativeDecodingMTPInjected(inferenceSetObj *kaitov1beta1.InferenceSet) {
+	By("Verifying a child Workspace pod was launched with --speculative-config method=mtp", func() {
+		Eventually(func() error {
+			pods := &corev1.PodList{}
+			if err := utils.TestingCluster.KubeClient.List(ctx, pods,
+				client.InNamespace(inferenceSetObj.Namespace),
+				client.MatchingLabels{consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name},
+			); err != nil {
+				return fmt.Errorf("list pods: %w", err)
+			}
+			if len(pods.Items) == 0 {
+				return fmt.Errorf("no child-workspace pods found for InferenceSet %s/%s", inferenceSetObj.Namespace, inferenceSetObj.Name)
+			}
+			for _, pod := range pods.Items {
+				if len(pod.Spec.Containers) == 0 {
+					return fmt.Errorf("pod %s has no containers", pod.Name)
+				}
+				cmdline := strings.Join(pod.Spec.Containers[0].Command, " ") + " " + strings.Join(pod.Spec.Containers[0].Args, " ")
+				if !strings.Contains(cmdline, "--speculative-config") {
+					return fmt.Errorf("pod %s missing --speculative-config in command/args: %s", pod.Name, cmdline)
+				}
+				if !strings.Contains(cmdline, `"method":"mtp"`) {
+					return fmt.Errorf("pod %s speculative-config not method=mtp: %s", pod.Name, cmdline)
+				}
+				if !strings.Contains(cmdline, `"num_speculative_tokens":1`) {
+					return fmt.Errorf("pod %s missing num_speculative_tokens=1 tuned MTP config: %s", pod.Name, cmdline)
+				}
+			}
+			return nil
+		}, 20*time.Minute, utils.PollInterval).Should(Succeed(), "preset-tuned mtp --speculative-config should be injected on the InferenceSet's child Workspace pods")
 	})
 }
 

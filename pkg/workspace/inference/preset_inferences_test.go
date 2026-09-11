@@ -95,7 +95,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			},
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
-			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.92 --max-model-len=auto --tensor-parallel-size=1 --served-model-name=mymodel",
+			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --max-model-len=auto --tensor-parallel-size=1 --served-model-name=mymodel",
 			hasAdapters:     false,
 			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar},
 		},
@@ -111,7 +111,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			// User-provided Inference.Config should mount the configmap and append
 			// --kaito-config-file pointing at the in-pod mount path.
 			inferenceConfig: "my-inference-config",
-			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.92 --max-model-len=auto --tensor-parallel-size=1 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
+			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --max-model-len=auto --tensor-parallel-size=1 --served-model-name=mymodel --kaito-config-file=/mnt/config/inference_config.yaml",
 			hasAdapters:     false,
 			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar},
 		},
@@ -126,7 +126,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			},
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
-			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.92 --max-model-len=auto --tensor-parallel-size=1",
+			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --max-model-len=auto --tensor-parallel-size=1",
 			hasAdapters:     false,
 			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar},
 		},
@@ -141,7 +141,7 @@ func TestGeneratePresetInference(t *testing.T) {
 			},
 			// No BaseCommand, AccelerateParams, or ModelRunParams
 			// So expected cmd consists of shell command and inference file
-			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.92 --max-model-len=auto --tensor-parallel-size=1",
+			expectedCmd:     "/bin/sh -c python3 /workspace/vllm/inference_api.py --max-model-len=auto --tensor-parallel-size=1",
 			hasAdapters:     false,
 			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar},
 		},
@@ -154,7 +154,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			expectedCmd:    "/bin/sh -c python3 /workspace/vllm/inference_api.py --enable-lora --gpu-memory-utilization=0.92 --max-model-len=auto --tensor-parallel-size=1 --served-model-name=mymodel",
+			expectedCmd:    "/bin/sh -c python3 /workspace/vllm/inference_api.py --enable-lora --max-model-len=auto --tensor-parallel-size=1 --served-model-name=mymodel",
 			hasAdapters:    true,
 			expectedVolume: "adapter-volume",
 			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar, {
@@ -202,7 +202,7 @@ func TestGeneratePresetInference(t *testing.T) {
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 			},
-			expectedCmd: `/bin/sh -c python3 /workspace/vllm/inference_api.py --gpu-memory-utilization=0.92 --max-model-len=auto --tensor-parallel-size=2 --model=test-repo/test-model-a100 --code-revision=test-revision --download-dir=/workspace/weights`,
+			expectedCmd: `/bin/sh -c python3 /workspace/vllm/inference_api.py --max-model-len=auto --tensor-parallel-size=2 --model=test-repo/test-model-a100 --code-revision=test-revision --download-dir=/workspace/weights`,
 			expectedEnvVars: []corev1.EnvVar{flashInferSamplerEnvVar, {
 				Name: "HF_TOKEN",
 				ValueFrom: &corev1.EnvVarSource{
@@ -1570,6 +1570,7 @@ func TestApplyGeneratorRuntimeOverrides(t *testing.T) {
 		modelName     string
 		architectures []string
 		gpuModel      string
+		isMIG         bool
 		runParams     map[string]string
 		want          map[string]string
 	}{
@@ -1578,7 +1579,6 @@ func TestApplyGeneratorRuntimeOverrides(t *testing.T) {
 			architectures: []string{"Qwen4ExpForConditionalGeneration"},
 			gpuModel:      "NVIDIA H100",
 			want: map[string]string{
-				"gpu-memory-utilization":            "0.92",
 				"attention-config.indexer_kv_dtype": "fp8",
 			},
 		},
@@ -1587,7 +1587,6 @@ func TestApplyGeneratorRuntimeOverrides(t *testing.T) {
 			architectures: []string{"Qwen4ExpForConditionalGeneration"},
 			gpuModel:      "A100-SXM4-80GB",
 			want: map[string]string{
-				"gpu-memory-utilization":            "0.92",
 				"attention-config.indexer_kv_dtype": "bf16",
 			},
 		},
@@ -1605,17 +1604,29 @@ func TestApplyGeneratorRuntimeOverrides(t *testing.T) {
 			modelName: "deepseek-v4-flash-0731",
 			gpuModel:  "NVIDIA H100",
 			want: map[string]string{
-				"gpu-memory-utilization":            "0.92",
 				"compilation-config.cudagraph_mode": "NONE",
 			},
+		},
+		{
+			name:     "MIG slice forces planning value",
+			gpuModel: "",
+			isMIG:    true,
+			want: map[string]string{
+				"gpu-memory-utilization": "0.92",
+			},
+		},
+		{
+			name:      "explicit user value preserved without cap",
+			gpuModel:  "NVIDIA H100",
+			runParams: map[string]string{"gpu-memory-utilization": "0.75"},
+			want:      map[string]string{"gpu-memory-utilization": "0.75"},
 		},
 		{
 			name:      "A100 selects Marlin",
 			modelName: "mistral-medium-3.5-128b",
 			gpuModel:  "NVIDIA A100",
 			want: map[string]string{
-				"gpu-memory-utilization": "0.92",
-				"linear-backend":         "marlin",
+				"linear-backend": "marlin",
 			},
 		},
 		{
@@ -1627,7 +1638,6 @@ func TestApplyGeneratorRuntimeOverrides(t *testing.T) {
 				"linear-backend":                    "torch",
 			},
 			want: map[string]string{
-				"gpu-memory-utilization":            "0.92",
 				"compilation-config.cudagraph_mode": "PIECEWISE",
 				"linear-backend":                    "torch",
 			},
@@ -1641,7 +1651,7 @@ func TestApplyGeneratorRuntimeOverrides(t *testing.T) {
 					ModelRunParams: tc.runParams,
 				}},
 			}
-			applyGeneratorRuntimeOverrides(params, &sku.GPUConfig{GPUModel: tc.gpuModel})
+			applyGeneratorRuntimeOverrides(params, &sku.GPUConfig{GPUModel: tc.gpuModel, IsMIG: tc.isMIG})
 			if !reflect.DeepEqual(params.VLLM.ModelRunParams, tc.want) {
 				t.Fatalf("runtime overrides = %#v, want %#v", params.VLLM.ModelRunParams, tc.want)
 			}

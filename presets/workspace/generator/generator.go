@@ -481,13 +481,23 @@ func SupportsMaxNumSeqsEstimate(architectures []string, gpuModel string) bool {
 	return false
 }
 
-// ResolveGPUMemoryUtilization returns the vLLM GPU memory utilization for the
-// target GPU.
+// ResolveGPUMemoryUtilization returns the --gpu-memory-utilization the node
+// estimator plans capacity with for the target GPU. A per-GPU safety cap wins
+// over the default planning assumption. Only capped GPUs and MIG slices have
+// this value passed to vLLM; see HasGPUMemoryUtilizationCap.
 func ResolveGPUMemoryUtilization(gpuModel string) string {
 	if utilization, ok := gpuMemoryUtilizationByGPUModel[sku.CanonicalGPUModel(gpuModel)]; ok {
 		return utilization
 	}
 	return defaultGPUMemoryUtilization
+}
+
+// HasGPUMemoryUtilizationCap reports whether the GPU model has a hard safety
+// cap that must win over vLLM's own free-memory-based default
+// (get_max_gpu_memory_utilization() in inference_api.py).
+func HasGPUMemoryUtilizationCap(gpuModel string) bool {
+	_, ok := gpuMemoryUtilizationByGPUModel[sku.CanonicalGPUModel(gpuModel)]
+	return ok
 }
 
 // ResolveCUDAGraphMode uses the longest model name prefix for the target GPU,

@@ -1,0 +1,447 @@
+name: Preset Model Regression Test
+
+# Regression-tests preset model deployments across GPU families.
+#
+# One dedicated AKS cluster is created per GPU pool (A10 / A100 / H100) and the
+# pools run in parallel; inside a pool the models are deployed one at a time so
+# they never compete for GPU quota. Nothing is fail-fast: every model is torn down
+# and the run continues, then the pool job prints its summary plus per-failure
+# diagnostics and exits non-zero if any model failed.
+#
+# The test matrix lives in .github/preset-regression-models.json.
+#
+# Nothing is provisioned automatically: the per-pool job targets the protected
+# `e2e-test` environment, so it sits in `waiting` until a maintainer approves the
+# deployment. Only the plan job (a jq read of the matrix file) runs unattended.
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      gpus:
+        description: "Comma-separated GPU pools to test (a10,a100,h100)"
+        required: false
+        default: "a10,a100,h100"
+        type: string
+      models:
+        description: "Comma-separated substrings; only matching models run (empty = all)"
+        required: false
+        default: ""
+        type: string
+      subscription:
+        description: "Azure subscription name or id to run in"
+        required: false
+        default: "AKS Upstream E2E"
+        type: string
+      max_hours:
+        description: "Per-pool wall-clock budget; remaining models are reported as skipped"
+        required: false
+        default: "20"
+        type: string
+      node_provisioner:
+        description: "Node provisioner (karpenter drops the local NVMe disk on A100/H100 - kaito#2282)"
+        required: false
+        default: "gpuprovisioner"
+        type: choice
+        options:
+          - gpuprovisioner
+          - azkarpenter
+      build_base_image:
+        description: "Build the kaito-base image (auto = only when the tag is missing from MCR)"
+        required: false
+        default: "auto"
+        type: choice
+        options:
+          - auto
+          - "true"
+          - "false"
+      keep_cluster:
+        description: "Keep the AKS clusters after the run (for debugging)"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+env:
+  GO_VERSION: "1.26.6"
+  CONFIG_FILE: ".github/preset-regression-models.json"
+
+jobs:
+  plan:
+    name: plan
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      has_targets: ${{ steps.plan.outputs.has_targets }}
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Build GPU pool matrix
+        id: plan
+        env:
+          GPUS: ${{ inputs.gpus || 'a10,a100,h100' }}
+          MODEL_FILTER: ${{ inputs.models || '' }}
+        run: |
+          set -euo pipefail
+          MATRIX=$(jq -c --arg gpus "$GPUS" --arg filter "$MODEL_FILTER" '
+            .gpuPools as $pools
+            | ($gpus | ascii_downcase | split(",") | map(gsub("\\s"; "")) | map(select(length > 0))) as $requested
+            | ($filter | ascii_downcase | split(",") | map(gsub("^\\s+|\\s+$"; "")) | map(select(length > 0))) as $needles
+            | [ .models[] as $m
+                | select(($m.skip // false) | not)
+                | $m.targets[]
+                | select(($needles | length) == 0 or any($needles[]; inside($m.name | ascii_downcase)))
+                | .gpu ]
+            | unique
+            | map(select(. as $g | $requested | index($g)))
+            | map({
+                gpu: .,
+                region: $pools[.].region,
+                fallback_region: ($pools[.].fallbackRegion // "")
+              })
+            | { include: . }
+          ' "$CONFIG_FILE")
+
+          echo "matrix=${MATRIX}" >> "$GITHUB_OUTPUT"
+          COUNT=$(jq '.include | length' <<< "$MATRIX")
+          echo "has_targets=$([ "$COUNT" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "Planned GPU pools:"
+          jq '.include' <<< "$MATRIX"
+
+  regression:
+    name: ${{ matrix.gpu }} (${{ matrix.region }})
+    needs: plan
+    if: needs.plan.outputs.has_targets == 'true'
+    # NOTE: the pools only run truly in parallel when the e2e runner label has
+    # enough free runners; otherwise GitHub serializes them onto one runner.
+    runs-on: ["self-hosted", "hostname:kaito-e2e-github-runner"]
+    # Protected environment: a maintainer must approve before any cluster is created.
+    environment: e2e-test
+    permissions:
+      contents: read
+      id-token: write
+      actions: read # the leaked-group sweep asks whether a run is still active
+    # Hard ceiling; the real budget is the max_hours deadline enforced by the run script.
+    timeout-minutes: 2880
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    env:
+      GPU: ${{ matrix.gpu }}
+      AZURE_LOCATION: ${{ matrix.region }}
+      FALLBACK_LOCATION: ${{ matrix.fallback_region }}
+      SUBSCRIPTION: ${{ inputs.subscription || 'AKS Upstream E2E' }}
+      MODEL_FILTER: ${{ inputs.models || '' }}
+      KARPENTER_NAMESPACE: "karpenter"
+      GPU_PROVISIONER_NAMESPACE: "gpu-provisioner"
+      KAITO_NAMESPACE: "kaito-workspace"
+      # Also selects which MSI and federated credential generate-identities.sh creates.
+      TEST_SUITE: ${{ inputs.node_provisioner || 'gpuprovisioner' }}
+      # Shared by the name generator and the leaked-group sweep; keep them in sync.
+      RESOURCE_PREFIX: "kaitoregressiontest"
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+
+      - name: Remove existing Go modules directory
+        run: sudo rm -rf ~/go/pkg/mod
+
+      - name: Set up Go ${{ env.GO_VERSION }}
+        uses: actions/setup-go@v5.2.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: "v3.19.4"
+
+      - name: Install tooling
+        run: |
+          set -euo pipefail
+          if ! command -v az > /dev/null; then
+            curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+          fi
+          if ! command -v yq > /dev/null || ! yq --version | grep -q 'v4'; then
+            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64
+            sudo chmod +x /usr/local/bin/yq
+          fi
+          yq --version
+          jq --version
+
+      - name: Azure CLI login
+        run: |
+          set -euo pipefail
+          az login --identity
+          az account set --subscription "$SUBSCRIPTION"
+          SUB_ID=$(az account show --query id -o tsv)
+          SUB_NAME=$(az account show --query name -o tsv)
+          echo "Using subscription '${SUB_NAME}' (${SUB_ID})"
+          echo "AZURE_SUBSCRIPTION_ID=${SUB_ID}" >> "$GITHUB_ENV"
+
+      - name: Sweep leaked resource groups from earlier runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # A cancelled run or a dead runner never reaches its Cleanup step. Collect
+          # every group this workflow tagged whose owning run has finished; an active
+          # run's cluster (including this run's sibling GPU pools) is never touched.
+          run_is_active() {
+            local run_id="$1" resp code status
+            [ -n "$run_id" ] || return 1
+            [ "$run_id" != "${GITHUB_RUN_ID}" ] || return 0
+            resp="$(curl -sS -w '\n%{http_code}' \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}" 2>/dev/null || true)"
+            code="$(printf '%s' "$resp" | tail -n1)"
+            case "$code" in
+              200) status="$(printf '%s' "$resp" | sed '$d' | jq -r '.status // ""')" ;;
+              404) return 1 ;;              # run no longer exists, safe to reclaim
+              *)   return 0 ;;              # inconclusive, keep the group
+            esac
+            case "$status" in
+              queued | in_progress | waiting | pending | requested) return 0 ;;
+              *) return 1 ;;
+            esac
+          }
+
+          az group list --tag purpose=kaito-preset-regression \
+            --query "[].{name:name, runId:tags.runId}" -o tsv |
+            while read -r name run_id; do
+              [ -n "${name:-}" ] || continue
+              # Belt and braces: only ever touch groups this workflow names.
+              case "$name" in "${RESOURCE_PREFIX}"*) ;; *) continue ;; esac
+              if run_is_active "${run_id:-}"; then
+                echo "Keeping ${name} (run ${run_id:-<unknown>} is still active)"
+                continue
+              fi
+              echo "Deleting leaked resource group ${name} (from finished run ${run_id:-<unknown>})"
+              az group delete --name "$name" --yes --no-wait || true
+            done
+
+      - name: Set resource names
+        run: |
+          set -euo pipefail
+          NAME="${RESOURCE_PREFIX}${{ github.run_id }}${GPU}$(printf '%04x' $((RANDOM % 65536)))"
+          {
+            echo "VERSION=${NAME}"
+            echo "CLUSTER_NAME=${NAME}"
+            echo "REGISTRY=${NAME}.azurecr.io"
+          } >> "$GITHUB_ENV"
+
+      - name: Create resource group and ACR
+        run: |
+          set -euo pipefail
+          # The runId tag lets a later run reclaim this group if this one is
+          # cancelled or the runner dies before its Cleanup step.
+          az group create --name "$CLUSTER_NAME" --location "$AZURE_LOCATION" \
+            --tags purpose=kaito-preset-regression "runId=${{ github.run_id }}" -o none
+          az acr create --name "$CLUSTER_NAME" --resource-group "$CLUSTER_NAME" \
+            --location "$AZURE_LOCATION" --sku Standard --admin-enabled -o none
+          az acr login --name "$CLUSTER_NAME"
+
+      - name: Decide whether to build the kaito-base image
+        env:
+          BUILD_BASE_INPUT: ${{ inputs.build_base_image || 'auto' }}
+        run: |
+          set -euo pipefail
+          if [ "$BUILD_BASE_INPUT" = "auto" ]; then
+            BUILD=$(python3 .github/determine_missing_base_images.py | jq -r '[.[] | select(.name == "base")] | length > 0')
+          else
+            BUILD="$BUILD_BASE_INPUT"
+          fi
+          echo "BUILD_KAITO_BASE_IMAGE=${BUILD}" >> "$GITHUB_ENV"
+          echo "Build kaito-base image: ${BUILD}"
+
+      - name: Build kaito-base image
+        if: ${{ env.BUILD_KAITO_BASE_IMAGE == 'true' }}
+        run: |
+          docker buildx build \
+            --builder img-builder \
+            --build-arg VERSION="$VERSION" \
+            --build-arg MODEL_TYPE=text-generation \
+            --output "type=image,name=${REGISTRY}/kaito-base:${VERSION},push=true,compression=zstd" \
+            -f ./docker/presets/models/tfs/Dockerfile .
+
+      - name: Point the controller at the test base image
+        if: ${{ env.BUILD_KAITO_BASE_IMAGE == 'true' }}
+        run: |
+          set -euo pipefail
+          # The base tag is go:embed'ed into the controller binary, so this must
+          # happen before the controller image is built.
+          yq -i '(.images[] | select(.name == "base") | .registry) = strenv(REGISTRY)' presets/workspace/models/base_images.yaml
+          yq -i '(.images[] | select(.name == "base") | .tag) = strenv(VERSION)' presets/workspace/models/base_images.yaml
+          cat presets/workspace/models/base_images.yaml
+
+      - name: Build the workspace controller image
+        run: |
+          make generate
+          make docker-build-workspace
+        env:
+          REGISTRY: ${{ env.REGISTRY }}
+          IMG_NAME: "workspace"
+          IMG_TAG: ${{ env.VERSION }}
+          OUTPUT_TYPE: "type=registry"
+          ARCH: "amd64"
+
+      - name: Create AKS cluster
+        run: |
+          set -euo pipefail
+          create_cluster() {
+            # Pin the node resource group: the default MC_<rg>_<cluster>_<region>
+            # exceeds the 80-char limit once rg and cluster share a long name.
+            az aks create --name "$CLUSTER_NAME" --resource-group "$CLUSTER_NAME" \
+              --node-resource-group "MC_${CLUSTER_NAME}" \
+              --location "$1" --node-vm-size Standard_D4d_v4 --node-count 2 \
+              --generate-ssh-keys \
+              --network-plugin azure --network-plugin-mode overlay --network-dataplane cilium \
+              --enable-managed-identity --enable-workload-identity --enable-oidc-issuer -o none
+          }
+
+          set +e
+          create_cluster "$AZURE_LOCATION"
+          rc=$?
+          set -e
+          if [ $rc -ne 0 ]; then
+            if [ -z "$FALLBACK_LOCATION" ]; then
+              echo "::error::AKS creation failed in ${AZURE_LOCATION} and no fallback region is configured for ${GPU}"
+              exit 1
+            fi
+            echo "::warning::AKS creation failed in ${AZURE_LOCATION} (rc=${rc}); retrying in ${FALLBACK_LOCATION}"
+            create_cluster "$FALLBACK_LOCATION"
+            echo "AZURE_LOCATION=${FALLBACK_LOCATION}" >> "$GITHUB_ENV"
+          fi
+
+          # Attach the ACR separately: the AcrPull role assignment can transiently
+          # fail on AAD propagation, which must not force a cluster recreate.
+          for i in $(seq 1 8); do
+            if az aks update --name "$CLUSTER_NAME" --resource-group "$CLUSTER_NAME" \
+                --attach-acr "$CLUSTER_NAME" -o none; then
+              break
+            fi
+            echo "::warning::attach-acr attempt ${i}/8 failed; retrying in 15s"
+            sleep 15
+            if [ "$i" -eq 8 ]; then
+              echo "::error::failed to attach ACR"
+              exit 1
+            fi
+          done
+
+          az aks get-credentials --name "$CLUSTER_NAME" --resource-group "$CLUSTER_NAME" --overwrite-existing
+
+      - name: Install the node provisioner
+        run: |
+          set -euo pipefail
+          # generate-identities.sh branches on TEST_SUITE to build the right MSI.
+          make generate-identities
+          if [ "$TEST_SUITE" = "azkarpenter" ]; then
+            make azure-karpenter-helm
+          else
+            make gpu-provisioner-helm
+          fi
+        env:
+          AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
+          AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+
+      - name: Install KAITO workspace controller
+        run: |
+          make az-patch-install-helm
+          kubectl wait --for=condition=available deploy kaito-workspace -n "$KAITO_NAMESPACE" --timeout=600s
+        env:
+          AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
+          AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+          REGISTRY: ${{ env.REGISTRY }}
+          IMG_TAG: ${{ env.VERSION }}
+          HELM_INSTALL_EXTRA_ARGS: "--set nodeProvisioner=${{ (inputs.node_provisioner || 'gpuprovisioner') == 'azkarpenter' && 'karpenter' || 'azure-gpu-provisioner' }}"
+
+      - name: Wait for the validating webhook to be reachable
+        run: |
+          set -euo pipefail
+          # The Deployment reports Available before the webhook Service has endpoints,
+          # and a Workspace apply against an endpoint-less service fails admission.
+          end=$((SECONDS + 300))
+          while [ $SECONDS -lt $end ]; do
+            EP=$(kubectl get endpoints kaito-workspace-svc -n "$KAITO_NAMESPACE" \
+              -o jsonpath='{.subsets[0].addresses[0].ip}' 2>/dev/null || true)
+            if [ -n "$EP" ]; then
+              echo "Webhook endpoint ready: ${EP}"
+              exit 0
+            fi
+            echo "Waiting for kaito-workspace-svc endpoints..."
+            sleep 5
+          done
+
+          echo "::error::Timed out waiting for kaito-workspace-svc endpoints"
+          kubectl get pods -n "$KAITO_NAMESPACE" -o wide
+          kubectl get endpoints -n "$KAITO_NAMESPACE"
+          kubectl logs -n "$KAITO_NAMESPACE" deploy/kaito-workspace --tail=200 || true
+          exit 1
+
+      - name: Run preset model regression
+        run: |
+          set -euo pipefail
+          MAX_HOURS="${{ inputs.max_hours || '20' }}"
+          GLOBAL_DEADLINE_EPOCH=$(( $(date +%s) + MAX_HOURS * 3600 ))
+          export GLOBAL_DEADLINE_EPOCH
+          chmod +x .github/scripts/preset-regression-run.sh
+          .github/scripts/preset-regression-run.sh
+        env:
+          MODEL_FILTER: ${{ inputs.models || '' }}
+          RESULTS_FILE: "results-${{ matrix.gpu }}.json"
+          ARTIFACT_DIR: "artifacts/${{ matrix.gpu }}"
+
+      - name: Cleanup
+        if: ${{ always() && !inputs.keep_cluster }}
+        run: |
+          set -uo pipefail
+          if [ -z "${CLUSTER_NAME:-}" ]; then
+            echo "No resource group was created; nothing to clean up."
+            exit 0
+          fi
+          if [ "$(az group exists --name "$CLUSTER_NAME")" != "true" ]; then
+            echo "Resource group ${CLUSTER_NAME} does not exist."
+            exit 0
+          fi
+
+          # A single fire-and-forget delete can be lost to ARM throttling, which
+          # would leak a whole GPU cluster, so retry until the request is accepted.
+          for i in $(seq 1 5); do
+            if az group delete --name "$CLUSTER_NAME" --yes --no-wait; then
+              echo "Deletion of ${CLUSTER_NAME} accepted."
+              exit 0
+            fi
+            echo "::warning::az group delete attempt ${i}/5 failed; retrying in 30s"
+            sleep 30
+          done
+
+          echo "::error::Could not start deletion of ${CLUSTER_NAME}; delete it manually."
+          exit 1

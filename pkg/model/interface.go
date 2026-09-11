@@ -362,29 +362,60 @@ func (p *PresetParam) buildHuggingfaceInferenceCommand() []string {
 	return utils.ShellCmd(torchCommand + " " + modelCommand)
 }
 
-// defaultGPUMemoryUtilization is the --gpu-memory-utilization value KAITO passes
-// to vLLM unless the GPU model overrides it in gpuMemoryUtilizationByGPUModel.
+// defaultGPUMemoryUtilization is the --gpu-memory-utilization value the node
+// estimator plans capacity with for GPU models that have no safety cap in
+// gpuMemoryUtilizationByGPUModel. It is not passed to vLLM: the launcher's own
+// free-memory-based default (get_max_gpu_memory_utilization() in
+// inference_api.py) governs those runs, so this is a conservative planning
+// assumption only, sized below what the runtime default typically resolves to.
 const defaultGPUMemoryUtilization = "0.92"
 
 // gpuMemoryUtilizationByGPUModel overrides --gpu-memory-utilization for specific
 // GPU models that need extra headroom. Keyed by the exact sku.GPUConfig.GPUModel
-// string (as defined in the SKU table, e.g. "NVIDIA A10").
+// string (as defined in the SKU table, e.g. "NVIDIA A10"). Unlike
+// defaultGPUMemoryUtilization, these values ARE passed to vLLM: they are hard
+// safety caps that must win over the runtime's free-memory-based default.
 var gpuMemoryUtilizationByGPUModel = map[string]string{
 	// On the 24 GiB A10, vLLM's KV-pool profiling under-counts the
 	// prompt-logprobs warmup + CUDA-graph-capture transients for some models
-	// (e.g. gemma-4's huge-vocab final_logit_softcapping copy), so the default
-	// 0.84 leaves too little headroom and OOMs. 0.82 leaves enough slack.
+	// (e.g. gemma-4's huge-vocab final_logit_softcapping copy), so the runtime
+	// default leaves too little headroom and OOMs. 0.82 leaves enough slack.
 	"NVIDIA A10": "0.82",
 }
 
-// ResolveGPUMemoryUtilization returns the --gpu-memory-utilization vLLM should be
-// launched with for the given GPU. A per-GPU-model safety cap (clamps down for
-// tight-VRAM GPUs) wins over the default.
+// ResolveGPUMemoryUtilization returns the --gpu-memory-utilization value the
+// node estimator should plan capacity with for the given GPU. A per-GPU-model
+// safety cap (clamps down for tight-VRAM GPUs) wins over the default planning
+// assumption. This does not necessarily match what vLLM is launched with: see
+// gpuMemoryUtilizationOverride.
 func ResolveGPUMemoryUtilization(gpuModel string) string {
 	if util, ok := gpuMemoryUtilizationByGPUModel[gpuModel]; ok {
 		return util
 	}
 	return defaultGPUMemoryUtilization
+}
+
+// gpuMemoryUtilizationOverride returns the --gpu-memory-utilization value that
+// must be forced on the vLLM command line for the given GPU, if any. Full GPUs
+// with no per-model safety cap get no override, leaving vLLM's own
+// free-memory-based default (get_max_gpu_memory_utilization() in
+// inference_api.py) in effect. MIG slices always get a forced value: they have
+// no GPUModel to key a safety cap off (see GetMIGGPUConfig), and small
+// profiles (e.g. 1g.5gb) can resolve a runtime default below what the node
+// estimator assumed when it planned capacity, so the estimator's planning
+// value must also be what vLLM actually runs with.
+func gpuMemoryUtilizationOverride(gpuConfig *sku.GPUConfig) (string, bool) {
+	gpuModel := ""
+	if gpuConfig != nil {
+		gpuModel = gpuConfig.GPUModel
+	}
+	if util, ok := gpuMemoryUtilizationByGPUModel[gpuModel]; ok {
+		return util, true
+	}
+	if gpuConfig != nil && gpuConfig.IsMIG {
+		return ResolveGPUMemoryUtilization(gpuModel), true
+	}
+	return "", false
 }
 
 func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
@@ -413,11 +444,12 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		p.VLLM.ModelRunParams["max-model-len"] = strconv.Itoa(rc.MaxModelLen)
 	}
 
-	gpuModel := ""
-	if rc.GPUConfig != nil {
-		gpuModel = rc.GPUConfig.GPUModel
+	// Only force a value for GPUs with a known safety cap or MIG slices;
+	// otherwise let vLLM's free-memory-based default apply
+	// (get_max_gpu_memory_utilization() in inference_api.py).
+	if util, ok := gpuMemoryUtilizationOverride(rc.GPUConfig); ok {
+		p.VLLM.ModelRunParams["gpu-memory-utilization"] = util
 	}
-	p.VLLM.ModelRunParams["gpu-memory-utilization"] = ResolveGPUMemoryUtilization(gpuModel)
 
 	// Enable KV cache events by default so in-cluster subscribers can consume
 	// BlockStored / BlockRemoved / AllBlocksCleared events over ZMQ on the port

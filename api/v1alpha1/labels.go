@@ -56,6 +56,10 @@ const (
 	// AnnotationBypassResourceChecks allows bypassing resource requirement checks like GPU memory.
 	AnnotationBypassResourceChecks = KAITOPrefix + "bypass-resource-checks"
 
+	// AnnotationEnableSpeculativeDecoding enables preset-driven speculative
+	// decoding on a Workspace. Only "true" and "false" are valid values.
+	AnnotationEnableSpeculativeDecoding = KAITOPrefix + "enable-speculative-decoding"
+
 	// AnnotationNodeImageFamily specifies node image family used by generated NodeClaim.
 	AnnotationNodeImageFamily = KAITOPrefix + "node-image-family"
 
@@ -77,6 +81,25 @@ const (
 	// retained after upgrade completes as an audit trail.
 	LabelUpgradeToVersion = KAITOPrefix + "upgrade-to-version"
 )
+
+// EffectiveInferenceRuntime returns the runtime that a generated Workspace
+// with the given annotations would resolve to via GetWorkspaceRuntimeName.
+// Kept here so admission paths that project a set of annotations onto a
+// Workspace can share the exact same effective-runtime computation used at
+// runtime (including the FeatureFlagVLLM gate).
+func EffectiveInferenceRuntime(annotations map[string]string) model.RuntimeName {
+	if !featuregates.FeatureGates[consts.FeatureFlagVLLM] {
+		return model.RuntimeNameHuggingfaceTransformers
+	}
+	runtime := model.RuntimeNameVLLM
+	switch annotations[AnnotationWorkspaceRuntime] {
+	case string(model.RuntimeNameHuggingfaceTransformers):
+		runtime = model.RuntimeNameHuggingfaceTransformers
+	case string(model.RuntimeNameVLLM):
+		runtime = model.RuntimeNameVLLM
+	}
+	return runtime
+}
 
 // GetWorkspaceRuntimeName returns the runtime name of the workspace.
 func GetWorkspaceRuntimeName(ws *Workspace) model.RuntimeName {

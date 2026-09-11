@@ -616,6 +616,53 @@ func TestApplyInferenceWithTemplate(t *testing.T) {
 	}
 }
 
+func TestComputeHashIncludesSpeculativeDecodingAnnotation(t *testing.T) {
+	wsWithout := test.MockWorkspaceWithComputeHash.DeepCopy()
+	delete(wsWithout.Annotations, v1beta1.AnnotationEnableSpeculativeDecoding)
+
+	wsWith := wsWithout.DeepCopy()
+	if wsWith.Annotations == nil {
+		wsWith.Annotations = map[string]string{}
+	}
+	wsWith.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding] = "true"
+
+	assert.NotEqual(t, ComputeHash(wsWithout), ComputeHash(wsWith), "speculative-decoding annotation must affect workspace revision hash")
+}
+
+func TestSyncInferenceMutablePodSpec(t *testing.T) {
+	existing := &corev1.PodSpec{
+		Containers: []corev1.Container{{
+			Name:         "inference",
+			Command:      []string{"old-cmd"},
+			Args:         []string{"old-arg"},
+			Env:          []corev1.EnvVar{{Name: "OLD", Value: "1"}},
+			VolumeMounts: []corev1.VolumeMount{{Name: "old", MountPath: "/old"}},
+		}},
+		InitContainers: []corev1.Container{{Name: "old-init"}},
+		Volumes:        []corev1.Volume{{Name: "old-vol"}},
+	}
+	desired := &corev1.PodSpec{
+		Containers: []corev1.Container{{
+			Name:         "inference",
+			Command:      []string{"new-cmd"},
+			Args:         []string{"new-arg"},
+			Env:          []corev1.EnvVar{{Name: "NEW", Value: "2"}},
+			VolumeMounts: []corev1.VolumeMount{{Name: "new", MountPath: "/new"}},
+		}},
+		InitContainers: []corev1.Container{{Name: "new-init"}},
+		Volumes:        []corev1.Volume{{Name: "new-vol"}},
+	}
+
+	syncInferenceMutablePodSpec(existing, desired)
+
+	assert.Equal(t, desired.Containers[0].Command, existing.Containers[0].Command)
+	assert.Equal(t, desired.Containers[0].Args, existing.Containers[0].Args)
+	assert.Equal(t, desired.Containers[0].Env, existing.Containers[0].Env)
+	assert.Equal(t, desired.Containers[0].VolumeMounts, existing.Containers[0].VolumeMounts)
+	assert.Equal(t, desired.InitContainers, existing.InitContainers)
+	assert.Equal(t, desired.Volumes, existing.Volumes)
+}
+
 func TestSyncControllerRevision(t *testing.T) {
 	testcases := map[string]struct {
 		callMocks     func(c *test.MockClient)
@@ -633,7 +680,7 @@ func TestSyncControllerRevision(t *testing.T) {
 						*dep = appsv1.ControllerRevision{
 							ObjectMeta: v1.ObjectMeta{
 								Annotations: map[string]string{
-									WorkspaceHashAnnotation: "79676e4782172441933f628c7f541c81accd0fe88af9588101e2344589f6dbae",
+									WorkspaceHashAnnotation: ComputeHash(&test.MockWorkspaceWithComputeHash),
 								},
 							},
 							Revision: 1,

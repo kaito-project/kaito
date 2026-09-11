@@ -569,6 +569,7 @@ func ComputeHash(w *kaitov1beta1.Workspace) string {
 	encoder.Encode(w.Resource)
 	encoder.Encode(w.Inference)
 	encoder.Encode(w.Tuning)
+	encoder.Encode(w.GetAnnotations()[kaitov1beta1.AnnotationEnableSpeculativeDecoding])
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
@@ -687,12 +688,12 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	}
 
 	revisionStr := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
-	workloadObj, err := inference.GeneratePresetInference(ctx, wObj, revisionStr, model, c.Client, c.nodeProvisioner)
+	result, err := inference.GeneratePresetInference(ctx, wObj, revisionStr, model, c.Client, c.nodeProvisioner)
 	if err != nil {
 		return err
 	}
 
-	desiredStatefulSet, ok := workloadObj.(*appsv1.StatefulSet)
+	desiredStatefulSet, ok := result.Workload.(*appsv1.StatefulSet)
 	if !ok {
 		return fmt.Errorf("failed to generate statefulset workload for inference")
 	}
@@ -700,7 +701,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	existingObj := &appsv1.StatefulSet{}
 	if err := resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, existingObj); err != nil {
 		if apierrors.IsNotFound(err) {
-			return resources.CreateResource(ctx, workloadObj, c.Client)
+			return resources.CreateResource(ctx, result.Workload, c.Client)
 		}
 		return err
 	}
@@ -732,12 +733,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	} else {
 		// Selectively update the pod spec fields that are relevant to inference,
 		// and leave the rest unchanged in case user has customized them.
-		desiredPodSpec := desiredStatefulSet.Spec.Template.Spec
-		spec := &existingObj.Spec.Template.Spec
-		spec.Containers[0].Env = desiredPodSpec.Containers[0].Env
-		spec.Containers[0].VolumeMounts = desiredPodSpec.Containers[0].VolumeMounts
-		spec.InitContainers = desiredPodSpec.InitContainers
-		spec.Volumes = desiredPodSpec.Volumes
+		syncInferenceMutablePodSpec(&existingObj.Spec.Template.Spec, &desiredStatefulSet.Spec.Template.Spec)
 	}
 
 	annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = revisionStr
@@ -758,6 +754,15 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		}
 	}
 	return nil
+}
+
+func syncInferenceMutablePodSpec(existingSpec, desiredSpec *corev1.PodSpec) {
+	existingSpec.Containers[0].Command = desiredSpec.Containers[0].Command
+	existingSpec.Containers[0].Args = desiredSpec.Containers[0].Args
+	existingSpec.Containers[0].Env = desiredSpec.Containers[0].Env
+	existingSpec.Containers[0].VolumeMounts = desiredSpec.Containers[0].VolumeMounts
+	existingSpec.InitContainers = desiredSpec.InitContainers
+	existingSpec.Volumes = desiredSpec.Volumes
 }
 
 // shouldUpgradeBaseImage checks if an auto-upgrade has been requested via the upgrade label

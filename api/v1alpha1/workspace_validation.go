@@ -62,6 +62,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 	if base == nil {
 		klog.InfoS("Validate creation", "workspace", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
 		errs = errs.Also(w.validateCreate().ViaField("spec"))
+		errs = errs.Also(w.validateSpeculativeDecoding())
 		if w.Inference != nil {
 			// Check if the bypass resource checks annotation is set
 			bypassResourceChecks := false
@@ -94,10 +95,58 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		if w.Inference != nil {
 			errs = errs.Also(w.Inference.validateUpdate(old.Inference).ViaField("inference"))
 		}
+		errs = errs.Also(w.validateSpeculativeDecoding())
 		if w.Tuning != nil {
 			errs = errs.Also(w.Tuning.validateUpdate(old.Tuning).ViaField("tuning"))
 		}
 	}
+	return errs
+}
+
+func (w *Workspace) validateSpeculativeDecoding() (errs *apis.FieldError) {
+	annotations := w.GetAnnotations()
+	val, present := annotations[AnnotationEnableSpeculativeDecoding]
+	if !present || val == "false" {
+		return nil
+	}
+	if val != "true" {
+		errs = errs.Also(apis.ErrInvalidValue(
+			fmt.Sprintf("annotation %s has invalid value %q; expected \"true\" or \"false\"", AnnotationEnableSpeculativeDecoding, val),
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+		return errs
+	}
+
+	if w.Inference == nil || w.Inference.Preset == nil || w.Inference.Preset.Name == "" {
+		errs = errs.Also(apis.ErrGeneric(
+			"kaito.sh/enable-speculative-decoding requires a preset inference; "+
+				"remove the annotation or set inference.preset.name",
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+		return errs
+	}
+
+	// Any preset is accepted: presets registered in generator.speculativeDecodingByPreset
+	// get their preset-tuned config (e.g. mtp for DeepSeek R1/V3/V3.2); everything else
+	// falls back to the universal ngram default at pod-spec generation time
+	// (pkg/workspace/inference/preset_inferences.go applySpeculativeDecoding).
+	// So there is no admission-time "preset must be in the supported list" gate.
+
+	if GetWorkspaceRuntimeName(w) != model.RuntimeNameVLLM {
+		errs = errs.Also(apis.ErrGeneric(
+			fmt.Sprintf(
+				"kaito.sh/enable-speculative-decoding requires the vLLM runtime; "+
+					"preset %q is configured for a different runtime",
+				w.Inference.Preset.Name,
+			),
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+	}
+
+	// Current reachable methods in this PR are only preset-tuned mtp and the
+	// universal ngram fallback; both are allowed under pipeline parallelism.
+	// Keep a follow-up hook here if KAITO later adds a method that is not PP-safe.
+
 	return errs
 }
 

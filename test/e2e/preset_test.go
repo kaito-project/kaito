@@ -45,6 +45,7 @@ const (
 	PresetPhi4Model                 = "phi-4"
 	PresetGemma3_4BInstructModel    = "google/gemma-3-4b-it"
 	PresetGemma3_27BInstructModel   = "google/gemma-3-27b-it"
+	PresetGemma4_E2BInstructModel   = "google/gemma-4-E2B-it"
 	PresetGemma4_12BInstructModel   = "google/gemma-4-12B-it"
 	PresetQwen3_8_27BModel          = "Qwen/Qwen3.8-27B"
 	PresetGPT_OSS_20BModel          = "gpt-oss-20b"
@@ -52,6 +53,7 @@ const (
 	PresetMinistral33BInstructModel = "mistralai/ministral-3-3b-instruct-2512"
 	PresetGranite4_1_8BModel        = "ibm-granite/granite-4.1-8b"
 	PresetNemotron3Nano4BModel      = "nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16"
+	PresetMiMo7BBaseModel           = "XiaomiMiMo/MiMo-7B-Base"
 	WorkspaceHashAnnotation         = "workspace.kaito.io/hash"
 	// WorkspaceRevisionAnnotation represents the revision number of the workload managed by the workspace
 	WorkspaceRevisionAnnotation = "workspace.kaito.io/revision"

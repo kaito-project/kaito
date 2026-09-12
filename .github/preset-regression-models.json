@@ -1,0 +1,291 @@
+{
+  "_comment": [
+    "Test matrix for the 'Preset Model Regression Test' workflow (.github/workflows/preset-model-regression.yaml).",
+    "One dedicated AKS cluster is created per gpuPool and the models targeting that pool are deployed one at a time.",
+    "A target means: provision `nodes` node(s) of a SKU with `gpusPerNode` GPUs and wait for the Workspace to reach",
+    "InferenceReady=True. `nodes` is the expected output of the KAITO node estimator; the workflow reports a",
+    "warning (not a failure) when status.targetNodeCount differs, since the estimator picks the real count.",
+    "Set `skip: true` on a model to exclude it from every pool; `skipReason` is shown in the report."
+  ],
+  "gpuPools": {
+    "a10": {
+      "displayName": "NVIDIA A10",
+      "region": "swedencentral",
+      "fallbackRegion": "polandcentral",
+      "instanceTypes": {
+        "1": "Standard_NV36ads_A10_v5",
+        "2": "Standard_NV72ads_A10_v5"
+      }
+    },
+    "a100": {
+      "displayName": "NVIDIA A100 80GB",
+      "region": "eastus",
+      "fallbackRegion": "westeurope",
+      "instanceTypes": {
+        "1": "Standard_NC24ads_A100_v4",
+        "2": "Standard_NC48ads_A100_v4",
+        "4": "Standard_NC96ads_A100_v4"
+      }
+    },
+    "h100": {
+      "displayName": "NVIDIA H100",
+      "region": "australiaeast",
+      "fallbackRegion": "",
+      "instanceTypes": {
+        "1": "Standard_NC40ads_H100_v5",
+        "2": "Standard_NC80adis_H100_v5",
+        "8": "Standard_ND96isr_H100_v5"
+      }
+    }
+  },
+  "defaults": {
+    "timeoutMinutes": 60
+  },
+  "models": [
+    {
+      "name": "openai/gpt-oss-120b",
+      "targets": [
+        { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 1 }
+      ]
+    },
+    {
+      "name": "openai/gpt-oss-20b",
+      "targets": [
+        { "gpu": "a10", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 1 }
+      ]
+    },
+    {
+      "name": "google/gemma-4-12B-it",
+      "targets": [
+        { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 1 }
+      ]
+    },
+    {
+      "name": "google/gemma-4-26B-A4B-it",
+      "targets": [
+        { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 1 }
+      ]
+    },
+    {
+      "name": "google/gemma-4-31B-it",
+      "targets": [
+        { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 1 }
+      ]
+    },
+    {
+      "name": "google/gemma-4-E4B-it",
+      "targets": [
+        { "gpu": "a10", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 1 }
+      ]
+    },
+    {
+      "name": "google/gemma-4-E2B-it",
+      "targets": [
+        { "gpu": "a10", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 1 }
+      ]
+    },
+    {
+      "name": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "timeoutMinutes": 90,
+      "targets": [
+        { "gpu": "a100", "nodes": 3, "gpusPerNode": 1 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 2 }
+      ]
+    },
+    {
+      "name": "deepseek-ai/DeepSeek-V4-Pro",
+      "skip": true,
+      "skipReason": "requires 8xH100 nodes",
+      "targets": [
+        { "gpu": "h100", "nodes": 2, "gpusPerNode": 8 }
+      ]
+    },
+    {
+      "name": "deepseek-ai/DeepSeek-V3.2",
+      "skip": true,
+      "skipReason": "requires 8xH100 nodes",
+      "targets": [
+        { "gpu": "h100", "nodes": 2, "gpusPerNode": 8 }
+      ]
+    },
+    {
+      "name": "Qwen/Qwen3.8-27B",
+      "targets": [
+        { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 1 }
+      ]
+    },
+    {
+      "name": "Qwen/Qwen3.6-35B-A3B-FP8",
+      "targets": [
+        { "gpu": "a10", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 1 }
+      ]
+    },
+    {
+      "name": "Qwen/Qwen3.6-35B-A3B",
+      "targets": [
+        { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 1 }
+      ]
+    },
+    {
+      "name": "Qwen/Qwen3.6-27B",
+      "targets": [
+        { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 1 }
+      ]
+    },
+    {
+      "name": "Qwen/Qwen3.5-9B",
+      "targets": [
+        { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 1 }
+      ]
+    },
+    {
+      "name": "Qwen/Qwen3.5-4B",
+      "targets": [
+        { "gpu": "a10", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 1 }
+      ]
+    },
+    {
+      "name": "mistralai/Mistral-Small-4-119B-2603",
+      "timeoutMinutes": 90,
+      "targets": [
+        { "gpu": "a100", "nodes": 1, "gpusPerNode": 2 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 2 }
+      ]
+    },
+    {
+      "name": "mistralai/Mistral-Medium-3.5-128B",
+      "timeoutMinutes": 90,
+      "targets": [
+        { "gpu": "a100", "nodes": 1, "gpusPerNode": 2 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 2 }
+      ]
+    },
+    {
+      "name": "mistralai/Ministral-3-14B-Instruct-2512",
+      "targets": [
+        { "gpu": "a10", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 1 }
+      ]
+    },
+    {
+      "name": "mistralai/Mistral-7B-Instruct-v0.3",
+      "targets": [
+        { "gpu": "a10", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 1 }
+      ]
+    },
+    {
+      "name": "nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4",
+      "skip": true,
+      "skipReason": "requires 8xH100 nodes",
+      "targets": [
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 8 }
+      ]
+    },
+    {
+      "name": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16",
+      "timeoutMinutes": 90,
+      "targets": [
+        { "gpu": "a100", "nodes": 2, "gpusPerNode": 2 },
+        { "gpu": "h100", "nodes": 2, "gpusPerNode": 2 }
+      ]
+    },
+    {
+      "name": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16",
+      "targets": [
+        { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 1 }
+      ]
+    },
+    {
+      "name": "nvidia/NVIDIA-Nemotron-Nano-9B-v2",
+      "targets": [
+        { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 1 }
+      ]
+    },
+    {
+      "name": "nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16",
+      "targets": [
+        { "gpu": "a10", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 1 }
+      ]
+    },
+    {
+      "name": "ibm-granite/granite-4.1-8b",
+      "targets": [
+        { "gpu": "a10", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 1 }
+      ]
+    },
+    {
+      "name": "zai-org/GLM-5.2-FP8",
+      "skip": true,
+      "skipReason": "requires 8xH100 nodes",
+      "targets": [
+        { "gpu": "h100", "nodes": 2, "gpusPerNode": 8 }
+      ]
+    },
+    {
+      "name": "moonshotai/Kimi-K2.7-Code",
+      "skip": true,
+      "skipReason": "requires 8xH100 nodes",
+      "targets": [
+        { "gpu": "h100", "nodes": 2, "gpusPerNode": 8 }
+      ]
+    },
+    {
+      "name": "moonshotai/Kimi-K2.6",
+      "skip": true,
+      "skipReason": "requires 8xH100 nodes",
+      "targets": [
+        { "gpu": "h100", "nodes": 2, "gpusPerNode": 8 }
+      ]
+    },
+    {
+      "name": "MiniMaxAI/MiniMax-M2.7",
+      "timeoutMinutes": 90,
+      "targets": [
+        { "gpu": "a100", "nodes": 2, "gpusPerNode": 2 },
+        { "gpu": "h100", "nodes": 2, "gpusPerNode": 2 }
+      ]
+    },
+    {
+      "name": "microsoft/phi-4",
+      "targets": [
+        { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 1 }
+      ]
+    },
+    {
+      "name": "microsoft/Phi-4-mini-instruct",
+      "targets": [
+        { "gpu": "a10", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 1 }
+      ]
+    }
+  ]
+}

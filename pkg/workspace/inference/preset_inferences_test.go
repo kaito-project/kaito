@@ -1721,10 +1721,10 @@ func TestGeneratePresetInferenceNodeImageWeights(t *testing.T) {
 }
 
 // TestGeneratePresetInferenceCUDAToolkitProvisioner verifies that CUDA toolkit
-// provisioning is gated on models that require DeepGEMM: such a model gets a
+// provisioning is gated on models that require runtime CUDA compilation: such a model gets a
 // cuda-toolkit-provisioner init container and a read-write hostPath at the
 // resolved toolkit path (the default baked path when no annotation is set), with
-// CUDA_HOME pointing at that node path; a model that does not require DeepGEMM
+// CUDA_HOME pointing at that node path; a model that does not require the toolkit
 // gets no CUDA toolkit at all.
 func TestGeneratePresetInferenceCUDAToolkitProvisioner(t *testing.T) {
 	test.RegisterTestModel()
@@ -1816,16 +1816,16 @@ func TestGeneratePresetInferenceCUDAToolkitProvisioner(t *testing.T) {
 		}
 	})
 
-	t.Run("non-DeepGEMM model gets no CUDA toolkit", func(t *testing.T) {
+	t.Run("model without runtime CUDA compilation gets no CUDA toolkit", func(t *testing.T) {
 		podSpec := genPodSpec(t, "test-model", nil)
 		for _, ic := range podSpec.InitContainers {
 			if ic.Name == "cuda-toolkit-provisioner" {
-				t.Errorf("did not expect cuda-toolkit-provisioner for a non-DeepGEMM model")
+				t.Errorf("did not expect cuda-toolkit-provisioner for a model without runtime CUDA compilation")
 			}
 		}
 		for _, e := range podSpec.Containers[0].Env {
 			if e.Name == "CUDA_HOME" {
-				t.Errorf("did not expect CUDA_HOME for a non-DeepGEMM model, got %q", e.Value)
+				t.Errorf("did not expect CUDA_HOME for a model without runtime CUDA compilation, got %q", e.Value)
 			}
 		}
 	})

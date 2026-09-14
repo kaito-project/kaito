@@ -658,7 +658,7 @@ func (p *PresetParam) RequiresDeepGEMM() bool {
 // RequiresFlashInfer returns true for models which require JIT-compilation with nvcc at runtime.
 func (p *PresetParam) RequiresFlashInfer() bool {
 	switch p.Name {
-	case "mistral-small-4-119b-2603":
+	case "minimax-m2.7", "mistral-small-4-119b-2603":
 		return true
 	}
 	return false

@@ -184,14 +184,6 @@
       ]
     },
     {
-      "name": "mistralai/Mistral-7B-Instruct-v0.3",
-      "targets": [
-        { "gpu": "a10", "nodes": 1, "gpusPerNode": 1 },
-        { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
-        { "gpu": "h100", "nodes": 1, "gpusPerNode": 1 }
-      ]
-    },
-    {
       "name": "nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4",
       "skip": true,
       "skipReason": "requires 8xH100 nodes",

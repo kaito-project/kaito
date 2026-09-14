@@ -937,3 +937,23 @@ models:
   mambaStateBytesPerLayer: 3207168
   numFullAttnLayers: 16
   numLinearLayers: 48
+- name: Qwen/Qwen3.8-27B-FP8
+  description: https://huggingface.co/Qwen/Qwen3.8-27B-FP8
+  license: apache-2.0
+  pipelineTag: image-text-to-text
+  baseModel:
+  - Qwen/Qwen3.8-27B
+  modelFileSize: 28.75Gi
+  architectures:
+  - Qwen3_5ForConditionalGeneration
+  modelTokenLimit: 262144
+  hiddenSize: 5120
+  numHiddenLayers: 64
+  numAttentionHeads: 24
+  numKeyValueHeads: 4
+  headDim: 256
+  quantMethod: fp8
+  mambaStateBytesPerSeq: 153944064
+  mambaStateBytesPerLayer: 3207168
+  numFullAttnLayers: 16
+  numLinearLayers: 48

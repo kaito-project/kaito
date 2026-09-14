@@ -711,13 +711,59 @@ func (g *Generator) calculateKVCacheTokenSize() (int, string) {
 	return tokenSize, attnType
 }
 
-// computeMambaStateBytesPerSeq returns the per-sequence Mamba-2 state cache size
-// in bytes (for a single TP rank) for hybrid Mamba/Attention models such as
-// NemotronH, or 0 for pure-attention models. vLLM allocates this state for every
-// running sequence in addition to the attention KV cache, so it must be reserved
-// when sizing GPUs. The conv state uses the model dtype (2 bytes); the SSM
-// temporal state uses float32 (4 bytes), matching vLLM's mamba cache.
-func computeMambaStateBytesPerSeq(config map[string]interface{}) int {
+// MambaLayerInfo describes the hybrid (Mamba-2 / Gated DeltaNet) state footprint of
+// a model. PerLayerBytes and NumLinearLayers give the total per-sequence state that
+// the node estimator reserves; PerLayerBytes together with NumFullAttnLayers lets the
+// launcher estimate vLLM's Mamba-cache-block ceiling that bounds --max-num-seqs.
+type MambaLayerInfo struct {
+	PerLayerBytes     int // per linear/SSM layer, single TP rank
+	NumLinearLayers   int
+	NumFullAttnLayers int
+}
+
+// hybridLayerCounts returns the number of linear/SSM (Mamba or Gated DeltaNet) layers
+// and the number of full-attention layers in a hybrid model, read from the config's
+// layer pattern. Returns (0, 0) for pure-attention models.
+func hybridLayerCounts(config map[string]interface{}) (numLinear, numFull int) {
+	// Qwen3.5+ style: explicit per-layer list of "linear_attention"/"full_attention".
+	if lt, ok := config["layer_types"].([]interface{}); ok {
+		for _, l := range lt {
+			s, _ := l.(string)
+			ls := strings.ToLower(s)
+			switch {
+			case strings.Contains(ls, "linear"), strings.Contains(ls, "mamba"):
+				numLinear++
+			case strings.Contains(ls, "attention"), strings.Contains(ls, "full"):
+				numFull++
+			}
+		}
+		return numLinear, numFull
+	}
+	// NemotronH style: hybrid_override_pattern with M=Mamba, *=attention, -=MLP.
+	if pattern, ok := config["hybrid_override_pattern"].(string); ok && pattern != "" {
+		return strings.Count(pattern, "M"), strings.Count(pattern, "*")
+	}
+	// Older style: layers_block_type list.
+	if lbt, ok := config["layers_block_type"].([]interface{}); ok {
+		for _, l := range lbt {
+			s, _ := l.(string)
+			ls := strings.ToLower(s)
+			switch {
+			case strings.Contains(ls, "mamba"), strings.Contains(ls, "linear"):
+				numLinear++
+			case strings.Contains(ls, "attention"):
+				numFull++
+			}
+		}
+	}
+	return numLinear, numFull
+}
+
+// mamba2StatePerLayer returns the per-layer, single-TP-rank Mamba-2 state cache size
+// in bytes (conv state + SSM temporal state) for models like NemotronH, or 0 when the
+// config has no Mamba-2 parameters. The conv state uses the model dtype (2 bytes); the
+// SSM temporal state uses float32 (4 bytes), matching vLLM's mamba cache.
+func mamba2StatePerLayer(config map[string]interface{}) int {
 	ssmStateSize := getInt(config, []string{"ssm_state_size", "mamba_state_dim", "mamba_d_state", "state_size"}, 0)
 	convKernel := getInt(config, []string{"conv_kernel", "mamba_d_conv"}, 0)
 	mambaNumHeads := getInt(config, []string{"mamba_num_heads"}, 0)
@@ -729,34 +775,66 @@ func computeMambaStateBytesPerSeq(config map[string]interface{}) int {
 	if nGroups == 0 {
 		nGroups = 1
 	}
-
-	// Count Mamba layers from the hybrid layer pattern ("M" = mamba block).
-	numMambaLayers := 0
-	if pattern, ok := config["hybrid_override_pattern"].(string); ok {
-		numMambaLayers = strings.Count(pattern, "M")
-	}
-	if numMambaLayers == 0 {
-		if lbt, ok := config["layers_block_type"].([]interface{}); ok {
-			for _, l := range lbt {
-				if s, ok := l.(string); ok && strings.Contains(strings.ToLower(s), "mamba") {
-					numMambaLayers++
-				}
-			}
-		}
-	}
-	if numMambaLayers == 0 {
-		return 0
-	}
-
 	const convDtypeBytes = 2 // model dtype (bf16)
 	const ssmDtypeBytes = 4  // vLLM keeps the SSM temporal state in float32
-
 	mambaIntermediate := mambaNumHeads * mambaHeadDim
 	convDim := mambaIntermediate + 2*nGroups*ssmStateSize
 	convStateBytes := convDim * (convKernel - 1) * convDtypeBytes
 	ssmStateBytes := mambaNumHeads * mambaHeadDim * ssmStateSize * ssmDtypeBytes
+	return convStateBytes + ssmStateBytes
+}
 
-	return numMambaLayers * (convStateBytes + ssmStateBytes)
+// gatedDeltaNetStatePerLayer returns the per-layer, single-TP-rank Gated DeltaNet
+// recurrent-state cache size in bytes (conv state + temporal SSM state) for hybrid
+// linear-attention models such as Qwen3.5+, or 0 when the config has no Gated DeltaNet
+// parameters. Mirrors vLLM's MambaStateShapeCalculator.gated_delta_net_state_shape:
+// conv_dim = head_k_dim*num_k_heads*2 + head_v_dim*num_v_heads (model dtype), temporal
+// state = num_v_heads*head_v_dim*head_k_dim (SSM dtype, float32 by default).
+func gatedDeltaNetStatePerLayer(config map[string]interface{}) int {
+	headKDim := getInt(config, []string{"linear_key_head_dim"}, 0)
+	headVDim := getInt(config, []string{"linear_value_head_dim"}, 0)
+	numKHeads := getInt(config, []string{"linear_num_key_heads"}, 0)
+	numVHeads := getInt(config, []string{"linear_num_value_heads"}, 0)
+	convKernel := getInt(config, []string{"linear_conv_kernel_dim"}, 0)
+	if headKDim == 0 || headVDim == 0 || numKHeads == 0 || numVHeads == 0 || convKernel <= 1 {
+		return 0
+	}
+	const convDtypeBytes = 2 // model dtype (bf16)
+	ssmDtypeBytes := 4       // vLLM keeps the SSM temporal state in float32 by default
+	if d, _ := config["mamba_ssm_dtype"].(string); d == "bfloat16" || d == "float16" {
+		ssmDtypeBytes = 2
+	}
+	convDim := headKDim*numKHeads*2 + headVDim*numVHeads
+	convStateBytes := convDim * (convKernel - 1) * convDtypeBytes
+	temporalStateBytes := numVHeads * headVDim * headKDim * ssmDtypeBytes
+	return convStateBytes + temporalStateBytes
+}
+
+// computeMambaLayerInfo returns the hybrid state footprint for a model, handling both
+// Mamba-2 (NemotronH) and Gated DeltaNet (Qwen3.5+) architectures. Returns a zero value
+// for pure-attention models.
+func computeMambaLayerInfo(config map[string]interface{}) MambaLayerInfo {
+	perLayer := mamba2StatePerLayer(config)
+	if perLayer == 0 {
+		perLayer = gatedDeltaNetStatePerLayer(config)
+	}
+	if perLayer == 0 {
+		return MambaLayerInfo{}
+	}
+	numLinear, numFull := hybridLayerCounts(config)
+	if numLinear == 0 {
+		return MambaLayerInfo{}
+	}
+	return MambaLayerInfo{PerLayerBytes: perLayer, NumLinearLayers: numLinear, NumFullAttnLayers: numFull}
+}
+
+// computeMambaStateBytesPerSeq returns the total per-sequence hybrid state cache size
+// in bytes (single TP rank), summed over all linear/SSM layers, or 0 for pure-attention
+// models. vLLM allocates this state for every running sequence in addition to the
+// attention KV cache, so the node estimator reserves it when sizing GPUs.
+func computeMambaStateBytesPerSeq(config map[string]interface{}) int {
+	info := computeMambaLayerInfo(config)
+	return info.PerLayerBytes * info.NumLinearLayers
 }
 
 func (g *Generator) FinalizeParams() {
@@ -829,9 +907,13 @@ func (g *Generator) FinalizeParams() {
 	g.Param.Metadata.BytesPerToken = bpt
 	g.Param.Metadata.AttnType = attnType
 
-	// Catalog models get this from loadFromCatalog; compute it for the HF path.
-	if g.Param.Metadata.MambaStateBytesPerSeq == 0 {
-		g.Param.Metadata.MambaStateBytesPerSeq = computeMambaStateBytesPerSeq(g.ModelConfig)
+	// Catalog models get these from loadFromCatalog; compute them for the HF path.
+	if g.Param.Metadata.MambaStateBytesPerSeq == 0 && g.Param.Metadata.MambaStateBytesPerLayer == 0 {
+		info := computeMambaLayerInfo(g.ModelConfig)
+		g.Param.Metadata.MambaStateBytesPerSeq = info.PerLayerBytes * info.NumLinearLayers
+		g.Param.Metadata.MambaStateBytesPerLayer = info.PerLayerBytes
+		g.Param.Metadata.NumFullAttnLayers = info.NumFullAttnLayers
+		g.Param.Metadata.NumLinearLayers = info.NumLinearLayers
 	}
 }
 
@@ -897,6 +979,9 @@ func (g *Generator) loadFromCatalog() bool {
 	// Populate fields that FetchModelMetadata would have set
 	g.Param.Metadata.ModelFileSize = entry.ModelFileSize
 	g.Param.Metadata.MambaStateBytesPerSeq = entry.MambaStateBytesPerSeq
+	g.Param.Metadata.MambaStateBytesPerLayer = entry.MambaStateBytesPerLayer
+	g.Param.Metadata.NumFullAttnLayers = entry.NumFullAttnLayers
+	g.Param.Metadata.NumLinearLayers = entry.NumLinearLayers
 	g.Param.VLLM.ModelRunParams = make(map[string]string)
 
 	if entry.LoadFormat != "" {

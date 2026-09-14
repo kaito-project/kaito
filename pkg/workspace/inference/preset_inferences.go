@@ -42,6 +42,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/mig"
 	"github.com/kaito-project/kaito/pkg/utils/nodes"
+	"github.com/kaito-project/kaito/pkg/workspace/estimator/maxnumseqestimator"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/registry"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
@@ -591,6 +592,15 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			vllmPort = consts.PortDecodeVLLM
 		}
 
+		// Hybrid Mamba/Gated-DeltaNet models need max-num-seqs capped to the Mamba
+		// cache blocks vLLM can allocate, otherwise engine startup hard-fails.
+		maxNumSeqs, _ := (&maxnumseqestimator.MaxNumSeqsEstimator{}).Estimate(maxnumseqestimator.MaxNumSeqsEstimateRequest{
+			WorkspaceName:   ctx.Workspace.Name,
+			InferenceParams: inferenceParam,
+			GPUConfig:       gpuConfig,
+			NumNodes:        numNodes,
+		})
+
 		commands := inferenceParam.GetInferenceCommand(pkgmodel.RuntimeContext{
 			RuntimeName:          runtimeName,
 			GPUConfig:            gpuConfig,
@@ -600,6 +610,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			WorkspaceMetadata:    ctx.Workspace.ObjectMeta,
 			DistributedInference: ctx.Model.SupportDistributedInference(),
 			MaxModelLen:          maxModelLen,
+			MaxNumSeqs:           maxNumSeqs,
 			InferencePort:        vllmPort,
 			RuntimeContextExtraArguments: pkgmodel.RuntimeContextExtraArguments{
 				AdaptersEnabled:       len(ctx.Workspace.Inference.Adapters) > 0,

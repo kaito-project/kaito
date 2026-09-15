@@ -1,11 +1,11 @@
-# Gateway Output Guardrail PoC - PR1: Minimal ext_proc
+# Gateway Output Guardrail PoC - PR1: Minimal ext_proc (Go)
 
 ## Objective
 
 Prove that Istio Gateway can intercept LLM response and mutate it via Envoy ext_proc.
 
 This PR implements:
-1. **gRPC server** - Minimal ext_proc service that appends a test string to response body
+1. **gRPC server** (Go) - Minimal ext_proc service that appends a test string to response body
 2. **EnvoyFilter** - Istio configuration to insert ext_proc into Gateway filter chain
 3. **Kubernetes manifests** - Deployment, Service for the ext_proc service
 
@@ -55,29 +55,24 @@ Client receives mutated response
 
 | File | Purpose |
 |------|---------|
-| `processor/server.py` | gRPC server (~100 LOC) |
-| `processor/requirements.txt` | Python dependencies |
+| `main.go` | gRPC server (~60 LOC) |
 | `envoyfilter.yaml` | Istio EnvoyFilter configuration |
 | `deployment.yaml` | Kubernetes Deployment + Service |
-| `Dockerfile` | Container image definition |
+| `Dockerfile` | Multi-stage Go build |
 
 ## How to Build and Deploy
 
 ### Step 1: Build Docker Image
 
 ```bash
-cd examples/gateway-api-inference-extension/output-guardrail/
+cd /home/yiqi/kaito
 
-# Note: First build takes ~2-3 min (clones Envoy repo, compiles full proto dependency tree)
-#       Includes smoke test to verify all required proto types
-docker build -t your-registry/llm-guard-ext-proc:v1 .
+# Build from repo root (needs go.mod/go.sum for dependencies)
+docker build -t your-registry/llm-guard-ext-proc:v1 \
+  -f examples/gateway-api-inference-extension/output-guardrail/Dockerfile .
+
 docker push your-registry/llm-guard-ext-proc:v1
 ```
-
-**Build details**:
-- Builder stage compiles external_processor.proto + all dependencies
-- Runtime stage gets only the compiled Python modules (no build tools)
-- Smoke test verifies ProcessingResponse, BodyResponse, CommonResponse, BodyMutation are available
 
 ### Step 2: Update Image in deployment.yaml
 
@@ -89,6 +84,8 @@ image: your-registry/llm-guard-ext-proc:v1
 ### Step 3: Deploy to Kubernetes
 
 ```bash
+cd examples/gateway-api-inference-extension/output-guardrail
+
 # Deploy the ext_proc service
 kubectl apply -f deployment.yaml
 
@@ -171,3 +168,4 @@ These are all intentional for the PoC. PR2+ will improve these.
 
 - [Envoy External Processing Filter](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/ext_proc_filter)
 - [Istio EnvoyFilter](https://istio.io/latest/docs/reference/config/networking/envoy-filter/)
+- [go-control-plane](https://github.com/envoyproxy/go-control-plane)

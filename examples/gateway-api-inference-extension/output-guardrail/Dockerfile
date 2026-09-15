@@ -1,66 +1,23 @@
-FROM python:3.11-slim as builder
+FROM golang:1.26 AS builder
 
 WORKDIR /build
 
-# Install build dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \
-    && rm -rf /var/lib/apt/lists/*
+# Copy KAITO go.mod/go.sum (has all dependencies including go-control-plane)
+COPY go.mod go.sum ./
 
-# Install proto compilation tools
-RUN pip install --no-cache-dir grpcio-tools==1.60.0 googleapis-common-protos
+# Download dependencies
+RUN go mod download
 
-# Clone Envoy and generate complete proto dependency tree
-RUN git clone --depth 1 https://github.com/envoyproxy/envoy.git && \
-    cd envoy/api && \
-    python -m grpc_tools.protoc \
-      -I. \
-      --python_out=/build \
-      --grpc_python_out=/build \
-      envoy/service/ext_proc/v3/external_processor.proto \
-      envoy/config/core/v3/base.proto \
-      envoy/config/core/v3/address.proto \
-      envoy/config/core/v3/socket_option.proto \
-      envoy/config/core/v3/extension.proto \
-      envoy/config/core/v3/backoff.proto \
-      envoy/config/core/v3/http_uri.proto \
-      envoy/type/v3/percent.proto \
-      envoy/type/v3/http_status.proto \
-      envoy/type/v3/semantic_version.proto \
-      envoy/extensions/filters/http/ext_proc/v3/processing_mode.proto && \
-    # Ensure all __init__.py exist
-    find /build/envoy -type d -exec touch "{}/__init__.py" \;
+# Copy ext_proc server code
+COPY examples/gateway-api-inference-extension/output-guardrail/main.go .
 
-FROM python:3.11-slim
+# Build static binary (no external deps needed in container)
+RUN CGO_ENABLED=0 GOOS=linux go build -o ext-proc main.go
 
-WORKDIR /app
+FROM gcr.io/distroless/static-debian12
 
-# Install runtime dependencies
-COPY processor/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy only the binary
+COPY --from=builder /build/ext-proc /
 
-# Copy generated proto files from builder
-COPY --from=builder /build/envoy ./envoy/
-
-# Copy server code
-COPY processor/server.py .
-
-# Smoke test: verify all required proto types are available
-RUN python << 'PYEOF'
-from envoy.service.ext_proc.v3 import external_processor_pb2 as p
-from envoy.service.ext_proc.v3 import external_processor_pb2_grpc as g
-
-assert hasattr(p, 'ProcessingResponse'), "Missing ProcessingResponse"
-assert hasattr(p, 'BodyResponse'), "Missing BodyResponse"
-assert hasattr(p, 'CommonResponse'), "Missing CommonResponse"
-assert hasattr(p, 'BodyMutation'), "Missing BodyMutation"
-assert hasattr(p, 'HttpBody'), "Missing HttpBody"
-assert hasattr(g, 'ExternalProcessorServicer'), "Missing ExternalProcessorServicer"
-
-print("✓ All required proto types verified")
-PYEOF
-
-# Run as non-root
-USER 1000
-
-CMD ["python", "server.py"]
+# Run as non-root (distroless already enforces this)
+ENTRYPOINT ["/ext-proc"]

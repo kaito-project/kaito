@@ -1,4 +1,4 @@
-name: Preset Model Regression Test
+name: Preset Model Regression Test (H100/A100/A10)
 
 # Regression-tests preset model deployments across GPU families.
 #

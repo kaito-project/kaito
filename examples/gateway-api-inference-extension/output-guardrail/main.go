@@ -6,7 +6,7 @@ import (
 	"log"
 	"net"
 
-	"github.com/envoyproxy/go-control-plane/envoy/service/ext_proc/v3"
+	v3 "github.com/envoyproxy/go-control-plane/envoy/service/ext_proc/v3"
 	"google.golang.org/grpc"
 )
 

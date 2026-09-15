@@ -6,8 +6,8 @@ linters-settings:
     skip-generated: true
     sections:
       - standard
-      - prefix(github.com/kaito-project)
       - default
+      - prefix(github.com/kaito-project)
 
 linters:
   disable-all: true

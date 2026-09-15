@@ -100,17 +100,32 @@ kubectl apply -f envoyfilter.yaml
 ### Step 4: Verify EnvoyFilter is Loaded
 
 ```bash
+# Get the gateway pod name
+GATEWAY_POD=$(kubectl get pods -n istio-system -l app=istio-ingressgateway -o jsonpath='{.items[0].metadata.name}')
+
 # Check if filter is in the listener config
-istioctl proxy-config listener \
-  -l gateway.networking.k8s.io/gateway-name=inference-gateway \
-  -n default | grep -A 10 "ext_proc"
+istioctl proxy-config listener $GATEWAY_POD -n istio-system | grep -A 10 "ext_proc"
 
 # Check the cluster was added
-istioctl proxy-config cluster \
-  -l gateway.networking.k8s.io/gateway-name=inference-gateway | grep llm_guard
+istioctl proxy-config cluster $GATEWAY_POD -n istio-system | grep llm_guard
 ```
 
 ## Test
+
+### Mock Backend (for manual E2E testing)
+
+This PR includes a mock LLM backend for testing without a real model:
+
+```bash
+# Deploy mock backend and route
+kubectl apply -f mock-backend.yaml
+kubectl apply -f mock-route.yaml
+
+# Verify mock-llm pod is running
+kubectl get pods -l app=mock-llm
+```
+
+The mock backend returns: `{"choices":[{"message":{"content":"hello from mock model"}}]}`
 
 ### Simple Curl Test
 
@@ -146,7 +161,7 @@ To validate before merge, must demonstrate all of:
 - [ ] Response body is received by processor
 - [ ] Response is modified and returned
 - [ ] Client receives modified response with `[GATEWAY_TEST]` appended
-- [ ] EPP (Endpoint Picker) routing continues to function
+- [ ] (Full E2E validation with inference-gateway routing deferred to PR4/full integration testing)
 
 ## Known Limitations
 

@@ -826,6 +826,33 @@ func TestSyncControllerRevision(t *testing.T) {
 	}
 }
 
+func TestComputeHashIncludesWorkloadConfigAnnotations(t *testing.T) {
+	base := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+	base.Status.TargetNodeCount = 1
+
+	hashWithoutAnnotations := ComputeHash(base)
+
+	withPerformanceMode := base.DeepCopy()
+	withPerformanceMode.Annotations = map[string]string{
+		v1beta1.AnnotationPerformanceMode: v1beta1.PerformanceModeInteractivity,
+	}
+	hashWithPerformanceMode := ComputeHash(withPerformanceMode)
+	assert.NotEqual(t, hashWithoutAnnotations, hashWithPerformanceMode)
+
+	withLocalWeights := base.DeepCopy()
+	withLocalWeights.Annotations = map[string]string{
+		v1beta1.AnnotationUseLocalWeights: "true",
+	}
+	hashWithLocalWeights := ComputeHash(withLocalWeights)
+	assert.NotEqual(t, hashWithoutAnnotations, hashWithLocalWeights)
+
+	withUnrelatedAnnotation := base.DeepCopy()
+	withUnrelatedAnnotation.Annotations = map[string]string{
+		"example.com/unrelated": "value",
+	}
+	assert.Equal(t, hashWithoutAnnotations, ComputeHash(withUnrelatedAnnotation))
+}
+
 // mockEstimator is a mock implementation of estimator.NodesEstimator for testing
 type mockEstimator struct {
 	mock.Mock

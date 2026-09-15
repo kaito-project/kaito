@@ -550,9 +550,10 @@ func (c *WorkspaceReconciler) syncControllerRevision(ctx context.Context, wObj *
 
 func marshalSelectedFields(wObj *kaitov1beta1.Workspace) ([]byte, error) {
 	partialMap := map[string]interface{}{
-		"resource":  wObj.Resource,
-		"inference": wObj.Inference,
-		"tuning":    wObj.Tuning,
+		"resource":    wObj.Resource,
+		"inference":   wObj.Inference,
+		"tuning":      wObj.Tuning,
+		"annotations": workloadConfigAnnotationsForRevision(wObj),
 	}
 
 	jsonData, err := json.Marshal(partialMap)
@@ -569,7 +570,32 @@ func ComputeHash(w *kaitov1beta1.Workspace) string {
 	encoder.Encode(w.Resource)
 	encoder.Encode(w.Inference)
 	encoder.Encode(w.Tuning)
+	encoder.Encode(workloadConfigAnnotationsForRevision(w))
 	return hex.EncodeToString(hasher.Sum(nil))
+}
+
+func workloadConfigAnnotationsForRevision(w *kaitov1beta1.Workspace) map[string]string {
+	if w == nil || len(w.Annotations) == 0 {
+		return nil
+	}
+
+	selected := make(map[string]string)
+	for _, key := range []string{
+		kaitov1beta1.AnnotationWorkspaceRuntime,
+		kaitov1beta1.AnnotationPerformanceMode,
+		kaitov1beta1.AnnotationUseLocalWeights,
+		mmconsts.AnnotationModelStreaming,
+		mmconsts.AnnotationStreamingServiceAccount,
+		mmconsts.AnnotationModelMirrorStorageClass,
+	} {
+		if value, ok := w.Annotations[key]; ok {
+			selected[key] = value
+		}
+	}
+	if len(selected) == 0 {
+		return nil
+	}
+	return selected
 }
 
 func (c *WorkspaceReconciler) ensureService(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
@@ -730,14 +756,12 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		existingObj.Spec.MinReadySeconds = desiredStatefulSet.Spec.MinReadySeconds
 		existingObj.Spec.PersistentVolumeClaimRetentionPolicy = desiredStatefulSet.Spec.PersistentVolumeClaimRetentionPolicy
 	} else {
-		// Selectively update the pod spec fields that are relevant to inference,
-		// and leave the rest unchanged in case user has customized them.
-		desiredPodSpec := desiredStatefulSet.Spec.Template.Spec
-		spec := &existingObj.Spec.Template.Spec
-		spec.Containers[0].Env = desiredPodSpec.Containers[0].Env
-		spec.Containers[0].VolumeMounts = desiredPodSpec.Containers[0].VolumeMounts
-		spec.InitContainers = desiredPodSpec.InitContainers
-		spec.Volumes = desiredPodSpec.Volumes
+		// When the Workspace revision changes, keep the existing StatefulSet object
+		// but move its PodTemplate to the controller-generated desired state so
+		// workload-affecting Workspace metadata (for example performance mode,
+		// local weights, or model-streaming wiring) takes effect on existing
+		// replicas too.
+		existingObj.Spec.Template = desiredStatefulSet.Spec.Template
 	}
 
 	annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = revisionStr

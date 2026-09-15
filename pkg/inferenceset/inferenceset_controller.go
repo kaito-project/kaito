@@ -15,6 +15,7 @@ package inferenceset
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strconv"
@@ -56,9 +57,10 @@ import (
 )
 
 const (
-	InferenceSetHashAnnotation = "inferenceset.kaito.io/hash"
-	InferenceSetNameLabel      = "inferenceset.kaito.io/name"
-	revisionHashSuffix         = 5
+	InferenceSetHashAnnotation                 = "inferenceset.kaito.io/hash"
+	InferenceSetNameLabel                      = "inferenceset.kaito.io/name"
+	propagatedWorkspaceAnnotationsAnnotation   = "inferenceset.kaito.io/propagated-workspace-annotations"
+	revisionHashSuffix                         = 5
 )
 
 type InferenceSetReconciler struct {
@@ -395,6 +397,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 		}
 		for i := range replicaNumToCreate {
 			workspaceObj := inferenceset.NewWorkspaceForInferenceSet(iObj)
+			setTrackedWorkspaceAnnotationKeys(workspaceObj, collectPropagatedWorkspaceAnnotationKeys(iObj.Spec.Template.Annotations))
 			klog.InfoS("creating workspace", "workspace", workspaceObj.Name, "index", i)
 			if err := c.Client.Create(ctx, workspaceObj); err != nil {
 				// The create failed, so no create event will be observed for it;
@@ -562,29 +565,103 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 //
 // Idempotent and safe to call on every reconcile; no-op if preconditions are not met.
 
-// reconcileWorkspaceAnnotations additively propagates mutable template
-// annotations from the parent InferenceSet onto an existing child Workspace.
-// It updates changed values and adds new keys while preserving unrelated
-// annotations that may be managed elsewhere on the Workspace object.
+// reconcileWorkspaceAnnotations propagates mutable template annotations from
+// the parent InferenceSet onto an existing child Workspace. It adds/updates
+// current parent-owned keys, removes previously propagated keys that the parent
+// no longer carries, and preserves unrelated Workspace-owned annotations.
 func reconcileWorkspaceAnnotations(ws *kaitov1beta1.Workspace, desiredAnnotations map[string]string) bool {
-	if len(desiredAnnotations) == 0 {
-		return false
-	}
+	trackedKeys := getTrackedWorkspaceAnnotationKeys(ws)
+	desiredTrackedKeys := collectPropagatedWorkspaceAnnotationKeys(desiredAnnotations)
+
 	if ws.Annotations == nil {
+		if len(desiredTrackedKeys) == 0 {
+			return false
+		}
 		ws.Annotations = make(map[string]string)
 	}
 
 	updated := false
-	for k, v := range desiredAnnotations {
-		if !shouldPropagateWorkspaceAnnotation(k) {
-			continue
-		}
+	for _, k := range desiredTrackedKeys {
+		v := desiredAnnotations[k]
 		if current, ok := ws.Annotations[k]; !ok || current != v {
 			ws.Annotations[k] = v
 			updated = true
 		}
 	}
+
+	desiredTrackedSet := make(map[string]struct{}, len(desiredTrackedKeys))
+	for _, k := range desiredTrackedKeys {
+		desiredTrackedSet[k] = struct{}{}
+	}
+	for _, k := range trackedKeys {
+		if _, ok := desiredTrackedSet[k]; ok {
+			continue
+		}
+		if _, present := ws.Annotations[k]; present {
+			delete(ws.Annotations, k)
+			updated = true
+		}
+	}
+
+	if setTrackedWorkspaceAnnotationKeys(ws, desiredTrackedKeys) {
+		updated = true
+	}
 	return updated
+}
+
+func collectPropagatedWorkspaceAnnotationKeys(desiredAnnotations map[string]string) []string {
+	trackedKeys := make([]string, 0, len(desiredAnnotations))
+	for k := range desiredAnnotations {
+		if shouldPropagateWorkspaceAnnotation(k) {
+			trackedKeys = append(trackedKeys, k)
+		}
+	}
+	sort.Strings(trackedKeys)
+	return trackedKeys
+}
+
+func getTrackedWorkspaceAnnotationKeys(ws *kaitov1beta1.Workspace) []string {
+	if ws == nil || ws.Annotations == nil {
+		return nil
+	}
+	raw := ws.Annotations[propagatedWorkspaceAnnotationsAnnotation]
+	if raw == "" {
+		return nil
+	}
+	var tracked []string
+	if err := json.Unmarshal([]byte(raw), &tracked); err != nil {
+		return nil
+	}
+	return tracked
+}
+
+func setTrackedWorkspaceAnnotationKeys(ws *kaitov1beta1.Workspace, trackedKeys []string) bool {
+	if ws == nil {
+		return false
+	}
+	if len(trackedKeys) == 0 {
+		if ws.Annotations == nil {
+			return false
+		}
+		if _, ok := ws.Annotations[propagatedWorkspaceAnnotationsAnnotation]; ok {
+			delete(ws.Annotations, propagatedWorkspaceAnnotationsAnnotation)
+			return true
+		}
+		return false
+	}
+	if ws.Annotations == nil {
+		ws.Annotations = make(map[string]string)
+	}
+	encoded, err := json.Marshal(trackedKeys)
+	if err != nil {
+		return false
+	}
+	newValue := string(encoded)
+	if ws.Annotations[propagatedWorkspaceAnnotationsAnnotation] == newValue {
+		return false
+	}
+	ws.Annotations[propagatedWorkspaceAnnotationsAnnotation] = newValue
+	return true
 }
 
 func shouldPropagateWorkspaceAnnotation(annotationKey string) bool {

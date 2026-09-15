@@ -837,15 +837,27 @@ func TestComputeHashIncludesWorkloadConfigAnnotations(t *testing.T) {
 	withPerformanceMode.Annotations = map[string]string{
 		v1beta1.AnnotationPerformanceMode: v1beta1.PerformanceModeInteractivity,
 	}
-	hashWithPerformanceMode := ComputeHash(withPerformanceMode)
-	assert.NotEqual(t, hashWithoutAnnotations, hashWithPerformanceMode)
+	assert.NotEqual(t, hashWithoutAnnotations, ComputeHash(withPerformanceMode))
 
 	withLocalWeights := base.DeepCopy()
 	withLocalWeights.Annotations = map[string]string{
 		v1beta1.AnnotationUseLocalWeights: "true",
 	}
-	hashWithLocalWeights := ComputeHash(withLocalWeights)
-	assert.NotEqual(t, hashWithoutAnnotations, hashWithLocalWeights)
+	assert.NotEqual(t, hashWithoutAnnotations, ComputeHash(withLocalWeights))
+
+	withDisableBenchmark := base.DeepCopy()
+	withDisableBenchmark.Annotations = map[string]string{
+		v1beta1.AnnotationDisableBenchmark: "true",
+	}
+	assert.NotEqual(t, hashWithoutAnnotations, ComputeHash(withDisableBenchmark))
+
+	withStaticStreaming := base.DeepCopy()
+	withStaticStreaming.Annotations = map[string]string{}
+	withStaticStreaming.Annotations[modelstreaming.AnnotationStaticModelMirror] = "true"
+	withStaticStreaming.Annotations[modelstreaming.AnnotationStreamDatarefsURL] = "https://x/models/m/versions/1"
+	withStaticStreaming.Annotations[modelstreaming.AnnotationStreamIdentityClientID] = "client-id"
+	withStaticStreaming.Annotations[modelstreaming.AnnotationStreamSourceType] = modelstreaming.SourceTypeBYO
+	assert.NotEqual(t, hashWithoutAnnotations, ComputeHash(withStaticStreaming))
 
 	withUnrelatedAnnotation := base.DeepCopy()
 	withUnrelatedAnnotation.Annotations = map[string]string{

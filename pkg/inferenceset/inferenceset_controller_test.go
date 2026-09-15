@@ -566,6 +566,8 @@ func TestReconcileWorkspaceAnnotations(t *testing.T) {
 	initialAnnotations := map[string]string{}
 	initialAnnotations["keep"] = "existing"
 	initialAnnotations["kaito.sh/foo"] = "old"
+	initialAnnotations["kaito.sh/remove-me"] = "stale"
+	initialAnnotations[propagatedWorkspaceAnnotationsAnnotation] = `["kaito.sh/foo","kaito.sh/remove-me"]`
 	initialAnnotations[v1beta1.AnnotationCapacityType] = consts.KarpenterCapacityTypeSpot
 	initialAnnotations[mmconsts.AnnotationModelStreaming] = "disabled"
 	ws := &v1beta1.Workspace{ObjectMeta: v1.ObjectMeta{Annotations: initialAnnotations}}
@@ -581,6 +583,7 @@ func TestReconcileWorkspaceAnnotations(t *testing.T) {
 	expectedAnnotations["keep"] = "existing"
 	expectedAnnotations["kaito.sh/foo"] = "new"
 	expectedAnnotations["kaito.sh/bar"] = "added"
+	expectedAnnotations[propagatedWorkspaceAnnotationsAnnotation] = `["kaito.sh/bar","kaito.sh/foo"]`
 	expectedAnnotations[v1beta1.AnnotationCapacityType] = consts.KarpenterCapacityTypeSpot
 	expectedAnnotations[mmconsts.AnnotationModelStreaming] = "disabled"
 	assert.Equal(t, expectedAnnotations, ws.Annotations)
@@ -589,9 +592,18 @@ func TestReconcileWorkspaceAnnotations(t *testing.T) {
 
 	empty := &v1beta1.Workspace{}
 	assert.True(t, reconcileWorkspaceAnnotations(empty, map[string]string{"kaito.sh/baz": "value"}))
-	assert.Equal(t, map[string]string{"kaito.sh/baz": "value"}, empty.Annotations)
+	expectedEmptyAnnotations := map[string]string{}
+	expectedEmptyAnnotations["kaito.sh/baz"] = "value"
+	expectedEmptyAnnotations[propagatedWorkspaceAnnotationsAnnotation] = `["kaito.sh/baz"]`
+	assert.Equal(t, expectedEmptyAnnotations, empty.Annotations)
 
-	assert.False(t, reconcileWorkspaceAnnotations(&v1beta1.Workspace{}, nil))
+	trackedAnnotations := map[string]string{}
+	trackedAnnotations[propagatedWorkspaceAnnotationsAnnotation] = `["kaito.sh/old"]`
+	trackedAnnotations["kaito.sh/old"] = "value"
+	trackedAnnotations["keep"] = "still-here"
+	withOnlyTrackedMetadata := &v1beta1.Workspace{ObjectMeta: v1.ObjectMeta{Annotations: trackedAnnotations}}
+	assert.True(t, reconcileWorkspaceAnnotations(withOnlyTrackedMetadata, nil))
+	assert.Equal(t, map[string]string{"keep": "still-here"}, withOnlyTrackedMetadata.Annotations)
 }
 
 func TestSelectWorkspacesToDelete(t *testing.T) {

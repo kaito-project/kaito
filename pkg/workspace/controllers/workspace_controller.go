@@ -582,11 +582,16 @@ func workloadConfigAnnotationsForRevision(w *kaitov1beta1.Workspace) map[string]
 	selected := make(map[string]string)
 	for _, key := range []string{
 		kaitov1beta1.AnnotationWorkspaceRuntime,
+		kaitov1beta1.AnnotationDisableBenchmark,
 		kaitov1beta1.AnnotationPerformanceMode,
 		kaitov1beta1.AnnotationUseLocalWeights,
 		mmconsts.AnnotationModelStreaming,
 		mmconsts.AnnotationStreamingServiceAccount,
 		mmconsts.AnnotationModelMirrorStorageClass,
+		modelstreaming.AnnotationStaticModelMirror,
+		modelstreaming.AnnotationStreamDatarefsURL,
+		modelstreaming.AnnotationStreamIdentityClientID,
+		modelstreaming.AnnotationStreamSourceType,
 	} {
 		if value, ok := w.Annotations[key]; ok {
 			selected[key] = value

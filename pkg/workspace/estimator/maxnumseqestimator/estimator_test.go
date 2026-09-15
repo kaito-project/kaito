@@ -33,6 +33,7 @@ func TestMaxNumSeqsEstimator_Estimate(t *testing.T) {
 
 	cases := []struct {
 		name          string
+		modelName     string
 		perLayerBytes int
 		numFull       int
 		numLinear     int
@@ -48,9 +49,10 @@ func TestMaxNumSeqsEstimator_Estimate(t *testing.T) {
 	}{
 		{
 			// Qwen3.6-27B / Qwen3.8-27B: 48 linear + 16 full-attn layers,
-			// 3207168 B/linear layer. vLLM measured 614-640 available blocks on
+			// 3207168 B/linear layer. vLLM measured 614 available blocks on
 			// this GPU; stay below.
-			name:            "qwen 27b on single h100",
+			name:            "qwen3.6-27b on single h100",
+			modelName:       "qwen3.6-27b",
 			perLayerBytes:   3207168,
 			numFull:         16,
 			numLinear:       48,
@@ -63,19 +65,49 @@ func TestMaxNumSeqsEstimator_Estimate(t *testing.T) {
 			wantBelowBlocks: 614,
 		},
 		{
-			name:          "qwen 35b-a3b on single h100",
-			perLayerBytes: 2146304,
-			numFull:       10,
-			numLinear:     30,
-			weights:       "66.97Gi",
+			name:            "qwen3.8-27b on single h100",
+			modelName:       "qwen3.8-27b",
+			perLayerBytes:   3207168,
+			numFull:         16,
+			numLinear:       48,
+			weights:         "51.75Gi",
+			gpu:             h100,
+			numNodes:        1,
+			wantOK:          true,
+			wantMin:         500,
+			wantMax:         600,
+			wantBelowBlocks: 614,
+		},
+		{
+			name:            "qwen3.6-35b-a3b on single h100",
+			modelName:       "qwen3.6-35b-a3b",
+			perLayerBytes:   2146304,
+			numFull:         10,
+			numLinear:       30,
+			weights:         "66.97Gi",
+			gpu:             h100,
+			numNodes:        1,
+			wantOK:          true,
+			wantMin:         500,
+			wantMax:         620,
+			wantBelowBlocks: 747,
+		},
+		{
+			// Tiny hybrid model leaves room for far more than the vLLM default, so
+			// the estimator must not lower it.
+			name:          "small hybrid keeps vllm default",
+			modelName:     "tiny-hybrid",
+			perLayerBytes: 100000,
+			numFull:       4,
+			numLinear:     12,
+			weights:       "4Gi",
 			gpu:           h100,
 			numNodes:      1,
-			wantOK:        true,
-			wantMin:       500,
-			wantMax:       620,
+			wantOK:        false,
 		},
 		{
 			name:          "pure attention model is not capped",
+			modelName:     "qwen3.6-27b",
 			perLayerBytes: 0,
 			numFull:       0,
 			numLinear:     0,
@@ -86,24 +118,13 @@ func TestMaxNumSeqsEstimator_Estimate(t *testing.T) {
 		},
 		{
 			name:          "multi-node is not capped",
+			modelName:     "qwen3.6-27b",
 			perLayerBytes: 3207168,
 			numFull:       16,
 			numLinear:     48,
 			weights:       "51.75Gi",
 			gpu:           h100,
 			numNodes:      2,
-			wantOK:        false,
-		},
-		{
-			// Tiny hybrid model leaves room for far more than the vLLM default, so
-			// the estimator must not lower it.
-			name:          "small hybrid keeps vllm default",
-			perLayerBytes: 100000,
-			numFull:       4,
-			numLinear:     12,
-			weights:       "4Gi",
-			gpu:           h100,
-			numNodes:      1,
 			wantOK:        false,
 		},
 	}
@@ -113,6 +134,7 @@ func TestMaxNumSeqsEstimator_Estimate(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			params := &pkgmodel.PresetParam{
 				Metadata: pkgmodel.Metadata{
+					Name:                    tc.modelName,
 					MambaStateBytesPerLayer: tc.perLayerBytes,
 					NumFullAttnLayers:       tc.numFull,
 					NumLinearLayers:         tc.numLinear,
@@ -150,7 +172,7 @@ func TestMaxNumSeqsEstimator_Estimate_NilInputs(t *testing.T) {
 	// Hybrid model but no GPU config resolved.
 	got, ok = c.Estimate(MaxNumSeqsEstimateRequest{
 		InferenceParams: &pkgmodel.PresetParam{
-			Metadata:                pkgmodel.Metadata{MambaStateBytesPerLayer: 3207168, NumFullAttnLayers: 16, NumLinearLayers: 48},
+			Metadata:                pkgmodel.Metadata{Name: "qwen3.6-27b", MambaStateBytesPerLayer: 3207168, NumFullAttnLayers: 16, NumLinearLayers: 48},
 			TotalSafeTensorFileSize: "51.75Gi",
 		},
 		NumNodes: 1,

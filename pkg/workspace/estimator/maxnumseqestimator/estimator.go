@@ -78,28 +78,28 @@ func (c *MaxNumSeqsEstimator) Name() string {
 }
 
 // Estimate returns a --max-num-seqs value that keeps vLLM engine initialization
-// below the available Mamba cache blocks. Hybrid models allocate one Mamba cache
-// block per decode sequence, and vLLM hard-fails at CUDA graph capture when
-// max_num_seqs exceeds the number of blocks it could allocate. vLLM pads the
-// attention block size up to the per-layer Mamba page so every KV cache group
-// shares one page size, and it charges one page per layer in a group, so:
+// below the available Mamba cache blocks. This is needed because hybrid models
+// allocate one Mamba cache block per decode sequence, and vLLM hard-fails at CUDA
+// graph capture when max_num_seqs exceeds the number of blocks it could allocate:
+// https://github.com/vllm-project/vllm/issues/49064.
+// Internally, vLLM pads the attention block size up to the per-layer Mamba page so
+// every KV cache group shares one page size, and it charges one page per layer in
+// a group, so:
 //
 //	num_blocks ≈ availPool / (mambaStatePerLayerPerRank × groupSize)
 //
-// Returns (value, true) only when the model is hybrid, runs on a single node, and
-// the cap actually reduces below vLLM's default. Returns (0, false) otherwise,
-// leaving vLLM's own default in place.
+// Returns (value, true) when the model is hybrid, runs on a single node, and the
+// cap actually reduces below vLLM's default. Returns (0, false) otherwise, leaving
+// vLLM's own default in place.
+// TODO: remove this estimator once auto-clamping is supported for max-num-seqs in vLLM.
 func (c *MaxNumSeqsEstimator) Estimate(req MaxNumSeqsEstimateRequest) (int, bool) {
 	params := req.InferenceParams
-	if params == nil {
+	gpuConfig := req.GPUConfig
+	if params == nil || gpuConfig == nil || gpuConfig.GPUCount <= 0 || gpuConfig.GPUMem.IsZero() {
 		return 0, false
 	}
 	// Pure-attention models have no Mamba state, so vLLM's default always fits.
 	if params.MambaStateBytesPerLayer <= 0 || params.NumFullAttnLayers <= 0 || params.NumLinearLayers <= 0 {
-		return 0, false
-	}
-	gpuConfig := req.GPUConfig
-	if gpuConfig == nil || gpuConfig.GPUCount <= 0 || gpuConfig.GPUMem.IsZero() {
 		return 0, false
 	}
 	// Multi-node (pipeline-parallel) block accounting is not modeled here; leave
